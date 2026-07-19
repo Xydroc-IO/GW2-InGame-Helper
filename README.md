@@ -93,6 +93,10 @@ Opacity, font scale, and related options live in the addon’s Nexus options pan
 
 ## Updating
 
+Nexus can auto-update from GitHub Releases (`UP_GitHub` → [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)).
+
+Manual update:
+
 1. Close Guild Wars 2.
 2. Replace `addons/GW2-InGame-Helper.dll` with the new build.
 3. Start the game again.

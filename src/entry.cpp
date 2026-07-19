@@ -287,7 +287,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 3;
-	G::AddonDef.Version.Build    = 0;
+	G::AddonDef.Version.Build    = 1;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
@@ -295,7 +295,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
 	G::AddonDef.Flags            = AF_DisableHotloading;
-	G::AddonDef.Provider         = UP_None;
-	G::AddonDef.UpdateLink       = nullptr;
+	G::AddonDef.Provider         = UP_GitHub;
+	G::AddonDef.UpdateLink       = "https://github.com/Xydroc-IO/GW2-InGame-Helper";
 	return &G::AddonDef;
 }
