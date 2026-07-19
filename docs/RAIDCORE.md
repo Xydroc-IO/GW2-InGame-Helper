@@ -20,7 +20,7 @@ Paste or host [`description.html`](description.html) (cover + logo under `media/
 
 ## Release notes
 
-See [`RELEASE_NOTES.md`](RELEASE_NOTES.md) for the current version (v1.3.0).
+See [`RELEASE_NOTES.md`](RELEASE_NOTES.md) for the current version (v1.3.1).
 
 ## Player artifact
 
@@ -33,3 +33,12 @@ Ship **only** `GW2-InGame-Helper.dll`.
 | `KB_HELPER_TOGGLE` | `CTRL+SHIFT+H` | Open / close helper |
 
 **Removed:** `KB_HELPER_ITEM` (Ctrl+Shift+I / U item lookup). Deregistered on load so leftover binds stop firing.
+
+## Updates
+
+```text
+Provider   = UP_GitHub
+UpdateLink = https://github.com/Xydroc-IO/GW2-InGame-Helper
+```
+
+Nexus checks GitHub Releases for newer addon versions. Publish a release with `GW2-InGame-Helper.dll` as an asset so players can auto-update.

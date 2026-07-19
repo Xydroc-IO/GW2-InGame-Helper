@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.3.0
+# GW2 In-Game Helper v1.3.1
 
 <p align="center">
   <img src="media/cover.png" alt="GW2 In-Game Helper" width="100%">
@@ -17,6 +17,10 @@ One DLL for Nexus — no memory reads.
 
 Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Wine/Proton OK).
 Replaces the older Wiki / Snowcrow browser addons.
+
+## What’s new in 1.3.1
+
+- Wired Nexus auto-updates: `Provider = UP_GitHub`, `UpdateLink` → GitHub repo.
 
 ## What’s new in 1.3.0
 
