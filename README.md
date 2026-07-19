@@ -25,6 +25,8 @@ Works on Windows and on Linux via Wine/Proton.
 
 > **Players only need the DLL.** The browser helper is embedded and extracts on first use; Chromium comes from the game’s `bin64/cef`.
 
+Full HTML listing copy (Nexus / web): [`docs/description.html`](docs/description.html)
+
 ## Features
 
 - In-game CEF browser with site dropdown (grouped by category)
