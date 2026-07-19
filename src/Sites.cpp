@@ -10,8 +10,7 @@ namespace
 	 * Built-in sites. To add another:
 	 *  1. Append a SiteDef in the right category block (keep categories contiguous).
 	 *  2. Rebuild — no other wiring needed for basic browse/home.
-	 *  3. Optional: set searchUrlPrefix/Suffix for toolbar/item search.
-	 *  4. Optional: itemLookup=true only for wiki-style Special:Search.
+	 *  3. Optional: set searchUrlPrefix/Suffix for toolbar search.
 	 */
 	SiteDef gSites[] = {
 		/* —— Help (default landing) —— */
@@ -23,7 +22,6 @@ namespace
 			"about:helper-home",
 			nullptr,
 			nullptr,
-			false,
 		},
 
 		/* —— Official —— */
@@ -35,7 +33,6 @@ namespace
 			"https://www.guildwars2.com/",
 			nullptr,
 			nullptr,
-			false,
 		},
 
 		/* —— Wiki —— */
@@ -47,7 +44,6 @@ namespace
 			"https://wiki.guildwars2.com/wiki/Main_Page",
 			"https://wiki.guildwars2.com/wiki/Special:Search?search=",
 			"&go=Go",
-			true,
 		},
 
 		/* —— Builds —— */
@@ -59,7 +55,6 @@ namespace
 			"https://snowcrows.com/",
 			nullptr,
 			nullptr,
-			false,
 		},
 		{
 			"metabattle",
@@ -69,7 +64,6 @@ namespace
 			"https://metabattle.com/wiki/MetaBattle_Wiki",
 			nullptr,
 			nullptr,
-			false,
 		},
 
 		/* —— Tools —— */
@@ -81,7 +75,6 @@ namespace
 			"https://gw2efficiency.com/",
 			nullptr,
 			nullptr,
-			false,
 		},
 
 		/* —— Farming —— */
@@ -93,7 +86,6 @@ namespace
 			"https://fast.farming-community.eu/",
 			nullptr,
 			nullptr,
-			false,
 		},
 	};
 

@@ -31,7 +31,6 @@ add_library(GW2-InGame-Helper SHARED
   src/HomePage.cpp
   src/HelperQuickAccess.cpp
   src/WikiBrowser.cpp
-  src/ItemLookup.cpp
   src/UI.cpp
   deps/imgui/imgui.cpp
   deps/imgui/imgui_draw.cpp
