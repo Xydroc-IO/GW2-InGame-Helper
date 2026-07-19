@@ -1,0 +1,86 @@
+# Building GW2 In-Game Helper
+
+## Prerequisites
+
+- Git (with submodule support)
+- Make
+- MinGW-w64 C++ toolchain (`x86_64-w64-mingw32-g++`)
+
+### Arch / Manjaro
+
+```bash
+sudo pacman -S --needed mingw-w64-gcc make git
+```
+
+### Debian / Ubuntu
+
+```bash
+sudo apt install -y mingw-w64 make git
+```
+
+## Clone
+
+```bash
+git clone --recurse-submodules <this-repo-url>
+cd GW2-InGame-Helper
+```
+
+If you already cloned without submodules:
+
+```bash
+git submodule update --init --recursive
+```
+
+## Build
+
+```bash
+make -j"$(nproc)"
+```
+
+Output DLL:
+
+```text
+build/bin/GW2-InGame-Helper.dll
+```
+
+`GW2HelperBrowser.exe` is built and embedded into the DLL automatically.
+
+### Install into a local Guild Wars 2 tree
+
+```bash
+make install
+# or:
+make install GW2_ROOT="/path/to/Guild Wars 2"
+```
+
+### Clean
+
+```bash
+make clean
+```
+
+## CMake (optional)
+
+```bash
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake
+cmake --build build -j"$(nproc)"
+```
+
+## What gets compiled
+
+| Target | Sources |
+|--------|---------|
+| `GW2HelperBrowser.exe` | `src/helper/*.cpp` |
+| `GW2-InGame-Helper.dll` | `src/*.cpp` + Dear ImGui + embedded helper blob |
+
+Runtime CEF libraries are **not** shipped — the helper loads them from the game install at `bin64/cef/`.
+
+## Dependencies
+
+| Path | Role |
+|------|------|
+| `deps/nexus` | Raidcore Nexus API headers (submodule) |
+| `deps/imgui` | Dear ImGui (submodule) |
+| `deps/cef` | CEF C++ headers only (vendored; runtime from game) |
+
+See the root [README](../README.md) for install, usage, and policy notes.

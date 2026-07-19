@@ -1,0 +1,6 @@
+[submodule "deps/nexus"]
+	path = deps/nexus
+	url = https://github.com/RaidcoreGG/RCGG-lib-nexus-api.git
+[submodule "deps/imgui"]
+	path = deps/imgui
+	url = https://github.com/RaidcoreGG/imgui.git
