@@ -31,12 +31,11 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 
 - In-game CEF browser with site dropdown (grouped by category)
 - Nexus **QuickAccess** icon at the top of the screen
-- Hotkeys: `Ctrl+Shift+H` toggle · `Ctrl+Shift+U` Wiki from clipboard `[&…]`
+- Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
 - Home / Back / Forward / Reload toolbar
 - Built-in how-to homepage on first open
 - Single DLL — browser helper is embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only
-- **No click/chat macros** for item lookup (clipboard only)
 
 ## Requirements
 
@@ -81,24 +80,14 @@ C:\Program Files (x86)\Steam\steamapps\common\Guild Wars 2
 
 | Action | Default |
 |--------|---------|
-| Open / close helper | `Ctrl+Shift+H` or QuickAccess icon |
-| Wiki lookup (clipboard `[&…]`) | `Ctrl+Shift+U` |
-| Nexus options / rebinds | `Ctrl+O` → `KB_HELPER_TOGGLE` / `KB_HELPER_ITEM` |
+| Open / close helper | `Ctrl+Shift+H` (or `K`) or QuickAccess icon |
+| Rebind toggle | `Ctrl+O` → `KB_HELPER_TOGGLE` |
 
 1. Open the helper — it starts on the how-to **Home** page.
 2. Pick a site from the toolbar dropdown.
 3. Click inside the page to interact.
 4. Use **Back**, **Forward**, **Home**, and **Reload** as needed.
 5. Click outside the window (on the game) to return movement/skills to Guild Wars 2.
-
-### Wiki item lookup
-
-1. In game, **Shift+Click** an item so a `[&…]` chat link appears (or copy one from chat).
-2. Copy it with `Ctrl+C`.
-3. Press `Ctrl+Shift+U`.
-4. The helper opens the Wiki for that item.
-
-The addon does **not** fake Shift+Click or open chat for you (that caused mount / party-chat side effects).
 
 Opacity, font scale, and related options live in the addon’s Nexus options panel. Window size and position are saved automatically.
 
@@ -174,7 +163,6 @@ Edit `src/Sites.cpp` and append a `SiteDef`:
     "https://hardstuck.gg/",             // Home URL
     nullptr,                             // optional search URL prefix
     nullptr,                             // optional search URL suffix
-    false,                               // itemLookup (Wiki-only)
 },
 ```
 
@@ -232,7 +220,7 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 - Load the game’s CEF runtime **read-only** into that helper
 - Share pixels/input via local shared-memory IPC
 - Block keyboard from the game only while the page has focus
-- Optional Wiki item lookup from a clipboard `[&…]` chat link (no click/chat macros)
+- Blocks keyboard from the game only while the page has focus
 
 ## How it works
 

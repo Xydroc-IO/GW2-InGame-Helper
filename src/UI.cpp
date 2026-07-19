@@ -1,7 +1,6 @@
 #include "UI.h"
 
 #include "Globals.h"
-#include "ItemLookup.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "WikiBrowser.h"
@@ -260,16 +259,6 @@ void UI_Render()
 	ImGui::SameLine();
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
 
-	if (Sites::Active().itemLookup)
-	{
-		const std::string itemStatus = ItemLookup::Status();
-		if (!itemStatus.empty())
-		{
-			ImGui::SameLine();
-			ImGui::TextColored(kGold, "· %s", itemStatus.c_str());
-		}
-	}
-
 	const std::string url = WikiBrowser::CurrentUrl();
 	if (!url.empty())
 	{
@@ -413,8 +402,6 @@ void UI_Options()
 	ImGui::TextWrapped(
 		"Pick a site from the toolbar dropdown, then browse in-game. Click outside "
 		"the window to move and use skills again — you do not need to close the addon.");
-	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) toggle · Ctrl+Shift+U wiki item from clipboard [&…]");
+	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) open / close the helper");
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
-	if (Sites::Active().itemLookup)
-		ImGui::TextColored(kMuted, "Item: %s", ItemLookup::Status().c_str());
 }

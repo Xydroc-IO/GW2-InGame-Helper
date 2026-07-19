@@ -5,7 +5,7 @@ Use these when publishing on Raidcore or pasting into the Nexus addon library.
 ## Short description (AddonDef / one-liner)
 
 ```text
-In-game browser for GW2 sites. One DLL. Ctrl+Shift+H toggle; Ctrl+Shift+U wiki from clipboard [&…]. No memory reads.
+In-game browser for GW2 sites. One DLL. Ctrl+Shift+H toggle. No memory reads. No item-lookup macros.
 ```
 
 ## Signature
@@ -20,7 +20,7 @@ Paste or host [`description.html`](description.html) (cover + logo under `media/
 
 ## Release notes
 
-See [`RELEASE_NOTES.md`](RELEASE_NOTES.md) for the current version (v1.2.5).
+See [`RELEASE_NOTES.md`](RELEASE_NOTES.md) for the current version (v1.3.0).
 
 ## Player artifact
 
@@ -31,6 +31,5 @@ Ship **only** `GW2-InGame-Helper.dll`.
 | Bind ID | Default | Action |
 |---------|---------|--------|
 | `KB_HELPER_TOGGLE` | `CTRL+SHIFT+H` | Open / close helper |
-| `KB_HELPER_ITEM` | `CTRL+SHIFT+U` | Wiki lookup from clipboard `[&…]` |
 
-Wiki tip for players: Shift+Click item → Ctrl+C → Ctrl+Shift+U. No automatic click/chat macros.
+**Removed:** `KB_HELPER_ITEM` (Ctrl+Shift+I / U item lookup). Deregistered on load so leftover binds stop firing.

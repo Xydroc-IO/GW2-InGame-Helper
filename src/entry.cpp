@@ -5,7 +5,6 @@
 
 #include "Globals.h"
 #include "HelperQuickAccess.h"
-#include "ItemLookup.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "UI.h"
@@ -31,14 +30,11 @@ namespace G
 }
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
-static constexpr const char* KB_ITEM   = "KB_HELPER_ITEM";
+static constexpr const char* KB_ITEM_LEGACY = "KB_HELPER_ITEM"; /* removed — deregister only */
 static constexpr const char* WND_NAME  = "In-Game Helper##GW2InGameHelper";
 
 static DWORD gLastToggleMs = 0;
-static DWORD gLastItemMs = 0;
 static bool  gPollToggleHeld = false;
-static bool  gPollItemChordHeld = false;
-/* While set, WndProc eats hotkey chord keys so GW2 never sees Ctrl+Shift+H/K/U. */
 static bool  gSwallowHotkeyKeys = false;
 
 static bool KeyDown(int vk)
@@ -60,16 +56,10 @@ static bool IsToggleVk(WPARAM wp)
 	return v == 'H' || v == 'K' || v == 'h' || v == 'k';
 }
 
-static bool IsItemVk(WPARAM wp)
-{
-	const unsigned v = static_cast<unsigned>(wp);
-	return v == 'U' || v == 'u';
-}
-
 static bool IsHotkeyChordVk(WPARAM wp)
 {
 	const unsigned v = static_cast<unsigned>(wp);
-	return IsToggleVk(wp) || IsItemVk(wp) ||
+	return IsToggleVk(wp) ||
 		v == VK_CONTROL || v == VK_LCONTROL || v == VK_RCONTROL ||
 		v == VK_SHIFT || v == VK_LSHIFT || v == VK_RSHIFT;
 }
@@ -81,12 +71,11 @@ static void BeginHotkeySwallow()
 
 static void UpdateHotkeySwallow()
 {
-	/* Keep swallowing until Ctrl, Shift, and letter keys are all up. */
 	if (!gSwallowHotkeyKeys)
 		return;
 	if (!KeyDown(VK_CONTROL) && !KeyDown(VK_LCONTROL) && !KeyDown(VK_RCONTROL) &&
 		!KeyDown(VK_SHIFT) && !KeyDown(VK_LSHIFT) && !KeyDown(VK_RSHIFT) &&
-		!KeyDown('H') && !KeyDown('K') && !KeyDown('U'))
+		!KeyDown('H') && !KeyDown('K'))
 	{
 		gSwallowHotkeyKeys = false;
 	}
@@ -113,49 +102,18 @@ static void OnToggle(const char*, bool release)
 		G::API->Log(LOGL_INFO, ADDON_NAME, G::ShowWiki ? "Helper opened" : "Helper closed");
 }
 
-static void FireItemLookup()
-{
-	const DWORD now = GetTickCount();
-	if (now - gLastItemMs < 800)
-		return;
-	gLastItemMs = now;
-	BeginHotkeySwallow();
-	if (G::API && G::API->Log)
-		G::API->Log(LOGL_INFO, ADDON_NAME, "Item lookup (Ctrl+Shift+U)");
-	ItemLookup::LookupClipboard();
-}
-
-static void OnItemLookup(const char*, bool release)
-{
-	if (release)
-		return;
-	FireItemLookup();
-}
-
-/*
- * Frame poll — most reliable path on Wine/Proton where Nexus binds and WndProc
- * often miss Ctrl+Shift chords. Rising-edge; debounce shared with other paths.
- */
 void HelperHotkeys_Poll()
 {
 	UpdateHotkeySwallow();
 
 	const bool mods = ModsCtrlShiftNoAlt();
 	const bool toggleKey = KeyDown('H') || KeyDown('K');
-	const bool itemKey = KeyDown('U');
-
 	const bool toggleDown = mods && toggleKey;
 	if (toggleDown && !gPollToggleHeld)
 		OnToggle(KB_TOGGLE, false);
 	gPollToggleHeld = toggleDown;
 
-	const bool itemChord = mods && itemKey;
-	if (itemChord && !gPollItemChordHeld)
-		FireItemLookup();
-	gPollItemChordHeld = itemChord;
-
-	/* While Ctrl+Shift held with a hotkey letter, preemptively swallow. */
-	if (mods && (toggleKey || itemKey))
+	if (mods && toggleKey)
 		BeginHotkeySwallow();
 }
 
@@ -197,31 +155,21 @@ static bool ClientCursor(HWND hwnd, int* outX, int* outY)
 	return true;
 }
 
-/*
- * Return 0 = message consumed, do not pass to Guild Wars 2.
- * Hotkey chords must be fully swallowed — otherwise GW2 sees Ctrl/Shift/I and
- * fires mount / chat / inventory binds.
- */
 static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM)
 {
 	UpdateHotkeySwallow();
 
 	if (IsKeyMsg(msg))
 	{
-		const bool chordLetter = ModsCtrlShiftNoAlt() && (IsToggleVk(wp) || IsItemVk(wp));
+		const bool chordLetter = ModsCtrlShiftNoAlt() && IsToggleVk(wp);
 		const bool swallowChordKey = gSwallowHotkeyKeys && IsHotkeyChordVk(wp);
 
 		if (chordLetter || swallowChordKey)
 		{
 			if ((msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) && chordLetter)
-			{
-				if (IsToggleVk(wp))
-					OnToggle(KB_TOGGLE, false);
-				else if (IsItemVk(wp))
-					FireItemLookup();
-			}
+				OnToggle(KB_TOGGLE, false);
 			BeginHotkeySwallow();
-			return 0; /* only Ctrl/Shift/H/K/U — never eat Escape/Enter from elsewhere */
+			return 0;
 		}
 	}
 
@@ -241,7 +189,7 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM)
 
 	if (blockKeys && IsKeyMsg(msg))
 	{
-		if (ModsCtrlShiftNoAlt() && (IsToggleVk(wp) || IsItemVk(wp)))
+		if (ModsCtrlShiftNoAlt() && IsToggleVk(wp))
 		{
 			BeginHotkeySwallow();
 			return 0;
@@ -286,23 +234,21 @@ static void AddonLoad(AddonAPI_t* api)
 	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "home");
 	G::ShowWiki = false;
 	gPollToggleHeld = false;
-	gPollItemChordHeld = false;
 	gSwallowHotkeyKeys = false;
 	WikiBrowser::Init();
-	ItemLookup::Init();
 
 	api->GUI_Register(RT_Render, UI_Render);
 	api->GUI_Register(RT_OptionsRender, UI_Options);
 	api->GUI_RegisterCloseOnEscape(WND_NAME, &G::ShowWiki);
 
-	/* Nexus binds (rebindable + QuickAccess). Defaults apply only if unset. */
+	/* Drop legacy item-lookup bind so old Ctrl+Shift+I/U no longer fires. */
+	api->InputBinds_Deregister(KB_ITEM_LEGACY);
 	api->InputBinds_RegisterWithString(KB_TOGGLE, OnToggle, "CTRL+SHIFT+H");
-	api->InputBinds_RegisterWithString(KB_ITEM, OnItemLookup, "CTRL+SHIFT+U");
 	api->WndProc_Register(OnWndProc);
 	HelperQuickAccess::Init();
 
 	api->Log(LOGL_INFO, ADDON_NAME,
-		"Loaded — Ctrl+Shift+H/K toggle, Ctrl+Shift+U wiki item (clipboard [&…]).");
+		"Loaded — Ctrl+Shift+H/K toggle (item lookup removed).");
 }
 
 static void AddonUnload()
@@ -315,10 +261,9 @@ static void AddonUnload()
 	G::API->GUI_Deregister(UI_Options);
 	G::API->GUI_DeregisterCloseOnEscape(WND_NAME);
 	G::API->InputBinds_Deregister(KB_TOGGLE);
-	G::API->InputBinds_Deregister(KB_ITEM);
+	G::API->InputBinds_Deregister(KB_ITEM_LEGACY);
 	G::API->WndProc_Deregister(OnWndProc);
 
-	ItemLookup::Shutdown();
 	HelperQuickAccess::Shutdown();
 	WikiBrowser::Shutdown();
 
@@ -341,12 +286,12 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.APIVersion       = NEXUS_API_VERSION;
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 1;
-	G::AddonDef.Version.Minor    = 2;
-	G::AddonDef.Version.Build    = 5;
+	G::AddonDef.Version.Minor    = 3;
+	G::AddonDef.Version.Build    = 0;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
-		"Modular in-game browser. Ctrl+Shift+H toggle; Ctrl+Shift+U wiki item from clipboard.";
+		"Modular in-game browser for GW2 sites. Ctrl+Shift+H toggle. One DLL, no memory reads.";
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
 	G::AddonDef.Flags            = AF_DisableHotloading;

@@ -8,7 +8,7 @@
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "5";
+	static constexpr const char* kHomePageVersion = "6";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -144,10 +144,10 @@ const char* HomePage::Html()
     <h2>Hotkeys</h2>
     <ul>
       <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>) — open / close this helper</li>
-      <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> — open Wiki for an item chat link on the clipboard</li>
+      <li>Or click the helper icon in the Nexus QuickAccess bar at the top of the screen</li>
     </ul>
-    <p class="muted">Wiki tip: <kbd>Shift</kbd>+Click an item to put <code>[&amp;…]</code> in chat, copy it (<kbd>Ctrl</kbd>+<kbd>C</kbd>), then press the lookup hotkey. No automatic clicking or chat macros.</p>
-    <p class="muted">Rebind them in Nexus (<kbd>Ctrl</kbd>+<kbd>O</kbd>) under <strong>KB_HELPER_TOGGLE</strong> and <strong>KB_HELPER_ITEM</strong>.</p>
+    <p class="muted">Rebind the toggle in Nexus (<kbd>Ctrl</kbd>+<kbd>O</kbd>) under <strong>KB_HELPER_TOGGLE</strong>.</p>
+    <p class="muted">Item lookup hotkeys were removed — they interfered with mounts and chat.</p>
   </section>
 
   <section>

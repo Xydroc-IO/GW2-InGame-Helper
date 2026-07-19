@@ -14,7 +14,6 @@ struct SiteDef
 	const char* homeUrl;         /* Home button + initial load */
 	const char* searchUrlPrefix; /* nullptr = Search just opens home */
 	const char* searchUrlSuffix; /* appended after UrlEncode(query) */
-	bool        itemLookup;      /* Ctrl+Shift+U clipboard [&…] wiki lookup */
 };
 
 namespace Sites
