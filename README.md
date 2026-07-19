@@ -1,10 +1,14 @@
 # GW2 In-Game Helper
 
-A [Raidcore Nexus](https://raidcore.gg/gw2/nexus) addon that opens useful Guild Wars 2 websites **inside the game** — one modular browser with a site picker, toolbar, and a QuickAccess icon.
+A Raidcore Nexus addon that opens useful Guild Wars 2 websites inside the game.
+One DLL — pick Wiki, Snowcrows, MetaBattle, and more from an in-game browser.
+No memory reads; uses Nexus APIs and the game’s built-in CEF.
+
+**Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 
 | Site | Category |
 |------|----------|
-| [How to use](about:helper-home) (built-in) | Help |
+| How to use (built-in) | Help |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Snowcrows](https://snowcrows.com/) | Builds |
@@ -12,11 +16,10 @@ A [Raidcore Nexus](https://raidcore.gg/gw2/nexus) addon that opens useful Guild 
 | [gw2efficiency](https://gw2efficiency.com/) | Tools |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
 
-Add more sites by editing `src/Sites.cpp` — no other wiring needed for basic browsing.
+Add more sites in `src/Sites.cpp`. Replaces the older Wiki / Snowcrow browser addons.
+Works on Windows and on Linux via Wine/Proton.
 
-Uses the game’s bundled Chromium Embedded Framework (`bin64/cef`). No WebView2, winetricks, or separate browser runtime. Works on the Windows client and on Linux via Wine/Proton.
-
-> **Replaces** the older `GW2-InGameWiki` and `GW2-InGame-Snowcrow` addons. Disable those if you still have them installed.
+> **Players only need the DLL.** The browser helper is embedded and extracts on first use; Chromium comes from the game’s `bin64/cef`.
 
 ## Features
 
@@ -32,9 +35,11 @@ Uses the game’s bundled Chromium Embedded Framework (`bin64/cef`). No WebView2
 
 - Guild Wars 2 (64-bit Windows client)
 - [Raidcore Nexus](https://raidcore.gg/gw2/nexus) installed and working
-- The release file `GW2-InGame-Helper.dll`
+- **Only** the release file `GW2-InGame-Helper.dll` (nothing else)
 
 ## Install (players)
+
+Players need **one file**. No separate helper `.exe`, CEF package, or WebView2.
 
 1. Close Guild Wars 2.
 2. Copy `GW2-InGame-Helper.dll` into your game’s `addons` folder:
@@ -46,7 +51,10 @@ Uses the game’s bundled Chromium Embedded Framework (`bin64/cef`). No WebView2
 3. Start the game, open Nexus with `Ctrl+O`, and enable **GW2-InGame-Helper** if needed.
 4. Restart if Nexus asks you to.
 
-The DLL embeds its browser helper. On first use it extracts `GW2HelperBrowser.exe` and loads CEF from the game’s `bin64/cef` directory. Do **not** install a separate CEF runtime.
+The DLL embeds its browser helper. On first use it extracts `GW2HelperBrowser.exe`
+into the addon’s Nexus directory and loads CEF from the game’s existing
+`bin64/cef` folder. Do **not** download or ship a separate CEF runtime or helper
+exe — players only install the DLL.
 
 ### Common install paths
 
@@ -229,5 +237,15 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 
 ## License
 
-Source in this repository is provided as-is for personal use with Guild Wars 2 / Nexus.
-Third-party components retain their own licenses (`deps/imgui`, `deps/nexus`).
+This project is licensed under the [MIT License](LICENSE).
+
+### Third-party
+
+| Component | License | Notes |
+|-----------|---------|--------|
+| [Raidcore Nexus API](https://github.com/RaidcoreGG/RCGG-lib-nexus-api) (`deps/nexus`) | MIT | Headers only |
+| [Dear ImGui](https://github.com/RaidcoreGG/imgui) (`deps/imgui`) | MIT | Raidcore fork |
+| CEF headers (`deps/cef`) | BSD-style (Chromium Embedded Framework) | Headers only; runtime `libcef.dll` is shipped by Guild Wars 2 |
+
+Guild Wars 2, its CEF runtime, and related trademarks belong to ArenaNet / NCSoft.
+This project is not affiliated with them.
