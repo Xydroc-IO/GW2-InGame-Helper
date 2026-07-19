@@ -25,17 +25,18 @@ Works on Windows and on Linux via Wine/Proton.
 
 > **Players only need the DLL.** The browser helper is embedded and extracts on first use; Chromium comes from the game’s `bin64/cef`.
 
-Full HTML listing copy (Nexus / web): [`docs/description.html`](docs/description.html)
+Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## Features
 
 - In-game CEF browser with site dropdown (grouped by category)
 - Nexus **QuickAccess** icon at the top of the screen
-- Hotkeys for toggle and hovered-item Wiki lookup
+- Hotkeys: `Ctrl+Shift+H` toggle · `Ctrl+Shift+U` Wiki from clipboard `[&…]`
 - Home / Back / Forward / Reload toolbar
 - Built-in how-to homepage on first open
 - Single DLL — browser helper is embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only
+- **No click/chat macros** for item lookup (clipboard only)
 
 ## Requirements
 
@@ -81,7 +82,7 @@ C:\Program Files (x86)\Steam\steamapps\common\Guild Wars 2
 | Action | Default |
 |--------|---------|
 | Open / close helper | `Ctrl+Shift+H` or QuickAccess icon |
-| Wiki lookup (hovered item) | `Ctrl+Shift+I` |
+| Wiki lookup (clipboard `[&…]`) | `Ctrl+Shift+U` |
 | Nexus options / rebinds | `Ctrl+O` → `KB_HELPER_TOGGLE` / `KB_HELPER_ITEM` |
 
 1. Open the helper — it starts on the how-to **Home** page.
@@ -92,11 +93,12 @@ C:\Program Files (x86)\Steam\steamapps\common\Guild Wars 2
 
 ### Wiki item lookup
 
-1. Hover an item in inventory, bank, trading post, or crafting.
-2. Press `Ctrl+Shift+I`.
-3. The helper switches to the Wiki and opens that item’s page.
+1. In game, **Shift+Click** an item so a `[&…]` chat link appears (or copy one from chat).
+2. Copy it with `Ctrl+C`.
+3. Press `Ctrl+Shift+U`.
+4. The helper opens the Wiki for that item.
 
-If a `[&...]` chat link is already on the clipboard, the same hotkey uses it without capturing again.
+The addon does **not** fake Shift+Click or open chat for you (that caused mount / party-chat side effects).
 
 Opacity, font scale, and related options live in the addon’s Nexus options panel. Window size and position are saved automatically.
 
@@ -230,7 +232,7 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 - Load the game’s CEF runtime **read-only** into that helper
 - Share pixels/input via local shared-memory IPC
 - Block keyboard from the game only while the page has focus
-- Optional hovered-item Wiki lookup via clipboard chat links
+- Optional Wiki item lookup from a clipboard `[&…]` chat link (no click/chat macros)
 
 ## How it works
 

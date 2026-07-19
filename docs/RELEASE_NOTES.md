@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.2.1
+# GW2 In-Game Helper v1.2.5
 
 <p align="center">
   <img src="media/cover.png" alt="GW2 In-Game Helper" width="100%">
@@ -11,7 +11,10 @@ One DLL for Nexus — no memory reads.
 
 **Install:** put `GW2-InGame-Helper.dll` in `<GW2>/addons/`. Nothing else.
 
-**Open:** `Ctrl+Shift+H` or the QuickAccess icon · **Item lookup:** `Ctrl+Shift+I`
+| Action | Default |
+|--------|---------|
+| Open / close | `Ctrl+Shift+H` (or `K`) · QuickAccess icon |
+| Wiki item from clipboard | `Ctrl+Shift+U` |
 
 Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Wine/Proton OK).
 Replaces the older Wiki / Snowcrow browser addons.
@@ -32,8 +35,6 @@ Do **not** download or copy `GW2HelperBrowser.exe`, CEF, WebView2, or anything e
 2. That helper loads Chromium from the game’s existing `bin64/cef` (read-only).
 3. Pages render off-screen and show in the overlay.
 
-You never ship those pieces yourself — they come from the DLL + the game install.
-
 ### Install steps
 
 1. Close Guild Wars 2.
@@ -53,7 +54,7 @@ Linux:   ~/.local/share/Steam/steamapps/common/Guild Wars 2/addons/
 - One DLL — no companion files for players
 - Categorized site picker + Nexus QuickAccess top-bar icon
 - Built-in how-to homepage on open
-- Wiki hovered-item lookup
+- Wiki item lookup from a clipboard `[&…]` chat link (no fake clicks / chat macros)
 - No Guild Wars 2 memory reads (Nexus APIs only)
 
 ## Included sites
@@ -71,23 +72,33 @@ Linux:   ~/.local/share/Steam/steamapps/common/Guild Wars 2/addons/
 
 | Action | Default |
 |--------|---------|
-| Open / close | `Ctrl+Shift+H` or QuickAccess icon |
-| Wiki item lookup | `Ctrl+Shift+I` (hover item first) |
+| Open / close | `Ctrl+Shift+H` or `K`, or QuickAccess icon |
+| Wiki item lookup | `Ctrl+Shift+U` (clipboard `[&…]`) |
 | Rebind | Nexus `Ctrl+O` → `KB_HELPER_TOGGLE` / `KB_HELPER_ITEM` |
+
+### Wiki item lookup
+
+1. In game, **Shift+Click** an item so a `[&…]` link appears in chat (or copy one from chat).
+2. Copy it with `Ctrl+C`.
+3. Press `Ctrl+Shift+U`.
+4. The helper opens the Wiki for that item.
+
+The addon does **not** simulate Shift+Click, open chat, or press Enter for you.
 
 ## Updating
 
 Close the game, replace the same DLL path with the new `GW2-InGame-Helper.dll`, restart.
+If an old bind remains, reset `KB_HELPER_ITEM` to `Ctrl+Shift+U` in Nexus.
 
 ## Known notes
 
 - Restart the game after replacing the DLL (hotloading is disabled).
-- Item lookup needs a hovered item (or a `[&...]` link already on the clipboard).
 - Some modern sites may look imperfect under the game’s older CEF (Chromium 103).
 
 ## Compliance
 
 Does **not** read/write game memory, hook game code, or automate combat/trading.
+Does **not** inject mouse/keyboard macros into the game for item capture.
 Uses Nexus APIs and a separate CEF helper process only.
 
 ## License
@@ -100,5 +111,7 @@ MIT — see [LICENSE](../LICENSE). Third-party deps (Nexus API, ImGui, CEF heade
 
 Player release = **`GW2-InGame-Helper.dll` only**.  
 Do not zip `GW2HelperBrowser.exe`, CEF binaries, or `build/` for players — the helper is already linked into the DLL as an embedded blob and extracted on first use.
+
+Raidcore / web listing HTML: [`description.html`](description.html)
 
 Build: `make -j$(nproc)` → `build/bin/GW2-InGame-Helper.dll`

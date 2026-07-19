@@ -12,3 +12,6 @@ bool UI_BlocksGameMouse();
 bool UI_IsPointerOverWiki(int clientX, int clientY);
 /* Drop wiki keyboard focus so the game can move/skills again. */
 void UI_ReleaseGameInput();
+
+/* Frame poll for Ctrl+Shift hotkeys — defined in entry.cpp, runs even when closed. */
+void HelperHotkeys_Poll();

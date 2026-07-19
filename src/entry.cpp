@@ -36,6 +36,61 @@ static constexpr const char* WND_NAME  = "In-Game Helper##GW2InGameHelper";
 
 static DWORD gLastToggleMs = 0;
 static DWORD gLastItemMs = 0;
+static bool  gPollToggleHeld = false;
+static bool  gPollItemChordHeld = false;
+/* While set, WndProc eats hotkey chord keys so GW2 never sees Ctrl+Shift+H/K/U. */
+static bool  gSwallowHotkeyKeys = false;
+
+static bool KeyDown(int vk)
+{
+	return (GetAsyncKeyState(vk) & 0x8000) != 0;
+}
+
+static bool ModsCtrlShiftNoAlt()
+{
+	const bool ctrl  = KeyDown(VK_CONTROL) || KeyDown(VK_LCONTROL) || KeyDown(VK_RCONTROL);
+	const bool shift = KeyDown(VK_SHIFT) || KeyDown(VK_LSHIFT) || KeyDown(VK_RSHIFT);
+	const bool alt   = KeyDown(VK_MENU) || KeyDown(VK_LMENU) || KeyDown(VK_RMENU);
+	return ctrl && shift && !alt;
+}
+
+static bool IsToggleVk(WPARAM wp)
+{
+	const unsigned v = static_cast<unsigned>(wp);
+	return v == 'H' || v == 'K' || v == 'h' || v == 'k';
+}
+
+static bool IsItemVk(WPARAM wp)
+{
+	const unsigned v = static_cast<unsigned>(wp);
+	return v == 'U' || v == 'u';
+}
+
+static bool IsHotkeyChordVk(WPARAM wp)
+{
+	const unsigned v = static_cast<unsigned>(wp);
+	return IsToggleVk(wp) || IsItemVk(wp) ||
+		v == VK_CONTROL || v == VK_LCONTROL || v == VK_RCONTROL ||
+		v == VK_SHIFT || v == VK_LSHIFT || v == VK_RSHIFT;
+}
+
+static void BeginHotkeySwallow()
+{
+	gSwallowHotkeyKeys = true;
+}
+
+static void UpdateHotkeySwallow()
+{
+	/* Keep swallowing until Ctrl, Shift, and letter keys are all up. */
+	if (!gSwallowHotkeyKeys)
+		return;
+	if (!KeyDown(VK_CONTROL) && !KeyDown(VK_LCONTROL) && !KeyDown(VK_RCONTROL) &&
+		!KeyDown(VK_SHIFT) && !KeyDown(VK_LSHIFT) && !KeyDown(VK_RSHIFT) &&
+		!KeyDown('H') && !KeyDown('K') && !KeyDown('U'))
+	{
+		gSwallowHotkeyKeys = false;
+	}
+}
 
 static void OnToggle(const char*, bool release)
 {
@@ -45,6 +100,7 @@ static void OnToggle(const char*, bool release)
 	if (now - gLastToggleMs < 250)
 		return;
 	gLastToggleMs = now;
+	BeginHotkeySwallow();
 
 	G::ShowWiki = !G::ShowWiki;
 	if (!G::ShowWiki)
@@ -57,27 +113,61 @@ static void OnToggle(const char*, bool release)
 		G::API->Log(LOGL_INFO, ADDON_NAME, G::ShowWiki ? "Helper opened" : "Helper closed");
 }
 
-static void OnItemLookup(const char*, bool release)
+static void FireItemLookup()
 {
-	/* Fire on key-up so Ctrl/Shift are released before Shift+Click capture. */
-	if (!release)
-		return;
 	const DWORD now = GetTickCount();
-	if (now - gLastItemMs < 600)
+	if (now - gLastItemMs < 800)
 		return;
 	gLastItemMs = now;
-	ItemLookup::LookupHoveredItem();
+	BeginHotkeySwallow();
+	if (G::API && G::API->Log)
+		G::API->Log(LOGL_INFO, ADDON_NAME, "Item lookup (Ctrl+Shift+U)");
+	ItemLookup::LookupClipboard();
+}
+
+static void OnItemLookup(const char*, bool release)
+{
+	if (release)
+		return;
+	FireItemLookup();
+}
+
+/*
+ * Frame poll — most reliable path on Wine/Proton where Nexus binds and WndProc
+ * often miss Ctrl+Shift chords. Rising-edge; debounce shared with other paths.
+ */
+void HelperHotkeys_Poll()
+{
+	UpdateHotkeySwallow();
+
+	const bool mods = ModsCtrlShiftNoAlt();
+	const bool toggleKey = KeyDown('H') || KeyDown('K');
+	const bool itemKey = KeyDown('U');
+
+	const bool toggleDown = mods && toggleKey;
+	if (toggleDown && !gPollToggleHeld)
+		OnToggle(KB_TOGGLE, false);
+	gPollToggleHeld = toggleDown;
+
+	const bool itemChord = mods && itemKey;
+	if (itemChord && !gPollItemChordHeld)
+		FireItemLookup();
+	gPollItemChordHeld = itemChord;
+
+	/* While Ctrl+Shift held with a hotkey letter, preemptively swallow. */
+	if (mods && (toggleKey || itemKey))
+		BeginHotkeySwallow();
 }
 
 static unsigned CefModsFromWin()
 {
 	unsigned m = 0;
-	if (GetKeyState(VK_SHIFT) & 0x8000)   m |= (1u << 1);
-	if (GetKeyState(VK_CONTROL) & 0x8000) m |= (1u << 2);
-	if (GetKeyState(VK_MENU) & 0x8000)    m |= (1u << 3);
-	if (GetKeyState(VK_LBUTTON) & 0x8000) m |= (1u << 4);
-	if (GetKeyState(VK_MBUTTON) & 0x8000) m |= (1u << 5);
-	if (GetKeyState(VK_RBUTTON) & 0x8000) m |= (1u << 6);
+	if (KeyDown(VK_SHIFT))   m |= (1u << 1);
+	if (KeyDown(VK_CONTROL)) m |= (1u << 2);
+	if (KeyDown(VK_MENU))    m |= (1u << 3);
+	if (KeyDown(VK_LBUTTON)) m |= (1u << 4);
+	if (KeyDown(VK_MBUTTON)) m |= (1u << 5);
+	if (KeyDown(VK_RBUTTON)) m |= (1u << 6);
 	return m;
 }
 
@@ -109,23 +199,30 @@ static bool ClientCursor(HWND hwnd, int* outX, int* outY)
 
 /*
  * Return 0 = message consumed, do not pass to Guild Wars 2.
- * Same pattern as Gw2-InGame-Wiki: Nexus owns the binds; WndProc only
- * covers toggle while the browser has focus (Nexus often misses those).
+ * Hotkey chords must be fully swallowed — otherwise GW2 sees Ctrl/Shift/I and
+ * fires mount / chat / inventory binds.
  */
 static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM)
 {
-	if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN)
+	UpdateHotkeySwallow();
+
+	if (IsKeyMsg(msg))
 	{
-		const bool ctrl  = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
-		const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-		const bool alt   = (GetKeyState(VK_MENU) & 0x8000) != 0;
-		/* Match Nexus default CTRL+SHIFT+H; K kept as wiki-style alternate. */
-		if (ctrl && shift && !alt && (wp == 'H' || wp == 'K'))
+		const bool chordLetter = ModsCtrlShiftNoAlt() && (IsToggleVk(wp) || IsItemVk(wp));
+		const bool swallowChordKey = gSwallowHotkeyKeys && IsHotkeyChordVk(wp);
+
+		if (chordLetter || swallowChordKey)
 		{
-			OnToggle(KB_TOGGLE, false);
-			return 0;
+			if ((msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) && chordLetter)
+			{
+				if (IsToggleVk(wp))
+					OnToggle(KB_TOGGLE, false);
+				else if (IsItemVk(wp))
+					FireItemLookup();
+			}
+			BeginHotkeySwallow();
+			return 0; /* only Ctrl/Shift/H/K/U — never eat Escape/Enter from elsewhere */
 		}
-		/* Item lookup: Nexus InputBinds only (fires on key-up). */
 	}
 
 	if (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN ||
@@ -144,6 +241,12 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM)
 
 	if (blockKeys && IsKeyMsg(msg))
 	{
+		if (ModsCtrlShiftNoAlt() && (IsToggleVk(wp) || IsItemVk(wp)))
+		{
+			BeginHotkeySwallow();
+			return 0;
+		}
+
 		const unsigned mods = CefModsFromWin();
 		switch (msg)
 		{
@@ -179,10 +282,12 @@ static void AddonLoad(AddonAPI_t* api)
 		reinterpret_cast<void (*)(void*, void*)>(api->ImguiFree));
 
 	Settings::Load();
-	/* Always start sessions on the how-to homepage. */
 	Sites::SetActiveById("home");
 	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "home");
 	G::ShowWiki = false;
+	gPollToggleHeld = false;
+	gPollItemChordHeld = false;
+	gSwallowHotkeyKeys = false;
 	WikiBrowser::Init();
 	ItemLookup::Init();
 
@@ -190,13 +295,14 @@ static void AddonLoad(AddonAPI_t* api)
 	api->GUI_Register(RT_OptionsRender, UI_Options);
 	api->GUI_RegisterCloseOnEscape(WND_NAME, &G::ShowWiki);
 
+	/* Nexus binds (rebindable + QuickAccess). Defaults apply only if unset. */
 	api->InputBinds_RegisterWithString(KB_TOGGLE, OnToggle, "CTRL+SHIFT+H");
-	api->InputBinds_RegisterWithString(KB_ITEM, OnItemLookup, "CTRL+SHIFT+I");
+	api->InputBinds_RegisterWithString(KB_ITEM, OnItemLookup, "CTRL+SHIFT+U");
 	api->WndProc_Register(OnWndProc);
 	HelperQuickAccess::Init();
 
 	api->Log(LOGL_INFO, ADDON_NAME,
-		"Loaded — QuickAccess icon, Ctrl+Shift+H toggle, Ctrl+Shift+I item lookup.");
+		"Loaded — Ctrl+Shift+H/K toggle, Ctrl+Shift+U wiki item (clipboard [&…]).");
 }
 
 static void AddonUnload()
@@ -236,11 +342,11 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 2;
-	G::AddonDef.Version.Build    = 1;
+	G::AddonDef.Version.Build    = 5;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
-		"Modular in-game browser. Ctrl+Shift+H toggle; Ctrl+Shift+I wiki item lookup.";
+		"Modular in-game browser. Ctrl+Shift+H toggle; Ctrl+Shift+U wiki item from clipboard.";
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
 	G::AddonDef.Flags            = AF_DisableHotloading;
