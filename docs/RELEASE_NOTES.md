@@ -1,5 +1,9 @@
 # GW2 In-Game Helper v1.2.1
 
+<p align="center">
+  <img src="media/cover.png" alt="GW2 In-Game Helper" width="100%">
+</p>
+
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
 In-game browser for Guild Wars 2 sites (Wiki, Snowcrows, MetaBattle, and more).
