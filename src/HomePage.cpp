@@ -8,7 +8,7 @@
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "4";
+	static constexpr const char* kHomePageVersion = "5";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -144,8 +144,9 @@ const char* HomePage::Html()
     <h2>Hotkeys</h2>
     <ul>
       <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>) — open / close this helper</li>
-      <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> — look up the hovered inventory / bank / TP item on the Wiki</li>
+      <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> — open Wiki for an item chat link on the clipboard</li>
     </ul>
+    <p class="muted">Wiki tip: <kbd>Shift</kbd>+Click an item to put <code>[&amp;…]</code> in chat, copy it (<kbd>Ctrl</kbd>+<kbd>C</kbd>), then press the lookup hotkey. No automatic clicking or chat macros.</p>
     <p class="muted">Rebind them in Nexus (<kbd>Ctrl</kbd>+<kbd>O</kbd>) under <strong>KB_HELPER_TOGGLE</strong> and <strong>KB_HELPER_ITEM</strong>.</p>
   </section>
 

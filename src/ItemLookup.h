@@ -2,18 +2,15 @@
 
 #include <string>
 
-/* Resolve a hovered (or clipboard) item chat link into a wiki page.
-   Uses Windows clipboard + optional user-triggered key macros — no GW2 memory. */
-
+/* Resolve a clipboard item chat link `[&...]` into a wiki page.
+   Clipboard-only — no GW2 memory reads and no injected click/chat macros. */
 namespace ItemLookup
 {
 	void Init();
 	void Shutdown();
 
-	/* Hover an inventory/TP/crafting item, then call this (keybind). */
+	/* Alias: opens wiki from clipboard `[&...]` if present. */
 	void LookupHoveredItem();
-
-	/* Open wiki from an existing `[&...]` chat link already on the clipboard. */
 	void LookupClipboard();
 
 	bool IsBusy();

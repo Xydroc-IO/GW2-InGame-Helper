@@ -195,6 +195,9 @@ void UI_ReleaseGameInput()
 
 void UI_Render()
 {
+	/* Always poll first — must run while the helper is closed too. */
+	HelperHotkeys_Poll();
+
 	gBlockGameKeyboard = false;
 	gBlockGameMouse = false;
 	gWikiRectValid = false;
@@ -410,7 +413,7 @@ void UI_Options()
 	ImGui::TextWrapped(
 		"Pick a site from the toolbar dropdown, then browse in-game. Click outside "
 		"the window to move and use skills again — you do not need to close the addon.");
-	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) toggle · Ctrl+Shift+I look up hovered item (Wiki)");
+	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) toggle · Ctrl+Shift+U wiki item from clipboard [&…]");
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
 	if (Sites::Active().itemLookup)
 		ImGui::TextColored(kMuted, "Item: %s", ItemLookup::Status().c_str());

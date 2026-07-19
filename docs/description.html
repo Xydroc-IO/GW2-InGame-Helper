@@ -121,6 +121,10 @@
       font-family: Consolas, "Courier New", monospace;
       font-size: 0.88em;
     }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      color: var(--gold-dim);
+    }
     .note {
       margin: 16px 0;
       padding: 14px 16px;
@@ -154,7 +158,7 @@
       </div>
 
       <div class="meta">
-        <strong>Version</strong> 1.2.1 ·
+        <strong>Version</strong> 1.2.5 ·
         <strong>Signature</strong> 0x48454C50 ·
         <strong>Author</strong> xydroc ·
         <strong>License</strong> MIT ·
@@ -174,7 +178,8 @@
       </p>
       <p>
         Designed to stay policy-safe: official Nexus APIs only.
-        <strong>No Guild Wars 2 process memory reads</strong>, no game hooks, no automation.
+        <strong>No Guild Wars 2 process memory reads</strong>, no game hooks, and
+        <strong>no injected click/chat macros</strong> for item lookup.
       </p>
 
       <div class="note">
@@ -193,13 +198,24 @@
 
       <h2>How to use</h2>
       <ul>
-        <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> — open / close the helper (or click the QuickAccess icon at the top of the screen).</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>) — open / close the helper, or click the QuickAccess icon.</li>
         <li>Use the site dropdown to switch between Wiki, builds, tools, and farming sites.</li>
-        <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> — look up the hovered inventory / bank / TP item on the Wiki.</li>
         <li>Toolbar: <strong>Home</strong>, <strong>Back</strong>, <strong>Forward</strong>, <strong>Reload</strong>.</li>
         <li>Click outside the window on the game world to return movement and skills to Guild Wars 2.</li>
       </ul>
       <p>Keybinds are rebindable in Nexus under <code>KB_HELPER_TOGGLE</code> and <code>KB_HELPER_ITEM</code>.</p>
+
+      <h2>Wiki item lookup</h2>
+      <ol>
+        <li>In game, <kbd>Shift</kbd>+Click an item so a <code>[&amp;…]</code> chat link appears (or copy one from chat).</li>
+        <li>Copy it with <kbd>Ctrl</kbd>+<kbd>C</kbd>.</li>
+        <li>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd>.</li>
+        <li>The helper opens the Wiki for that item.</li>
+      </ol>
+      <p>
+        Lookup is <strong>clipboard-only</strong>. The addon does not fake Shift+Click,
+        open chat, or press Enter (those macros caused mount / party-chat side effects).
+      </p>
 
       <h2>Included sites</h2>
       <table>
@@ -222,7 +238,7 @@
         <li>Categorized in-game site picker</li>
         <li>Nexus QuickAccess top-bar icon</li>
         <li>Built-in how-to homepage on first open</li>
-        <li>Wiki hovered-item lookup via chat links</li>
+        <li>Wiki item lookup from clipboard <code>[&amp;…]</code> chat links</li>
         <li>Saved window size, position, opacity, and font scale</li>
         <li>Works on Windows and on Linux through Wine/Proton</li>
         <li>Single-file player install (DLL only)</li>
@@ -234,6 +250,7 @@
         <li>Does not hook or patch game code</li>
         <li>Does not automate combat, inventory, trading, or economy</li>
         <li>Does not bot, macro unattended play, or spoof packets</li>
+        <li>Does not inject mouse/keyboard macros to capture items</li>
       </ul>
 
       <h2>Requirements</h2>
