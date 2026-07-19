@@ -1,0 +1,65 @@
+# Build outputs
+build/
+out/
+dist/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+.cache/
+
+# Compiled / linked artifacts (anywhere)
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.exe
+*.so
+*.dylib
+*.pdb
+*.ilk
+*.exp
+*.map
+*.res
+*.iobj
+*.ipdb
+
+# Editor / IDE
+.vscode/
+.idea/
+*.user
+*.user.*
+*.suo
+*.sdf
+*.opensdf
+*.code-workspace
+.vs/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+
+# Editor swap / backup
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Local / runtime clutter
+*.log
+settings.ini
+helper-home.html
+__cmake_systeminformation/
+
+# Python (if helpers scripts appear later)
+__pycache__/
+*.pyc
+.venv/
+venv/
