@@ -1,5 +1,9 @@
 # GW2 In-Game Helper
 
+<p align="center">
+  <img src="docs/media/cover.png" alt="GW2 In-Game Helper — in-game sites, one DLL" width="100%">
+</p>
+
 A Raidcore Nexus addon that opens useful Guild Wars 2 websites inside the game.
 One DLL — pick Wiki, Snowcrows, MetaBattle, and more from an in-game browser.
 No memory reads; uses Nexus APIs and the game’s built-in CEF.
