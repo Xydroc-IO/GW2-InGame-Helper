@@ -14,10 +14,11 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.4.1.7`
+`1.4.1.8`
 
 ## Changelog highlights
 
+- **1.4.1.8** — Full-page themed homepage redesign
 - **1.4.1.7** — Removed Lucky Noobs
 - **1.4.1.6** — Browse panel (search + categories) replaces long dropdown
 - **1.4.1.5** — Gap-fill sites + Copy URL / Open Ext toolbar
