@@ -459,6 +459,7 @@ const char* HomePage::Html()
         <div class="body">
           <div class="grid">
             <div class="card"><span class="cat">Help</span><span>This page</span></div>
+            <div class="card"><span class="cat">Search</span><span>Google</span></div>
             <div class="card"><span class="cat">Official</span><span>Guild Wars 2, GW2 News, Raidcore</span></div>
             <div class="card"><span class="cat">Wiki</span><span>Wiki, Game Updates, Legendaries, Mounts</span></div>
             <div class="card"><span class="cat">Builds</span><span>Snowcrows, MetaBattle, MetaBattle OW, Accessibility Wars, Gw2Skills Editor</span></div>

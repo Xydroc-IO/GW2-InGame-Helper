@@ -29,6 +29,17 @@ namespace
 			nullptr,
 		},
 
+		/* —— Search —— */
+		{
+			"google",
+			"Search",
+			"Google",
+			"Google",
+			"https://www.google.com/",
+			"https://www.google.com/search?q=",
+			nullptr,
+		},
+
 		/* —— Official —— */
 		{
 			"gw2official",

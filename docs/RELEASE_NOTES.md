@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.5.3.0
+# GW2 In-Game Helper v1.5.3.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -30,6 +30,12 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 | Open in system browser | Toolbar **Open Ext** |
 
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
+
+---
+
+## What’s new in 1.5.3.1
+
+- **Search** category with [Google](https://www.google.com/)
 
 ---
 
@@ -69,6 +75,7 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 - In-game CEF browser using the game’s `bin64/cef`
 - **Browse** panel — search and pick sites by category
+- **Search** — Google and room for more engines
 - **Tabs** — up to 8 open sites
 - **Favorites** — pin frequently used sites
 - Branded homepage + built-in Raid Food guide
