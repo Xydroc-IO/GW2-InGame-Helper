@@ -83,6 +83,15 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"gw2skills",
+			"Builds",
+			"Gw2Skills Editor",
+			"Gw2Skills.Net — Build Editor",
+			"https://en.gw2skills.net/editor/",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Tools —— */
 		{
@@ -104,6 +113,15 @@ namespace
 			nullptr,
 		},
 		{
+			"gw2tldr_metas",
+			"Tools",
+			"Meta Timers",
+			"GW2 TLDR — Meta Events",
+			"https://gw2tldr.com/metas",
+			nullptr,
+			nullptr,
+		},
+		{
 			"gw2crafts",
 			"Tools",
 			"GW2 Crafts",
@@ -121,6 +139,15 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"peuresearch",
+			"Tools",
+			"Peu Research Center",
+			"Peu Research Center",
+			"https://peuresearchcenter.com/index.html",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Guides —— */
 		{
@@ -129,6 +156,24 @@ namespace
 			"Guildjen",
 			"Guildjen",
 			"https://guildjen.com/",
+			nullptr,
+			nullptr,
+		},
+		{
+			"mukluk_fractals",
+			"Guides",
+			"Mukluk Fractals",
+			"Mukluk Labs — Fractal Guides",
+			"https://mukluklabs.com/gw2-fractal-guides",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2tldr",
+			"Guides",
+			"GW2 TLDR",
+			"GW2 TLDR — Quick Reference",
+			"https://gw2tldr.com/",
 			nullptr,
 			nullptr,
 		},

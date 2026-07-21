@@ -8,7 +8,7 @@
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "7";
+	static constexpr const char* kHomePageVersion = "8";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -166,9 +166,9 @@ const char* HomePage::Html()
       <div><span class="cat">Help</span><br/>This page</div>
       <div><span class="cat">Official</span><br/>Guild Wars 2, Raidcore</div>
       <div><span class="cat">Wiki</span><br/>Official Guild Wars 2 Wiki</div>
-      <div><span class="cat">Builds</span><br/>Snowcrows, MetaBattle, Accessibility Wars</div>
-      <div><span class="cat">Tools</span><br/>gw2efficiency, GW2Timer Map, GW2 Crafts, Music Box</div>
-      <div><span class="cat">Guides</span><br/>Guildjen</div>
+      <div><span class="cat">Builds</span><br/>Snowcrows, MetaBattle, Accessibility Wars, Gw2Skills Editor</div>
+      <div><span class="cat">Tools</span><br/>gw2efficiency, GW2Timer Map, Meta Timers, GW2 Crafts, Music Box, Peu Research Center</div>
+      <div><span class="cat">Guides</span><br/>Guildjen, Mukluk Fractals, GW2 TLDR</div>
       <div><span class="cat">Farming</span><br/>Fast Farming Community</div>
       <div><span class="cat">Discord</span><br/>Fractal Training, Raidcore, Raid Academy</div>
     </div>
