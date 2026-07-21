@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.2
+# GW2 In-Game Helper v1.4.1.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -20,7 +20,7 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
-## What’s new in 1.4.2
+## What’s new in 1.4.1.1
 
 - **New sites**
   - Builds: [Gw2Skills Editor](https://en.gw2skills.net/editor/)
