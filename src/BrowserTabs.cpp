@@ -9,16 +9,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <vector>
 
 namespace
 {
 	struct TabState
 	{
 		BrowserTabs::Tab tab{};
-		std::vector<std::string> back;
-		std::vector<std::string> forward;
-		bool suppressHistory = false;
 	};
 
 	TabState gTabs[BrowserTabs::kMaxTabs];
@@ -37,9 +33,6 @@ namespace
 	void FillFromSite(TabState& t, const char* siteId)
 	{
 		t.tab = BrowserTabs::Tab{};
-		t.back.clear();
-		t.forward.clear();
-		t.suppressHistory = true;
 
 		if (!siteId || !siteId[0])
 			siteId = "home";
@@ -63,26 +56,24 @@ namespace
 			gTabs[gActive].tab.url = cur;
 	}
 
-	void NavigateTab(TabState& t)
+	void SyncSlotToHelper(int slot, bool activate)
 	{
-		t.suppressHistory = true;
-		SyncSitesFromTab(t.tab);
-		if (!t.tab.url.empty())
-			WikiBrowser::Navigate(t.tab.url);
-		else
-			WikiBrowser::NavigateActiveSite();
+		if (slot < 0 || slot >= gCount)
+			return;
+		const std::string& url = gTabs[slot].tab.url;
+		WikiBrowser::CreateTab(slot, url.empty() ? "about:blank" : url.c_str());
+		if (activate)
+			WikiBrowser::ActivateTab(slot);
 	}
 
-	void PushHistory(TabState& t, const std::string& fromUrl)
+	void SyncAllToHelper()
 	{
-		if (t.suppressHistory)
+		if (gCount <= 0)
 			return;
-		if (fromUrl.empty() || fromUrl == t.tab.url)
-			return;
-		t.back.push_back(fromUrl);
-		if (t.back.size() > 64)
-			t.back.erase(t.back.begin());
-		t.forward.clear();
+		for (int i = 0; i < gCount; ++i)
+			SyncSlotToHelper(i, false);
+		WikiBrowser::ActivateTab(gActive);
+		SyncSitesFromTab(gTabs[gActive].tab);
 	}
 }
 
@@ -100,7 +91,7 @@ void BrowserTabs::EnsureDefault()
 void BrowserTabs::NavigateActive()
 {
 	EnsureDefault();
-	NavigateTab(gTabs[gActive]);
+	SyncAllToHelper();
 }
 
 void BrowserTabs::PrepareSave()
@@ -225,23 +216,9 @@ void BrowserTabs::Tick()
 	if (gActive < 0 || gActive >= gCount)
 		return;
 
-	TabState& t = gTabs[gActive];
 	const std::string cur = WikiBrowser::CurrentUrl();
-	if (cur.empty())
-		return;
-
-	if (t.suppressHistory)
-	{
-		t.tab.url = cur;
-		t.suppressHistory = false;
-		return;
-	}
-
-	if (cur != t.tab.url)
-	{
-		PushHistory(t, t.tab.url);
-		t.tab.url = cur;
-	}
+	if (!cur.empty() && cur != gTabs[gActive].tab.url)
+		gTabs[gActive].tab.url = cur;
 }
 
 int BrowserTabs::Count()
@@ -268,7 +245,10 @@ void BrowserTabs::OpenInActive(const char* siteId, bool navigate)
 	FillFromSite(gTabs[gActive], siteId);
 	Settings::SetDirty();
 	if (navigate)
-		NavigateTab(gTabs[gActive]);
+	{
+		SyncSitesFromTab(gTabs[gActive].tab);
+		SyncSlotToHelper(gActive, true);
+	}
 }
 
 int BrowserTabs::OpenNew(const char* siteId, bool navigate)
@@ -283,7 +263,28 @@ int BrowserTabs::OpenNew(const char* siteId, bool navigate)
 	++gCount;
 	Settings::SetDirty();
 	if (navigate)
-		NavigateTab(gTabs[gActive]);
+	{
+		SyncSitesFromTab(gTabs[gActive].tab);
+		SyncSlotToHelper(gActive, true);
+	}
+	return gActive;
+}
+
+int BrowserTabs::OpenNewUrl(const char* siteId, const std::string& url)
+{
+	EnsureDefault();
+	if (gCount >= kMaxTabs)
+		return -1;
+
+	StashActiveUrl();
+	FillFromSite(gTabs[gCount], siteId && siteId[0] ? siteId : Sites::ActiveId());
+	if (!url.empty())
+		gTabs[gCount].tab.url = url;
+	gActive = gCount;
+	++gCount;
+	Settings::SetDirty();
+	SyncSitesFromTab(gTabs[gActive].tab);
+	SyncSlotToHelper(gActive, true);
 	return gActive;
 }
 
@@ -295,7 +296,9 @@ void BrowserTabs::Activate(int index)
 
 	StashActiveUrl();
 	gActive = index;
-	NavigateTab(gTabs[gActive]);
+	SyncSitesFromTab(gTabs[gActive].tab);
+	WikiBrowser::ActivateTab(gActive);
+	Settings::SetDirty();
 }
 
 void BrowserTabs::Close(int index)
@@ -308,6 +311,8 @@ void BrowserTabs::Close(int index)
 	if (closingActive)
 		StashActiveUrl();
 
+	WikiBrowser::CloseTab(index);
+
 	for (int i = index; i < gCount - 1; ++i)
 		gTabs[i] = std::move(gTabs[i + 1]);
 	gTabs[gCount - 1] = TabState{};
@@ -318,60 +323,30 @@ void BrowserTabs::Close(int index)
 	else if (gActive >= gCount)
 		gActive = gCount - 1;
 
+	SyncSitesFromTab(gTabs[gActive].tab);
 	if (closingActive)
-		NavigateTab(gTabs[gActive]);
-	else
-		SyncSitesFromTab(gTabs[gActive].tab);
+		WikiBrowser::ActivateTab(gActive);
+	Settings::SetDirty();
 }
 
 bool BrowserTabs::CanGoBack()
 {
-	EnsureDefault();
-	if (gCount > 1)
-		return !gTabs[gActive].back.empty();
-	return WikiBrowser::CanGoBack() || !gTabs[gActive].back.empty();
+	return WikiBrowser::CanGoBack();
 }
 
 bool BrowserTabs::CanGoForward()
 {
-	EnsureDefault();
-	if (gCount > 1)
-		return !gTabs[gActive].forward.empty();
-	return WikiBrowser::CanGoForward() || !gTabs[gActive].forward.empty();
+	return WikiBrowser::CanGoForward();
 }
 
 void BrowserTabs::GoBack()
 {
-	EnsureDefault();
-	TabState& t = gTabs[gActive];
-	if (!t.back.empty())
-	{
-		t.forward.push_back(t.tab.url);
-		t.tab.url = t.back.back();
-		t.back.pop_back();
-		t.suppressHistory = true;
-		WikiBrowser::Navigate(t.tab.url);
-		return;
-	}
-	if (gCount == 1)
-		WikiBrowser::GoBack();
+	WikiBrowser::GoBack();
 }
 
 void BrowserTabs::GoForward()
 {
-	EnsureDefault();
-	TabState& t = gTabs[gActive];
-	if (!t.forward.empty())
-	{
-		t.back.push_back(t.tab.url);
-		t.tab.url = t.forward.back();
-		t.forward.pop_back();
-		t.suppressHistory = true;
-		WikiBrowser::Navigate(t.tab.url);
-		return;
-	}
-	if (gCount == 1)
-		WikiBrowser::GoForward();
+	WikiBrowser::GoForward();
 }
 
 void BrowserTabs::GoHome()
@@ -379,7 +354,8 @@ void BrowserTabs::GoHome()
 	EnsureDefault();
 	FillFromSite(gTabs[gActive], "home");
 	Settings::SetDirty();
-	NavigateTab(gTabs[gActive]);
+	SyncSitesFromTab(gTabs[gActive].tab);
+	SyncSlotToHelper(gActive, true);
 }
 
 void BrowserTabs::Reload()

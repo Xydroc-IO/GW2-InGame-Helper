@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 struct ID3D11ShaderResourceView;
@@ -20,6 +21,12 @@ namespace WikiBrowser
 	void GoForward();
 	void Reload();
 
+	void CreateTab(int slot, const char* url);
+	void ActivateTab(int slot);
+	void CloseTab(int slot);
+	void Find(const char* text, bool forward, bool matchCase, bool findNext);
+	void StopFind(bool clearSelection);
+
 	void PresentFrame();
 
 	/* Mouse coords are in CEF view pixels (same space as FrameWidth/Height). */
@@ -39,6 +46,9 @@ namespace WikiBrowser
 	bool CanGoForward();
 	std::string CurrentUrl();
 	std::string Status();
+
+	uint32_t FindCount();
+	uint32_t FindOrdinal();
 
 	std::string UrlEncode(const std::string& value);
 }

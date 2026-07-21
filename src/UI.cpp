@@ -161,6 +161,9 @@ namespace
 	static char sFilter[64] = {};
 	static int sCategoryIndex = 0;
 	static bool sSyncCategory = true;
+	static bool sShowFind = false;
+	static char sFindQuery[128] = {};
+	static bool sFindMatchCase = false;
 
 	void ActivateSiteIndex(int index, bool navigate, bool newTab)
 	{
@@ -253,7 +256,7 @@ namespace
 			Sites::ToggleFavorite(siteId);
 	}
 
-	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickDefaultSite = false)
+	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickDefaultSite = false, bool pickNewTab = false)
 	{
 		size_t siteCount = 0;
 		const SiteDef* sites = Sites::All(&siteCount);
@@ -262,7 +265,7 @@ namespace
 		if (!sites || siteCount == 0 || !cats || catCount == 0)
 			return;
 
-		/* Index 0 = virtual Favorites (browse only); categories follow. */
+		/* Index 0 = virtual Favorites (browse / new-tab); categories follow. */
 		const int totalCats = pickDefaultSite
 			? static_cast<int>(catCount)
 			: static_cast<int>(catCount) + 1;
@@ -295,6 +298,11 @@ namespace
 		{
 			ImGui::TextColored(kGold, "Default landing site");
 			ImGui::TextColored(kMuted, "Used when no tabs are saved yet.");
+		}
+		else if (pickNewTab)
+		{
+			ImGui::TextColored(kGold, "Open in new tab");
+			ImGui::TextColored(kMuted, "Pick a site to open beside your current tabs.");
 		}
 
 		ImGui::TextColored(kGold, "Search");
@@ -388,14 +396,58 @@ namespace
 			{
 				if (pickDefaultSite)
 					SetDefaultSiteIndex(siteIndex);
+				else if (pickNewTab)
+					ActivateSiteIndex(siteIndex, true, true);
 				else
 					ActivateSiteIndex(siteIndex, navigateOnChange, ctrl);
 				if (closePanel)
 					*closePanel = true;
 				sSyncCategory = true;
 			}
-			if (ImGui::IsItemHovered() && !pickDefaultSite)
+			if (ImGui::IsItemHovered() && !pickDefaultSite && !pickNewTab)
 				ImGui::SetTooltip("Click: this tab · Ctrl+click: new tab");
+			if (ImGui::IsItemHovered() && pickNewTab)
+				ImGui::SetTooltip("Open in a new tab");
+
+			/* Drag-reorder favorites */
+			if (showFavorites && !pickDefaultSite && !pickNewTab)
+			{
+				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+				{
+					const int favSlot = [&]() {
+						const int favN = Sites::FavoriteCount();
+						for (int f = 0; f < favN; ++f)
+						{
+							if (Sites::FavoriteSiteIndex(f) == siteIndex)
+								return f;
+						}
+						return -1;
+					}();
+					ImGui::SetDragDropPayload("FAV_REORDER", &favSlot, sizeof(favSlot));
+					ImGui::TextUnformatted(site.label ? site.label : "Favorite");
+					ImGui::EndDragDropSource();
+				}
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FAV_REORDER"))
+					{
+						const int from = *static_cast<const int*>(payload->Data);
+						const int favN = Sites::FavoriteCount();
+						int to = -1;
+						for (int f = 0; f < favN; ++f)
+						{
+							if (Sites::FavoriteSiteIndex(f) == siteIndex)
+							{
+								to = f;
+								break;
+							}
+						}
+						if (from >= 0 && to >= 0)
+							Sites::MoveFavorite(from, to);
+					}
+					ImGui::EndDragDropTarget();
+				}
+			}
 			if (selected)
 				ImGui::SetItemDefaultFocus();
 			ImGui::PopID();
@@ -500,7 +552,10 @@ namespace
 		if (canAdd)
 		{
 			if (ImGui::Button("+##new_tab"))
+			{
+				sSyncCategory = true;
 				ImGui::OpenPopup("##site_browse_newtab");
+			}
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Open site in a new tab");
 		}
@@ -513,32 +568,11 @@ namespace
 				ImGui::SetTooltip("Tab limit reached (8)");
 		}
 
-		ImGui::SetNextWindowSize(ImVec2(520.f, 320.f), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(520.f, 340.f), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##site_browse_newtab"))
 		{
 			bool closePanel = false;
-			size_t siteCount = 0;
-			const SiteDef* sites = Sites::All(&siteCount);
-			ImGui::TextColored(kGold, "Open in new tab");
-			ImGui::Separator();
-			ImGui::BeginChild("##newtab_sites", ImVec2(0.f, 260.f), true);
-			if (sites)
-			{
-				for (int i = 0; i < static_cast<int>(siteCount); ++i)
-				{
-					const SiteDef& site = sites[i];
-					char row[160];
-					std::snprintf(row, sizeof(row), "%s · %s",
-						site.category ? site.category : "",
-						site.label ? site.label : "");
-					if (ImGui::Selectable(row))
-					{
-						BrowserTabs::OpenNew(site.id, true);
-						closePanel = true;
-					}
-				}
-			}
-			ImGui::EndChild();
+			DrawBrowsePanelContents(true, &closePanel, false, true);
 			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
@@ -784,7 +818,88 @@ void UI_Render()
 		}
 	}
 	ImGui::SameLine();
+	{
+		const bool canNew = BrowserTabs::Count() < BrowserTabs::kMaxTabs;
+		if (canNew)
+		{
+			if (ImGui::Button("New Tab"))
+			{
+				std::string u = WikiBrowser::CurrentUrl();
+				if (u.empty() || u.rfind("about:", 0) == 0 || u.rfind("file:", 0) == 0)
+					u = Sites::ResolveUrl(Sites::Active());
+				BrowserTabs::OpenNewUrl(Sites::ActiveId(), u);
+			}
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Duplicate current page in a new tab");
+		}
+		else
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.4f);
+			ImGui::Button("New Tab");
+			ImGui::PopStyleVar();
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(sShowFind ? "Find##find_toggle" : "Find##find_toggle_off"))
+		sShowFind = !sShowFind;
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("Find in page (Ctrl+F)");
+	ImGui::SameLine();
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
+
+	/* Ctrl+F toggles find bar; Escape closes find only. */
+	{
+		const bool ctrlF = (GetAsyncKeyState(VK_CONTROL) & 0x8000) &&
+			(GetAsyncKeyState('F') & 0x8000) &&
+			!(GetAsyncKeyState(VK_MENU) & 0x8000);
+		static bool sCtrlFWasDown = false;
+		if (ctrlF && !sCtrlFWasDown)
+			sShowFind = true;
+		sCtrlFWasDown = ctrlF;
+		if (sShowFind && ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			sShowFind = false;
+			WikiBrowser::StopFind(true);
+		}
+	}
+
+	if (sShowFind)
+	{
+		ImGui::TextColored(kGold, "Find");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(220.f);
+		const bool findEnter = ImGui::InputTextWithHint("##find_q", "Find in page…", sFindQuery, sizeof(sFindQuery),
+			ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::SameLine();
+		ImGui::Checkbox("Aa", &sFindMatchCase);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Match case");
+		ImGui::SameLine();
+		if (ImGui::Button("Next") || findEnter)
+		{
+			if (sFindQuery[0])
+				WikiBrowser::Find(sFindQuery, true, sFindMatchCase, true);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Prev"))
+		{
+			if (sFindQuery[0])
+				WikiBrowser::Find(sFindQuery, false, sFindMatchCase, true);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Clear"))
+		{
+			WikiBrowser::StopFind(true);
+			sFindQuery[0] = 0;
+		}
+		ImGui::SameLine();
+		const uint32_t fc = WikiBrowser::FindCount();
+		const uint32_t fo = WikiBrowser::FindOrdinal();
+		if (fc > 0)
+			ImGui::TextColored(kMuted, "%u / %u", fo, fc);
+		else if (sFindQuery[0])
+			ImGui::TextColored(kMuted, "No matches");
+	}
 
 	DrawTabBar();
 

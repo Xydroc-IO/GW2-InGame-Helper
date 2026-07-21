@@ -282,8 +282,8 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.APIVersion       = NEXUS_API_VERSION;
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 1;
-	G::AddonDef.Version.Minor    = 5;
-	G::AddonDef.Version.Build    = 5;
+	G::AddonDef.Version.Minor    = 6;
+	G::AddonDef.Version.Build    = 0;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =

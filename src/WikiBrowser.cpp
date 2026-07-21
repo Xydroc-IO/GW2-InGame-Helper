@@ -9,6 +9,7 @@
 #include "WikiIpc.h"
 
 #include <atomic>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
@@ -333,7 +334,19 @@ namespace
 	{
 		if (gIpc && HelperAlive())
 		{
+			const uint32_t w = gIpc->cmd_write;
+			const uint32_t next = (w + 1u) % kWikiCmdQueueSize;
+			if (next != gIpc->cmd_read)
+			{
+				WikiCmdEvent& ev = gIpc->cmd_q[w % kWikiCmdQueueSize];
+				ev.cmd = WIKI_CMD_QUIT;
+				ev.a = 0;
+				ev.arg[0] = 0;
+				gIpc->cmd_write = next;
+			}
 			gIpc->cmd = WIKI_CMD_QUIT;
+			gIpc->cmd_a = 0;
+			gIpc->cmd_arg[0] = 0;
 			++gIpc->cmd_seq;
 			/* Never block the game render thread for long — brief poll then kill. */
 			WaitForSingleObject(gProcess, 50);
@@ -503,11 +516,25 @@ namespace
 		return true;
 	}
 
-	void PostCmd(WikiIpcCmd cmd, const char* arg = "")
+	void PostCmd(WikiIpcCmd cmd, const char* arg = "", int32_t a = 0)
 	{
 		if (!gIpc || !HelperAlive())
 			return;
+
+		const uint32_t w = gIpc->cmd_write;
+		const uint32_t next = (w + 1u) % kWikiCmdQueueSize;
+		if (next != gIpc->cmd_read)
+		{
+			WikiCmdEvent& ev = gIpc->cmd_q[w % kWikiCmdQueueSize];
+			ev.cmd = cmd;
+			ev.a = a;
+			std::snprintf(ev.arg, sizeof(ev.arg), "%s", arg ? arg : "");
+			gIpc->cmd_write = next;
+		}
+
+		/* Legacy single-slot — still written for older helpers / debug. */
 		std::snprintf(gIpc->cmd_arg, sizeof(gIpc->cmd_arg), "%s", arg ? arg : "");
+		gIpc->cmd_a = a;
 		gIpc->cmd = cmd;
 		++gIpc->cmd_seq;
 	}
@@ -825,6 +852,43 @@ void WikiBrowser::GoBack() { PostCmd(WIKI_CMD_BACK); }
 void WikiBrowser::GoForward() { PostCmd(WIKI_CMD_FORWARD); }
 void WikiBrowser::Reload() { PostCmd(WIKI_CMD_RELOAD); }
 
+void WikiBrowser::CreateTab(int slot, const char* url)
+{
+	if (slot < 0 || slot >= kWikiMaxTabs)
+		return;
+	PostCmd(WIKI_CMD_CREATE_TAB, url ? url : "", slot);
+}
+
+void WikiBrowser::ActivateTab(int slot)
+{
+	if (slot < 0 || slot >= kWikiMaxTabs)
+		return;
+	PostCmd(WIKI_CMD_ACTIVATE_TAB, "", slot);
+}
+
+void WikiBrowser::CloseTab(int slot)
+{
+	if (slot < 0 || slot >= kWikiMaxTabs)
+		return;
+	PostCmd(WIKI_CMD_CLOSE_TAB, "", slot);
+}
+
+void WikiBrowser::Find(const char* text, bool forward, bool matchCase, bool findNext)
+{
+	if (!text || !text[0])
+		return;
+	int32_t flags = 0;
+	if (forward) flags |= 1;
+	if (matchCase) flags |= 2;
+	if (findNext) flags |= 4;
+	PostCmd(WIKI_CMD_FIND, text, flags);
+}
+
+void WikiBrowser::StopFind(bool clearSelection)
+{
+	PostCmd(WIKI_CMD_STOP_FIND, "", clearSelection ? 1 : 0);
+}
+
 bool WikiBrowser::IsReady()
 {
 	return gIpc && gIpc->ready && HelperAlive();
@@ -857,4 +921,14 @@ std::string WikiBrowser::Status()
 		return gIpc->status;
 	std::lock_guard<std::mutex> lock(gMutex);
 	return gStatus;
+}
+
+uint32_t WikiBrowser::FindCount()
+{
+	return gIpc ? gIpc->find_count : 0;
+}
+
+uint32_t WikiBrowser::FindOrdinal()
+{
+	return gIpc ? gIpc->find_ordinal : 0;
 }
