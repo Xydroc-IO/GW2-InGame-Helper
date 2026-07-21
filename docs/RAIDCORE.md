@@ -14,10 +14,13 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.7.1.0`
+`1.7.2.1`
 
 ## Changelog highlights
 
+- **1.7.2.1** — Fix freeze from per-frame settings.ini writes (debounce + title dirty)
+- **1.7.2.0** — Tab hotkeys (Ctrl+T/W/Tab); live tab titles from page/URL
+- **1.7.1.1** — Fix new-tab navigating the previous tab
 - **1.7.1.0** — Cheat Sheets category (Raid Food + eight offline sheets: utilities, fractals, sigils, relics, boons, CC, wings, garden)
 - **1.7.0.0** — Compact toolbar; pin / reopen tabs; keep-warm option; gold status polish
 - **1.6.0.3** — Fix blank Home/Raid Food/restored tabs; ready-resync; no forced homepage on open
@@ -53,9 +56,14 @@ UpdateLink = https://github.com/Xydroc-IO/GW2-InGame-Helper
 
 ## Hotkeys
 
-| Bind ID | Default | Action |
-|---------|---------|--------|
-| `KB_HELPER_TOGGLE` | `CTRL+SHIFT+H` | Open / close helper |
+| Bind / key | Default | Action |
+|------------|---------|--------|
+| `KB_HELPER_TOGGLE` | `Ctrl+Shift+H` (or `K`) | Open / close helper |
+| (in helper) | `Ctrl+T` | New-tab site picker |
+| (in helper) | `Ctrl+W` | Close tab (unless pinned) |
+| (in helper) | `Ctrl+Tab` / `Ctrl+Shift+Tab` | Next / previous tab |
+| (in helper) | `Ctrl+Shift+T` | Reopen closed tab |
+| (in helper) | `Ctrl+F` | Find in page |
 
 ## Player artifact
 
