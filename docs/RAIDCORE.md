@@ -14,10 +14,11 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.5.2.1`
+`1.5.3.0`
 
 ## Changelog highlights
 
+- **1.5.3.0** — Multi-tab browsing (up to 8); Ctrl+click / + opens a new tab
 - **1.5.2.1** — Favorites star drawn with ImGui (fixes ? glyph from missing font chars)
 - **1.5.2.0** — Favorites: star sites in Browse / toolbar; persisted in settings
 - **1.5.1.0** — Runtime data under `addons/GW2-InGame-Helper/`; DLL only in `addons/`

@@ -25,6 +25,7 @@ DLL_SRC = \
 	src/Settings.cpp \
 	src/AddonPaths.cpp \
 	src/Sites.cpp \
+	src/BrowserTabs.cpp \
 	src/HomePage.cpp \
 	src/RaidFood.cpp \
 	src/HelperQuickAccess.cpp \
