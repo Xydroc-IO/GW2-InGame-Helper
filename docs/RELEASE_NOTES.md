@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.1
+# GW2 In-Game Helper v1.4.2
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -19,6 +19,13 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
 
 ---
+
+## What’s new in 1.4.2
+
+- **New sites**
+  - Builds: [Gw2Skills Editor](https://en.gw2skills.net/editor/)
+  - Tools: [Meta Timers](https://gw2tldr.com/metas), [Peu Research Center](https://peuresearchcenter.com/index.html)
+  - Guides: [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides), [GW2 TLDR](https://gw2tldr.com/)
 
 ## What’s new in 1.4.1
 
@@ -45,9 +52,9 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 | Help | How to use (built-in) |
 | Official | Guild Wars 2, Raidcore |
 | Wiki | GW2 Wiki |
-| Builds | Snowcrows, MetaBattle, Accessibility Wars |
-| Tools | gw2efficiency, GW2Timer Map, GW2 Crafts, Music Box |
-| Guides | Guildjen |
+| Builds | Snowcrows, MetaBattle, Accessibility Wars, Gw2Skills Editor |
+| Tools | gw2efficiency, GW2Timer Map, Meta Timers, GW2 Crafts, Music Box, Peu Research Center |
+| Guides | Guildjen, Mukluk Fractals, GW2 TLDR |
 | Farming | Fast Farming |
 | Discord | Fractal Training, Raidcore, Raid Academy |
 

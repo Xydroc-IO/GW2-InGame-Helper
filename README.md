@@ -19,11 +19,16 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 | [Snowcrows](https://snowcrows.com/) | Builds |
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
 | [Accessibility Wars](https://aw2.help/) | Builds |
+| [Gw2Skills Editor](https://en.gw2skills.net/editor/) | Builds |
 | [gw2efficiency](https://gw2efficiency.com/) | Tools |
 | [GW2Timer Map](https://gw2timer.com/?page=Map) | Tools |
+| [Meta Timers](https://gw2tldr.com/metas) | Tools |
 | [GW2 Crafts](https://gw2crafts.net/) | Tools |
 | [Music Box](http://gw2mb.com/) | Tools |
+| [Peu Research Center](https://peuresearchcenter.com/index.html) | Tools |
 | [Guildjen](https://guildjen.com/) | Guides |
+| [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
+| [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
 | [Fractal Training](https://discord.com/invite/zxeVeSqpuS) | Discord |
 | [Raidcore Discord](https://discord.com/invite/raidcore) | Discord |
