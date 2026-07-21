@@ -1,5 +1,6 @@
 #include "UI.h"
 
+#include "BrowserTabs.h"
 #include "Globals.h"
 #include "Settings.h"
 #include "Sites.h"
@@ -114,16 +115,22 @@ namespace
 	static int sCategoryIndex = 0;
 	static bool sSyncCategory = true;
 
-	void ActivateSiteIndex(int index, bool navigate)
+	void ActivateSiteIndex(int index, bool navigate, bool newTab)
 	{
 		if (index < 0)
 			return;
-		const bool changed = Sites::SetActiveIndex(index);
-		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
-		if (changed)
-			Settings::SetDirty();
-		if (navigate && (changed || index == Sites::ActiveIndex()))
-			WikiBrowser::NavigateActiveSite();
+		size_t siteCount = 0;
+		const SiteDef* sites = Sites::All(&siteCount);
+		if (!sites || index >= static_cast<int>(siteCount) || !sites[index].id)
+			return;
+
+		if (newTab)
+		{
+			if (BrowserTabs::OpenNew(sites[index].id, navigate) < 0 && navigate)
+				BrowserTabs::OpenInActive(sites[index].id, navigate);
+		}
+		else
+			BrowserTabs::OpenInActive(sites[index].id, navigate);
 	}
 
 	/* Draw a 5-point star (ProggyClean has no ★/☆ glyphs). */
@@ -285,13 +292,16 @@ namespace
 				std::snprintf(row, sizeof(row), "%s", site.label ? site.label : "");
 
 			const bool selected = (siteIndex == current);
+			const bool ctrl = ImGui::GetIO().KeyCtrl;
 			if (ImGui::Selectable(row, selected))
 			{
-				ActivateSiteIndex(siteIndex, navigateOnChange);
+				ActivateSiteIndex(siteIndex, navigateOnChange, ctrl);
 				if (closePanel)
 					*closePanel = true;
 				sSyncCategory = true;
 			}
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Click: this tab · Ctrl+click: new tab");
 			if (selected)
 				ImGui::SetItemDefaultFocus();
 			ImGui::PopID();
@@ -337,6 +347,104 @@ namespace
 			ImGui::PopStyleColor();
 		}
 		ImGui::EndChild();
+	}
+
+	void DrawTabBar()
+	{
+		BrowserTabs::EnsureDefault();
+		const int n = BrowserTabs::Count();
+		const int active = BrowserTabs::ActiveIndex();
+		int pendingClose = -1;
+
+		ImGui::BeginChild("##tab_bar", ImVec2(0.f, ImGui::GetFrameHeightWithSpacing() + 4.f), false,
+			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+		for (int i = 0; i < n; ++i)
+		{
+			ImGui::PushID(i);
+			const BrowserTabs::Tab& tab = BrowserTabs::At(i);
+			const bool selected = (i == active);
+
+			char label[64];
+			std::snprintf(label, sizeof(label), "%s", tab.title[0] ? tab.title : "Tab");
+
+			if (selected)
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.32f, 0.26f, 0.12f, 1.f));
+			if (ImGui::Button(label))
+				BrowserTabs::Activate(i);
+			if (selected)
+				ImGui::PopStyleColor();
+
+			if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Middle) && n > 1)
+				pendingClose = i;
+
+			if (n > 1)
+			{
+				ImGui::SameLine(0.f, 2.f);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, ImGui::GetStyle().FramePadding.y));
+				if (ImGui::SmallButton("x"))
+					pendingClose = i;
+				ImGui::PopStyleVar();
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("Close tab");
+			}
+
+			ImGui::SameLine();
+			ImGui::PopID();
+		}
+
+		const bool canAdd = (n < BrowserTabs::kMaxTabs);
+		if (canAdd)
+		{
+			if (ImGui::Button("+##new_tab"))
+				ImGui::OpenPopup("##site_browse_newtab");
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Open site in a new tab");
+		}
+		else
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.4f);
+			ImGui::Button("+##new_tab");
+			ImGui::PopStyleVar();
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Tab limit reached (8)");
+		}
+
+		ImGui::SetNextWindowSize(ImVec2(520.f, 320.f), ImGuiCond_Always);
+		if (ImGui::BeginPopup("##site_browse_newtab"))
+		{
+			bool closePanel = false;
+			size_t siteCount = 0;
+			const SiteDef* sites = Sites::All(&siteCount);
+			ImGui::TextColored(kGold, "Open in new tab");
+			ImGui::Separator();
+			ImGui::BeginChild("##newtab_sites", ImVec2(0.f, 260.f), true);
+			if (sites)
+			{
+				for (int i = 0; i < static_cast<int>(siteCount); ++i)
+				{
+					const SiteDef& site = sites[i];
+					char row[160];
+					std::snprintf(row, sizeof(row), "%s · %s",
+						site.category ? site.category : "",
+						site.label ? site.label : "");
+					if (ImGui::Selectable(row))
+					{
+						BrowserTabs::OpenNew(site.id, true);
+						closePanel = true;
+					}
+				}
+			}
+			ImGui::EndChild();
+			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		ImGui::EndChild();
+
+		if (pendingClose >= 0)
+			BrowserTabs::Close(pendingClose);
 	}
 
 	void DrawSitePicker()
@@ -477,21 +585,24 @@ void UI_Render()
 
 	ImGui::SetWindowFontScale(G::FontScale);
 
+	BrowserTabs::EnsureDefault();
+	BrowserTabs::Tick();
+
 	ImGui::TextColored(kGold, "IN-GAME HELPER");
 	ImGui::SameLine();
 	DrawSitePicker();
 	ImGui::SameLine();
-	if (SoftButton("<", WikiBrowser::CanGoBack()))
-		WikiBrowser::GoBack();
+	if (SoftButton("<", BrowserTabs::CanGoBack()))
+		BrowserTabs::GoBack();
 	ImGui::SameLine();
-	if (SoftButton(">", WikiBrowser::CanGoForward()))
-		WikiBrowser::GoForward();
+	if (SoftButton(">", BrowserTabs::CanGoForward()))
+		BrowserTabs::GoForward();
 	ImGui::SameLine();
 	if (ImGui::Button("Home"))
-		WikiBrowser::NavigateHome();
+		BrowserTabs::GoHome();
 	ImGui::SameLine();
 	if (ImGui::Button("Reload"))
-		WikiBrowser::Reload();
+		BrowserTabs::Reload();
 	ImGui::SameLine();
 	if (ImGui::Button("Copy URL"))
 	{
@@ -533,6 +644,8 @@ void UI_Render()
 	}
 	ImGui::SameLine();
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
+
+	DrawTabBar();
 
 	const std::string url = WikiBrowser::CurrentUrl();
 	if (!url.empty())
@@ -675,9 +788,9 @@ void UI_Options()
 
 	ImGui::Spacing();
 	ImGui::TextWrapped(
-		"Use Browse to pick a site (search + categories). Click the star to pin sites under "
-		"Favorites. Click outside the window to move and use skills again — you do not need to "
-		"close the addon.");
+		"Use Browse to pick a site (search + categories). Ctrl+click or + opens a new tab "
+		"(up to 8). Click the star to pin Favorites. Click outside the window to move and use "
+		"skills again — you do not need to close the addon.");
 	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) open / close the helper");
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
 }
