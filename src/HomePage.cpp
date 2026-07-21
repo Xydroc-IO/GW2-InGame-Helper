@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "10";
+	static constexpr const char* kHomePageVersion = "11";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -297,13 +297,15 @@ const char* HomePage::Html()
       <div class="body">
         <div class="grid">
           <div class="card"><span class="cat">Help</span><span>This page</span></div>
-          <div class="card"><span class="cat">Official</span><span>Guild Wars 2, Raidcore</span></div>
+          <div class="card"><span class="cat">Official</span><span>Guild Wars 2, GW2 News, Raidcore</span></div>
           <div class="card"><span class="cat">Wiki</span><span>Official Guild Wars 2 Wiki</span></div>
-          <div class="card"><span class="cat">Builds</span><span>Snowcrows, MetaBattle, Accessibility Wars, Gw2Skills Editor</span></div>
-          <div class="card"><span class="cat">Tools</span><span>gw2efficiency, GW2Timer Map, Meta Timers, GW2 Crafts, Music Box, Peu Research Center</span></div>
-          <div class="card"><span class="cat">Guides</span><span>Raid Food, Guildjen, Mukluk Fractals, GW2 TLDR</span></div>
+          <div class="card"><span class="cat">Builds</span><span>Snowcrows, MetaBattle, MetaBattle OW, Accessibility Wars, Gw2Skills Editor</span></div>
+          <div class="card"><span class="cat">PvP</span><span>MetaBattle PvP</span></div>
+          <div class="card"><span class="cat">WvW</span><span>MetaBattle WvW</span></div>
+          <div class="card"><span class="cat">Tools</span><span>gw2efficiency, GW2Timer Events/Map, Meta Timers, GW2 Crafts, Music Box, Peu Research Center</span></div>
+          <div class="card"><span class="cat">Guides</span><span>Raid Food, Lucky Noobs, Guildjen, Mukluk Fractals, GW2 TLDR</span></div>
           <div class="card"><span class="cat">Farming</span><span>Fast Farming Community</span></div>
-          <div class="card"><span class="cat">Discord</span><span>Fractal Training, Raidcore, Raid Academy</span></div>
+          <div class="card"><span class="cat">Discord</span><span>Official, Community, builds, training, PvP, WvW, farming, Raidcore</span></div>
         </div>
       </div>
     </section>

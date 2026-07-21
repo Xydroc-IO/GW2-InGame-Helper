@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.4.1.3` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.4.1.4` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 
@@ -16,28 +16,33 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 |------|----------|
 | How to use (built-in) | Help |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
+| [GW2 News](https://www.guildwars2.com/en/news/) | Official |
 | [Raidcore](https://raidcore.gg/gw2) | Official |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Snowcrows](https://snowcrows.com/) | Builds |
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
+| [MetaBattle OW](https://metabattle.com/wiki/Open_World) | Builds |
 | [Accessibility Wars](https://aw2.help/) | Builds |
 | [Gw2Skills Editor](https://en.gw2skills.net/editor/) | Builds |
+| [MetaBattle PvP](https://metabattle.com/wiki/PvP_Builds) | PvP |
+| [MetaBattle WvW](https://metabattle.com/wiki/WvW) | WvW |
 | [gw2efficiency](https://gw2efficiency.com/) | Tools |
+| [GW2Timer Events](https://gw2timer.com/) | Tools |
 | [GW2Timer Map](https://gw2timer.com/?page=Map) | Tools |
 | [Meta Timers](https://gw2tldr.com/metas) | Tools |
 | [GW2 Crafts](https://gw2crafts.net/) | Tools |
 | [Music Box](http://gw2mb.com/) | Tools |
 | [Peu Research Center](https://peuresearchcenter.com/index.html) | Tools |
 | Raid Food (built-in) | Guides |
+| [Lucky Noobs](https://lucky-noobs.com/) | Guides |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
-| [Fractal Training](https://discord.com/invite/zxeVeSqpuS) | Discord |
-| [Raidcore Discord](https://discord.com/invite/raidcore) | Discord |
-| [Raid Academy](https://discord.com/invite/gw2ra) | Discord |
+| Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Lucky Noobs · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore | Discord |
 
-Add more sites in `src/Sites.cpp`. Replaces the older Wiki / Snowcrow browser addons.
+Add more sites in `src/Sites.cpp`. Hardstuck and Discretize are intentionally omitted (outdated).
+Replaces the older Wiki / Snowcrow browser addons.
 Works on Windows and on Linux via Wine/Proton.
 
 > **Players only need the DLL.** The browser helper is embedded and extracts on first use; Chromium comes from the game’s `bin64/cef`.
