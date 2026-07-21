@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.1.8
+# GW2 In-Game Helper v1.5.1.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -7,7 +7,12 @@ One DLL for Nexus — no memory reads.
 
 ## Install
 
-Copy `GW2-InGame-Helper.dll` into `<Guild Wars 2>/addons/`. Nothing else.
+Copy **only** `GW2-InGame-Helper.dll` into `<Guild Wars 2>/addons/`.
+
+```text
+addons/GW2-InGame-Helper.dll          ← install this (only file you place)
+addons/GW2-InGame-Helper/             ← created at runtime (helper, pages, settings)
+```
 
 Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows / Wine / Proton).
 
@@ -20,21 +25,14 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
-## What’s new in 1.4.1.8
+## What’s new in 1.5.1.0
 
-- **Homepage redesign** — full-page GW2 cover atmosphere, gold ornament frame, stronger brand hero, motion accents
+- **Install layout** — runtime files (helper, homepage, Raid Food, settings) live under `addons/GW2-InGame-Helper/`; only the DLL sits in `addons/`
+- Cleans stale files left in `addons/` root from older builds
 
-## What’s new in 1.4.1.7
+## What’s new in 1.4.1.x
 
-- Removed Lucky Noobs (site + Discord)
-
-## What’s new in 1.4.1.6
-
-- Browse panel (search + categories)
-
-## What’s new in 1.4.1.5 – 1.4.0
-
-- Gap-fill sites, Open Ext / Copy URL, PvP/WvW, Raid Food, branded assets, community Discords
+- Full-page themed homepage, Browse panel, Open Ext / Copy URL, expanded sites (no Hardstuck / Discretize / Lucky Noobs)
 
 ---
 

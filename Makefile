@@ -23,6 +23,7 @@ HOME_COVER_OBJ = build/home_cover.o
 DLL_SRC = \
 	src/entry.cpp \
 	src/Settings.cpp \
+	src/AddonPaths.cpp \
 	src/Sites.cpp \
 	src/HomePage.cpp \
 	src/RaidFood.cpp \
@@ -88,12 +89,20 @@ build/%.o: %.cpp
 install: $(DLL_OUT)
 	@mkdir -p "$(INSTALL_DIR)"
 	/bin/cp -f "$(DLL_OUT)" "$(INSTALL_DLL)"
-	/bin/cp -f "$(DLL_OUT)" "$(INSTALL_DIR)/GW2-InGame-Helper.dll"
-	/bin/rm -f "$(INSTALL_DIR)/GW2HelperBrowser.exe" \
+	/bin/rm -f "$(INSTALL_DIR)/GW2-InGame-Helper.dll" \
+		"$(INSTALL_DIR)/GW2HelperBrowser.exe" \
 		"$(GW2_ADDONS)/GW2HelperBrowser.exe" \
+		"$(GW2_ADDONS)/helper-home.html" \
+		"$(GW2_ADDONS)/helper-home.ver" \
+		"$(GW2_ADDONS)/home-logo.png" \
+		"$(GW2_ADDONS)/home-cover.jpg" \
+		"$(GW2_ADDONS)/raid-food.html" \
+		"$(GW2_ADDONS)/raid-food.ver" \
+		"$(GW2_ADDONS)/settings.ini" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"
-	@echo "Installed -> $(INSTALL_DLL)"
+	@echo "Installed DLL -> $(INSTALL_DLL)"
+	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@ls -lh "$(INSTALL_DLL)"
 
 clean:

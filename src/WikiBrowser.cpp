@@ -1,5 +1,6 @@
 #include "WikiBrowser.h"
 
+#include "AddonPaths.h"
 #include "Globals.h"
 #include "HomePage.h"
 #include "RaidFood.h"
@@ -79,49 +80,9 @@ namespace
 		return L"";
 	}
 
-	std::wstring ModuleDir()
-	{
-		wchar_t path[MAX_PATH]{};
-		if (G::Self && GetModuleFileNameW(G::Self, path, MAX_PATH))
-		{
-			std::wstring full = path;
-			const size_t slash = full.find_last_of(L"\\/");
-			if (slash != std::wstring::npos)
-				return full.substr(0, slash);
-		}
-		return L"";
-	}
-
 	std::wstring AddonDir()
 	{
-		/* Prefer the folder that actually contains this DLL — most reliable on Wine/Proton. */
-		const std::wstring mod = ModuleDir();
-		if (!mod.empty())
-		{
-			CreateDirectoryW(mod.c_str(), nullptr);
-			return mod;
-		}
-
-		if (G::API && G::API->Paths_GetAddonDirectory)
-		{
-			const char* d = G::API->Paths_GetAddonDirectory(ADDON_NAME);
-			if (d && d[0])
-			{
-				std::wstring w = Utf8ToWide(d);
-				for (wchar_t& c : w)
-				{
-					if (c == L'/')
-						c = L'\\';
-				}
-				CreateDirectoryW(w.c_str(), nullptr);
-				return w;
-			}
-		}
-		wchar_t tmp[MAX_PATH]{};
-		GetTempPathW(MAX_PATH, tmp);
-		std::wstring w = std::wstring(tmp) + L"GW2-InGame-Helper";
-		CreateDirectoryW(w.c_str(), nullptr);
-		return w;
+		return AddonPaths::DataDir();
 	}
 
 	std::wstring CefDir()
@@ -135,6 +96,38 @@ namespace
 	std::wstring HelperPath()
 	{
 		return AddonDir() + L"\\GW2HelperBrowser.exe";
+	}
+
+	/* Remove stale helper left in addons/ root from older builds. */
+	void CleanupStaleAddonRootFiles()
+	{
+		const std::wstring data = AddonDir();
+		wchar_t path[MAX_PATH]{};
+		if (!G::Self || !GetModuleFileNameW(G::Self, path, MAX_PATH))
+			return;
+		std::wstring full = path;
+		const size_t slash = full.find_last_of(L"\\/");
+		if (slash == std::wstring::npos)
+			return;
+		const std::wstring root = full.substr(0, slash);
+		if (root.empty() || _wcsicmp(root.c_str(), data.c_str()) == 0)
+			return;
+
+		const wchar_t* stale[] = {
+			L"\\GW2HelperBrowser.exe",
+			L"\\helper-home.html",
+			L"\\helper-home.ver",
+			L"\\home-logo.png",
+			L"\\home-cover.jpg",
+			L"\\raid-food.html",
+			L"\\raid-food.ver",
+			L"\\settings.ini",
+		};
+		for (const wchar_t* name : stale)
+		{
+			const std::wstring p = root + name;
+			DeleteFileW(p.c_str());
+		}
 	}
 
 	void ReleaseGpu()
@@ -603,6 +596,7 @@ std::string WikiBrowser::UrlEncode(const std::string& value)
 void WikiBrowser::Init()
 {
 	/* Don't scan/kill processes at load — that can hitch startup. */
+	CleanupStaleAddonRootFiles();
 	gLaunchDisabled.store(false);
 	gStarting.store(false);
 	SetLocalStatus("Closed — press Ctrl+Shift+H to open");

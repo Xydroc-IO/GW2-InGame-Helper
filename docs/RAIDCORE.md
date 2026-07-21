@@ -14,20 +14,16 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.4.1.8`
+`1.5.1.0`
 
 ## Changelog highlights
 
+- **1.5.1.0** — Runtime data under `addons/GW2-InGame-Helper/`; DLL only in `addons/`
 - **1.4.1.8** — Full-page themed homepage redesign
 - **1.4.1.7** — Removed Lucky Noobs
-- **1.4.1.6** — Browse panel (search + categories) replaces long dropdown
-- **1.4.1.5** — Gap-fill sites + Copy URL / Open Ext toolbar
-- **1.4.1.4** — PvP/WvW, GW2Timer Events, expanded Discords (no Hardstuck/Discretize)
-- **1.4.1.3** — Branded homepage (logo + cover)
-- **1.4.1.2** — Built-in Raid Food guide
-- **1.4.1.1** — Gw2Skills, Meta Timers, Peu, Mukluk, GW2 TLDR
-- **1.4.1** — Music Box HTTP fix
-- **1.4.0** — Community sites + Discord invites
+- **1.4.1.6** — Browse panel (search + categories)
+- **1.4.1.5** — Gap-fill sites + Copy URL / Open Ext
+- **1.4.1.0–1.4.1.4** — Community sites, Raid Food, Discords (no Hardstuck/Discretize)
 
 See [`RELEASE_NOTES.md`](RELEASE_NOTES.md) for full notes.
 
@@ -50,4 +46,5 @@ UpdateLink = https://github.com/Xydroc-IO/GW2-InGame-Helper
 
 ## Player artifact
 
-Ship **only** `GW2-InGame-Helper.dll`.
+Ship **only** `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
+Runtime extracts into `<GW2>/addons/GW2-InGame-Helper/`.
