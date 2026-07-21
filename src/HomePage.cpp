@@ -8,7 +8,7 @@
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "6";
+	static constexpr const char* kHomePageVersion = "7";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -164,11 +164,13 @@ const char* HomePage::Html()
     <h2>Sites by category</h2>
     <div class="grid">
       <div><span class="cat">Help</span><br/>This page</div>
-      <div><span class="cat">Official</span><br/>Guild Wars 2 website</div>
+      <div><span class="cat">Official</span><br/>Guild Wars 2, Raidcore</div>
       <div><span class="cat">Wiki</span><br/>Official Guild Wars 2 Wiki</div>
-      <div><span class="cat">Builds</span><br/>Snowcrows, MetaBattle</div>
-      <div><span class="cat">Tools</span><br/>gw2efficiency</div>
+      <div><span class="cat">Builds</span><br/>Snowcrows, MetaBattle, Accessibility Wars</div>
+      <div><span class="cat">Tools</span><br/>gw2efficiency, GW2Timer Map, GW2 Crafts, Music Box</div>
+      <div><span class="cat">Guides</span><br/>Guildjen</div>
       <div><span class="cat">Farming</span><br/>Fast Farming Community</div>
+      <div><span class="cat">Discord</span><br/>Fractal Training, Raidcore, Raid Academy</div>
     </div>
   </section>
 
@@ -177,7 +179,7 @@ const char* HomePage::Html()
     <ul>
       <li>Opacity and font scale are in the addon’s Nexus options.</li>
       <li>Opening the helper always lands on this page first.</li>
-      <li>Item lookup always switches to the Wiki, even if another site was open.</li>
+      <li>Discord invite pages open in the browser; you may need the Discord app to finish joining.</li>
     </ul>
   </section>
 

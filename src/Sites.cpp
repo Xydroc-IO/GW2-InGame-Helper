@@ -34,6 +34,15 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"raidcore",
+			"Official",
+			"Raidcore",
+			"Raidcore — Guild Wars 2",
+			"https://raidcore.gg/gw2",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Wiki —— */
 		{
@@ -65,6 +74,15 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"aw2help",
+			"Builds",
+			"Accessibility Wars",
+			"Accessibility Wars",
+			"https://aw2.help/",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Tools —— */
 		{
@@ -76,6 +94,44 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"gw2timer",
+			"Tools",
+			"GW2Timer Map",
+			"GW2Timer.com — Map",
+			"https://gw2timer.com/?page=Map",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2crafts",
+			"Tools",
+			"GW2 Crafts",
+			"GW2 Crafts — Crafting Guides",
+			"https://gw2crafts.net/",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2mb",
+			"Tools",
+			"Music Box",
+			"GW2 Music Box",
+			"https://gw2mb.com/",
+			nullptr,
+			nullptr,
+		},
+
+		/* —— Guides —— */
+		{
+			"guildjen",
+			"Guides",
+			"Guildjen",
+			"Guildjen",
+			"https://guildjen.com/",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Farming —— */
 		{
@@ -84,6 +140,35 @@ namespace
 			"Fast Farming",
 			"Fast Farming Community",
 			"https://fast.farming-community.eu/",
+			nullptr,
+			nullptr,
+		},
+
+		/* —— Discord —— */
+		{
+			"discord_fractal",
+			"Discord",
+			"Fractal Training",
+			"Mistlocked [FotM] — Fractal Training",
+			"https://discord.com/invite/zxeVeSqpuS",
+			nullptr,
+			nullptr,
+		},
+		{
+			"discord_raidcore",
+			"Discord",
+			"Raidcore",
+			"Raidcore Discord",
+			"https://discord.com/invite/raidcore",
+			nullptr,
+			nullptr,
+		},
+		{
+			"discord_raidacademy",
+			"Discord",
+			"Raid Academy",
+			"GW2 Raid Academy (NA)",
+			"https://discord.com/invite/gw2ra",
 			nullptr,
 			nullptr,
 		},
