@@ -23,6 +23,15 @@ namespace Sites
 	int            ActiveIndex();
 	const char*    ActiveId();
 
+	/* Unique category names in registry order. Pointers into SiteDef::category. */
+	const char* const* Categories(size_t* outCount);
+
+	/* How many sites belong to category (exact string match). */
+	int CountInCategory(const char* category);
+
+	/* True if site matches a case-insensitive substring filter. */
+	bool MatchesFilter(const SiteDef& site, const char* query);
+
 	/* Switch site; returns true if the active site changed. */
 	bool SetActiveIndex(int index);
 	bool SetActiveById(const char* id);

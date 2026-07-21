@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.1.5
+# GW2 In-Game Helper v1.4.1.6
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -20,49 +20,27 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 1.4.1.6
+
+- **Browse panel** — replace the long site dropdown with search + category list + site list (scales to 50+ entries)
+
 ## What’s new in 1.4.1.5
 
-- **Gap fill** — Game Updates, Legendaries, Mounts, Legendary Tracker, Blish HUD, Living World, Leveling, Earn Gold, Griffon/Skyscale unlocks, TLDR Raids/Fractals
-- **Toolbar** — Copy URL + Open Ext (system browser for Discord joins / logins)
-- **Discords** — Overflow Trading, GW2 Central Hub
-- Hardstuck and Discretize still omitted (outdated)
+- Gap-fill sites + Copy URL / Open Ext toolbar
 
 ## What’s new in 1.4.1.4
 
-- PvP/WvW, Lucky Noobs, GW2Timer Events, expanded Discords
+- PvP/WvW, Lucky Noobs, GW2Timer Events, expanded Discords (no Hardstuck/Discretize)
 
-## What’s new in 1.4.1.3
+## What’s new in 1.4.1.3 – 1.4.0
 
-- Branded homepage (logo + cover)
-
-## What’s new in 1.4.1.2
-
-- Built-in Raid Food guide
-
-## What’s new in 1.4.1.1
-
-- Gw2Skills, Meta Timers, Peu, Mukluk, GW2 TLDR
-
-## What’s new in 1.4.1 / 1.4.0
-
-- Music Box HTTP fix; community sites + Discord category
+- Branded homepage, Raid Food, community sites, Music Box HTTP fix
 
 ---
 
 ## Included sites
 
-| Category | Sites |
-|----------|--------|
-| Help | How to use |
-| Official | Guild Wars 2, GW2 News, Raidcore |
-| Wiki | GW2 Wiki, Game Updates, Legendaries, Mounts |
-| Builds | Snowcrows, MetaBattle, MetaBattle OW, Accessibility Wars, Gw2Skills Editor |
-| PvP | MetaBattle PvP |
-| WvW | MetaBattle WvW |
-| Tools | gw2efficiency, Legendary Tracker, Blish HUD, GW2Timer Events/Map, Meta Timers, Crafts, Music Box, Peu |
-| Guides | Raid Food, Lucky Noobs, Guildjen, Living World, Leveling, Earn Gold, Griffon/Skyscale, Mukluk, GW2 TLDR, TLDR Raids/Fractals |
-| Farming | Fast Farming |
-| Discord | Official, Community, builds, training, PvP, WvW, farming, trading, Raidcore, Central Hub |
+See in-game **Browse** panel (categories: Help, Official, Wiki, Builds, PvP, WvW, Tools, Guides, Farming, Discord).
 
 ## Notes
 
