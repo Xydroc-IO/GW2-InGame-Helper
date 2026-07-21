@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.5.3.1` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.5.4.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -17,9 +17,11 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 |------|----------|
 | How to use (built-in) | Help |
 | [Google](https://www.google.com/) | Search |
+| [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
 | [GW2 News](https://www.guildwars2.com/en/news/) | Official |
 | [Raidcore](https://raidcore.gg/gw2) | Official |
+| [Forums](https://en-forum.guildwars2.com/) | Official |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
@@ -40,6 +42,10 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [GW2 Crafts](https://gw2crafts.net/) | Tools |
 | [Music Box](http://gw2mb.com/) | Tools |
 | [Peu Research Center](https://peuresearchcenter.com/index.html) | Tools |
+| [KillProof](https://killproof.me/) | Tools |
+| [Wingman](https://gw2wingman.nevermindcreations.de/) | Tools |
+| [GW2BLTC](https://www.gw2bltc.com/) | Tools |
+| [GW2 Treasures](https://gw2treasures.com/) | Tools |
 | Raid Food (built-in) | Guides |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
@@ -65,6 +71,8 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories)
+- **GW2-themed** window chrome (gold / bronze panels matching the homepage)
+- Toolbar **Search** box (Wiki/Google; Google fallback for other sites)
 - **Tabs** — keep up to 8 sites open and switch between them (`+` or Ctrl+click)
 - **Favorites** — star sites to pin them under a Favorites category (saved in settings)
 - Nexus **QuickAccess** icon at the top of the screen

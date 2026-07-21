@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "15";
+	static constexpr const char* kHomePageVersion = "16";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -443,6 +443,7 @@ const char* HomePage::Html()
         <div class="body">
           <ul>
             <li><strong>Browse</strong> — search and pick sites by category</li>
+            <li><strong>Search box</strong> — query Wiki/Google (or Google for other sites); press Enter or Go</li>
             <li><strong>Tabs</strong> — keep up to 8 sites open; <strong>+</strong> or Ctrl+click opens a new tab</li>
             <li><strong>Star</strong> — add or remove the current site from Favorites</li>
             <li><strong>Back / Forward</strong> — browser history</li>
@@ -459,12 +460,12 @@ const char* HomePage::Html()
         <div class="body">
           <div class="grid">
             <div class="card"><span class="cat">Help</span><span>This page</span></div>
-            <div class="card"><span class="cat">Search</span><span>Google</span></div>
-            <div class="card"><span class="cat">Official</span><span>Guild Wars 2, GW2 News, Raidcore</span></div>
+            <div class="card"><span class="cat">Search</span><span>Google, DuckDuckGo</span></div>
+            <div class="card"><span class="cat">Official</span><span>Guild Wars 2, GW2 News, Raidcore, Forums</span></div>
             <div class="card"><span class="cat">Wiki</span><span>Wiki, Game Updates, Legendaries, Mounts</span></div>
             <div class="card"><span class="cat">Builds</span><span>Snowcrows, MetaBattle, MetaBattle OW, Accessibility Wars, Gw2Skills Editor</span></div>
             <div class="card"><span class="cat">PvP / WvW</span><span>MetaBattle PvP, MetaBattle WvW</span></div>
-            <div class="card"><span class="cat">Tools</span><span>Efficiency, Legendary Tracker, Blish HUD, Timers, Crafts, Music Box, Peu</span></div>
+            <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu</span></div>
             <div class="card"><span class="cat">Guides</span><span>Raid Food, Living World, Leveling, Gold, Mounts, Fractals, TLDR</span></div>
             <div class="card"><span class="cat">Farming</span><span>Fast Farming Community</span></div>
             <div class="card"><span class="cat">Discord</span><span>Official, Community, builds, training, PvP, WvW, trading, Raidcore</span></div>

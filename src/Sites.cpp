@@ -39,6 +39,15 @@ namespace
 			"https://www.google.com/search?q=",
 			nullptr,
 		},
+		{
+			"duckduckgo",
+			"Search",
+			"DuckDuckGo",
+			"DuckDuckGo",
+			"https://duckduckgo.com/",
+			"https://duckduckgo.com/?q=",
+			nullptr,
+		},
 
 		/* —— Official —— */
 		{
@@ -65,6 +74,15 @@ namespace
 			"Raidcore",
 			"Raidcore — Guild Wars 2",
 			"https://raidcore.gg/gw2",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2forums",
+			"Official",
+			"Forums",
+			"Guild Wars 2 Forums",
+			"https://en-forum.guildwars2.com/",
 			nullptr,
 			nullptr,
 		},
@@ -255,6 +273,42 @@ namespace
 			"Peu Research Center",
 			"Peu Research Center",
 			"https://peuresearchcenter.com/index.html",
+			nullptr,
+			nullptr,
+		},
+		{
+			"killproof",
+			"Tools",
+			"KillProof",
+			"KillProof.me",
+			"https://killproof.me/",
+			nullptr,
+			nullptr,
+		},
+		{
+			"wingman",
+			"Tools",
+			"Wingman",
+			"GW2 Wingman — Log Stats",
+			"https://gw2wingman.nevermindcreations.de/",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2bltc",
+			"Tools",
+			"GW2BLTC",
+			"GW2BLTC — Trading Post",
+			"https://www.gw2bltc.com/",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2treasures",
+			"Tools",
+			"GW2 Treasures",
+			"GW2 Treasures",
+			"https://gw2treasures.com/",
 			nullptr,
 			nullptr,
 		},
@@ -694,9 +748,15 @@ std::string Sites::SearchUrl(const std::string& query)
 {
 	const SiteDef& site = Active();
 	if (IsHelpSite(site))
-		return "about:helper-home";
-	if (query.empty() || !site.searchUrlPrefix)
+	{
+		if (query.empty())
+			return "about:helper-home";
+		return std::string("https://www.google.com/search?q=") + WikiBrowser::UrlEncode(query);
+	}
+	if (query.empty())
 		return site.homeUrl ? site.homeUrl : "";
+	if (!site.searchUrlPrefix)
+		return std::string("https://www.google.com/search?q=") + WikiBrowser::UrlEncode(query);
 
 	std::string url = site.searchUrlPrefix;
 	url += WikiBrowser::UrlEncode(query);
