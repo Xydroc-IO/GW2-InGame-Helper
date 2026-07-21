@@ -8,7 +8,7 @@
 
 namespace
 {
-	static constexpr const char* kRaidFoodVersion = "1";
+	static constexpr const char* kRaidFoodVersion = "2";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -45,16 +45,17 @@ const char* RaidFood::Html()
 <title>Raid Food — Universal Seasoning Guide</title>
 <style>
   :root {
-    --bg: #0a0b0e;
-    --panel: #13151b;
-    --panel-2: #191c24;
-    --border: #4a3d22;
-    --border-soft: rgba(235, 192, 71, 0.16);
-    --gold: #ebc047;
+    --bg: #06070a;
+    --panel: rgba(16, 18, 24, 0.92);
+    --panel-2: #12141a;
+    --border: #5a4a28;
+    --border-soft: rgba(235, 192, 71, 0.22);
+    --gold: #f0c65a;
+    --gold-bright: #ffe08a;
     --gold-dim: #c9a227;
-    --text: #e8eaed;
-    --muted: #9aa0a8;
-    --accent: #221c12;
+    --text: #f0f2f5;
+    --muted: #a8aeb8;
+    --accent: #1a1510;
     --life: #c45c4a;
     --mitigate: #5a8fbf;
     --heal: #6aaa6a;
@@ -66,10 +67,10 @@ const char* RaidFood::Html()
   body {
     margin: 0;
     min-height: 100vh;
-    font-family: Georgia, "Palatino Linotype", Palatino, "Times New Roman", serif;
+    font-family: "Segoe UI", Tahoma, sans-serif;
     background:
-      radial-gradient(ellipse 100% 60% at 50% -15%, #2a2214 0%, transparent 55%),
-      linear-gradient(180deg, #12141a 0%, var(--bg) 40%),
+      radial-gradient(ellipse 80% 55% at 50% 0%, rgba(235, 192, 71, 0.12) 0%, transparent 55%),
+      linear-gradient(180deg, #12141a 0%, var(--bg) 45%),
       var(--bg);
     color: var(--text);
     line-height: 1.55;
@@ -127,14 +128,15 @@ const char* RaidFood::Html()
     margin-bottom: 18px;
   }
   section.block > .head {
-    padding: 14px 18px;
+    padding: 14px 18px 14px 16px;
     border-bottom: 1px solid var(--border-soft);
-    background: linear-gradient(90deg, #1a1710 0%, var(--panel) 70%);
+    border-left: 3px solid var(--gold);
+    background: linear-gradient(90deg, #1a1710 0%, var(--panel-2) 70%);
   }
   section.block > .head h2 {
     margin: 0;
     font-size: 1.2rem;
-    color: var(--gold);
+    color: var(--gold-bright);
     font-weight: 700;
   }
   section.block > .head p {

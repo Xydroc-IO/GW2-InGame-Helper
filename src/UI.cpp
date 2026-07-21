@@ -26,28 +26,75 @@ namespace
 	ImVec2 gWikiMax{};
 	bool gPendingDefocus = false;
 
-	const ImVec4 kGold(0.92f, 0.72f, 0.28f, 1.f);
-	const ImVec4 kMuted(0.66f, 0.69f, 0.73f, 1.f);
+	const ImVec4 kGold(0.941f, 0.776f, 0.353f, 1.f);       /* #f0c65a */
+	const ImVec4 kGoldBright(1.f, 0.878f, 0.541f, 1.f);     /* #ffe08a */
+	const ImVec4 kMuted(0.659f, 0.682f, 0.722f, 1.f);       /* #a8aeb8 */
+	const ImVec4 kBg(0.024f, 0.027f, 0.039f, 1.f);          /* #06070a */
+	const ImVec4 kPanel(0.071f, 0.078f, 0.102f, 1.f);       /* #12141a */
+	const ImVec4 kBorder(0.353f, 0.290f, 0.157f, 0.95f);    /* #5a4a28 */
 
 	void PushWikiTheme()
 	{
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.05f, 0.055f, 0.065f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.28f, 0.24f, 0.14f, 0.9f));
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.10f, 0.11f, 0.13f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.14f, 0.15f, 0.18f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.24f, 0.20f, 0.10f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.32f, 0.26f, 0.12f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.941f, 0.949f, 0.961f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TextDisabled, kMuted);
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, kBg);
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.047f, 0.051f, 0.067f, 0.92f));
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.055f, 0.059f, 0.078f, 0.98f));
+		ImGui::PushStyleColor(ImGuiCol_Border, kBorder);
+		ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.078f, 0.086f, 0.110f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.14f, 0.12f, 0.07f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.20f, 0.16f, 0.08f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.055f, 0.047f, 0.031f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.12f, 0.10f, 0.055f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.04f, 0.04f, 0.05f, 0.8f));
+		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, kPanel);
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.04f, 0.04f, 0.05f, 0.6f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.35f, 0.28f, 0.14f, 0.9f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.55f, 0.42f, 0.18f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, kGold);
+		ImGui::PushStyleColor(ImGuiCol_CheckMark, kGold);
+		ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.75f, 0.58f, 0.22f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, kGoldBright);
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.12f, 0.11f, 0.08f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.28f, 0.22f, 0.10f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.40f, 0.30f, 0.12f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.22f, 0.18f, 0.09f, 0.85f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.35f, 0.28f, 0.12f, 0.95f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.45f, 0.35f, 0.14f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.36f, 0.16f, 0.55f));
+		ImGui::PushStyleColor(ImGuiCol_SeparatorHovered, kGold);
+		ImGui::PushStyleColor(ImGuiCol_SeparatorActive, kGoldBright);
+		ImGui::PushStyleColor(ImGuiCol_ResizeGrip, ImVec4(0.45f, 0.36f, 0.16f, 0.4f));
+		ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered, kGold);
+		ImGui::PushStyleColor(ImGuiCol_ResizeGripActive, kGoldBright);
+		ImGui::PushStyleColor(ImGuiCol_Tab, ImVec4(0.10f, 0.09f, 0.07f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(0.28f, 0.22f, 0.10f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TabActive, ImVec4(0.32f, 0.26f, 0.12f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TabUnfocused, ImVec4(0.08f, 0.08f, 0.09f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive, ImVec4(0.18f, 0.15f, 0.08f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(0.55f, 0.42f, 0.15f, 0.45f));
+		ImGui::PushStyleColor(ImGuiCol_NavHighlight, kGold);
+
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.f, 10.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.f, 5.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.f, 6.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 2.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 3.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 3.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 2.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 1.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
 	}
 
 	void PopWikiTheme()
 	{
-		ImGui::PopStyleVar(4);
-		ImGui::PopStyleColor(7);
+		ImGui::PopStyleVar(13);
+		ImGui::PopStyleColor(40);
 	}
 
 	bool SoftButton(const char* label, bool enabled)
@@ -369,11 +416,20 @@ namespace
 			std::snprintf(label, sizeof(label), "%s", tab.title[0] ? tab.title : "Tab");
 
 			if (selected)
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.32f, 0.26f, 0.12f, 1.f));
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.40f, 0.30f, 0.12f, 1.f));
 			if (ImGui::Button(label))
 				BrowserTabs::Activate(i);
 			if (selected)
 				ImGui::PopStyleColor();
+			if (selected)
+			{
+				const ImVec2 rmin = ImGui::GetItemRectMin();
+				const ImVec2 rmax = ImGui::GetItemRectMax();
+				ImGui::GetWindowDrawList()->AddRectFilled(
+					ImVec2(rmin.x, rmax.y - 2.f),
+					ImVec2(rmax.x, rmax.y),
+					ImGui::GetColorU32(kGold));
+			}
 
 			if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Middle) && n > 1)
 				pendingClose = i;
@@ -604,6 +660,28 @@ void UI_Render()
 	if (ImGui::Button("Reload"))
 		BrowserTabs::Reload();
 	ImGui::SameLine();
+	ImGui::SetNextItemWidth(150.f);
+	if (ImGui::InputTextWithHint("##site_query", "Search…", G::LastQuery, sizeof(G::LastQuery),
+		ImGuiInputTextFlags_EnterReturnsTrue))
+	{
+		if (G::LastQuery[0])
+		{
+			WikiBrowser::Search(G::LastQuery);
+			Settings::SetDirty();
+		}
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("Search this site (Wiki / Google) or Google for others. Press Enter.");
+	ImGui::SameLine();
+	if (ImGui::Button("Go"))
+	{
+		if (G::LastQuery[0])
+		{
+			WikiBrowser::Search(G::LastQuery);
+			Settings::SetDirty();
+		}
+	}
+	ImGui::SameLine();
 	if (ImGui::Button("Copy URL"))
 	{
 		std::string copy = WikiBrowser::CurrentUrl();
@@ -788,9 +866,9 @@ void UI_Options()
 
 	ImGui::Spacing();
 	ImGui::TextWrapped(
-		"Use Browse to pick a site (search + categories). Ctrl+click or + opens a new tab "
-		"(up to 8). Click the star to pin Favorites. Click outside the window to move and use "
-		"skills again — you do not need to close the addon.");
+		"Use Browse to pick a site. Ctrl+click or + opens a new tab (up to 8). "
+		"The Search box queries Wiki/Google (falls back to Google). Star sites for Favorites. "
+		"Click outside the window to move and use skills again.");
 	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) open / close the helper");
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
 }
