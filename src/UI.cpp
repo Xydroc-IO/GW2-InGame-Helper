@@ -12,6 +12,7 @@
 #include <string>
 
 #include <windows.h>
+#include <shellapi.h>
 
 namespace
 {
@@ -256,6 +257,45 @@ void UI_Render()
 	ImGui::SameLine();
 	if (ImGui::Button("Reload"))
 		WikiBrowser::Reload();
+	ImGui::SameLine();
+	if (ImGui::Button("Copy URL"))
+	{
+		std::string copy = WikiBrowser::CurrentUrl();
+		if (copy.empty() || copy.rfind("about:", 0) == 0 || copy.rfind("file:", 0) == 0)
+			copy = Sites::ResolveUrl(Sites::Active());
+		if (!copy.empty() && copy.rfind("about:", 0) != 0 && copy.rfind("file:", 0) != 0)
+		{
+			if (OpenClipboard(nullptr))
+			{
+				EmptyClipboard();
+				const SIZE_T bytes = copy.size() + 1;
+				HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, bytes);
+				if (mem)
+				{
+					void* locked = GlobalLock(mem);
+					if (locked)
+					{
+						std::memcpy(locked, copy.c_str(), bytes);
+						GlobalUnlock(mem);
+						SetClipboardData(CF_TEXT, mem);
+					}
+				}
+				CloseClipboard();
+			}
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Open Ext"))
+	{
+		std::string openUrl = WikiBrowser::CurrentUrl();
+		if (openUrl.empty() || openUrl.rfind("about:", 0) == 0 || openUrl.rfind("file:", 0) == 0)
+			openUrl = Sites::ResolveUrl(Sites::Active());
+		if (!openUrl.empty() &&
+			(openUrl.rfind("http://", 0) == 0 || openUrl.rfind("https://", 0) == 0))
+		{
+			ShellExecuteA(nullptr, "open", openUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		}
+	}
 	ImGui::SameLine();
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
 

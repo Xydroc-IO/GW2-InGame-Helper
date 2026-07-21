@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.4.1.4` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.4.1.5` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 
@@ -19,6 +19,9 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 | [GW2 News](https://www.guildwars2.com/en/news/) | Official |
 | [Raidcore](https://raidcore.gg/gw2) | Official |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
+| [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
+| [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
+| [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
 | [Snowcrows](https://snowcrows.com/) | Builds |
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
 | [MetaBattle OW](https://metabattle.com/wiki/Open_World) | Builds |
@@ -27,6 +30,8 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 | [MetaBattle PvP](https://metabattle.com/wiki/PvP_Builds) | PvP |
 | [MetaBattle WvW](https://metabattle.com/wiki/WvW) | WvW |
 | [gw2efficiency](https://gw2efficiency.com/) | Tools |
+| [Legendary Tracker](https://gw2efficiency.com/account/legendaries) | Tools |
+| [Blish HUD](https://blishhud.com/) | Tools |
 | [GW2Timer Events](https://gw2timer.com/) | Tools |
 | [GW2Timer Map](https://gw2timer.com/?page=Map) | Tools |
 | [Meta Timers](https://gw2tldr.com/metas) | Tools |
@@ -36,10 +41,17 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 | Raid Food (built-in) | Guides |
 | [Lucky Noobs](https://lucky-noobs.com/) | Guides |
 | [Guildjen](https://guildjen.com/) | Guides |
+| [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
+| [Leveling](https://metabattle.com/wiki/Guide:Leveling_Up) | Guides |
+| [Earn Gold](https://metabattle.com/wiki/Guide:Ways_to_Earn_Gold) | Guides |
+| [Griffon Unlock](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Griffon_Mount) | Guides |
+| [Skyscale Unlock](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Skyscale_Mount) | Guides |
 | [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
+| [TLDR Raids](https://gw2tldr.com/raids) | Guides |
+| [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
-| Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Lucky Noobs · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore | Discord |
+| Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Lucky Noobs · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
 
 Add more sites in `src/Sites.cpp`. Hardstuck and Discretize are intentionally omitted (outdated).
 Replaces the older Wiki / Snowcrow browser addons.
@@ -57,6 +69,7 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
 - Built-in **Raid Food** seasoning / feast guide
+- **Copy URL** and **Open Ext** (system browser — Discord joins / logins)
 - Single DLL — browser helper and homepage assets are embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only
 
