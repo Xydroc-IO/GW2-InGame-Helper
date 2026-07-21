@@ -25,6 +25,7 @@ namespace G
 	float WindowPosX   = 60.f;
 	float WindowPosY   = 60.f;
 	bool  HasSavedPos  = false;
+	bool  KeepHelperWarm = false;
 	char  LastQuery[128] = "";
 	char  ActiveSiteId[64] = "home";
 	char  DefaultSiteId[64] = "home";
@@ -282,8 +283,8 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.APIVersion       = NEXUS_API_VERSION;
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 1;
-	G::AddonDef.Version.Minor    = 6;
-	G::AddonDef.Version.Build    = 0;
+	G::AddonDef.Version.Minor    = 7;
+	G::AddonDef.Version.Build    = 1;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =

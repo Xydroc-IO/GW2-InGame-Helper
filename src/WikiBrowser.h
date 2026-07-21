@@ -38,6 +38,7 @@ namespace WikiBrowser
 
 	bool IsReady();
 	bool HasFrame();
+	bool HasTab(int slot); /* true if helper has a live CEF browser for this slot */
 	ID3D11ShaderResourceView* FrameSrv();
 	int FrameWidth();
 	int FrameHeight();

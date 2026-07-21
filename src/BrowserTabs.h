@@ -7,12 +7,14 @@
 namespace BrowserTabs
 {
 	constexpr int kMaxTabs = 8;
+	constexpr int kClosedStack = 8;
 
 	struct Tab
 	{
 		char        siteId[64];
 		char        title[48];
 		std::string url;
+		bool        pinned = false;
 	};
 
 	void EnsureDefault(); /* at least one tab (uses DefaultSiteId) */
@@ -39,7 +41,10 @@ namespace BrowserTabs
 	int  OpenNewUrl(const char* siteId, const std::string& url);
 
 	void Activate(int index);
-	void Close(int index);
+	void Close(int index); /* no-op for pinned tabs (except last-tab guard) */
+	void TogglePin(int index);
+	bool CanReopenClosed();
+	int  ReopenClosed(); /* restores last closed; -1 if none / full */
 
 	bool CanGoBack();
 	bool CanGoForward();

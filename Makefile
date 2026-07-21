@@ -28,6 +28,7 @@ DLL_SRC = \
 	src/BrowserTabs.cpp \
 	src/HomePage.cpp \
 	src/RaidFood.cpp \
+	src/CheatSheets.cpp \
 	src/HelperQuickAccess.cpp \
 	src/WikiBrowser.cpp \
 	src/UI.cpp \
@@ -99,6 +100,22 @@ install: $(DLL_OUT)
 		"$(GW2_ADDONS)/home-cover.jpg" \
 		"$(GW2_ADDONS)/raid-food.html" \
 		"$(GW2_ADDONS)/raid-food.ver" \
+		"$(GW2_ADDONS)/raid-utilities.html" \
+		"$(GW2_ADDONS)/raid-utilities.ver" \
+		"$(GW2_ADDONS)/fractal-consumables.html" \
+		"$(GW2_ADDONS)/fractal-consumables.ver" \
+		"$(GW2_ADDONS)/sigils-runes.html" \
+		"$(GW2_ADDONS)/sigils-runes.ver" \
+		"$(GW2_ADDONS)/relics-guide.html" \
+		"$(GW2_ADDONS)/relics-guide.ver" \
+		"$(GW2_ADDONS)/boon-checklist.html" \
+		"$(GW2_ADDONS)/boon-checklist.ver" \
+		"$(GW2_ADDONS)/cc-defiance.html" \
+		"$(GW2_ADDONS)/cc-defiance.ver" \
+		"$(GW2_ADDONS)/raid-wings.html" \
+		"$(GW2_ADDONS)/raid-wings.ver" \
+		"$(GW2_ADDONS)/home-garden.html" \
+		"$(GW2_ADDONS)/home-garden.ver" \
 		"$(GW2_ADDONS)/settings.ini" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"

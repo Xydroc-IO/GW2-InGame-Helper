@@ -246,20 +246,94 @@ namespace
 		RefreshNavFlags();
 	}
 
-	void NavigateTo(const char* url)
+	std::wstring HelperDir()
 	{
-		cef_browser_t* browser = ActiveBrowser();
-		if (!browser || !url || !url[0])
+		wchar_t path[MAX_PATH]{};
+		if (!GetModuleFileNameW(nullptr, path, MAX_PATH))
+			return {};
+		std::wstring full = path;
+		const size_t slash = full.find_last_of(L"\\/");
+		if (slash == std::wstring::npos)
+			return {};
+		return full.substr(0, slash);
+	}
+
+	std::string WidePathToFileUrl(const std::wstring& path)
+	{
+		std::string utf8 = WideToUtf8(path);
+		for (char& c : utf8)
+		{
+			if (c == '\\')
+				c = '/';
+		}
+		if (utf8.size() >= 2 && utf8[1] == ':')
+			return std::string("file:///") + utf8;
+		if (!utf8.empty() && utf8[0] == '/')
+			return std::string("file://") + utf8;
+		return std::string("file:///") + utf8;
+	}
+
+	/* Addon normally rewrites these before IPC; keep a local fallback so
+	   about:helper-home / about:raid-food / cheat sheets never hit CEF blank. */
+	std::string ResolveBuiltinUrl(const char* url)
+	{
+		if (!url || !url[0])
+			return {};
+		const wchar_t* fileNameW = nullptr;
+		if (std::strcmp(url, "about:helper-home") == 0)
+			fileNameW = L"helper-home.html";
+		else if (std::strcmp(url, "about:raid-food") == 0)
+			fileNameW = L"raid-food.html";
+		else if (std::strcmp(url, "about:raid-utilities") == 0)
+			fileNameW = L"raid-utilities.html";
+		else if (std::strcmp(url, "about:fractal-consumables") == 0)
+			fileNameW = L"fractal-consumables.html";
+		else if (std::strcmp(url, "about:sigils-runes") == 0)
+			fileNameW = L"sigils-runes.html";
+		else if (std::strcmp(url, "about:relics") == 0)
+			fileNameW = L"relics-guide.html";
+		else if (std::strcmp(url, "about:boon-checklist") == 0)
+			fileNameW = L"boon-checklist.html";
+		else if (std::strcmp(url, "about:cc-defiance") == 0)
+			fileNameW = L"cc-defiance.html";
+		else if (std::strcmp(url, "about:raid-wings") == 0)
+			fileNameW = L"raid-wings.html";
+		else if (std::strcmp(url, "about:home-garden") == 0)
+			fileNameW = L"home-garden.html";
+		else
+			return url;
+
+		const std::wstring dir = HelperDir();
+		if (dir.empty())
+			return url;
+		const std::wstring path = dir + L"\\" + fileNameW;
+		if (GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
+			return url;
+		return WidePathToFileUrl(path);
+	}
+
+	void NavigateSlot(int slot, const char* url)
+	{
+		if (slot < 0 || slot >= kWikiMaxTabs || !gBrowsers[slot] || !url || !url[0])
 			return;
-		cef_frame_t* frame = browser->get_main_frame(browser);
+		const std::string resolved = ResolveBuiltinUrl(url);
+		if (resolved.empty())
+			return;
+		cef_frame_t* frame = gBrowsers[slot]->get_main_frame(gBrowsers[slot]);
 		if (!frame)
 			return;
 		cef_string_t u{};
-		MakeCefString(&u, url);
+		MakeCefString(&u, resolved.c_str());
 		frame->load_url(frame, &u);
 		ClearCefString(&u);
 		frame->base.release(&frame->base);
-		SetStatus("Navigating…");
+		if (slot == gActiveSlot)
+			SetStatus("Navigating…");
+	}
+
+	void NavigateTo(const char* url)
+	{
+		NavigateSlot(gActiveSlot, url);
 	}
 
 	cef_browser_host_t* Host()
@@ -320,12 +394,13 @@ namespace
 		if (slot < 0 || slot >= kWikiMaxTabs)
 			return false;
 
-		const char* start = (url && url[0]) ? url : "about:blank";
+		const char* startRaw = (url && url[0]) ? url : "about:blank";
+		const std::string startResolved = ResolveBuiltinUrl(startRaw);
+		const char* start = startResolved.empty() ? "about:blank" : startResolved.c_str();
 		if (gBrowsers[slot])
 		{
-			if (slot != gActiveSlot)
-				ActivateSlot(slot);
-			NavigateTo(start);
+			/* Reload this slot only — do not ActivateSlot (SyncAll would steal focus). */
+			NavigateSlot(slot, start);
 			return true;
 		}
 

@@ -28,10 +28,15 @@ namespace
 
 	const ImVec4 kGold(0.941f, 0.776f, 0.353f, 1.f);       /* #f0c65a */
 	const ImVec4 kGoldBright(1.f, 0.878f, 0.541f, 1.f);     /* #ffe08a */
+	const ImVec4 kGoldDim(0.788f, 0.635f, 0.153f, 1.f);     /* #c9a227 */
+	const ImVec4 kGoldMuted(0.75f, 0.62f, 0.32f, 0.88f);
 	const ImVec4 kMuted(0.659f, 0.682f, 0.722f, 1.f);       /* #a8aeb8 */
 	const ImVec4 kBg(0.024f, 0.027f, 0.039f, 1.f);          /* #06070a */
 	const ImVec4 kPanel(0.071f, 0.078f, 0.102f, 1.f);       /* #12141a */
 	const ImVec4 kBorder(0.353f, 0.290f, 0.157f, 0.95f);    /* #5a4a28 */
+	const ImVec4 kTabActive(0.36f, 0.28f, 0.12f, 1.f);
+	const ImVec4 kTabIdle(0.10f, 0.09f, 0.07f, 1.f);
+	const ImVec4 kWarn(0.90f, 0.55f, 0.28f, 1.f);
 
 	void PushWikiTheme()
 	{
@@ -68,11 +73,11 @@ namespace
 		ImGui::PushStyleColor(ImGuiCol_ResizeGrip, ImVec4(0.45f, 0.36f, 0.16f, 0.4f));
 		ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered, kGold);
 		ImGui::PushStyleColor(ImGuiCol_ResizeGripActive, kGoldBright);
-		ImGui::PushStyleColor(ImGuiCol_Tab, ImVec4(0.10f, 0.09f, 0.07f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(0.28f, 0.22f, 0.10f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_TabActive, ImVec4(0.32f, 0.26f, 0.12f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_Tab, kTabIdle);
+		ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(0.30f, 0.24f, 0.11f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TabActive, kTabActive);
 		ImGui::PushStyleColor(ImGuiCol_TabUnfocused, ImVec4(0.08f, 0.08f, 0.09f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive, ImVec4(0.18f, 0.15f, 0.08f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive, ImVec4(0.22f, 0.18f, 0.09f, 1.f));
 		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(0.55f, 0.42f, 0.15f, 0.45f));
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, kGold);
 
@@ -512,14 +517,18 @@ namespace
 			const bool selected = (i == active);
 
 			char label[64];
-			std::snprintf(label, sizeof(label), "%s", tab.title[0] ? tab.title : "Tab");
+			if (tab.pinned)
+				std::snprintf(label, sizeof(label), "* %s", tab.title[0] ? tab.title : "Tab");
+			else
+				std::snprintf(label, sizeof(label), "%s", tab.title[0] ? tab.title : "Tab");
 
 			if (selected)
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.40f, 0.30f, 0.12f, 1.f));
+				ImGui::PushStyleColor(ImGuiCol_Button, kTabActive);
+			else
+				ImGui::PushStyleColor(ImGuiCol_Button, kTabIdle);
 			if (ImGui::Button(label))
 				BrowserTabs::Activate(i);
-			if (selected)
-				ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
 			if (selected)
 			{
 				const ImVec2 rmin = ImGui::GetItemRectMin();
@@ -530,10 +539,24 @@ namespace
 					ImGui::GetColorU32(kGold));
 			}
 
-			if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Middle) && n > 1)
-				pendingClose = i;
+			if (ImGui::BeginPopupContextItem("##tab_ctx"))
+			{
+				if (ImGui::MenuItem(tab.pinned ? "Unpin" : "Pin"))
+					BrowserTabs::TogglePin(i);
+				if (ImGui::MenuItem("Close", nullptr, false, n > 1 && !tab.pinned))
+					pendingClose = i;
+				ImGui::EndPopup();
+			}
 
-			if (n > 1)
+			if (ImGui::IsItemHovered())
+			{
+				if (tab.pinned)
+					ImGui::SetTooltip("%s (pinned)", tab.title[0] ? tab.title : "Tab");
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) && n > 1 && !tab.pinned)
+					pendingClose = i;
+			}
+
+			if (n > 1 && !tab.pinned)
 			{
 				ImGui::SameLine(0.f, 2.f);
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, ImGui::GetStyle().FramePadding.y));
@@ -542,6 +565,15 @@ namespace
 				ImGui::PopStyleVar();
 				if (ImGui::IsItemHovered())
 					ImGui::SetTooltip("Close tab");
+			}
+			else if (n > 1 && tab.pinned)
+			{
+				ImGui::SameLine(0.f, 2.f);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.35f);
+				ImGui::SmallButton("x");
+				ImGui::PopStyleVar();
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("Unpin to close");
 			}
 
 			ImGui::SameLine();
@@ -568,6 +600,18 @@ namespace
 				ImGui::SetTooltip("Tab limit reached (8)");
 		}
 
+		ImGui::SameLine(0.f, 6.f);
+		{
+			const bool canRe = BrowserTabs::CanReopenClosed();
+			if (canRe)
+			{
+				if (ImGui::SmallButton("^##reopen"))
+					BrowserTabs::ReopenClosed();
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("Reopen closed tab (Ctrl+Shift+T)");
+			}
+		}
+
 		ImGui::SetNextWindowSize(ImVec2(520.f, 340.f), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##site_browse_newtab"))
 		{
@@ -584,31 +628,211 @@ namespace
 			BrowserTabs::Close(pendingClose);
 	}
 
-	void DrawSitePicker()
+	void CopyCurrentUrl()
+	{
+		std::string copy = WikiBrowser::CurrentUrl();
+		if (copy.empty() || copy.rfind("about:", 0) == 0 || copy.rfind("file:", 0) == 0)
+			copy = Sites::ResolveUrl(Sites::Active());
+		if (copy.empty() || copy.rfind("about:", 0) == 0 || copy.rfind("file:", 0) == 0)
+			return;
+		if (!OpenClipboard(nullptr))
+			return;
+		EmptyClipboard();
+		const SIZE_T bytes = copy.size() + 1;
+		HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, bytes);
+		if (mem)
+		{
+			void* locked = GlobalLock(mem);
+			if (locked)
+			{
+				std::memcpy(locked, copy.c_str(), bytes);
+				GlobalUnlock(mem);
+				SetClipboardData(CF_TEXT, mem);
+			}
+		}
+		CloseClipboard();
+	}
+
+	void OpenCurrentExternal()
+	{
+		std::string openUrl = WikiBrowser::CurrentUrl();
+		if (openUrl.empty() || openUrl.rfind("about:", 0) == 0 || openUrl.rfind("file:", 0) == 0)
+			openUrl = Sites::ResolveUrl(Sites::Active());
+		if (!openUrl.empty() &&
+			(openUrl.rfind("http://", 0) == 0 || openUrl.rfind("https://", 0) == 0))
+		{
+			ShellExecuteA(nullptr, "open", openUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		}
+	}
+
+	void DuplicateActiveTab()
+	{
+		if (BrowserTabs::Count() >= BrowserTabs::kMaxTabs)
+			return;
+		std::string u = WikiBrowser::CurrentUrl();
+		if (u.empty() || u.rfind("about:", 0) == 0 || u.rfind("file:", 0) == 0)
+			u = Sites::ResolveUrl(Sites::Active());
+		BrowserTabs::OpenNewUrl(Sites::ActiveId(), u);
+	}
+
+	/* Friendly status — muted gold; hide Ready / closed noise. */
+	void DrawStatusChip()
+	{
+		const std::string raw = WikiBrowser::Status();
+		if (raw.empty() || raw == "Ready")
+			return;
+
+		const char* label = nullptr;
+		ImVec4 col = kGoldMuted;
+		if (raw.find("Loading") != std::string::npos ||
+			raw.find("Navigating") != std::string::npos ||
+			raw.find("Launching") != std::string::npos ||
+			raw.find("Creating") != std::string::npos)
+		{
+			label = "Loading…";
+		}
+		else if (raw.find("Closed") != std::string::npos ||
+			raw.find("Hidden") != std::string::npos)
+		{
+			return;
+		}
+		else if (raw.find("fail") != std::string::npos ||
+			raw.find("Fail") != std::string::npos ||
+			raw.find("error") != std::string::npos ||
+			raw.find("Error") != std::string::npos ||
+			raw.find("not found") != std::string::npos ||
+			raw.find("disabled") != std::string::npos)
+		{
+			label = "Error — check Nexus log";
+			col = kWarn;
+		}
+		else
+		{
+			/* Truncate long technical strings. */
+			static char buf[48];
+			if (raw.size() > 40)
+			{
+				std::snprintf(buf, sizeof(buf), "%.37s…", raw.c_str());
+				label = buf;
+			}
+			else
+				label = raw.c_str();
+			col = kGoldDim;
+		}
+
+		ImGui::SameLine();
+		ImGui::TextColored(col, "%s", label);
+	}
+
+	void DrawMoreMenu()
+	{
+		if (ImGui::Button("...##more"))
+			ImGui::OpenPopup("##toolbar_more");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("More actions");
+
+		if (ImGui::BeginPopup("##toolbar_more"))
+		{
+			if (ImGui::MenuItem(sShowFind ? "Hide find" : "Find in page", "Ctrl+F"))
+				sShowFind = !sShowFind;
+			if (ImGui::MenuItem("Copy URL"))
+				CopyCurrentUrl();
+			if (ImGui::MenuItem("Open externally"))
+				OpenCurrentExternal();
+			ImGui::Separator();
+			{
+				const bool canNew = BrowserTabs::Count() < BrowserTabs::kMaxTabs;
+				if (ImGui::MenuItem("New tab (duplicate)", nullptr, false, canNew))
+					DuplicateActiveTab();
+			}
+			{
+				const int ai = BrowserTabs::ActiveIndex();
+				const bool pinned = BrowserTabs::At(ai).pinned;
+				if (ImGui::MenuItem(pinned ? "Unpin tab" : "Pin tab"))
+					BrowserTabs::TogglePin(ai);
+			}
+			{
+				const bool canRe = BrowserTabs::CanReopenClosed();
+				if (ImGui::MenuItem("Reopen closed tab", "Ctrl+Shift+T", false, canRe))
+					BrowserTabs::ReopenClosed();
+			}
+			ImGui::EndPopup();
+		}
+	}
+
+	void DrawToolbar()
 	{
 		const SiteDef& active = Sites::Active();
-		char preview[96];
-		std::snprintf(preview, sizeof(preview), "%s · %s",
-			active.category ? active.category : "",
-			active.label ? active.label : "");
 
 		if (ImGui::Button("Browse"))
 		{
 			sSyncCategory = true;
 			ImGui::OpenPopup("##site_browse");
 		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("%s · %s",
+				active.category ? active.category : "",
+				active.label ? active.label : "");
 
-		ImGui::SameLine();
+		ImGui::SameLine(0.f, 4.f);
 		{
 			const bool fav = Sites::IsFavorite(Sites::ActiveId());
 			if (FavoriteToggleButton("toolbar", fav, false))
 				Sites::ToggleFavorite(Sites::ActiveId());
 		}
 
-		ImGui::SameLine();
-		ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
-		ImGui::TextUnformatted(preview);
-		ImGui::PopStyleColor();
+		ImGui::SameLine(0.f, 10.f);
+		if (SoftButton("<", BrowserTabs::CanGoBack()))
+			BrowserTabs::GoBack();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Back");
+		ImGui::SameLine(0.f, 2.f);
+		if (SoftButton(">", BrowserTabs::CanGoForward()))
+			BrowserTabs::GoForward();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Forward");
+		ImGui::SameLine(0.f, 2.f);
+		if (ImGui::Button("Home"))
+			BrowserTabs::GoHome();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Helper home");
+		ImGui::SameLine(0.f, 2.f);
+		if (ImGui::Button("Reload"))
+			BrowserTabs::Reload();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Reload");
+
+		ImGui::SameLine(0.f, 10.f);
+		{
+			float avail = ImGui::GetContentRegionAvail().x - 90.f;
+			if (avail < 140.f) avail = 140.f;
+			if (avail > 280.f) avail = 280.f;
+			ImGui::SetNextItemWidth(avail);
+		}
+		if (ImGui::InputTextWithHint("##site_query", "Search…", G::LastQuery, sizeof(G::LastQuery),
+			ImGuiInputTextFlags_EnterReturnsTrue))
+		{
+			if (G::LastQuery[0])
+			{
+				WikiBrowser::Search(G::LastQuery);
+				Settings::SetDirty();
+			}
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Search this site (Wiki / Google). Enter to go.");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Go"))
+		{
+			if (G::LastQuery[0])
+			{
+				WikiBrowser::Search(G::LastQuery);
+				Settings::SetDirty();
+			}
+		}
+
+		ImGui::SameLine(0.f, 8.f);
+		DrawMoreMenu();
+		DrawStatusChip();
 
 		ImGui::SetNextWindowSize(ImVec2(520.f, 320.f), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##site_browse"))
@@ -620,6 +844,7 @@ namespace
 			ImGui::EndPopup();
 		}
 	}
+
 
 	void DrawDefaultSiteBrowse()
 	{
@@ -742,120 +967,26 @@ void UI_Render()
 	BrowserTabs::Tick();
 
 	ImGui::TextColored(kGold, "IN-GAME HELPER");
-	ImGui::SameLine();
-	DrawSitePicker();
-	ImGui::SameLine();
-	if (SoftButton("<", BrowserTabs::CanGoBack()))
-		BrowserTabs::GoBack();
-	ImGui::SameLine();
-	if (SoftButton(">", BrowserTabs::CanGoForward()))
-		BrowserTabs::GoForward();
-	ImGui::SameLine();
-	if (ImGui::Button("Home"))
-		BrowserTabs::GoHome();
-	ImGui::SameLine();
-	if (ImGui::Button("Reload"))
-		BrowserTabs::Reload();
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(150.f);
-	if (ImGui::InputTextWithHint("##site_query", "Search…", G::LastQuery, sizeof(G::LastQuery),
-		ImGuiInputTextFlags_EnterReturnsTrue))
-	{
-		if (G::LastQuery[0])
-		{
-			WikiBrowser::Search(G::LastQuery);
-			Settings::SetDirty();
-		}
-	}
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("Search this site (Wiki / Google) or Google for others. Press Enter.");
-	ImGui::SameLine();
-	if (ImGui::Button("Go"))
-	{
-		if (G::LastQuery[0])
-		{
-			WikiBrowser::Search(G::LastQuery);
-			Settings::SetDirty();
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Copy URL"))
-	{
-		std::string copy = WikiBrowser::CurrentUrl();
-		if (copy.empty() || copy.rfind("about:", 0) == 0 || copy.rfind("file:", 0) == 0)
-			copy = Sites::ResolveUrl(Sites::Active());
-		if (!copy.empty() && copy.rfind("about:", 0) != 0 && copy.rfind("file:", 0) != 0)
-		{
-			if (OpenClipboard(nullptr))
-			{
-				EmptyClipboard();
-				const SIZE_T bytes = copy.size() + 1;
-				HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, bytes);
-				if (mem)
-				{
-					void* locked = GlobalLock(mem);
-					if (locked)
-					{
-						std::memcpy(locked, copy.c_str(), bytes);
-						GlobalUnlock(mem);
-						SetClipboardData(CF_TEXT, mem);
-					}
-				}
-				CloseClipboard();
-			}
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Open Ext"))
-	{
-		std::string openUrl = WikiBrowser::CurrentUrl();
-		if (openUrl.empty() || openUrl.rfind("about:", 0) == 0 || openUrl.rfind("file:", 0) == 0)
-			openUrl = Sites::ResolveUrl(Sites::Active());
-		if (!openUrl.empty() &&
-			(openUrl.rfind("http://", 0) == 0 || openUrl.rfind("https://", 0) == 0))
-		{
-			ShellExecuteA(nullptr, "open", openUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-		}
-	}
-	ImGui::SameLine();
-	{
-		const bool canNew = BrowserTabs::Count() < BrowserTabs::kMaxTabs;
-		if (canNew)
-		{
-			if (ImGui::Button("New Tab"))
-			{
-				std::string u = WikiBrowser::CurrentUrl();
-				if (u.empty() || u.rfind("about:", 0) == 0 || u.rfind("file:", 0) == 0)
-					u = Sites::ResolveUrl(Sites::Active());
-				BrowserTabs::OpenNewUrl(Sites::ActiveId(), u);
-			}
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Duplicate current page in a new tab");
-		}
-		else
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.4f);
-			ImGui::Button("New Tab");
-			ImGui::PopStyleVar();
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::Button(sShowFind ? "Find##find_toggle" : "Find##find_toggle_off"))
-		sShowFind = !sShowFind;
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("Find in page (Ctrl+F)");
-	ImGui::SameLine();
-	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
+	ImGui::SameLine(0.f, 12.f);
+	DrawToolbar();
 
-	/* Ctrl+F toggles find bar; Escape closes find only. */
+	/* Ctrl+F find; Ctrl+Shift+T reopen closed; Escape closes find. */
 	{
-		const bool ctrlF = (GetAsyncKeyState(VK_CONTROL) & 0x8000) &&
-			(GetAsyncKeyState('F') & 0x8000) &&
-			!(GetAsyncKeyState(VK_MENU) & 0x8000);
+		const bool ctrl = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+		const bool shift = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+		const bool alt = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+		const bool keyF = (GetAsyncKeyState('F') & 0x8000) != 0;
+		const bool keyT = (GetAsyncKeyState('T') & 0x8000) != 0;
 		static bool sCtrlFWasDown = false;
+		static bool sCtrlTWasDown = false;
+		const bool ctrlF = ctrl && !shift && !alt && keyF;
+		const bool ctrlShiftT = ctrl && shift && !alt && keyT;
 		if (ctrlF && !sCtrlFWasDown)
 			sShowFind = true;
+		if (ctrlShiftT && !sCtrlTWasDown && BrowserTabs::CanReopenClosed())
+			BrowserTabs::ReopenClosed();
 		sCtrlFWasDown = ctrlF;
+		sCtrlTWasDown = ctrlShiftT;
 		if (sShowFind && ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			sShowFind = false;
@@ -865,7 +996,7 @@ void UI_Render()
 
 	if (sShowFind)
 	{
-		ImGui::TextColored(kGold, "Find");
+		ImGui::TextColored(kGoldDim, "Find");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(220.f);
 		const bool findEnter = ImGui::InputTextWithHint("##find_q", "Find in page…", sFindQuery, sizeof(sFindQuery),
@@ -896,17 +1027,17 @@ void UI_Render()
 		const uint32_t fc = WikiBrowser::FindCount();
 		const uint32_t fo = WikiBrowser::FindOrdinal();
 		if (fc > 0)
-			ImGui::TextColored(kMuted, "%u / %u", fo, fc);
+			ImGui::TextColored(kGoldMuted, "%u / %u", fo, fc);
 		else if (sFindQuery[0])
-			ImGui::TextColored(kMuted, "No matches");
+			ImGui::TextColored(kGoldMuted, "No matches");
 	}
 
 	DrawTabBar();
 
 	const std::string url = WikiBrowser::CurrentUrl();
-	if (!url.empty())
+	if (!url.empty() && url.rfind("about:", 0) != 0)
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+		ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
 		ImGui::TextUnformatted(url.c_str());
 		ImGui::PopStyleColor();
 	}
@@ -1045,12 +1176,14 @@ void UI_Options()
 		Settings::SetDirty();
 	if (ImGui::SliderFloat("Font scale", &G::FontScale, 0.75f, 2.f, "%.2f"))
 		Settings::SetDirty();
+	if (ImGui::Checkbox("Keep browser warm when closed", &G::KeepHelperWarm))
+		Settings::SetDirty();
+	ImGui::TextColored(kMuted, "Faster reopen; uses more RAM while the helper is hidden.");
 
 	ImGui::Spacing();
 	ImGui::TextWrapped(
-		"Use Browse to pick a site. Ctrl+click or + opens a new tab (up to 8). "
-		"Open tabs are saved. The Search box queries Wiki/Google (falls back to Google). "
-		"Star sites for Favorites. Click outside the window to move and use skills again.");
-	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) open / close the helper");
-	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
+		"Browse · ... menu for Find / Copy / Open Ext. Right-click tabs to pin. "
+		"Window size and position are saved automatically.");
+	ImGui::TextWrapped(
+		"Hotkeys: Ctrl+Shift+H (or K) open / close · Ctrl+F find · Ctrl+Shift+T reopen tab");
 }

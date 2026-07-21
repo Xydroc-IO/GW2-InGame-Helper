@@ -2,6 +2,7 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "CheatSheets.h"
 #include "HomePage.h"
 #include "RaidFood.h"
 #include "Settings.h"
@@ -122,6 +123,22 @@ namespace
 			L"\\home-cover.jpg",
 			L"\\raid-food.html",
 			L"\\raid-food.ver",
+			L"\\raid-utilities.html",
+			L"\\raid-utilities.ver",
+			L"\\fractal-consumables.html",
+			L"\\fractal-consumables.ver",
+			L"\\sigils-runes.html",
+			L"\\sigils-runes.ver",
+			L"\\relics-guide.html",
+			L"\\relics-guide.ver",
+			L"\\boon-checklist.html",
+			L"\\boon-checklist.ver",
+			L"\\cc-defiance.html",
+			L"\\cc-defiance.ver",
+			L"\\raid-wings.html",
+			L"\\raid-wings.ver",
+			L"\\home-garden.html",
+			L"\\home-garden.ver",
 			L"\\settings.ini",
 		};
 		for (const wchar_t* name : stale)
@@ -539,35 +556,46 @@ namespace
 		++gIpc->cmd_seq;
 	}
 
+	/* Map built-in about: URLs to file:/// before CEF sees them (CreateTab
+	   used to pass about:raid-food raw → blank white page). */
+	std::string ResolveNavigateUrl(const std::string& url)
+	{
+		if (url.empty())
+			return {};
+		if (url == "about:helper-home")
+		{
+			const std::string fileUrl = HomePage::EnsureFileUrl(AddonDir());
+			if (fileUrl.empty())
+				SetLocalStatus("Failed to write helper-home.html");
+			return fileUrl;
+		}
+		if (url == "about:raid-food")
+		{
+			const std::string fileUrl = RaidFood::EnsureFileUrl(AddonDir());
+			if (fileUrl.empty())
+				SetLocalStatus("Failed to write raid-food.html");
+			return fileUrl;
+		}
+		{
+			const std::string fileUrl = CheatSheets::ResolveAboutUrl(AddonDir(), url);
+			if (!fileUrl.empty())
+				return fileUrl;
+			if (CheatSheets::FindByAbout(url.c_str()))
+				SetLocalStatus("Failed to write cheat sheet HTML");
+		}
+		return url;
+	}
+
 	/* Single IPC command slot — queue navigates until the helper is ready, then
 	   flush once so SET_VISIBLE / SET_BOUNDS cannot wipe the URL. */
 	void QueueNavigate(const std::string& url)
 	{
 		if (url.empty())
 			return;
-		if (url == "about:helper-home")
-		{
-			const std::string fileUrl = HomePage::EnsureFileUrl(AddonDir());
-			if (fileUrl.empty())
-			{
-				SetLocalStatus("Failed to write helper-home.html");
-				return;
-			}
-			gPendingNavigate = fileUrl;
+		const std::string resolved = ResolveNavigateUrl(url);
+		if (resolved.empty())
 			return;
-		}
-		if (url == "about:raid-food")
-		{
-			const std::string fileUrl = RaidFood::EnsureFileUrl(AddonDir());
-			if (fileUrl.empty())
-			{
-				SetLocalStatus("Failed to write raid-food.html");
-				return;
-			}
-			gPendingNavigate = fileUrl;
-			return;
-		}
-		gPendingNavigate = url;
+		gPendingNavigate = resolved;
 	}
 
 	void FlushPendingNavigate()
@@ -666,8 +694,15 @@ void WikiBrowser::SetVisible(bool visible)
 		if (was || HelperAlive())
 		{
 			PostCmd(WIKI_CMD_SET_VISIBLE, "0");
-			StopHelper();
-			SetLocalStatus("Closed — press Ctrl+Shift+H to open");
+			if (G::KeepHelperWarm && HelperAlive())
+			{
+				SetLocalStatus("Ready");
+			}
+			else
+			{
+				StopHelper();
+				SetLocalStatus("Closed — press Ctrl+Shift+H to open");
+			}
 		}
 		return;
 	}
@@ -682,14 +717,8 @@ void WikiBrowser::SetVisible(bool visible)
 	   pending NAVIGATE/BACK/FORWARD/RELOAD commands (single IPC slot). */
 	if (!wasWanted || !alreadyAlive)
 		PostCmd(WIKI_CMD_SET_VISIBLE, "1");
-	/* Opening the window always lands on the how-to homepage. */
-	if (!wasWanted)
-	{
-		Sites::SetActiveById("home");
-		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
-		Settings::SetDirty();
-		QueueNavigate("about:helper-home");
-	}
+	/* Tab URLs are loaded by BrowserTabs::NavigateActive / ready-resync —
+	   do not force about:helper-home here (that fought live-tab restore). */
 	FlushPendingNavigate();
 }
 
@@ -856,7 +885,10 @@ void WikiBrowser::CreateTab(int slot, const char* url)
 {
 	if (slot < 0 || slot >= kWikiMaxTabs)
 		return;
-	PostCmd(WIKI_CMD_CREATE_TAB, url ? url : "", slot);
+	const std::string resolved = ResolveNavigateUrl(url ? url : "about:blank");
+	if (resolved.empty())
+		return;
+	PostCmd(WIKI_CMD_CREATE_TAB, resolved.c_str(), slot);
 }
 
 void WikiBrowser::ActivateTab(int slot)
@@ -892,6 +924,13 @@ void WikiBrowser::StopFind(bool clearSelection)
 bool WikiBrowser::IsReady()
 {
 	return gIpc && gIpc->ready && HelperAlive();
+}
+
+bool WikiBrowser::HasTab(int slot)
+{
+	if (!gIpc || !HelperAlive() || slot < 0 || slot >= kWikiMaxTabs)
+		return false;
+	return (gIpc->tab_mask & (1u << slot)) != 0;
 }
 
 bool WikiBrowser::HasFrame()
