@@ -1,5 +1,6 @@
 #include "Settings.h"
 
+#include "AddonPaths.h"
 #include "Globals.h"
 #include "Sites.h"
 
@@ -15,50 +16,14 @@ namespace
 
 	const char* SettingsPath(char* out, size_t outLen)
 	{
-		if (!G::API || !G::API->Paths_GetAddonDirectory)
+		const std::string dir = AddonPaths::DataDirUtf8();
+		if (dir.empty())
 		{
 			std::snprintf(out, outLen, "GW2-InGame-Helper_settings.ini");
 			return out;
 		}
-		const char* dir = G::API->Paths_GetAddonDirectory(ADDON_NAME);
-		if (!dir || !dir[0])
-		{
-			std::snprintf(out, outLen, "GW2-InGame-Helper_settings.ini");
-			return out;
-		}
-		std::snprintf(out, outLen, "%s\\settings.ini", dir);
+		std::snprintf(out, outLen, "%s\\settings.ini", dir.c_str());
 		return out;
-	}
-
-	void EnsureDir()
-	{
-		if (!G::API || !G::API->Paths_GetAddonDirectory)
-			return;
-		const char* dir = G::API->Paths_GetAddonDirectory(ADDON_NAME);
-		if (dir && dir[0])
-			CreateDirectoryA(dir, nullptr);
-	}
-
-	bool ParseLine(const char* line, char* key, size_t keyLen, char* val, size_t valLen)
-	{
-		const char* eq = std::strchr(line, '=');
-		if (!eq)
-			return false;
-		size_t kn = static_cast<size_t>(eq - line);
-		if (kn == 0 || kn >= keyLen)
-			return false;
-		std::memcpy(key, line, kn);
-		key[kn] = 0;
-		std::snprintf(val, valLen, "%s", eq + 1);
-		size_t vl = std::strlen(val);
-		while (vl > 0 && (val[vl - 1] == '\r' || val[vl - 1] == '\n' || val[vl - 1] == ' '))
-			val[--vl] = 0;
-		return true;
-	}
-
-	bool AsBool(const char* v)
-	{
-		return v[0] == '1' || v[0] == 't' || v[0] == 'T' || v[0] == 'y' || v[0] == 'Y';
 	}
 }
 
@@ -83,8 +48,23 @@ void Settings::Load()
 	char val[160];
 	while (std::fgets(line, sizeof(line), f))
 	{
-		if (!ParseLine(line, key, sizeof(key), val, sizeof(val)))
+		const char* eq = std::strchr(line, '=');
+		if (!eq)
 			continue;
+		size_t kn = static_cast<size_t>(eq - line);
+		if (kn == 0 || kn >= sizeof(key))
+			continue;
+		std::memcpy(key, line, kn);
+		key[kn] = 0;
+		std::snprintf(val, sizeof(val), "%s", eq + 1);
+		size_t vl = std::strlen(val);
+		while (vl > 0 && (val[vl - 1] == '\r' || val[vl - 1] == '\n' || val[vl - 1] == ' '))
+			val[--vl] = 0;
+
+		auto AsBool = [](const char* v) {
+			return v[0] == '1' || v[0] == 't' || v[0] == 'T' || v[0] == 'y' || v[0] == 'Y';
+		};
+
 		if (std::strcmp(key, "ShowWiki") == 0) G::ShowWiki = AsBool(val);
 		else if (std::strcmp(key, "ShowOptions") == 0) G::ShowOptions = AsBool(val);
 		else if (std::strcmp(key, "Opacity") == 0) G::Opacity = static_cast<float>(std::atof(val));
@@ -130,7 +110,7 @@ void Settings::Save()
 	if (!gDirty)
 		return;
 
-	EnsureDir();
+	AddonPaths::DataDir(); /* ensure folder exists */
 	char path[MAX_PATH]{};
 	SettingsPath(path, sizeof(path));
 	FILE* f = std::fopen(path, "w");

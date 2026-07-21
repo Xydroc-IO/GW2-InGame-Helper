@@ -74,9 +74,16 @@ cmake --build build -j"$(nproc)"
 | `GW2-InGame-Helper.dll` | `src/*.cpp` + Dear ImGui + embedded helper blob + homepage logo/cover |
 
 The homepage (`HomePage.cpp`) embeds `docs/media/home-logo.png` and `docs/media/home-cover.jpg`
-into the DLL; they are written next to `helper-home.html` on first open.
+into the DLL; they are written next to `helper-home.html` under `addons/GW2-InGame-Helper/` on first open.
 
 Runtime CEF libraries are **not** shipped — the helper loads them from the game install at `bin64/cef/`.
+
+Player install layout:
+
+```text
+addons/GW2-InGame-Helper.dll     # only file players copy
+addons/GW2-InGame-Helper/        # runtime data directory
+```
 
 ## Dependencies
 

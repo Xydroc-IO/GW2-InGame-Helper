@@ -8,9 +8,10 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.4.1.8` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.5.1.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
+Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
 
 | Site | Category |
 |------|----------|
@@ -56,7 +57,7 @@ Add more sites in `src/Sites.cpp`. Hardstuck and Discretize are intentionally om
 Replaces the older Wiki / Snowcrow browser addons.
 Works on Windows and on Linux via Wine/Proton.
 
-> **Players only need the DLL.** The browser helper is embedded and extracts on first use; Chromium comes from the game’s `bin64/cef`.
+> **Players only need the DLL** in `addons/`. The browser helper and homepage assets extract into `addons/GW2-InGame-Helper/` on first use; Chromium comes from the game’s `bin64/cef`.
 
 Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
@@ -88,6 +89,8 @@ Players need **one file**. No separate helper `.exe`, CEF package, or WebView2.
    ```text
    <Guild Wars 2>/addons/GW2-InGame-Helper.dll
    ```
+
+   Do **not** put the DLL inside `addons/GW2-InGame-Helper/`. That folder is created automatically for runtime data (helper exe, homepage HTML, settings).
 
 3. Start the game, open Nexus with `Ctrl+O`, and enable **GW2-InGame-Helper** if needed.
 4. Restart if Nexus asks you to.
@@ -268,6 +271,7 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 3. CEF renders off-screen into shared memory.
 4. CSS is downleveled for Chromium 103 where needed; common ad/consent hosts are blocked.
 5. HTTP cache lives under `%TEMP%` (not under `addons`).
+6. Runtime data (helper exe, homepage, settings) lives under `addons/GW2-InGame-Helper/`.
 6. Site list lives in `src/Sites.cpp`.
 
 ## License
