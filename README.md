@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.4.1.6` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.4.1.7` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 
@@ -39,7 +39,6 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 | [Music Box](http://gw2mb.com/) | Tools |
 | [Peu Research Center](https://peuresearchcenter.com/index.html) | Tools |
 | Raid Food (built-in) | Guides |
-| [Lucky Noobs](https://lucky-noobs.com/) | Guides |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
 | [Leveling](https://metabattle.com/wiki/Guide:Leveling_Up) | Guides |
@@ -51,7 +50,7 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
-| Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Lucky Noobs · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
+| Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
 
 Add more sites in `src/Sites.cpp`. Hardstuck and Discretize are intentionally omitted (outdated).
 Replaces the older Wiki / Snowcrow browser addons.

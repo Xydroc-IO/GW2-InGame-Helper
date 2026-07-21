@@ -13,7 +13,7 @@ namespace
 	 *  2. Rebuild — no other wiring needed for basic browse/home.
 	 *  3. Optional: set searchUrlPrefix/Suffix for toolbar search.
 	 *
-	 * Intentionally omitted (outdated / superseded): Hardstuck, Discretize.
+	 * Intentionally omitted (outdated / superseded / low quality): Hardstuck, Discretize, Lucky Noobs.
 	 */
 	SiteDef gSites[] = {
 		/* —— Help (default landing) —— */
@@ -257,15 +257,6 @@ namespace
 			nullptr,
 		},
 		{
-			"luckynoobs",
-			"Guides",
-			"Lucky Noobs",
-			"Lucky Noobs — Raids & Speedclears",
-			"https://lucky-noobs.com/",
-			nullptr,
-			nullptr,
-		},
-		{
 			"guildjen",
 			"Guides",
 			"Guildjen",
@@ -437,15 +428,6 @@ namespace
 			"Skein Gang",
 			"Skein Gang Discord",
 			"https://discord.com/invite/q9E2WDcxXW",
-			nullptr,
-			nullptr,
-		},
-		{
-			"discord_luckynoobs",
-			"Discord",
-			"Lucky Noobs",
-			"Lucky Noobs Discord",
-			"https://discord.com/invite/d2RkJBstDd",
 			nullptr,
 			nullptr,
 		},
