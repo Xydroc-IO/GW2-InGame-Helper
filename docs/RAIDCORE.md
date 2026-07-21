@@ -14,10 +14,12 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.5.4.0`
+`1.5.5.0`
 
 ## Changelog highlights
 
+- **1.5.5.0** — Persist open tabs; fix Options default landing site
+- **1.5.4.1** — Escape no longer closes the helper
 - **1.5.4.0** — Full GW2 ImGui theme; Raid Food match; toolbar Search; KillProof/Wingman/BLTC/Forums/DDG
 - **1.5.3.1** — Search category with Google
 - **1.5.3.0** — Multi-tab browsing (up to 8); Ctrl+click / + opens a new tab

@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "16";
+	static constexpr const char* kHomePageVersion = "17";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -478,7 +478,7 @@ const char* HomePage::Html()
         <div class="body">
           <ul>
             <li>Opacity and font scale are in the addon’s Nexus options.</li>
-            <li>Opening the helper always lands on this page first.</li>
+            <li>Opening the helper restores your saved tabs (or your default landing site).</li>
             <li>Use <strong>Open Ext</strong> for Discord invites and pages that need a full browser login.</li>
           </ul>
         </div>

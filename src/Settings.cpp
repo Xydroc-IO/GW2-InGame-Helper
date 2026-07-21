@@ -1,6 +1,7 @@
 #include "Settings.h"
 
 #include "AddonPaths.h"
+#include "BrowserTabs.h"
 #include "Globals.h"
 #include "Sites.h"
 
@@ -39,7 +40,9 @@ void Settings::Load()
 	FILE* f = std::fopen(path, "r");
 	if (!f)
 	{
-		Sites::SetActiveById(G::ActiveSiteId);
+		Sites::SetActiveById(G::DefaultSiteId[0] ? G::DefaultSiteId : "home");
+		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
+		BrowserTabs::FinalizeLoad();
 		return;
 	}
 
@@ -85,8 +88,12 @@ void Settings::Load()
 			std::snprintf(G::LastQuery, sizeof(G::LastQuery), "%s", val);
 		else if (std::strcmp(key, "ActiveSiteId") == 0)
 			std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", val);
+		else if (std::strcmp(key, "DefaultSiteId") == 0)
+			std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "%s", val);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
+		else
+			BrowserTabs::ParseKey(key, val);
 	}
 	std::fclose(f);
 
@@ -97,13 +104,20 @@ void Settings::Load()
 	if (G::WindowWidth < 320.f) G::WindowWidth = 320.f;
 	if (G::WindowHeight < 240.f) G::WindowHeight = 240.f;
 
+	if (!Sites::SetActiveById(G::DefaultSiteId) ||
+		std::strcmp(G::DefaultSiteId, "gw2lunchbox") == 0)
+	{
+		Sites::SetActiveById("home");
+		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "home");
+	}
 	if (!Sites::SetActiveById(G::ActiveSiteId) ||
 		std::strcmp(G::ActiveSiteId, "gw2lunchbox") == 0)
 	{
-		Sites::SetActiveById("home");
-		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "home");
+		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", G::DefaultSiteId);
+		Sites::SetActiveById(G::ActiveSiteId);
 	}
 	Sites::PruneFavorites();
+	BrowserTabs::FinalizeLoad();
 
 	gDirty = false;
 }
@@ -121,6 +135,8 @@ void Settings::Save()
 		return;
 
 	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
+	if (!G::DefaultSiteId[0])
+		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "home");
 
 	std::fprintf(f, "ShowWiki=%d\n", G::ShowWiki ? 1 : 0);
 	std::fprintf(f, "ShowOptions=%d\n", G::ShowOptions ? 1 : 0);
@@ -132,9 +148,11 @@ void Settings::Save()
 	std::fprintf(f, "WindowPosY=%.1f\n", G::WindowPosY);
 	std::fprintf(f, "LastQuery=%s\n", G::LastQuery);
 	std::fprintf(f, "ActiveSiteId=%s\n", G::ActiveSiteId);
+	std::fprintf(f, "DefaultSiteId=%s\n", G::DefaultSiteId);
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);
+	BrowserTabs::WriteSettings(f);
 
 	std::fclose(f);
 	gDirty = false;

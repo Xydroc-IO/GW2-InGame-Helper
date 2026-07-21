@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdio>
 #include <string>
 
 namespace BrowserTabs
@@ -14,8 +15,15 @@ namespace BrowserTabs
 		std::string url;
 	};
 
-	void EnsureDefault(); /* at least one tab (home) */
+	void EnsureDefault(); /* at least one tab (uses DefaultSiteId) */
 	void Tick();         /* sync active tab URL from browser */
+	void NavigateActive(); /* load active tab into the browser */
+	void PrepareSave();  /* stash current URL before settings write */
+
+	/* Settings persistence */
+	void ParseKey(const char* key, const char* val);
+	void FinalizeLoad(); /* prune after settings load; ensure ≥1 tab */
+	void WriteSettings(FILE* f);
 
 	int  Count();
 	int  ActiveIndex();
