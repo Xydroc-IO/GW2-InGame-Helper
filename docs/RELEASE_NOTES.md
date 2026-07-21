@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.1.0
+# GW2 In-Game Helper v1.7.2.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -14,6 +14,19 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
 
 ---
+
+## What’s new in 1.7.2.1
+
+- **Fix:** Game freeze from writing `settings.ini` every frame (tab title sync + window pos). Saves are debounced; titles no longer mark dirty every tick
+
+## What’s new in 1.7.2.0
+
+- **Tab hotkeys** — Ctrl+T new-tab picker · Ctrl+W close · Ctrl+Tab / Ctrl+Shift+Tab cycle
+- **Fix:** Tab names update when the page changes (CEF title + URL→site match); titles are saved
+
+## What’s new in 1.7.1.1
+
+- **Fix:** Opening a site in a new tab no longer navigates the previous tab to the same page
 
 ## What’s new in 1.7.1.0
 
@@ -40,3 +53,12 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 - **Fix:** Home / Raid Food / restored tabs no longer open blank
 - **Fix:** Opening restores tab URLs instead of always forcing the homepage
+
+---
+
+## Notes
+
+- Closing the helper stops the browser process unless **Keep browser warm** is enabled in Options (tabs restore URLs on reopen).
+- Prefer **Open Ext** for Discord joins and logins.
+- Hardstuck / Discretize intentionally omitted.
+- Settings writes are debounced to avoid hitching the game.
