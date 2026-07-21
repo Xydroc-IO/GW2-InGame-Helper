@@ -7,6 +7,7 @@
 
 #include "imgui/imgui.h"
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -125,17 +126,53 @@ namespace
 			WikiBrowser::NavigateActiveSite();
 	}
 
+	/* Draw a 5-point star (ProggyClean has no ★/☆ glyphs). */
+	void DrawStarShape(ImDrawList* dl, ImVec2 center, float radius, ImU32 col, bool filled)
+	{
+		ImVec2 pts[10];
+		for (int i = 0; i < 10; ++i)
+		{
+			const float a = -3.14159265f * 0.5f + static_cast<float>(i) * 3.14159265f / 5.f;
+			const float r = (i & 1) ? radius * 0.42f : radius;
+			pts[i] = ImVec2(center.x + std::cos(a) * r, center.y + std::sin(a) * r);
+		}
+		if (filled)
+			dl->AddConvexPolyFilled(pts, 10, col);
+		else
+			dl->AddPolyline(pts, 10, col, true, 1.6f);
+	}
+
+	bool FavoriteToggleButton(const char* id, bool favorited, bool smallBtn)
+	{
+		ImGui::PushID(id);
+		const float h = smallBtn ? ImGui::GetFrameHeight() * 0.85f : ImGui::GetFrameHeight();
+		const ImVec2 size(h, h);
+		const ImVec2 p0 = ImGui::GetCursorScreenPos();
+		const bool pressed = ImGui::InvisibleButton("##star", size);
+		const ImVec2 p1 = ImVec2(p0.x + size.x, p0.y + size.y);
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		const ImVec2 center((p0.x + p1.x) * 0.5f, (p0.y + p1.y) * 0.5f);
+		const float radius = size.x * 0.32f;
+		const bool hovered = ImGui::IsItemHovered();
+		ImU32 col;
+		if (favorited)
+			col = ImGui::GetColorU32(hovered ? ImVec4(1.f, 0.85f, 0.35f, 1.f) : kGold);
+		else
+			col = ImGui::GetColorU32(hovered ? ImVec4(0.85f, 0.88f, 0.92f, 1.f) : kMuted);
+		DrawStarShape(dl, center, radius, col, favorited);
+		if (hovered)
+			ImGui::SetTooltip(favorited ? "Remove from Favorites" : "Add to Favorites");
+		ImGui::PopID();
+		return pressed;
+	}
+
 	void DrawFavoriteStar(const char* siteId)
 	{
 		if (!siteId || !siteId[0])
 			return;
 		const bool fav = Sites::IsFavorite(siteId);
-		ImGui::PushStyleColor(ImGuiCol_Text, fav ? kGold : kMuted);
-		if (ImGui::SmallButton(fav ? "★##fav" : "☆##fav"))
+		if (FavoriteToggleButton("row", fav, true))
 			Sites::ToggleFavorite(siteId);
-		ImGui::PopStyleColor();
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(fav ? "Remove from Favorites" : "Add to Favorites");
 	}
 
 	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel)
@@ -294,7 +331,7 @@ namespace
 			if (filtering)
 				ImGui::TextUnformatted("No matches.");
 			else if (showFavorites)
-				ImGui::TextUnformatted("No favorites yet. Click ☆ next to a site.");
+				ImGui::TextUnformatted("No favorites yet. Click the star next to a site.");
 			else
 				ImGui::TextUnformatted("No sites in this category.");
 			ImGui::PopStyleColor();
@@ -319,12 +356,8 @@ namespace
 		ImGui::SameLine();
 		{
 			const bool fav = Sites::IsFavorite(Sites::ActiveId());
-			ImGui::PushStyleColor(ImGuiCol_Text, fav ? kGold : kMuted);
-			if (ImGui::Button(fav ? "★##toolbar_fav" : "☆##toolbar_fav"))
+			if (FavoriteToggleButton("toolbar", fav, false))
 				Sites::ToggleFavorite(Sites::ActiveId());
-			ImGui::PopStyleColor();
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip(fav ? "Remove from Favorites" : "Add to Favorites");
 		}
 
 		ImGui::SameLine();
@@ -642,7 +675,7 @@ void UI_Options()
 
 	ImGui::Spacing();
 	ImGui::TextWrapped(
-		"Use Browse to pick a site (search + categories). Star sites with ☆ to pin them under "
+		"Use Browse to pick a site (search + categories). Click the star to pin sites under "
 		"Favorites. Click outside the window to move and use skills again — you do not need to "
 		"close the addon.");
 	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) open / close the helper");

@@ -419,7 +419,7 @@ const char* HomePage::Html()
         <div class="body">
           <ol>
             <li>Open <strong>Browse</strong> — search or pick a category, then a site.</li>
-            <li>Star sites with <strong>☆</strong> (toolbar or Browse rows) to pin them under <strong>Favorites</strong>.</li>
+            <li>Star sites with the <strong>star</strong> button (toolbar or Browse rows) to pin them under <strong>Favorites</strong>.</li>
             <li>Click inside the page to scroll, follow links, and type.</li>
             <li>Click <strong>outside</strong> this window to move and use skills again — you do not need to close the helper.</li>
           </ol>
@@ -442,7 +442,7 @@ const char* HomePage::Html()
         <div class="body">
           <ul>
             <li><strong>Browse</strong> — search and pick sites by category</li>
-            <li><strong>☆ / ★</strong> — add or remove the current site from Favorites</li>
+            <li><strong>Star</strong> — add or remove the current site from Favorites</li>
             <li><strong>Back / Forward</strong> — browser history</li>
             <li><strong>Home</strong> — return to this page</li>
             <li><strong>Reload</strong> — refresh the current page</li>
