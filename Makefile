@@ -21,6 +21,7 @@ DLL_SRC = \
 	src/Settings.cpp \
 	src/Sites.cpp \
 	src/HomePage.cpp \
+	src/RaidFood.cpp \
 	src/HelperQuickAccess.cpp \
 	src/WikiBrowser.cpp \
 	src/UI.cpp \

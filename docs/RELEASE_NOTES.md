@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.1.1
+# GW2 In-Game Helper v1.4.1.2
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -19,6 +19,10 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
 
 ---
+
+## What’s new in 1.4.1.2
+
+- **Built-in Raid Food guide** — Universal Seasoning Guide with power, condition, support, and hybrid/tank feast recipes (Guides → Raid Food)
 
 ## What’s new in 1.4.1.1
 
@@ -54,7 +58,7 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 | Wiki | GW2 Wiki |
 | Builds | Snowcrows, MetaBattle, Accessibility Wars, Gw2Skills Editor |
 | Tools | gw2efficiency, GW2Timer Map, Meta Timers, GW2 Crafts, Music Box, Peu Research Center |
-| Guides | Guildjen, Mukluk Fractals, GW2 TLDR |
+| Guides | Raid Food (built-in), Guildjen, Mukluk Fractals, GW2 TLDR |
 | Farming | Fast Farming |
 | Discord | Fractal Training, Raidcore, Raid Academy |
 
