@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "HomePage.h"
+#include "RaidFood.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "WikiIpc.h"
@@ -530,6 +531,17 @@ namespace
 			if (fileUrl.empty())
 			{
 				SetLocalStatus("Failed to write helper-home.html");
+				return;
+			}
+			gPendingNavigate = fileUrl;
+			return;
+		}
+		if (url == "about:raid-food")
+		{
+			const std::string fileUrl = RaidFood::EnsureFileUrl(AddonDir());
+			if (fileUrl.empty())
+			{
+				SetLocalStatus("Failed to write raid-food.html");
 				return;
 			}
 			gPendingNavigate = fileUrl;

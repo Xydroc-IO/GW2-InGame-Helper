@@ -151,6 +151,15 @@ namespace
 
 		/* —— Guides —— */
 		{
+			"raidfood",
+			"Guides",
+			"Raid Food",
+			"Raid Food — Universal Seasoning Guide",
+			"about:raid-food",
+			nullptr,
+			nullptr,
+		},
+		{
 			"guildjen",
 			"Guides",
 			"Guildjen",

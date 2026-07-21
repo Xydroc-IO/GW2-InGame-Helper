@@ -26,6 +26,7 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 | [GW2 Crafts](https://gw2crafts.net/) | Tools |
 | [Music Box](http://gw2mb.com/) | Tools |
 | [Peu Research Center](https://peuresearchcenter.com/index.html) | Tools |
+| Raid Food (built-in) | Guides |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
