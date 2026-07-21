@@ -117,7 +117,7 @@ namespace
 			"Tools",
 			"Music Box",
 			"GW2 Music Box",
-			"https://gw2mb.com/",
+			"http://gw2mb.com/",
 			nullptr,
 			nullptr,
 		},

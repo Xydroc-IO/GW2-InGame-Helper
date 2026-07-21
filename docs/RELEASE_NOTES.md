@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.0
+# GW2 In-Game Helper v1.4.1
 
 <p align="center">
   <img src="media/cover.png" alt="GW2 In-Game Helper" width="100%">
@@ -18,6 +18,10 @@ One DLL for Nexus — no memory reads.
 Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Wine/Proton OK).
 
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
+
+## What’s new in 1.4.1
+
+- Fix Music Box URL: site only works over HTTP (`http://gw2mb.com/`); HTTPS has a bad certificate and returns 403
 
 ## What’s new in 1.4.0
 

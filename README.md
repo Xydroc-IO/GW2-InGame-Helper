@@ -22,7 +22,7 @@ from an in-game browser. No memory reads; uses Nexus APIs and the game’s built
 | [gw2efficiency](https://gw2efficiency.com/) | Tools |
 | [GW2Timer Map](https://gw2timer.com/?page=Map) | Tools |
 | [GW2 Crafts](https://gw2crafts.net/) | Tools |
-| [Music Box](https://gw2mb.com/) | Tools |
+| [Music Box](http://gw2mb.com/) | Tools |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
 | [Fractal Training](https://discord.com/invite/zxeVeSqpuS) | Discord |
