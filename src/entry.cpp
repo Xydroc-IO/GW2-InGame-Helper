@@ -286,12 +286,12 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.APIVersion       = NEXUS_API_VERSION;
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 1;
-	G::AddonDef.Version.Minor    = 3;
-	G::AddonDef.Version.Build    = 1;
+	G::AddonDef.Version.Minor    = 4;
+	G::AddonDef.Version.Build    = 0;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
-		"Modular in-game browser for GW2 sites. Ctrl+Shift+H toggle. One DLL, no memory reads.";
+		"Modular in-game browser for GW2 sites and Discords. Ctrl+Shift+H toggle. One DLL, no memory reads.";
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
 	G::AddonDef.Flags            = AF_DisableHotloading;

@@ -4,9 +4,9 @@
   <img src="docs/media/cover.png" alt="GW2 In-Game Helper — in-game sites, one DLL" width="100%">
 </p>
 
-A Raidcore Nexus addon that opens useful Guild Wars 2 websites inside the game.
-One DLL — pick Wiki, Snowcrows, MetaBattle, and more from an in-game browser.
-No memory reads; uses Nexus APIs and the game’s built-in CEF.
+A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
+Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
+from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 
@@ -14,11 +14,20 @@ No memory reads; uses Nexus APIs and the game’s built-in CEF.
 |------|----------|
 | How to use (built-in) | Help |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
+| [Raidcore](https://raidcore.gg/gw2) | Official |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Snowcrows](https://snowcrows.com/) | Builds |
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
+| [Accessibility Wars](https://aw2.help/) | Builds |
 | [gw2efficiency](https://gw2efficiency.com/) | Tools |
+| [GW2Timer Map](https://gw2timer.com/?page=Map) | Tools |
+| [GW2 Crafts](https://gw2crafts.net/) | Tools |
+| [Music Box](https://gw2mb.com/) | Tools |
+| [Guildjen](https://guildjen.com/) | Guides |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
+| [Fractal Training](https://discord.com/invite/zxeVeSqpuS) | Discord |
+| [Raidcore Discord](https://discord.com/invite/raidcore) | Discord |
+| [Raid Academy](https://discord.com/invite/gw2ra) | Discord |
 
 Add more sites in `src/Sites.cpp`. Replaces the older Wiki / Snowcrow browser addons.
 Works on Windows and on Linux via Wine/Proton.

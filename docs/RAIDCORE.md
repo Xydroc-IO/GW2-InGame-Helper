@@ -1,11 +1,9 @@
 # Raidcore / Nexus listing notes
 
-Use these when publishing on Raidcore or pasting into the Nexus addon library.
-
-## Short description (AddonDef / one-liner)
+## Short description
 
 ```text
-In-game browser for GW2 sites. One DLL. Ctrl+Shift+H toggle. No memory reads. No item-lookup macros.
+In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No memory reads.
 ```
 
 ## Signature
@@ -14,25 +12,9 @@ In-game browser for GW2 sites. One DLL. Ctrl+Shift+H toggle. No memory reads. No
 0x48454C50
 ```
 
-## Full HTML body
+## Version
 
-Paste or host [`description.html`](description.html) (cover + logo under `media/`).
-
-## Release notes
-
-See [`RELEASE_NOTES.md`](RELEASE_NOTES.md) for the current version (v1.3.1).
-
-## Player artifact
-
-Ship **only** `GW2-InGame-Helper.dll`.
-
-## Hotkeys
-
-| Bind ID | Default | Action |
-|---------|---------|--------|
-| `KB_HELPER_TOGGLE` | `CTRL+SHIFT+H` | Open / close helper |
-
-**Removed:** `KB_HELPER_ITEM` (Ctrl+Shift+I / U item lookup). Deregistered on load so leftover binds stop firing.
+`1.4.0.0`
 
 ## Updates
 
@@ -41,4 +23,16 @@ Provider   = UP_GitHub
 UpdateLink = https://github.com/Xydroc-IO/GW2-InGame-Helper
 ```
 
-Nexus checks GitHub Releases for newer addon versions. Publish a release with `GW2-InGame-Helper.dll` as an asset so players can auto-update.
+## Full HTML
+
+[`description.html`](description.html) · Release notes: [`RELEASE_NOTES.md`](RELEASE_NOTES.md)
+
+## Hotkeys
+
+| Bind ID | Default | Action |
+|---------|---------|--------|
+| `KB_HELPER_TOGGLE` | `CTRL+SHIFT+H` | Open / close helper |
+
+## Player artifact
+
+Ship **only** `GW2-InGame-Helper.dll`.
