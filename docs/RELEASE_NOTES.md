@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.1.6
+# GW2 In-Game Helper v1.4.1.7
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -20,29 +20,25 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 1.4.1.7
+
+- **Removed** Lucky Noobs (site + Discord)
+
 ## What’s new in 1.4.1.6
 
-- **Browse panel** — replace the long site dropdown with search + category list + site list (scales to 50+ entries)
+- **Browse panel** — search + category list + site list (replaces the long dropdown)
 
 ## What’s new in 1.4.1.5
 
 - Gap-fill sites + Copy URL / Open Ext toolbar
 
-## What’s new in 1.4.1.4
+## What’s new in 1.4.1.4 – 1.4.0
 
-- PvP/WvW, Lucky Noobs, GW2Timer Events, expanded Discords (no Hardstuck/Discretize)
-
-## What’s new in 1.4.1.3 – 1.4.0
-
-- Branded homepage, Raid Food, community sites, Music Box HTTP fix
+- PvP/WvW, community Discords, branded homepage, Raid Food, Music Box fix (Hardstuck/Discretize omitted)
 
 ---
 
-## Included sites
-
-See in-game **Browse** panel (categories: Help, Official, Wiki, Builds, PvP, WvW, Tools, Guides, Farming, Discord).
-
 ## Notes
 
-- Use **Open Ext** for Discord invites and sites that need a full desktop browser.
+- Use **Browse** to pick sites; **Open Ext** for Discord joins.
 - Players only need the DLL.
