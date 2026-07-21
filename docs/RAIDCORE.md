@@ -16,6 +16,16 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 `1.4.1.3`
 
+## Changelog highlights
+
+- **1.4.1.3** — Branded homepage (logo + cover)
+- **1.4.1.2** — Built-in Raid Food guide
+- **1.4.1.1** — Gw2Skills, Meta Timers, Peu, Mukluk, GW2 TLDR
+- **1.4.1** — Music Box HTTP fix
+- **1.4.0** — Community sites + Discord invites
+
+See [`RELEASE_NOTES.md`](RELEASE_NOTES.md) for full notes.
+
 ## Updates
 
 ```text
