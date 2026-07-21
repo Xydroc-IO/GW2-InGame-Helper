@@ -14,10 +14,11 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.5.1.0`
+`1.5.2.0`
 
 ## Changelog highlights
 
+- **1.5.2.0** — Favorites: star sites in Browse / toolbar; persisted in settings
 - **1.5.1.0** — Runtime data under `addons/GW2-InGame-Helper/`; DLL only in `addons/`
 - **1.4.1.8** — Full-page themed homepage redesign
 - **1.4.1.7** — Removed Lucky Noobs

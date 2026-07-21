@@ -45,4 +45,15 @@ namespace Sites
 
 	/* Resolve the URL to open for a site (help page or homeUrl). */
 	std::string ResolveUrl(const SiteDef& site);
+
+	/* Favorites — persisted site ids (order preserved). */
+	bool IsFavorite(const char* id);
+	bool ToggleFavorite(const char* id); /* returns true if now favorited */
+	int  FavoriteCount();
+	int  FavoriteSiteIndex(int favSlot); /* registry index, or -1 */
+	int  IndexOfId(const char* id);      /* registry index, or -1 */
+
+	void ParseFavorites(const char* csv);
+	void SerializeFavorites(char* out, size_t outLen);
+	void PruneFavorites(); /* drop unknown / empty ids */
 }

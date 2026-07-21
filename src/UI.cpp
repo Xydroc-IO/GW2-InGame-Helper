@@ -125,6 +125,19 @@ namespace
 			WikiBrowser::NavigateActiveSite();
 	}
 
+	void DrawFavoriteStar(const char* siteId)
+	{
+		if (!siteId || !siteId[0])
+			return;
+		const bool fav = Sites::IsFavorite(siteId);
+		ImGui::PushStyleColor(ImGuiCol_Text, fav ? kGold : kMuted);
+		if (ImGui::SmallButton(fav ? "★##fav" : "☆##fav"))
+			Sites::ToggleFavorite(siteId);
+		ImGui::PopStyleColor();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(fav ? "Remove from Favorites" : "Add to Favorites");
+	}
+
 	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel)
 	{
 		size_t siteCount = 0;
@@ -134,20 +147,29 @@ namespace
 		if (!sites || siteCount == 0 || !cats || catCount == 0)
 			return;
 
+		/* Index 0 = virtual Favorites; 1..catCount = registry categories. */
+		const int totalCats = static_cast<int>(catCount) + 1;
+
 		if (sSyncCategory)
 		{
 			sSyncCategory = false;
-			const char* activeCat = Sites::Active().category ? Sites::Active().category : "";
-			for (int i = 0; i < static_cast<int>(catCount); ++i)
+			if (Sites::IsFavorite(Sites::ActiveId()))
+				sCategoryIndex = 0;
+			else
 			{
-				if (std::strcmp(cats[i] ? cats[i] : "", activeCat) == 0)
+				const char* activeCat = Sites::Active().category ? Sites::Active().category : "";
+				sCategoryIndex = 1;
+				for (int i = 0; i < static_cast<int>(catCount); ++i)
 				{
-					sCategoryIndex = i;
-					break;
+					if (std::strcmp(cats[i] ? cats[i] : "", activeCat) == 0)
+					{
+						sCategoryIndex = i + 1;
+						break;
+					}
 				}
 			}
 		}
-		if (sCategoryIndex < 0 || sCategoryIndex >= static_cast<int>(catCount))
+		if (sCategoryIndex < 0 || sCategoryIndex >= totalCats)
 			sCategoryIndex = 0;
 
 		ImGui::TextColored(kGold, "Search");
@@ -156,7 +178,10 @@ namespace
 		ImGui::InputTextWithHint("##site_filter", "Filter sites…", sFilter, sizeof(sFilter));
 
 		const bool filtering = sFilter[0] != '\0';
-		const char* selectedCat = cats[sCategoryIndex] ? cats[sCategoryIndex] : "";
+		const bool showFavorites = (!filtering && sCategoryIndex == 0);
+		const char* selectedCat = "";
+		if (!filtering && !showFavorites && sCategoryIndex >= 1)
+			selectedCat = cats[sCategoryIndex - 1] ? cats[sCategoryIndex - 1] : "";
 
 		const float listH = 240.f;
 		const float leftW = 140.f;
@@ -166,16 +191,26 @@ namespace
 		ImGui::TextUnformatted("Categories");
 		ImGui::PopStyleColor();
 		ImGui::Separator();
+
+		{
+			char favLabel[64];
+			std::snprintf(favLabel, sizeof(favLabel), "Favorites (%d)", Sites::FavoriteCount());
+			if (ImGui::Selectable(favLabel, sCategoryIndex == 0))
+			{
+				sCategoryIndex = 0;
+				sFilter[0] = '\0';
+			}
+		}
 		for (int i = 0; i < static_cast<int>(catCount); ++i)
 		{
 			const char* cat = cats[i] ? cats[i] : "";
-			const bool selected = (i == sCategoryIndex);
+			const int uiIndex = i + 1;
+			const bool selected = (uiIndex == sCategoryIndex);
 			char label[96];
 			std::snprintf(label, sizeof(label), "%s (%d)", cat, Sites::CountInCategory(cat));
 			if (ImGui::Selectable(label, selected))
 			{
-				sCategoryIndex = i;
-				/* Category pick scopes the list; clear filter for predictable browsing. */
+				sCategoryIndex = uiIndex;
 				sFilter[0] = '\0';
 			}
 		}
@@ -187,6 +222,8 @@ namespace
 		ImGui::PushStyleColor(ImGuiCol_Text, kGold);
 		if (filtering)
 			ImGui::TextUnformatted("Matching sites");
+		else if (showFavorites)
+			ImGui::TextUnformatted("Favorites");
 		else
 			ImGui::TextUnformatted(selectedCat);
 		ImGui::PopStyleColor();
@@ -194,34 +231,26 @@ namespace
 
 		const int current = Sites::ActiveIndex();
 		int shown = 0;
-		for (int i = 0; i < static_cast<int>(siteCount); ++i)
-		{
-			const SiteDef& site = sites[i];
-			if (filtering)
-			{
-				if (!Sites::MatchesFilter(site, sFilter))
-					continue;
-			}
-			else
-			{
-				const char* cat = site.category ? site.category : "";
-				if (std::strcmp(cat, selectedCat) != 0)
-					continue;
-			}
 
-			ImGui::PushID(i);
+		auto DrawSiteRow = [&](int siteIndex, bool withCategoryPrefix) {
+			if (siteIndex < 0 || siteIndex >= static_cast<int>(siteCount))
+				return;
+			const SiteDef& site = sites[siteIndex];
+			ImGui::PushID(siteIndex);
+			DrawFavoriteStar(site.id);
+			ImGui::SameLine();
 			char row[160];
-			if (filtering)
+			if (withCategoryPrefix)
 				std::snprintf(row, sizeof(row), "%s · %s",
 					site.category ? site.category : "",
 					site.label ? site.label : "");
 			else
 				std::snprintf(row, sizeof(row), "%s", site.label ? site.label : "");
 
-			const bool selected = (i == current);
+			const bool selected = (siteIndex == current);
 			if (ImGui::Selectable(row, selected))
 			{
-				ActivateSiteIndex(i, navigateOnChange);
+				ActivateSiteIndex(siteIndex, navigateOnChange);
 				if (closePanel)
 					*closePanel = true;
 				sSyncCategory = true;
@@ -230,11 +259,44 @@ namespace
 				ImGui::SetItemDefaultFocus();
 			ImGui::PopID();
 			++shown;
+		};
+
+		if (showFavorites)
+		{
+			const int favN = Sites::FavoriteCount();
+			for (int f = 0; f < favN; ++f)
+				DrawSiteRow(Sites::FavoriteSiteIndex(f), true);
 		}
+		else
+		{
+			for (int i = 0; i < static_cast<int>(siteCount); ++i)
+			{
+				const SiteDef& site = sites[i];
+				if (filtering)
+				{
+					if (!Sites::MatchesFilter(site, sFilter))
+						continue;
+					DrawSiteRow(i, true);
+				}
+				else
+				{
+					const char* cat = site.category ? site.category : "";
+					if (std::strcmp(cat, selectedCat) != 0)
+						continue;
+					DrawSiteRow(i, false);
+				}
+			}
+		}
+
 		if (shown == 0)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
-			ImGui::TextUnformatted(filtering ? "No matches." : "No sites in this category.");
+			if (filtering)
+				ImGui::TextUnformatted("No matches.");
+			else if (showFavorites)
+				ImGui::TextUnformatted("No favorites yet. Click ☆ next to a site.");
+			else
+				ImGui::TextUnformatted("No sites in this category.");
 			ImGui::PopStyleColor();
 		}
 		ImGui::EndChild();
@@ -252,6 +314,17 @@ namespace
 		{
 			sSyncCategory = true;
 			ImGui::OpenPopup("##site_browse");
+		}
+
+		ImGui::SameLine();
+		{
+			const bool fav = Sites::IsFavorite(Sites::ActiveId());
+			ImGui::PushStyleColor(ImGuiCol_Text, fav ? kGold : kMuted);
+			if (ImGui::Button(fav ? "★##toolbar_fav" : "☆##toolbar_fav"))
+				Sites::ToggleFavorite(Sites::ActiveId());
+			ImGui::PopStyleColor();
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip(fav ? "Remove from Favorites" : "Add to Favorites");
 		}
 
 		ImGui::SameLine();
@@ -569,8 +642,9 @@ void UI_Options()
 
 	ImGui::Spacing();
 	ImGui::TextWrapped(
-		"Use Browse to pick a site (search + categories), then browse in-game. Click outside "
-		"the window to move and use skills again — you do not need to close the addon.");
+		"Use Browse to pick a site (search + categories). Star sites with ☆ to pin them under "
+		"Favorites. Click outside the window to move and use skills again — you do not need to "
+		"close the addon.");
 	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) open / close the helper");
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
 }
