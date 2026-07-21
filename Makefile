@@ -15,6 +15,10 @@ HELPER_SRC = src/helper/main.cpp src/helper/CssCompat.cpp src/helper/CssProxy.cp
 HELPER_OUT = build/bin/GW2HelperBrowser.exe
 HELPER_BLOB_SRC = build/helper_blob.exe
 HELPER_BLOB_OBJ = build/helper_blob.o
+HOME_LOGO_SRC  = build/home_logo.png
+HOME_COVER_SRC = build/home_cover.jpg
+HOME_LOGO_OBJ  = build/home_logo.o
+HOME_COVER_OBJ = build/home_cover.o
 
 DLL_SRC = \
 	src/entry.cpp \
@@ -55,10 +59,27 @@ $(HELPER_BLOB_OBJ): $(HELPER_BLOB_SRC)
 	$(LD) -r -b binary -o $@ $(HELPER_BLOB_SRC)
 	@echo "Embedded helper blob $@"
 
-$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ)
+# Flatten asset paths so ld symbols stay stable: _binary_home_logo_png_* / _binary_home_cover_jpg_*
+$(HOME_LOGO_SRC): docs/media/home-logo.png
 	@mkdir -p $(dir $@)
-	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(LIBS_DLL)
-	@echo "Built $@ (CEF helper embedded)"
+	/bin/cp -f $< $@
+
+$(HOME_COVER_SRC): docs/media/home-cover.jpg
+	@mkdir -p $(dir $@)
+	/bin/cp -f $< $@
+
+$(HOME_LOGO_OBJ): $(HOME_LOGO_SRC)
+	cd build && $(LD) -r -b binary -o home_logo.o home_logo.png
+	@echo "Embedded home logo $@"
+
+$(HOME_COVER_OBJ): $(HOME_COVER_SRC)
+	cd build && $(LD) -r -b binary -o home_cover.o home_cover.jpg
+	@echo "Embedded home cover $@"
+
+$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ)
+	@mkdir -p $(dir $@)
+	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(LIBS_DLL)
+	@echo "Built $@ (CEF helper + homepage assets embedded)"
 
 build/%.o: %.cpp
 	@mkdir -p $(dir $@)

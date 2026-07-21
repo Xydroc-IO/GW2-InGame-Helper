@@ -14,7 +14,7 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.4.1.2`
+`1.4.1.3`
 
 ## Updates
 
