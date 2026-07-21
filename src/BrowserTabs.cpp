@@ -17,9 +17,20 @@ namespace
 		BrowserTabs::Tab tab{};
 	};
 
+	struct ClosedTab
+	{
+		char        siteId[64]{};
+		char        title[48]{};
+		std::string url;
+		bool        pinned = false;
+	};
+
 	TabState gTabs[BrowserTabs::kMaxTabs];
 	int gCount = 0;
 	int gActive = 0;
+
+	ClosedTab gClosed[BrowserTabs::kClosedStack];
+	int gClosedCount = 0;
 
 	void SyncSitesFromTab(const BrowserTabs::Tab& tab)
 	{
@@ -44,6 +55,7 @@ namespace
 		std::snprintf(t.tab.title, sizeof(t.tab.title), "%s",
 			site.label ? site.label : Sites::ActiveId());
 		t.tab.url = Sites::ResolveUrl(site);
+		t.tab.pinned = false;
 		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
 	}
 
@@ -56,14 +68,38 @@ namespace
 			gTabs[gActive].tab.url = cur;
 	}
 
+	void PushClosed(const BrowserTabs::Tab& tab)
+	{
+		if (gClosedCount < BrowserTabs::kClosedStack)
+			++gClosedCount;
+		else
+		{
+			for (int i = 0; i < BrowserTabs::kClosedStack - 1; ++i)
+				gClosed[i] = std::move(gClosed[i + 1]);
+		}
+		ClosedTab& c = gClosed[gClosedCount - 1];
+		c = ClosedTab{};
+		std::snprintf(c.siteId, sizeof(c.siteId), "%s", tab.siteId);
+		std::snprintf(c.title, sizeof(c.title), "%s", tab.title);
+		c.url = tab.url;
+		c.pinned = tab.pinned;
+	}
+
 	void SyncSlotToHelper(int slot, bool activate)
 	{
 		if (slot < 0 || slot >= gCount)
 			return;
 		const std::string& url = gTabs[slot].tab.url;
-		WikiBrowser::CreateTab(slot, url.empty() ? "about:blank" : url.c_str());
+		const char* start = url.empty() ? "about:blank" : url.c_str();
+		WikiBrowser::CreateTab(slot, start);
 		if (activate)
+		{
 			WikiBrowser::ActivateTab(slot);
+			/* Navigate after activate — resolves about:helper-home / about:raid-food
+			   / cheat sheets to file:// (CreateTab alone used to leave a white CEF page). */
+			if (!url.empty())
+				WikiBrowser::Navigate(url);
+		}
 	}
 
 	void SyncAllToHelper()
@@ -74,6 +110,8 @@ namespace
 			SyncSlotToHelper(i, false);
 		WikiBrowser::ActivateTab(gActive);
 		SyncSitesFromTab(gTabs[gActive].tab);
+		if (!gTabs[gActive].tab.url.empty())
+			WikiBrowser::Navigate(gTabs[gActive].tab.url);
 	}
 }
 
@@ -118,7 +156,7 @@ void BrowserTabs::ParseKey(const char* key, const char* val)
 		return;
 	}
 
-	/* TabNSite / TabNUrl */
+	/* TabNSite / TabNUrl / TabNPinned */
 	if (std::strncmp(key, "Tab", 3) != 0)
 		return;
 	const char* p = key + 3;
@@ -153,6 +191,10 @@ void BrowserTabs::ParseKey(const char* key, const char* val)
 	else if (std::strcmp(p, "Url") == 0)
 	{
 		gTabs[idx].tab.url = val;
+	}
+	else if (std::strcmp(p, "Pinned") == 0)
+	{
+		gTabs[idx].tab.pinned = (val[0] == '1' || val[0] == 't' || val[0] == 'T' || val[0] == 'y');
 	}
 }
 
@@ -207,12 +249,27 @@ void BrowserTabs::WriteSettings(FILE* f)
 	{
 		std::fprintf(f, "Tab%dSite=%s\n", i, gTabs[i].tab.siteId);
 		std::fprintf(f, "Tab%dUrl=%s\n", i, gTabs[i].tab.url.c_str());
+		std::fprintf(f, "Tab%dPinned=%d\n", i, gTabs[i].tab.pinned ? 1 : 0);
 	}
 }
 
 void BrowserTabs::Tick()
 {
 	EnsureDefault();
+
+	/* CREATE_TAB is dropped while the helper is still starting — resync once ready. */
+	static bool sSyncedReady = false;
+	const bool ready = WikiBrowser::IsReady();
+	if (ready && !sSyncedReady)
+	{
+		SyncAllToHelper();
+		sSyncedReady = true;
+	}
+	else if (!ready)
+	{
+		sSyncedReady = false;
+	}
+
 	if (gActive < 0 || gActive >= gCount)
 		return;
 
@@ -242,7 +299,9 @@ const BrowserTabs::Tab& BrowserTabs::At(int index)
 void BrowserTabs::OpenInActive(const char* siteId, bool navigate)
 {
 	EnsureDefault();
+	const bool keepPin = gTabs[gActive].tab.pinned;
 	FillFromSite(gTabs[gActive], siteId);
+	gTabs[gActive].tab.pinned = keepPin;
 	Settings::SetDirty();
 	if (navigate)
 	{
@@ -297,7 +356,12 @@ void BrowserTabs::Activate(int index)
 	StashActiveUrl();
 	gActive = index;
 	SyncSitesFromTab(gTabs[gActive].tab);
-	WikiBrowser::ActivateTab(gActive);
+	/* Missing CEF slot (create was dropped at startup) — create+navigate.
+	   Existing live tabs only activate (no reload). */
+	if (!WikiBrowser::HasTab(gActive))
+		SyncSlotToHelper(gActive, true);
+	else
+		WikiBrowser::ActivateTab(gActive);
 	Settings::SetDirty();
 }
 
@@ -306,11 +370,14 @@ void BrowserTabs::Close(int index)
 	EnsureDefault();
 	if (gCount <= 1 || index < 0 || index >= gCount)
 		return;
+	if (gTabs[index].tab.pinned)
+		return;
 
 	const bool closingActive = (index == gActive);
 	if (closingActive)
 		StashActiveUrl();
 
+	PushClosed(gTabs[index].tab);
 	WikiBrowser::CloseTab(index);
 
 	for (int i = index; i < gCount - 1; ++i)
@@ -327,6 +394,44 @@ void BrowserTabs::Close(int index)
 	if (closingActive)
 		WikiBrowser::ActivateTab(gActive);
 	Settings::SetDirty();
+}
+
+void BrowserTabs::TogglePin(int index)
+{
+	EnsureDefault();
+	if (index < 0 || index >= gCount)
+		return;
+	gTabs[index].tab.pinned = !gTabs[index].tab.pinned;
+	Settings::SetDirty();
+}
+
+bool BrowserTabs::CanReopenClosed()
+{
+	return gClosedCount > 0 && gCount < kMaxTabs;
+}
+
+int BrowserTabs::ReopenClosed()
+{
+	EnsureDefault();
+	if (gClosedCount <= 0 || gCount >= kMaxTabs)
+		return -1;
+
+	ClosedTab c = std::move(gClosed[gClosedCount - 1]);
+	--gClosedCount;
+
+	StashActiveUrl();
+	FillFromSite(gTabs[gCount], c.siteId[0] ? c.siteId : "home");
+	if (c.title[0])
+		std::snprintf(gTabs[gCount].tab.title, sizeof(gTabs[gCount].tab.title), "%s", c.title);
+	if (!c.url.empty())
+		gTabs[gCount].tab.url = c.url;
+	gTabs[gCount].tab.pinned = c.pinned;
+	gActive = gCount;
+	++gCount;
+	Settings::SetDirty();
+	SyncSitesFromTab(gTabs[gActive].tab);
+	SyncSlotToHelper(gActive, true);
+	return gActive;
 }
 
 bool BrowserTabs::CanGoBack()
@@ -352,7 +457,9 @@ void BrowserTabs::GoForward()
 void BrowserTabs::GoHome()
 {
 	EnsureDefault();
+	const bool keepPin = gTabs[gActive].tab.pinned;
 	FillFromSite(gTabs[gActive], "home");
+	gTabs[gActive].tab.pinned = keepPin;
 	Settings::SetDirty();
 	SyncSitesFromTab(gTabs[gActive].tab);
 	SyncSlotToHelper(gActive, true);

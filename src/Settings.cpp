@@ -90,6 +90,8 @@ void Settings::Load()
 			std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", val);
 		else if (std::strcmp(key, "DefaultSiteId") == 0)
 			std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "%s", val);
+		else if (std::strcmp(key, "KeepHelperWarm") == 0)
+			G::KeepHelperWarm = AsBool(val);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else
@@ -149,6 +151,7 @@ void Settings::Save()
 	std::fprintf(f, "LastQuery=%s\n", G::LastQuery);
 	std::fprintf(f, "ActiveSiteId=%s\n", G::ActiveSiteId);
 	std::fprintf(f, "DefaultSiteId=%s\n", G::DefaultSiteId);
+	std::fprintf(f, "KeepHelperWarm=%d\n", G::KeepHelperWarm ? 1 : 0);
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);
