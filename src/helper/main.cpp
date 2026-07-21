@@ -24,6 +24,7 @@
 #include "include/capi/cef_client_capi.h"
 #include "include/capi/cef_command_line_capi.h"
 #include "include/capi/cef_display_handler_capi.h"
+#include "include/capi/cef_find_handler_capi.h"
 #include "include/capi/cef_frame_capi.h"
 #include "include/capi/cef_life_span_handler_capi.h"
 #include "include/capi/cef_load_handler_capi.h"
@@ -69,7 +70,9 @@ namespace
 	std::wstring gCefDir;
 	std::string gStartUrl = "about:blank";
 	std::atomic<bool> gRunning{true};
-	cef_browser_t* gBrowser = nullptr;
+	cef_browser_t* gBrowsers[kWikiMaxTabs] = {};
+	int gActiveSlot = 0;
+	int gPendingCreateSlot = 0;
 
 	cef_app_t gApp{};
 	cef_client_t gClient{};
@@ -77,8 +80,45 @@ namespace
 	cef_load_handler_t gLoad{};
 	cef_display_handler_t gDisplay{};
 	cef_render_handler_t gRender{};
+	cef_find_handler_t gFind{};
 	cef_request_handler_t gRequest{};
 	cef_resource_request_handler_t gResourceRequest{};
+
+	cef_browser_t* ActiveBrowser()
+	{
+		if (gActiveSlot < 0 || gActiveSlot >= kWikiMaxTabs)
+			return nullptr;
+		return gBrowsers[gActiveSlot];
+	}
+
+	bool IsActiveBrowser(cef_browser_t* browser)
+	{
+		cef_browser_t* active = ActiveBrowser();
+		return active && browser && active->is_same(active, browser);
+	}
+
+	void UpdateTabMask()
+	{
+		if (!gIpc)
+			return;
+		uint32_t mask = 0;
+		for (int i = 0; i < kWikiMaxTabs; ++i)
+		{
+			if (gBrowsers[i])
+				mask |= (1u << i);
+		}
+		gIpc->tab_mask = mask;
+	}
+
+	bool AnyBrowser()
+	{
+		for (int i = 0; i < kWikiMaxTabs; ++i)
+		{
+			if (gBrowsers[i])
+				return true;
+		}
+		return false;
+	}
 
 
 	void SetStatus(const char* text)
@@ -181,17 +221,19 @@ namespace
 
 	void RefreshNavFlags()
 	{
-		if (!gIpc || !gBrowser)
+		cef_browser_t* browser = ActiveBrowser();
+		if (!gIpc || !browser)
 			return;
-		gIpc->can_back = gBrowser->can_go_back(gBrowser) ? 1u : 0u;
-		gIpc->can_forward = gBrowser->can_go_forward(gBrowser) ? 1u : 0u;
+		gIpc->can_back = browser->can_go_back(browser) ? 1u : 0u;
+		gIpc->can_forward = browser->can_go_forward(browser) ? 1u : 0u;
 	}
 
 	void UpdateUrlFromBrowser()
 	{
-		if (!gBrowser || !g_userfree_free)
+		cef_browser_t* browser = ActiveBrowser();
+		if (!browser || !g_userfree_free)
 			return;
-		cef_frame_t* frame = gBrowser->get_main_frame(gBrowser);
+		cef_frame_t* frame = browser->get_main_frame(browser);
 		if (!frame)
 			return;
 		cef_string_userfree_t uf = frame->get_url(frame);
@@ -206,9 +248,10 @@ namespace
 
 	void NavigateTo(const char* url)
 	{
-		if (!gBrowser || !url || !url[0])
+		cef_browser_t* browser = ActiveBrowser();
+		if (!browser || !url || !url[0])
 			return;
-		cef_frame_t* frame = gBrowser->get_main_frame(gBrowser);
+		cef_frame_t* frame = browser->get_main_frame(browser);
 		if (!frame)
 			return;
 		cef_string_t u{};
@@ -221,17 +264,149 @@ namespace
 
 	cef_browser_host_t* Host()
 	{
-		return gBrowser ? gBrowser->get_host(gBrowser) : nullptr;
+		cef_browser_t* browser = ActiveBrowser();
+		return browser ? browser->get_host(browser) : nullptr;
 	}
 
 	void NotifyWasResized()
 	{
-		cef_browser_host_t* host = Host();
-		if (!host)
+		for (int i = 0; i < kWikiMaxTabs; ++i)
+		{
+			if (!gBrowsers[i])
+				continue;
+			cef_browser_host_t* host = gBrowsers[i]->get_host(gBrowsers[i]);
+			if (!host)
+				continue;
+			host->was_resized(host);
+			host->invalidate(host, PET_VIEW);
+			host->base.release(&host->base);
+		}
+	}
+
+	void ActivateSlot(int slot)
+	{
+		if (slot < 0 || slot >= kWikiMaxTabs || !gBrowsers[slot])
 			return;
-		host->was_resized(host);
-		host->invalidate(host, PET_VIEW);
-		host->base.release(&host->base);
+
+		if (slot != gActiveSlot && gActiveSlot >= 0 && gActiveSlot < kWikiMaxTabs && gBrowsers[gActiveSlot])
+		{
+			if (cef_browser_host_t* oldHost = gBrowsers[gActiveSlot]->get_host(gBrowsers[gActiveSlot]))
+			{
+				oldHost->was_hidden(oldHost, 1);
+				oldHost->base.release(&oldHost->base);
+			}
+		}
+
+		gActiveSlot = slot;
+		if (gIpc)
+			gIpc->active_tab = slot;
+
+		if (cef_browser_host_t* host = gBrowsers[slot]->get_host(gBrowsers[slot]))
+		{
+			host->was_hidden(host, 0);
+			host->invalidate(host, PET_VIEW);
+			host->set_focus(host, 1);
+			host->base.release(&host->base);
+		}
+
+		if (gIpc)
+			gIpc->ready = 1;
+		UpdateUrlFromBrowser();
+		RefreshNavFlags();
+	}
+
+	bool CreateBrowserForSlot(int slot, const char* url)
+	{
+		if (slot < 0 || slot >= kWikiMaxTabs)
+			return false;
+
+		const char* start = (url && url[0]) ? url : "about:blank";
+		if (gBrowsers[slot])
+		{
+			if (slot != gActiveSlot)
+				ActivateSlot(slot);
+			NavigateTo(start);
+			return true;
+		}
+
+		gPendingCreateSlot = slot;
+
+		cef_window_info_t info{};
+		info.windowless_rendering_enabled = 1;
+		info.shared_texture_enabled = 0;
+
+		cef_browser_settings_t bset{};
+		bset.size = sizeof(bset);
+		bset.windowless_frame_rate = 30;
+		bset.background_color = CefColorSetARGB(255, 255, 255, 255);
+
+		cef_string_t u{};
+		MakeCefString(&u, start);
+		const int ok = g_create_browser(&info, &gClient, &u, &bset, nullptr, nullptr);
+		ClearCefString(&u);
+		if (!ok)
+		{
+			SetStatus("cef_browser_host_create_browser failed");
+			return false;
+		}
+		return true;
+	}
+
+	void CloseSlot(int slot)
+	{
+		if (slot < 0 || slot >= kWikiMaxTabs || !gBrowsers[slot])
+			return;
+
+		const int oldActive = gActiveSlot;
+
+		if (cef_browser_host_t* host = gBrowsers[slot]->get_host(gBrowsers[slot]))
+		{
+			host->close_browser(host, 1);
+			host->base.release(&host->base);
+		}
+
+		/* OnBeforeClose may already have cleared the slot. */
+		if (gBrowsers[slot])
+		{
+			gBrowsers[slot]->base.release(&gBrowsers[slot]->base);
+			gBrowsers[slot] = nullptr;
+		}
+
+		for (int i = slot; i < kWikiMaxTabs - 1; ++i)
+			gBrowsers[i] = gBrowsers[i + 1];
+		gBrowsers[kWikiMaxTabs - 1] = nullptr;
+
+		if (oldActive == slot)
+		{
+			if (gBrowsers[slot])
+				gActiveSlot = slot;
+			else if (slot > 0 && gBrowsers[slot - 1])
+				gActiveSlot = slot - 1;
+			else
+			{
+				gActiveSlot = 0;
+				for (int i = 0; i < kWikiMaxTabs; ++i)
+				{
+					if (gBrowsers[i])
+					{
+						gActiveSlot = i;
+						break;
+					}
+				}
+			}
+			if (ActiveBrowser())
+				ActivateSlot(gActiveSlot);
+			else if (gIpc)
+				gIpc->ready = 0;
+		}
+		else if (oldActive > slot)
+		{
+			gActiveSlot = oldActive - 1;
+		}
+
+		UpdateTabMask();
+		if (gIpc)
+			gIpc->active_tab = gActiveSlot;
 	}
 
 	void ViewSize(int* outW, int* outH)
@@ -248,14 +423,35 @@ namespace
 
 	void CEF_CALLBACK OnAfterCreated(cef_life_span_handler_t*, cef_browser_t* browser)
 	{
-		if (gBrowser)
-			gBrowser->base.release(&gBrowser->base);
-		gBrowser = browser;
-		gBrowser->base.add_ref(&gBrowser->base);
+		int slot = gPendingCreateSlot;
+		if (slot < 0 || slot >= kWikiMaxTabs)
+			slot = 0;
+		gPendingCreateSlot = 0;
+
+		if (gBrowsers[slot])
+		{
+			gBrowsers[slot]->base.release(&gBrowsers[slot]->base);
+			gBrowsers[slot] = nullptr;
+		}
+		gBrowsers[slot] = browser;
+		gBrowsers[slot]->base.add_ref(&gBrowsers[slot]->base);
+		UpdateTabMask();
+
+		if (slot != gActiveSlot)
+		{
+			if (cef_browser_host_t* host = browser->get_host(browser))
+			{
+				host->was_hidden(host, 1);
+				host->base.release(&host->base);
+			}
+			return;
+		}
+
 		if (gIpc)
 		{
 			gIpc->ready = 1;
 			gIpc->alive = GetTickCount();
+			gIpc->active_tab = slot;
 		}
 		SetStatus("Ready");
 		UpdateUrlFromBrowser();
@@ -269,12 +465,18 @@ namespace
 
 	void CEF_CALLBACK OnBeforeClose(cef_life_span_handler_t*, cef_browser_t* browser)
 	{
-		if (gBrowser && browser && gBrowser->is_same(gBrowser, browser))
+		for (int i = 0; i < kWikiMaxTabs; ++i)
 		{
-			gBrowser->base.release(&gBrowser->base);
-			gBrowser = nullptr;
+			if (gBrowsers[i] && browser && gBrowsers[i]->is_same(gBrowsers[i], browser))
+			{
+				gBrowsers[i]->base.release(&gBrowsers[i]->base);
+				gBrowsers[i] = nullptr;
+				if (gIpc)
+					gIpc->tab_mask &= ~(1u << i);
+				break;
+			}
 		}
-		if (gIpc)
+		if (gIpc && !AnyBrowser())
 			gIpc->ready = 0;
 	}
 
@@ -301,18 +503,18 @@ namespace
 	void CEF_CALLBACK OnLoadingStateChange(
 		cef_load_handler_t*, cef_browser_t* browser, int isLoading, int canGoBack, int canGoForward)
 	{
-		if (!gBrowser || !browser || !gBrowser->is_same(gBrowser, browser))
-			return;
-		if (gIpc)
+		const bool active = IsActiveBrowser(browser);
+		if (active && gIpc)
 		{
 			gIpc->can_back = canGoBack ? 1u : 0u;
 			gIpc->can_forward = canGoForward ? 1u : 0u;
+			SetStatus(isLoading ? "Loading…" : "Ready");
 		}
-		SetStatus(isLoading ? "Loading…" : "Ready");
-		if (!isLoading)
+		if (!isLoading && browser)
 		{
-			UpdateUrlFromBrowser();
-			if (cef_frame_t* frame = gBrowser->get_main_frame(gBrowser))
+			if (active)
+				UpdateUrlFromBrowser();
+			if (cef_frame_t* frame = browser->get_main_frame(browser))
 			{
 				InjectBootJs(frame);
 				frame->base.release(&frame->base);
@@ -324,7 +526,7 @@ namespace
 		cef_load_handler_t*, cef_browser_t* browser, cef_frame_t* frame,
 		cef_errorcode_t errorCode, const cef_string_t* errorText, const cef_string_t*)
 	{
-		if (!gBrowser || !browser || !gBrowser->is_same(gBrowser, browser))
+		if (!IsActiveBrowser(browser))
 			return;
 		if (frame && !frame->is_main(frame))
 			return;
@@ -341,15 +543,14 @@ namespace
 	void CEF_CALLBACK OnLoadEnd(
 		cef_load_handler_t*, cef_browser_t* browser, cef_frame_t* frame, int)
 	{
-		if (!gBrowser || !browser || !gBrowser->is_same(gBrowser, browser))
-			return;
+		(void)browser;
 		InjectBootJs(frame);
 	}
 
 	void CEF_CALLBACK OnAddressChange(
 		cef_display_handler_t*, cef_browser_t* browser, cef_frame_t* frame, const cef_string_t* url)
 	{
-		if (gBrowser && browser && gBrowser->is_same(gBrowser, browser) && frame && frame->is_main(frame) && url)
+		if (IsActiveBrowser(browser) && frame && frame->is_main(frame) && url)
 			SetUrlUtf8(CefStringToUtf8(url).c_str());
 	}
 
@@ -380,10 +581,12 @@ namespace
 	}
 
 	void CEF_CALLBACK OnPaint(
-		cef_render_handler_t*, cef_browser_t*, cef_paint_element_type_t type,
+		cef_render_handler_t*, cef_browser_t* browser, cef_paint_element_type_t type,
 		size_t, cef_rect_t const*, const void* buffer, int width, int height)
 	{
 		if (type != PET_VIEW || !buffer || !gFramePixels || !gIpc || width <= 0 || height <= 0)
+			return;
+		if (!IsActiveBrowser(browser))
 			return;
 		if (width > static_cast<int>(kWikiFrameMaxW) || height > static_cast<int>(kWikiFrameMaxH))
 			return;
@@ -400,6 +603,16 @@ namespace
 		gIpc->frame_w = static_cast<uint32_t>(width);
 		gIpc->frame_h = static_cast<uint32_t>(height);
 		++gIpc->frame_seq;
+	}
+
+	void CEF_CALLBACK OnFindResult(
+		cef_find_handler_t*, cef_browser_t*, int, int count,
+		const cef_rect_t*, int activeMatchOrdinal, int)
+	{
+		if (!gIpc)
+			return;
+		gIpc->find_count = static_cast<uint32_t>(count > 0 ? count : 0);
+		gIpc->find_ordinal = static_cast<uint32_t>(activeMatchOrdinal > 0 ? activeMatchOrdinal : 0);
 	}
 
 	void CEF_CALLBACK OnBeforeCommandLine(
@@ -472,6 +685,7 @@ namespace
 	cef_load_handler_t* CEF_CALLBACK GetLoad(cef_client_t*) { return &gLoad; }
 	cef_display_handler_t* CEF_CALLBACK GetDisplay(cef_client_t*) { return &gDisplay; }
 	cef_render_handler_t* CEF_CALLBACK GetRender(cef_client_t*) { return &gRender; }
+	cef_find_handler_t* CEF_CALLBACK GetFind(cef_client_t*) { return &gFind; }
 	cef_request_handler_t* CEF_CALLBACK GetRequest(cef_client_t*) { return &gRequest; }
 
 	void InitHandlers()
@@ -498,6 +712,10 @@ namespace
 		gRender.get_screen_info = GetScreenInfo;
 		gRender.on_paint = OnPaint;
 
+		std::memset(&gFind, 0, sizeof(gFind));
+		InitBase(&gFind.base, sizeof(gFind));
+		gFind.on_find_result = OnFindResult;
+
 		std::memset(&gResourceRequest, 0, sizeof(gResourceRequest));
 		InitBase(&gResourceRequest.base, sizeof(gResourceRequest));
 		gResourceRequest.on_before_resource_load = OnBeforeResourceLoad;
@@ -513,6 +731,7 @@ namespace
 		gClient.get_load_handler = GetLoad;
 		gClient.get_display_handler = GetDisplay;
 		gClient.get_render_handler = GetRender;
+		gClient.get_find_handler = GetFind;
 		gClient.get_request_handler = GetRequest;
 
 		std::memset(&gApp, 0, sizeof(gApp));
@@ -631,44 +850,81 @@ namespace
 		}
 	}
 
-	void ProcessCommands()
+	void HandleCmd(uint32_t cmd, int32_t a, const char* arg)
 	{
-		if (!gIpc)
-			return;
-		gIpc->alive = GetTickCount();
-		DrainInput();
-
-		if (gIpc->cmd_seq == gIpc->last_cmd_seq)
-			return;
-		const uint32_t cmd = gIpc->cmd;
-		char arg[sizeof(gIpc->cmd_arg)];
-		std::snprintf(arg, sizeof(arg), "%s", gIpc->cmd_arg);
-		gIpc->last_cmd_seq = gIpc->cmd_seq;
-		gIpc->cmd = WIKI_CMD_NONE;
-		gIpc->cmd_arg[0] = 0;
-
+		cef_browser_t* browser = ActiveBrowser();
 		switch (cmd)
 		{
 		case WIKI_CMD_NAVIGATE: NavigateTo(arg); break;
-		case WIKI_CMD_BACK: if (gBrowser) gBrowser->go_back(gBrowser); break;
-		case WIKI_CMD_FORWARD: if (gBrowser) gBrowser->go_forward(gBrowser); break;
+		case WIKI_CMD_BACK: if (browser) browser->go_back(browser); break;
+		case WIKI_CMD_FORWARD: if (browser) browser->go_forward(browser); break;
 		case WIKI_CMD_RELOAD:
-			if (gBrowser)
-				gBrowser->reload(gBrowser);
+			if (browser)
+				browser->reload(browser);
 			break;
-		case WIKI_CMD_HOME: NavigateTo(arg[0] ? arg : gStartUrl.c_str()); break;
+		case WIKI_CMD_HOME: NavigateTo(arg && arg[0] ? arg : gStartUrl.c_str()); break;
 		case WIKI_CMD_SET_BOUNDS: NotifyWasResized(); break;
 		case WIKI_CMD_SET_VISIBLE:
+		{
+			const bool visible = arg && arg[0] != '0';
 			if (gIpc)
-				gIpc->visible = (arg[0] != '0');
+				gIpc->visible = visible ? 1u : 0u;
+			for (int i = 0; i < kWikiMaxTabs; ++i)
+			{
+				if (!gBrowsers[i])
+					continue;
+				if (cef_browser_host_t* host = gBrowsers[i]->get_host(gBrowsers[i]))
+				{
+					if (i == gActiveSlot)
+						host->was_hidden(host, visible ? 0 : 1);
+					else
+						host->was_hidden(host, 1);
+					host->base.release(&host->base);
+				}
+			}
 			NotifyWasResized();
 			break;
+		}
+		case WIKI_CMD_CREATE_TAB:
+			CreateBrowserForSlot(a, arg);
+			break;
+		case WIKI_CMD_ACTIVATE_TAB:
+			ActivateSlot(a);
+			break;
+		case WIKI_CMD_CLOSE_TAB:
+			CloseSlot(a);
+			break;
+		case WIKI_CMD_FIND:
+		{
+			cef_browser_host_t* host = Host();
+			if (!host || !arg)
+				break;
+			cef_string_t text{};
+			MakeCefString(&text, arg);
+			host->find(host, &text,
+				(a & 1) ? 1 : 0,
+				(a & 2) ? 1 : 0,
+				(a & 4) ? 1 : 0);
+			ClearCefString(&text);
+			host->base.release(&host->base);
+			break;
+		}
+		case WIKI_CMD_STOP_FIND:
+		{
+			cef_browser_host_t* host = Host();
+			if (!host)
+				break;
+			host->stop_finding(host, a ? 1 : 0);
+			host->base.release(&host->base);
+			break;
+		}
 		case WIKI_CMD_QUIT:
 			gRunning = false;
-			if (gBrowser)
+			for (int i = 0; i < kWikiMaxTabs; ++i)
 			{
-				cef_browser_host_t* host = Host();
-				if (host)
+				if (!gBrowsers[i])
+					continue;
+				if (cef_browser_host_t* host = gBrowsers[i]->get_host(gBrowsers[i]))
 				{
 					host->close_browser(host, 1);
 					host->base.release(&host->base);
@@ -677,6 +933,34 @@ namespace
 			PostMessageW(gHelperWnd, WM_QUIT, 0, 0);
 			break;
 		default: break;
+		}
+	}
+
+	void ProcessCommands()
+	{
+		if (!gIpc)
+			return;
+		gIpc->alive = GetTickCount();
+		DrainInput();
+
+		while (gIpc->cmd_read != gIpc->cmd_write)
+		{
+			const WikiCmdEvent ev = gIpc->cmd_q[gIpc->cmd_read % kWikiCmdQueueSize];
+			gIpc->cmd_read = (gIpc->cmd_read + 1u) % kWikiCmdQueueSize;
+			HandleCmd(ev.cmd, ev.a, ev.arg);
+		}
+
+		/* Legacy single-slot — still drain for older addon builds / safety. */
+		if (gIpc->cmd_seq != gIpc->last_cmd_seq)
+		{
+			const uint32_t cmd = gIpc->cmd;
+			char arg[sizeof(gIpc->cmd_arg)];
+			std::snprintf(arg, sizeof(arg), "%s", gIpc->cmd_arg);
+			const int32_t a = gIpc->cmd_a;
+			gIpc->last_cmd_seq = gIpc->cmd_seq;
+			gIpc->cmd = WIKI_CMD_NONE;
+			gIpc->cmd_arg[0] = 0;
+			HandleCmd(cmd, a, arg);
 		}
 	}
 
@@ -692,28 +976,15 @@ namespace
 
 	bool CreateOsRBrowser()
 	{
-		cef_window_info_t info{};
-		info.windowless_rendering_enabled = 1;
-		info.shared_texture_enabled = 0;
-
-		cef_browser_settings_t bset{};
-		bset.size = sizeof(bset);
-		bset.windowless_frame_rate = 30;
-		/* Light clear color so sites without body{background} stay readable. */
-		bset.background_color = CefColorSetARGB(255, 255, 255, 255);
-
-		cef_string_t url{};
-		/* Start blank; the addon queues the real site URL once CEF is ready.
-		   Do not take --start-url on the command line — that broke launches on Wine. */
-		MakeCefString(&url, "about:blank");
-
-		const int ok = g_create_browser(&info, &gClient, &url, &bset, nullptr, nullptr);
-		ClearCefString(&url);
-		if (!ok)
+		gActiveSlot = 0;
+		gPendingCreateSlot = 0;
+		if (gIpc)
 		{
-			SetStatus("cef_browser_host_create_browser failed");
-			return false;
+			gIpc->tab_mask = 1u;
+			gIpc->active_tab = 0;
 		}
+		if (!CreateBrowserForSlot(0, "about:blank"))
+			return false;
 		SetStatus("Creating browser…");
 		return true;
 	}
@@ -869,10 +1140,12 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		Sleep(1);
 	}
 
-	if (gBrowser)
+	for (int i = 0; i < kWikiMaxTabs; ++i)
 	{
-		gBrowser->base.release(&gBrowser->base);
-		gBrowser = nullptr;
+		if (!gBrowsers[i])
+			continue;
+		gBrowsers[i]->base.release(&gBrowsers[i]->base);
+		gBrowsers[i] = nullptr;
 	}
 	g_shutdown();
 	if (gIpc)

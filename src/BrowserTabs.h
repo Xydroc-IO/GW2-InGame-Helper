@@ -17,7 +17,7 @@ namespace BrowserTabs
 
 	void EnsureDefault(); /* at least one tab (uses DefaultSiteId) */
 	void Tick();         /* sync active tab URL from browser */
-	void NavigateActive(); /* load active tab into the browser */
+	void NavigateActive(); /* load/sync tabs into the helper */
 	void PrepareSave();  /* stash current URL before settings write */
 
 	/* Settings persistence */
@@ -34,6 +34,9 @@ namespace BrowserTabs
 
 	/* Open site in a new tab (Browse Ctrl+click / +). Returns new index, or -1. */
 	int  OpenNew(const char* siteId, bool navigate);
+
+	/* Open an arbitrary URL in a new tab (keeps siteId for label when possible). */
+	int  OpenNewUrl(const char* siteId, const std::string& url);
 
 	void Activate(int index);
 	void Close(int index);

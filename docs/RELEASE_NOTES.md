@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.5.5.0
+# GW2 In-Game Helper v1.6.0.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,27 +15,18 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
-## What’s new in 1.5.5.0
+## What’s new in 1.6.0.0
 
-- **Persisted tabs** — open tabs (site + last URL + active index) save to `settings.ini` and restore on next launch
-- **Default landing site** — Options “Choose default site…” now sets a real default used when no tabs are saved (no longer forced to Home on load)
-
----
-
-## Recent
-
-| Version | Highlights |
-|---------|------------|
-| **1.5.4.1** | Escape no longer closes the helper |
-| **1.5.4.0** | GW2 ImGui theme; toolbar Search; KillProof/Wingman/BLTC |
-| **1.5.3.x** | Tabs + Search/Google |
-| **1.5.2.x** | Favorites |
-| **1.5.1.0** | Runtime under `addons/GW2-InGame-Helper/` |
+- **Live tabs** — each open tab keeps its own CEF page (scroll/forms/login stay while the helper is open); switching no longer reloads
+- **+ new-tab picker** — full Browse panel (categories + filter + Favorites)
+- **Favorites drag-reorder** — drag rows in Favorites to reorder (saved)
+- **New Tab** — duplicate the current page into another tab
+- **Find in page** — Find button / Ctrl+F (Next / Prev / match case)
 
 ---
 
 ## Notes
 
-- Switching tabs still reloads the saved URL in the single embedded browser.
+- Closing the helper still stops the browser process (tabs restore URLs on reopen; live state is while open).
 - Prefer **Open Ext** for Discord joins and logins.
-- Players only need the DLL.
+- Hardstuck / Discretize intentionally omitted.

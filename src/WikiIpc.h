@@ -4,11 +4,12 @@
 
 /* Shared memory IPC between addon DLL and CEF helper process.
    Uses GW2's own bin64/cef runtime — no WebView2 / winetricks.
-   Browser is windowless (OSR); frames are BGRA in a second mapping. */
+   Browser is windowless (OSR); frames are BGRA in a second mapping.
+   Up to kWikiMaxTabs OSR browsers; only the active tab paints. */
 
-static constexpr uint32_t kWikiIpcMagic = 0x484C4956u; /* 'HLIV' */
-static constexpr const char* kWikiIpcMapName = "Local\\GW2InGameHelper_CEF_IPC_v1";
-static constexpr const char* kWikiFrameMapName = "Local\\GW2InGameHelper_CEF_FRAME_v1";
+static constexpr uint32_t kWikiIpcMagic = 0x484C4932u; /* 'HLI2' */
+static constexpr const char* kWikiIpcMapName = "Local\\GW2InGameHelper_CEF_IPC_v2";
+static constexpr const char* kWikiFrameMapName = "Local\\GW2InGameHelper_CEF_FRAME_v2";
 
 static constexpr uint32_t kWikiFrameMaxW = 1920;
 static constexpr uint32_t kWikiFrameMaxH = 1200;
@@ -16,6 +17,8 @@ static constexpr uint32_t kWikiFrameStride = kWikiFrameMaxW * 4;
 static constexpr uint32_t kWikiFrameBytes = kWikiFrameStride * kWikiFrameMaxH;
 
 static constexpr uint32_t kWikiInputQueueSize = 128;
+static constexpr uint32_t kWikiCmdQueueSize = 32;
+static constexpr int kWikiMaxTabs = 8;
 
 enum WikiIpcCmd : uint32_t
 {
@@ -28,6 +31,11 @@ enum WikiIpcCmd : uint32_t
 	WIKI_CMD_QUIT = 6,
 	WIKI_CMD_SET_BOUNDS = 7,
 	WIKI_CMD_SET_VISIBLE = 8,
+	WIKI_CMD_CREATE_TAB = 9,   /* a=slot, arg=url */
+	WIKI_CMD_ACTIVATE_TAB = 10,/* a=slot */
+	WIKI_CMD_CLOSE_TAB = 11,   /* a=slot */
+	WIKI_CMD_FIND = 12,        /* arg=text; a bit0=forward bit1=matchCase bit2=findNext */
+	WIKI_CMD_STOP_FIND = 13,   /* a=clearSelection */
 };
 
 enum WikiInputType : uint32_t
@@ -51,6 +59,13 @@ struct WikiInputEvent
 	uint32_t character;
 };
 
+struct WikiCmdEvent
+{
+	uint32_t cmd;
+	int32_t  a;
+	char     arg[1536];
+};
+
 struct WikiIpcState
 {
 	uint32_t magic;
@@ -66,23 +81,36 @@ struct WikiIpcState
 	uint32_t frame_h;
 	uint32_t frame_seq;
 
+	/* Legacy single-slot (still written for debug); prefer cmd ring. */
 	uint32_t cmd;
 	uint32_t cmd_seq;
 	uint32_t last_cmd_seq;
 	char     url[2048];
 	char     status[256];
 	char     cmd_arg[2048];
+	int32_t  cmd_a;
+
+	int32_t  active_tab;
+	uint32_t tab_mask; /* bit i set if slot i has a browser */
+
+	uint32_t find_count;
+	uint32_t find_ordinal;
 
 	/* Live mouse (coalesced every frame — no queue loss). */
 	int32_t  mouse_x;
 	int32_t  mouse_y;
-	uint32_t mouse_mods;   /* cef_event_flags bits for buttons/keys */
-	uint32_t mouse_leave;  /* 1 when cursor left the view */
-	uint32_t mouse_seq;    /* increments when mouse_x/y/mods/leave change */
+	uint32_t mouse_mods;
+	uint32_t mouse_leave;
+	uint32_t mouse_seq;
 
 	/* Discrete events (clicks / wheel / keys) — ring buffer. */
 	uint32_t input_write;
 	uint32_t input_read;
 	WikiInputEvent input_q[kWikiInputQueueSize];
+
+	/* Commands — ring buffer (avoids CREATE/NAVIGATE stomps). */
+	uint32_t cmd_write;
+	uint32_t cmd_read;
+	WikiCmdEvent cmd_q[kWikiCmdQueueSize];
 };
 #pragma pack(pop)

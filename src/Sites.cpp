@@ -926,3 +926,27 @@ void Sites::PruneFavorites()
 		gFavoriteIds[i][0] = 0;
 	gFavoriteCount = w;
 }
+
+bool Sites::MoveFavorite(int fromSlot, int toSlot)
+{
+	if (fromSlot < 0 || toSlot < 0 || fromSlot >= gFavoriteCount || toSlot >= gFavoriteCount)
+		return false;
+	if (fromSlot == toSlot)
+		return false;
+
+	char tmp[64];
+	std::snprintf(tmp, sizeof(tmp), "%s", gFavoriteIds[fromSlot]);
+	if (fromSlot < toSlot)
+	{
+		for (int i = fromSlot; i < toSlot; ++i)
+			std::snprintf(gFavoriteIds[i], sizeof(gFavoriteIds[i]), "%s", gFavoriteIds[i + 1]);
+	}
+	else
+	{
+		for (int i = fromSlot; i > toSlot; --i)
+			std::snprintf(gFavoriteIds[i], sizeof(gFavoriteIds[i]), "%s", gFavoriteIds[i - 1]);
+	}
+	std::snprintf(gFavoriteIds[toSlot], sizeof(gFavoriteIds[toSlot]), "%s", tmp);
+	Settings::SetDirty();
+	return true;
+}

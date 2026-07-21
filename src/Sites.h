@@ -56,4 +56,5 @@ namespace Sites
 	void ParseFavorites(const char* csv);
 	void SerializeFavorites(char* out, size_t outLen);
 	void PruneFavorites(); /* drop unknown / empty ids */
+	bool MoveFavorite(int fromSlot, int toSlot); /* reorder; returns true if moved */
 }
