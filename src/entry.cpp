@@ -31,7 +31,6 @@ namespace G
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
 static constexpr const char* KB_ITEM_LEGACY = "KB_HELPER_ITEM"; /* removed — deregister only */
-static constexpr const char* WND_NAME  = "In-Game Helper##GW2InGameHelper";
 
 static DWORD gLastToggleMs = 0;
 static bool  gPollToggleHeld = false;
@@ -239,7 +238,6 @@ static void AddonLoad(AddonAPI_t* api)
 
 	api->GUI_Register(RT_Render, UI_Render);
 	api->GUI_Register(RT_OptionsRender, UI_Options);
-	api->GUI_RegisterCloseOnEscape(WND_NAME, &G::ShowWiki);
 
 	/* Drop legacy item-lookup bind so old Ctrl+Shift+I/U no longer fires. */
 	api->InputBinds_Deregister(KB_ITEM_LEGACY);
@@ -259,7 +257,6 @@ static void AddonUnload()
 	G::ShowWiki = false;
 	G::API->GUI_Deregister(UI_Render);
 	G::API->GUI_Deregister(UI_Options);
-	G::API->GUI_DeregisterCloseOnEscape(WND_NAME);
 	G::API->InputBinds_Deregister(KB_TOGGLE);
 	G::API->InputBinds_Deregister(KB_ITEM_LEGACY);
 	G::API->WndProc_Deregister(OnWndProc);
@@ -288,7 +285,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 5;
 	G::AddonDef.Version.Build    = 4;
-	G::AddonDef.Version.Revision = 0;
+	G::AddonDef.Version.Revision = 1;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"Modular in-game browser for GW2 sites and Discords. Ctrl+Shift+H toggle. One DLL, no memory reads.";
