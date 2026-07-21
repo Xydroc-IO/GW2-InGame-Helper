@@ -569,7 +569,7 @@ void UI_Options()
 
 	ImGui::Spacing();
 	ImGui::TextWrapped(
-		"Pick a site from the toolbar dropdown, then browse in-game. Click outside "
+		"Use Browse to pick a site (search + categories), then browse in-game. Click outside "
 		"the window to move and use skills again — you do not need to close the addon.");
 	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) open / close the helper");
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
