@@ -34,11 +34,12 @@ namespace
 
 	void SyncSitesFromTab(const BrowserTabs::Tab& tab)
 	{
-		if (tab.siteId[0] && Sites::SetActiveById(tab.siteId))
-		{
-			std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
-			Settings::SetDirty();
-		}
+		if (!tab.siteId[0] || !Sites::SetActiveById(tab.siteId))
+			return;
+		if (std::strcmp(G::ActiveSiteId, Sites::ActiveId()) == 0)
+			return;
+		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
+		Settings::SetDirty();
 	}
 
 	void FillFromSite(TabState& t, const char* siteId)
@@ -85,21 +86,125 @@ namespace
 		c.pinned = tab.pinned;
 	}
 
+	void ApplyTabTitle(BrowserTabs::Tab& tab, const char* title)
+	{
+		if (!title || !title[0])
+			return;
+		char cleaned[96]{};
+		std::snprintf(cleaned, sizeof(cleaned), "%s", title);
+		/* Strip common trailing site brands for shorter tab labels. */
+		auto stripSuffix = [](char* s, const char* suf) {
+			const size_t n = std::strlen(s);
+			const size_t m = std::strlen(suf);
+			if (n > m && std::strcmp(s + (n - m), suf) == 0)
+				s[n - m] = 0;
+		};
+		stripSuffix(cleaned, " - Guild Wars 2 Wiki");
+		stripSuffix(cleaned, " | Guild Wars 2 Wiki");
+		stripSuffix(cleaned, " — Guild Wars 2");
+		stripSuffix(cleaned, " - Google Search");
+		stripSuffix(cleaned, " - Google");
+		/* Trim whitespace / control chars (settings.ini safety). */
+		size_t len = std::strlen(cleaned);
+		while (len > 0 && (cleaned[len - 1] == ' ' || cleaned[len - 1] == '-' ||
+			cleaned[len - 1] == '|' || cleaned[len - 1] == '\r' || cleaned[len - 1] == '\n'))
+			cleaned[--len] = 0;
+		for (size_t i = 0; cleaned[i]; ++i)
+		{
+			if (cleaned[i] == '\r' || cleaned[i] == '\n' || cleaned[i] == '=')
+				cleaned[i] = ' ';
+		}
+		if (!cleaned[0])
+			return;
+		/* Title updates are UI-only — do not SetDirty (was freezing GW2 via
+		   per-frame settings.ini writes). Persist on next real save. */
+		if (std::strncmp(tab.title, cleaned, sizeof(tab.title) - 1) != 0)
+			std::snprintf(tab.title, sizeof(tab.title), "%s", cleaned);
+	}
+
+	void RefreshTabLabelFromUrl(BrowserTabs::Tab& tab, bool preferPageTitle)
+	{
+		const std::string& url = tab.url;
+		if (url.empty())
+			return;
+
+		const int match = Sites::BestMatchForUrl(url);
+		if (match >= 0)
+		{
+			size_t n = 0;
+			const SiteDef* sites = Sites::All(&n);
+			if (sites && sites[match].id)
+			{
+				if (std::strcmp(tab.siteId, sites[match].id) != 0)
+				{
+					std::snprintf(tab.siteId, sizeof(tab.siteId), "%s", sites[match].id);
+					Settings::SetDirty();
+				}
+				/* Deep pages: use document title. Site home: short registry label. */
+				const char* home = sites[match].homeUrl;
+				bool atHome = false;
+				if (home && home[0])
+				{
+					if (url == home)
+						atHome = true;
+					else if (url.size() == std::strlen(home) + 1 &&
+						url.compare(0, std::strlen(home), home) == 0 && url.back() == '/')
+						atHome = true;
+					else if (std::strncmp(home, "about:", 6) == 0 || std::strncmp(home, "file:", 5) == 0)
+						atHome = true;
+				}
+				if (!atHome && preferPageTitle)
+				{
+					const std::string page = WikiBrowser::CurrentTitle();
+					if (!page.empty() && page != "about:blank")
+					{
+						ApplyTabTitle(tab, page.c_str());
+						return;
+					}
+				}
+				if (sites[match].label)
+					ApplyTabTitle(tab, sites[match].label);
+				return;
+			}
+		}
+
+		if (preferPageTitle)
+		{
+			const std::string page = WikiBrowser::CurrentTitle();
+			if (!page.empty() && page != "about:blank")
+			{
+				ApplyTabTitle(tab, page.c_str());
+				return;
+			}
+		}
+
+		/* Hostname fallback */
+		std::string host = url;
+		const size_t scheme = host.find("://");
+		if (scheme != std::string::npos)
+			host = host.substr(scheme + 3);
+		if (host.rfind("www.", 0) == 0)
+			host = host.substr(4);
+		const size_t slash = host.find('/');
+		if (slash != std::string::npos)
+			host = host.substr(0, slash);
+		if (!host.empty() && host != "about:blank")
+			ApplyTabTitle(tab, host.c_str());
+	}
+
 	void SyncSlotToHelper(int slot, bool activate)
 	{
 		if (slot < 0 || slot >= gCount)
 			return;
 		const std::string& url = gTabs[slot].tab.url;
 		const char* start = url.empty() ? "about:blank" : url.c_str();
+		/* CreateTab loads this slot only (new browser start-URL, or NavigateSlot).
+		   Do NOT call WikiBrowser::Navigate here — that targets the active CEF
+		   browser and races ahead of ACTIVATE when opening a new tab, so the
+		   previous tab would load the new page too. */
 		WikiBrowser::CreateTab(slot, start);
 		if (activate)
-		{
 			WikiBrowser::ActivateTab(slot);
-			/* Navigate after activate — resolves about:helper-home / about:raid-food
-			   / cheat sheets to file:// (CreateTab alone used to leave a white CEF page). */
-			if (!url.empty())
-				WikiBrowser::Navigate(url);
-		}
 	}
 
 	void SyncAllToHelper()
@@ -110,8 +215,6 @@ namespace
 			SyncSlotToHelper(i, false);
 		WikiBrowser::ActivateTab(gActive);
 		SyncSitesFromTab(gTabs[gActive].tab);
-		if (!gTabs[gActive].tab.url.empty())
-			WikiBrowser::Navigate(gTabs[gActive].tab.url);
 	}
 }
 
@@ -192,6 +295,10 @@ void BrowserTabs::ParseKey(const char* key, const char* val)
 	{
 		gTabs[idx].tab.url = val;
 	}
+	else if (std::strcmp(p, "Title") == 0)
+	{
+		std::snprintf(gTabs[idx].tab.title, sizeof(gTabs[idx].tab.title), "%s", val);
+	}
 	else if (std::strcmp(p, "Pinned") == 0)
 	{
 		gTabs[idx].tab.pinned = (val[0] == '1' || val[0] == 't' || val[0] == 'T' || val[0] == 'y');
@@ -249,6 +356,7 @@ void BrowserTabs::WriteSettings(FILE* f)
 	{
 		std::fprintf(f, "Tab%dSite=%s\n", i, gTabs[i].tab.siteId);
 		std::fprintf(f, "Tab%dUrl=%s\n", i, gTabs[i].tab.url.c_str());
+		std::fprintf(f, "Tab%dTitle=%s\n", i, gTabs[i].tab.title);
 		std::fprintf(f, "Tab%dPinned=%d\n", i, gTabs[i].tab.pinned ? 1 : 0);
 	}
 }
@@ -273,9 +381,51 @@ void BrowserTabs::Tick()
 	if (gActive < 0 || gActive >= gCount)
 		return;
 
+	BrowserTabs::Tab& active = gTabs[gActive].tab;
+	bool urlChanged = false;
 	const std::string cur = WikiBrowser::CurrentUrl();
-	if (!cur.empty() && cur != gTabs[gActive].tab.url)
-		gTabs[gActive].tab.url = cur;
+	if (!cur.empty() && cur != active.url)
+	{
+		active.url = cur;
+		urlChanged = true;
+		Settings::SetDirty();
+	}
+
+	if (urlChanged)
+	{
+		RefreshTabLabelFromUrl(active, true);
+		SyncSitesFromTab(active);
+	}
+	else
+	{
+		/* Late CEF title — cheap path; skip BestMatch unless title actually changed. */
+		static char sLastPageTitle[128]{};
+		const std::string page = WikiBrowser::CurrentTitle();
+		if (!page.empty() && page != "about:blank" &&
+			std::strncmp(sLastPageTitle, page.c_str(), sizeof(sLastPageTitle) - 1) != 0)
+		{
+			std::snprintf(sLastPageTitle, sizeof(sLastPageTitle), "%s", page.c_str());
+			const int match = Sites::BestMatchForUrl(active.url);
+			if (match < 0)
+				ApplyTabTitle(active, page.c_str());
+			else
+			{
+				size_t n = 0;
+				const SiteDef* sites = Sites::All(&n);
+				const char* home = (sites && match >= 0) ? sites[match].homeUrl : nullptr;
+				bool atHome = false;
+				if (home && home[0] &&
+					(active.url == home ||
+						(active.url.size() == std::strlen(home) + 1 &&
+							active.url.compare(0, std::strlen(home), home) == 0 && active.url.back() == '/') ||
+						std::strncmp(home, "about:", 6) == 0 ||
+						std::strncmp(home, "file:", 5) == 0))
+					atHome = true;
+				if (!atHome)
+					ApplyTabTitle(active, page.c_str());
+			}
+		}
+	}
 }
 
 int BrowserTabs::Count()

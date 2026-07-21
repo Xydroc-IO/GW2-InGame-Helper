@@ -954,6 +954,11 @@ std::string WikiBrowser::CurrentUrl()
 	return gIpc ? std::string(gIpc->url) : std::string{};
 }
 
+std::string WikiBrowser::CurrentTitle()
+{
+	return gIpc ? std::string(gIpc->title) : std::string{};
+}
+
 std::string WikiBrowser::Status()
 {
 	if (gIpc && gIpc->status[0] && HelperAlive())

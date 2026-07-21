@@ -95,6 +95,7 @@ struct WikiIpcState
 
 	uint32_t find_count;
 	uint32_t find_ordinal;
+	char     title[128]; /* active tab page title (UTF-8) */
 
 	/* Live mouse (coalesced every frame — no queue loss). */
 	int32_t  mouse_x;

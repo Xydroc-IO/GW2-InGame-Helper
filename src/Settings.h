@@ -3,6 +3,7 @@
 namespace Settings
 {
 	void Load();
-	void Save();
+	/* Writes if dirty. Debounced unless force (use force on unload). */
+	void Save(bool force = false);
 	void SetDirty();
 }

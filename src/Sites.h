@@ -52,6 +52,8 @@ namespace Sites
 	int  FavoriteCount();
 	int  FavoriteSiteIndex(int favSlot); /* registry index, or -1 */
 	int  IndexOfId(const char* id);      /* registry index, or -1 */
+	/* Best registry site for a live URL (−1 if none). Prefers longest homeUrl match. */
+	int  BestMatchForUrl(const std::string& url);
 
 	void ParseFavorites(const char* csv);
 	void SerializeFavorites(char* out, size_t outLen);
