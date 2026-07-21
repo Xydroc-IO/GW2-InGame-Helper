@@ -872,6 +872,125 @@ int Sites::IndexOfId(const char* id)
 	return -1;
 }
 
+namespace
+{
+	std::string UrlHostPath(const std::string& url, bool hostOnly)
+	{
+		std::string u = url;
+		const size_t scheme = u.find("://");
+		if (scheme != std::string::npos)
+			u = u.substr(scheme + 3);
+		if (u.rfind("www.", 0) == 0)
+			u = u.substr(4);
+		if (hostOnly)
+		{
+			const size_t slash = u.find('/');
+			if (slash != std::string::npos)
+				u = u.substr(0, slash);
+			const size_t q = u.find('?');
+			if (q != std::string::npos)
+				u = u.substr(0, q);
+		}
+		else
+		{
+			const size_t q = u.find('?');
+			if (q != std::string::npos)
+				u = u.substr(0, q);
+			while (!u.empty() && u.back() == '/')
+				u.pop_back();
+		}
+		return u;
+	}
+}
+
+int Sites::BestMatchForUrl(const std::string& url)
+{
+	if (url.empty())
+		return -1;
+
+	if (url.rfind("about:", 0) == 0 || url.rfind("file:", 0) == 0)
+	{
+		for (int i = 0; i < kSiteCount; ++i)
+		{
+			const char* home = gSites[i].homeUrl;
+			if (!home || !home[0])
+				continue;
+			if (std::strcmp(home, url.c_str()) == 0)
+				return i;
+		}
+		/* file:///…/helper-home.html etc. */
+		auto fileHit = [&](const char* needle, const char* id) -> int {
+			if (url.find(needle) != std::string::npos)
+				return IndexOfId(id);
+			return -1;
+		};
+		int hit = fileHit("helper-home", "home");
+		if (hit >= 0) return hit;
+		hit = fileHit("raid-food", "raidfood");
+		if (hit >= 0) return hit;
+		hit = fileHit("raid-utilities", "raidutils");
+		if (hit >= 0) return hit;
+		hit = fileHit("fractal-consumables", "fractalcons");
+		if (hit >= 0) return hit;
+		hit = fileHit("sigils-runes", "sigilsrunes");
+		if (hit >= 0) return hit;
+		hit = fileHit("relics-guide", "relics");
+		if (hit >= 0) return hit;
+		hit = fileHit("boon-checklist", "booncheck");
+		if (hit >= 0) return hit;
+		hit = fileHit("cc-defiance", "ccdefiance");
+		if (hit >= 0) return hit;
+		hit = fileHit("raid-wings", "raidwings");
+		if (hit >= 0) return hit;
+		hit = fileHit("home-garden", "homegarden");
+		if (hit >= 0) return hit;
+		return -1;
+	}
+
+	const std::string live = UrlHostPath(url, false);
+	const std::string liveHost = UrlHostPath(url, true);
+	if (live.empty())
+		return -1;
+
+	int best = -1;
+	size_t bestLen = 0;
+	int hostBest = -1;
+	size_t hostBestLen = 0;
+
+	for (int i = 0; i < kSiteCount; ++i)
+	{
+		const char* home = gSites[i].homeUrl;
+		if (!home || !home[0])
+			continue;
+		if (std::strncmp(home, "http", 4) != 0)
+			continue;
+
+		const std::string homePath = UrlHostPath(home, false);
+		const std::string homeHost = UrlHostPath(home, true);
+		if (homePath.empty())
+			continue;
+
+		if (live == homePath || live.rfind(homePath + "/", 0) == 0 || live.rfind(homePath, 0) == 0)
+		{
+			if (homePath.size() > bestLen)
+			{
+				bestLen = homePath.size();
+				best = i;
+			}
+		}
+		else if (!homeHost.empty() && liveHost == homeHost)
+		{
+			if (homeHost.size() > hostBestLen)
+			{
+				hostBestLen = homeHost.size();
+				hostBest = i;
+			}
+		}
+	}
+
+	return best >= 0 ? best : hostBest;
+}
+
 bool Sites::IsFavorite(const char* id)
 {
 	if (!id || !id[0])

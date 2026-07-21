@@ -46,6 +46,7 @@ namespace WikiBrowser
 	bool CanGoBack();
 	bool CanGoForward();
 	std::string CurrentUrl();
+	std::string CurrentTitle(); /* active page title from CEF */
 	std::string Status();
 
 	uint32_t FindCount();

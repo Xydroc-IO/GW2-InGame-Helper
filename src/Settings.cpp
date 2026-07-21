@@ -124,9 +124,17 @@ void Settings::Load()
 	gDirty = false;
 }
 
-void Settings::Save()
+void Settings::Save(bool force)
 {
 	if (!gDirty)
+		return;
+
+	/* Opening the helper used to call Save every ImGui frame. Title/URL sync
+	   and float window pos could keep the dirty flag set → fopen settings.ini
+	   every frame and freeze GW2. Debounce unless forced (unload). */
+	static DWORD sLastSaveMs = 0;
+	const DWORD now = GetTickCount();
+	if (!force && sLastSaveMs != 0 && (now - sLastSaveMs) < 2500u)
 		return;
 
 	AddonPaths::DataDir(); /* ensure folder exists */
@@ -159,4 +167,5 @@ void Settings::Save()
 
 	std::fclose(f);
 	gDirty = false;
+	sLastSaveMs = now;
 }

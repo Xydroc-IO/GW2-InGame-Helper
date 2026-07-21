@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "20";
+	static constexpr const char* kHomePageVersion = "21";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -444,7 +444,7 @@ const char* HomePage::Html()
           <ul>
             <li><strong>Browse</strong> — search and pick sites by category</li>
             <li><strong>Search box</strong> — query Wiki/Google (or Google for other sites); press Enter or Go</li>
-            <li><strong>Tabs</strong> — stay loaded while open; <strong>+</strong> or Ctrl+click opens a new tab</li>
+            <li><strong>Tabs</strong> — stay loaded while open; <strong>+</strong> / Ctrl+click / <strong>Ctrl+T</strong> new tab; <strong>Ctrl+W</strong> close; <strong>Ctrl+Tab</strong> cycle</li>
             <li><strong>New Tab</strong> — duplicate the current page</li>
             <li><strong>Find</strong> — Ctrl+F search within the page</li>
             <li><strong>Star</strong> — add or remove the current site from Favorites</li>

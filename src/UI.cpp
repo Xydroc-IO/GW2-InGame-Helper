@@ -167,6 +167,7 @@ namespace
 	static int sCategoryIndex = 0;
 	static bool sSyncCategory = true;
 	static bool sShowFind = false;
+	static bool sRequestNewTabPicker = false;
 	static char sFindQuery[128] = {};
 	static bool sFindMatchCase = false;
 
@@ -583,16 +584,18 @@ namespace
 		const bool canAdd = (n < BrowserTabs::kMaxTabs);
 		if (canAdd)
 		{
-			if (ImGui::Button("+##new_tab"))
+			if (ImGui::Button("+##new_tab") || sRequestNewTabPicker)
 			{
+				sRequestNewTabPicker = false;
 				sSyncCategory = true;
 				ImGui::OpenPopup("##site_browse_newtab");
 			}
 			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Open site in a new tab");
+				ImGui::SetTooltip("Open site in a new tab (Ctrl+T)");
 		}
 		else
 		{
+			sRequestNewTabPicker = false;
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.4f);
 			ImGui::Button("+##new_tab");
 			ImGui::PopStyleVar();
@@ -923,6 +926,7 @@ void UI_Render()
 		{
 			BrowserTabs::PrepareSave();
 			Settings::SetDirty();
+			Settings::Save(true);
 			sWasOpen = false;
 		}
 		BlurBrowser();
@@ -970,23 +974,58 @@ void UI_Render()
 	ImGui::SameLine(0.f, 12.f);
 	DrawToolbar();
 
-	/* Ctrl+F find; Ctrl+Shift+T reopen closed; Escape closes find. */
+	/* Tab / find hotkeys — skip while typing in ImGui fields. */
 	{
+		ImGuiIO& io = ImGui::GetIO();
+		const bool typing = io.WantTextInput;
 		const bool ctrl = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
 		const bool shift = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
 		const bool alt = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
 		const bool keyF = (GetAsyncKeyState('F') & 0x8000) != 0;
 		const bool keyT = (GetAsyncKeyState('T') & 0x8000) != 0;
+		const bool keyW = (GetAsyncKeyState('W') & 0x8000) != 0;
+		const bool keyTab = (GetAsyncKeyState(VK_TAB) & 0x8000) != 0;
+
 		static bool sCtrlFWasDown = false;
 		static bool sCtrlTWasDown = false;
-		const bool ctrlF = ctrl && !shift && !alt && keyF;
-		const bool ctrlShiftT = ctrl && shift && !alt && keyT;
+		static bool sCtrlWWasDown = false;
+		static bool sCtrlTabWasDown = false;
+
+		const bool ctrlF = !typing && ctrl && !shift && !alt && keyF;
+		const bool ctrlT = !typing && ctrl && !shift && !alt && keyT;
+		const bool ctrlW = !typing && ctrl && !shift && !alt && keyW;
+		const bool ctrlShiftT = !typing && ctrl && shift && !alt && keyT;
+		const bool ctrlTab = !typing && ctrl && !alt && keyTab;
+
 		if (ctrlF && !sCtrlFWasDown)
 			sShowFind = true;
+		if (ctrlT && !sCtrlTWasDown)
+			sRequestNewTabPicker = true;
+		if (ctrlW && !sCtrlWWasDown)
+		{
+			const int ai = BrowserTabs::ActiveIndex();
+			if (BrowserTabs::Count() > 1 && !BrowserTabs::At(ai).pinned)
+				BrowserTabs::Close(ai);
+		}
 		if (ctrlShiftT && !sCtrlTWasDown && BrowserTabs::CanReopenClosed())
 			BrowserTabs::ReopenClosed();
+		if (ctrlTab && !sCtrlTabWasDown)
+		{
+			const int n = BrowserTabs::Count();
+			if (n > 1)
+			{
+				int next = BrowserTabs::ActiveIndex() + (shift ? -1 : 1);
+				if (next < 0) next = n - 1;
+				if (next >= n) next = 0;
+				BrowserTabs::Activate(next);
+			}
+		}
+
 		sCtrlFWasDown = ctrlF;
-		sCtrlTWasDown = ctrlShiftT;
+		sCtrlTWasDown = ctrlT || ctrlShiftT;
+		sCtrlWWasDown = ctrlW;
+		sCtrlTabWasDown = ctrlTab;
+
 		if (sShowFind && ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			sShowFind = false;
@@ -1138,8 +1177,8 @@ void UI_Render()
 	if (gBlockGameKeyboard)
 		io.WantCaptureKeyboard = true;
 
-	if (pos.x != G::WindowPosX || pos.y != G::WindowPosY ||
-		winSize.x != G::WindowWidth || winSize.y != G::WindowHeight)
+	if (std::fabs(pos.x - G::WindowPosX) > 0.5f || std::fabs(pos.y - G::WindowPosY) > 0.5f ||
+		std::fabs(winSize.x - G::WindowWidth) > 0.5f || std::fabs(winSize.y - G::WindowHeight) > 0.5f)
 	{
 		G::WindowPosX = pos.x;
 		G::WindowPosY = pos.y;
@@ -1153,7 +1192,7 @@ void UI_Render()
 	ImGui::End();
 	ImGui::PopStyleVar();
 	PopWikiTheme();
-	Settings::Save();
+	Settings::Save(false);
 }
 
 void UI_Options()
@@ -1185,5 +1224,6 @@ void UI_Options()
 		"Browse · ... menu for Find / Copy / Open Ext. Right-click tabs to pin. "
 		"Window size and position are saved automatically.");
 	ImGui::TextWrapped(
-		"Hotkeys: Ctrl+Shift+H (or K) open / close · Ctrl+F find · Ctrl+Shift+T reopen tab");
+		"Hotkeys: Ctrl+Shift+H open/close · Ctrl+T new tab · Ctrl+W close · "
+		"Ctrl+Tab cycle · Ctrl+Shift+T reopen · Ctrl+F find");
 }

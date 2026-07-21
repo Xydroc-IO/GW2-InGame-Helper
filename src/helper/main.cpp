@@ -73,6 +73,7 @@ namespace
 	cef_browser_t* gBrowsers[kWikiMaxTabs] = {};
 	int gActiveSlot = 0;
 	int gPendingCreateSlot = 0;
+	int gPendingActivateSlot = -1;
 
 	cef_app_t gApp{};
 	cef_client_t gClient{};
@@ -126,6 +127,13 @@ namespace
 		if (!gIpc || !text)
 			return;
 		std::snprintf(gIpc->status, sizeof(gIpc->status), "%s", text);
+	}
+
+	void SetTitleUtf8(const char* text)
+	{
+		if (!gIpc || !text)
+			return;
+		std::snprintf(gIpc->title, sizeof(gIpc->title), "%s", text);
 	}
 
 	void SetUrlUtf8(const char* text)
@@ -359,8 +367,20 @@ namespace
 
 	void ActivateSlot(int slot)
 	{
-		if (slot < 0 || slot >= kWikiMaxTabs || !gBrowsers[slot])
+		if (slot < 0 || slot >= kWikiMaxTabs)
 			return;
+
+		/* New-tab race: ACTIVATE often arrives before OnAfterCreated. Remember
+		   the intent and finish activate when the browser appears. */
+		if (!gBrowsers[slot])
+		{
+			gPendingActivateSlot = slot;
+			if (gIpc)
+				gIpc->active_tab = slot;
+			return;
+		}
+
+		gPendingActivateSlot = -1;
 
 		if (slot != gActiveSlot && gActiveSlot >= 0 && gActiveSlot < kWikiMaxTabs && gBrowsers[gActiveSlot])
 		{
@@ -512,6 +532,14 @@ namespace
 		gBrowsers[slot]->base.add_ref(&gBrowsers[slot]->base);
 		UpdateTabMask();
 
+		/* Prefer deferred ACTIVATE from CreateTab+ActivateTab (new tab). */
+		if (gPendingActivateSlot == slot)
+		{
+			ActivateSlot(slot);
+			NotifyWasResized();
+			return;
+		}
+
 		if (slot != gActiveSlot)
 		{
 			if (cef_browser_host_t* host = browser->get_host(browser))
@@ -627,6 +655,14 @@ namespace
 	{
 		if (IsActiveBrowser(browser) && frame && frame->is_main(frame) && url)
 			SetUrlUtf8(CefStringToUtf8(url).c_str());
+	}
+
+	void CEF_CALLBACK OnTitleChange(
+		cef_display_handler_t*, cef_browser_t* browser, const cef_string_t* title)
+	{
+		if (!IsActiveBrowser(browser) || !title)
+			return;
+		SetTitleUtf8(CefStringToUtf8(title).c_str());
 	}
 
 	void CEF_CALLBACK GetViewRect(cef_render_handler_t*, cef_browser_t*, cef_rect_t* rect)
@@ -780,6 +816,7 @@ namespace
 		std::memset(&gDisplay, 0, sizeof(gDisplay));
 		InitBase(&gDisplay.base, sizeof(gDisplay));
 		gDisplay.on_address_change = OnAddressChange;
+		gDisplay.on_title_change = OnTitleChange;
 
 		std::memset(&gRender, 0, sizeof(gRender));
 		InitBase(&gRender.base, sizeof(gRender));
