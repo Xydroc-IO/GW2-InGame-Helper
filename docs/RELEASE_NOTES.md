@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.1.7
+# GW2 In-Game Helper v1.4.1.8
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -20,21 +20,21 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 1.4.1.8
+
+- **Homepage redesign** — full-page GW2 cover atmosphere, gold ornament frame, stronger brand hero, motion accents
+
 ## What’s new in 1.4.1.7
 
-- **Removed** Lucky Noobs (site + Discord)
+- Removed Lucky Noobs (site + Discord)
 
 ## What’s new in 1.4.1.6
 
-- **Browse panel** — search + category list + site list (replaces the long dropdown)
+- Browse panel (search + categories)
 
-## What’s new in 1.4.1.5
+## What’s new in 1.4.1.5 – 1.4.0
 
-- Gap-fill sites + Copy URL / Open Ext toolbar
-
-## What’s new in 1.4.1.4 – 1.4.0
-
-- PvP/WvW, community Discords, branded homepage, Raid Food, Music Box fix (Hardstuck/Discretize omitted)
+- Gap-fill sites, Open Ext / Copy URL, PvP/WvW, Raid Food, branded assets, community Discords
 
 ---
 
