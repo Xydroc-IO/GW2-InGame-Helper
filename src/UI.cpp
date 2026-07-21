@@ -180,6 +180,30 @@ namespace
 			BrowserTabs::OpenInActive(sites[index].id, navigate);
 	}
 
+	void SetDefaultSiteIndex(int index)
+	{
+		if (index < 0)
+			return;
+		size_t siteCount = 0;
+		const SiteDef* sites = Sites::All(&siteCount);
+		if (!sites || index >= static_cast<int>(siteCount) || !sites[index].id)
+			return;
+		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "%s", sites[index].id);
+		Settings::SetDirty();
+	}
+
+	const SiteDef* SiteById(const char* id)
+	{
+		const int idx = Sites::IndexOfId(id);
+		if (idx < 0)
+			return nullptr;
+		size_t n = 0;
+		const SiteDef* sites = Sites::All(&n);
+		if (!sites || idx >= static_cast<int>(n))
+			return nullptr;
+		return &sites[idx];
+	}
+
 	/* Draw a 5-point star (ProggyClean has no ★/☆ glyphs). */
 	void DrawStarShape(ImDrawList* dl, ImVec2 center, float radius, ImU32 col, bool filled)
 	{
@@ -229,7 +253,7 @@ namespace
 			Sites::ToggleFavorite(siteId);
 	}
 
-	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel)
+	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickDefaultSite = false)
 	{
 		size_t siteCount = 0;
 		const SiteDef* sites = Sites::All(&siteCount);
@@ -238,23 +262,27 @@ namespace
 		if (!sites || siteCount == 0 || !cats || catCount == 0)
 			return;
 
-		/* Index 0 = virtual Favorites; 1..catCount = registry categories. */
-		const int totalCats = static_cast<int>(catCount) + 1;
+		/* Index 0 = virtual Favorites (browse only); categories follow. */
+		const int totalCats = pickDefaultSite
+			? static_cast<int>(catCount)
+			: static_cast<int>(catCount) + 1;
 
 		if (sSyncCategory)
 		{
 			sSyncCategory = false;
-			if (Sites::IsFavorite(Sites::ActiveId()))
+			const char* focusId = pickDefaultSite ? G::DefaultSiteId : Sites::ActiveId();
+			const SiteDef* focus = SiteById(focusId);
+			if (!pickDefaultSite && Sites::IsFavorite(focusId))
 				sCategoryIndex = 0;
 			else
 			{
-				const char* activeCat = Sites::Active().category ? Sites::Active().category : "";
-				sCategoryIndex = 1;
+				const char* activeCat = (focus && focus->category) ? focus->category : "";
+				sCategoryIndex = pickDefaultSite ? 0 : 1;
 				for (int i = 0; i < static_cast<int>(catCount); ++i)
 				{
 					if (std::strcmp(cats[i] ? cats[i] : "", activeCat) == 0)
 					{
-						sCategoryIndex = i + 1;
+						sCategoryIndex = pickDefaultSite ? i : (i + 1);
 						break;
 					}
 				}
@@ -263,18 +291,28 @@ namespace
 		if (sCategoryIndex < 0 || sCategoryIndex >= totalCats)
 			sCategoryIndex = 0;
 
+		if (pickDefaultSite)
+		{
+			ImGui::TextColored(kGold, "Default landing site");
+			ImGui::TextColored(kMuted, "Used when no tabs are saved yet.");
+		}
+
 		ImGui::TextColored(kGold, "Search");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(-1.f);
 		ImGui::InputTextWithHint("##site_filter", "Filter sites…", sFilter, sizeof(sFilter));
 
 		const bool filtering = sFilter[0] != '\0';
-		const bool showFavorites = (!filtering && sCategoryIndex == 0);
+		const bool showFavorites = (!filtering && !pickDefaultSite && sCategoryIndex == 0);
 		const char* selectedCat = "";
-		if (!filtering && !showFavorites && sCategoryIndex >= 1)
-			selectedCat = cats[sCategoryIndex - 1] ? cats[sCategoryIndex - 1] : "";
+		if (!filtering && !showFavorites)
+		{
+			const int catIdx = pickDefaultSite ? sCategoryIndex : (sCategoryIndex - 1);
+			if (catIdx >= 0 && catIdx < static_cast<int>(catCount))
+				selectedCat = cats[catIdx] ? cats[catIdx] : "";
+		}
 
-		const float listH = 240.f;
+		const float listH = pickDefaultSite ? 220.f : 240.f;
 		const float leftW = 140.f;
 
 		ImGui::BeginChild("##browse_cats", ImVec2(leftW, listH), true);
@@ -283,6 +321,7 @@ namespace
 		ImGui::PopStyleColor();
 		ImGui::Separator();
 
+		if (!pickDefaultSite)
 		{
 			char favLabel[64];
 			std::snprintf(favLabel, sizeof(favLabel), "Favorites (%d)", Sites::FavoriteCount());
@@ -295,7 +334,7 @@ namespace
 		for (int i = 0; i < static_cast<int>(catCount); ++i)
 		{
 			const char* cat = cats[i] ? cats[i] : "";
-			const int uiIndex = i + 1;
+			const int uiIndex = pickDefaultSite ? i : (i + 1);
 			const bool selected = (uiIndex == sCategoryIndex);
 			char label[96];
 			std::snprintf(label, sizeof(label), "%s (%d)", cat, Sites::CountInCategory(cat));
@@ -320,7 +359,9 @@ namespace
 		ImGui::PopStyleColor();
 		ImGui::Separator();
 
-		const int current = Sites::ActiveIndex();
+		const int current = pickDefaultSite
+			? Sites::IndexOfId(G::DefaultSiteId)
+			: Sites::ActiveIndex();
 		int shown = 0;
 
 		auto DrawSiteRow = [&](int siteIndex, bool withCategoryPrefix) {
@@ -328,8 +369,11 @@ namespace
 				return;
 			const SiteDef& site = sites[siteIndex];
 			ImGui::PushID(siteIndex);
-			DrawFavoriteStar(site.id);
-			ImGui::SameLine();
+			if (!pickDefaultSite)
+			{
+				DrawFavoriteStar(site.id);
+				ImGui::SameLine();
+			}
 			char row[160];
 			if (withCategoryPrefix)
 				std::snprintf(row, sizeof(row), "%s · %s",
@@ -342,12 +386,15 @@ namespace
 			const bool ctrl = ImGui::GetIO().KeyCtrl;
 			if (ImGui::Selectable(row, selected))
 			{
-				ActivateSiteIndex(siteIndex, navigateOnChange, ctrl);
+				if (pickDefaultSite)
+					SetDefaultSiteIndex(siteIndex);
+				else
+					ActivateSiteIndex(siteIndex, navigateOnChange, ctrl);
 				if (closePanel)
 					*closePanel = true;
 				sSyncCategory = true;
 			}
-			if (ImGui::IsItemHovered())
+			if (ImGui::IsItemHovered() && !pickDefaultSite)
 				ImGui::SetTooltip("Click: this tab · Ctrl+click: new tab");
 			if (selected)
 				ImGui::SetItemDefaultFocus();
@@ -549,16 +596,19 @@ namespace
 		}
 
 		ImGui::SameLine();
-		const SiteDef& active = Sites::Active();
-		ImGui::TextColored(kMuted, "%s · %s",
-			active.category ? active.category : "",
-			active.label ? active.label : "");
+		const SiteDef* def = SiteById(G::DefaultSiteId);
+		if (def)
+			ImGui::TextColored(kMuted, "%s · %s",
+				def->category ? def->category : "",
+				def->label ? def->label : "");
+		else
+			ImGui::TextColored(kMuted, "%s", G::DefaultSiteId);
 
-		ImGui::SetNextWindowSize(ImVec2(520.f, 320.f), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(520.f, 340.f), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##default_site_browse"))
 		{
 			bool closePanel = false;
-			DrawBrowsePanelContents(G::ShowWiki, &closePanel);
+			DrawBrowsePanelContents(false, &closePanel, true);
 			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
@@ -607,11 +657,24 @@ void UI_Render()
 		ImGui::SetWindowFocus(nullptr);
 	}
 
+	static bool sWasOpen = false;
 	if (!G::ShowWiki)
 	{
+		if (sWasOpen)
+		{
+			BrowserTabs::PrepareSave();
+			Settings::SetDirty();
+			sWasOpen = false;
+		}
 		BlurBrowser();
 		WikiBrowser::SetVisible(false);
 		return;
+	}
+
+	if (!sWasOpen)
+	{
+		BrowserTabs::NavigateActive();
+		sWasOpen = true;
 	}
 
 	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), ImGuiCond_FirstUseEver);
@@ -857,7 +920,11 @@ void UI_Options()
 	size_t count = 0;
 	Sites::All(&count);
 	if (count > 0)
+	{
+		ImGui::TextUnformatted("Default landing site");
 		DrawDefaultSiteBrowse();
+		ImGui::TextColored(kMuted, "Used for a fresh session when no tabs are saved.");
+	}
 
 	if (ImGui::SliderFloat("Opacity", &G::Opacity, 0.15f, 1.f, "%.2f"))
 		Settings::SetDirty();
@@ -867,8 +934,8 @@ void UI_Options()
 	ImGui::Spacing();
 	ImGui::TextWrapped(
 		"Use Browse to pick a site. Ctrl+click or + opens a new tab (up to 8). "
-		"The Search box queries Wiki/Google (falls back to Google). Star sites for Favorites. "
-		"Click outside the window to move and use skills again.");
+		"Open tabs are saved. The Search box queries Wiki/Google (falls back to Google). "
+		"Star sites for Favorites. Click outside the window to move and use skills again.");
 	ImGui::TextWrapped("Hotkeys: Ctrl+Shift+H (or K) open / close the helper");
 	ImGui::TextColored(kMuted, "%s", WikiBrowser::Status().c_str());
 }

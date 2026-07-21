@@ -6,6 +6,7 @@
 #include "WikiBrowser.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -89,10 +90,133 @@ void BrowserTabs::EnsureDefault()
 {
 	if (gCount > 0)
 		return;
-	FillFromSite(gTabs[0], "home");
+	const char* land = (G::DefaultSiteId[0] ? G::DefaultSiteId : "home");
+	FillFromSite(gTabs[0], land);
 	gCount = 1;
 	gActive = 0;
 	Settings::SetDirty();
+}
+
+void BrowserTabs::NavigateActive()
+{
+	EnsureDefault();
+	NavigateTab(gTabs[gActive]);
+}
+
+void BrowserTabs::PrepareSave()
+{
+	StashActiveUrl();
+}
+
+void BrowserTabs::ParseKey(const char* key, const char* val)
+{
+	if (!key || !val)
+		return;
+
+	if (std::strcmp(key, "TabCount") == 0)
+	{
+		int n = std::atoi(val);
+		if (n < 0) n = 0;
+		if (n > kMaxTabs) n = kMaxTabs;
+		gCount = n;
+		return;
+	}
+	if (std::strcmp(key, "ActiveTab") == 0)
+	{
+		gActive = std::atoi(val);
+		return;
+	}
+
+	/* TabNSite / TabNUrl */
+	if (std::strncmp(key, "Tab", 3) != 0)
+		return;
+	const char* p = key + 3;
+	if (*p < '0' || *p > '9')
+		return;
+	int idx = 0;
+	while (*p >= '0' && *p <= '9')
+	{
+		idx = idx * 10 + (*p - '0');
+		++p;
+	}
+	if (idx < 0 || idx >= kMaxTabs)
+		return;
+
+	if (idx + 1 > gCount)
+		gCount = idx + 1;
+
+	if (std::strcmp(p, "Site") == 0)
+	{
+		std::snprintf(gTabs[idx].tab.siteId, sizeof(gTabs[idx].tab.siteId), "%s", val);
+		const int si = Sites::IndexOfId(val);
+		if (si >= 0)
+		{
+			size_t n = 0;
+			const SiteDef* sites = Sites::All(&n);
+			if (sites && sites[si].label)
+				std::snprintf(gTabs[idx].tab.title, sizeof(gTabs[idx].tab.title), "%s", sites[si].label);
+		}
+		if (!gTabs[idx].tab.title[0])
+			std::snprintf(gTabs[idx].tab.title, sizeof(gTabs[idx].tab.title), "%s", val);
+	}
+	else if (std::strcmp(p, "Url") == 0)
+	{
+		gTabs[idx].tab.url = val;
+	}
+}
+
+void BrowserTabs::FinalizeLoad()
+{
+	/* Drop tabs with unknown site ids; keep URL if site still valid. */
+	int w = 0;
+	for (int i = 0; i < gCount && i < kMaxTabs; ++i)
+	{
+		if (!gTabs[i].tab.siteId[0] || Sites::IndexOfId(gTabs[i].tab.siteId) < 0)
+			continue;
+		if (gTabs[i].tab.url.empty())
+		{
+			Sites::SetActiveById(gTabs[i].tab.siteId);
+			gTabs[i].tab.url = Sites::ResolveUrl(Sites::Active());
+		}
+		if (!gTabs[i].tab.title[0])
+		{
+			const int si = Sites::IndexOfId(gTabs[i].tab.siteId);
+			size_t n = 0;
+			const SiteDef* sites = Sites::All(&n);
+			if (si >= 0 && sites && sites[si].label)
+				std::snprintf(gTabs[i].tab.title, sizeof(gTabs[i].tab.title), "%s", sites[si].label);
+		}
+		if (w != i)
+			gTabs[w] = std::move(gTabs[i]);
+		++w;
+	}
+	for (int i = w; i < kMaxTabs; ++i)
+		gTabs[i] = TabState{};
+	gCount = w;
+
+	if (gCount <= 0)
+	{
+		EnsureDefault();
+		return;
+	}
+	if (gActive < 0 || gActive >= gCount)
+		gActive = 0;
+	SyncSitesFromTab(gTabs[gActive].tab);
+}
+
+void BrowserTabs::WriteSettings(FILE* f)
+{
+	if (!f)
+		return;
+	PrepareSave();
+	EnsureDefault();
+	std::fprintf(f, "TabCount=%d\n", gCount);
+	std::fprintf(f, "ActiveTab=%d\n", gActive);
+	for (int i = 0; i < gCount; ++i)
+	{
+		std::fprintf(f, "Tab%dSite=%s\n", i, gTabs[i].tab.siteId);
+		std::fprintf(f, "Tab%dUrl=%s\n", i, gTabs[i].tab.url.c_str());
+	}
 }
 
 void BrowserTabs::Tick()

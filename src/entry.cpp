@@ -27,6 +27,7 @@ namespace G
 	bool  HasSavedPos  = false;
 	char  LastQuery[128] = "";
 	char  ActiveSiteId[64] = "home";
+	char  DefaultSiteId[64] = "home";
 }
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
@@ -229,8 +230,6 @@ static void AddonLoad(AddonAPI_t* api)
 		reinterpret_cast<void (*)(void*, void*)>(api->ImguiFree));
 
 	Settings::Load();
-	Sites::SetActiveById("home");
-	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "home");
 	G::ShowWiki = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
@@ -284,8 +283,8 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 5;
-	G::AddonDef.Version.Build    = 4;
-	G::AddonDef.Version.Revision = 1;
+	G::AddonDef.Version.Build    = 5;
+	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"Modular in-game browser for GW2 sites and Discords. Ctrl+Shift+H toggle. One DLL, no memory reads.";

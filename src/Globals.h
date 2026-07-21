@@ -22,4 +22,5 @@ namespace G
 	extern bool  HasSavedPos;
 	extern char  LastQuery[128];
 	extern char  ActiveSiteId[64];
+	extern char  DefaultSiteId[64]; /* landing site when no tabs are restored */
 }
