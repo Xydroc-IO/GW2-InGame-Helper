@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.6.0.0
+# GW2 In-Game Helper v1.7.1.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,18 +15,28 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
-## What’s new in 1.6.0.0
+## What’s new in 1.7.1.0
 
-- **Live tabs** — each open tab keeps its own CEF page (scroll/forms/login stay while the helper is open); switching no longer reloads
-- **+ new-tab picker** — full Browse panel (categories + filter + Favorites)
-- **Favorites drag-reorder** — drag rows in Favorites to reorder (saved)
-- **New Tab** — duplicate the current page into another tab
-- **Find in page** — Find button / Ctrl+F (Next / Prev / match case)
+- **Cheat Sheets** category — built-in offline pages (Raid Food style):
+  - **Raid Utilities** — oils, stones, crystals, enrichment by role
+  - **Fractal Consumables** — mist potions, utility, agony basics, Mistlock
+  - **Sigils & Runes** — common power / condi / support / tank picks
+  - **Relics** — short picks by role and damage type
+  - **Boon Checklist** — quick / alac / might / fury coverage
+  - **CC / Defiance** — breakbar tools by profession
+  - **Raid Wings Overview** — wing → bosses → typical KP
+  - **Home Garden** — cultivated herbs for feast seasonings (pairs with Raid Food)
 
----
+## What’s new in 1.7.0.0
 
-## Notes
+- **Compact toolbar** — Browse · nav · Search · `...` (Find / Copy URL / Open Ext / New Tab / Pin / Reopen)
+- **Pin tabs** — right-click or `...` · pinned tabs can’t be closed until unpinned
+- **Reopen closed tab** — `...` or Ctrl+Shift+T (last 8)
+- **Keep browser warm** — Options setting: hide without killing CEF (faster reopen, more RAM)
+- **Status** — muted gold chip; hides Ready / closed noise; friendly error text
+- **Theme** — warmer gold tabs matching the homepage
 
-- Closing the helper still stops the browser process (tabs restore URLs on reopen; live state is while open).
-- Prefer **Open Ext** for Discord joins and logins.
-- Hardstuck / Discretize intentionally omitted.
+## What’s new in 1.6.0.3
+
+- **Fix:** Home / Raid Food / restored tabs no longer open blank
+- **Fix:** Opening restores tab URLs instead of always forcing the homepage

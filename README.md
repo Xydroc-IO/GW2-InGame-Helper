@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.6.0.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.1.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -46,7 +46,15 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Wingman](https://gw2wingman.nevermindcreations.de/) | Tools |
 | [GW2BLTC](https://www.gw2bltc.com/) | Tools |
 | [GW2 Treasures](https://gw2treasures.com/) | Tools |
-| Raid Food (built-in) | Guides |
+| Raid Food (built-in) | Cheat Sheets |
+| Raid Utilities (built-in) | Cheat Sheets |
+| Fractal Consumables (built-in) | Cheat Sheets |
+| Sigils & Runes (built-in) | Cheat Sheets |
+| Relics (built-in) | Cheat Sheets |
+| Boon Checklist (built-in) | Cheat Sheets |
+| CC / Defiance (built-in) | Cheat Sheets |
+| Raid Wings (built-in) | Cheat Sheets |
+| Home Garden (built-in) | Cheat Sheets |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
 | [Leveling](https://metabattle.com/wiki/Guide:Leveling_Up) | Guides |
@@ -71,17 +79,18 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories)
-- **GW2-themed** window chrome (gold / bronze panels matching the homepage)
-- Toolbar **Search** box (Wiki/Google; Google fallback for other sites)
-- **Tabs** — up to 8 live pages while open (`+` / Ctrl+click / New Tab); persisted across launches
-- **Find in page** — Ctrl+F / Find button
-- **Favorites** — star + drag-reorder (saved in settings)
-- **Default landing site** — Options picker used when no tabs are saved yet
+- **Compact toolbar** — nav · Search · `...` menu (Find / Copy / Open Ext)
+- **GW2-themed** chrome (gold tabs + muted status)
+- **Tabs** — up to 8 live pages; **pin**, reopen closed (Ctrl+Shift+T); persisted
+- **Find in page** — Ctrl+F
+- **Favorites** — star + drag-reorder
+- **Keep browser warm** — optional hide without killing CEF
+- **Default landing site** — Options picker when no tabs are saved
 - Nexus **QuickAccess** icon at the top of the screen
 - Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
-- Built-in **Raid Food** seasoning / feast guide
+- **Cheat Sheets** category — offline pages (Raid Food style): **Raid Food**, **Raid Utilities**, **Fractal Consumables**, **Sigils & Runes**, **Relics**, **Boon Checklist**, **CC / Defiance**, **Raid Wings**, **Home Garden**
 - **Copy URL** and **Open Ext** (system browser — Discord joins / logins)
 - Single DLL — browser helper and homepage assets are embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only
@@ -225,6 +234,17 @@ Keep sites with the same category contiguous so the picker groups them. Rebuild 
 
 For search bars, set `searchUrlPrefix` / `searchUrlSuffix` so a query becomes `prefix + urlencode(query) + suffix`.
 
+### Built-in cheat sheets
+
+Offline **Cheat Sheets** use `about:` URLs (e.g. `about:raid-food`, `about:raid-utilities`) resolved to local HTML under the addon data folder.
+
+| Page | Sources |
+|------|---------|
+| Raid Food | `src/RaidFood.cpp` |
+| Other sheets | `src/CheatSheets.cpp` |
+
+Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map the `about:` URL in `WikiBrowser.cpp` / `helper/main.cpp`.
+
 ## Troubleshooting
 
 **Addon does not appear**
@@ -284,8 +304,8 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 3. CEF renders off-screen into shared memory.
 4. CSS is downleveled for Chromium 103 where needed; common ad/consent hosts are blocked.
 5. HTTP cache lives under `%TEMP%` (not under `addons`).
-6. Runtime data (helper exe, homepage, settings) lives under `addons/GW2-InGame-Helper/`.
-6. Site list lives in `src/Sites.cpp`.
+6. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
+7. Site list lives in `src/Sites.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets.cpp`.
 
 ## License
 
