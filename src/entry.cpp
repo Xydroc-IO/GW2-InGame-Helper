@@ -288,7 +288,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 4;
 	G::AddonDef.Version.Build    = 1;
-	G::AddonDef.Version.Revision = 5;
+	G::AddonDef.Version.Revision = 6;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"Modular in-game browser for GW2 sites and Discords. Ctrl+Shift+H toggle. One DLL, no memory reads.";

@@ -109,61 +109,190 @@ namespace
 		*outY = y;
 	}
 
-	void DrawCategorizedSiteCombo(const char* comboId, float width, bool navigateOnChange)
+	static char sFilter[64] = {};
+	static int sCategoryIndex = 0;
+	static bool sSyncCategory = true;
+
+	void ActivateSiteIndex(int index, bool navigate)
 	{
-		size_t count = 0;
-		const SiteDef* sites = Sites::All(&count);
-		if (!sites || count == 0)
+		if (index < 0)
+			return;
+		const bool changed = Sites::SetActiveIndex(index);
+		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
+		if (changed)
+			Settings::SetDirty();
+		if (navigate && (changed || index == Sites::ActiveIndex()))
+			WikiBrowser::NavigateActiveSite();
+	}
+
+	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel)
+	{
+		size_t siteCount = 0;
+		const SiteDef* sites = Sites::All(&siteCount);
+		size_t catCount = 0;
+		const char* const* cats = Sites::Categories(&catCount);
+		if (!sites || siteCount == 0 || !cats || catCount == 0)
 			return;
 
+		if (sSyncCategory)
+		{
+			sSyncCategory = false;
+			const char* activeCat = Sites::Active().category ? Sites::Active().category : "";
+			for (int i = 0; i < static_cast<int>(catCount); ++i)
+			{
+				if (std::strcmp(cats[i] ? cats[i] : "", activeCat) == 0)
+				{
+					sCategoryIndex = i;
+					break;
+				}
+			}
+		}
+		if (sCategoryIndex < 0 || sCategoryIndex >= static_cast<int>(catCount))
+			sCategoryIndex = 0;
+
+		ImGui::TextColored(kGold, "Search");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(-1.f);
+		ImGui::InputTextWithHint("##site_filter", "Filter sites…", sFilter, sizeof(sFilter));
+
+		const bool filtering = sFilter[0] != '\0';
+		const char* selectedCat = cats[sCategoryIndex] ? cats[sCategoryIndex] : "";
+
+		const float listH = 240.f;
+		const float leftW = 140.f;
+
+		ImGui::BeginChild("##browse_cats", ImVec2(leftW, listH), true);
+		ImGui::PushStyleColor(ImGuiCol_Text, kGold);
+		ImGui::TextUnformatted("Categories");
+		ImGui::PopStyleColor();
+		ImGui::Separator();
+		for (int i = 0; i < static_cast<int>(catCount); ++i)
+		{
+			const char* cat = cats[i] ? cats[i] : "";
+			const bool selected = (i == sCategoryIndex);
+			char label[96];
+			std::snprintf(label, sizeof(label), "%s (%d)", cat, Sites::CountInCategory(cat));
+			if (ImGui::Selectable(label, selected))
+			{
+				sCategoryIndex = i;
+				/* Category pick scopes the list; clear filter for predictable browsing. */
+				sFilter[0] = '\0';
+			}
+		}
+		ImGui::EndChild();
+
+		ImGui::SameLine();
+
+		ImGui::BeginChild("##browse_sites", ImVec2(0.f, listH), true);
+		ImGui::PushStyleColor(ImGuiCol_Text, kGold);
+		if (filtering)
+			ImGui::TextUnformatted("Matching sites");
+		else
+			ImGui::TextUnformatted(selectedCat);
+		ImGui::PopStyleColor();
+		ImGui::Separator();
+
 		const int current = Sites::ActiveIndex();
-		const SiteDef& active = sites[current];
+		int shown = 0;
+		for (int i = 0; i < static_cast<int>(siteCount); ++i)
+		{
+			const SiteDef& site = sites[i];
+			if (filtering)
+			{
+				if (!Sites::MatchesFilter(site, sFilter))
+					continue;
+			}
+			else
+			{
+				const char* cat = site.category ? site.category : "";
+				if (std::strcmp(cat, selectedCat) != 0)
+					continue;
+			}
+
+			ImGui::PushID(i);
+			char row[160];
+			if (filtering)
+				std::snprintf(row, sizeof(row), "%s · %s",
+					site.category ? site.category : "",
+					site.label ? site.label : "");
+			else
+				std::snprintf(row, sizeof(row), "%s", site.label ? site.label : "");
+
+			const bool selected = (i == current);
+			if (ImGui::Selectable(row, selected))
+			{
+				ActivateSiteIndex(i, navigateOnChange);
+				if (closePanel)
+					*closePanel = true;
+				sSyncCategory = true;
+			}
+			if (selected)
+				ImGui::SetItemDefaultFocus();
+			ImGui::PopID();
+			++shown;
+		}
+		if (shown == 0)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+			ImGui::TextUnformatted(filtering ? "No matches." : "No sites in this category.");
+			ImGui::PopStyleColor();
+		}
+		ImGui::EndChild();
+	}
+
+	void DrawSitePicker()
+	{
+		const SiteDef& active = Sites::Active();
 		char preview[96];
 		std::snprintf(preview, sizeof(preview), "%s · %s",
 			active.category ? active.category : "",
 			active.label ? active.label : "");
 
-		ImGui::SetNextItemWidth(width);
-		if (!ImGui::BeginCombo(comboId, preview))
-			return;
-
-		const char* lastCategory = nullptr;
-		for (int i = 0; i < static_cast<int>(count); ++i)
+		if (ImGui::Button("Browse"))
 		{
-			const char* cat = sites[i].category ? sites[i].category : "";
-			if (!lastCategory || std::strcmp(lastCategory, cat) != 0)
-			{
-				if (lastCategory)
-					ImGui::Spacing();
-				ImGui::PushStyleColor(ImGuiCol_Text, kGold);
-				ImGui::TextUnformatted(cat);
-				ImGui::PopStyleColor();
-				ImGui::Separator();
-				lastCategory = cat;
-			}
-
-			ImGui::PushID(i);
-			const bool selected = (i == current);
-			if (ImGui::Selectable(sites[i].label, selected))
-			{
-				if (!selected && Sites::SetActiveIndex(i))
-				{
-					std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
-					Settings::SetDirty();
-					if (navigateOnChange)
-						WikiBrowser::NavigateActiveSite();
-				}
-			}
-			if (selected)
-				ImGui::SetItemDefaultFocus();
-			ImGui::PopID();
+			sSyncCategory = true;
+			ImGui::OpenPopup("##site_browse");
 		}
-		ImGui::EndCombo();
+
+		ImGui::SameLine();
+		ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+		ImGui::TextUnformatted(preview);
+		ImGui::PopStyleColor();
+
+		ImGui::SetNextWindowSize(ImVec2(520.f, 320.f), ImGuiCond_Always);
+		if (ImGui::BeginPopup("##site_browse"))
+		{
+			bool closePanel = false;
+			DrawBrowsePanelContents(true, &closePanel);
+			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
 	}
 
-	void DrawSitePicker()
+	void DrawDefaultSiteBrowse()
 	{
-		DrawCategorizedSiteCombo("##site_picker", 200.f, true);
+		if (ImGui::Button("Choose default site…"))
+		{
+			sSyncCategory = true;
+			ImGui::OpenPopup("##default_site_browse");
+		}
+
+		ImGui::SameLine();
+		const SiteDef& active = Sites::Active();
+		ImGui::TextColored(kMuted, "%s · %s",
+			active.category ? active.category : "",
+			active.label ? active.label : "");
+
+		ImGui::SetNextWindowSize(ImVec2(520.f, 320.f), ImGuiCond_Always);
+		if (ImGui::BeginPopup("##default_site_browse"))
+		{
+			bool closePanel = false;
+			DrawBrowsePanelContents(G::ShowWiki, &closePanel);
+			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
 	}
 }
 
@@ -431,7 +560,7 @@ void UI_Options()
 	size_t count = 0;
 	Sites::All(&count);
 	if (count > 0)
-		DrawCategorizedSiteCombo("Default site", 260.f, G::ShowWiki);
+		DrawDefaultSiteBrowse();
 
 	if (ImGui::SliderFloat("Opacity", &G::Opacity, 0.15f, 1.f, "%.2f"))
 		Settings::SetDirty();

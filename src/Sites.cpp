@@ -2,6 +2,7 @@
 
 #include "WikiBrowser.h"
 
+#include <cctype>
 #include <cstring>
 
 namespace
@@ -560,6 +561,53 @@ namespace
 
 	constexpr int kSiteCount = static_cast<int>(sizeof(gSites) / sizeof(gSites[0]));
 	int gActive = 0;
+
+	constexpr int kMaxCategories = 32;
+	const char* gCategories[kMaxCategories] = {};
+	int gCategoryCount = -1;
+
+	void EnsureCategories()
+	{
+		if (gCategoryCount >= 0)
+			return;
+		gCategoryCount = 0;
+		const char* last = nullptr;
+		for (int i = 0; i < kSiteCount && gCategoryCount < kMaxCategories; ++i)
+		{
+			const char* cat = gSites[i].category ? gSites[i].category : "";
+			if (!last || std::strcmp(last, cat) != 0)
+			{
+				gCategories[gCategoryCount++] = cat;
+				last = cat;
+			}
+		}
+	}
+
+	bool ContainsIgnoreCase(const char* haystack, const char* needle)
+	{
+		if (!needle || !needle[0])
+			return true;
+		if (!haystack || !haystack[0])
+			return false;
+		const size_t nlen = std::strlen(needle);
+		for (const char* p = haystack; *p; ++p)
+		{
+			size_t i = 0;
+			while (i < nlen)
+			{
+				const unsigned char a = static_cast<unsigned char>(p[i]);
+				const unsigned char b = static_cast<unsigned char>(needle[i]);
+				if (!a)
+					return false;
+				if (std::tolower(a) != std::tolower(b))
+					break;
+				++i;
+			}
+			if (i == nlen)
+				return true;
+		}
+		return false;
+	}
 }
 
 const SiteDef* Sites::All(size_t* outCount)
@@ -584,6 +632,38 @@ int Sites::ActiveIndex()
 const char* Sites::ActiveId()
 {
 	return Active().id;
+}
+
+const char* const* Sites::Categories(size_t* outCount)
+{
+	EnsureCategories();
+	if (outCount)
+		*outCount = static_cast<size_t>(gCategoryCount > 0 ? gCategoryCount : 0);
+	return gCategories;
+}
+
+int Sites::CountInCategory(const char* category)
+{
+	if (!category)
+		category = "";
+	int n = 0;
+	for (int i = 0; i < kSiteCount; ++i)
+	{
+		const char* cat = gSites[i].category ? gSites[i].category : "";
+		if (std::strcmp(cat, category) == 0)
+			++n;
+	}
+	return n;
+}
+
+bool Sites::MatchesFilter(const SiteDef& site, const char* query)
+{
+	if (!query || !query[0])
+		return true;
+	return ContainsIgnoreCase(site.label, query) ||
+		ContainsIgnoreCase(site.title, query) ||
+		ContainsIgnoreCase(site.category, query) ||
+		ContainsIgnoreCase(site.id, query);
 }
 
 bool Sites::SetActiveIndex(int index)

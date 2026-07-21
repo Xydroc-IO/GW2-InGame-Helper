@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "12";
+	static constexpr const char* kHomePageVersion = "13";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -262,7 +262,7 @@ const char* HomePage::Html()
       <div class="head"><h2>Quick start</h2></div>
       <div class="body">
         <ol>
-          <li>Use the <strong>site dropdown</strong> in the toolbar (grouped by category).</li>
+          <li>Use <strong>Browse</strong> to pick a site (search + categories — not a long dropdown).</li>
           <li>Click inside the page to scroll, click links, and type.</li>
           <li>Click <strong>outside</strong> this window to move and use skills again — you do not need to close the helper.</li>
         </ol>
@@ -284,7 +284,7 @@ const char* HomePage::Html()
       <div class="head"><h2>Toolbar</h2></div>
       <div class="body">
         <ul>
-          <li><strong>Site picker</strong> — switch between Wiki, builds, tools, guides, and more</li>
+          <li><strong>Browse</strong> — search and pick sites by category</li>
           <li><strong>Back / Forward</strong> — browser history</li>
           <li><strong>Home</strong> — return to this page</li>
           <li><strong>Reload</strong> — refresh the current page</li>
