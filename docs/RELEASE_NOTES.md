@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.1.3
+# GW2 In-Game Helper v1.4.1.4
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -20,36 +20,32 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 1.4.1.4
+
+- **Expanded sites** — GW2 News, MetaBattle Open World / PvP / WvW, GW2Timer Events, Lucky Noobs
+- **New categories** — PvP, WvW
+- **Expanded Discords** — Official, Community, Snowcrows, MetaBattle, Guildjen, Mukluk, Accessibility Wars, Skein Gang, Lucky Noobs, GW2 University, Crossroads Inn, Raid Training EU, Welcome to PvP, WvW NA/EU Alliance, Fast Farming
+- Hardstuck and Discretize intentionally omitted (outdated)
+
 ## What’s new in 1.4.1.3
 
 - **Homepage refresh** — branded hero with embedded logo and cover art, GW2 gold theme
 
 ## What’s new in 1.4.1.2
 
-- **Built-in Raid Food guide** — Universal Seasoning Guide with power, condition, support, and hybrid/tank feast recipes (Guides → Raid Food)
+- **Built-in Raid Food guide** — Universal Seasoning Guide (Guides → Raid Food)
 
 ## What’s new in 1.4.1.1
 
-- **New sites**
-  - Builds: [Gw2Skills Editor](https://en.gw2skills.net/editor/)
-  - Tools: [Meta Timers](https://gw2tldr.com/metas), [Peu Research Center](https://peuresearchcenter.com/index.html)
-  - Guides: [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides), [GW2 TLDR](https://gw2tldr.com/)
+- Gw2Skills Editor, Meta Timers, Peu Research Center, Mukluk Fractals, GW2 TLDR
 
 ## What’s new in 1.4.1
 
-- **Fix:** Music Box now opens over HTTP (`http://gw2mb.com/`). The HTTPS endpoint uses an invalid certificate and returns 403.
+- **Fix:** Music Box HTTP (`http://gw2mb.com/`)
 
 ## What’s new in 1.4.0
 
-- **New sites**
-  - Official: [Raidcore](https://raidcore.gg/gw2)
-  - Builds: [Accessibility Wars](https://aw2.help/)
-  - Tools: [GW2Timer Map](https://gw2timer.com/?page=Map), [GW2 Crafts](https://gw2crafts.net/), [Music Box](http://gw2mb.com/)
-  - Guides: [Guildjen](https://guildjen.com/)
-- **New Discord category**
-  - [Fractal Training](https://discord.com/invite/zxeVeSqpuS)
-  - [Raidcore](https://discord.com/invite/raidcore)
-  - [Raid Academy](https://discord.com/invite/gw2ra)
+- Community sites + Discord category (Fractal Training, Raidcore, Raid Academy)
 
 ---
 
@@ -58,13 +54,15 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 | Category | Sites |
 |----------|--------|
 | Help | How to use (built-in) |
-| Official | Guild Wars 2, Raidcore |
+| Official | Guild Wars 2, GW2 News, Raidcore |
 | Wiki | GW2 Wiki |
-| Builds | Snowcrows, MetaBattle, Accessibility Wars, Gw2Skills Editor |
-| Tools | gw2efficiency, GW2Timer Map, Meta Timers, GW2 Crafts, Music Box, Peu Research Center |
-| Guides | Raid Food (built-in), Guildjen, Mukluk Fractals, GW2 TLDR |
+| Builds | Snowcrows, MetaBattle, MetaBattle OW, Accessibility Wars, Gw2Skills Editor |
+| PvP | MetaBattle PvP |
+| WvW | MetaBattle WvW |
+| Tools | gw2efficiency, GW2Timer Events, GW2Timer Map, Meta Timers, GW2 Crafts, Music Box, Peu Research Center |
+| Guides | Raid Food, Lucky Noobs, Guildjen, Mukluk Fractals, GW2 TLDR |
 | Farming | Fast Farming |
-| Discord | Fractal Training, Raidcore, Raid Academy |
+| Discord | Official, Community, Snowcrows, MetaBattle, Guildjen, Mukluk, Accessibility Wars, Skein Gang, Lucky Noobs, Fractal Training, Raid Academy, GW2 University, Crossroads Inn, Raid Training EU, Welcome to PvP, WvW NA/EU Alliance, Fast Farming, Raidcore |
 
 ## Notes
 
