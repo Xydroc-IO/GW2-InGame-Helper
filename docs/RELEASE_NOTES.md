@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.4.1.4
+# GW2 In-Game Helper v1.4.1.5
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -20,32 +20,32 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 1.4.1.5
+
+- **Gap fill** — Game Updates, Legendaries, Mounts, Legendary Tracker, Blish HUD, Living World, Leveling, Earn Gold, Griffon/Skyscale unlocks, TLDR Raids/Fractals
+- **Toolbar** — Copy URL + Open Ext (system browser for Discord joins / logins)
+- **Discords** — Overflow Trading, GW2 Central Hub
+- Hardstuck and Discretize still omitted (outdated)
+
 ## What’s new in 1.4.1.4
 
-- **Expanded sites** — GW2 News, MetaBattle Open World / PvP / WvW, GW2Timer Events, Lucky Noobs
-- **New categories** — PvP, WvW
-- **Expanded Discords** — Official, Community, Snowcrows, MetaBattle, Guildjen, Mukluk, Accessibility Wars, Skein Gang, Lucky Noobs, GW2 University, Crossroads Inn, Raid Training EU, Welcome to PvP, WvW NA/EU Alliance, Fast Farming
-- Hardstuck and Discretize intentionally omitted (outdated)
+- PvP/WvW, Lucky Noobs, GW2Timer Events, expanded Discords
 
 ## What’s new in 1.4.1.3
 
-- **Homepage refresh** — branded hero with embedded logo and cover art, GW2 gold theme
+- Branded homepage (logo + cover)
 
 ## What’s new in 1.4.1.2
 
-- **Built-in Raid Food guide** — Universal Seasoning Guide (Guides → Raid Food)
+- Built-in Raid Food guide
 
 ## What’s new in 1.4.1.1
 
-- Gw2Skills Editor, Meta Timers, Peu Research Center, Mukluk Fractals, GW2 TLDR
+- Gw2Skills, Meta Timers, Peu, Mukluk, GW2 TLDR
 
-## What’s new in 1.4.1
+## What’s new in 1.4.1 / 1.4.0
 
-- **Fix:** Music Box HTTP (`http://gw2mb.com/`)
-
-## What’s new in 1.4.0
-
-- Community sites + Discord category (Fractal Training, Raidcore, Raid Academy)
+- Music Box HTTP fix; community sites + Discord category
 
 ---
 
@@ -53,18 +53,18 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 | Category | Sites |
 |----------|--------|
-| Help | How to use (built-in) |
+| Help | How to use |
 | Official | Guild Wars 2, GW2 News, Raidcore |
-| Wiki | GW2 Wiki |
+| Wiki | GW2 Wiki, Game Updates, Legendaries, Mounts |
 | Builds | Snowcrows, MetaBattle, MetaBattle OW, Accessibility Wars, Gw2Skills Editor |
 | PvP | MetaBattle PvP |
 | WvW | MetaBattle WvW |
-| Tools | gw2efficiency, GW2Timer Events, GW2Timer Map, Meta Timers, GW2 Crafts, Music Box, Peu Research Center |
-| Guides | Raid Food, Lucky Noobs, Guildjen, Mukluk Fractals, GW2 TLDR |
+| Tools | gw2efficiency, Legendary Tracker, Blish HUD, GW2Timer Events/Map, Meta Timers, Crafts, Music Box, Peu |
+| Guides | Raid Food, Lucky Noobs, Guildjen, Living World, Leveling, Earn Gold, Griffon/Skyscale, Mukluk, GW2 TLDR, TLDR Raids/Fractals |
 | Farming | Fast Farming |
-| Discord | Official, Community, Snowcrows, MetaBattle, Guildjen, Mukluk, Accessibility Wars, Skein Gang, Lucky Noobs, Fractal Training, Raid Academy, GW2 University, Crossroads Inn, Raid Training EU, Welcome to PvP, WvW NA/EU Alliance, Fast Farming, Raidcore |
+| Discord | Official, Community, builds, training, PvP, WvW, farming, trading, Raidcore, Central Hub |
 
 ## Notes
 
-- Discord invite pages open in the embedded browser; finishing a join may require the Discord app.
-- Players only need the DLL. The browser helper is embedded and extracts on first use; Chromium comes from the game’s `bin64/cef`.
+- Use **Open Ext** for Discord invites and sites that need a full desktop browser.
+- Players only need the DLL.
