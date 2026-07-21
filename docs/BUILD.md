@@ -76,6 +76,13 @@ cmake --build build -j"$(nproc)"
 The homepage (`HomePage.cpp`) embeds `docs/media/home-logo.png` and `docs/media/home-cover.jpg`
 into the DLL; they are written next to `helper-home.html` under `addons/GW2-InGame-Helper/` on first open.
 
+Built-in **Cheat Sheets** are compiled in and written on first open:
+
+| Sheet | Module | Files under addon data |
+|-------|--------|------------------------|
+| Raid Food | `src/RaidFood.cpp` | `raid-food.html` / `.ver` |
+| Raid Utilities, Fractal Consumables, Sigils & Runes, Relics, Boon Checklist, CC / Defiance, Raid Wings, Home Garden | `src/CheatSheets.cpp` | matching `*.html` / `*.ver` |
+
 Runtime CEF libraries are **not** shipped — the helper loads them from the game install at `bin64/cef/`.
 
 Player install layout:

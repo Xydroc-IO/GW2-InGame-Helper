@@ -14,10 +14,15 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.6.0.0`
+`1.7.1.0`
 
 ## Changelog highlights
 
+- **1.7.1.0** — Cheat Sheets category (Raid Food + eight offline sheets: utilities, fractals, sigils, relics, boons, CC, wings, garden)
+- **1.7.0.0** — Compact toolbar; pin / reopen tabs; keep-warm option; gold status polish
+- **1.6.0.3** — Fix blank Home/Raid Food/restored tabs; ready-resync; no forced homepage on open
+- **1.6.0.2** — Fix Home / Raid Food white page (activate+navigate + helper `about:` fallback)
+- **1.6.0.1** — Fix Raid Food / helper home blank page under live tabs (`about:` → `file://` on CreateTab)
 - **1.6.0.0** — Live multi-tab CEF; Browse-style + picker; fav reorder; New Tab; Find in page
 - **1.5.5.0** — Persist open tabs; fix Options default landing site
 - **1.5.4.1** — Escape no longer closes the helper
