@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.5.2.0
+# GW2 In-Game Helper v1.5.2.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -23,7 +23,7 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 | Open / close | `Ctrl+Shift+H` (or `K`) · QuickAccess icon |
 | Rebind | Nexus `Ctrl+O` → `KB_HELPER_TOGGLE` |
 | Browse sites | Toolbar **Browse** (search + categories + Favorites) |
-| Favorite site | ☆ / ★ on toolbar or next to Browse rows |
+| Favorite site | Star button on toolbar or next to Browse rows |
 | Copy current URL | Toolbar **Copy URL** |
 | Open in system browser | Toolbar **Open Ext** |
 
@@ -31,9 +31,15 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 1.5.2.1
+
+- **Fix:** Favorites star renders as a drawn icon (default ImGui font has no ★/☆ glyphs, which showed as `?`)
+
+---
+
 ## What’s new in 1.5.2.0
 
-- **Favorites** — star sites you use most (☆ add / ★ remove)
+- **Favorites** — star sites you use most
 - **Favorites** category at the top of Browse
 - Toolbar star toggles the current site
 - Persisted as `FavoriteIds=` in `addons/GW2-InGame-Helper/settings.ini`
@@ -55,7 +61,7 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 - **Favorites** — pin frequently used sites
 - Branded **How to use** homepage (logo + cover art)
 - Built-in **Raid Food** seasoning / feast guide
-- Toolbar: Home · Back · Forward · Reload · Browse · ★ · Copy URL · Open Ext
+- Toolbar: Home · Back · Forward · Reload · Browse · star · Copy URL · Open Ext
 - Nexus QuickAccess icon
 - Auto-update via GitHub Releases (`UP_GitHub`)
 - No Guild Wars 2 memory reads — Nexus APIs only
@@ -67,6 +73,7 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 | Version | Highlights |
 |---------|------------|
+| **1.5.2.1** | Favorites star icon fix (no font glyph) |
 | **1.5.2.0** | Favorites (star sites; persisted) |
 | **1.5.1.0** | Runtime data under `addons/GW2-InGame-Helper/`; DLL only in `addons/` |
 | **1.4.1.8** | Full-page themed homepage redesign |
@@ -85,6 +92,10 @@ Hardstuck and Discretize remain intentionally omitted (outdated).
 ---
 
 ## Changelog detail
+
+### 1.5.2.1
+
+- Draw Favorites star with ImGui primitives instead of Unicode ★/☆
 
 ### 1.5.2.0
 
