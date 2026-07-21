@@ -43,9 +43,9 @@ void Settings::Load()
 		return;
 	}
 
-	char line[256];
+	char line[768];
 	char key[64];
-	char val[160];
+	char val[640];
 	while (std::fgets(line, sizeof(line), f))
 	{
 		const char* eq = std::strchr(line, '=');
@@ -85,6 +85,8 @@ void Settings::Load()
 			std::snprintf(G::LastQuery, sizeof(G::LastQuery), "%s", val);
 		else if (std::strcmp(key, "ActiveSiteId") == 0)
 			std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", val);
+		else if (std::strcmp(key, "FavoriteIds") == 0)
+			Sites::ParseFavorites(val);
 	}
 	std::fclose(f);
 
@@ -101,6 +103,7 @@ void Settings::Load()
 		Sites::SetActiveById("home");
 		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "home");
 	}
+	Sites::PruneFavorites();
 
 	gDirty = false;
 }
@@ -129,6 +132,9 @@ void Settings::Save()
 	std::fprintf(f, "WindowPosY=%.1f\n", G::WindowPosY);
 	std::fprintf(f, "LastQuery=%s\n", G::LastQuery);
 	std::fprintf(f, "ActiveSiteId=%s\n", G::ActiveSiteId);
+	char favBuf[640]{};
+	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
+	std::fprintf(f, "FavoriteIds=%s\n", favBuf);
 
 	std::fclose(f);
 	gDirty = false;

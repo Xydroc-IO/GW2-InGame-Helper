@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.5.1.0
+# GW2 In-Game Helper v1.5.2.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -22,11 +22,21 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 |--------|---------|
 | Open / close | `Ctrl+Shift+H` (or `K`) · QuickAccess icon |
 | Rebind | Nexus `Ctrl+O` → `KB_HELPER_TOGGLE` |
-| Browse sites | Toolbar **Browse** (search + categories) |
+| Browse sites | Toolbar **Browse** (search + categories + Favorites) |
+| Favorite site | ☆ / ★ on toolbar or next to Browse rows |
 | Copy current URL | Toolbar **Copy URL** |
 | Open in system browser | Toolbar **Open Ext** |
 
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
+
+---
+
+## What’s new in 1.5.2.0
+
+- **Favorites** — star sites you use most (☆ add / ★ remove)
+- **Favorites** category at the top of Browse
+- Toolbar star toggles the current site
+- Persisted as `FavoriteIds=` in `addons/GW2-InGame-Helper/settings.ini`
 
 ---
 
@@ -35,17 +45,17 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 - **Install layout** — runtime files (helper exe, homepage HTML/assets, Raid Food page, `settings.ini`) live under `addons/GW2-InGame-Helper/`
 - **DLL only in `addons/`** — players still place a single DLL; nothing else ships beside it
 - **Stale cleanup** — older builds that left helper/HTML/settings next to the DLL in `addons/` are cleaned up on load
-- Version bump to **1.5.1.0**
 
 ---
 
 ## Features (current)
 
 - In-game CEF browser using the game’s `bin64/cef` (no separate Chromium download)
-- **Browse** panel — search and pick sites by category (replaces the old dropdown)
+- **Browse** panel — search and pick sites by category
+- **Favorites** — pin frequently used sites
 - Branded **How to use** homepage (logo + cover art)
 - Built-in **Raid Food** seasoning / feast guide
-- Toolbar: Home · Back · Forward · Reload · Browse · Copy URL · Open Ext
+- Toolbar: Home · Back · Forward · Reload · Browse · ★ · Copy URL · Open Ext
 - Nexus QuickAccess icon
 - Auto-update via GitHub Releases (`UP_GitHub`)
 - No Guild Wars 2 memory reads — Nexus APIs only
@@ -57,6 +67,7 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 | Version | Highlights |
 |---------|------------|
+| **1.5.2.0** | Favorites (star sites; persisted) |
 | **1.5.1.0** | Runtime data under `addons/GW2-InGame-Helper/`; DLL only in `addons/` |
 | **1.4.1.8** | Full-page themed homepage redesign |
 | **1.4.1.7** | Removed Lucky Noobs (site + Discord) |
@@ -74,6 +85,12 @@ Hardstuck and Discretize remain intentionally omitted (outdated).
 ---
 
 ## Changelog detail
+
+### 1.5.2.0
+
+- Add / remove favorites from the toolbar star or Browse row stars
+- Virtual **Favorites** category at the top of Browse
+- Persist favorite site ids in settings (`FavoriteIds`)
 
 ### 1.5.1.0
 
@@ -135,6 +152,7 @@ Hardstuck and Discretize remain intentionally omitted (outdated).
 
 | Category | Sites |
 |----------|--------|
+| Favorites | Your starred sites (user-defined) |
 | Help | How to use (built-in) |
 | Official | Guild Wars 2, GW2 News, Raidcore |
 | Wiki | GW2 Wiki, Game Updates, Legendaries, Mounts |
@@ -150,7 +168,7 @@ Hardstuck and Discretize remain intentionally omitted (outdated).
 
 ## Notes
 
-- Use **Browse** to pick sites. Prefer **Open Ext** when joining Discord or completing site logins.
+- Use **Browse** to pick sites. Star frequent ones into **Favorites**. Prefer **Open Ext** when joining Discord or completing site logins.
 - Discord invite pages can open in the embedded browser; finishing a join may require the Discord app.
 - Players only need the DLL. The browser helper and homepage assets are embedded and extract on first use; Chromium comes from the game’s `bin64/cef`.
 - HTTP cache uses `%TEMP%` (not under `addons`).
