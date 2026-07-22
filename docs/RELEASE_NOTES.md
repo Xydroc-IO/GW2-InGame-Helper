@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.5
+# GW2 In-Game Helper v1.7.8.6
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,14 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.6
+
+- **Fix:** Tab URL/title no longer corrupted when activating a tab before its CEF browser exists
+- **Fix:** Helper restart no longer replays stale CLOSE/CREATE commands
+- **Fix:** Reopening the helper no longer reloads every live tab
+- **Fix:** Shutdown only kills this addon’s helper (multi-client safe)
+- **Dev:** `make install` keeps `settings.ini`; use `make install-reset` to wipe it
 
 ## What’s new in 1.7.8.5
 

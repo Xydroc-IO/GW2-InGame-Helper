@@ -51,7 +51,12 @@ build/bin/GW2-InGame-Helper.dll
 make install
 # or:
 make install GW2_ROOT="/path/to/Guild Wars 2"
+
+# Also wipe settings.ini (tabs/favorites/window geometry):
+make install-reset
 ```
+
+`make install` refreshes cached HTML/`.ver` and CEF cache but **keeps** `settings.ini`.
 
 ### Clean
 
