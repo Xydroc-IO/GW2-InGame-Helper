@@ -449,6 +449,8 @@ const BrowserTabs::Tab& BrowserTabs::At(int index)
 void BrowserTabs::OpenInActive(const char* siteId, bool navigate)
 {
 	EnsureDefault();
+	/* Keep CEF history coherent — stash live URL before replacing the tab site. */
+	StashActiveUrl();
 	const bool keepPin = gTabs[gActive].tab.pinned;
 	FillFromSite(gTabs[gActive], siteId);
 	gTabs[gActive].tab.pinned = keepPin;
@@ -607,6 +609,7 @@ void BrowserTabs::GoForward()
 void BrowserTabs::GoHome()
 {
 	EnsureDefault();
+	StashActiveUrl();
 	const char* land = (G::DefaultSiteId[0] ? G::DefaultSiteId : "home");
 	if (Sites::IndexOfId(land) < 0)
 		land = "home";

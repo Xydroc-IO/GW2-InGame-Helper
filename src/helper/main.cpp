@@ -681,8 +681,26 @@ namespace
 	void CEF_CALLBACK OnAddressChange(
 		cef_display_handler_t*, cef_browser_t* browser, cef_frame_t* frame, const cef_string_t* url)
 	{
-		if (IsActiveBrowser(browser) && frame && frame->is_main(frame) && url)
-			SetUrlUtf8(CefStringToUtf8(url).c_str());
+		if (!IsActiveBrowser(browser) || !frame || !frame->is_main(frame) || !url)
+			return;
+		const std::string u = CefStringToUtf8(url);
+		/* Skip leftover about:blank in history (e.g. older helpers) when Back lands on it. */
+		if ((u == "about:blank" || u == "about:blank/") && browser->can_go_back && browser->can_go_back(browser))
+		{
+			browser->go_back(browser);
+			return;
+		}
+		/* History may still hold unresolved about: builtins — map to file://. */
+		if (u.rfind("about:", 0) == 0 && u != "about:blank")
+		{
+			const std::string resolved = ResolveBuiltinUrl(u.c_str());
+			if (!resolved.empty() && resolved != u)
+			{
+				NavigateTo(resolved.c_str());
+				return;
+			}
+		}
+		SetUrlUtf8(u.c_str());
 	}
 
 	void CEF_CALLBACK OnTitleChange(
@@ -1120,12 +1138,15 @@ namespace
 		gPendingCreateSlot = 0;
 		if (gIpc)
 		{
-			gIpc->tab_mask = 1u;
+			/* Do not create an about:blank browser here — it stays in CEF history
+			   and makes Back after a site change show a white page. The addon
+			   CREATE_TAB supplies the real start URL. */
+			gIpc->tab_mask = 0;
 			gIpc->active_tab = 0;
+			gIpc->ready = 1;
+			gIpc->alive = GetTickCount();
 		}
-		if (!CreateBrowserForSlot(0, "about:blank"))
-			return false;
-		SetStatus("Creating browser…");
+		SetStatus("Ready");
 		return true;
 	}
 
