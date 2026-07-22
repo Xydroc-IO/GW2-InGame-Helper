@@ -19,7 +19,6 @@
 
 #include <d3d11.h>
 #include <dxgi.h>
-#include <tlhelp32.h>
 #include <windows.h>
 
 extern "C" {
@@ -250,29 +249,36 @@ namespace
 		return true;
 	}
 
-	void KillStrayHelpers()
+	void KillHelperByPid(DWORD pid)
 	{
-		HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-		if (snap == INVALID_HANDLE_VALUE)
+		if (!pid)
 			return;
-		PROCESSENTRY32W pe{};
-		pe.dwSize = sizeof(pe);
-		if (Process32FirstW(snap, &pe))
-		{
-			do
-			{
-				if (_wcsicmp(pe.szExeFile, L"GW2HelperBrowser.exe") == 0)
-				{
-					HANDLE proc = OpenProcess(PROCESS_TERMINATE, FALSE, pe.th32ProcessID);
-					if (proc)
-					{
-						TerminateProcess(proc, 0);
-						CloseHandle(proc);
-					}
-				}
-			} while (Process32NextW(snap, &pe));
-		}
-		CloseHandle(snap);
+		HANDLE proc = OpenProcess(PROCESS_TERMINATE, FALSE, pid);
+		if (!proc)
+			return;
+		TerminateProcess(proc, 0);
+		CloseHandle(proc);
+	}
+
+	void ResetIpcQueues()
+	{
+		if (!gIpc)
+			return;
+		/* Drop any unconsumed commands/input so a restarted helper cannot
+		   replay CLOSE_TAB / CREATE_TAB against fresh CEF state. */
+		gIpc->cmd_read = 0;
+		gIpc->cmd_write = 0;
+		gIpc->cmd = WIKI_CMD_NONE;
+		gIpc->cmd_a = 0;
+		gIpc->cmd_arg[0] = 0;
+		gIpc->last_cmd_seq = gIpc->cmd_seq;
+		gIpc->input_read = 0;
+		gIpc->input_write = 0;
+		gIpc->tab_mask = 0;
+		gIpc->active_tab = 0;
+		gIpc->frame_seq = 0;
+		gIpc->url[0] = 0;
+		gIpc->title[0] = 0;
 	}
 
 	bool ExtractHelper()
@@ -377,8 +383,11 @@ namespace
 
 	void StopHelper()
 	{
+		const DWORD ownedPid = gProcessId;
 		if (gIpc && HelperAlive())
 		{
+			/* Same ring-first rule as PostCmd — do not bump cmd_seq when the
+			   ring accepts QUIT (avoids double HandleCmd on shutdown). */
 			const uint32_t w = gIpc->cmd_write;
 			const uint32_t next = (w + 1u) % kWikiCmdQueueSize;
 			if (next != gIpc->cmd_read)
@@ -388,11 +397,17 @@ namespace
 				ev.a = 0;
 				ev.arg[0] = 0;
 				gIpc->cmd_write = next;
+				gIpc->cmd = WIKI_CMD_QUIT;
+				gIpc->cmd_a = 0;
+				gIpc->cmd_arg[0] = 0;
 			}
-			gIpc->cmd = WIKI_CMD_QUIT;
-			gIpc->cmd_a = 0;
-			gIpc->cmd_arg[0] = 0;
-			++gIpc->cmd_seq;
+			else
+			{
+				gIpc->cmd = WIKI_CMD_QUIT;
+				gIpc->cmd_a = 0;
+				gIpc->cmd_arg[0] = 0;
+				++gIpc->cmd_seq;
+			}
 			/* Never block the game render thread for long — brief poll then kill. */
 			WaitForSingleObject(gProcess, 50);
 		}
@@ -404,6 +419,10 @@ namespace
 			gProcess = nullptr;
 			gProcessId = 0;
 		}
+		else if (ownedPid)
+		{
+			KillHelperByPid(ownedPid);
+		}
 		if (gJob)
 		{
 			CloseHandle(gJob);
@@ -411,9 +430,9 @@ namespace
 		}
 		if (gIpc)
 		{
+			ResetIpcQueues();
 			gIpc->ready = 0;
 			gIpc->alive = 0;
-			gIpc->frame_seq = 0;
 			std::snprintf(gIpc->status, sizeof(gIpc->status), "Stopped");
 		}
 		gLastFrameSeq = 0;
@@ -463,6 +482,11 @@ namespace
 			gStarting.store(false);
 			return false;
 		}
+		/* Clear any leftover commands from a previous helper before spawn. */
+		ResetIpcQueues();
+		gIpc->ready = 0;
+		gIpc->alive = 0;
+		std::snprintf(gIpc->status, sizeof(gIpc->status), "Launching…");
 
 		const std::wstring cef = CefDir();
 		if (cef.empty() || GetFileAttributesW((cef + L"\\libcef.dll").c_str()) == INVALID_FILE_ATTRIBUTES)
@@ -697,7 +721,6 @@ void WikiBrowser::Shutdown()
 {
 	gWantVisible.store(false);
 	StopHelper();
-	KillStrayHelpers();
 	ReleaseDevice();
 	if (gFramePixels)
 	{

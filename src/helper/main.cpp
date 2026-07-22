@@ -407,12 +407,12 @@ namespace
 			return;
 
 		/* New-tab race: ACTIVATE often arrives before OnAfterCreated. Remember
-		   the intent and finish activate when the browser appears. */
+		   the intent and finish activate when the browser appears. Do NOT
+		   publish active_tab yet — CurrentUrl/Title still belong to the old
+		   browser; UI Tick would corrupt the new tab's metadata. */
 		if (!gBrowsers[slot])
 		{
 			gPendingActivateSlot = slot;
-			if (gIpc)
-				gIpc->active_tab = slot;
 			return;
 		}
 
