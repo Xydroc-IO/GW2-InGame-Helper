@@ -56,6 +56,13 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | CC / Defiance (built-in) | Cheat Sheets |
 | Raid Wings (built-in) | Cheat Sheets |
 | Home Garden (built-in) | Cheat Sheets |
+| Strike Missions (built-in) | Cheat Sheets |
+| Fractal CM / T4 (built-in) | Cheat Sheets |
+| Squad Template (built-in) | Cheat Sheets |
+| Stability / Cleanse (built-in) | Cheat Sheets |
+| Material Conversions (built-in) | Cheat Sheets |
+| Legendary Paths (built-in) | Cheat Sheets |
+| Mount Unlock (built-in) | Cheat Sheets |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
 | [Leveling](https://metabattle.com/wiki/Guide:Leveling_Up) | Guides |
@@ -92,7 +99,7 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 - Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
-- **Cheat Sheets** category — offline pages (Raid Food style): **Uber's All-In-One**, **Raid Food**, **Raid Utilities**, **Fractal Consumables**, **Sigils & Runes**, **Relics**, **Boon Checklist**, **CC / Defiance**, **Raid Wings**, **Home Garden**
+- **Cheat Sheets** category — offline pages: **Uber's All-In-One**, **Raid Food**, **Raid Utilities**, **Fractal Consumables**, **Fractal CM / T4**, **Sigils & Runes**, **Relics**, **Boon Checklist**, **Squad Template**, **Stability / Cleanse**, **CC / Defiance**, **Raid Wings**, **Strike Missions**, **Material Conversions**, **Legendary Paths**, **Mount Unlock**, **Home Garden**
 - **Copy URL** and **Open Ext** (system browser — Discord joins / logins)
 - Single DLL — browser helper and homepage assets are embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only
