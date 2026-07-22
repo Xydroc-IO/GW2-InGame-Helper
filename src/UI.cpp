@@ -258,6 +258,10 @@ namespace
 				std::strcmp(id, "mb_voice_claw") == 0 || std::strcmp(id, "mb_whisper") == 0 ||
 				std::strcmp(id, "mb_ankka") == 0)
 				return "Strikes";
+			if (std::strcmp(id, "mb_pvp_guides") == 0)
+				return "PvP";
+			if (std::strcmp(id, "mb_wvw_guides") == 0)
+				return "WvW";
 			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0)
 				return "TLDR";
 			return "Other";
@@ -373,7 +377,8 @@ namespace
 		if (std::strcmp(category, "Guides") == 0)
 		{
 			static const char* kSec[] = {
-				"Living World", "Progress", "Mounts", "Fractals", "Raid Wings", "Strikes", "TLDR", "Other"
+				"Living World", "Progress", "Mounts", "Fractals", "Raid Wings", "Strikes",
+				"PvP", "WvW", "TLDR", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;

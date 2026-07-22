@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.10` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.11` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -83,6 +83,8 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Griffon Unlock](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Griffon_Mount) | Guides |
 | [Skyscale Unlock](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Skyscale_Mount) | Guides |
 | [PvE Guides Hub](https://metabattle.com/wiki/PvE_Guides) | Guides |
+| [PvP Guides Hub](https://metabattle.com/wiki/PvP_Guides) | Guides |
+| [WvW Guides Hub](https://metabattle.com/wiki/WvW_Guides) | Guides |
 | MetaBattle Fractals (Intro, Aquatic Ruins, Deepstone, Lonely Tower, Molten Furnace, Shattered Observatory, Silent Surf, Siren's Reef, Sunqua Peak, Twilight Oasis, Underground Facility) | Guides |
 | [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
 | MetaBattle Raid Wings (Intro, Hand Kiting, Wings 1–7) | Guides |
