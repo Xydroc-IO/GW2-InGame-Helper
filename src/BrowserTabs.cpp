@@ -397,8 +397,8 @@ void BrowserTabs::Tick()
 
 	BrowserTabs::Tab& active = gTabs[gActive].tab;
 	bool urlChanged = false;
-	const std::string cur = WikiBrowser::CurrentUrl();
-	if (!cur.empty() && cur != active.url)
+	const char* cur = WikiBrowser::CurrentUrlCStr();
+	if (cur && cur[0] && std::strcmp(cur, active.url.c_str()) != 0)
 	{
 		active.url = cur;
 		urlChanged = true;
@@ -414,14 +414,14 @@ void BrowserTabs::Tick()
 	{
 		/* Late CEF title — cheap path; skip BestMatch unless title actually changed. */
 		static char sLastPageTitle[128]{};
-		const std::string page = WikiBrowser::CurrentTitle();
-		if (!page.empty() && page != "about:blank" &&
-			std::strncmp(sLastPageTitle, page.c_str(), sizeof(sLastPageTitle) - 1) != 0)
+		const char* page = WikiBrowser::CurrentTitleCStr();
+		if (page && page[0] && std::strcmp(page, "about:blank") != 0 &&
+			std::strncmp(sLastPageTitle, page, sizeof(sLastPageTitle) - 1) != 0)
 		{
-			std::snprintf(sLastPageTitle, sizeof(sLastPageTitle), "%s", page.c_str());
+			std::snprintf(sLastPageTitle, sizeof(sLastPageTitle), "%s", page);
 			const int match = Sites::BestMatchForUrl(active.url);
 			if (match < 0)
-				ApplyTabTitle(active, page.c_str());
+				ApplyTabTitle(active, page);
 			else
 			{
 				size_t n = 0;
@@ -436,7 +436,7 @@ void BrowserTabs::Tick()
 						std::strncmp(home, "file:", 5) == 0))
 					atHome = true;
 				if (!atHome)
-					ApplyTabTitle(active, page.c_str());
+					ApplyTabTitle(active, page);
 			}
 		}
 	}
