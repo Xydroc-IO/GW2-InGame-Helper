@@ -125,22 +125,49 @@ namespace
   }
   .checks { list-style: none; margin: 0; padding: 0; }
   .checks li {
-    display: flex; gap: 12px; align-items: flex-start;
-    padding: 10px 12px; margin: 0 0 8px;
+    list-style: none; margin: 0 0 8px; padding: 0;
+  }
+  .checks li:last-child { margin-bottom: 0; }
+  .checks label.check {
+    display: flex; gap: 12px; align-items: flex-start; position: relative;
+    padding: 10px 12px;
     background: var(--panel-2); border: 1px solid var(--border-soft);
     border-left: 3px solid var(--gold-dim); color: var(--muted); font-size: 0.92rem;
     cursor: pointer; user-select: none;
     transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
   }
-  .checks li:last-child { margin-bottom: 0; }
-  .checks li:hover { background: #16130c; border-color: var(--border); }
-  .checks li:focus { outline: 1px solid var(--gold); outline-offset: 1px; }
-  .checks li.done { opacity: 0.72; border-left-color: #6aaa6a; }
-  .checks li.done > span:not(.box) { text-decoration: line-through; }
+  .checks label.check:hover { background: #16130c; border-color: var(--border); }
+  .checks label.check:focus-within { outline: 1px solid var(--gold); outline-offset: 1px; }
+  /* Full-row hit target — OSR clicks native inputs more reliably than JS-on-<li>. */
+  .checks input[type="checkbox"] {
+    position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+    margin: 0; opacity: 0; cursor: pointer; z-index: 2;
+  }
   .checks .box {
     flex: 0 0 auto; width: 1.05rem; height: 1.05rem; margin-top: 2px;
     border: 1px solid var(--border); background: var(--accent);
-    position: relative;
+    position: relative; z-index: 1; pointer-events: none;
+  }
+  .checks .txt { position: relative; z-index: 1; pointer-events: none; }
+  .checks input:checked ~ .box {
+    background: rgba(106, 170, 106, 0.22);
+    border-color: rgba(106, 170, 106, 0.65);
+  }
+  .checks input:checked ~ .box::after {
+    content: "";
+    position: absolute; left: 3px; top: 0;
+    width: 4px; height: 8px;
+    border: solid #a8d0a8; border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .checks input:checked ~ .txt { text-decoration: line-through; opacity: 0.78; }
+  .checks label.check:has(input:checked),
+  .checks label.check.done {
+    opacity: 0.85; border-left-color: #6aaa6a;
+  }
+  /* Legacy rows (no <input>) toggled via BootJs .done on <li> */
+  .checks li.done {
+    opacity: 0.85;
   }
   .checks li.done .box {
     background: rgba(106, 170, 106, 0.22);
@@ -153,6 +180,8 @@ namespace
     border: solid #a8d0a8; border-width: 0 2px 2px 0;
     transform: rotate(45deg);
   }
+  .checks li.done > span:not(.box),
+  .checks li.done .txt { text-decoration: line-through; }
   .checks strong { color: var(--text); }
   .callout-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -326,33 +355,27 @@ namespace
 			   "</div>\n"
 			   "<script>\n"
 			   "(function(){\n"
-			   "  var items=document.querySelectorAll(\"ul.checks > li\");\n"
-			   "  if(!items.length) return;\n"
+			   "  var boxes=document.querySelectorAll(\"ul.checks input[type=checkbox]\");\n"
+			   "  if(!boxes.length) return;\n"
 			   "  var key=\"gw2helper.checks.\"+(document.title||location.pathname||\"sheet\");\n"
 			   "  var saved={};\n"
 			   "  try{saved=JSON.parse(localStorage.getItem(key)||\"{}\")||{};}catch(e){}\n"
 			   "  function save(){\n"
 			   "    var state={};\n"
-			   "    for(var i=0;i<items.length;i++) if(items[i].classList.contains(\"done\")) state[i]=1;\n"
+			   "    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;\n"
 			   "    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}\n"
 			   "  }\n"
-			   "  function setDone(li,on){\n"
-			   "    if(on) li.classList.add(\"done\"); else li.classList.remove(\"done\");\n"
-			   "    li.setAttribute(\"aria-checked\", on ? \"true\" : \"false\");\n"
+			   "  function syncLabel(box){\n"
+			   "    var lab=box.closest ? box.closest(\"label\") : box.parentNode;\n"
+			   "    if(!lab) return;\n"
+			   "    if(box.checked) lab.classList.add(\"done\"); else lab.classList.remove(\"done\");\n"
 			   "  }\n"
-			   "  for(var i=0;i<items.length;i++){\n"
-			   "    (function(li,idx){\n"
-			   "      li.setAttribute(\"role\",\"checkbox\");\n"
-			   "      li.tabIndex=0;\n"
-			   "      setDone(li, !!saved[idx]);\n"
-			   "      function toggle(){ setDone(li, !li.classList.contains(\"done\")); save(); }\n"
-			   "      li.addEventListener(\"click\", function(e){ e.preventDefault(); toggle(); });\n"
-			   "      li.addEventListener(\"keydown\", function(e){\n"
-			   "        if(e.key===\" \"||e.key===\"Enter\"||e.keyCode===32||e.keyCode===13){\n"
-			   "          e.preventDefault(); toggle();\n"
-			   "        }\n"
-			   "      });\n"
-			   "    })(items[i], i);\n"
+			   "  for(var i=0;i<boxes.length;i++){\n"
+			   "    (function(box,idx){\n"
+			   "      box.checked=!!saved[idx];\n"
+			   "      syncLabel(box);\n"
+			   "      box.addEventListener(\"change\", function(){ syncLabel(box); save(); });\n"
+			   "    })(boxes[i], i);\n"
 			   "  }\n"
 			   "})();\n"
 			   "</script>\n"
@@ -853,12 +876,12 @@ namespace
     </div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-sup">Quick</span> named player / build</span></li>
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-sup">Alac</span> named player / build</span></li>
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-heal">Heal</span> (often doubles prot / regen / resolution)</span></li>
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-tank">Tank</span> (if fight needs one) — toughness check</span></li>
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-power">Might</span> plan (FB / banners / kits)</span></li>
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-misc">Fury</span> — confirm someone actually brings it</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-sup">Quick</span> named player / build</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-sup">Alac</span> named player / build</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-heal">Heal</span> (often doubles prot / regen / resolution)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-tank">Tank</span> (if fight needs one) — toughness check</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-power">Might</span> plan (FB / banners / kits)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-misc">Fury</span> — confirm someone actually brings it</span></label></li>
       </ul>
       <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Double quick / double alac</strong> comps are normal. Hybrid boon-DPS can cover both — still say it in chat.</p>
     </div>
@@ -1314,9 +1337,10 @@ namespace
       <p>Gathering routes and a reliable kill objective.</p>
     </div>
     <div class="body">
+      <p class="note" style="margin:0 0 14px">Axe / Sickle / Pick: <strong>[&amp;BJ4CAAA=][&amp;BPoAAAA=][&amp;BMQCAAA=]</strong></p>
       <div class="wp-grid">
         <article class="wp kind-vault">
-          <div class="meta"><span class="kind">Landmark</span><span class="purpose">Axe · Sickle · Pick</span></div>
+          <div class="meta"><span class="kind">Point of Interest</span><span class="purpose">Axe</span></div>
           <h3 class="name">Rayhan Bayt</h3>
           <p class="map">Malchor’s Leap</p>
           <div class="actions">
@@ -1326,7 +1350,7 @@ namespace
           </div>
         </article>
         <article class="wp kind-vault">
-          <div class="meta"><span class="kind">Waypoint</span><span class="purpose">Axe · Sickle · Pick</span></div>
+          <div class="meta"><span class="kind">Waypoint</span><span class="purpose">Sickle</span></div>
           <h3 class="name">Beetletun Waypoint</h3>
           <p class="map">Queensdale</p>
           <div class="actions">
@@ -1336,7 +1360,7 @@ namespace
           </div>
         </article>
         <article class="wp kind-vault">
-          <div class="meta"><span class="kind">Landmark</span><span class="purpose">Axe · Sickle · Pick</span></div>
+          <div class="meta"><span class="kind">Point of Interest</span><span class="purpose">Pick</span></div>
           <h3 class="name">Rata Pten</h3>
           <p class="map">Mount Maelstrom</p>
           <div class="actions">
@@ -1720,11 +1744,11 @@ namespace
     <div class="head"><h2>Pre-Pull Checklist</h2><p>Call these in chat.</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-tank">Tank</span> named (if needed) · toughness check</span></li>
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-sup">Quick</span> + <span class="tag tag-sup">Alac</span> named</span></li>
-        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-heal">Heal</span> coverage confirmed</span></li>
-        <li><span class="box" aria-hidden="true"></span><span>Food + utilities up (Raid Food / Raid Utilities)</span></li>
-        <li><span class="box" aria-hidden="true"></span><span>Special roles (kite, push, reflect) assigned</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-tank">Tank</span> named (if needed) · toughness check</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-sup">Quick</span> + <span class="tag tag-sup">Alac</span> named</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-heal">Heal</span> coverage confirmed</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Food + utilities up (Raid Food / Raid Utilities)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Special roles (kite, push, reflect) assigned</span></label></li>
       </ul>
     </div>
   </section>
@@ -1880,11 +1904,11 @@ namespace
     <div class="head"><h2>Gen 1 Weapons</h2><p>Precursor + four gifts in the mystic forge.</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box"></span><span><strong>Precursor</strong> — drop, craft, or buy</span></li>
-        <li><span class="box"></span><span><strong>Gift of Fortune</strong> — clovers · ecto · mystic coins · destiny gifts</span></li>
-        <li><span class="box"></span><span><strong>Gift of Mastery</strong> — world completion · shards · obsidians · battle / exploration gifts</span></li>
-        <li><span class="box"></span><span><strong>Gift of (Weapon)</strong> — themed gift from collection + mats</span></li>
-        <li><span class="box"></span><span><strong>Forge</strong> — precursor + Fortune + Mastery + Weapon gift</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Precursor</strong> — drop, craft, or buy</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Gift of Fortune</strong> — clovers · ecto · mystic coins · destiny gifts</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Gift of Mastery</strong> — world completion · shards · obsidians · battle / exploration gifts</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Gift of (Weapon)</strong> — themed gift from collection + mats</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Forge</strong> — precursor + Fortune + Mastery + Weapon gift</span></label></li>
       </ul>
     </div>
   </section>
@@ -1945,11 +1969,11 @@ namespace
     <div class="head"><h2>Griffon</h2><p>Path of Fire</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box"></span><span>Own <strong>Path of Fire</strong></span></li>
-        <li><span class="box"></span><span>Train basic mounts required by the collection</span></li>
-        <li><span class="box"></span><span>Complete the <strong>Open Skies</strong> / griffon collection</span></li>
-        <li><span class="box"></span><span>Gather listed powders / materials</span></li>
-        <li><span class="box"></span><span>Finish roost / forge step on the achievement</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Own <strong>Path of Fire</strong></span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Train basic mounts required by the collection</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Complete the <strong>Open Skies</strong> / griffon collection</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Gather listed powders / materials</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Finish roost / forge step on the achievement</span></label></li>
       </ul>
       <p class="note" style="margin-top:14px;margin-bottom:0">Detail → Guides · Griffon Unlock (MetaBattle).</p>
     </div>
@@ -1959,11 +1983,11 @@ namespace
     <div class="head"><h2>Skyscale</h2><p>Living World + End of Dragons era</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box"></span><span>Required Living World / IBS episodes owned</span></li>
-        <li><span class="box"></span><span>Complete <strong>Skyscale Growing / Saving</strong> story steps</span></li>
-        <li><span class="box"></span><span>Finish the <strong>Skyscale collection</strong></span></li>
-        <li><span class="box"></span><span>Pay / craft materials at each gate</span></li>
-        <li><span class="box"></span><span>Optional: mastery tracks for holds / dashes</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Required Living World / IBS episodes owned</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Complete <strong>Skyscale Growing / Saving</strong> story steps</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Finish the <strong>Skyscale collection</strong></span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Pay / craft materials at each gate</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Optional: mastery tracks for holds / dashes</span></label></li>
       </ul>
       <p class="note" style="margin-top:14px;margin-bottom:0">Detail → Guides · Skyscale Unlock (MetaBattle).</p>
     </div>
@@ -1973,10 +1997,10 @@ namespace
     <div class="head"><h2>Siege Turtle</h2><p>End of Dragons</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box"></span><span>Own <strong>End of Dragons</strong></span></li>
-        <li><span class="box"></span><span>Progress Cantha story / turtle gates</span></li>
-        <li><span class="box"></span><span>Complete <strong>Turtle Unlock</strong> collection</span></li>
-        <li><span class="box"></span><span>Unlock passenger / siege skills via masteries</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Own <strong>End of Dragons</strong></span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Progress Cantha story / turtle gates</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Complete <strong>Turtle Unlock</strong> collection</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Unlock passenger / siege skills via masteries</span></label></li>
       </ul>
     </div>
   </section>
@@ -2011,12 +2035,12 @@ namespace
     <div class="head"><h2>Daily</h2><p>Reset with the daily reset (server time).</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box"></span><span><strong>Fractals</strong> — daily T4 · recommended · CMs you farm</span></li>
-        <li><span class="box"></span><span><strong>Strikes</strong> — IBS / EoD / SotO dailies (priority for essences / KP)</span></li>
-        <li><span class="box"></span><span><strong>Raids</strong> — wing(s) your static / LFG clears today</span></li>
-        <li><span class="box"></span><span><strong>Wizard’s Vault</strong> — daily objectives (easy astral acclaim)</span></li>
-        <li><span class="box"></span><span><strong>World bosses / metas</strong> — see Metas below if chasing events</span></li>
-        <li><span class="box"></span><span><strong>Living World / expansion dailies</strong> — map bonuses you still need</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Fractals</strong> — daily T4 · recommended · CMs you farm</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Strikes</strong> — IBS / EoD / SotO dailies (priority for essences / KP)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Raids</strong> — wing(s) your static / LFG clears today</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Wizard’s Vault</strong> — daily objectives (easy astral acclaim)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>World bosses / metas</strong> — see Metas below if chasing events</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Living World / expansion dailies</strong> — map bonuses you still need</span></label></li>
       </ul>
     </div>
   </section>
@@ -2025,11 +2049,11 @@ namespace
     <div class="head"><h2>Weekly</h2><p>Raid / strike / fractal weekly gates.</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box"></span><span><strong>Raid wings</strong> — clear each wing once for weekly chests / liquid</span></li>
-        <li><span class="box"></span><span><strong>Strike missions</strong> — weekly strike chests / priorities</span></li>
-        <li><span class="box"></span><span><strong>Fractal CMs</strong> — weekly CM rewards / essence goals</span></li>
-        <li><span class="box"></span><span><strong>Wizard’s Vault</strong> — weekly objectives + specials</span></li>
-        <li><span class="box"></span><span><strong>PvP / WvW</strong> — reward tracks / weekly if you play those modes</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Raid wings</strong> — clear each wing once for weekly chests / liquid</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Strike missions</strong> — weekly strike chests / priorities</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Fractal CMs</strong> — weekly CM rewards / essence goals</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Wizard’s Vault</strong> — weekly objectives + specials</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>PvP / WvW</strong> — reward tracks / weekly if you play those modes</span></label></li>
       </ul>
       <p class="note" style="margin-top:14px;margin-bottom:0">Wing / strike maps → Raid Wings · Strike Missions sheets. Fractal AR → Fractal Consumables / CM list.</p>
     </div>
@@ -2051,9 +2075,9 @@ namespace
     <div class="head"><h2>Metas &amp; World Bosses</h2><p>Timers change — use Tools · GW2Timer / Meta Timers for schedules.</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box"></span><span><strong>Core metas</strong> — Teq · Triple Trouble · Shatterer · etc. when you need chests / mats</span></li>
-        <li><span class="box"></span><span><strong>HoT / PoF / EoD / SotO metas</strong> — map completion / currency farms</span></li>
-        <li><span class="box"></span><span><strong>Champ trains</strong> — optional gold / gear path</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Core metas</strong> — Teq · Triple Trouble · Shatterer · etc. when you need chests / mats</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>HoT / PoF / EoD / SotO metas</strong> — map completion / currency farms</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Champ trains</strong> — optional gold / gear path</span></label></li>
       </ul>
       <p class="note" style="margin-top:14px;margin-bottom:0">This sheet is a checklist, not a timer. Open GW2Timer from Browse · Tools for live schedules.</p>
     </div>
@@ -2305,10 +2329,10 @@ namespace
     <div class="head"><h2>Account QoL</h2><p>Make the homestead a real hub.</p></div>
     <div class="body">
       <ul class="checks">
-        <li><span class="box"></span><span>Bank / material storage route you like</span></li>
-        <li><span class="box"></span><span>Crafting stations for your disciplines</span></li>
-        <li><span class="box"></span><span>Decor / waypoints you actually use</span></li>
-        <li><span class="box"></span><span>Portal / exit habits for map hopping</span></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Bank / material storage route you like</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Crafting stations for your disciplines</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Decor / waypoints you actually use</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Portal / exit habits for map hopping</span></label></li>
       </ul>
     </div>
   </section>
@@ -2398,70 +2422,70 @@ namespace
 	const PageSpec* Pages(size_t* outCount)
 	{
 		static const PageSpec kPages[] = {
-			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "4",
+			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "6",
 			  "Uber's All-In-One", "Uber's All-In-One — Waypoints"},
 			 HtmlUbersAllInOne},
-			{{"raidutils", "about:raid-utilities", "raid-utilities", "2",
+			{{"raidutils", "about:raid-utilities", "raid-utilities", "3",
 			  "Raid Utilities", "Raid Utilities — Oils, Stones & Crystals"},
 			 HtmlRaidUtilities},
-			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "11",
+			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "12",
 			  "Fractal Consumables", "Fractal Consumables — Potions & Agony"},
 			 HtmlFractalConsumables},
-			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "11",
+			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "12",
 			  "Fractal CM / T4", "Fractal CM / T4 List"},
 			 HtmlFractalCmList},
-			{{"sigilsrunes", "about:sigils-runes", "sigils-runes", "2",
+			{{"sigilsrunes", "about:sigils-runes", "sigils-runes", "3",
 			  "Sigils & Runes", "Sigils & Runes — Common Role Picks"},
 			 HtmlSigilsRunes},
-			{{"relics", "about:relics", "relics-guide", "2",
+			{{"relics", "about:relics", "relics-guide", "3",
 			  "Relics", "Relics — Picks by Role"},
 			 HtmlRelics},
-			{{"booncheck", "about:boon-checklist", "boon-checklist", "2",
+			{{"booncheck", "about:boon-checklist", "boon-checklist", "3",
 			  "Boon Checklist", "Boon Checklist — Squad Coverage"},
 			 HtmlBoonChecklist},
-			{{"squadtmpl", "about:squad-template", "squad-template", "3",
+			{{"squadtmpl", "about:squad-template", "squad-template", "4",
 			  "Squad Template", "Squad Template — 10-Man Roles"},
 			 HtmlSquadTemplate},
-			{{"stabcleanse", "about:stability-cleanse", "stability-cleanse", "3",
+			{{"stabcleanse", "about:stability-cleanse", "stability-cleanse", "4",
 			  "Stability / Cleanse", "Stability / Cleanse — Squad Utility"},
 			 HtmlStabilityCleanse},
-			{{"ccdefiance", "about:cc-defiance", "cc-defiance", "2",
+			{{"ccdefiance", "about:cc-defiance", "cc-defiance", "3",
 			  "CC / Defiance", "CC / Defiance — Breakbar by Profession"},
 			 HtmlCcDefiance},
-			{{"raidwings", "about:raid-wings", "raid-wings", "2",
+			{{"raidwings", "about:raid-wings", "raid-wings", "3",
 			  "Raid Wings", "Raid Wings Overview"},
 			 HtmlRaidWings},
-			{{"strikes", "about:strike-missions", "strike-missions", "3",
+			{{"strikes", "about:strike-missions", "strike-missions", "4",
 			  "Strike Missions", "Strike Missions Overview"},
 			 HtmlStrikeMissions},
-			{{"matconv", "about:material-conversions", "material-conversions", "3",
+			{{"matconv", "about:material-conversions", "material-conversions", "4",
 			  "Material Conversions", "Material Conversions"},
 			 HtmlMaterialConversions},
-			{{"legpaths", "about:legendary-paths", "legendary-paths", "3",
+			{{"legpaths", "about:legendary-paths", "legendary-paths", "4",
 			  "Legendary Paths", "Legendary Short Paths"},
 			 HtmlLegendaryPaths},
-			{{"mounts", "about:mount-unlock", "mount-unlock", "3",
+			{{"mounts", "about:mount-unlock", "mount-unlock", "4",
 			  "Mount Unlock", "Mount Unlock Checklist"},
 			 HtmlMountUnlock},
-			{{"homegarden", "about:home-garden", "home-garden", "2",
+			{{"homegarden", "about:home-garden", "home-garden", "3",
 			  "Home Garden", "Home Garden — Cultivated Herbs"},
 			 HtmlHomeGarden},
-			{{"dailyweekly", "about:daily-weekly", "daily-weekly", "2",
+			{{"dailyweekly", "about:daily-weekly", "daily-weekly", "3",
 			  "Daily / Weekly", "Daily / Weekly Checklist"},
 			 HtmlDailyWeekly},
-			{{"currencysinks", "about:currency-sinks", "currency-sinks", "2",
+			{{"currencysinks", "about:currency-sinks", "currency-sinks", "3",
 			  "Currency Sinks", "Currency Sinks"},
 			 HtmlCurrencySinks},
-			{{"ascendedstart", "about:ascended-start", "ascended-start", "2",
+			{{"ascendedstart", "about:ascended-start", "ascended-start", "3",
 			  "Ascended Start", "Ascended Start — Gearing Path"},
 			 HtmlAscendedStart},
-			{{"portalspulls", "about:portals-pulls", "portals-pulls", "2",
+			{{"portalspulls", "about:portals-pulls", "portals-pulls", "3",
 			  "Portals / Pulls", "Portals / Pulls / Utility"},
 			 HtmlPortalsPulls},
-			{{"homestead", "about:homestead", "homestead-extras", "2",
+			{{"homestead", "about:homestead", "homestead-extras", "3",
 			  "Homestead", "Homestead Extras"},
 			 HtmlHomestead},
-			{{"wvwcons", "about:wvw-consumables", "wvw-consumables", "2",
+			{{"wvwcons", "about:wvw-consumables", "wvw-consumables", "3",
 			  "WvW Consumables", "WvW Consumables — Siege & Utility"},
 			 HtmlWvwConsumables},
 		};

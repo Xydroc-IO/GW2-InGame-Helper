@@ -284,11 +284,11 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 7;
-	G::AddonDef.Version.Build    = 7;
+	G::AddonDef.Version.Build    = 8;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
-		"Modular in-game browser for GW2 sites and Discords. Ctrl+Shift+H toggle. One DLL, no memory reads.";
+		"In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.";
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
 	G::AddonDef.Flags            = AF_DisableHotloading;

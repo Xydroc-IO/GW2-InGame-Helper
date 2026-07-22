@@ -178,6 +178,12 @@ namespace
 		if (!category || !id || !id[0])
 			return nullptr;
 
+		if (std::strcmp(category, "Help") == 0)
+			return "Getting Started";
+
+		if (std::strcmp(category, "Search") == 0)
+			return "Web Search";
+
 		if (std::strcmp(category, "Cheat Sheets") == 0)
 		{
 			if (std::strcmp(id, "raidfood") == 0 || std::strcmp(id, "raidutils") == 0 ||
@@ -267,11 +273,20 @@ namespace
 				return "Raids";
 			if (std::strcmp(id, "metabattle") == 0 || std::strcmp(id, "metabattle_ow") == 0 ||
 				std::strcmp(id, "aw2help") == 0)
-				return "General";
+				return "Open World / General";
 			if (std::strcmp(id, "gw2skills") == 0)
 				return "Editor";
 			return "Other";
 		}
+
+		if (std::strcmp(category, "PvP") == 0)
+			return "Builds";
+
+		if (std::strcmp(category, "WvW") == 0)
+			return "Builds";
+
+		if (std::strcmp(category, "Farming") == 0)
+			return "Community";
 
 		if (std::strcmp(category, "Wiki") == 0)
 		{
@@ -280,7 +295,9 @@ namespace
 			if (std::strcmp(id, "wiki_updates") == 0)
 				return "News";
 			if (std::strcmp(id, "wiki_legendaries") == 0 || std::strcmp(id, "wiki_mounts") == 0)
-				return "Reference";
+				return "Collections";
+			if (std::strcmp(id, "wiki_vault_easy") == 0)
+				return "Wizard's Vault";
 			return "Other";
 		}
 
@@ -301,6 +318,18 @@ namespace
 	{
 		if (!category || !outCount)
 			return nullptr;
+		if (std::strcmp(category, "Help") == 0)
+		{
+			static const char* kSec[] = { "Getting Started" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Search") == 0)
+		{
+			static const char* kSec[] = { "Web Search" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
 		if (std::strcmp(category, "Cheat Sheets") == 0)
 		{
 			static const char* kSec[] = {
@@ -335,13 +364,31 @@ namespace
 		}
 		if (std::strcmp(category, "Builds") == 0)
 		{
-			static const char* kSec[] = { "Raids", "General", "Editor", "Other" };
+			static const char* kSec[] = { "Raids", "Open World / General", "Editor", "Other" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "PvP") == 0)
+		{
+			static const char* kSec[] = { "Builds" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "WvW") == 0)
+		{
+			static const char* kSec[] = { "Builds" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Farming") == 0)
+		{
+			static const char* kSec[] = { "Community" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
 		if (std::strcmp(category, "Wiki") == 0)
 		{
-			static const char* kSec[] = { "Main", "News", "Reference", "Other" };
+			static const char* kSec[] = { "Main", "News", "Collections", "Wizard's Vault", "Other" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
@@ -898,7 +945,9 @@ namespace
 			{
 				ImGui::SameLine(0.f, 2.f);
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, ImGui::GetStyle().FramePadding.y));
-				if (ImGui::SmallButton("x"))
+				char closeId[24];
+				std::snprintf(closeId, sizeof(closeId), "x##close%d", i);
+				if (ImGui::SmallButton(closeId))
 					pendingClose = i;
 				ImGui::PopStyleVar();
 				if (ImGui::IsItemHovered())
@@ -908,7 +957,9 @@ namespace
 			{
 				ImGui::SameLine(0.f, 2.f);
 				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.35f);
-				ImGui::SmallButton("x");
+				char closeId[24];
+				std::snprintf(closeId, sizeof(closeId), "x##pin%d", i);
+				ImGui::SmallButton(closeId);
 				ImGui::PopStyleVar();
 				if (ImGui::IsItemHovered())
 					ImGui::SetTooltip("Unpin to close");

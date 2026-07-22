@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "27";
+	static constexpr const char* kHomePageVersion = "28";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -464,7 +464,7 @@ const char* HomePage::Html()
             <div class="card"><span class="cat">Help</span><span>This page</span></div>
             <div class="card"><span class="cat">Search</span><span>Google, DuckDuckGo</span></div>
             <div class="card"><span class="cat">Official</span><span>Guild Wars 2, GW2 News, Raidcore, Forums</span></div>
-            <div class="card"><span class="cat">Wiki</span><span>Wiki, Game Updates, Legendaries, Mounts</span></div>
+            <div class="card"><span class="cat">Wiki</span><span>Wiki, Game Updates, Legendaries, Mounts, Vault Easy Objectives</span></div>
             <div class="card"><span class="cat">Builds</span><span>Snowcrows, MetaBattle, MetaBattle OW, Accessibility Wars, Gw2Skills Editor</span></div>
             <div class="card"><span class="cat">PvP / WvW</span><span>MetaBattle PvP, MetaBattle WvW</span></div>
             <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu</span></div>

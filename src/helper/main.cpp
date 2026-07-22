@@ -72,11 +72,15 @@ namespace
 	std::atomic<bool> gRunning{true};
 	cef_browser_t* gBrowsers[kWikiMaxTabs] = {};
 	int gActiveSlot = 0;
-	/* FIFO of slots awaiting OnAfterCreated — create_browser is async, so multiple
-	   CREATE_TABs (e.g. SyncAll) must not overwrite a single pending slot. */
-	int gPendingCreateSlots[kWikiMaxTabs] = {};
-	int gPendingCreateHead = 0;
-	int gPendingCreateCount = 0;
+	/* Serialized creates: only one create_browser in flight. Parallel creates
+	   can complete out of order and FIFO-assign browsers to the wrong slots
+	   (close tab 2 then kills tab 1's page). */
+	int gCreateQueueSlots[kWikiMaxTabs] = {};
+	std::string gCreateQueueUrls[kWikiMaxTabs];
+	int gCreateQueueHead = 0;
+	int gCreateQueueCount = 0;
+	int gCreateInFlightSlot = -1;
+	bool gCreateInFlightDiscard = false;
 	int gPendingActivateSlot = -1;
 
 	cef_app_t gApp{};
@@ -441,6 +445,106 @@ namespace
 		RefreshNavFlags();
 	}
 
+	bool StartNextBrowserCreate();
+
+	void AdjustCreateQueueForClose(int closedSlot)
+	{
+		if (gCreateInFlightSlot == closedSlot)
+			gCreateInFlightDiscard = true;
+		else if (gCreateInFlightSlot > closedSlot)
+			--gCreateInFlightSlot;
+
+		if (gPendingActivateSlot == closedSlot)
+			gPendingActivateSlot = -1;
+		else if (gPendingActivateSlot > closedSlot)
+			--gPendingActivateSlot;
+
+		if (gCreateQueueCount <= 0)
+			return;
+
+		int newCount = 0;
+		const int oldHead = gCreateQueueHead;
+		const int oldCount = gCreateQueueCount;
+		std::string urls[kWikiMaxTabs];
+		int slots[kWikiMaxTabs];
+		for (int i = 0; i < oldCount; ++i)
+		{
+			const int idx = (oldHead + i) % kWikiMaxTabs;
+			int s = gCreateQueueSlots[idx];
+			if (s == closedSlot)
+				continue;
+			if (s > closedSlot)
+				--s;
+			slots[newCount] = s;
+			urls[newCount] = std::move(gCreateQueueUrls[idx]);
+			++newCount;
+		}
+		gCreateQueueHead = 0;
+		gCreateQueueCount = newCount;
+		for (int i = 0; i < newCount; ++i)
+		{
+			gCreateQueueSlots[i] = slots[i];
+			gCreateQueueUrls[i] = std::move(urls[i]);
+		}
+	}
+
+	bool EnqueueBrowserCreate(int slot, const char* url)
+	{
+		if (gCreateQueueCount >= kWikiMaxTabs)
+		{
+			SetStatus("too many pending browser creates");
+			return false;
+		}
+		const int tail = (gCreateQueueHead + gCreateQueueCount) % kWikiMaxTabs;
+		gCreateQueueSlots[tail] = slot;
+		gCreateQueueUrls[tail] = url ? url : "about:blank";
+		++gCreateQueueCount;
+		return StartNextBrowserCreate();
+	}
+
+	bool StartNextBrowserCreate()
+	{
+		if (gCreateInFlightSlot >= 0 || gCreateQueueCount <= 0)
+			return true;
+
+		const int slot = gCreateQueueSlots[gCreateQueueHead];
+		const std::string url = std::move(gCreateQueueUrls[gCreateQueueHead]);
+		gCreateQueueUrls[gCreateQueueHead].clear();
+		gCreateQueueHead = (gCreateQueueHead + 1) % kWikiMaxTabs;
+		--gCreateQueueCount;
+
+		if (slot < 0 || slot >= kWikiMaxTabs)
+			return StartNextBrowserCreate();
+		if (gBrowsers[slot])
+		{
+			NavigateSlot(slot, url.c_str());
+			return StartNextBrowserCreate();
+		}
+
+		cef_window_info_t info{};
+		info.windowless_rendering_enabled = 1;
+		info.shared_texture_enabled = 0;
+
+		cef_browser_settings_t bset{};
+		bset.size = sizeof(bset);
+		bset.windowless_frame_rate = 30;
+		bset.background_color = CefColorSetARGB(255, 255, 255, 255);
+
+		cef_string_t u{};
+		MakeCefString(&u, url.c_str());
+		gCreateInFlightSlot = slot;
+		gCreateInFlightDiscard = false;
+		const int ok = g_create_browser(&info, &gClient, &u, &bset, nullptr, nullptr);
+		ClearCefString(&u);
+		if (!ok)
+		{
+			gCreateInFlightSlot = -1;
+			SetStatus("cef_browser_host_create_browser failed");
+			return StartNextBrowserCreate();
+		}
+		return true;
+	}
+
 	bool CreateBrowserForSlot(int slot, const char* url)
 	{
 		if (slot < 0 || slot >= kWikiMaxTabs)
@@ -456,64 +560,35 @@ namespace
 			return true;
 		}
 
-		if (gPendingCreateCount >= kWikiMaxTabs)
-		{
-			SetStatus("too many pending browser creates");
-			return false;
-		}
-		const int tail = (gPendingCreateHead + gPendingCreateCount) % kWikiMaxTabs;
-		gPendingCreateSlots[tail] = slot;
-		++gPendingCreateCount;
-
-		cef_window_info_t info{};
-		info.windowless_rendering_enabled = 1;
-		info.shared_texture_enabled = 0;
-
-		cef_browser_settings_t bset{};
-		bset.size = sizeof(bset);
-		bset.windowless_frame_rate = 30;
-		bset.background_color = CefColorSetARGB(255, 255, 255, 255);
-
-		cef_string_t u{};
-		MakeCefString(&u, start);
-		const int ok = g_create_browser(&info, &gClient, &u, &bset, nullptr, nullptr);
-		ClearCefString(&u);
-		if (!ok)
-		{
-			/* Undo our enqueue. OnAfterCreated may have advanced head for
-			   earlier creates; our slot remains the last queued entry. */
-			if (gPendingCreateCount > 0)
-			{
-				const int last = (gPendingCreateHead + gPendingCreateCount - 1) % kWikiMaxTabs;
-				if (gPendingCreateSlots[last] == slot)
-					--gPendingCreateCount;
-			}
-			SetStatus("cef_browser_host_create_browser failed");
-			return false;
-		}
-		return true;
+		return EnqueueBrowserCreate(slot, start);
 	}
 
 	void CloseSlot(int slot)
 	{
-		if (slot < 0 || slot >= kWikiMaxTabs || !gBrowsers[slot])
+		if (slot < 0 || slot >= kWikiMaxTabs)
 			return;
 
 		const int oldActive = gActiveSlot;
+		AdjustCreateQueueForClose(slot);
 
-		if (cef_browser_host_t* host = gBrowsers[slot]->get_host(gBrowsers[slot]))
-		{
-			host->close_browser(host, 1);
-			host->base.release(&host->base);
-		}
-
-		/* OnBeforeClose may already have cleared the slot. */
 		if (gBrowsers[slot])
 		{
-			gBrowsers[slot]->base.release(&gBrowsers[slot]->base);
-			gBrowsers[slot] = nullptr;
+			if (cef_browser_host_t* host = gBrowsers[slot]->get_host(gBrowsers[slot]))
+			{
+				host->close_browser(host, 1);
+				host->base.release(&host->base);
+			}
+
+			/* OnBeforeClose may already have cleared the slot. */
+			if (gBrowsers[slot])
+			{
+				gBrowsers[slot]->base.release(&gBrowsers[slot]->base);
+				gBrowsers[slot] = nullptr;
+			}
 		}
 
+		/* Always compact — UI already shifted tab indices even if this slot
+		   was empty (create race). Skipping the shift desyncs CEF vs UI. */
 		for (int i = slot; i < kWikiMaxTabs - 1; ++i)
 			gBrowsers[i] = gBrowsers[i + 1];
 		gBrowsers[kWikiMaxTabs - 1] = nullptr;
@@ -565,15 +640,25 @@ namespace
 
 	void CEF_CALLBACK OnAfterCreated(cef_life_span_handler_t*, cef_browser_t* browser)
 	{
-		int slot = 0;
-		if (gPendingCreateCount > 0)
+		int slot = gCreateInFlightSlot;
+		const bool discard = gCreateInFlightDiscard;
+		gCreateInFlightSlot = -1;
+		gCreateInFlightDiscard = false;
+
+		if (discard || slot < 0 || slot >= kWikiMaxTabs)
 		{
-			slot = gPendingCreateSlots[gPendingCreateHead];
-			gPendingCreateHead = (gPendingCreateHead + 1) % kWikiMaxTabs;
-			--gPendingCreateCount;
+			/* Orphan / cancelled create — never dump into slot 0. */
+			if (browser)
+			{
+				if (cef_browser_host_t* host = browser->get_host(browser))
+				{
+					host->close_browser(host, 1);
+					host->base.release(&host->base);
+				}
+			}
+			StartNextBrowserCreate();
+			return;
 		}
-		if (slot < 0 || slot >= kWikiMaxTabs)
-			slot = 0;
 
 		if (gBrowsers[slot])
 		{
@@ -589,6 +674,7 @@ namespace
 		{
 			ActivateSlot(slot);
 			NotifyWasResized();
+			StartNextBrowserCreate();
 			return;
 		}
 
@@ -599,6 +685,7 @@ namespace
 				host->was_hidden(host, 1);
 				host->base.release(&host->base);
 			}
+			StartNextBrowserCreate();
 			return;
 		}
 
@@ -616,6 +703,7 @@ namespace
 			host->set_focus(host, 1);
 			host->base.release(&host->base);
 		}
+		StartNextBrowserCreate();
 	}
 
 	void CEF_CALLBACK OnBeforeClose(cef_life_span_handler_t*, cef_browser_t* browser)
@@ -1159,8 +1247,10 @@ namespace
 	bool CreateOsRBrowser()
 	{
 		gActiveSlot = 0;
-		gPendingCreateHead = 0;
-		gPendingCreateCount = 0;
+		gCreateQueueHead = 0;
+		gCreateQueueCount = 0;
+		gCreateInFlightSlot = -1;
+		gCreateInFlightDiscard = false;
 		if (gIpc)
 		{
 			/* Do not create an about:blank browser here — it stays in CEF history

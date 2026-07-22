@@ -154,6 +154,72 @@ function boot(){
     var mo=new MutationObserver(function(){ killAds(); });
     mo.observe(document.documentElement,{childList:true,subtree:true});
   }catch(e){}
+  wireCheatSheetChecks();
+}
+/* Offline cheat sheets: ensure checklist rows toggle even if cached HTML is old. */
+function wireCheatSheetChecks(){
+  try{
+    if (!/^file:/i.test(String(location.protocol||''))) return;
+    var boxes=document.querySelectorAll('ul.checks input[type=checkbox]');
+    if (boxes.length){
+      var key='gw2helper.checks.'+(document.title||location.pathname||'sheet');
+      var saved={};
+      try{saved=JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e){}
+      function save(){
+        var state={};
+        for (var i=0;i<boxes.length;i++) if (boxes[i].checked) state[i]=1;
+        try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+      }
+      for (var i=0;i<boxes.length;i++){
+        (function(box,idx){
+          if (!box.getAttribute('data-gw2-wired')){
+            box.setAttribute('data-gw2-wired','1');
+            if (saved[idx]) box.checked=true;
+            box.addEventListener('change', save);
+          }
+        })(boxes[i], i);
+      }
+      return;
+    }
+    /* Legacy decorative rows (no <input>) — click to toggle .done */
+    var items=document.querySelectorAll('ul.checks > li');
+    if (!items.length) return;
+    if (!document.getElementById('gw2-checks-css')){
+      var st=document.createElement('style');
+      st.id='gw2-checks-css';
+      st.textContent=[
+        'ul.checks>li{cursor:pointer;user-select:none}',
+        'ul.checks>li.done{opacity:.85}',
+        'ul.checks>li.done .box{background:rgba(106,170,106,.22);border-color:rgba(106,170,106,.65);position:relative}',
+        "ul.checks>li.done .box::after{content:'';position:absolute;left:3px;top:0;width:4px;height:8px;border:solid #a8d0a8;border-width:0 2px 2px 0;transform:rotate(45deg)}",
+        'ul.checks>li.done>span:not(.box){text-decoration:line-through}'
+      ].join('');
+      (document.head||document.documentElement).appendChild(st);
+    }
+    var key2='gw2helper.checks.'+(document.title||location.pathname||'sheet');
+    var saved2={};
+    try{saved2=JSON.parse(localStorage.getItem(key2)||'{}')||{};}catch(e){}
+    function save2(){
+      var state={};
+      for (var j=0;j<items.length;j++) if (items[j].classList.contains('done')) state[j]=1;
+      try{localStorage.setItem(key2,JSON.stringify(state));}catch(e){}
+    }
+    for (var j=0;j<items.length;j++){
+      (function(li,idx){
+        if (li.getAttribute('data-gw2-wired')) return;
+        li.setAttribute('data-gw2-wired','1');
+        li.style.cursor='pointer';
+        if (saved2[idx]) li.classList.add('done');
+        li.addEventListener('mousedown', function(e){
+          if (e.button!==0) return;
+          e.preventDefault();
+          if (li.classList.contains('done')) li.classList.remove('done');
+          else li.classList.add('done');
+          save2();
+        });
+      })(items[j], j);
+    }
+  }catch(e){}
 }
 if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
