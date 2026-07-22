@@ -14,11 +14,12 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.7.5.0`
+`1.7.6.0`
 
 ## Changelog highlights
 
-- **1.7.5.0** — Browse + chrome UI refresh; Cheat Sheets sections; ASCII-safe labels (no `?` glyphs); six sheets from 1.7.4 bundled
+- **1.7.6.0** — Browse section headers for Tools/Guides/Discord/Builds/Wiki/Official; fix Back→blank page
+- **1.7.5.0** — Browse + chrome UI refresh; Cheat Sheets sections; ASCII-safe labels; six sheets from 1.7.4 bundled
 - **1.7.4.0** — Six cheat sheets (dailies, currency sinks, ascended, portals, homestead, WvW); Home→default site; AR table fixes
 - **1.7.3.0** — Remove tabbed cheat sheet hubs; sheets stay as individual Browse entries
 - **1.7.2.2** — Uber’s All-In-One + seven cheat sheets (strikes, fractal CMs, squad, stab/cleanse, mats, legendaries, mounts); credit uberduber.1249
