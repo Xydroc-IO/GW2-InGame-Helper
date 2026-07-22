@@ -18,8 +18,15 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 ## What’s new in 1.7.2.2
 
 - **Uber's All-In-One** cheat sheet — themed waypoint cards with copy-to-clipboard chat codes (hubs, Wizard’s Vault, Chak Egg, Obsidian Shards, Provisioner Tokens)
-- Paste a copied `[&…=]` code into game chat and click the link to open the map
 - Credit: waypoint list curated by **uberduber.1249**
+- **Additional Cheat Sheets:**
+  - **Strike Missions Overview** — IBS / EoD / SotO / Old Lion’s Court
+  - **Fractal CM / T4 List** — scales 95–100, AR glance
+  - **Squad Template** — typical 10-man roles
+  - **Stability / Cleanse** — group stab & condi cleanse
+  - **Material Conversions** — mystic forge staples & sinks
+  - **Legendary Short Paths** — gen / armor / backpack checklists
+  - **Mount Unlock Checklist** — griffon, skyscale, siege turtle
 
 ## What’s new in 1.7.2.1
 
@@ -36,22 +43,4 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ## What’s new in 1.7.1.0
 
-- **Cheat Sheets** category — built-in offline pages (Raid Food style):
-  - **Uber's All-In-One** — hub / Wizard’s Vault / Chak Egg / Obsidian / Provisioner waypoint chat codes (copy → paste in chat); curated by uberduber.1249
-  - **Raid Utilities** — oils, stones, crystals, enrichment by role
-  - **Fractal Consumables** — mist potions, utility, agony basics, Mistlock
-  - **Sigils & Runes** — common power / condi / support / tank picks
-  - **Relics** — short picks by role and damage type
-  - **Boon Checklist** — quick / alac / might / fury coverage
-  - **CC / Defiance** — breakbar tools by profession
-  - **Raid Wings Overview** — wing → bosses → typical KP
-  - **Home Garden** — cultivated herbs for feast seasonings (pairs with Raid Food)
-
-## What’s new in 1.7.0.0
-
-- **Compact toolbar** — Browse · nav · Search · `...` (Find / Copy URL / Open Ext / New Tab / Pin / Reopen)
-- **Pin tabs** — right-click or `...` · pinned tabs can’t be closed until unpinned
-- **Reopen closed tab** — `...` or Ctrl+Shift+T (last 8)
-- **Keep browser warm** — Options setting: hide without killing CEF (faster reopen, more RAM)
-- **Status** — muted gold chip; hides Ready / closed noise; friendly error text
-- **Theme** — warmer gold tabs matching the homepage
+- **Cheat Sheets** category — built-in offline pages (Raid Food style), including Raid Food, utilities, fractals, gear, boons, CC, wings, garden
