@@ -115,6 +115,108 @@ namespace
   .list { margin: 0; padding-left: 1.15em; color: var(--muted); font-size: 0.92rem; }
   .list li { margin: 4px 0; }
   .list strong { color: var(--text); }
+  /* —— Waypoint / chat-link cards (Uber's All-In-One) —— */
+  .howto {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin: 0;
+  }
+  @media (max-width: 640px) {
+    .howto { grid-template-columns: 1fr; }
+  }
+  .howto .step {
+    padding: 12px 14px; background: var(--panel-2);
+    border: 1px solid var(--border-soft); border-top: 2px solid var(--gold-dim);
+  }
+  .howto .step .n {
+    display: block; font-size: 0.72rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold-dim); margin-bottom: 6px; font-weight: 700;
+  }
+  .howto .step p { margin: 0; font-size: 0.88rem; color: var(--muted); line-height: 1.45; }
+  .howto .step strong { color: var(--text); }
+  .wp-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  @media (max-width: 640px) {
+    .wp-grid { grid-template-columns: 1fr; }
+  }
+  .wp-grid.single { grid-template-columns: 1fr; max-width: 420px; }
+  .wp {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 14px 14px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--gold-dim);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .wp:hover {
+    border-color: var(--border);
+    background: #16130c;
+  }
+  .wp.kind-hub { border-left-color: var(--gold); }
+  .wp.kind-vault { border-left-color: #5a8fbf; }
+  .wp.kind-farm { border-left-color: #6aaa6a; }
+  .wp.kind-token { border-left-color: #9b7bb8; }
+  .wp .meta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  }
+  .wp .kind {
+    display: inline-block; padding: 2px 7px; font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--gold-dim); border: 1px solid var(--border); background: var(--accent);
+  }
+  .wp .purpose {
+    display: inline-block; padding: 2px 7px; font-size: 0.68rem; font-weight: 650;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: #9bc0e0; border: 1px solid rgba(90, 143, 191, 0.4);
+    background: rgba(90, 143, 191, 0.12);
+  }
+  .wp .purpose.farm {
+    color: #a8d0a8; border-color: rgba(106, 170, 106, 0.4);
+    background: rgba(106, 170, 106, 0.12);
+  }
+  .wp .purpose.token {
+    color: #c4aee0; border-color: rgba(155, 123, 184, 0.4);
+    background: rgba(155, 123, 184, 0.12);
+  }
+  .wp .name {
+    margin: 0; font-family: Georgia, "Palatino Linotype", Palatino, serif;
+    font-size: 1.05rem; font-weight: 700; color: var(--text); line-height: 1.25;
+  }
+  .wp .map {
+    margin: 0; color: var(--muted); font-size: 0.84rem;
+  }
+  .wp .actions {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin-top: auto; padding-top: 2px;
+  }
+  .wp .code {
+    appearance: none; -webkit-appearance: none;
+    font-family: Consolas, "Courier New", monospace; font-size: 0.82rem;
+    color: var(--gold-bright); background: var(--accent);
+    border: 1px solid var(--border); padding: 6px 10px; cursor: pointer;
+    letter-spacing: 0.02em; user-select: all; border-radius: 0; line-height: 1.3;
+  }
+  .wp .code:hover { background: #2c2416; border-color: var(--gold-dim); }
+  .wp .code:focus { outline: 1px solid var(--gold); outline-offset: 1px; }
+  .wp .code.copied {
+    color: #a8d0a8; border-color: rgba(106, 170, 106, 0.55);
+    background: rgba(106, 170, 106, 0.12);
+  }
+  .wp .hint {
+    font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--gold-dim); font-weight: 650;
+  }
+  .wp a.wiki {
+    margin-left: auto; font-size: 0.78rem; color: var(--muted);
+    text-decoration: none; border-bottom: 1px solid transparent;
+  }
+  .wp a.wiki:hover { color: var(--gold); border-bottom-color: var(--border); }
+  .credit {
+    margin: 8px 0 0; padding: 14px 18px;
+    border: 1px solid var(--border-soft); background: var(--panel);
+    color: var(--muted); font-size: 0.88rem; text-align: center;
+  }
+  .credit strong { color: var(--gold); font-weight: 650; }
   footer { margin-top: 10px; color: var(--muted); font-size: 0.85rem; }
   @media (max-width: 560px) {
     h1 { font-size: 1.55rem; }
@@ -966,6 +1068,316 @@ namespace
 )BODY");
 	}
 
+	std::string HtmlUbersAllInOne()
+	{
+		/* Waypoint / landmark chat links — copy & paste into game chat to open map. */
+		return BuildHtml(
+			"Uber's All-In-One — Waypoints",
+			"Guild Wars 2 · Waypoint Reference",
+			"Uber's All-In-One",
+			"Curated hub and farm waypoints — copy a chat code, paste in-game, click to travel.",
+			"<a href=\"#hubs\">Hubs</a>\n"
+			"<a href=\"#vault\">Wizard’s Vault</a>\n"
+			"<a href=\"#chak\">Chak Egg</a>\n"
+			"<a href=\"#obsidian\">Obsidian</a>\n"
+			"<a href=\"#provisioner\">Provisioner</a>",
+			R"BODY(
+  <section class="block">
+    <div class="head">
+      <h2>How to travel</h2>
+      <p>Map links open from game chat — not from the browser.</p>
+    </div>
+    <div class="body">
+      <div class="howto">
+        <div class="step"><span class="n">Step 1</span><p><strong>Click a chat code</strong> on any card to copy it.</p></div>
+        <div class="step"><span class="n">Step 2</span><p><strong>Paste into game chat</strong> and send (or leave it in the input).</p></div>
+        <div class="step"><span class="n">Step 3</span><p><strong>Click the blue link</strong> to center your map on that waypoint.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="hubs">
+    <div class="head">
+      <h2>Hubs</h2>
+      <p>Expansion and city hubs for quick travel across Tyria.</p>
+    </div>
+    <div class="body">
+      <div class="wp-grid">
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Landmark</span></div>
+          <h3 class="name">Arcane Council</h3>
+          <p class="map">Rata Sum</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BJIEAAA=]" title="Copy chat code">[&amp;BJIEAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BJIEAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Landmark</span></div>
+          <h3 class="name">Camp Resolve</h3>
+          <p class="map">The Silverwastes</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BKcHAAA=]" title="Copy chat code">[&amp;BKcHAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BKcHAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Waypoint</span></div>
+          <h3 class="name">Amnoon Waypoint</h3>
+          <p class="map">Crystal Oasis</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BLsKAAA=]" title="Copy chat code">[&amp;BLsKAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BLsKAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Landmark</span></div>
+          <h3 class="name">Mist Portals</h3>
+          <p class="map">Lion’s Arch</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BB0EAAA=]" title="Copy chat code">[&amp;BB0EAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BB0EAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Waypoint</span></div>
+          <h3 class="name">Arborstone Waypoint</h3>
+          <p class="map">Arborstone</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BGMNAAA=]" title="Copy chat code">[&amp;BGMNAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BGMNAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Waypoint</span></div>
+          <h3 class="name">Eye of the North Waypoint</h3>
+          <p class="map">Eye of the North</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BAkMAAA=]" title="Copy chat code">[&amp;BAkMAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BAkMAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Waypoint</span></div>
+          <h3 class="name">Base Camp Waypoint</h3>
+          <p class="map">Drizzlewood Coast</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BGQMAAA=]" title="Copy chat code">[&amp;BGQMAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BGQMAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Waypoint</span></div>
+          <h3 class="name">Bastion of the Celestial</h3>
+          <p class="map">Amnytas</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BAoOAAA=]" title="Copy chat code">[&amp;BAoOAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BAoOAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Waypoint</span></div>
+          <h3 class="name">Alliance Staging Ground</h3>
+          <p class="map">Mistburned Barrens</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BFAPAAA=]" title="Copy chat code">[&amp;BFAPAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BFAPAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-hub">
+          <div class="meta"><span class="kind">Waypoint</span></div>
+          <h3 class="name">Pub Canach Waypoint</h3>
+          <p class="map">Shipwreck Strand</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BJEPAAA=]" title="Copy chat code">[&amp;BJEPAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BJEPAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="vault">
+    <div class="head">
+      <h2>Wizard’s Vault</h2>
+      <p>Gathering routes and a reliable kill objective.</p>
+    </div>
+    <div class="body">
+      <div class="wp-grid">
+        <article class="wp kind-vault">
+          <div class="meta"><span class="kind">Landmark</span><span class="purpose">Axe · Sickle · Pick</span></div>
+          <h3 class="name">Rayhan Bayt</h3>
+          <p class="map">Malchor’s Leap</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BJ4CAAA=]" title="Copy chat code">[&amp;BJ4CAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BJ4CAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-vault">
+          <div class="meta"><span class="kind">Waypoint</span><span class="purpose">Axe · Sickle · Pick</span></div>
+          <h3 class="name">Beetletun Waypoint</h3>
+          <p class="map">Queensdale</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BPoAAAA=]" title="Copy chat code">[&amp;BPoAAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BPoAAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-vault">
+          <div class="meta"><span class="kind">Landmark</span><span class="purpose">Axe · Sickle · Pick</span></div>
+          <h3 class="name">Rata Pten</h3>
+          <p class="map">Mount Maelstrom</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BMQCAAA=]" title="Copy chat code">[&amp;BMQCAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BMQCAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-vault">
+          <div class="meta"><span class="kind">Waypoint</span><span class="purpose">25 Enemies</span></div>
+          <h3 class="name">Westwatch Waypoint</h3>
+          <p class="map">Auric Basin</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BAYIAAA=]" title="Copy chat code">[&amp;BAYIAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BAYIAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="chak">
+    <div class="head">
+      <h2>Chak Egg Sac</h2>
+      <p>Tangled Depths farm route.</p>
+    </div>
+    <div class="body">
+      <div class="wp-grid single">
+        <article class="wp kind-farm">
+          <div class="meta"><span class="kind">Waypoint</span><span class="purpose farm">Chak Egg</span></div>
+          <h3 class="name">Ley-Line Confluence Waypoint</h3>
+          <p class="map">Tangled Depths</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BPUHAAA=]" title="Copy chat code">[&amp;BPUHAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BPUHAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="obsidian">
+    <div class="head">
+      <h2>Obsidian Shards</h2>
+      <p>Orr farming hub in Straits of Devastation.</p>
+    </div>
+    <div class="body">
+      <div class="wp-grid single">
+        <article class="wp kind-farm">
+          <div class="meta"><span class="kind">Waypoint</span><span class="purpose farm">Obsidian Shards</span></div>
+          <h3 class="name">Glorious Victory Waypoint</h3>
+          <p class="map">Straits of Devastation</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BPoCAAA=]" title="Copy chat code">[&amp;BPoCAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BPoCAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="provisioner">
+    <div class="head">
+      <h2>Provisioner Tokens</h2>
+      <p>Heart of Thorns maps — common token routes.</p>
+    </div>
+    <div class="body">
+      <div class="wp-grid">
+        <article class="wp kind-token">
+          <div class="meta"><span class="kind">Waypoint</span><span class="purpose token">Provisioner</span></div>
+          <h3 class="name">Shipwreck Peak Waypoint</h3>
+          <p class="map">Verdant Brink</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BN4HAAA=]" title="Copy chat code">[&amp;BN4HAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BN4HAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-token">
+          <div class="meta"><span class="kind">Waypoint</span><span class="purpose token">Provisioner</span></div>
+          <h3 class="name">Wanderer’s Waypoint</h3>
+          <p class="map">Auric Basin</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BNYHAAA=]" title="Copy chat code">[&amp;BNYHAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BNYHAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+        <article class="wp kind-token">
+          <div class="meta"><span class="kind">Waypoint</span><span class="purpose token">Provisioner</span></div>
+          <h3 class="name">Ogre Camp Waypoint</h3>
+          <p class="map">Tangled Depths</p>
+          <div class="actions">
+            <button type="button" class="code" data-copy="[&BMwHAAA=]" title="Copy chat code">[&amp;BMwHAAA=]</button>
+            <span class="hint">Copy</span>
+            <a class="wiki" href="https://wiki.guildwars2.com/index.php?search=%5B%26BMwHAAA%3D%5D" target="_blank" rel="noopener">Wiki</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <p class="credit">Waypoint list curated by <strong>uberduber.1249</strong></p>
+
+<script>
+(function(){
+  function fallbackCopy(t){
+    var a=document.createElement("textarea");
+    a.value=t; a.setAttribute("readonly","");
+    a.style.position="fixed"; a.style.left="-9999px";
+    document.body.appendChild(a); a.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(a);
+  }
+  document.querySelectorAll(".code[data-copy]").forEach(function(el){
+    el.addEventListener("click", function(){
+      var t=el.getAttribute("data-copy")||"";
+      var hint=el.parentNode && el.parentNode.querySelector(".hint");
+      function done(){
+        el.classList.add("copied");
+        var prev=el.textContent;
+        el.textContent="Copied";
+        if(hint) hint.textContent="Done";
+        setTimeout(function(){
+          el.classList.remove("copied");
+          el.textContent=prev;
+          if(hint) hint.textContent="Copy";
+        }, 1000);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText)
+        navigator.clipboard.writeText(t).then(done).catch(function(){ fallbackCopy(t); done(); });
+      else { fallbackCopy(t); done(); }
+    });
+  });
+})();
+</script>
+)BODY");
+	}
+
 	struct PageSpec
 	{
 		CheatSheets::Sheet meta;
@@ -975,6 +1387,9 @@ namespace
 	const PageSpec* Pages(size_t* outCount)
 	{
 		static const PageSpec kPages[] = {
+			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "3",
+			  "Uber's All-In-One", "Uber's All-In-One — Waypoints"},
+			 HtmlUbersAllInOne},
 			{{"raidutils", "about:raid-utilities", "raid-utilities", "1",
 			  "Raid Utilities", "Raid Utilities — Oils, Stones & Crystals"},
 			 HtmlRaidUtilities},
@@ -1011,11 +1426,11 @@ const CheatSheets::Sheet* CheatSheets::All(size_t* outCount)
 	size_t n = 0;
 	const PageSpec* pages = Pages(&n);
 	/* Expose meta only — caller iterates All via Find or we return parallel. */
-	static Sheet kMeta[8];
+	static Sheet kMeta[32];
 	static bool init = false;
 	if (!init)
 	{
-		for (size_t i = 0; i < n; ++i)
+		for (size_t i = 0; i < n && i < 32; ++i)
 			kMeta[i] = pages[i].meta;
 		init = true;
 	}

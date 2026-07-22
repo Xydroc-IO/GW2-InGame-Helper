@@ -324,6 +324,15 @@ namespace
 			nullptr,
 		},
 		{
+			"ubersaio",
+			"Cheat Sheets",
+			"Uber's All-In-One",
+			"Uber's All-In-One — Waypoints",
+			"about:ubers-aio",
+			nullptr,
+			nullptr,
+		},
+		{
 			"raidutils",
 			"Cheat Sheets",
 			"Raid Utilities",
@@ -927,6 +936,8 @@ int Sites::BestMatchForUrl(const std::string& url)
 		int hit = fileHit("helper-home", "home");
 		if (hit >= 0) return hit;
 		hit = fileHit("raid-food", "raidfood");
+		if (hit >= 0) return hit;
+		hit = fileHit("ubers-all-in-one", "ubersaio");
 		if (hit >= 0) return hit;
 		hit = fileHit("raid-utilities", "raidutils");
 		if (hit >= 0) return hit;
