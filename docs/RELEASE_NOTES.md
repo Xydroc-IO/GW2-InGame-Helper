@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.2
+# GW2 In-Game Helper v1.7.8.3
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -14,6 +14,10 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
 
 ---
+
+## What’s new in 1.7.8.3
+
+- **Fix:** Tab close is one control per tab (`Title  x`) — clicking the last tab’s x no longer hits the previous tab
 
 ## What’s new in 1.7.8.2
 
