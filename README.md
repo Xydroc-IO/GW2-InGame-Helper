@@ -46,6 +46,10 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Wingman](https://gw2wingman.nevermindcreations.de/) | Tools |
 | [GW2BLTC](https://www.gw2bltc.com/) | Tools |
 | [GW2 Treasures](https://gw2treasures.com/) | Tools |
+| Raid Prep hub (built-in) | Cheat Sheets |
+| Squad Utility hub (built-in) | Cheat Sheets |
+| Encounters hub (built-in) | Cheat Sheets |
+| Fractals hub (built-in) | Cheat Sheets |
 | Raid Food (built-in) | Cheat Sheets |
 | Uber's All-In-One (built-in) | Cheat Sheets |
 | Raid Utilities (built-in) | Cheat Sheets |
@@ -99,7 +103,7 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 - Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
-- **Cheat Sheets** category — offline pages: **Uber's All-In-One**, **Raid Food**, **Raid Utilities**, **Fractal Consumables**, **Fractal CM / T4**, **Sigils & Runes**, **Relics**, **Boon Checklist**, **Squad Template**, **Stability / Cleanse**, **CC / Defiance**, **Raid Wings**, **Strike Missions**, **Material Conversions**, **Legendary Paths**, **Mount Unlock**, **Home Garden**
+- **Cheat Sheets** category — offline hubs (**Raid Prep**, **Squad Utility**, **Encounters**, **Fractals**) plus individuals: **Uber's All-In-One**, **Raid Food**, **Raid Utilities**, **Fractal Consumables**, **Fractal CM / T4**, **Sigils & Runes**, **Relics**, **Boon Checklist**, **Squad Template**, **Stability / Cleanse**, **CC / Defiance**, **Raid Wings**, **Strike Missions**, **Material Conversions**, **Legendary Paths**, **Mount Unlock**, **Home Garden**
 - **Copy URL** and **Open Ext** (system browser — Discord joins / logins)
 - Single DLL — browser helper and homepage assets are embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only
@@ -245,12 +249,12 @@ For search bars, set `searchUrlPrefix` / `searchUrlSuffix` so a query becomes `p
 
 ### Built-in cheat sheets
 
-Offline **Cheat Sheets** use `about:` URLs (e.g. `about:raid-food`, `about:ubers-aio`) resolved to local HTML under the addon data folder.
+Offline **Cheat Sheets** use `about:` URLs (e.g. `about:raid-food`, `about:raid-prep`, `about:ubers-aio`) resolved to local HTML under the addon data folder. Hubs load sibling sheets in tabs via iframes.
 
 | Page | Sources |
 |------|---------|
 | Raid Food | `src/RaidFood.cpp` |
-| Other sheets (incl. Uber's All-In-One) | `src/CheatSheets.cpp` |
+| Hubs + other sheets (incl. Uber's All-In-One) | `src/CheatSheets.cpp` |
 
 **Uber's All-In-One** (`about:ubers-aio`) — waypoint / landmark chat codes (hubs, Wizard’s Vault, Chak Egg, Obsidian, Provisioner). Click a code to copy, paste in game chat, click the link to travel. Waypoint list curated by **uberduber.1249**.
 

@@ -27,6 +27,11 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
   - **Material Conversions** — mystic forge staples & sinks
   - **Legendary Short Paths** — gen / armor / backpack checklists
   - **Mount Unlock Checklist** — griffon, skyscale, siege turtle
+- **Cheat Sheet hubs** (tabbed groups; individuals still listed):
+  - **Raid Prep** — Food, Utilities, Home Garden
+  - **Squad Utility** — Boons, Squad Template, Stab/Cleanse, CC
+  - **Encounters** — Raid Wings & Strike Missions
+  - **Fractals** — Consumables & CM/T4
 
 ## What’s new in 1.7.2.1
 
