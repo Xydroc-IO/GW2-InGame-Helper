@@ -124,6 +124,15 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"wiki_vault_easy",
+			"Wiki",
+			"Vault Easy Objectives",
+			"Guild Wars 2 Wiki — Wizard's Vault Easy Objectives",
+			"https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Builds —— */
 		{

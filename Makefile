@@ -94,58 +94,11 @@ install: $(DLL_OUT)
 	/bin/rm -f "$(INSTALL_DIR)/GW2-InGame-Helper.dll" \
 		"$(INSTALL_DIR)/GW2HelperBrowser.exe" \
 		"$(GW2_ADDONS)/GW2HelperBrowser.exe" \
-		"$(GW2_ADDONS)/helper-home.html" \
-		"$(GW2_ADDONS)/helper-home.ver" \
-		"$(GW2_ADDONS)/home-logo.png" \
-		"$(GW2_ADDONS)/home-cover.jpg" \
-		"$(GW2_ADDONS)/raid-food.html" \
-		"$(GW2_ADDONS)/raid-food.ver" \
-		"$(GW2_ADDONS)/raid-utilities.html" \
-		"$(GW2_ADDONS)/raid-utilities.ver" \
-		"$(GW2_ADDONS)/fractal-consumables.html" \
-		"$(GW2_ADDONS)/fractal-consumables.ver" \
-		"$(GW2_ADDONS)/sigils-runes.html" \
-		"$(GW2_ADDONS)/sigils-runes.ver" \
-		"$(GW2_ADDONS)/relics-guide.html" \
-		"$(GW2_ADDONS)/relics-guide.ver" \
-		"$(GW2_ADDONS)/boon-checklist.html" \
-		"$(GW2_ADDONS)/boon-checklist.ver" \
-		"$(GW2_ADDONS)/cc-defiance.html" \
-		"$(GW2_ADDONS)/cc-defiance.ver" \
-		"$(GW2_ADDONS)/raid-wings.html" \
-		"$(GW2_ADDONS)/raid-wings.ver" \
-		"$(GW2_ADDONS)/home-garden.html" \
-		"$(GW2_ADDONS)/home-garden.ver" \
-		"$(GW2_ADDONS)/ubers-all-in-one.html" \
-		"$(GW2_ADDONS)/ubers-all-in-one.ver" \
-		"$(GW2_ADDONS)/strike-missions.html" \
-		"$(GW2_ADDONS)/strike-missions.ver" \
-		"$(GW2_ADDONS)/fractal-cm-list.html" \
-		"$(GW2_ADDONS)/fractal-cm-list.ver" \
-		"$(GW2_ADDONS)/squad-template.html" \
-		"$(GW2_ADDONS)/squad-template.ver" \
-		"$(GW2_ADDONS)/stability-cleanse.html" \
-		"$(GW2_ADDONS)/stability-cleanse.ver" \
-		"$(GW2_ADDONS)/material-conversions.html" \
-		"$(GW2_ADDONS)/material-conversions.ver" \
-		"$(GW2_ADDONS)/legendary-paths.html" \
-		"$(GW2_ADDONS)/legendary-paths.ver" \
-		"$(GW2_ADDONS)/mount-unlock.html" \
-		"$(GW2_ADDONS)/mount-unlock.ver" \
-		"$(GW2_ADDONS)/daily-weekly.html" \
-		"$(GW2_ADDONS)/daily-weekly.ver" \
-		"$(GW2_ADDONS)/currency-sinks.html" \
-		"$(GW2_ADDONS)/currency-sinks.ver" \
-		"$(GW2_ADDONS)/ascended-start.html" \
-		"$(GW2_ADDONS)/ascended-start.ver" \
-		"$(GW2_ADDONS)/portals-pulls.html" \
-		"$(GW2_ADDONS)/portals-pulls.ver" \
-		"$(GW2_ADDONS)/homestead-extras.html" \
-		"$(GW2_ADDONS)/homestead-extras.ver" \
-		"$(GW2_ADDONS)/wvw-consumables.html" \
-		"$(GW2_ADDONS)/wvw-consumables.ver" \
-		"$(GW2_ADDONS)/settings.ini" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
+	# Clear cached offline pages so version bumps rewrite on next open.
+	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/"*.ver \
+		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg" \
+		"$(INSTALL_DIR)/settings.ini"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
