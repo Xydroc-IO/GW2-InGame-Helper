@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.10`
+`1.7.8.11`
 
 ## Changelog highlights
 
+- **1.7.8.11** — MetaBattle PvP / WvW Guides hubs; Guides Browse sections for PvP and WvW
 - **1.7.8.10** — Accessibility Wars under Builds → AccessiBuilds
 - **1.7.8.9** — Snowcrows per-profession raid builds; MetaBattle Raid Wing 4
 - **1.7.8.8** — Snowcrows build/guide hubs; MetaBattle Fractals, Raid Wings, Strikes sections; site registry validator

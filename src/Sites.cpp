@@ -719,6 +719,24 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"mb_pvp_guides",
+			"Guides",
+			"PvP Guides Hub",
+			"MetaBattle — PvP Guides",
+			"https://metabattle.com/wiki/PvP_Guides",
+			nullptr,
+			nullptr,
+		},
+		{
+			"mb_wvw_guides",
+			"Guides",
+			"WvW Guides Hub",
+			"MetaBattle — WvW Guides",
+			"https://metabattle.com/wiki/WvW_Guides",
+			nullptr,
+			nullptr,
+		},
 		/* Fractals (MetaBattle + community) */
 		{
 			"mb_intro_fractals",
