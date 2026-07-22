@@ -81,7 +81,7 @@ Built-in **Cheat Sheets** are compiled in and written on first open:
 | Sheet | Module | Files under addon data |
 |-------|--------|------------------------|
 | Raid Food | `src/RaidFood.cpp` | `raid-food.html` / `.ver` |
-| Uber's All-In-One, Raid Utilities, Fractal Consumables, Fractal CM / T4, Sigils & Runes, Relics, Boon Checklist, Squad Template, Stability / Cleanse, CC / Defiance, Raid Wings, Strike Missions, Material Conversions, Legendary Paths, Mount Unlock, Home Garden | `src/CheatSheets.cpp` | matching `*.html` / `*.ver` |
+| Uber's All-In-One, Raid Utilities, Fractal Consumables, Fractal CM / T4, Sigils & Runes, Relics, Boon Checklist, Squad Template, Stability / Cleanse, CC / Defiance, Raid Wings, Strike Missions, Material Conversions, Legendary Paths, Mount Unlock, Home Garden, Daily / Weekly, Currency Sinks, Ascended Start, Portals / Pulls, Homestead Extras, WvW Consumables | `src/CheatSheets.cpp` | matching `*.html` / `*.ver` |
 
 Uber's All-In-One waypoint list is curated by **uberduber.1249**.
 

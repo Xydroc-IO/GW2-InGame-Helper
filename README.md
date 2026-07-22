@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.3.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.5.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -63,6 +63,12 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | Material Conversions (built-in) | Cheat Sheets |
 | Legendary Paths (built-in) | Cheat Sheets |
 | Mount Unlock (built-in) | Cheat Sheets |
+| Daily / Weekly (built-in) | Cheat Sheets |
+| Currency Sinks (built-in) | Cheat Sheets |
+| Ascended Start (built-in) | Cheat Sheets |
+| Portals / Pulls (built-in) | Cheat Sheets |
+| Homestead (built-in) | Cheat Sheets |
+| WvW Consumables (built-in) | Cheat Sheets |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
 | [Leveling](https://metabattle.com/wiki/Guide:Leveling_Up) | Guides |
@@ -87,9 +93,9 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories)
-- **Compact toolbar** — nav · Search · `...` menu (Find / Copy / Open Ext)
-- **GW2-themed** chrome (gold tabs + muted status)
-- **Tabs** — up to 8 live pages; **pin**, reopen closed; titles follow the page; persisted
+- **Compact toolbar** — Browse · nav cluster · Search · `...` menu (Find / Copy / Open Ext)
+- **GW2-themed** chrome (gold tabs + muted status); Browse picker with Cheat Sheets section headers
+- **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
 - **Find in page** — Ctrl+F
 - **Favorites** — star + drag-reorder
@@ -99,7 +105,7 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 - Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
-- **Cheat Sheets** category — offline pages: **Uber's All-In-One**, **Raid Food**, **Raid Utilities**, **Fractal Consumables**, **Fractal CM / T4**, **Sigils & Runes**, **Relics**, **Boon Checklist**, **Squad Template**, **Stability / Cleanse**, **CC / Defiance**, **Raid Wings**, **Strike Missions**, **Material Conversions**, **Legendary Paths**, **Mount Unlock**, **Home Garden**
+- **Cheat Sheets** category — offline pages including **Daily / Weekly**, **Currency Sinks**, **Ascended Start**, **Portals / Pulls**, **Homestead**, **WvW Consumables**, plus Uber's, Food, Utilities, Fractals, Sigils, Relics, Boons, Squad, Stab/Cleanse, CC, Wings, Strikes, Mats, Legendaries, Mounts, Garden
 - **Copy URL** and **Open Ext** (system browser — Discord joins / logins)
 - Single DLL — browser helper and homepage assets are embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only
