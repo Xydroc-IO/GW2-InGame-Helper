@@ -500,19 +500,18 @@ namespace
     <div class="body">
       <table class="sheet">
         <thead>
-          <tr><th>Tier</th><th>Scales</th><th>AR</th></tr>
+          <tr><th>Tier</th><th>Scales</th><th>Minimum AR</th><th>Community / recommended</th></tr>
         </thead>
         <tbody>
-          <tr><td>T1</td><td>1–25</td><td>0 early · Agony starts at level <strong>20</strong></td></tr>
-          <tr><td>T2</td><td>26–50</td><td>Min <strong>+18</strong> (level 26) · max / recommended <strong>+61</strong> (level 50)</td></tr>
-          <tr><td>T3</td><td>51–75</td><td>Min <strong>+75</strong> · community target <strong>+82</strong></td></tr>
-          <tr><td>T4</td><td>76–100</td><td>Min <strong>+150</strong> (game cap) · community target <strong>+162</strong> (fill all infusion slots)</td></tr>
-          <tr><td>CM</td><td>95–100 mote</td><td><strong>+150</strong> (same as T4 minimum)</td></tr>
+          <tr><td>T1</td><td>1–25</td><td>0 (Agony starts at scale 20)</td><td>—</td></tr>
+          <tr><td>T2</td><td>26–50</td><td><strong>+18</strong> (required for scale 26)</td><td><strong>+61</strong> to clear the tier comfortably (scale 50)</td></tr>
+          <tr><td>T3</td><td>51–75</td><td><strong>+75</strong></td><td><strong>+82</strong></td></tr>
+          <tr><td>T4</td><td>76–100</td><td><strong>+150</strong> (game cap)</td><td><strong>+162</strong> (fill all infusion slots)</td></tr>
+          <tr><td>CM</td><td>95–100 mote</td><td><strong>+150</strong></td><td>Same as T4 minimum</td></tr>
         </tbody>
       </table>
       <ul class="list" style="margin-top:14px">
-        <li><strong>Survivability</strong> — AR prevents instant death from the Agony damage-over-time effect.</li>
-        <li><strong>T2</strong> — Agony appears from scale 20; bring at least +18 before level 26, and aim for +61 to clear the tier comfortably.</li>
+        <li><strong>T2</strong> — Agony appears from scale 20; you need resistance before entering T2. Min +18 at 26; +61 recommended for the whole tier.</li>
         <li><strong>Infusions</strong> — socket into ascended/legendary gear. Recycle via mystic forge / vendors when upgrading.</li>
         <li><strong>+9 agony</strong> — endgame fractal standard; full slots approach the +162 community target.</li>
         <li><strong>Enrichment</strong> — +5 AR jewelry enrichments help early AR goals.</li>
@@ -1559,16 +1558,16 @@ namespace
     </div>
     <div class="body">
       <table class="sheet">
-        <thead><tr><th>Tier</th><th>Scales</th><th>AR</th></tr></thead>
+        <thead><tr><th>Tier</th><th>Scales</th><th>Minimum AR</th><th>Community / recommended</th></tr></thead>
         <tbody>
-          <tr><td>T1</td><td>1–25</td><td>0 early · Agony starts at level <strong>20</strong></td></tr>
-          <tr><td>T2</td><td>26–50</td><td>Min <strong>+18</strong> (level 26) · max / recommended <strong>+61</strong> (level 50)</td></tr>
-          <tr><td>T3</td><td>51–75</td><td>Min <strong>+75</strong> · community target <strong>+82</strong></td></tr>
-          <tr><td>T4</td><td>76–100</td><td>Min <strong>+150</strong> (game cap) · community target <strong>+162</strong> (fill all infusion slots)</td></tr>
-          <tr><td>CM</td><td>95–100 mote</td><td><strong>+150</strong> (T4 minimum)</td></tr>
+          <tr><td>T1</td><td>1–25</td><td>0 (Agony starts at scale 20)</td><td>—</td></tr>
+          <tr><td>T2</td><td>26–50</td><td><strong>+18</strong> (required for scale 26)</td><td><strong>+61</strong> to clear the tier comfortably (scale 50)</td></tr>
+          <tr><td>T3</td><td>51–75</td><td><strong>+75</strong></td><td><strong>+82</strong></td></tr>
+          <tr><td>T4</td><td>76–100</td><td><strong>+150</strong> (game cap)</td><td><strong>+162</strong> (fill all infusion slots)</td></tr>
+          <tr><td>CM</td><td>95–100 mote</td><td><strong>+150</strong></td><td>Same as T4 minimum</td></tr>
         </tbody>
       </table>
-      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>T2:</strong> Agony begins at scale 20 — some resistance is needed before T2. Minimum <strong>+18</strong> for level 26; <strong>+61</strong> recommended to clear the tier comfortably.</p>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>T2:</strong> Agony begins at scale 20 — resistance is required before T2. Minimum <strong>+18</strong> for scale 26; <strong>+61</strong> recommended to clear the tier comfortably.</p>
     </div>
   </section>
 
@@ -1960,10 +1959,10 @@ namespace
 			{{"raidutils", "about:raid-utilities", "raid-utilities", "1",
 			  "Raid Utilities", "Raid Utilities — Oils, Stones & Crystals"},
 			 HtmlRaidUtilities},
-			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "4",
+			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "10",
 			  "Fractal Consumables", "Fractal Consumables — Potions & Agony"},
 			 HtmlFractalConsumables},
-			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "5",
+			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "10",
 			  "Fractal CM / T4", "Fractal CM / T4 List"},
 			 HtmlFractalCmList},
 			{{"sigilsrunes", "about:sigils-runes", "sigils-runes", "1",
@@ -2072,6 +2071,9 @@ std::string CheatSheets::EnsureFileUrl(const std::wstring& addonDir, const Sheet
 		if (ReadFile(vin, buf, sizeof(buf) - 1, &read, nullptr) && read > 0)
 		{
 			buf[read] = '\0';
+			/* Trim CR/LF so "10\r\n" still matches version "10". */
+			while (read > 0 && (buf[read - 1] == '\r' || buf[read - 1] == '\n' || buf[read - 1] == ' '))
+				buf[--read] = '\0';
 			if (std::strcmp(buf, sheet.version) == 0)
 			{
 				CloseHandle(vin);
