@@ -274,16 +274,14 @@ namespace
 			if (std::strcmp(id, "metabattle") == 0 || std::strcmp(id, "metabattle_ow") == 0 ||
 				std::strcmp(id, "aw2help") == 0)
 				return "Open World / General";
+			if (std::strcmp(id, "metabattle_pvp") == 0)
+				return "PvP";
+			if (std::strcmp(id, "metabattle_wvw") == 0)
+				return "WvW";
 			if (std::strcmp(id, "gw2skills") == 0)
 				return "Editor";
 			return "Other";
 		}
-
-		if (std::strcmp(category, "PvP") == 0)
-			return "Builds";
-
-		if (std::strcmp(category, "WvW") == 0)
-			return "Builds";
 
 		if (std::strcmp(category, "Farming") == 0)
 			return "Community";
@@ -364,19 +362,9 @@ namespace
 		}
 		if (std::strcmp(category, "Builds") == 0)
 		{
-			static const char* kSec[] = { "Raids", "Open World / General", "Editor", "Other" };
-			*outCount = sizeof(kSec) / sizeof(kSec[0]);
-			return kSec;
-		}
-		if (std::strcmp(category, "PvP") == 0)
-		{
-			static const char* kSec[] = { "Builds" };
-			*outCount = sizeof(kSec) / sizeof(kSec[0]);
-			return kSec;
-		}
-		if (std::strcmp(category, "WvW") == 0)
-		{
-			static const char* kSec[] = { "Builds" };
+			static const char* kSec[] = {
+				"Raids", "Open World / General", "PvP", "WvW", "Editor", "Other"
+			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}

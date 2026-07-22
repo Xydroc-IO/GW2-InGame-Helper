@@ -180,22 +180,18 @@ namespace
 			nullptr,
 			nullptr,
 		},
-
-		/* —— PvP —— */
 		{
 			"metabattle_pvp",
-			"PvP",
+			"Builds",
 			"MetaBattle PvP",
 			"MetaBattle — PvP Builds",
 			"https://metabattle.com/wiki/PvP_Builds",
 			nullptr,
 			nullptr,
 		},
-
-		/* —— WvW —— */
 		{
 			"metabattle_wvw",
-			"WvW",
+			"Builds",
 			"MetaBattle WvW",
 			"MetaBattle — WvW",
 			"https://metabattle.com/wiki/WvW",

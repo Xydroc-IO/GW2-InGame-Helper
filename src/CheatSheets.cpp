@@ -1341,8 +1341,8 @@ namespace
       <div class="wp-grid">
         <article class="wp kind-vault">
           <div class="meta"><span class="kind">Point of Interest</span><span class="purpose">Axe</span></div>
-          <h3 class="name">Rayhan Bayt</h3>
-          <p class="map">Malchor’s Leap</p>
+          <h3 class="name">Axe — Rayhan Bayt</h3>
+          <p class="map">Malchor’s Leap · Point of Interest</p>
           <div class="actions">
             <button type="button" class="code" data-copy="[&BJ4CAAA=]" title="Copy chat code">[&amp;BJ4CAAA=]</button>
             <span class="hint">Copy</span>
@@ -1351,7 +1351,7 @@ namespace
         </article>
         <article class="wp kind-vault">
           <div class="meta"><span class="kind">Waypoint</span><span class="purpose">Sickle</span></div>
-          <h3 class="name">Beetletun Waypoint</h3>
+          <h3 class="name">Sickle — Beetletun Waypoint</h3>
           <p class="map">Queensdale</p>
           <div class="actions">
             <button type="button" class="code" data-copy="[&BPoAAAA=]" title="Copy chat code">[&amp;BPoAAAA=]</button>
@@ -1361,8 +1361,8 @@ namespace
         </article>
         <article class="wp kind-vault">
           <div class="meta"><span class="kind">Point of Interest</span><span class="purpose">Pick</span></div>
-          <h3 class="name">Rata Pten</h3>
-          <p class="map">Mount Maelstrom</p>
+          <h3 class="name">Pick — Rata Pten</h3>
+          <p class="map">Mount Maelstrom · Point of Interest</p>
           <div class="actions">
             <button type="button" class="code" data-copy="[&BMQCAAA=]" title="Copy chat code">[&amp;BMQCAAA=]</button>
             <span class="hint">Copy</span>
@@ -2422,7 +2422,7 @@ namespace
 	const PageSpec* Pages(size_t* outCount)
 	{
 		static const PageSpec kPages[] = {
-			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "6",
+			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "7",
 			  "Uber's All-In-One", "Uber's All-In-One — Waypoints"},
 			 HtmlUbersAllInOne},
 			{{"raidutils", "about:raid-utilities", "raid-utilities", "3",
