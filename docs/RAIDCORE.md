@@ -14,11 +14,12 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.7.2.2`
+`1.7.3.0`
 
 ## Changelog highlights
 
-- **1.7.2.2** — Uber’s All-In-One + seven cheat sheets + four tabbed hubs (Raid Prep, Squad Utility, Encounters, Fractals); credit uberduber.1249
+- **1.7.3.0** — Remove tabbed cheat sheet hubs; sheets stay as individual Browse entries
+- **1.7.2.2** — Uber’s All-In-One + seven cheat sheets (strikes, fractal CMs, squad, stab/cleanse, mats, legendaries, mounts); credit uberduber.1249
 - **1.7.2.1** — Fix freeze from per-frame settings.ini writes (debounce + title dirty)
 - **1.7.2.0** — Tab hotkeys (Ctrl+T/W/Tab); live tab titles from page/URL
 - **1.7.1.1** — Fix new-tab navigating the previous tab
