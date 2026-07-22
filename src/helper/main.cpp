@@ -72,7 +72,11 @@ namespace
 	std::atomic<bool> gRunning{true};
 	cef_browser_t* gBrowsers[kWikiMaxTabs] = {};
 	int gActiveSlot = 0;
-	int gPendingCreateSlot = 0;
+	/* FIFO of slots awaiting OnAfterCreated — create_browser is async, so multiple
+	   CREATE_TABs (e.g. SyncAll) must not overwrite a single pending slot. */
+	int gPendingCreateSlots[kWikiMaxTabs] = {};
+	int gPendingCreateHead = 0;
+	int gPendingCreateCount = 0;
 	int gPendingActivateSlot = -1;
 
 	cef_app_t gApp{};
@@ -452,7 +456,14 @@ namespace
 			return true;
 		}
 
-		gPendingCreateSlot = slot;
+		if (gPendingCreateCount >= kWikiMaxTabs)
+		{
+			SetStatus("too many pending browser creates");
+			return false;
+		}
+		const int tail = (gPendingCreateHead + gPendingCreateCount) % kWikiMaxTabs;
+		gPendingCreateSlots[tail] = slot;
+		++gPendingCreateCount;
 
 		cef_window_info_t info{};
 		info.windowless_rendering_enabled = 1;
@@ -469,6 +480,14 @@ namespace
 		ClearCefString(&u);
 		if (!ok)
 		{
+			/* Undo our enqueue. OnAfterCreated may have advanced head for
+			   earlier creates; our slot remains the last queued entry. */
+			if (gPendingCreateCount > 0)
+			{
+				const int last = (gPendingCreateHead + gPendingCreateCount - 1) % kWikiMaxTabs;
+				if (gPendingCreateSlots[last] == slot)
+					--gPendingCreateCount;
+			}
 			SetStatus("cef_browser_host_create_browser failed");
 			return false;
 		}
@@ -546,10 +565,15 @@ namespace
 
 	void CEF_CALLBACK OnAfterCreated(cef_life_span_handler_t*, cef_browser_t* browser)
 	{
-		int slot = gPendingCreateSlot;
+		int slot = 0;
+		if (gPendingCreateCount > 0)
+		{
+			slot = gPendingCreateSlots[gPendingCreateHead];
+			gPendingCreateHead = (gPendingCreateHead + 1) % kWikiMaxTabs;
+			--gPendingCreateCount;
+		}
 		if (slot < 0 || slot >= kWikiMaxTabs)
 			slot = 0;
-		gPendingCreateSlot = 0;
 
 		if (gBrowsers[slot])
 		{
@@ -1135,7 +1159,8 @@ namespace
 	bool CreateOsRBrowser()
 	{
 		gActiveSlot = 0;
-		gPendingCreateSlot = 0;
+		gPendingCreateHead = 0;
+		gPendingCreateCount = 0;
 		if (gIpc)
 		{
 			/* Do not create an about:blank browser here — it stays in CEF history

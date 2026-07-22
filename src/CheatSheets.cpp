@@ -129,11 +129,29 @@ namespace
     padding: 10px 12px; margin: 0 0 8px;
     background: var(--panel-2); border: 1px solid var(--border-soft);
     border-left: 3px solid var(--gold-dim); color: var(--muted); font-size: 0.92rem;
+    cursor: pointer; user-select: none;
+    transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
   }
   .checks li:last-child { margin-bottom: 0; }
+  .checks li:hover { background: #16130c; border-color: var(--border); }
+  .checks li:focus { outline: 1px solid var(--gold); outline-offset: 1px; }
+  .checks li.done { opacity: 0.72; border-left-color: #6aaa6a; }
+  .checks li.done > span:not(.box) { text-decoration: line-through; }
   .checks .box {
     flex: 0 0 auto; width: 1.05rem; height: 1.05rem; margin-top: 2px;
     border: 1px solid var(--border); background: var(--accent);
+    position: relative;
+  }
+  .checks li.done .box {
+    background: rgba(106, 170, 106, 0.22);
+    border-color: rgba(106, 170, 106, 0.65);
+  }
+  .checks li.done .box::after {
+    content: "";
+    position: absolute; left: 3px; top: 0;
+    width: 4px; height: 8px;
+    border: solid #a8d0a8; border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
   .checks strong { color: var(--text); }
   .callout-grid {
@@ -305,7 +323,40 @@ namespace
 		out += body;
 		out += "\n<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. "
 			   "Informational reference only — check current meta for your squad.</footer>\n"
-			   "</div>\n</body>\n</html>\n";
+			   "</div>\n"
+			   "<script>\n"
+			   "(function(){\n"
+			   "  var items=document.querySelectorAll(\"ul.checks > li\");\n"
+			   "  if(!items.length) return;\n"
+			   "  var key=\"gw2helper.checks.\"+(document.title||location.pathname||\"sheet\");\n"
+			   "  var saved={};\n"
+			   "  try{saved=JSON.parse(localStorage.getItem(key)||\"{}\")||{};}catch(e){}\n"
+			   "  function save(){\n"
+			   "    var state={};\n"
+			   "    for(var i=0;i<items.length;i++) if(items[i].classList.contains(\"done\")) state[i]=1;\n"
+			   "    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}\n"
+			   "  }\n"
+			   "  function setDone(li,on){\n"
+			   "    if(on) li.classList.add(\"done\"); else li.classList.remove(\"done\");\n"
+			   "    li.setAttribute(\"aria-checked\", on ? \"true\" : \"false\");\n"
+			   "  }\n"
+			   "  for(var i=0;i<items.length;i++){\n"
+			   "    (function(li,idx){\n"
+			   "      li.setAttribute(\"role\",\"checkbox\");\n"
+			   "      li.tabIndex=0;\n"
+			   "      setDone(li, !!saved[idx]);\n"
+			   "      function toggle(){ setDone(li, !li.classList.contains(\"done\")); save(); }\n"
+			   "      li.addEventListener(\"click\", function(e){ e.preventDefault(); toggle(); });\n"
+			   "      li.addEventListener(\"keydown\", function(e){\n"
+			   "        if(e.key===\" \"||e.key===\"Enter\"||e.keyCode===32||e.keyCode===13){\n"
+			   "          e.preventDefault(); toggle();\n"
+			   "        }\n"
+			   "      });\n"
+			   "    })(items[i], i);\n"
+			   "  }\n"
+			   "})();\n"
+			   "</script>\n"
+			   "</body>\n</html>\n";
 		return out;
 	}
 
@@ -801,13 +852,13 @@ namespace
       <p>Use before ready-check — tick coverage, don’t assume.</p>
     </div>
     <div class="body">
-      <ul class="list">
-        <li><span class="tag tag-sup">Quick</span> named player / build</li>
-        <li><span class="tag tag-sup">Alac</span> named player / build</li>
-        <li><span class="tag tag-heal">Heal</span> (often doubles prot / regen / resolution)</li>
-        <li><span class="tag tag-tank">Tank</span> (if fight needs one) — toughness check</li>
-        <li><span class="tag tag-power">Might</span> plan (FB / banners / kits)</li>
-        <li><span class="tag tag-misc">Fury</span> — confirm someone actually brings it</li>
+      <ul class="checks">
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-sup">Quick</span> named player / build</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-sup">Alac</span> named player / build</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-heal">Heal</span> (often doubles prot / regen / resolution)</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-tank">Tank</span> (if fight needs one) — toughness check</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-power">Might</span> plan (FB / banners / kits)</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-misc">Fury</span> — confirm someone actually brings it</span></li>
       </ul>
       <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Double quick / double alac</strong> comps are normal. Hybrid boon-DPS can cover both — still say it in chat.</p>
     </div>
@@ -2347,70 +2398,70 @@ namespace
 	const PageSpec* Pages(size_t* outCount)
 	{
 		static const PageSpec kPages[] = {
-			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "3",
+			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "4",
 			  "Uber's All-In-One", "Uber's All-In-One — Waypoints"},
 			 HtmlUbersAllInOne},
-			{{"raidutils", "about:raid-utilities", "raid-utilities", "1",
+			{{"raidutils", "about:raid-utilities", "raid-utilities", "2",
 			  "Raid Utilities", "Raid Utilities — Oils, Stones & Crystals"},
 			 HtmlRaidUtilities},
-			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "10",
+			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "11",
 			  "Fractal Consumables", "Fractal Consumables — Potions & Agony"},
 			 HtmlFractalConsumables},
-			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "10",
+			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "11",
 			  "Fractal CM / T4", "Fractal CM / T4 List"},
 			 HtmlFractalCmList},
-			{{"sigilsrunes", "about:sigils-runes", "sigils-runes", "1",
+			{{"sigilsrunes", "about:sigils-runes", "sigils-runes", "2",
 			  "Sigils & Runes", "Sigils & Runes — Common Role Picks"},
 			 HtmlSigilsRunes},
-			{{"relics", "about:relics", "relics-guide", "1",
+			{{"relics", "about:relics", "relics-guide", "2",
 			  "Relics", "Relics — Picks by Role"},
 			 HtmlRelics},
-			{{"booncheck", "about:boon-checklist", "boon-checklist", "1",
+			{{"booncheck", "about:boon-checklist", "boon-checklist", "2",
 			  "Boon Checklist", "Boon Checklist — Squad Coverage"},
 			 HtmlBoonChecklist},
-			{{"squadtmpl", "about:squad-template", "squad-template", "2",
+			{{"squadtmpl", "about:squad-template", "squad-template", "3",
 			  "Squad Template", "Squad Template — 10-Man Roles"},
 			 HtmlSquadTemplate},
-			{{"stabcleanse", "about:stability-cleanse", "stability-cleanse", "2",
+			{{"stabcleanse", "about:stability-cleanse", "stability-cleanse", "3",
 			  "Stability / Cleanse", "Stability / Cleanse — Squad Utility"},
 			 HtmlStabilityCleanse},
-			{{"ccdefiance", "about:cc-defiance", "cc-defiance", "1",
+			{{"ccdefiance", "about:cc-defiance", "cc-defiance", "2",
 			  "CC / Defiance", "CC / Defiance — Breakbar by Profession"},
 			 HtmlCcDefiance},
-			{{"raidwings", "about:raid-wings", "raid-wings", "1",
+			{{"raidwings", "about:raid-wings", "raid-wings", "2",
 			  "Raid Wings", "Raid Wings Overview"},
 			 HtmlRaidWings},
-			{{"strikes", "about:strike-missions", "strike-missions", "2",
+			{{"strikes", "about:strike-missions", "strike-missions", "3",
 			  "Strike Missions", "Strike Missions Overview"},
 			 HtmlStrikeMissions},
-			{{"matconv", "about:material-conversions", "material-conversions", "2",
+			{{"matconv", "about:material-conversions", "material-conversions", "3",
 			  "Material Conversions", "Material Conversions"},
 			 HtmlMaterialConversions},
-			{{"legpaths", "about:legendary-paths", "legendary-paths", "2",
+			{{"legpaths", "about:legendary-paths", "legendary-paths", "3",
 			  "Legendary Paths", "Legendary Short Paths"},
 			 HtmlLegendaryPaths},
-			{{"mounts", "about:mount-unlock", "mount-unlock", "2",
+			{{"mounts", "about:mount-unlock", "mount-unlock", "3",
 			  "Mount Unlock", "Mount Unlock Checklist"},
 			 HtmlMountUnlock},
-			{{"homegarden", "about:home-garden", "home-garden", "1",
+			{{"homegarden", "about:home-garden", "home-garden", "2",
 			  "Home Garden", "Home Garden — Cultivated Herbs"},
 			 HtmlHomeGarden},
-			{{"dailyweekly", "about:daily-weekly", "daily-weekly", "1",
+			{{"dailyweekly", "about:daily-weekly", "daily-weekly", "2",
 			  "Daily / Weekly", "Daily / Weekly Checklist"},
 			 HtmlDailyWeekly},
-			{{"currencysinks", "about:currency-sinks", "currency-sinks", "1",
+			{{"currencysinks", "about:currency-sinks", "currency-sinks", "2",
 			  "Currency Sinks", "Currency Sinks"},
 			 HtmlCurrencySinks},
-			{{"ascendedstart", "about:ascended-start", "ascended-start", "1",
+			{{"ascendedstart", "about:ascended-start", "ascended-start", "2",
 			  "Ascended Start", "Ascended Start — Gearing Path"},
 			 HtmlAscendedStart},
-			{{"portalspulls", "about:portals-pulls", "portals-pulls", "1",
+			{{"portalspulls", "about:portals-pulls", "portals-pulls", "2",
 			  "Portals / Pulls", "Portals / Pulls / Utility"},
 			 HtmlPortalsPulls},
-			{{"homestead", "about:homestead", "homestead-extras", "1",
+			{{"homestead", "about:homestead", "homestead-extras", "2",
 			  "Homestead", "Homestead Extras"},
 			 HtmlHomestead},
-			{{"wvwcons", "about:wvw-consumables", "wvw-consumables", "1",
+			{{"wvwcons", "about:wvw-consumables", "wvw-consumables", "2",
 			  "WvW Consumables", "WvW Consumables — Siege & Utility"},
 			 HtmlWvwConsumables},
 		};
