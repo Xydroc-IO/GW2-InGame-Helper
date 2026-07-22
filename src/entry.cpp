@@ -285,15 +285,14 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 7;
 	G::AddonDef.Version.Build    = 8;
-	G::AddonDef.Version.Revision = 4;
+	G::AddonDef.Version.Revision = 5;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.";
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
 	G::AddonDef.Flags            = AF_DisableHotloading;
-	G::AddonDef.Provider         = UP_Direct;
-	G::AddonDef.UpdateLink       =
-		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll";
+	G::AddonDef.Provider         = UP_GitHub;
+	G::AddonDef.UpdateLink       = "https://github.com/Xydroc-IO/GW2-InGame-Helper";
 	return &G::AddonDef;
 }
