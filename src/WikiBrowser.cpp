@@ -30,6 +30,7 @@ namespace
 {
 	HANDLE gMap = nullptr;
 	HANDLE gFrameMap = nullptr;
+	HANDLE gWakeEvent = nullptr;
 	WikiIpcState* gIpc = nullptr;
 	uint8_t* gFramePixels = nullptr;
 	HANDLE gProcess = nullptr;
@@ -50,6 +51,80 @@ namespace
 	uint32_t gTexW = 0;
 	uint32_t gTexH = 0;
 	uint32_t gLastFrameSeq = 0;
+
+	/* Fenced IPC string caches — refreshed only when *_seq changes. */
+	char gUrlCache[2048]{};
+	uint32_t gUrlCacheSeq = 0xFFFFFFFFu;
+	char gTitleCache[128]{};
+	uint32_t gTitleCacheSeq = 0xFFFFFFFFu;
+
+	void WakeHelper()
+	{
+		if (gWakeEvent)
+			SetEvent(gWakeEvent);
+	}
+
+	void RefreshUrlCache()
+	{
+		if (!gIpc)
+		{
+			gUrlCache[0] = 0;
+			gUrlCacheSeq = 0xFFFFFFFFu;
+			return;
+		}
+		for (int attempt = 0; attempt < 4; ++attempt)
+		{
+			const uint32_t s1 = gIpc->url_seq;
+			if (s1 == gUrlCacheSeq && (s1 & 1u) == 0)
+				return;
+			if (s1 & 1u)
+				continue;
+			uint32_t n = gIpc->url_len;
+			if (n >= sizeof(gIpc->url))
+				n = static_cast<uint32_t>(sizeof(gIpc->url) - 1);
+			if (n >= sizeof(gUrlCache))
+				n = static_cast<uint32_t>(sizeof(gUrlCache) - 1);
+			char tmp[sizeof(gUrlCache)];
+			std::memcpy(tmp, gIpc->url, n);
+			tmp[n] = 0;
+			if (gIpc->url_seq != s1)
+				continue;
+			std::memcpy(gUrlCache, tmp, n + 1);
+			gUrlCacheSeq = s1;
+			return;
+		}
+	}
+
+	void RefreshTitleCache()
+	{
+		if (!gIpc)
+		{
+			gTitleCache[0] = 0;
+			gTitleCacheSeq = 0xFFFFFFFFu;
+			return;
+		}
+		for (int attempt = 0; attempt < 4; ++attempt)
+		{
+			const uint32_t s1 = gIpc->title_seq;
+			if (s1 == gTitleCacheSeq && (s1 & 1u) == 0)
+				return;
+			if (s1 & 1u)
+				continue;
+			uint32_t n = gIpc->title_len;
+			if (n >= sizeof(gIpc->title))
+				n = static_cast<uint32_t>(sizeof(gIpc->title) - 1);
+			if (n >= sizeof(gTitleCache))
+				n = static_cast<uint32_t>(sizeof(gTitleCache) - 1);
+			char tmp[sizeof(gTitleCache)];
+			std::memcpy(tmp, gIpc->title, n);
+			tmp[n] = 0;
+			if (gIpc->title_seq != s1)
+				continue;
+			std::memcpy(gTitleCache, tmp, n + 1);
+			gTitleCacheSeq = s1;
+			return;
+		}
+	}
 
 	std::wstring Utf8ToWide(const std::string& utf8)
 	{
@@ -277,8 +352,18 @@ namespace
 		gIpc->tab_mask = 0;
 		gIpc->active_tab = 0;
 		gIpc->frame_seq = 0;
+		gIpc->frame_front = 0;
+		gIpc->frame_reading = 0xFFFFFFFFu;
 		gIpc->url[0] = 0;
+		gIpc->url_len = 0;
+		gIpc->url_seq = 0;
 		gIpc->title[0] = 0;
+		gIpc->title_len = 0;
+		gIpc->title_seq = 0;
+		gUrlCache[0] = 0;
+		gUrlCacheSeq = 0xFFFFFFFFu;
+		gTitleCache[0] = 0;
+		gTitleCacheSeq = 0xFFFFFFFFu;
 	}
 
 	bool ExtractHelper()
@@ -347,13 +432,23 @@ namespace
 			}
 			std::memset(gIpc, 0, sizeof(*gIpc));
 			gIpc->magic = kWikiIpcMagic;
+			gIpc->frame_reading = 0xFFFFFFFFu;
 			std::snprintf(gIpc->status, sizeof(gIpc->status), "Idle");
+		}
+
+		if (!gWakeEvent)
+		{
+			gWakeEvent = CreateEventA(nullptr, FALSE, FALSE, kWikiWakeEventName);
+			if (!gWakeEvent)
+			{
+				/* Non-fatal — helper falls back to Sleep. */
+			}
 		}
 
 		if (!gFrameMap)
 		{
 			gFrameMap = CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-				0, kWikiFrameBytes, kWikiFrameMapName);
+				0, kWikiFrameMapBytes, kWikiFrameMapName);
 			if (!gFrameMap)
 			{
 				SetLocalStatus("Failed to create frame mapping");
@@ -363,13 +458,13 @@ namespace
 		if (!gFramePixels)
 		{
 			gFramePixels = static_cast<uint8_t*>(MapViewOfFile(
-				gFrameMap, FILE_MAP_ALL_ACCESS, 0, 0, kWikiFrameBytes));
+				gFrameMap, FILE_MAP_ALL_ACCESS, 0, 0, kWikiFrameMapBytes));
 			if (!gFramePixels)
 			{
 				SetLocalStatus("Failed to map frame buffer");
 				return false;
 			}
-			/* Don't memset ~9MB here — that hitch froze the game on open. */
+			/* Don't memset ~18MB here — that hitch froze the game on open. */
 		}
 		return true;
 	}
@@ -400,6 +495,7 @@ namespace
 				gIpc->cmd = WIKI_CMD_QUIT;
 				gIpc->cmd_a = 0;
 				gIpc->cmd_arg[0] = 0;
+				WakeHelper();
 			}
 			else
 			{
@@ -407,6 +503,7 @@ namespace
 				gIpc->cmd_a = 0;
 				gIpc->cmd_arg[0] = 0;
 				++gIpc->cmd_seq;
+				WakeHelper();
 			}
 			/* Never block the game render thread for long — brief poll then kill. */
 			WaitForSingleObject(gProcess, 50);
@@ -606,14 +703,27 @@ namespace
 			std::snprintf(gIpc->cmd_arg, sizeof(gIpc->cmd_arg), "%s", arg ? arg : "");
 			gIpc->cmd_a = a;
 			gIpc->cmd = cmd;
+			WakeHelper();
 			return;
 		}
 
-		/* Ring full — fall back to legacy single-slot. */
+		/* Ring full: SET_BOUNDS is coalesced in view_w/h already — drop.
+		   Tab lifecycle cmds must not use the legacy single-slot (reorders /
+		   double-CLOSE). Retry next frame instead. */
+		if (cmd == WIKI_CMD_SET_BOUNDS ||
+			cmd == WIKI_CMD_CREATE_TAB ||
+			cmd == WIKI_CMD_ACTIVATE_TAB ||
+			cmd == WIKI_CMD_CLOSE_TAB)
+		{
+			WakeHelper();
+			return;
+		}
+
 		std::snprintf(gIpc->cmd_arg, sizeof(gIpc->cmd_arg), "%s", arg ? arg : "");
 		gIpc->cmd_a = a;
 		gIpc->cmd = cmd;
 		++gIpc->cmd_seq;
+		WakeHelper();
 	}
 
 	/* Map built-in about: URLs to file:/// before CEF sees them (CreateTab
@@ -684,6 +794,7 @@ namespace
 			return; /* queue full — drop (clicks shouldn't pile up that deep) */
 		gIpc->input_q[w % kWikiInputQueueSize] = ev;
 		gIpc->input_write = next;
+		WakeHelper();
 	}
 }
 
@@ -741,6 +852,11 @@ void WikiBrowser::Shutdown()
 	{
 		CloseHandle(gMap);
 		gMap = nullptr;
+	}
+	if (gWakeEvent)
+	{
+		CloseHandle(gWakeEvent);
+		gWakeEvent = nullptr;
 	}
 }
 
@@ -814,6 +930,7 @@ void WikiBrowser::PresentFrame()
 
 	/* Snapshot + clamp — never trust IPC sizes blindly (avoids overruns). */
 	const uint32_t seq = gIpc->frame_seq;
+	const uint32_t front = gIpc->frame_front & 1u;
 	uint32_t w = gIpc->frame_w;
 	uint32_t h = gIpc->frame_h;
 	if (w == 0 || h == 0 || w > kWikiFrameMaxW || h > kWikiFrameMaxH)
@@ -832,11 +949,14 @@ void WikiBrowser::PresentFrame()
 		return;
 	}
 
-	const uint8_t* src = gFramePixels;
+	/* Pin the front buffer so the helper will not overwrite mid-copy. */
+	gIpc->frame_reading = front;
+	const uint8_t* src = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
 	uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
 	const size_t rowBytes = static_cast<size_t>(w) * 4;
 	for (uint32_t y = 0; y < h; ++y)
 		std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+	gIpc->frame_reading = 0xFFFFFFFFu;
 	gContext->Unmap(gTex, 0);
 	gLastFrameSeq = seq;
 }
@@ -853,6 +973,7 @@ void WikiBrowser::FeedMouseMove(int x, int y, bool leave, unsigned mods)
 	gIpc->mouse_mods = mods;
 	gIpc->mouse_leave = leave ? 1u : 0u;
 	++gIpc->mouse_seq;
+	WakeHelper();
 }
 
 void WikiBrowser::FeedMouseClick(int x, int y, int button, bool up, int clicks, unsigned mods)
@@ -1018,14 +1139,28 @@ int WikiBrowser::FrameHeight() { return static_cast<int>(gTexH); }
 bool WikiBrowser::CanGoBack() { return gIpc && gIpc->can_back; }
 bool WikiBrowser::CanGoForward() { return gIpc && gIpc->can_forward; }
 
+const char* WikiBrowser::CurrentUrlCStr()
+{
+	RefreshUrlCache();
+	return gUrlCache;
+}
+
+const char* WikiBrowser::CurrentTitleCStr()
+{
+	RefreshTitleCache();
+	return gTitleCache;
+}
+
 std::string WikiBrowser::CurrentUrl()
 {
-	return gIpc ? std::string(gIpc->url) : std::string{};
+	RefreshUrlCache();
+	return gUrlCache[0] ? std::string(gUrlCache) : std::string{};
 }
 
 std::string WikiBrowser::CurrentTitle()
 {
-	return gIpc ? std::string(gIpc->title) : std::string{};
+	RefreshTitleCache();
+	return gTitleCache[0] ? std::string(gTitleCache) : std::string{};
 }
 
 std::string WikiBrowser::Status()

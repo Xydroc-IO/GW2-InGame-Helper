@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.6
+# GW2 In-Game Helper v1.7.8.7
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,13 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.7
+
+- **Fix:** URL/title IPC reads are seq+len fenced (no torn / unterminated string crash risk)
+- **Fix:** Frame path is double-buffered with a reader lock (no mid-copy tear under CEF paint)
+- **Fix:** Full cmd ring no longer falls back to legacy slot for tab CREATE/CLOSE/ACTIVATE (avoids reorder)
+- **Perf:** Cached URL/title on the render hot path; helper wakes on IPC instead of busy Sleep(1) when idle
 
 ## What’s new in 1.7.8.6
 

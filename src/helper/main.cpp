@@ -65,6 +65,7 @@ namespace
 	WikiIpcState* gIpc = nullptr;
 	HANDLE gMap = nullptr;
 	HANDLE gFrameMap = nullptr;
+	HANDLE gWakeEvent = nullptr;
 	uint8_t* gFramePixels = nullptr;
 	HWND gHelperWnd = nullptr;
 	std::wstring gCefDir;
@@ -137,18 +138,29 @@ namespace
 		std::snprintf(gIpc->status, sizeof(gIpc->status), "%s", text);
 	}
 
+	/* Odd seq = write in progress; even = stable. DLL retries until even+unchanged. */
+	void PublishFencedString(char* dst, size_t dstCap, uint32_t* lenOut, uint32_t* seq, const char* text)
+	{
+		++(*seq); /* odd — readers retry */
+		const int n = std::snprintf(dst, dstCap, "%s", text ? text : "");
+		*lenOut = (n > 0) ? static_cast<uint32_t>(n) : 0u;
+		if (*lenOut >= dstCap)
+			*lenOut = static_cast<uint32_t>(dstCap - 1);
+		++(*seq); /* even — stable */
+	}
+
 	void SetTitleUtf8(const char* text)
 	{
 		if (!gIpc || !text)
 			return;
-		std::snprintf(gIpc->title, sizeof(gIpc->title), "%s", text);
+		PublishFencedString(gIpc->title, sizeof(gIpc->title), &gIpc->title_len, &gIpc->title_seq, text);
 	}
 
 	void SetUrlUtf8(const char* text)
 	{
 		if (!gIpc || !text)
 			return;
-		std::snprintf(gIpc->url, sizeof(gIpc->url), "%s", text);
+		PublishFencedString(gIpc->url, sizeof(gIpc->url), &gIpc->url_len, &gIpc->url_seq, text);
 	}
 
 	std::string WideToUtf8(const std::wstring& w)
@@ -862,17 +874,26 @@ namespace
 		if (width > static_cast<int>(kWikiFrameMaxW) || height > static_cast<int>(kWikiFrameMaxH))
 			return;
 
-		const size_t rowBytes = static_cast<size_t>(width) * 4;
+		const uint32_t front = gIpc->frame_front & 1u;
+		const uint32_t back = 1u - front;
+		/* DLL is still memcpy'ing this buffer — drop the paint rather than tear. */
+		if (gIpc->frame_reading == back)
+			return;
+
+		uint8_t* dstBase = gFramePixels + static_cast<size_t>(back) * kWikiFrameBytes;
 		const uint8_t* src = static_cast<const uint8_t*>(buffer);
+		const size_t rowBytes = static_cast<size_t>(width) * 4;
 		for (int y = 0; y < height; ++y)
 		{
 			std::memcpy(
-				gFramePixels + static_cast<size_t>(y) * kWikiFrameStride,
+				dstBase + static_cast<size_t>(y) * kWikiFrameStride,
 				src + static_cast<size_t>(y) * rowBytes,
 				rowBytes);
 		}
+
 		gIpc->frame_w = static_cast<uint32_t>(width);
 		gIpc->frame_h = static_cast<uint32_t>(height);
+		gIpc->frame_front = back;
 		++gIpc->frame_seq;
 	}
 
@@ -1332,12 +1353,15 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		SetStatus("Failed to open frame mapping");
 		return 9;
 	}
-	gFramePixels = static_cast<uint8_t*>(MapViewOfFile(gFrameMap, FILE_MAP_ALL_ACCESS, 0, 0, kWikiFrameBytes));
+	gFramePixels = static_cast<uint8_t*>(MapViewOfFile(gFrameMap, FILE_MAP_ALL_ACCESS, 0, 0, kWikiFrameMapBytes));
 	if (!gFramePixels)
 	{
 		SetStatus("Failed to map frame buffer");
 		return 10;
 	}
+	gIpc->frame_front = 0;
+	gIpc->frame_reading = 0xFFFFFFFFu;
+	gWakeEvent = OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE, FALSE, kWikiWakeEventName);
 
 	SetStatus("Initializing CEF…");
 
@@ -1417,7 +1441,17 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		/* Must run on this thread with multi_threaded_message_loop=0. */
 		g_do_message_loop_work();
 		ProcessCommands();
-		Sleep(1);
+
+		/* Idle: wait on wake event (DLL posts cmds/input) or a short timeout
+		   so CEF timers still advance. Visible pages keep a 1ms cadence. */
+		const bool busy = gIpc && gIpc->visible;
+		if (gWakeEvent)
+		{
+			MsgWaitForMultipleObjects(1, &gWakeEvent, FALSE, busy ? 1 : 16, QS_ALLINPUT);
+			ResetEvent(gWakeEvent);
+		}
+		else
+			Sleep(busy ? 1 : 8);
 	}
 
 	for (int i = 0; i < kWikiMaxTabs; ++i)
@@ -1440,5 +1474,7 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		CloseHandle(gMap);
 	if (gFrameMap)
 		CloseHandle(gFrameMap);
+	if (gWakeEvent)
+		CloseHandle(gWakeEvent);
 	return 0;
 }

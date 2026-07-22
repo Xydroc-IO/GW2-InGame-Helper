@@ -1459,11 +1459,11 @@ void UI_Render()
 
 	DrawTabBar();
 
-	const std::string url = WikiBrowser::CurrentUrl();
-	if (!url.empty() && url.rfind("about:", 0) != 0)
+	const char* url = WikiBrowser::CurrentUrlCStr();
+	if (url && url[0] && std::strncmp(url, "about:", 6) != 0)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
-		ImGui::TextUnformatted(url.c_str());
+		ImGui::TextUnformatted(url);
 		ImGui::PopStyleColor();
 	}
 

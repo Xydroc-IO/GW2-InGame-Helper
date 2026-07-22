@@ -46,6 +46,8 @@ namespace WikiBrowser
 
 	bool CanGoBack();
 	bool CanGoForward();
+	const char* CurrentUrlCStr();   /* fenced cache; valid until next call */
+	const char* CurrentTitleCStr();
 	std::string CurrentUrl();
 	std::string CurrentTitle(); /* active page title from CEF */
 	std::string Status();

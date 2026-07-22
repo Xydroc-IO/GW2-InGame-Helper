@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.6`
+`1.7.8.7`
 
 ## Changelog highlights
 
+- **1.7.8.7** — IPC v3: fenced URL/title, double-buffered frames, safer cmd ring, idle wake event
 - **1.7.8.6** — Tab sync/restart stability; install keeps settings.ini; multi-client helper kill fix
 - **1.7.8.5** — Nexus updates via `UP_GitHub` + repo URL (direct DLL link for manual download only)
 - **1.7.8.4** — Brief `UP_Direct` DLL link (superseded)
