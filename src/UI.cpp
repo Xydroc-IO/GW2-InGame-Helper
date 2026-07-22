@@ -236,8 +236,27 @@ namespace
 				return "Progress";
 			if (std::strcmp(id, "mb_griffon") == 0 || std::strcmp(id, "mb_skyscale") == 0)
 				return "Mounts";
-			if (std::strcmp(id, "mukluk_fractals") == 0 || std::strcmp(id, "gw2tldr_fractals") == 0)
+			if (std::strcmp(id, "mb_intro_fractals") == 0 || std::strcmp(id, "mb_aquatic_ruins") == 0 ||
+				std::strcmp(id, "mb_deepstone") == 0 || std::strcmp(id, "mb_lonely_tower") == 0 ||
+				std::strcmp(id, "mb_molten_furnace") == 0 || std::strcmp(id, "mb_shattered_obs") == 0 ||
+				std::strcmp(id, "mb_silent_surf") == 0 || std::strcmp(id, "mb_sirens_reef") == 0 ||
+				std::strcmp(id, "mb_sunqua_peak") == 0 || std::strcmp(id, "mb_twilight_oasis") == 0 ||
+				std::strcmp(id, "mb_underground") == 0 || std::strcmp(id, "mukluk_fractals") == 0 ||
+				std::strcmp(id, "gw2tldr_fractals") == 0)
 				return "Fractals";
+			if (std::strcmp(id, "mb_intro_raiding") == 0 || std::strcmp(id, "mb_hand_kiting") == 0 ||
+				std::strcmp(id, "mb_rw1") == 0 || std::strcmp(id, "mb_rw2") == 0 ||
+				std::strcmp(id, "mb_rw3") == 0 || std::strcmp(id, "mb_rw5") == 0 ||
+				std::strcmp(id, "mb_rw6") == 0 || std::strcmp(id, "mb_rw7") == 0)
+				return "Raid Wings";
+			if (std::strcmp(id, "mb_mai_trin") == 0 || std::strcmp(id, "mb_boneskinner") == 0 ||
+				std::strcmp(id, "mb_cold_war") == 0 || std::strcmp(id, "mb_cosmic_obs") == 0 ||
+				std::strcmp(id, "mb_forging_steel") == 0 || std::strcmp(id, "mb_fraenir") == 0 ||
+				std::strcmp(id, "mb_icebrood") == 0 || std::strcmp(id, "mb_kaineng") == 0 ||
+				std::strcmp(id, "mb_lions_court") == 0 || std::strcmp(id, "mb_cerus") == 0 ||
+				std::strcmp(id, "mb_voice_claw") == 0 || std::strcmp(id, "mb_whisper") == 0 ||
+				std::strcmp(id, "mb_ankka") == 0)
+				return "Strikes";
 			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0)
 				return "TLDR";
 			return "Other";
@@ -271,12 +290,14 @@ namespace
 		{
 			if (std::strcmp(id, "snowcrows") == 0)
 				return "Raids";
+			if (std::strcmp(id, "sc_accessibuilds") == 0)
+				return "AccessiBuilds";
 			if (std::strcmp(id, "metabattle") == 0 || std::strcmp(id, "metabattle_ow") == 0 ||
-				std::strcmp(id, "aw2help") == 0)
+				std::strcmp(id, "aw2help") == 0 || std::strcmp(id, "sc_open_world") == 0)
 				return "Open World / General";
-			if (std::strcmp(id, "metabattle_pvp") == 0)
+			if (std::strcmp(id, "metabattle_pvp") == 0 || std::strcmp(id, "sc_pvp") == 0)
 				return "PvP";
-			if (std::strcmp(id, "metabattle_wvw") == 0)
+			if (std::strcmp(id, "metabattle_wvw") == 0 || std::strcmp(id, "sc_wvw") == 0)
 				return "WvW";
 			if (std::strcmp(id, "gw2skills") == 0)
 				return "Editor";
@@ -347,7 +368,7 @@ namespace
 		if (std::strcmp(category, "Guides") == 0)
 		{
 			static const char* kSec[] = {
-				"Living World", "Progress", "Mounts", "Fractals", "TLDR", "Other"
+				"Living World", "Progress", "Mounts", "Fractals", "Raid Wings", "Strikes", "TLDR", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
@@ -363,7 +384,7 @@ namespace
 		if (std::strcmp(category, "Builds") == 0)
 		{
 			static const char* kSec[] = {
-				"Raids", "Open World / General", "PvP", "WvW", "Editor", "Other"
+				"Raids", "AccessiBuilds", "Open World / General", "PvP", "WvW", "Editor", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
