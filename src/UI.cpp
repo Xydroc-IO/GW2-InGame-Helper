@@ -172,35 +172,190 @@ namespace
 	static char sFindQuery[128] = {};
 	static bool sFindMatchCase = false;
 
-	/* Visual-only Cheat Sheets grouping (not hubs / not Sites categories). */
-	const char* CheatSheetSection(const char* id)
+	/* Visual-only Browse section headers (not Sites categories / not hubs). */
+	const char* BrowseSection(const char* category, const char* id)
 	{
-		if (!id || !id[0])
+		if (!category || !id || !id[0])
 			return nullptr;
-		if (std::strcmp(id, "raidfood") == 0 || std::strcmp(id, "raidutils") == 0 ||
-			std::strcmp(id, "homegarden") == 0 || std::strcmp(id, "ascendedstart") == 0)
-			return "Prep";
-		if (std::strcmp(id, "sigilsrunes") == 0 || std::strcmp(id, "relics") == 0)
-			return "Gear";
-		if (std::strcmp(id, "booncheck") == 0 || std::strcmp(id, "squadtmpl") == 0 ||
-			std::strcmp(id, "stabcleanse") == 0 || std::strcmp(id, "ccdefiance") == 0 ||
-			std::strcmp(id, "portalspulls") == 0)
-			return "Squad";
-		if (std::strcmp(id, "fractalcons") == 0 || std::strcmp(id, "fractalcm") == 0)
-			return "Fractals";
-		if (std::strcmp(id, "raidwings") == 0 || std::strcmp(id, "strikes") == 0)
-			return "Encounters";
-		if (std::strcmp(id, "ubersaio") == 0 || std::strcmp(id, "dailyweekly") == 0 ||
-			std::strcmp(id, "currencysinks") == 0 || std::strcmp(id, "matconv") == 0 ||
-			std::strcmp(id, "legpaths") == 0 || std::strcmp(id, "mounts") == 0 ||
-			std::strcmp(id, "homestead") == 0)
-			return "Account";
-		if (std::strcmp(id, "wvwcons") == 0)
-			return "WvW";
-		return "Other";
+
+		if (std::strcmp(category, "Cheat Sheets") == 0)
+		{
+			if (std::strcmp(id, "raidfood") == 0 || std::strcmp(id, "raidutils") == 0 ||
+				std::strcmp(id, "homegarden") == 0 || std::strcmp(id, "ascendedstart") == 0)
+				return "Prep";
+			if (std::strcmp(id, "sigilsrunes") == 0 || std::strcmp(id, "relics") == 0)
+				return "Gear";
+			if (std::strcmp(id, "booncheck") == 0 || std::strcmp(id, "squadtmpl") == 0 ||
+				std::strcmp(id, "stabcleanse") == 0 || std::strcmp(id, "ccdefiance") == 0 ||
+				std::strcmp(id, "portalspulls") == 0)
+				return "Squad";
+			if (std::strcmp(id, "fractalcons") == 0 || std::strcmp(id, "fractalcm") == 0)
+				return "Fractals";
+			if (std::strcmp(id, "raidwings") == 0 || std::strcmp(id, "strikes") == 0)
+				return "Encounters";
+			if (std::strcmp(id, "ubersaio") == 0 || std::strcmp(id, "dailyweekly") == 0 ||
+				std::strcmp(id, "currencysinks") == 0 || std::strcmp(id, "matconv") == 0 ||
+				std::strcmp(id, "legpaths") == 0 || std::strcmp(id, "mounts") == 0 ||
+				std::strcmp(id, "homestead") == 0)
+				return "Account";
+			if (std::strcmp(id, "wvwcons") == 0)
+				return "WvW";
+			return "Other";
+		}
+
+		if (std::strcmp(category, "Tools") == 0)
+		{
+			if (std::strcmp(id, "gw2efficiency") == 0 || std::strcmp(id, "gw2eff_legendaries") == 0)
+				return "Account";
+			if (std::strcmp(id, "blishhud") == 0)
+				return "Overlay";
+			if (std::strcmp(id, "gw2timer_events") == 0 || std::strcmp(id, "gw2timer") == 0 ||
+				std::strcmp(id, "gw2tldr_metas") == 0)
+				return "Timers";
+			if (std::strcmp(id, "gw2crafts") == 0 || std::strcmp(id, "gw2bltc") == 0 ||
+				std::strcmp(id, "gw2treasures") == 0)
+				return "Economy";
+			if (std::strcmp(id, "killproof") == 0 || std::strcmp(id, "wingman") == 0)
+				return "Logs / KP";
+			if (std::strcmp(id, "gw2mb") == 0 || std::strcmp(id, "peuresearch") == 0)
+				return "Misc";
+			return "Other";
+		}
+
+		if (std::strcmp(category, "Guides") == 0)
+		{
+			if (std::strcmp(id, "guildjen") == 0 || std::strcmp(id, "guildjen_lw") == 0)
+				return "Living World";
+			if (std::strcmp(id, "mb_leveling") == 0 || std::strcmp(id, "mb_gold") == 0)
+				return "Progress";
+			if (std::strcmp(id, "mb_griffon") == 0 || std::strcmp(id, "mb_skyscale") == 0)
+				return "Mounts";
+			if (std::strcmp(id, "mukluk_fractals") == 0 || std::strcmp(id, "gw2tldr_fractals") == 0)
+				return "Fractals";
+			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0)
+				return "TLDR";
+			return "Other";
+		}
+
+		if (std::strcmp(category, "Discord") == 0)
+		{
+			if (std::strcmp(id, "discord_official") == 0 || std::strcmp(id, "discord_community") == 0 ||
+				std::strcmp(id, "discord_central") == 0)
+				return "Community";
+			if (std::strcmp(id, "discord_snowcrows") == 0 || std::strcmp(id, "discord_metabattle") == 0 ||
+				std::strcmp(id, "discord_guildjen") == 0 || std::strcmp(id, "discord_mukluk") == 0 ||
+				std::strcmp(id, "discord_aw2") == 0 || std::strcmp(id, "discord_skein") == 0)
+				return "Builds / Sites";
+			if (std::strcmp(id, "discord_fractal") == 0 || std::strcmp(id, "discord_raidacademy") == 0 ||
+				std::strcmp(id, "discord_uni") == 0 || std::strcmp(id, "discord_crossroads") == 0 ||
+				std::strcmp(id, "discord_rti") == 0)
+				return "Training";
+			if (std::strcmp(id, "discord_pvp") == 0)
+				return "PvP";
+			if (std::strcmp(id, "discord_wvw_na") == 0 || std::strcmp(id, "discord_wvw_eu") == 0)
+				return "WvW";
+			if (std::strcmp(id, "discord_fastfarming") == 0 || std::strcmp(id, "discord_overflow") == 0)
+				return "Farming / Trade";
+			if (std::strcmp(id, "discord_raidcore") == 0)
+				return "Addons";
+			return "Other";
+		}
+
+		if (std::strcmp(category, "Builds") == 0)
+		{
+			if (std::strcmp(id, "snowcrows") == 0)
+				return "Raids";
+			if (std::strcmp(id, "metabattle") == 0 || std::strcmp(id, "metabattle_ow") == 0 ||
+				std::strcmp(id, "aw2help") == 0)
+				return "General";
+			if (std::strcmp(id, "gw2skills") == 0)
+				return "Editor";
+			return "Other";
+		}
+
+		if (std::strcmp(category, "Wiki") == 0)
+		{
+			if (std::strcmp(id, "wiki") == 0)
+				return "Main";
+			if (std::strcmp(id, "wiki_updates") == 0)
+				return "News";
+			if (std::strcmp(id, "wiki_legendaries") == 0 || std::strcmp(id, "wiki_mounts") == 0)
+				return "Reference";
+			return "Other";
+		}
+
+		if (std::strcmp(category, "Official") == 0)
+		{
+			if (std::strcmp(id, "gw2official") == 0 || std::strcmp(id, "gw2news") == 0 ||
+				std::strcmp(id, "gw2forums") == 0)
+				return "ArenaNet";
+			if (std::strcmp(id, "raidcore") == 0)
+				return "Nexus";
+			return "Other";
+		}
+
+		return nullptr; /* no sections for this category */
 	}
 
-	void DrawCheatSheetSectionHeader(const char* name)
+	const char* const* BrowseSectionsForCategory(const char* category, size_t* outCount)
+	{
+		if (!category || !outCount)
+			return nullptr;
+		if (std::strcmp(category, "Cheat Sheets") == 0)
+		{
+			static const char* kSec[] = {
+				"Prep", "Gear", "Squad", "Fractals", "Encounters", "Account", "WvW", "Other"
+			};
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Tools") == 0)
+		{
+			static const char* kSec[] = {
+				"Account", "Overlay", "Timers", "Economy", "Logs / KP", "Misc", "Other"
+			};
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Guides") == 0)
+		{
+			static const char* kSec[] = {
+				"Living World", "Progress", "Mounts", "Fractals", "TLDR", "Other"
+			};
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Discord") == 0)
+		{
+			static const char* kSec[] = {
+				"Community", "Builds / Sites", "Training", "PvP", "WvW", "Farming / Trade", "Addons", "Other"
+			};
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Builds") == 0)
+		{
+			static const char* kSec[] = { "Raids", "General", "Editor", "Other" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Wiki") == 0)
+		{
+			static const char* kSec[] = { "Main", "News", "Reference", "Other" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Official") == 0)
+		{
+			static const char* kSec[] = { "ArenaNet", "Nexus", "Other" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		*outCount = 0;
+		return nullptr;
+	}
+
+	void DrawBrowseSectionHeader(const char* name)
 	{
 		if (!name || !name[0])
 			return;
@@ -619,40 +774,43 @@ namespace
 				ImGui::PopStyleColor();
 			}
 		}
-		else if (std::strcmp(selectedCat, "Cheat Sheets") == 0)
+		else
 		{
-			static const char* kSections[] = {
-				"Prep", "Gear", "Squad", "Fractals", "Encounters", "Account", "WvW", "Other"
-			};
-			for (const char* section : kSections)
+			size_t secCount = 0;
+			const char* const* sections = BrowseSectionsForCategory(selectedCat, &secCount);
+			if (sections && secCount > 0)
 			{
-				bool any = false;
+				for (size_t s = 0; s < secCount; ++s)
+				{
+					const char* section = sections[s];
+					bool any = false;
+					for (int i = 0; i < static_cast<int>(siteCount); ++i)
+					{
+						const SiteDef& site = sites[i];
+						if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+							continue;
+						const char* sec = BrowseSection(selectedCat, site.id);
+						if (!sec || std::strcmp(sec, section) != 0)
+							continue;
+						if (!any)
+						{
+							DrawBrowseSectionHeader(section);
+							any = true;
+						}
+						DrawSiteRow(i, false);
+					}
+				}
+			}
+			else
+			{
 				for (int i = 0; i < static_cast<int>(siteCount); ++i)
 				{
 					const SiteDef& site = sites[i];
-					if (!site.category || std::strcmp(site.category, "Cheat Sheets") != 0)
+					const char* cat = site.category ? site.category : "";
+					if (std::strcmp(cat, selectedCat) != 0)
 						continue;
-					const char* sec = CheatSheetSection(site.id);
-					if (!sec || std::strcmp(sec, section) != 0)
-						continue;
-					if (!any)
-					{
-						DrawCheatSheetSectionHeader(section);
-						any = true;
-					}
 					DrawSiteRow(i, false);
 				}
-			}
-		}
-		else
-		{
-			for (int i = 0; i < static_cast<int>(siteCount); ++i)
-			{
-				const SiteDef& site = sites[i];
-				const char* cat = site.category ? site.category : "";
-				if (std::strcmp(cat, selectedCat) != 0)
-					continue;
-				DrawSiteRow(i, false);
 			}
 		}
 
