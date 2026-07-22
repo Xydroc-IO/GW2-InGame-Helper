@@ -241,8 +241,7 @@ namespace
 				std::strcmp(id, "mb_molten_furnace") == 0 || std::strcmp(id, "mb_shattered_obs") == 0 ||
 				std::strcmp(id, "mb_silent_surf") == 0 || std::strcmp(id, "mb_sirens_reef") == 0 ||
 				std::strcmp(id, "mb_sunqua_peak") == 0 || std::strcmp(id, "mb_twilight_oasis") == 0 ||
-				std::strcmp(id, "mb_underground") == 0 || std::strcmp(id, "mukluk_fractals") == 0 ||
-				std::strcmp(id, "gw2tldr_fractals") == 0)
+				std::strcmp(id, "mb_underground") == 0 || std::strcmp(id, "mukluk_fractals") == 0)
 				return "Fractals";
 			if (std::strcmp(id, "mb_intro_raiding") == 0 || std::strcmp(id, "mb_hand_kiting") == 0 ||
 				std::strcmp(id, "mb_rw1") == 0 || std::strcmp(id, "mb_rw2") == 0 ||
@@ -263,7 +262,7 @@ namespace
 			if (std::strcmp(id, "mb_wvw_guides") == 0)
 				return "WvW";
 			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0 ||
-				std::strcmp(id, "gw2tldr_dungeons") == 0)
+				std::strcmp(id, "gw2tldr_fractals") == 0 || std::strcmp(id, "gw2tldr_dungeons") == 0)
 				return "TLDR";
 			return "Other";
 		}
