@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.3.0
+# GW2 In-Game Helper v1.7.5.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -14,6 +14,25 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
 
 ---
+
+## What’s new in 1.7.5.0
+
+- **Browse + chrome UI refresh** (same gold/bronze theme):
+  - Larger search-first Browse picker with autofocus filter
+  - Cheat Sheets grouped into Prep / Gear / Squad / Fractals / Encounters / Account / WvW section headers
+  - Tab pin mark, tighter tabs, compact nav cluster; Home tooltip matches default landing site
+- **Fix:** Browse/`?` glyphs — sanitize titles for ProggyClean (no em dash / ellipsis / middle-dot)
+
+## What’s new in 1.7.4.0
+
+- **Six new Cheat Sheets:**
+  - **Daily / Weekly Checklist** — raids, strikes, T4/CMs, Wizard’s Vault, metas
+  - **Currency Sinks** — laurels, unbound/volatile, spirit shards, mystic coins, karma
+  - **Ascended Start** — armor/weapons/trinkets path + fractal AR gearing
+  - **Portals / Pulls / Utility** — portals, pulls, reflects (squad QoL)
+  - **Homestead Extras** — stations, nodes, QoL (beyond Home Garden)
+  - **WvW Consumables** — siege, food/utility, supply glance
+- Home button uses Options default landing site; fractal AR tables corrected (T2–T4 / CM)
 
 ## What’s new in 1.7.3.0
 
