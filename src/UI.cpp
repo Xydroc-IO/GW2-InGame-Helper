@@ -81,15 +81,15 @@ namespace
 		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(0.55f, 0.42f, 0.15f, 0.45f));
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, kGold);
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.f, 10.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.f, 5.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.f, 6.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 2.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 3.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 3.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 2.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.f, 12.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(9.f, 5.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.f, 7.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 3.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 4.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 3.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 1.f);
@@ -166,10 +166,50 @@ namespace
 	static char sFilter[64] = {};
 	static int sCategoryIndex = 0;
 	static bool sSyncCategory = true;
+	static bool sFocusFilter = false;
 	static bool sShowFind = false;
 	static bool sRequestNewTabPicker = false;
 	static char sFindQuery[128] = {};
 	static bool sFindMatchCase = false;
+
+	/* Visual-only Cheat Sheets grouping (not hubs / not Sites categories). */
+	const char* CheatSheetSection(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "raidfood") == 0 || std::strcmp(id, "raidutils") == 0 ||
+			std::strcmp(id, "homegarden") == 0 || std::strcmp(id, "ascendedstart") == 0)
+			return "Prep";
+		if (std::strcmp(id, "sigilsrunes") == 0 || std::strcmp(id, "relics") == 0)
+			return "Gear";
+		if (std::strcmp(id, "booncheck") == 0 || std::strcmp(id, "squadtmpl") == 0 ||
+			std::strcmp(id, "stabcleanse") == 0 || std::strcmp(id, "ccdefiance") == 0 ||
+			std::strcmp(id, "portalspulls") == 0)
+			return "Squad";
+		if (std::strcmp(id, "fractalcons") == 0 || std::strcmp(id, "fractalcm") == 0)
+			return "Fractals";
+		if (std::strcmp(id, "raidwings") == 0 || std::strcmp(id, "strikes") == 0)
+			return "Encounters";
+		if (std::strcmp(id, "ubersaio") == 0 || std::strcmp(id, "dailyweekly") == 0 ||
+			std::strcmp(id, "currencysinks") == 0 || std::strcmp(id, "matconv") == 0 ||
+			std::strcmp(id, "legpaths") == 0 || std::strcmp(id, "mounts") == 0 ||
+			std::strcmp(id, "homestead") == 0)
+			return "Account";
+		if (std::strcmp(id, "wvwcons") == 0)
+			return "WvW";
+		return "Other";
+	}
+
+	void DrawCheatSheetSectionHeader(const char* name)
+	{
+		if (!name || !name[0])
+			return;
+		ImGui::Spacing();
+		ImGui::PushStyleColor(ImGuiCol_Text, kGoldDim);
+		ImGui::TextUnformatted(name);
+		ImGui::PopStyleColor();
+		ImGui::Separator();
+	}
 
 	void ActivateSiteIndex(int index, bool navigate, bool newTab)
 	{
@@ -214,7 +254,61 @@ namespace
 		return &sites[idx];
 	}
 
-	/* Draw a 5-point star (ProggyClean has no ★/☆ glyphs). */
+	/* ProggyClean lacks · — … etc. Keep ImGui labels ASCII-only. */
+	void SanitizeForUi(char* dst, size_t dstLen, const char* src)
+	{
+		if (!dst || dstLen == 0)
+			return;
+		dst[0] = 0;
+		if (!src)
+			return;
+		size_t o = 0;
+		for (size_t i = 0; src[i] && o + 1 < dstLen; )
+		{
+			const unsigned char c = static_cast<unsigned char>(src[i]);
+			if (c < 0x80)
+			{
+				dst[o++] = static_cast<char>(c);
+				++i;
+				continue;
+			}
+			/* UTF-8 em/en dash → '-' */
+			if ((c == 0xE2 && static_cast<unsigned char>(src[i + 1]) == 0x80 &&
+					(static_cast<unsigned char>(src[i + 2]) == 0x94 ||
+						static_cast<unsigned char>(src[i + 2]) == 0x93)))
+			{
+				dst[o++] = '-';
+				i += 3;
+				continue;
+			}
+			/* middle dot · */
+			if (c == 0xC2 && static_cast<unsigned char>(src[i + 1]) == 0xB7)
+			{
+				dst[o++] = '-';
+				i += 2;
+				continue;
+			}
+			/* ellipsis … */
+			if (c == 0xE2 && static_cast<unsigned char>(src[i + 1]) == 0x80 &&
+				static_cast<unsigned char>(src[i + 2]) == 0xA6)
+			{
+				if (o + 3 < dstLen)
+				{
+					dst[o++] = '.';
+					dst[o++] = '.';
+					dst[o++] = '.';
+				}
+				i += 3;
+				continue;
+			}
+			/* skip other multibyte sequences */
+			if ((c & 0xE0) == 0xC0) i += 2;
+			else if ((c & 0xF0) == 0xE0) i += 3;
+			else if ((c & 0xF8) == 0xF0) i += 4;
+			else ++i;
+		}
+		dst[o] = 0;
+	}
 	void DrawStarShape(ImDrawList* dl, ImVec2 center, float radius, ImU32 col, bool filled)
 	{
 		ImVec2 pts[10];
@@ -304,7 +398,7 @@ namespace
 		if (pickDefaultSite)
 		{
 			ImGui::TextColored(kGold, "Default landing site");
-			ImGui::TextColored(kMuted, "Home button · and when no tabs are saved yet.");
+			ImGui::TextColored(kMuted, "Home button - and when no tabs are saved yet.");
 		}
 		else if (pickNewTab)
 		{
@@ -315,7 +409,12 @@ namespace
 		ImGui::TextColored(kGold, "Search");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(-1.f);
-		ImGui::InputTextWithHint("##site_filter", "Filter sites…", sFilter, sizeof(sFilter));
+		if (sFocusFilter)
+		{
+			ImGui::SetKeyboardFocusHere();
+			sFocusFilter = false;
+		}
+		ImGui::InputTextWithHint("##site_filter", "Filter sites...", sFilter, sizeof(sFilter));
 
 		const bool filtering = sFilter[0] != '\0';
 		const bool showFavorites = (!filtering && !pickDefaultSite && sCategoryIndex == 0);
@@ -327,8 +426,8 @@ namespace
 				selectedCat = cats[catIdx] ? cats[catIdx] : "";
 		}
 
-		const float listH = pickDefaultSite ? 220.f : 240.f;
-		const float leftW = 140.f;
+		const float listH = pickDefaultSite ? 300.f : 320.f;
+		const float leftW = 172.f;
 
 		ImGui::BeginChild("##browse_cats", ImVec2(leftW, listH), true);
 		ImGui::PushStyleColor(ImGuiCol_Text, kGold);
@@ -353,11 +452,15 @@ namespace
 			const bool selected = (uiIndex == sCategoryIndex);
 			char label[96];
 			std::snprintf(label, sizeof(label), "%s (%d)", cat, Sites::CountInCategory(cat));
+			if (selected)
+				ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.32f, 0.26f, 0.12f, 0.95f));
 			if (ImGui::Selectable(label, selected))
 			{
 				sCategoryIndex = uiIndex;
 				sFilter[0] = '\0';
 			}
+			if (selected)
+				ImGui::PopStyleColor();
 		}
 		ImGui::EndChild();
 
@@ -391,9 +494,15 @@ namespace
 			}
 			char row[160];
 			if (withCategoryPrefix)
-				std::snprintf(row, sizeof(row), "%s · %s",
+			{
+				char safe[160];
+				char tmp[160];
+				std::snprintf(tmp, sizeof(tmp), "%s - %s",
 					site.category ? site.category : "",
 					site.label ? site.label : "");
+				SanitizeForUi(safe, sizeof(safe), tmp);
+				std::snprintf(row, sizeof(row), "%s", safe);
+			}
 			else
 				std::snprintf(row, sizeof(row), "%s", site.label ? site.label : "");
 
@@ -411,10 +520,37 @@ namespace
 					*closePanel = true;
 				sSyncCategory = true;
 			}
-			if (ImGui::IsItemHovered() && !pickDefaultSite && !pickNewTab)
-				ImGui::SetTooltip("Click: this tab · Ctrl+click: new tab");
-			if (ImGui::IsItemHovered() && pickNewTab)
-				ImGui::SetTooltip("Open in a new tab");
+			if (ImGui::IsItemHovered())
+			{
+				if (pickNewTab)
+					ImGui::SetTooltip("Open in a new tab");
+				else if (!pickDefaultSite)
+					ImGui::SetTooltip("Click: this tab | Ctrl+click: new tab");
+				else if (site.title && site.title[0])
+				{
+					char tip[160];
+					SanitizeForUi(tip, sizeof(tip), site.title);
+					ImGui::SetTooltip("%s", tip);
+				}
+			}
+
+			/* ASCII subtitle when title adds detail beyond the label. */
+			if (!withCategoryPrefix && site.title && site.title[0] && site.label &&
+				std::strcmp(site.title, site.label) != 0)
+			{
+				char sanitized[160];
+				SanitizeForUi(sanitized, sizeof(sanitized), site.title);
+				const char* src = sanitized;
+				const char* dash = std::strstr(sanitized, " - ");
+				if (dash)
+					src = dash + 3;
+				ImGui::SameLine();
+				ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+				char shortSub[72];
+				std::snprintf(shortSub, sizeof(shortSub), "%.48s", src);
+				ImGui::TextUnformatted(shortSub);
+				ImGui::PopStyleColor();
+			}
 
 			/* Drag-reorder favorites */
 			if (showFavorites && !pickDefaultSite && !pickNewTab)
@@ -467,24 +603,56 @@ namespace
 			for (int f = 0; f < favN; ++f)
 				DrawSiteRow(Sites::FavoriteSiteIndex(f), true);
 		}
+		else if (filtering)
+		{
+			for (int i = 0; i < static_cast<int>(siteCount); ++i)
+			{
+				if (!Sites::MatchesFilter(sites[i], sFilter))
+					continue;
+				DrawSiteRow(i, true);
+			}
+			if (shown > 0)
+			{
+				ImGui::Spacing();
+				ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+				ImGui::Text("%d match%s", shown, shown == 1 ? "" : "es");
+				ImGui::PopStyleColor();
+			}
+		}
+		else if (std::strcmp(selectedCat, "Cheat Sheets") == 0)
+		{
+			static const char* kSections[] = {
+				"Prep", "Gear", "Squad", "Fractals", "Encounters", "Account", "WvW", "Other"
+			};
+			for (const char* section : kSections)
+			{
+				bool any = false;
+				for (int i = 0; i < static_cast<int>(siteCount); ++i)
+				{
+					const SiteDef& site = sites[i];
+					if (!site.category || std::strcmp(site.category, "Cheat Sheets") != 0)
+						continue;
+					const char* sec = CheatSheetSection(site.id);
+					if (!sec || std::strcmp(sec, section) != 0)
+						continue;
+					if (!any)
+					{
+						DrawCheatSheetSectionHeader(section);
+						any = true;
+					}
+					DrawSiteRow(i, false);
+				}
+			}
+		}
 		else
 		{
 			for (int i = 0; i < static_cast<int>(siteCount); ++i)
 			{
 				const SiteDef& site = sites[i];
-				if (filtering)
-				{
-					if (!Sites::MatchesFilter(site, sFilter))
-						continue;
-					DrawSiteRow(i, true);
-				}
-				else
-				{
-					const char* cat = site.category ? site.category : "";
-					if (std::strcmp(cat, selectedCat) != 0)
-						continue;
-					DrawSiteRow(i, false);
-				}
+				const char* cat = site.category ? site.category : "";
+				if (std::strcmp(cat, selectedCat) != 0)
+					continue;
+				DrawSiteRow(i, false);
 			}
 		}
 
@@ -509,6 +677,8 @@ namespace
 		const int active = BrowserTabs::ActiveIndex();
 		int pendingClose = -1;
 
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7.f, 4.f));
 		ImGui::BeginChild("##tab_bar", ImVec2(0.f, ImGui::GetFrameHeightWithSpacing() + 4.f), false,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
@@ -519,10 +689,7 @@ namespace
 			const bool selected = (i == active);
 
 			char label[64];
-			if (tab.pinned)
-				std::snprintf(label, sizeof(label), "* %s", tab.title[0] ? tab.title : "Tab");
-			else
-				std::snprintf(label, sizeof(label), "%s", tab.title[0] ? tab.title : "Tab");
+			std::snprintf(label, sizeof(label), "%s", tab.title[0] ? tab.title : "Tab");
 
 			if (selected)
 				ImGui::PushStyleColor(ImGuiCol_Button, kTabActive);
@@ -531,6 +698,17 @@ namespace
 			if (ImGui::Button(label))
 				BrowserTabs::Activate(i);
 			ImGui::PopStyleColor();
+
+			/* Gold pin mark on pinned tabs (replaces "*" prefix). */
+			if (tab.pinned)
+			{
+				const ImVec2 rmin = ImGui::GetItemRectMin();
+				ImDrawList* dl = ImGui::GetWindowDrawList();
+				dl->AddCircleFilled(
+					ImVec2(rmin.x + 5.f, rmin.y + 5.f),
+					2.6f,
+					ImGui::GetColorU32(kGold));
+			}
 			if (selected)
 			{
 				const ImVec2 rmin = ImGui::GetItemRectMin();
@@ -589,6 +767,7 @@ namespace
 			{
 				sRequestNewTabPicker = false;
 				sSyncCategory = true;
+				sFocusFilter = true;
 				ImGui::OpenPopup("##site_browse_newtab");
 			}
 			if (ImGui::IsItemHovered())
@@ -616,7 +795,7 @@ namespace
 			}
 		}
 
-		ImGui::SetNextWindowSize(ImVec2(520.f, 340.f), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(640.f, 420.f), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##site_browse_newtab"))
 		{
 			bool closePanel = false;
@@ -627,6 +806,7 @@ namespace
 		}
 
 		ImGui::EndChild();
+		ImGui::PopStyleVar(2);
 
 		if (pendingClose >= 0)
 			BrowserTabs::Close(pendingClose);
@@ -693,7 +873,8 @@ namespace
 			raw.find("Launching") != std::string::npos ||
 			raw.find("Creating") != std::string::npos)
 		{
-			label = "Loading…";
+			label = "Loading...";
+			col = kGold;
 		}
 		else if (raw.find("Closed") != std::string::npos ||
 			raw.find("Hidden") != std::string::npos)
@@ -707,7 +888,7 @@ namespace
 			raw.find("not found") != std::string::npos ||
 			raw.find("disabled") != std::string::npos)
 		{
-			label = "Error — check Nexus log";
+			label = "Error - check Nexus log";
 			col = kWarn;
 		}
 		else
@@ -716,7 +897,7 @@ namespace
 			static char buf[48];
 			if (raw.size() > 40)
 			{
-				std::snprintf(buf, sizeof(buf), "%.37s…", raw.c_str());
+				std::snprintf(buf, sizeof(buf), "%.37s...", raw.c_str());
 				label = buf;
 			}
 			else
@@ -771,10 +952,11 @@ namespace
 		if (ImGui::Button("Browse"))
 		{
 			sSyncCategory = true;
+			sFocusFilter = true;
 			ImGui::OpenPopup("##site_browse");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("%s · %s",
+			ImGui::SetTooltip("%s - %s",
 				active.category ? active.category : "",
 				active.label ? active.label : "");
 
@@ -785,35 +967,38 @@ namespace
 				Sites::ToggleFavorite(Sites::ActiveId());
 		}
 
-		ImGui::SameLine(0.f, 10.f);
+		/* Compact nav cluster */
+		ImGui::SameLine(0.f, 12.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.f, 6.f));
 		if (SoftButton("<", BrowserTabs::CanGoBack()))
 			BrowserTabs::GoBack();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Back");
-		ImGui::SameLine(0.f, 2.f);
+		ImGui::SameLine();
 		if (SoftButton(">", BrowserTabs::CanGoForward()))
 			BrowserTabs::GoForward();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Forward");
-		ImGui::SameLine(0.f, 2.f);
+		ImGui::SameLine();
 		if (ImGui::Button("Home"))
 			BrowserTabs::GoHome();
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Helper home");
-		ImGui::SameLine(0.f, 2.f);
+			ImGui::SetTooltip("Default landing site");
+		ImGui::SameLine();
 		if (ImGui::Button("Reload"))
 			BrowserTabs::Reload();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Reload");
+		ImGui::PopStyleVar();
 
-		ImGui::SameLine(0.f, 10.f);
+		ImGui::SameLine(0.f, 12.f);
 		{
 			float avail = ImGui::GetContentRegionAvail().x - 90.f;
 			if (avail < 140.f) avail = 140.f;
 			if (avail > 280.f) avail = 280.f;
 			ImGui::SetNextItemWidth(avail);
 		}
-		if (ImGui::InputTextWithHint("##site_query", "Search…", G::LastQuery, sizeof(G::LastQuery),
+		if (ImGui::InputTextWithHint("##site_query", "Search...", G::LastQuery, sizeof(G::LastQuery),
 			ImGuiInputTextFlags_EnterReturnsTrue))
 		{
 			if (G::LastQuery[0])
@@ -838,7 +1023,7 @@ namespace
 		DrawMoreMenu();
 		DrawStatusChip();
 
-		ImGui::SetNextWindowSize(ImVec2(520.f, 320.f), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(640.f, 420.f), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##site_browse"))
 		{
 			bool closePanel = false;
@@ -852,22 +1037,23 @@ namespace
 
 	void DrawDefaultSiteBrowse()
 	{
-		if (ImGui::Button("Choose default site…"))
+		if (ImGui::Button("Choose default site..."))
 		{
 			sSyncCategory = true;
+			sFocusFilter = true;
 			ImGui::OpenPopup("##default_site_browse");
 		}
 
 		ImGui::SameLine();
 		const SiteDef* def = SiteById(G::DefaultSiteId);
 		if (def)
-			ImGui::TextColored(kMuted, "%s · %s",
+			ImGui::TextColored(kMuted, "%s - %s",
 				def->category ? def->category : "",
 				def->label ? def->label : "");
 		else
 			ImGui::TextColored(kMuted, "%s", G::DefaultSiteId);
 
-		ImGui::SetNextWindowSize(ImVec2(520.f, 340.f), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(640.f, 420.f), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##default_site_browse"))
 		{
 			bool closePanel = false;
@@ -1001,7 +1187,10 @@ void UI_Render()
 		if (ctrlF && !sCtrlFWasDown)
 			sShowFind = true;
 		if (ctrlT && !sCtrlTWasDown)
+		{
 			sRequestNewTabPicker = true;
+			sFocusFilter = true;
+		}
 		if (ctrlW && !sCtrlWWasDown)
 		{
 			const int ai = BrowserTabs::ActiveIndex();
@@ -1039,7 +1228,7 @@ void UI_Render()
 		ImGui::TextColored(kGoldDim, "Find");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(220.f);
-		const bool findEnter = ImGui::InputTextWithHint("##find_q", "Find in page…", sFindQuery, sizeof(sFindQuery),
+		const bool findEnter = ImGui::InputTextWithHint("##find_q", "Find in page...", sFindQuery, sizeof(sFindQuery),
 			ImGuiInputTextFlags_EnterReturnsTrue);
 		ImGui::SameLine();
 		ImGui::Checkbox("Aa", &sFindMatchCase);
@@ -1154,8 +1343,8 @@ void UI_Render()
 	{
 		ImGui::Spacing();
 		ImGui::TextColored(kGold, WikiBrowser::IsReady()
-			? "Waiting for first paint…"
-			: "Loading browser…");
+			? "Waiting for first paint..."
+			: "Loading browser...");
 		ImGui::TextWrapped("%s", WikiBrowser::Status().c_str());
 	}
 
@@ -1222,9 +1411,9 @@ void UI_Options()
 
 	ImGui::Spacing();
 	ImGui::TextWrapped(
-		"Browse · ... menu for Find / Copy / Open Ext. Right-click tabs to pin. "
+		"Browse / ... menu for Find / Copy / Open Ext. Right-click tabs to pin. "
 		"Window size and position are saved automatically.");
 	ImGui::TextWrapped(
-		"Hotkeys: Ctrl+Shift+H open/close · Ctrl+T new tab · Ctrl+W close · "
-		"Ctrl+Tab cycle · Ctrl+Shift+T reopen · Ctrl+F find");
+		"Hotkeys: Ctrl+Shift+H open/close | Ctrl+T new tab | Ctrl+W close | "
+		"Ctrl+Tab cycle | Ctrl+Shift+T reopen | Ctrl+F find");
 }
