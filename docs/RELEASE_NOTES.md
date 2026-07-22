@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.2.2
+# GW2 In-Game Helper v1.7.3.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,11 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 1.7.3.0
+
+- **Removed** tabbed cheat sheet hubs (Raid Prep, Squad Utility, Encounters, Fractals)
+- Cheat sheets remain as separate Browse entries only
+
 ## What’s new in 1.7.2.2
 
 - **Uber's All-In-One** cheat sheet — themed waypoint cards with copy-to-clipboard chat codes (hubs, Wizard’s Vault, Chak Egg, Obsidian Shards, Provisioner Tokens)
@@ -27,11 +32,6 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
   - **Material Conversions** — mystic forge staples & sinks
   - **Legendary Short Paths** — gen / armor / backpack checklists
   - **Mount Unlock Checklist** — griffon, skyscale, siege turtle
-- **Cheat Sheet hubs** (tabbed groups; individuals still listed):
-  - **Raid Prep** — Food, Utilities, Home Garden
-  - **Squad Utility** — Boons, Squad Template, Stab/Cleanse, CC
-  - **Encounters** — Raid Wings & Strike Missions
-  - **Fractals** — Consumables & CM/T4
 
 ## What’s new in 1.7.2.1
 
