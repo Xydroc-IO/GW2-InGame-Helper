@@ -32,8 +32,8 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [MetaBattle OW](https://metabattle.com/wiki/Open_World) | Builds |
 | [Accessibility Wars](https://aw2.help/) | Builds |
 | [Gw2Skills Editor](https://en.gw2skills.net/editor/) | Builds |
-| [MetaBattle PvP](https://metabattle.com/wiki/PvP_Builds) | PvP |
-| [MetaBattle WvW](https://metabattle.com/wiki/WvW) | WvW |
+| [MetaBattle PvP](https://metabattle.com/wiki/PvP_Builds) | Builds |
+| [MetaBattle WvW](https://metabattle.com/wiki/WvW) | Builds |
 | [gw2efficiency](https://gw2efficiency.com/) | Tools |
 | [Legendary Tracker](https://gw2efficiency.com/account/legendaries) | Tools |
 | [Blish HUD](https://blishhud.com/) | Tools |
