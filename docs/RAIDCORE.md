@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.1`
+`1.7.8.2`
 
 ## Changelog highlights
 
+- **1.7.8.2** — Fix last-tab close killing / corrupting the previous tab (no double IPC CLOSE; sync only when helper active_tab matches)
 - **1.7.8.1** — PvP/WvW builds under Builds; Uber axe/sickle/pick labeled separately; Wiki Easy Objectives clearer
 - **1.7.8.0** — Fix closing the wrong tab; Browse sections everywhere; Vault Easy Objectives; Uber’s axe/sickle/pick labels; checklists use real checkboxes
 - **1.7.7.0** — Fix multi-tab CEF slot assignment; interactive cheat-sheet checklists
