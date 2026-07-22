@@ -870,53 +870,70 @@ namespace
 		const int active = BrowserTabs::ActiveIndex();
 		int pendingClose = -1;
 
+		/* One widget per tab: "Title  x". Separate title+x buttons were easy to
+		   mis-hit (last tab's x clipped / click landed on the previous x). */
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7.f, 4.f));
 		ImGui::BeginChild("##tab_bar", ImVec2(0.f, ImGui::GetFrameHeightWithSpacing() + 4.f), false,
-			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+			ImGuiWindowFlags_HorizontalScrollbar);
+
+		const float closeZone = ImGui::CalcTextSize("  x").x + ImGui::GetStyle().FramePadding.x;
 
 		for (int i = 0; i < n; ++i)
 		{
 			ImGui::PushID(i);
 			const BrowserTabs::Tab& tab = BrowserTabs::At(i);
 			const bool selected = (i == active);
+			const bool canClose = (n > 1 && !tab.pinned);
 
-			char label[64];
-			std::snprintf(label, sizeof(label), "%s", tab.title[0] ? tab.title : "Tab");
+			char label[96];
+			const char* title = tab.title[0] ? tab.title : "Tab";
+			if (canClose)
+				std::snprintf(label, sizeof(label), "%s  x###tab%d", title, i);
+			else if (n > 1 && tab.pinned)
+				std::snprintf(label, sizeof(label), "%s  ·###tab%d", title, i);
+			else
+				std::snprintf(label, sizeof(label), "%s###tab%d", title, i);
 
 			if (selected)
 				ImGui::PushStyleColor(ImGuiCol_Button, kTabActive);
 			else
 				ImGui::PushStyleColor(ImGuiCol_Button, kTabIdle);
-			if (ImGui::Button(label))
-				BrowserTabs::Activate(i);
+			const bool pressed = ImGui::Button(label);
 			ImGui::PopStyleColor();
 
-			/* Gold pin mark on pinned tabs (replaces "*" prefix). */
+			const ImVec2 rmin = ImGui::GetItemRectMin();
+			const ImVec2 rmax = ImGui::GetItemRectMax();
+
 			if (tab.pinned)
 			{
-				const ImVec2 rmin = ImGui::GetItemRectMin();
-				ImDrawList* dl = ImGui::GetWindowDrawList();
-				dl->AddCircleFilled(
+				ImGui::GetWindowDrawList()->AddCircleFilled(
 					ImVec2(rmin.x + 5.f, rmin.y + 5.f),
 					2.6f,
 					ImGui::GetColorU32(kGold));
 			}
 			if (selected)
 			{
-				const ImVec2 rmin = ImGui::GetItemRectMin();
-				const ImVec2 rmax = ImGui::GetItemRectMax();
 				ImGui::GetWindowDrawList()->AddRectFilled(
 					ImVec2(rmin.x, rmax.y - 2.f),
 					ImVec2(rmax.x, rmax.y),
 					ImGui::GetColorU32(kGold));
 			}
 
+			if (pressed)
+			{
+				const float mx = ImGui::GetIO().MousePos.x;
+				if (canClose && mx >= (rmax.x - closeZone))
+					pendingClose = i;
+				else
+					BrowserTabs::Activate(i);
+			}
+
 			if (ImGui::BeginPopupContextItem("##tab_ctx"))
 			{
 				if (ImGui::MenuItem(tab.pinned ? "Unpin" : "Pin"))
 					BrowserTabs::TogglePin(i);
-				if (ImGui::MenuItem("Close", nullptr, false, n > 1 && !tab.pinned))
+				if (ImGui::MenuItem("Close", nullptr, false, canClose))
 					pendingClose = i;
 				ImGui::EndPopup();
 			}
@@ -924,33 +941,15 @@ namespace
 			if (ImGui::IsItemHovered())
 			{
 				if (tab.pinned)
-					ImGui::SetTooltip("%s (pinned)", tab.title[0] ? tab.title : "Tab");
-				if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) && n > 1 && !tab.pinned)
+					ImGui::SetTooltip("%s (pinned — unpin to close)", title);
+				else if (canClose)
+				{
+					const float mx = ImGui::GetIO().MousePos.x;
+					if (mx >= (rmax.x - closeZone))
+						ImGui::SetTooltip("Close tab");
+				}
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) && canClose)
 					pendingClose = i;
-			}
-
-			if (n > 1 && !tab.pinned)
-			{
-				ImGui::SameLine(0.f, 2.f);
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, ImGui::GetStyle().FramePadding.y));
-				char closeId[24];
-				std::snprintf(closeId, sizeof(closeId), "x##close%d", i);
-				if (ImGui::SmallButton(closeId))
-					pendingClose = i;
-				ImGui::PopStyleVar();
-				if (ImGui::IsItemHovered())
-					ImGui::SetTooltip("Close tab");
-			}
-			else if (n > 1 && tab.pinned)
-			{
-				ImGui::SameLine(0.f, 2.f);
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.35f);
-				char closeId[24];
-				std::snprintf(closeId, sizeof(closeId), "x##pin%d", i);
-				ImGui::SmallButton(closeId);
-				ImGui::PopStyleVar();
-				if (ImGui::IsItemHovered())
-					ImGui::SetTooltip("Unpin to close");
 			}
 
 			ImGui::SameLine();
