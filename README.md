@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.8` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.9` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -27,7 +27,8 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
 | [Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
-| [Snowcrows](https://snowcrows.com/) | Builds |
+| [SC Raid Builds](https://snowcrows.com/builds/raids) | Builds |
+| SC Raid Elementalist / Mesmer / Necromancer / Engineer / Ranger / Thief / Guardian / Revenant / Warrior | Builds |
 | [SC AccessiBuilds](https://snowcrows.com/builds/accessibuilds) | Builds |
 | [SC Open World](https://snowcrows.com/builds/open-world) | Builds |
 | [SC PvP](https://snowcrows.com/builds/pvp) | Builds |
@@ -84,7 +85,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [PvE Guides Hub](https://metabattle.com/wiki/PvE_Guides) | Guides |
 | MetaBattle Fractals (Intro, Aquatic Ruins, Deepstone, Lonely Tower, Molten Furnace, Shattered Observatory, Silent Surf, Siren's Reef, Sunqua Peak, Twilight Oasis, Underground Facility) | Guides |
 | [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
-| MetaBattle Raid Wings (Intro, Hand Kiting, Wings 1–3 / 5–7) | Guides |
+| MetaBattle Raid Wings (Intro, Hand Kiting, Wings 1–7) | Guides |
 | MetaBattle Strikes (Mai Trin, Boneskinner, Cold War, Dagda, Forging Steel, Fraenir, Icebrood, Kaineng, Lion's Court, Cerus, Voice/Claw, Whisper, Ankka) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
