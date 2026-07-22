@@ -118,6 +118,20 @@ install: $(DLL_OUT)
 		"$(GW2_ADDONS)/home-garden.ver" \
 		"$(GW2_ADDONS)/ubers-all-in-one.html" \
 		"$(GW2_ADDONS)/ubers-all-in-one.ver" \
+		"$(GW2_ADDONS)/strike-missions.html" \
+		"$(GW2_ADDONS)/strike-missions.ver" \
+		"$(GW2_ADDONS)/fractal-cm-list.html" \
+		"$(GW2_ADDONS)/fractal-cm-list.ver" \
+		"$(GW2_ADDONS)/squad-template.html" \
+		"$(GW2_ADDONS)/squad-template.ver" \
+		"$(GW2_ADDONS)/stability-cleanse.html" \
+		"$(GW2_ADDONS)/stability-cleanse.ver" \
+		"$(GW2_ADDONS)/material-conversions.html" \
+		"$(GW2_ADDONS)/material-conversions.ver" \
+		"$(GW2_ADDONS)/legendary-paths.html" \
+		"$(GW2_ADDONS)/legendary-paths.ver" \
+		"$(GW2_ADDONS)/mount-unlock.html" \
+		"$(GW2_ADDONS)/mount-unlock.ver" \
 		"$(GW2_ADDONS)/settings.ini" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"

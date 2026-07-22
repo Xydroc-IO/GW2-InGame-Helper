@@ -101,6 +101,55 @@ namespace
   table.sheet th { background: #1a1710; color: var(--gold); font-weight: 600; }
   table.sheet td { background: var(--panel-2); }
   table.sheet td.role { white-space: nowrap; font-weight: 650; color: var(--gold-bright); width: 22%; }
+  table.sheet td.num {
+    width: 2.5rem; text-align: center; font-weight: 700; color: var(--gold-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  table.sheet tr:hover td { background: #16130c; }
+  .badge {
+    display: inline-block; padding: 2px 8px; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid var(--border);
+    background: var(--accent); color: var(--gold-dim);
+  }
+  .badge-cm {
+    color: #e8a090; border-color: rgba(196, 92, 74, 0.45);
+    background: rgba(196, 92, 74, 0.18);
+  }
+  .badge-ok {
+    color: #a8d0a8; border-color: rgba(106, 170, 106, 0.45);
+    background: rgba(106, 170, 106, 0.14);
+  }
+  .badge-scale {
+    color: var(--gold-bright); border-color: var(--border);
+    background: #1a1710; font-family: Consolas, "Courier New", monospace;
+  }
+  .checks { list-style: none; margin: 0; padding: 0; }
+  .checks li {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 10px 12px; margin: 0 0 8px;
+    background: var(--panel-2); border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--gold-dim); color: var(--muted); font-size: 0.92rem;
+  }
+  .checks li:last-child { margin-bottom: 0; }
+  .checks .box {
+    flex: 0 0 auto; width: 1.05rem; height: 1.05rem; margin-top: 2px;
+    border: 1px solid var(--border); background: var(--accent);
+  }
+  .checks strong { color: var(--text); }
+  .callout-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  @media (max-width: 640px) { .callout-grid { grid-template-columns: 1fr; } }
+  .callout {
+    padding: 14px 14px 12px; background: var(--panel-2);
+    border: 1px solid var(--border-soft); border-left: 3px solid var(--gold);
+  }
+  .callout h3 {
+    margin: 0 0 6px; font-family: Georgia, "Palatino Linotype", Palatino, serif;
+    font-size: 1.02rem; color: var(--text);
+  }
+  .callout p { margin: 0; font-size: 0.86rem; color: var(--muted); line-height: 1.45; }
+  .callout .tags { margin: 0 0 8px; }
   .tag {
     display: inline-block; padding: 2px 8px; border-radius: 2px; font-size: 0.78rem;
     font-weight: 650; letter-spacing: 0.02em; margin: 0 4px 4px 0; white-space: nowrap;
@@ -1378,6 +1427,516 @@ namespace
 )BODY");
 	}
 
+
+
+	std::string HtmlStrikeMissions()
+	{
+		return BuildHtml(
+			"Strike Missions Overview",
+			"Guild Wars 2 · Raids / Strikes Reference",
+			"Strike Missions Overview",
+			"Single-boss raid encounters by expansion — map → boss. No strategies.",
+			"<a href=\"#ibs\">Icebrood</a>\n"
+			"<a href=\"#eod\">End of Dragons</a>\n"
+			"<a href=\"#soto\">SotO</a>\n"
+			"<a href=\"#other\">Other</a>",
+			R"BODY(
+  <section class="block">
+    <div class="head">
+      <h2>How to open</h2>
+      <p>These appear in the Raid Encounters UI alongside raid bosses.</p>
+    </div>
+    <div class="body">
+      <div class="howto">
+        <div class="step"><span class="n">IBS</span><p><strong>Eye of the North</strong> — Path of Fire required.</p></div>
+        <div class="step"><span class="n">EoD</span><p><strong>Arborstone</strong> — Cantha story unlocks CMs.</p></div>
+        <div class="step"><span class="n">SotO</span><p><strong>Wizard’s Tower</strong> — story gates apply.</p></div>
+      </div>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Strategies:</strong> use TLDR / Snowcrows — this sheet is a map only.</p>
+    </div>
+  </section>
+
+  <section class="block" id="ibs">
+    <div class="head"><h2>Icebrood Saga</h2><p>Eye of the North</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th></th><th>Mission</th><th>Encounter(s)</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Shiverpeaks Pass</td><td>Icebrood Construct</td></tr>
+          <tr><td class="num">2</td><td>Voice of the Fallen and Claw of the Fallen</td><td>Voice · Claw</td></tr>
+          <tr><td class="num">3</td><td>Fraenir of Jormag</td><td>Fraenir of Jormag</td></tr>
+          <tr><td class="num">4</td><td>Boneskinner</td><td>Boneskinner</td></tr>
+          <tr><td class="num">5</td><td>Whisper of Jormag</td><td>Whisper of Jormag</td></tr>
+          <tr><td class="num">6</td><td>Forging Steel</td><td>Ancient Forgeman <span class="muted">(story unlock)</span></td></tr>
+          <tr><td class="num">7</td><td>Cold War</td><td>Minister of Morale</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="eod">
+    <div class="head"><h2>End of Dragons</h2><p>Arborstone · challenge modes available</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th></th><th>Mission</th><th>Encounter</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Aetherblade Hideout</td><td>Mai Trin</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td class="num">2</td><td>Xunlai Jade Junkyard</td><td>Ankka</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td class="num">3</td><td>Kaineng Overlook</td><td>Minister Li</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td class="num">4</td><td>Harvest Temple</td><td>The Dragonvoid</td><td><span class="badge badge-cm">CM</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="soto">
+    <div class="head"><h2>Secrets of the Obscure</h2><p>Wizard’s Tower</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th></th><th>Mission</th><th>Encounter</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Cosmic Observatory</td><td>Dagda</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td class="num">2</td><td>Temple of Febe</td><td>Cerus</td><td><span class="badge badge-cm">CM</span> <span class="muted">LM</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="other">
+    <div class="head"><h2>Other</h2><p>Living World / seasonal</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Mission</th><th>Access</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Old Lion’s Court</td><td>Lion’s Arch</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td>Secret Lair of the Snowmen</td><td>Seasonal / special</td><td><span class="badge">—</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlFractalCmList()
+	{
+		return BuildHtml(
+			"Fractal CM / T4 List",
+			"Guild Wars 2 · Fractals Reference",
+			"Fractal CM / T4 List",
+			"Challenge mote scales, agony glance, and daily notes — pairs with Fractal Consumables.",
+			"<a href=\"#cm\">Challenge Modes</a>\n"
+			"<a href=\"#ar\">Agony</a>\n"
+			"<a href=\"#daily\">Dailies</a>\n"
+			"<a href=\"#tips\">Tips</a>",
+			R"BODY(
+  <section class="block" id="cm">
+    <div class="head">
+      <h2>Challenge Modes</h2>
+      <p>Scales 95–100 — activate Harbinger of Woe / challenge mote after unlocking.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Scale</th><th>Fractal</th><th>~AR</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-scale">95</span></td><td>Kinfall CM</td><td>~141+</td></tr>
+          <tr><td><span class="badge badge-scale">96</span></td><td>Nightmare CM</td><td>~143+</td></tr>
+          <tr><td><span class="badge badge-scale">97</span></td><td>Shattered Observatory CM</td><td>~145+</td></tr>
+          <tr><td><span class="badge badge-scale">98</span></td><td>Sunqua Peak CM</td><td>~147+</td></tr>
+          <tr><td><span class="badge badge-scale">99</span></td><td>Silent Surf CM</td><td>~148+</td></tr>
+          <tr><td><span class="badge badge-scale">100</span></td><td>Lonely Tower CM</td><td>~150+</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>LFG:</strong> “96 CM” means Nightmare challenge mote. Bring Mist Offensive + food — see Fractal Consumables.</p>
+    </div>
+  </section>
+
+  <section class="block" id="ar">
+    <div class="head"><h2>Agony Resistance</h2><p>Base agony by tier; CMs sit on T4.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Tier</th><th>Scales</th><th>Typical AR</th></tr></thead>
+        <tbody>
+          <tr><td>T1</td><td>1–25</td><td>0</td></tr>
+          <tr><td>T2</td><td>26–50</td><td>~10+</td></tr>
+          <tr><td>T3</td><td>51–75</td><td>~20+</td></tr>
+          <tr><td>T4</td><td>76–100</td><td>~40+ base · <strong>150+</strong> for CMs</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="daily">
+    <div class="head"><h2>Daily / Recommended</h2><p>Rotates every day — check Mistlock / fractal UI.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Daily T4</h3><p>Three T4 scales (not always CMs).</p></div>
+        <div class="callout"><h3>Recommended</h3><p>One per tier — easier AR / reward path.</p></div>
+        <div class="callout"><h3>CM farming</h3><p>LFG often clears 96–100 CM for essences / KP.</p></div>
+        <div class="callout"><h3>Instabilities</h3><p>Change daily — don’t memorize them here.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="tips">
+    <div class="head"><h2>Quick Tips</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Unlock each CM via that fractal’s achievement track before the Harbinger appears.</li>
+        <li>Party of 5 — same consumable logic as raids (Raid Food / Raid Utilities / Fractal Consumables).</li>
+        <li>Fight notes → Mukluk / TLDR Fractals in Guides.</li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlSquadTemplate()
+	{
+		return BuildHtml(
+			"Squad Template — 10-Man Roles",
+			"Guild Wars 2 · Raid Squad Reference",
+			"Squad Template",
+			"Typical 10-man slots — tank, heal, quick, alac, DPS. Pairs with Boon Checklist.",
+			"<a href=\"#classic\">Classic</a>\n"
+			"<a href=\"#modern\">Modern</a>\n"
+			"<a href=\"#strike\">Strikes</a>\n"
+			"<a href=\"#checklist\">Checklist</a>",
+			R"BODY(
+  <section class="block" id="classic">
+    <div class="head"><h2>Classic 10-Man</h2><p>Common in statics and training squads.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Count</th><th>Role</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td><span class="tag tag-tank">Tank</span></td><td>Highest toughness · holds boss facing</td></tr>
+          <tr><td class="num">1–2</td><td><span class="tag tag-heal">Heal</span></td><td>Often heal-alac or heal-quick hybrid</td></tr>
+          <tr><td class="num">1</td><td><span class="tag tag-sup">Quickness</span></td><td>Pure quick DPS or heal-quick</td></tr>
+          <tr><td class="num">1</td><td><span class="tag tag-sup">Alacrity</span></td><td>Pure alac DPS or heal-alac</td></tr>
+          <tr><td class="num">5–7</td><td><span class="tag tag-power">DPS</span></td><td>Power and/or condi — fill remaining slots</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="modern">
+    <div class="head"><h2>Modern Layouts</h2><p>Name roles in squad before ready-check.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout">
+          <div class="tags"><span class="tag tag-heal">Heal Quic</span> <span class="tag tag-heal">Heal Alac</span></div>
+          <h3>Double heal-boon</h3>
+          <p>2 heal-boon supports · 8 DPS. Tank optional on easier strikes.</p>
+        </div>
+        <div class="callout">
+          <div class="tags"><span class="tag tag-tank">Tank</span> <span class="tag tag-heal">2× Heal</span></div>
+          <h3>Tank + heal boons</h3>
+          <p>1 tank · heal-quick · heal-alac · 7 DPS.</p>
+        </div>
+        <div class="callout">
+          <div class="tags"><span class="tag tag-power">Power</span> <span class="tag tag-condi">Condi</span></div>
+          <h3>Damage mix</h3>
+          <p>Match hitbox &amp; condi caps — ask the static.</p>
+        </div>
+        <div class="callout">
+          <div class="tags"><span class="tag tag-misc">Special</span></div>
+          <h3>Hand kite / push</h3>
+          <p>Extra role on specific bosses — replace one DPS.</p>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Boons:</strong> assign quick + alac explicitly — see Boon Checklist.</p>
+    </div>
+  </section>
+
+  <section class="block" id="strike">
+    <div class="head"><h2>Strikes &amp; Smaller Groups</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>5-man</strong> — heal or heal-boon + quick/alac coverage + DPS.</li>
+        <li><strong>10-man strikes</strong> — same roles as raids; many groups skip tank on easier bosses.</li>
+        <li><strong>CM strikes</strong> — full boon coverage + named mechanics roles.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="checklist">
+    <div class="head"><h2>Pre-Pull Checklist</h2><p>Call these in chat.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-tank">Tank</span> named (if needed) · toughness check</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-sup">Quick</span> + <span class="tag tag-sup">Alac</span> named</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><span class="tag tag-heal">Heal</span> coverage confirmed</span></li>
+        <li><span class="box" aria-hidden="true"></span><span>Food + utilities up (Raid Food / Raid Utilities)</span></li>
+        <li><span class="box" aria-hidden="true"></span><span>Special roles (kite, push, reflect) assigned</span></li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlStabilityCleanse()
+	{
+		return BuildHtml(
+			"Stability / Cleanse — Squad Utility",
+			"Guild Wars 2 · Combat Reference",
+			"Stability / Cleanse",
+			"Group stability and condition cleanse by profession — complements CC / Defiance.",
+			"<a href=\"#stability\">Stability</a>\n"
+			"<a href=\"#cleanse\">Cleanse</a>\n"
+			"<a href=\"#tips\">Tips</a>",
+			R"BODY(
+  <section class="block" id="stability">
+    <div class="head">
+      <h2>Stability</h2>
+      <p>Prefer group stab for knockbacks, pulls, and fears. Call “stab now.”</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Profession</th><th>Typical tools</th></tr></thead>
+        <tbody>
+          <tr><td class="role">Guardian / Firebrand</td><td>“Stand Your Ground!” · Mantras / Tomes · Hallowed Ground</td></tr>
+          <tr><td class="role">Warrior</td><td>Balanced Stance · Banner of Defense</td></tr>
+          <tr><td class="role">Revenant</td><td>Rite of the Great Dwarf · centaur / renegade utilities</td></tr>
+          <tr><td class="role">Elementalist</td><td>Armor of Earth · aura / magnetic lines</td></tr>
+          <tr><td class="role">Engineer</td><td>Elixir S · kit utilities</td></tr>
+          <tr><td class="role">Mesmer</td><td>Continuum setups · wells (build-dependent)</td></tr>
+          <tr><td class="role">Others</td><td>Often personal only — don’t assume group stab</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Raid habit:</strong> Firebrand, chrono, or warrior usually holds the stab button for key mechanics.</p>
+    </div>
+  </section>
+
+  <section class="block" id="cleanse">
+    <div class="head">
+      <h2>Condition Cleanse</h2>
+      <p>Group cleanses for heavy condi phases.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Profession</th><th>Typical tools</th></tr></thead>
+        <tbody>
+          <tr><td class="role">Guardian / Firebrand</td><td>Tome of Resolve · Contemplation of Purity</td></tr>
+          <tr><td class="role">Elementalist / Tempest</td><td>Cleansing Fire · Signet of Water · Glyphs</td></tr>
+          <tr><td class="role">Engineer</td><td>Elixir C · Med Kit</td></tr>
+          <tr><td class="role">Necromancer / Scourge</td><td>Plague Signet · Consume Conditions · shades</td></tr>
+          <tr><td class="role">Ranger / Druid</td><td>Spirits · staff &amp; glyph cleanses</td></tr>
+          <tr><td class="role">Mesmer / Chrono</td><td>Well of Eternity · Mantra of Recovery · Null Field</td></tr>
+          <tr><td class="role">Revenant / Herald</td><td>Facet / legend utilities</td></tr>
+          <tr><td class="role">Thief / Specter</td><td>Shadow / shroud lines (often small group)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="tips">
+    <div class="head"><h2>Squad Tips</h2><p></p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Resistance ≠ cleanse</h3><p>Resistance lowers condi damage taken; it does not remove conditions.</p></div>
+        <div class="callout"><h3>Convert vs purge</h3><p>Some scourge / FB tools convert conditions instead of cleansing.</p></div>
+        <div class="callout"><h3>Stack first</h3><p>Stab/cleanse on a spread squad wastes the button.</p></div>
+        <div class="callout"><h3>Pair sheets</h3><p>Use with CC / Defiance and Boon Checklist.</p></div>
+      </div>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlMaterialConversions()
+	{
+		return BuildHtml(
+			"Material Conversions",
+			"Guild Wars 2 · Economy Reference",
+			"Material Conversions",
+			"Mystic forge staples and common sinks — structural glance, not TP prices.",
+			"<a href=\"#forge\">Mystic Forge</a>\n"
+			"<a href=\"#ecto\">Ecto</a>\n"
+			"<a href=\"#blood\">Bloodstone</a>\n"
+			"<a href=\"#sinks\">Sinks</a>",
+			R"BODY(
+  <section class="block" id="forge">
+    <div class="head"><h2>Mystic Forge Staples</h2><p>Four-slot recipes players use constantly.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Output</th><th>Typical inputs</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Mystic Clover</strong></td><td>Mystic Coin · Ectoplasm · Philosopher’s Stone · Elonian Wine</td></tr>
+          <tr><td><strong>Gift of Condensed Magic / Might</strong></td><td>Stacks of T6 mats (blood, fang, claw, dust…)</td></tr>
+          <tr><td><strong>Tier promotion</strong></td><td>4× same-tier crafting mats → higher tier (chance)</td></tr>
+          <tr><td><strong>Ascended boxes</strong></td><td>Bloodstone Dust · Dragonite · Empyreal (+ catalyst)</td></tr>
+          <tr><td><strong>Legendary gifts</strong></td><td>Follow the specific legendary collection page</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="ecto">
+    <div class="head"><h2>Ectoplasm &amp; Salvage</h2><p></p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Globs of Ectoplasm</h3><p>Salvage rare+ gear — fuel clovers, gifts, and forge gambles.</p></div>
+        <div class="callout"><h3>Philosopher’s Stones</h3><p>Buy from mystic vendors with spirit shards / coins.</p></div>
+        <div class="callout"><h3>Junk</h3><p>Vendor junk — never forge it.</p></div>
+        <div class="callout"><h3>Prices</h3><p>Use BLTC / Trading Post — this sheet has no prices.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="blood">
+    <div class="head"><h2>Bloodstone · Empyreal · Dragonite</h2><p>Ascended crafting triad.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Used together for <strong>ascended gear</strong> and many legendary gifts.</li>
+        <li>Convert excess via mystic forge boxes when storage is full.</li>
+        <li>Map completion, fractals, raids, and dailies drip these constantly.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="sinks">
+    <div class="head"><h2>Useful Sinks</h2><p>When the bank hurts.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Trophy shipments</strong> — laurel / karma vendors for account-bound mats.</li>
+        <li><strong>Material storage</strong> — deposit before forging.</li>
+        <li><strong>Legendary collections</strong> — intentional sinks (see Legendary Paths).</li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlLegendaryPaths()
+	{
+		return BuildHtml(
+			"Legendary Short Paths",
+			"Guild Wars 2 · Legendaries Reference",
+			"Legendary Short Paths",
+			"Checklists for gen weapons, armor, and backpacks — not full guides.",
+			"<a href=\"#gen1\">Gen 1</a>\n"
+			"<a href=\"#gen2\">Gen 2–3</a>\n"
+			"<a href=\"#armor\">Armor</a>\n"
+			"<a href=\"#back\">Backpacks</a>",
+			R"BODY(
+  <section class="block" id="gen1">
+    <div class="head"><h2>Gen 1 Weapons</h2><p>Precursor + four gifts in the mystic forge.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box"></span><span><strong>Precursor</strong> — drop, craft, or buy</span></li>
+        <li><span class="box"></span><span><strong>Gift of Fortune</strong> — clovers · ecto · mystic coins · destiny gifts</span></li>
+        <li><span class="box"></span><span><strong>Gift of Mastery</strong> — world completion · shards · obsidians · battle / exploration gifts</span></li>
+        <li><span class="box"></span><span><strong>Gift of (Weapon)</strong> — themed gift from collection + mats</span></li>
+        <li><span class="box"></span><span><strong>Forge</strong> — precursor + Fortune + Mastery + Weapon gift</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="gen2">
+    <div class="head"><h2>Gen 2 &amp; Gen 3</h2><p>Collection-driven — track in Achievements.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Gen 2</h3><p>Long collection (metas, raids/fractals, crafting) → legendary.</p></div>
+        <div class="callout"><h3>Gen 3</h3><p>Expansion collections with gift crafts (EoD / SotO era).</p></div>
+        <div class="callout"><h3>Open the collection</h3><p>It lists every gate — pin it in the hero panel.</p></div>
+        <div class="callout"><h3>Trackers</h3><p>Efficiency / Treasures help; this sheet is only the shape.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="armor">
+    <div class="head"><h2>Legendary Armor</h2><p>Raid / PvP / WvW / fractal lines.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Line</th><th>Core idea</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Raid</strong></td><td>Raid tokens · Gift of Ascension · ascended pieces · forge</td></tr>
+          <tr><td><strong>PvP / WvW</strong></td><td>Reward tracks · legendary inscriptions / gifts · ascended set</td></tr>
+          <tr><td><strong>Fractal</strong></td><td>Mist / fractal currencies · ascended · gifts</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="back">
+    <div class="head"><h2>Legendary Backpacks</h2><p>Pick one path and finish it.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Ad Infinitum</strong> — fractal agony / pristine / collections</li>
+        <li><strong>Expansion backs</strong> — map collections + gifts (HoT / PoF / EoD…)</li>
+        <li><strong>Raid / strike backs</strong> — encounter currencies + collections</li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Exact counts live on the wiki collection — balance patches rarely change the checklist shape.</p>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlMountUnlock()
+	{
+		return BuildHtml(
+			"Mount Unlock Checklist",
+			"Guild Wars 2 · Mounts Reference",
+			"Mount Unlock Checklist",
+			"Griffon, Skyscale, and Siege Turtle — offline tick-lists. Full steps on MetaBattle.",
+			"<a href=\"#griffon\">Griffon</a>\n"
+			"<a href=\"#skyscale\">Skyscale</a>\n"
+			"<a href=\"#turtle\">Siege Turtle</a>\n"
+			"<a href=\"#others\">Others</a>",
+			R"BODY(
+  <section class="block" id="griffon">
+    <div class="head"><h2>Griffon</h2><p>Path of Fire</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box"></span><span>Own <strong>Path of Fire</strong></span></li>
+        <li><span class="box"></span><span>Train basic mounts required by the collection</span></li>
+        <li><span class="box"></span><span>Complete the <strong>Open Skies</strong> / griffon collection</span></li>
+        <li><span class="box"></span><span>Gather listed powders / materials</span></li>
+        <li><span class="box"></span><span>Finish roost / forge step on the achievement</span></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Detail → Guides · Griffon Unlock (MetaBattle).</p>
+    </div>
+  </section>
+
+  <section class="block" id="skyscale">
+    <div class="head"><h2>Skyscale</h2><p>Living World + End of Dragons era</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box"></span><span>Required Living World / IBS episodes owned</span></li>
+        <li><span class="box"></span><span>Complete <strong>Skyscale Growing / Saving</strong> story steps</span></li>
+        <li><span class="box"></span><span>Finish the <strong>Skyscale collection</strong></span></li>
+        <li><span class="box"></span><span>Pay / craft materials at each gate</span></li>
+        <li><span class="box"></span><span>Optional: mastery tracks for holds / dashes</span></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Detail → Guides · Skyscale Unlock (MetaBattle).</p>
+    </div>
+  </section>
+
+  <section class="block" id="turtle">
+    <div class="head"><h2>Siege Turtle</h2><p>End of Dragons</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box"></span><span>Own <strong>End of Dragons</strong></span></li>
+        <li><span class="box"></span><span>Progress Cantha story / turtle gates</span></li>
+        <li><span class="box"></span><span>Complete <strong>Turtle Unlock</strong> collection</span></li>
+        <li><span class="box"></span><span>Unlock passenger / siege skills via masteries</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="others">
+    <div class="head"><h2>Other Mounts</h2><p>Usually shorter unlocks.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Core PoF</h3><p>Raptor · Springer · Skimmer · Jackal — story / map unlocks.</p></div>
+        <div class="callout"><h3>Roller Beetle</h3><p>PoF racing collection.</p></div>
+        <div class="callout"><h3>Warclaw</h3><p>WvW reward track.</p></div>
+        <div class="callout"><h3>Skiff</h3><p>EoD fishing masteries (travel, not a mount).</p></div>
+      </div>
+    </div>
+  </section>
+)BODY");
+	}
+
 	struct PageSpec
 	{
 		CheatSheets::Sheet meta;
@@ -1396,6 +1955,9 @@ namespace
 			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "1",
 			  "Fractal Consumables", "Fractal Consumables — Potions & Agony"},
 			 HtmlFractalConsumables},
+			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "2",
+			  "Fractal CM / T4", "Fractal CM / T4 List"},
+			 HtmlFractalCmList},
 			{{"sigilsrunes", "about:sigils-runes", "sigils-runes", "1",
 			  "Sigils & Runes", "Sigils & Runes — Common Role Picks"},
 			 HtmlSigilsRunes},
@@ -1405,12 +1967,30 @@ namespace
 			{{"booncheck", "about:boon-checklist", "boon-checklist", "1",
 			  "Boon Checklist", "Boon Checklist — Squad Coverage"},
 			 HtmlBoonChecklist},
+			{{"squadtmpl", "about:squad-template", "squad-template", "2",
+			  "Squad Template", "Squad Template — 10-Man Roles"},
+			 HtmlSquadTemplate},
+			{{"stabcleanse", "about:stability-cleanse", "stability-cleanse", "2",
+			  "Stability / Cleanse", "Stability / Cleanse — Squad Utility"},
+			 HtmlStabilityCleanse},
 			{{"ccdefiance", "about:cc-defiance", "cc-defiance", "1",
 			  "CC / Defiance", "CC / Defiance — Breakbar by Profession"},
 			 HtmlCcDefiance},
 			{{"raidwings", "about:raid-wings", "raid-wings", "1",
 			  "Raid Wings", "Raid Wings Overview"},
 			 HtmlRaidWings},
+			{{"strikes", "about:strike-missions", "strike-missions", "2",
+			  "Strike Missions", "Strike Missions Overview"},
+			 HtmlStrikeMissions},
+			{{"matconv", "about:material-conversions", "material-conversions", "2",
+			  "Material Conversions", "Material Conversions"},
+			 HtmlMaterialConversions},
+			{{"legpaths", "about:legendary-paths", "legendary-paths", "2",
+			  "Legendary Paths", "Legendary Short Paths"},
+			 HtmlLegendaryPaths},
+			{{"mounts", "about:mount-unlock", "mount-unlock", "2",
+			  "Mount Unlock", "Mount Unlock Checklist"},
+			 HtmlMountUnlock},
 			{{"homegarden", "about:home-garden", "home-garden", "1",
 			  "Home Garden", "Home Garden — Cultivated Herbs"},
 			 HtmlHomeGarden},
