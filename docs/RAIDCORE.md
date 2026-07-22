@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.5`
+`1.7.8.6`
 
 ## Changelog highlights
 
+- **1.7.8.6** — Tab sync/restart stability; install keeps settings.ini; multi-client helper kill fix
 - **1.7.8.5** — Nexus updates via `UP_GitHub` + repo URL (direct DLL link for manual download only)
 - **1.7.8.4** — Brief `UP_Direct` DLL link (superseded)
 - **1.7.8.3** — Tab close is one control per tab so the last tab’s x cannot hit the previous tab
