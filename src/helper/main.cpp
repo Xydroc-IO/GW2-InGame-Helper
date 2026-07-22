@@ -571,20 +571,20 @@ namespace
 		const int oldActive = gActiveSlot;
 		AdjustCreateQueueForClose(slot);
 
-		if (gBrowsers[slot])
+		/* Detach before close_browser so a sync OnBeforeClose cannot clear a
+		   neighbour after we compact, and so we never shift a live pointer
+		   that close_browser still owns. */
+		cef_browser_t* closing = gBrowsers[slot];
+		gBrowsers[slot] = nullptr;
+
+		if (closing)
 		{
-			if (cef_browser_host_t* host = gBrowsers[slot]->get_host(gBrowsers[slot]))
+			if (cef_browser_host_t* host = closing->get_host(closing))
 			{
 				host->close_browser(host, 1);
 				host->base.release(&host->base);
 			}
-
-			/* OnBeforeClose may already have cleared the slot. */
-			if (gBrowsers[slot])
-			{
-				gBrowsers[slot]->base.release(&gBrowsers[slot]->base);
-				gBrowsers[slot] = nullptr;
-			}
+			closing->base.release(&closing->base);
 		}
 
 		/* Always compact — UI already shifted tab indices even if this slot
@@ -708,6 +708,8 @@ namespace
 
 	void CEF_CALLBACK OnBeforeClose(cef_life_span_handler_t*, cef_browser_t* browser)
 	{
+		/* CloseSlot detaches first — usually no match. Still clear if a browser
+		   closed itself (e.g. discard path) without going through CloseSlot. */
 		for (int i = 0; i < kWikiMaxTabs; ++i)
 		{
 			if (gBrowsers[i] && browser && gBrowsers[i]->is_same(gBrowsers[i], browser))
@@ -1220,7 +1222,9 @@ namespace
 			HandleCmd(ev.cmd, ev.a, ev.arg);
 		}
 
-		/* Legacy single-slot — still drain for older addon builds / safety. */
+		/* Legacy single-slot — only when the ring was full (PostCmd bumps cmd_seq).
+		   Normal commands must not run twice: a second CLOSE_TAB after compact
+		   destroys the tab that shifted into the same index. */
 		if (gIpc->cmd_seq != gIpc->last_cmd_seq)
 		{
 			const uint32_t cmd = gIpc->cmd;

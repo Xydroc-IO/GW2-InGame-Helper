@@ -575,9 +575,17 @@ namespace
 			ev.a = a;
 			std::snprintf(ev.arg, sizeof(ev.arg), "%s", arg ? arg : "");
 			gIpc->cmd_write = next;
+
+			/* Mirror into legacy fields for debug only — do NOT bump cmd_seq.
+			   Bumping both ring + legacy made the helper run every command twice
+			   (CLOSE_TAB twice closes the neighbour after compaction). */
+			std::snprintf(gIpc->cmd_arg, sizeof(gIpc->cmd_arg), "%s", arg ? arg : "");
+			gIpc->cmd_a = a;
+			gIpc->cmd = cmd;
+			return;
 		}
 
-		/* Legacy single-slot — still written for older helpers / debug. */
+		/* Ring full — fall back to legacy single-slot. */
 		std::snprintf(gIpc->cmd_arg, sizeof(gIpc->cmd_arg), "%s", arg ? arg : "");
 		gIpc->cmd_a = a;
 		gIpc->cmd = cmd;
@@ -959,6 +967,16 @@ bool WikiBrowser::HasTab(int slot)
 	if (!gIpc || !HelperAlive() || slot < 0 || slot >= kWikiMaxTabs)
 		return false;
 	return (gIpc->tab_mask & (1u << slot)) != 0;
+}
+
+int WikiBrowser::ActiveTabSlot()
+{
+	if (!gIpc || !HelperAlive())
+		return -1;
+	const int slot = gIpc->active_tab;
+	if (slot < 0 || slot >= kWikiMaxTabs)
+		return -1;
+	return slot;
 }
 
 bool WikiBrowser::HasFrame()
