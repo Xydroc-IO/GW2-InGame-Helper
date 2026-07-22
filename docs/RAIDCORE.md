@@ -3,7 +3,7 @@
 ## Short description
 
 ```text
-In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No memory reads.
+In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 ```
 
 ## Signature
@@ -14,10 +14,11 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.7.7.0`
+`1.7.8.0`
 
 ## Changelog highlights
 
+- **1.7.8.0** — Fix closing the wrong tab; Browse sections everywhere; Vault Easy Objectives; Uber’s axe/sickle/pick labels; checklists use real checkboxes
 - **1.7.7.0** — Fix multi-tab CEF slot assignment; interactive cheat-sheet checklists
 - **1.7.6.0** — Browse section headers for Tools/Guides/Discord/Builds/Wiki/Official; fix Back→blank page
 - **1.7.5.0** — Browse + chrome UI refresh; Cheat Sheets sections; ASCII-safe labels; six sheets from 1.7.4 bundled

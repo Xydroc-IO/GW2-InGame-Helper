@@ -1,8 +1,8 @@
-# GW2 In-Game Helper v1.7.7.0
+# GW2 In-Game Helper v1.7.8.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
-In-game browser for Guild Wars 2 sites and community Discords.
+In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 One DLL for Nexus — no memory reads.
 
 ## Install
@@ -14,6 +14,15 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
 
 ---
+
+## What’s new in 1.7.8.0
+
+- **Fix:** Closing tab 2/3/4+ no longer destroys the first tab’s CEF browser (serialize creates; always compact slots)
+- **Browse section headers** for every category (Help, Search, Wiki, Builds, PvP, WvW, Farming, …)
+- **Wiki:** Vault Easy Objectives (Wizard’s Vault)
+- **Uber's All-In-One:** axe / sickle / pick labeled with Rayhan Bayt, Beetletun, Rata Pten
+- **Cheat sheet checklists** use real checkboxes (tick reliably in OSR)
+- Nexus description: Wiki, Snowcrows, MetaBattle, and more
 
 ## What’s new in 1.7.7.0
 
