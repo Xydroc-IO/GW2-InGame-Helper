@@ -199,6 +199,7 @@ namespace
 			return;
 		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "%s", sites[index].id);
 		Settings::SetDirty();
+		Settings::Save(true); /* Options can change while the helper is closed */
 	}
 
 	const SiteDef* SiteById(const char* id)
@@ -303,7 +304,7 @@ namespace
 		if (pickDefaultSite)
 		{
 			ImGui::TextColored(kGold, "Default landing site");
-			ImGui::TextColored(kMuted, "Used when no tabs are saved yet.");
+			ImGui::TextColored(kMuted, "Home button · and when no tabs are saved yet.");
 		}
 		else if (pickNewTab)
 		{
@@ -1208,7 +1209,7 @@ void UI_Options()
 	{
 		ImGui::TextUnformatted("Default landing site");
 		DrawDefaultSiteBrowse();
-		ImGui::TextColored(kMuted, "Used for a fresh session when no tabs are saved.");
+		ImGui::TextColored(kMuted, "Home button uses this. Also used when no tabs are saved yet.");
 	}
 
 	if (ImGui::SliderFloat("Opacity", &G::Opacity, 0.15f, 1.f, "%.2f"))

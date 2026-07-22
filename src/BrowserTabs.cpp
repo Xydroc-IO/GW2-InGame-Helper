@@ -607,8 +607,11 @@ void BrowserTabs::GoForward()
 void BrowserTabs::GoHome()
 {
 	EnsureDefault();
+	const char* land = (G::DefaultSiteId[0] ? G::DefaultSiteId : "home");
+	if (Sites::IndexOfId(land) < 0)
+		land = "home";
 	const bool keepPin = gTabs[gActive].tab.pinned;
-	FillFromSite(gTabs[gActive], "home");
+	FillFromSite(gTabs[gActive], land);
 	gTabs[gActive].tab.pinned = keepPin;
 	Settings::SetDirty();
 	SyncSitesFromTab(gTabs[gActive].tab);
