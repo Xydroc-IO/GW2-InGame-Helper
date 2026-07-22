@@ -308,6 +308,8 @@ namespace
 			fileNameW = L"raid-wings.html";
 		else if (std::strcmp(url, "about:home-garden") == 0)
 			fileNameW = L"home-garden.html";
+		else if (std::strcmp(url, "about:ubers-aio") == 0)
+			fileNameW = L"ubers-all-in-one.html";
 		else
 			return url;
 

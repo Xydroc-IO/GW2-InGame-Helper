@@ -116,6 +116,8 @@ install: $(DLL_OUT)
 		"$(GW2_ADDONS)/raid-wings.ver" \
 		"$(GW2_ADDONS)/home-garden.html" \
 		"$(GW2_ADDONS)/home-garden.ver" \
+		"$(GW2_ADDONS)/ubers-all-in-one.html" \
+		"$(GW2_ADDONS)/ubers-all-in-one.ver" \
 		"$(GW2_ADDONS)/settings.ini" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"

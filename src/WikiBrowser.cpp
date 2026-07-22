@@ -139,6 +139,8 @@ namespace
 			L"\\raid-wings.ver",
 			L"\\home-garden.html",
 			L"\\home-garden.ver",
+			L"\\ubers-all-in-one.html",
+			L"\\ubers-all-in-one.ver",
 			L"\\settings.ini",
 		};
 		for (const wchar_t* name : stale)
