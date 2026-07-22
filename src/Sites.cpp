@@ -404,6 +404,69 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"strikes",
+			"Cheat Sheets",
+			"Strike Missions",
+			"Strike Missions Overview",
+			"about:strike-missions",
+			nullptr,
+			nullptr,
+		},
+		{
+			"fractalcm",
+			"Cheat Sheets",
+			"Fractal CM / T4",
+			"Fractal CM / T4 List",
+			"about:fractal-cm",
+			nullptr,
+			nullptr,
+		},
+		{
+			"squadtmpl",
+			"Cheat Sheets",
+			"Squad Template",
+			"Squad Template — 10-Man Roles",
+			"about:squad-template",
+			nullptr,
+			nullptr,
+		},
+		{
+			"stabcleanse",
+			"Cheat Sheets",
+			"Stability / Cleanse",
+			"Stability / Cleanse — Squad Utility",
+			"about:stability-cleanse",
+			nullptr,
+			nullptr,
+		},
+		{
+			"matconv",
+			"Cheat Sheets",
+			"Material Conversions",
+			"Material Conversions",
+			"about:material-conversions",
+			nullptr,
+			nullptr,
+		},
+		{
+			"legpaths",
+			"Cheat Sheets",
+			"Legendary Paths",
+			"Legendary Short Paths",
+			"about:legendary-paths",
+			nullptr,
+			nullptr,
+		},
+		{
+			"mounts",
+			"Cheat Sheets",
+			"Mount Unlock",
+			"Mount Unlock Checklist",
+			"about:mount-unlock",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Guides —— */
 		{
@@ -954,6 +1017,20 @@ int Sites::BestMatchForUrl(const std::string& url)
 		hit = fileHit("raid-wings", "raidwings");
 		if (hit >= 0) return hit;
 		hit = fileHit("home-garden", "homegarden");
+		if (hit >= 0) return hit;
+		hit = fileHit("strike-missions", "strikes");
+		if (hit >= 0) return hit;
+		hit = fileHit("fractal-cm-list", "fractalcm");
+		if (hit >= 0) return hit;
+		hit = fileHit("squad-template", "squadtmpl");
+		if (hit >= 0) return hit;
+		hit = fileHit("stability-cleanse", "stabcleanse");
+		if (hit >= 0) return hit;
+		hit = fileHit("material-conversions", "matconv");
+		if (hit >= 0) return hit;
+		hit = fileHit("legendary-paths", "legpaths");
+		if (hit >= 0) return hit;
+		hit = fileHit("mount-unlock", "mounts");
 		if (hit >= 0) return hit;
 		return -1;
 	}

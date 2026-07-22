@@ -310,6 +310,20 @@ namespace
 			fileNameW = L"home-garden.html";
 		else if (std::strcmp(url, "about:ubers-aio") == 0)
 			fileNameW = L"ubers-all-in-one.html";
+		else if (std::strcmp(url, "about:strike-missions") == 0)
+			fileNameW = L"strike-missions.html";
+		else if (std::strcmp(url, "about:fractal-cm") == 0)
+			fileNameW = L"fractal-cm-list.html";
+		else if (std::strcmp(url, "about:squad-template") == 0)
+			fileNameW = L"squad-template.html";
+		else if (std::strcmp(url, "about:stability-cleanse") == 0)
+			fileNameW = L"stability-cleanse.html";
+		else if (std::strcmp(url, "about:material-conversions") == 0)
+			fileNameW = L"material-conversions.html";
+		else if (std::strcmp(url, "about:legendary-paths") == 0)
+			fileNameW = L"legendary-paths.html";
+		else if (std::strcmp(url, "about:mount-unlock") == 0)
+			fileNameW = L"mount-unlock.html";
 		else
 			return url;
 
