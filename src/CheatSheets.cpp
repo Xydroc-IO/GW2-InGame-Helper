@@ -1,7 +1,5 @@
 #include "CheatSheets.h"
 
-#include "RaidFood.h"
-
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -268,33 +266,6 @@ namespace
     color: var(--muted); font-size: 0.88rem; text-align: center;
   }
   .credit strong { color: var(--gold); font-weight: 650; }
-  /* —— Cheat sheet hubs (tabbed iframes) —— */
-  .hub-note {
-    margin: 0 0 14px; padding: 12px 14px; background: var(--accent);
-    border-left: 3px solid var(--gold-dim); color: var(--muted); font-size: 0.9rem;
-  }
-  .hub-note strong { color: var(--text); }
-  .hub-tabs {
-    display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px;
-  }
-  .hub-tabs button {
-    appearance: none; -webkit-appearance: none; border-radius: 0;
-    font-family: "Segoe UI", Tahoma, sans-serif; font-size: 0.86rem; font-weight: 650;
-    color: var(--gold); background: var(--accent); border: 1px solid var(--border);
-    padding: 8px 12px; cursor: pointer; letter-spacing: 0.01em;
-  }
-  .hub-tabs button:hover { background: #2c2416; }
-  .hub-tabs button.active {
-    background: #2c2416; border-color: var(--gold); color: var(--gold-bright);
-  }
-  .hub-frame {
-    border: 1px solid var(--border); background: var(--panel);
-    box-shadow: inset 0 0 0 1px rgba(235, 192, 71, 0.06);
-  }
-  .hub-frame iframe {
-    display: block; width: 100%; border: 0;
-    height: calc(100vh - 250px); min-height: 520px; background: var(--bg);
-  }
   footer { margin-top: 10px; color: var(--muted); font-size: 0.85rem; }
   @media (max-width: 560px) {
     h1 { font-size: 1.55rem; }
@@ -1966,129 +1937,6 @@ namespace
 )BODY");
 	}
 
-
-	struct HubTab
-	{
-		const char* label;
-		const char* file; /* sibling html in addon dir */
-	};
-
-	std::string BuildHubHtml(
-		const char* title,
-		const char* eyebrow,
-		const char* heading,
-		const char* tagline,
-		const char* noteHtml,
-		const HubTab* tabs,
-		size_t tabCount)
-	{
-		std::string body;
-		body.reserve(4000);
-		body += "  <p class=\"hub-note\">";
-		body += noteHtml ? noteHtml : "";
-		body += "</p>\n  <div class=\"hub-tabs\" role=\"tablist\">\n";
-		for (size_t i = 0; i < tabCount; ++i)
-		{
-			body += "    <button type=\"button\" role=\"tab\"";
-			if (i == 0)
-				body += " class=\"active\" aria-selected=\"true\"";
-			else
-				body += " aria-selected=\"false\"";
-			body += " data-src=\"";
-			body += tabs[i].file;
-			body += "\">";
-			body += tabs[i].label;
-			body += "</button>\n";
-		}
-		body += "  </div>\n  <div class=\"hub-frame\">\n";
-		body += "    <iframe id=\"hub-pane\" title=\"Cheat sheet\" src=\"";
-		body += tabCount ? tabs[0].file : "about:blank";
-		body += "\"></iframe>\n  </div>\n";
-		body += R"JS(
-<script>
-(function(){
-  var pane=document.getElementById("hub-pane");
-  if(!pane) return;
-  document.querySelectorAll(".hub-tabs button").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      document.querySelectorAll(".hub-tabs button").forEach(function(b){
-        b.classList.remove("active");
-        b.setAttribute("aria-selected","false");
-      });
-      btn.classList.add("active");
-      btn.setAttribute("aria-selected","true");
-      pane.src=btn.getAttribute("data-src")||"";
-    });
-  });
-})();
-</script>
-)JS";
-		return BuildHtml(title, eyebrow, heading, tagline, nullptr, body.c_str());
-	}
-
-	std::string HtmlRaidPrepHub()
-	{
-		static const HubTab tabs[] = {
-			{"Raid Food", "raid-food.html"},
-			{"Raid Utilities", "raid-utilities.html"},
-			{"Home Garden", "home-garden.html"},
-		};
-		return BuildHubHtml(
-			"Raid Prep — Cheat Sheets",
-			"Guild Wars 2 · Cheat Sheet Hub",
-			"Raid Prep",
-			"Food, utilities, and garden seasonings in one place.",
-			"<strong>Hub:</strong> switch tabs below. Each sheet also opens alone from Browse · Cheat Sheets.",
-			tabs, sizeof(tabs) / sizeof(tabs[0]));
-	}
-
-	std::string HtmlSquadUtilityHub()
-	{
-		static const HubTab tabs[] = {
-			{"Boon Checklist", "boon-checklist.html"},
-			{"Squad Template", "squad-template.html"},
-			{"Stability / Cleanse", "stability-cleanse.html"},
-			{"CC / Defiance", "cc-defiance.html"},
-		};
-		return BuildHubHtml(
-			"Squad Utility — Cheat Sheets",
-			"Guild Wars 2 · Cheat Sheet Hub",
-			"Squad Utility",
-			"Boons, roles, stability, cleanse, and breakbars for squad prep.",
-			"<strong>Hub:</strong> switch tabs below. Individual sheets stay available in Browse.",
-			tabs, sizeof(tabs) / sizeof(tabs[0]));
-	}
-
-	std::string HtmlEncountersHub()
-	{
-		static const HubTab tabs[] = {
-			{"Raid Wings", "raid-wings.html"},
-			{"Strike Missions", "strike-missions.html"},
-		};
-		return BuildHubHtml(
-			"Encounters — Cheat Sheets",
-			"Guild Wars 2 · Cheat Sheet Hub",
-			"Encounters",
-			"Raid wings and strike missions — map → bosses.",
-			"<strong>Hub:</strong> wings and strikes side by side. No fight strategies.",
-			tabs, sizeof(tabs) / sizeof(tabs[0]));
-	}
-
-	std::string HtmlFractalsHub()
-	{
-		static const HubTab tabs[] = {
-			{"Consumables", "fractal-consumables.html"},
-			{"CM / T4 List", "fractal-cm-list.html"},
-		};
-		return BuildHubHtml(
-			"Fractals — Cheat Sheets",
-			"Guild Wars 2 · Cheat Sheet Hub",
-			"Fractals",
-			"Consumables and challenge-mode scales for Mistlock nights.",
-			"<strong>Hub:</strong> potions / AR and the 95–100 CM list.",
-			tabs, sizeof(tabs) / sizeof(tabs[0]));
-	}
-
 	struct PageSpec
 	{
 		CheatSheets::Sheet meta;
@@ -2098,18 +1946,6 @@ namespace
 	const PageSpec* Pages(size_t* outCount)
 	{
 		static const PageSpec kPages[] = {
-			{{"raidprep", "about:raid-prep", "raid-prep", "1",
-			  "Raid Prep", "Raid Prep — Food, Utilities, Garden"},
-			 HtmlRaidPrepHub},
-			{{"squadutil", "about:squad-utility", "squad-utility", "1",
-			  "Squad Utility", "Squad Utility — Boons, Roles, Stab, CC"},
-			 HtmlSquadUtilityHub},
-			{{"encounters", "about:encounters", "encounters-hub", "1",
-			  "Encounters", "Encounters — Raid Wings & Strikes"},
-			 HtmlEncountersHub},
-			{{"fractalshub", "about:fractals-hub", "fractals-hub", "1",
-			  "Fractals", "Fractals — Consumables & CMs"},
-			 HtmlFractalsHub},
 			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "3",
 			  "Uber's All-In-One", "Uber's All-In-One — Waypoints"},
 			 HtmlUbersAllInOne},
@@ -2163,49 +1999,6 @@ namespace
 			*outCount = sizeof(kPages) / sizeof(kPages[0]);
 		return kPages;
 	}
-
-	void EnsureStem(const std::wstring& addonDir, const char* fileStem)
-	{
-		size_t n = 0;
-		const PageSpec* pages = Pages(&n);
-		for (size_t i = 0; i < n; ++i)
-		{
-			if (std::strcmp(pages[i].meta.fileStem, fileStem) == 0)
-			{
-				CheatSheets::EnsureFileUrl(addonDir, pages[i].meta);
-				return;
-			}
-		}
-	}
-
-	void EnsureHubDependencies(const std::wstring& addonDir, const char* fileStem)
-	{
-		if (!fileStem)
-			return;
-		if (std::strcmp(fileStem, "raid-prep") == 0)
-		{
-			RaidFood::EnsureFileUrl(addonDir);
-			EnsureStem(addonDir, "raid-utilities");
-			EnsureStem(addonDir, "home-garden");
-		}
-		else if (std::strcmp(fileStem, "squad-utility") == 0)
-		{
-			EnsureStem(addonDir, "boon-checklist");
-			EnsureStem(addonDir, "squad-template");
-			EnsureStem(addonDir, "stability-cleanse");
-			EnsureStem(addonDir, "cc-defiance");
-		}
-		else if (std::strcmp(fileStem, "encounters-hub") == 0)
-		{
-			EnsureStem(addonDir, "raid-wings");
-			EnsureStem(addonDir, "strike-missions");
-		}
-		else if (std::strcmp(fileStem, "fractals-hub") == 0)
-		{
-			EnsureStem(addonDir, "fractal-consumables");
-			EnsureStem(addonDir, "fractal-cm-list");
-		}
-	}
 }
 
 const CheatSheets::Sheet* CheatSheets::All(size_t* outCount)
@@ -2244,8 +2037,6 @@ std::string CheatSheets::EnsureFileUrl(const std::wstring& addonDir, const Sheet
 {
 	if (addonDir.empty() || !sheet.fileStem || !sheet.version)
 		return {};
-
-	EnsureHubDependencies(addonDir, sheet.fileStem);
 
 	size_t n = 0;
 	const PageSpec* pages = Pages(&n);

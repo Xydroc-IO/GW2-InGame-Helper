@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "24";
+	static constexpr const char* kHomePageVersion = "25";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -468,7 +468,7 @@ const char* HomePage::Html()
             <div class="card"><span class="cat">Builds</span><span>Snowcrows, MetaBattle, MetaBattle OW, Accessibility Wars, Gw2Skills Editor</span></div>
             <div class="card"><span class="cat">PvP / WvW</span><span>MetaBattle PvP, MetaBattle WvW</span></div>
             <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu</span></div>
-            <div class="card"><span class="cat">Cheat Sheets</span><span>Hubs: Raid Prep, Squad Utility, Encounters, Fractals · plus individual sheets</span></div>
+            <div class="card"><span class="cat">Cheat Sheets</span><span>Uber’s, Food, Utilities, Fractals, CM, Sigils, Relics, Boons, Squad, Stab/Cleanse, CC, Wings, Strikes, Mats, Legendaries, Mounts, Garden</span></div>
             <div class="card"><span class="cat">Guides</span><span>Living World, Leveling, Gold, Mounts, Fractals, TLDR</span></div>
             <div class="card"><span class="cat">Farming</span><span>Fast Farming Community</span></div>
             <div class="card"><span class="cat">Discord</span><span>Official, Community, builds, training, PvP, WvW, trading, Raidcore</span></div>
