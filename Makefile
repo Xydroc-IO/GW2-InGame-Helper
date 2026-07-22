@@ -132,6 +132,18 @@ install: $(DLL_OUT)
 		"$(GW2_ADDONS)/legendary-paths.ver" \
 		"$(GW2_ADDONS)/mount-unlock.html" \
 		"$(GW2_ADDONS)/mount-unlock.ver" \
+		"$(GW2_ADDONS)/daily-weekly.html" \
+		"$(GW2_ADDONS)/daily-weekly.ver" \
+		"$(GW2_ADDONS)/currency-sinks.html" \
+		"$(GW2_ADDONS)/currency-sinks.ver" \
+		"$(GW2_ADDONS)/ascended-start.html" \
+		"$(GW2_ADDONS)/ascended-start.ver" \
+		"$(GW2_ADDONS)/portals-pulls.html" \
+		"$(GW2_ADDONS)/portals-pulls.ver" \
+		"$(GW2_ADDONS)/homestead-extras.html" \
+		"$(GW2_ADDONS)/homestead-extras.ver" \
+		"$(GW2_ADDONS)/wvw-consumables.html" \
+		"$(GW2_ADDONS)/wvw-consumables.ver" \
 		"$(GW2_ADDONS)/settings.ini" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"

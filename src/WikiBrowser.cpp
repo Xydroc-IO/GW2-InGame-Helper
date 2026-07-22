@@ -155,6 +155,18 @@ namespace
 			L"\\legendary-paths.ver",
 			L"\\mount-unlock.html",
 			L"\\mount-unlock.ver",
+			L"\\daily-weekly.html",
+			L"\\daily-weekly.ver",
+			L"\\currency-sinks.html",
+			L"\\currency-sinks.ver",
+			L"\\ascended-start.html",
+			L"\\ascended-start.ver",
+			L"\\portals-pulls.html",
+			L"\\portals-pulls.ver",
+			L"\\homestead-extras.html",
+			L"\\homestead-extras.ver",
+			L"\\wvw-consumables.html",
+			L"\\wvw-consumables.ver",
 			L"\\settings.ini",
 		};
 		for (const wchar_t* name : stale)

@@ -467,6 +467,60 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"dailyweekly",
+			"Cheat Sheets",
+			"Daily / Weekly",
+			"Daily / Weekly Checklist",
+			"about:daily-weekly",
+			nullptr,
+			nullptr,
+		},
+		{
+			"currencysinks",
+			"Cheat Sheets",
+			"Currency Sinks",
+			"Currency Sinks",
+			"about:currency-sinks",
+			nullptr,
+			nullptr,
+		},
+		{
+			"ascendedstart",
+			"Cheat Sheets",
+			"Ascended Start",
+			"Ascended Start — Gearing Path",
+			"about:ascended-start",
+			nullptr,
+			nullptr,
+		},
+		{
+			"portalspulls",
+			"Cheat Sheets",
+			"Portals / Pulls",
+			"Portals / Pulls / Utility",
+			"about:portals-pulls",
+			nullptr,
+			nullptr,
+		},
+		{
+			"homestead",
+			"Cheat Sheets",
+			"Homestead",
+			"Homestead Extras",
+			"about:homestead",
+			nullptr,
+			nullptr,
+		},
+		{
+			"wvwcons",
+			"Cheat Sheets",
+			"WvW Consumables",
+			"WvW Consumables — Siege & Utility",
+			"about:wvw-consumables",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Guides —— */
 		{
@@ -1031,6 +1085,18 @@ int Sites::BestMatchForUrl(const std::string& url)
 		hit = fileHit("legendary-paths", "legpaths");
 		if (hit >= 0) return hit;
 		hit = fileHit("mount-unlock", "mounts");
+		if (hit >= 0) return hit;
+		hit = fileHit("daily-weekly", "dailyweekly");
+		if (hit >= 0) return hit;
+		hit = fileHit("currency-sinks", "currencysinks");
+		if (hit >= 0) return hit;
+		hit = fileHit("ascended-start", "ascendedstart");
+		if (hit >= 0) return hit;
+		hit = fileHit("portals-pulls", "portalspulls");
+		if (hit >= 0) return hit;
+		hit = fileHit("homestead-extras", "homestead");
+		if (hit >= 0) return hit;
+		hit = fileHit("wvw-consumables", "wvwcons");
 		if (hit >= 0) return hit;
 		return -1;
 	}
