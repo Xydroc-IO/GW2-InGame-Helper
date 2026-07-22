@@ -4,7 +4,9 @@
 #include <string>
 
 /* One entry per site the helper can open. Add new sites in Sites.cpp.
-   Keep sites grouped by category (same category string, contiguous order). */
+   Keep sites grouped by category (same category string, contiguous order).
+   Map Browse sub-section headers in UI.cpp (BrowseSection / BrowseSectionsForCategory).
+   Run: python3 tools/validate_sites.py  (or make validate-sites) after edits. */
 struct SiteDef
 {
 	const char* id;              /* stable settings key, e.g. "wiki" */

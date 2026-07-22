@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.7` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.8` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -28,6 +28,10 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
 | [Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
 | [Snowcrows](https://snowcrows.com/) | Builds |
+| [SC AccessiBuilds](https://snowcrows.com/builds/accessibuilds) | Builds |
+| [SC Open World](https://snowcrows.com/builds/open-world) | Builds |
+| [SC PvP](https://snowcrows.com/builds/pvp) | Builds |
+| [SC WvW](https://snowcrows.com/builds/wvw) | Builds |
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
 | [MetaBattle OW](https://metabattle.com/wiki/Open_World) | Builds |
 | [Accessibility Wars](https://aw2.help/) | Builds |
@@ -72,11 +76,16 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | WvW Consumables (built-in) | Cheat Sheets |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
+| [Snowcrows Guides](https://snowcrows.com/guides) | Guides |
 | [Leveling](https://metabattle.com/wiki/Guide:Leveling_Up) | Guides |
 | [Earn Gold](https://metabattle.com/wiki/Guide:Ways_to_Earn_Gold) | Guides |
 | [Griffon Unlock](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Griffon_Mount) | Guides |
 | [Skyscale Unlock](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Skyscale_Mount) | Guides |
+| [PvE Guides Hub](https://metabattle.com/wiki/PvE_Guides) | Guides |
+| MetaBattle Fractals (Intro, Aquatic Ruins, Deepstone, Lonely Tower, Molten Furnace, Shattered Observatory, Silent Surf, Siren's Reef, Sunqua Peak, Twilight Oasis, Underground Facility) | Guides |
 | [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
+| MetaBattle Raid Wings (Intro, Hand Kiting, Wings 1–3 / 5–7) | Guides |
+| MetaBattle Strikes (Mai Trin, Boneskinner, Cold War, Dagda, Forging Steel, Fraenir, Icebrood, Kaineng, Lion's Court, Cerus, Voice/Claw, Whisper, Ankka) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
@@ -251,6 +260,15 @@ Edit `src/Sites.cpp` and append a `SiteDef`:
 ```
 
 Keep sites with the same category contiguous so the picker groups them. Rebuild and reinstall.
+
+For Browse section headers (sub-groups within a category), map the new `id` in `BrowseSection()` /
+`BrowseSectionsForCategory()` in `src/UI.cpp`.
+
+Validate the registry after edits:
+
+```bash
+python3 tools/validate_sites.py
+```
 
 For search bars, set `searchUrlPrefix` / `searchUrlSuffix` so a query becomes `prefix + urlencode(query) + suffix`.
 

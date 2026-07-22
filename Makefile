@@ -45,9 +45,12 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
 
-.PHONY: all clean install install-reset
+.PHONY: all clean install install-reset validate-sites
 
 all: $(DLL_OUT)
+
+validate-sites:
+	python3 tools/validate_sites.py
 
 $(HELPER_OUT): $(HELPER_SRC) src/WikiIpc.h src/helper/CssCompat.h src/helper/CssProxy.h src/helper/BootJs.h
 	@mkdir -p $(dir $@)
