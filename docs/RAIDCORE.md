@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.3`
+`1.7.8.4`
 
 ## Changelog highlights
 
+- **1.7.8.4** — Nexus update link is the latest release DLL (`UP_Direct`)
 - **1.7.8.3** — Tab close is one control per tab so the last tab’s x cannot hit the previous tab
 - **1.7.8.2** — Fix last-tab close killing / corrupting the previous tab (no double IPC CLOSE; sync only when helper active_tab matches)
 - **1.7.8.1** — PvP/WvW builds under Builds; Uber axe/sickle/pick labeled separately; Wiki Easy Objectives clearer
@@ -56,8 +57,8 @@ See [`RELEASE_NOTES.md`](RELEASE_NOTES.md) for full notes.
 ## Updates
 
 ```text
-Provider   = UP_GitHub
-UpdateLink = https://github.com/Xydroc-IO/GW2-InGame-Helper
+Provider   = UP_Direct
+UpdateLink = https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll
 ```
 
 ## Full HTML
