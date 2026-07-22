@@ -1073,6 +1073,15 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"gw2tldr_dungeons",
+			"Guides",
+			"TLDR Dungeons",
+			"GW2 TLDR — Dungeons",
+			"https://gw2tldr.com/dungeons",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Farming —— */
 		{
