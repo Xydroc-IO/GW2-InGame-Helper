@@ -45,7 +45,7 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
 
-.PHONY: all clean install
+.PHONY: all clean install install-reset
 
 all: $(DLL_OUT)
 
@@ -96,13 +96,18 @@ install: $(DLL_OUT)
 		"$(GW2_ADDONS)/GW2HelperBrowser.exe" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
 	# Clear cached offline pages so version bumps rewrite on next open.
+	# Keep settings.ini — wiping it resets tabs/favorites/window geometry.
 	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/"*.ver \
-		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg" \
-		"$(INSTALL_DIR)/settings.ini"
+		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@ls -lh "$(INSTALL_DLL)"
+
+install-reset: $(DLL_OUT)
+	@$(MAKE) install
+	/bin/rm -f "$(INSTALL_DIR)/settings.ini"
+	@echo "Also removed settings.ini (tabs/favorites reset on next launch)"
 
 clean:
 	rm -rf build

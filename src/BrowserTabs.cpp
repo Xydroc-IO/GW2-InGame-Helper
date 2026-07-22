@@ -64,6 +64,10 @@ namespace
 	{
 		if (gCount <= 0 || gActive < 0 || gActive >= gCount)
 			return;
+		/* Skip until CEF has a live browser for this slot and IPC agrees —
+		   otherwise CurrentUrl still describes the previous/dying tab. */
+		if (!WikiBrowser::HasTab(gActive) || WikiBrowser::ActiveTabSlot() != gActive)
+			return;
 		const std::string cur = WikiBrowser::CurrentUrl();
 		if (!cur.empty())
 			gTabs[gActive].tab.url = cur;
@@ -192,7 +196,7 @@ namespace
 			ApplyTabTitle(tab, host.c_str());
 	}
 
-	void SyncSlotToHelper(int slot, bool activate)
+	void SyncSlotToHelper(int slot, bool activate, bool forceNavigate = true)
 	{
 		if (slot < 0 || slot >= gCount)
 			return;
@@ -201,8 +205,11 @@ namespace
 		/* CreateTab loads this slot only (new browser start-URL, or NavigateSlot).
 		   Do NOT call WikiBrowser::Navigate here — that targets the active CEF
 		   browser and races ahead of ACTIVATE when opening a new tab, so the
-		   previous tab would load the new page too. */
-		WikiBrowser::CreateTab(slot, start);
+		   previous tab would load the new page too.
+		   forceNavigate=false (SyncAll resync): only create missing slots so
+		   reopening the helper does not reload every live tab. */
+		if (forceNavigate || !WikiBrowser::HasTab(slot))
+			WikiBrowser::CreateTab(slot, start);
 		if (activate)
 			WikiBrowser::ActivateTab(slot);
 	}
@@ -212,7 +219,7 @@ namespace
 		if (gCount <= 0)
 			return;
 		for (int i = 0; i < gCount; ++i)
-			SyncSlotToHelper(i, false);
+			SyncSlotToHelper(i, false, false);
 		WikiBrowser::ActivateTab(gActive);
 		SyncSitesFromTab(gTabs[gActive].tab);
 	}
@@ -382,10 +389,10 @@ void BrowserTabs::Tick()
 		return;
 
 	/* CLOSE/ACTIVATE are async IPC. Until the helper's active_tab matches our
-	   gActive, CurrentUrl/CurrentTitle still describe the dying (or previous)
-	   browser — writing them into gTabs[gActive] overwrites the neighbour tab
-	   (closing the last tab looked like it closed the one before it). */
-	if (WikiBrowser::ActiveTabSlot() != gActive)
+	   gActive AND that slot has a live browser, CurrentUrl/CurrentTitle still
+	   describe the dying (or previous) browser — writing them into gTabs[gActive]
+	   overwrites the neighbour tab. */
+	if (WikiBrowser::ActiveTabSlot() != gActive || !WikiBrowser::HasTab(gActive))
 		return;
 
 	BrowserTabs::Tab& active = gTabs[gActive].tab;
