@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.4
+# GW2 In-Game Helper v1.7.8.5
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -11,13 +11,18 @@ Copy **only** `GW2-InGame-Helper.dll` into `<Guild Wars 2>/addons/`.
 
 Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows / Wine / Proton).
 
-**Updates:** [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll) · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)
+**Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper) ·
+[latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
 
+## What’s new in 1.7.8.5
+
+- **Updates:** Nexus uses `UP_GitHub` + repo URL again (correct auto-update); direct DLL link kept for manual download
+
 ## What’s new in 1.7.8.4
 
-- **Update link:** Nexus `UP_Direct` → latest release `GW2-InGame-Helper.dll`
+- **Update link:** briefly pointed Nexus at the direct release DLL (`UP_Direct`) — superseded by 1.7.8.5
 
 ## What’s new in 1.7.8.3
 
