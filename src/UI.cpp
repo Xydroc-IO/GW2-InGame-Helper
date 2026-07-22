@@ -246,8 +246,9 @@ namespace
 				return "Fractals";
 			if (std::strcmp(id, "mb_intro_raiding") == 0 || std::strcmp(id, "mb_hand_kiting") == 0 ||
 				std::strcmp(id, "mb_rw1") == 0 || std::strcmp(id, "mb_rw2") == 0 ||
-				std::strcmp(id, "mb_rw3") == 0 || std::strcmp(id, "mb_rw5") == 0 ||
-				std::strcmp(id, "mb_rw6") == 0 || std::strcmp(id, "mb_rw7") == 0)
+				std::strcmp(id, "mb_rw3") == 0 || std::strcmp(id, "mb_rw4") == 0 ||
+				std::strcmp(id, "mb_rw5") == 0 || std::strcmp(id, "mb_rw6") == 0 ||
+				std::strcmp(id, "mb_rw7") == 0)
 				return "Raid Wings";
 			if (std::strcmp(id, "mb_mai_trin") == 0 || std::strcmp(id, "mb_boneskinner") == 0 ||
 				std::strcmp(id, "mb_cold_war") == 0 || std::strcmp(id, "mb_cosmic_obs") == 0 ||
@@ -288,7 +289,11 @@ namespace
 
 		if (std::strcmp(category, "Builds") == 0)
 		{
-			if (std::strcmp(id, "snowcrows") == 0)
+			if (std::strcmp(id, "snowcrows") == 0 || std::strcmp(id, "sc_raid_ele") == 0 ||
+				std::strcmp(id, "sc_raid_mes") == 0 || std::strcmp(id, "sc_raid_nec") == 0 ||
+				std::strcmp(id, "sc_raid_eng") == 0 || std::strcmp(id, "sc_raid_ran") == 0 ||
+				std::strcmp(id, "sc_raid_thf") == 0 || std::strcmp(id, "sc_raid_gua") == 0 ||
+				std::strcmp(id, "sc_raid_rev") == 0 || std::strcmp(id, "sc_raid_war") == 0)
 				return "Raids";
 			if (std::strcmp(id, "sc_accessibuilds") == 0)
 				return "AccessiBuilds";

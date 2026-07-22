@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.8
+# GW2 In-Game Helper v1.7.8.9
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,11 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.9
+
+- **Builds:** Snowcrows per-profession raid builds (SC Raid Elementalist … Warrior), hub at `/builds/raids`
+- **Guides:** MetaBattle Raid Wing 4 — Bastion of the Penitent
 
 ## What’s new in 1.7.8.8
 
