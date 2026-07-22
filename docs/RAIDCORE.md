@@ -14,14 +14,15 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.7.2.1`
+`1.7.2.2`
 
 ## Changelog highlights
 
+- **1.7.2.2** — Uber’s All-In-One waypoint cheat sheet (copy chat codes; credit uberduber.1249)
 - **1.7.2.1** — Fix freeze from per-frame settings.ini writes (debounce + title dirty)
 - **1.7.2.0** — Tab hotkeys (Ctrl+T/W/Tab); live tab titles from page/URL
 - **1.7.1.1** — Fix new-tab navigating the previous tab
-- **1.7.1.0** — Cheat Sheets category (Raid Food + eight offline sheets: utilities, fractals, sigils, relics, boons, CC, wings, garden)
+- **1.7.1.0** — Cheat Sheets category (Uber’s All-In-One, Raid Food + offline sheets: utilities, fractals, sigils, relics, boons, CC, wings, garden)
 - **1.7.0.0** — Compact toolbar; pin / reopen tabs; keep-warm option; gold status polish
 - **1.6.0.3** — Fix blank Home/Raid Food/restored tabs; ready-resync; no forced homepage on open
 - **1.6.0.2** — Fix Home / Raid Food white page (activate+navigate + helper `about:` fallback)

@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.2.1` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.2.2` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -47,6 +47,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [GW2BLTC](https://www.gw2bltc.com/) | Tools |
 | [GW2 Treasures](https://gw2treasures.com/) | Tools |
 | Raid Food (built-in) | Cheat Sheets |
+| Uber's All-In-One (built-in) | Cheat Sheets |
 | Raid Utilities (built-in) | Cheat Sheets |
 | Fractal Consumables (built-in) | Cheat Sheets |
 | Sigils & Runes (built-in) | Cheat Sheets |
@@ -91,7 +92,7 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 - Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
-- **Cheat Sheets** category — offline pages (Raid Food style): **Raid Food**, **Raid Utilities**, **Fractal Consumables**, **Sigils & Runes**, **Relics**, **Boon Checklist**, **CC / Defiance**, **Raid Wings**, **Home Garden**
+- **Cheat Sheets** category — offline pages (Raid Food style): **Uber's All-In-One**, **Raid Food**, **Raid Utilities**, **Fractal Consumables**, **Sigils & Runes**, **Relics**, **Boon Checklist**, **CC / Defiance**, **Raid Wings**, **Home Garden**
 - **Copy URL** and **Open Ext** (system browser — Discord joins / logins)
 - Single DLL — browser helper and homepage assets are embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only
@@ -237,12 +238,14 @@ For search bars, set `searchUrlPrefix` / `searchUrlSuffix` so a query becomes `p
 
 ### Built-in cheat sheets
 
-Offline **Cheat Sheets** use `about:` URLs (e.g. `about:raid-food`, `about:raid-utilities`) resolved to local HTML under the addon data folder.
+Offline **Cheat Sheets** use `about:` URLs (e.g. `about:raid-food`, `about:ubers-aio`) resolved to local HTML under the addon data folder.
 
 | Page | Sources |
 |------|---------|
 | Raid Food | `src/RaidFood.cpp` |
-| Other sheets | `src/CheatSheets.cpp` |
+| Other sheets (incl. Uber's All-In-One) | `src/CheatSheets.cpp` |
+
+**Uber's All-In-One** (`about:ubers-aio`) — waypoint / landmark chat codes (hubs, Wizard’s Vault, Chak Egg, Obsidian, Provisioner). Click a code to copy, paste in game chat, click the link to travel. Waypoint list curated by **uberduber.1249**.
 
 Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map the `about:` URL in `WikiBrowser.cpp` / `helper/main.cpp`.
 

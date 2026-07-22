@@ -81,7 +81,9 @@ Built-in **Cheat Sheets** are compiled in and written on first open:
 | Sheet | Module | Files under addon data |
 |-------|--------|------------------------|
 | Raid Food | `src/RaidFood.cpp` | `raid-food.html` / `.ver` |
-| Raid Utilities, Fractal Consumables, Sigils & Runes, Relics, Boon Checklist, CC / Defiance, Raid Wings, Home Garden | `src/CheatSheets.cpp` | matching `*.html` / `*.ver` |
+| Uber's All-In-One, Raid Utilities, Fractal Consumables, Sigils & Runes, Relics, Boon Checklist, CC / Defiance, Raid Wings, Home Garden | `src/CheatSheets.cpp` | matching `*.html` / `*.ver` |
+
+Uber's All-In-One waypoint list is curated by **uberduber.1249**.
 
 Runtime CEF libraries are **not** shipped — the helper loads them from the game install at `bin64/cef/`.
 
