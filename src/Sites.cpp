@@ -127,9 +127,9 @@ namespace
 		{
 			"wiki_vault_easy",
 			"Wiki",
-			"Vault Easy Objectives",
+			"Easy Objectives",
 			"Guild Wars 2 Wiki — Wizard's Vault Easy Objectives",
-			"https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives",
+			"https://wiki.guildwars2.com/wiki/Wizard%27s_Vault/Easy_objectives",
 			nullptr,
 			nullptr,
 		},

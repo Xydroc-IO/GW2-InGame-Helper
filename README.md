@@ -26,7 +26,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
-| [Vault Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
+| [Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
 | [Snowcrows](https://snowcrows.com/) | Builds |
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
 | [MetaBattle OW](https://metabattle.com/wiki/Open_World) | Builds |

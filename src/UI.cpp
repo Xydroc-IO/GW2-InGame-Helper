@@ -295,7 +295,7 @@ namespace
 			if (std::strcmp(id, "wiki_legendaries") == 0 || std::strcmp(id, "wiki_mounts") == 0)
 				return "Collections";
 			if (std::strcmp(id, "wiki_vault_easy") == 0)
-				return "Wizard's Vault";
+				return "Wizards Vault";
 			return "Other";
 		}
 
@@ -376,7 +376,7 @@ namespace
 		}
 		if (std::strcmp(category, "Wiki") == 0)
 		{
-			static const char* kSec[] = { "Main", "News", "Collections", "Wizard's Vault", "Other" };
+			static const char* kSec[] = { "Main", "News", "Collections", "Wizards Vault", "Other" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
