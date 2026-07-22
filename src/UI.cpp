@@ -295,10 +295,10 @@ namespace
 				std::strcmp(id, "sc_raid_thf") == 0 || std::strcmp(id, "sc_raid_gua") == 0 ||
 				std::strcmp(id, "sc_raid_rev") == 0 || std::strcmp(id, "sc_raid_war") == 0)
 				return "Raids";
-			if (std::strcmp(id, "sc_accessibuilds") == 0)
+			if (std::strcmp(id, "sc_accessibuilds") == 0 || std::strcmp(id, "aw2help") == 0)
 				return "AccessiBuilds";
 			if (std::strcmp(id, "metabattle") == 0 || std::strcmp(id, "metabattle_ow") == 0 ||
-				std::strcmp(id, "aw2help") == 0 || std::strcmp(id, "sc_open_world") == 0)
+				std::strcmp(id, "sc_open_world") == 0)
 				return "Open World / General";
 			if (std::strcmp(id, "metabattle_pvp") == 0 || std::strcmp(id, "sc_pvp") == 0)
 				return "PvP";

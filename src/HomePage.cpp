@@ -465,7 +465,7 @@ const char* HomePage::Html()
             <div class="card"><span class="cat">Search</span><span>Google, DuckDuckGo</span></div>
             <div class="card"><span class="cat">Official</span><span>Guild Wars 2, GW2 News, Raidcore, Forums</span></div>
             <div class="card"><span class="cat">Wiki</span><span>Wiki, Game Updates, Legendaries, Mounts, Easy Objectives</span></div>
-            <div class="card"><span class="cat">Builds</span><span>Snowcrows Raid Builds (per profession), AccessiBuilds / OW / PvP / WvW, MetaBattle, Accessibility Wars, Gw2Skills</span></div>
+            <div class="card"><span class="cat">Builds</span><span>Snowcrows Raid Builds (per profession), AccessiBuilds (SC + Accessibility Wars), OW / PvP / WvW, MetaBattle, Gw2Skills</span></div>
             <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu</span></div>
             <div class="card"><span class="cat">Cheat Sheets</span><span>Food, Utilities, Fractals, Squad, Wings, Strikes, Dailies, Currencies, Ascended, Portals, Homestead, WvW, …</span></div>
             <div class="card"><span class="cat">Guides</span><span>Living World, Progress, Mounts, Fractals, Raid Wings, Strikes, TLDR</span></div>
