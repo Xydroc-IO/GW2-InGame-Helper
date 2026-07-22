@@ -310,14 +310,6 @@ namespace
 			fileNameW = L"home-garden.html";
 		else if (std::strcmp(url, "about:ubers-aio") == 0)
 			fileNameW = L"ubers-all-in-one.html";
-		else if (std::strcmp(url, "about:raid-prep") == 0)
-			fileNameW = L"raid-prep.html";
-		else if (std::strcmp(url, "about:squad-utility") == 0)
-			fileNameW = L"squad-utility.html";
-		else if (std::strcmp(url, "about:encounters") == 0)
-			fileNameW = L"encounters-hub.html";
-		else if (std::strcmp(url, "about:fractals-hub") == 0)
-			fileNameW = L"fractals-hub.html";
 		else if (std::strcmp(url, "about:strike-missions") == 0)
 			fileNameW = L"strike-missions.html";
 		else if (std::strcmp(url, "about:fractal-cm") == 0)

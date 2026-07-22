@@ -314,44 +314,6 @@ namespace
 		},
 
 		/* —— Cheat Sheets (built-in offline pages) —— */
-		/* Hubs (tabbed groups) */
-		{
-			"raidprep",
-			"Cheat Sheets",
-			"Raid Prep",
-			"Raid Prep — Food, Utilities, Garden",
-			"about:raid-prep",
-			nullptr,
-			nullptr,
-		},
-		{
-			"squadutil",
-			"Cheat Sheets",
-			"Squad Utility",
-			"Squad Utility — Boons, Roles, Stab, CC",
-			"about:squad-utility",
-			nullptr,
-			nullptr,
-		},
-		{
-			"encounters",
-			"Cheat Sheets",
-			"Encounters",
-			"Encounters — Raid Wings & Strikes",
-			"about:encounters",
-			nullptr,
-			nullptr,
-		},
-		{
-			"fractalshub",
-			"Cheat Sheets",
-			"Fractals",
-			"Fractals — Consumables & CMs",
-			"about:fractals-hub",
-			nullptr,
-			nullptr,
-		},
-		/* Individual sheets */
 		{
 			"raidfood",
 			"Cheat Sheets",
@@ -1037,14 +999,6 @@ int Sites::BestMatchForUrl(const std::string& url)
 		int hit = fileHit("helper-home", "home");
 		if (hit >= 0) return hit;
 		hit = fileHit("raid-food", "raidfood");
-		if (hit >= 0) return hit;
-		hit = fileHit("raid-prep", "raidprep");
-		if (hit >= 0) return hit;
-		hit = fileHit("squad-utility", "squadutil");
-		if (hit >= 0) return hit;
-		hit = fileHit("encounters-hub", "encounters");
-		if (hit >= 0) return hit;
-		hit = fileHit("fractals-hub", "fractalshub");
 		if (hit >= 0) return hit;
 		hit = fileHit("ubers-all-in-one", "ubersaio");
 		if (hit >= 0) return hit;

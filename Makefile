@@ -118,14 +118,6 @@ install: $(DLL_OUT)
 		"$(GW2_ADDONS)/home-garden.ver" \
 		"$(GW2_ADDONS)/ubers-all-in-one.html" \
 		"$(GW2_ADDONS)/ubers-all-in-one.ver" \
-		"$(GW2_ADDONS)/raid-prep.html" \
-		"$(GW2_ADDONS)/raid-prep.ver" \
-		"$(GW2_ADDONS)/squad-utility.html" \
-		"$(GW2_ADDONS)/squad-utility.ver" \
-		"$(GW2_ADDONS)/encounters-hub.html" \
-		"$(GW2_ADDONS)/encounters-hub.ver" \
-		"$(GW2_ADDONS)/fractals-hub.html" \
-		"$(GW2_ADDONS)/fractals-hub.ver" \
 		"$(GW2_ADDONS)/strike-missions.html" \
 		"$(GW2_ADDONS)/strike-missions.ver" \
 		"$(GW2_ADDONS)/fractal-cm-list.html" \
