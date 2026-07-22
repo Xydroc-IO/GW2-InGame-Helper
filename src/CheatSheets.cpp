@@ -494,25 +494,27 @@ namespace
 
   <section class="block" id="agony">
     <div class="head">
-      <h2>Agony Resistance (AR)</h2>
-      <p>Required for higher fractal scales. Comes from infusions + some enrichment.</p>
+      <h2>Survivability — Agony Resistance</h2>
+      <p>AR prevents instant death from the Agony damage-over-time effect. Comes from infusions (+ enrichment).</p>
     </div>
     <div class="body">
       <table class="sheet">
         <thead>
-          <tr><th>Tier</th><th>Typical AR needed</th></tr>
+          <tr><th>Tier</th><th>Scales</th><th>AR</th></tr>
         </thead>
         <tbody>
-          <tr><td>T1 (1–25)</td><td>0</td></tr>
-          <tr><td>T2 (26–50)</td><td>~10+</td></tr>
-          <tr><td>T3 (51–75)</td><td>~20+</td></tr>
-          <tr><td>T4 (76–100)</td><td>~40+ base agony</td></tr>
-          <tr><td>Challenge Motes / CM</td><td>Often <strong>150+</strong> via +5 / +7 / +9 agony infusions</td></tr>
+          <tr><td>T1</td><td>1–25</td><td>0 early · Agony starts at level <strong>20</strong></td></tr>
+          <tr><td>T2</td><td>26–50</td><td>Min <strong>+18</strong> (level 26) · max / recommended <strong>+61</strong> (level 50)</td></tr>
+          <tr><td>T3</td><td>51–75</td><td>Min <strong>+75</strong> · community target <strong>+82</strong></td></tr>
+          <tr><td>T4</td><td>76–100</td><td>Min <strong>+150</strong> (game cap) · community target <strong>+162</strong> (fill all infusion slots)</td></tr>
+          <tr><td>CM</td><td>95–100 mote</td><td><strong>+150</strong> (same as T4 minimum)</td></tr>
         </tbody>
       </table>
       <ul class="list" style="margin-top:14px">
+        <li><strong>Survivability</strong> — AR prevents instant death from the Agony damage-over-time effect.</li>
+        <li><strong>T2</strong> — Agony appears from scale 20; bring at least +18 before level 26, and aim for +61 to clear the tier comfortably.</li>
         <li><strong>Infusions</strong> — socket into ascended/legendary gear. Recycle via mystic forge / vendors when upgrading.</li>
-        <li><strong>+9 agony</strong> — endgame fractal standard on full ascended.</li>
+        <li><strong>+9 agony</strong> — endgame fractal standard; full slots approach the +162 community target.</li>
         <li><strong>Enrichment</strong> — +5 AR jewelry enrichments help early AR goals.</li>
       </ul>
     </div>
@@ -1532,36 +1534,41 @@ namespace
   <section class="block" id="cm">
     <div class="head">
       <h2>Challenge Modes</h2>
-      <p>Scales 95–100 — activate Harbinger of Woe / challenge mote after unlocking.</p>
+      <p>Scales 95–100 — activate Harbinger of Woe / challenge mote after unlocking. All CMs need <strong>150 AR</strong>.</p>
     </div>
     <div class="body">
       <table class="sheet">
-        <thead><tr><th>Scale</th><th>Fractal</th><th>~AR</th></tr></thead>
+        <thead><tr><th>Scale</th><th>Fractal</th><th>AR</th></tr></thead>
         <tbody>
-          <tr><td><span class="badge badge-scale">95</span></td><td>Kinfall CM</td><td>~141+</td></tr>
-          <tr><td><span class="badge badge-scale">96</span></td><td>Nightmare CM</td><td>~143+</td></tr>
-          <tr><td><span class="badge badge-scale">97</span></td><td>Shattered Observatory CM</td><td>~145+</td></tr>
-          <tr><td><span class="badge badge-scale">98</span></td><td>Sunqua Peak CM</td><td>~147+</td></tr>
-          <tr><td><span class="badge badge-scale">99</span></td><td>Silent Surf CM</td><td>~148+</td></tr>
-          <tr><td><span class="badge badge-scale">100</span></td><td>Lonely Tower CM</td><td>~150+</td></tr>
+          <tr><td><span class="badge badge-scale">95</span></td><td>Kinfall CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">96</span></td><td>Nightmare CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">97</span></td><td>Shattered Observatory CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">98</span></td><td>Sunqua Peak CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">99</span></td><td>Silent Surf CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">100</span></td><td>Lonely Tower CM</td><td><strong>150</strong></td></tr>
         </tbody>
       </table>
-      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>LFG:</strong> “96 CM” means Nightmare challenge mote. Bring Mist Offensive + food — see Fractal Consumables.</p>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>AR:</strong> CMs are T4 scales — you need the T4 minimum of <strong>150 Agony Resistance</strong> (community often aims for <strong>+162</strong>). <strong>LFG:</strong> “96 CM” means Nightmare challenge mote. Bring Mist Offensive + food — see Fractal Consumables.</p>
     </div>
   </section>
 
   <section class="block" id="ar">
-    <div class="head"><h2>Agony Resistance</h2><p>Base agony by tier; CMs sit on T4.</p></div>
+    <div class="head">
+      <h2>Survivability — Agony Resistance</h2>
+      <p>AR prevents instant death from the Agony damage-over-time effect.</p>
+    </div>
     <div class="body">
       <table class="sheet">
-        <thead><tr><th>Tier</th><th>Scales</th><th>Typical AR</th></tr></thead>
+        <thead><tr><th>Tier</th><th>Scales</th><th>AR</th></tr></thead>
         <tbody>
-          <tr><td>T1</td><td>1–25</td><td>0</td></tr>
-          <tr><td>T2</td><td>26–50</td><td>~10+</td></tr>
-          <tr><td>T3</td><td>51–75</td><td>~20+</td></tr>
-          <tr><td>T4</td><td>76–100</td><td>~40+ base · <strong>150+</strong> for CMs</td></tr>
+          <tr><td>T1</td><td>1–25</td><td>0 early · Agony starts at level <strong>20</strong></td></tr>
+          <tr><td>T2</td><td>26–50</td><td>Min <strong>+18</strong> (level 26) · max / recommended <strong>+61</strong> (level 50)</td></tr>
+          <tr><td>T3</td><td>51–75</td><td>Min <strong>+75</strong> · community target <strong>+82</strong></td></tr>
+          <tr><td>T4</td><td>76–100</td><td>Min <strong>+150</strong> (game cap) · community target <strong>+162</strong> (fill all infusion slots)</td></tr>
+          <tr><td>CM</td><td>95–100 mote</td><td><strong>+150</strong> (T4 minimum)</td></tr>
         </tbody>
       </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>T2:</strong> Agony begins at scale 20 — some resistance is needed before T2. Minimum <strong>+18</strong> for level 26; <strong>+61</strong> recommended to clear the tier comfortably.</p>
     </div>
   </section>
 
@@ -1582,6 +1589,7 @@ namespace
     <div class="body">
       <ul class="list">
         <li>Unlock each CM via that fractal’s achievement track before the Harbinger appears.</li>
+        <li><strong>T4 / CM:</strong> min <strong>+150 AR</strong>; community target <strong>+162</strong> to fill infusion slots.</li>
         <li>Party of 5 — same consumable logic as raids (Raid Food / Raid Utilities / Fractal Consumables).</li>
         <li>Fight notes → Mukluk / TLDR Fractals in Guides.</li>
       </ul>
@@ -1952,10 +1960,10 @@ namespace
 			{{"raidutils", "about:raid-utilities", "raid-utilities", "1",
 			  "Raid Utilities", "Raid Utilities — Oils, Stones & Crystals"},
 			 HtmlRaidUtilities},
-			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "1",
+			{{"fractalcons", "about:fractal-consumables", "fractal-consumables", "4",
 			  "Fractal Consumables", "Fractal Consumables — Potions & Agony"},
 			 HtmlFractalConsumables},
-			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "2",
+			{{"fractalcm", "about:fractal-cm", "fractal-cm-list", "5",
 			  "Fractal CM / T4", "Fractal CM / T4 List"},
 			 HtmlFractalCmList},
 			{{"sigilsrunes", "about:sigils-runes", "sigils-runes", "1",

@@ -106,10 +106,9 @@ void Settings::Load()
 	if (G::WindowWidth < 320.f) G::WindowWidth = 320.f;
 	if (G::WindowHeight < 240.f) G::WindowHeight = 240.f;
 
-	if (!Sites::SetActiveById(G::DefaultSiteId) ||
+	if (Sites::IndexOfId(G::DefaultSiteId) < 0 ||
 		std::strcmp(G::DefaultSiteId, "gw2lunchbox") == 0)
 	{
-		Sites::SetActiveById("home");
 		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "home");
 	}
 	if (!Sites::SetActiveById(G::ActiveSiteId) ||

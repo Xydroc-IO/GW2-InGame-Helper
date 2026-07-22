@@ -94,7 +94,7 @@ Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/
 - **Find in page** — Ctrl+F
 - **Favorites** — star + drag-reorder
 - **Keep browser warm** — optional hide without killing CEF
-- **Default landing site** — Options picker when no tabs are saved
+- **Default landing site** — Options picker; used by the Home button and when no tabs are saved
 - Nexus **QuickAccess** icon at the top of the screen
 - Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
 - Home / Back / Forward / Reload toolbar
