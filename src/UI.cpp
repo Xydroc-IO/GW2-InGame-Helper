@@ -262,7 +262,8 @@ namespace
 				return "PvP";
 			if (std::strcmp(id, "mb_wvw_guides") == 0)
 				return "WvW";
-			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0)
+			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0 ||
+				std::strcmp(id, "gw2tldr_dungeons") == 0)
 				return "TLDR";
 			return "Other";
 		}
