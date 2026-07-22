@@ -324,6 +324,18 @@ namespace
 			fileNameW = L"legendary-paths.html";
 		else if (std::strcmp(url, "about:mount-unlock") == 0)
 			fileNameW = L"mount-unlock.html";
+		else if (std::strcmp(url, "about:daily-weekly") == 0)
+			fileNameW = L"daily-weekly.html";
+		else if (std::strcmp(url, "about:currency-sinks") == 0)
+			fileNameW = L"currency-sinks.html";
+		else if (std::strcmp(url, "about:ascended-start") == 0)
+			fileNameW = L"ascended-start.html";
+		else if (std::strcmp(url, "about:portals-pulls") == 0)
+			fileNameW = L"portals-pulls.html";
+		else if (std::strcmp(url, "about:homestead") == 0)
+			fileNameW = L"homestead-extras.html";
+		else if (std::strcmp(url, "about:wvw-consumables") == 0)
+			fileNameW = L"wvw-consumables.html";
 		else
 			return url;
 

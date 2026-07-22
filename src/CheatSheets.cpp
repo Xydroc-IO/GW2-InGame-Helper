@@ -1944,6 +1944,400 @@ namespace
 )BODY");
 	}
 
+	std::string HtmlDailyWeekly()
+	{
+		return BuildHtml(
+			"Daily / Weekly Checklist",
+			"Guild Wars 2 · Activity Reference",
+			"Daily / Weekly Checklist",
+			"Raids, strikes, fractals, Wizard’s Vault, and metas — tick what you care about today.",
+			"<a href=\"#daily\">Daily</a>\n"
+			"<a href=\"#weekly\">Weekly</a>\n"
+			"<a href=\"#vault\">Wizard’s Vault</a>\n"
+			"<a href=\"#metas\">Metas</a>",
+			R"BODY(
+  <section class="block" id="daily">
+    <div class="head"><h2>Daily</h2><p>Reset with the daily reset (server time).</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box"></span><span><strong>Fractals</strong> — daily T4 · recommended · CMs you farm</span></li>
+        <li><span class="box"></span><span><strong>Strikes</strong> — IBS / EoD / SotO dailies (priority for essences / KP)</span></li>
+        <li><span class="box"></span><span><strong>Raids</strong> — wing(s) your static / LFG clears today</span></li>
+        <li><span class="box"></span><span><strong>Wizard’s Vault</strong> — daily objectives (easy astral acclaim)</span></li>
+        <li><span class="box"></span><span><strong>World bosses / metas</strong> — see Metas below if chasing events</span></li>
+        <li><span class="box"></span><span><strong>Living World / expansion dailies</strong> — map bonuses you still need</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="weekly">
+    <div class="head"><h2>Weekly</h2><p>Raid / strike / fractal weekly gates.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box"></span><span><strong>Raid wings</strong> — clear each wing once for weekly chests / liquid</span></li>
+        <li><span class="box"></span><span><strong>Strike missions</strong> — weekly strike chests / priorities</span></li>
+        <li><span class="box"></span><span><strong>Fractal CMs</strong> — weekly CM rewards / essence goals</span></li>
+        <li><span class="box"></span><span><strong>Wizard’s Vault</strong> — weekly objectives + specials</span></li>
+        <li><span class="box"></span><span><strong>PvP / WvW</strong> — reward tracks / weekly if you play those modes</span></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Wing / strike maps → Raid Wings · Strike Missions sheets. Fractal AR → Fractal Consumables / CM list.</p>
+    </div>
+  </section>
+
+  <section class="block" id="vault">
+    <div class="head"><h2>Wizard’s Vault</h2><p>Astral Acclaim shop — check objectives, spend before season end.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Dailies</h3><p>Quick acclaim — do the easy ones first.</p></div>
+        <div class="callout"><h3>Weeklies</h3><p>Bigger payout — plan around raids / fractals / PvP.</p></div>
+        <div class="callout"><h3>Specials</h3><p>Seasonal / limited — don’t leave acclaim unused.</p></div>
+        <div class="callout"><h3>Shop</h3><p>Legendary / enrichment / convenience — buy what you need.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="metas">
+    <div class="head"><h2>Metas &amp; World Bosses</h2><p>Timers change — use Tools · GW2Timer / Meta Timers for schedules.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box"></span><span><strong>Core metas</strong> — Teq · Triple Trouble · Shatterer · etc. when you need chests / mats</span></li>
+        <li><span class="box"></span><span><strong>HoT / PoF / EoD / SotO metas</strong> — map completion / currency farms</span></li>
+        <li><span class="box"></span><span><strong>Champ trains</strong> — optional gold / gear path</span></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">This sheet is a checklist, not a timer. Open GW2Timer from Browse · Tools for live schedules.</p>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlCurrencySinks()
+	{
+		return BuildHtml(
+			"Currency Sinks",
+			"Guild Wars 2 · Economy Reference",
+			"Currency Sinks",
+			"Where to dump laurels, unbound/volatile magic, spirit shards, mystic coins, and karma.",
+			"<a href=\"#laurels\">Laurels</a>\n"
+			"<a href=\"#magic\">Magic</a>\n"
+			"<a href=\"#shards\">Shards &amp; Coins</a>\n"
+			"<a href=\"#karma\">Karma</a>",
+			R"BODY(
+  <section class="block" id="laurels">
+    <div class="head"><h2>Laurels</h2><p>Login / achievement currency.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Sink</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Ascended trinkets / boxes</strong></td><td>Laurel vendor — strong early ascended path</td></tr>
+          <tr><td><strong>Heavy Crafting Bag</strong> / mats</td><td>Account material storage fillers</td></tr>
+          <tr><td><strong>Utility / enrichments</strong></td><td>When you need specific account unlocks</td></tr>
+          <tr><td><strong>PvP / WvW laurel vendors</strong></td><td>Mode-specific if those are your goals</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="magic">
+    <div class="head"><h2>Unbound &amp; Volatile Magic</h2><p>Map / living world currencies.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Unbound Magic</h3><p>HoT / LW vendors — keys, converters, map items, skins.</p></div>
+        <div class="callout"><h3>Volatile Magic</h3><p>PoF / LW — converters, map gear, crafting catalysts.</p></div>
+        <div class="callout"><h3>Cap</h3><p>Spend before you hit the soft cap — converters are fine sinks.</p></div>
+        <div class="callout"><h3>Pairs with</h3><p>Material Conversions for forge / mat overflow.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="shards">
+    <div class="head"><h2>Spirit Shards &amp; Mystic Coins</h2><p>Legacy / forge fuels.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Currency</th><th>Common sinks</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Spirit Shards</strong></td><td>Philosopher’s Stones · mystic forge · skill tomes · converters</td></tr>
+          <tr><td><strong>Mystic Coins</strong></td><td>Mystic Clovers · legendary gifts · forge gambles</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Clover / gift recipes → Material Conversions · Legendary Paths.</p>
+    </div>
+  </section>
+
+  <section class="block" id="karma">
+    <div class="head"><h2>Karma</h2><p>Overflows fast — spend with intent.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Map vendors</strong> — gear, recipes, collection items for legendaries / titles.</li>
+        <li><strong>Cultural / city armor</strong> — cosmetics / collections.</li>
+        <li><strong>Laurel &amp; karma vendors</strong> — mixed account upgrades.</li>
+        <li><strong>Rations / utility</strong> — only if you actually use them.</li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlAscendedStart()
+	{
+		return BuildHtml(
+			"Ascended Start",
+			"Guild Wars 2 · Gearing Reference",
+			"Ascended Start",
+			"Armor, weapons, trinkets, and fractal AR path — from exotic to ready for T4/CM.",
+			"<a href=\"#priority\">Priority</a>\n"
+			"<a href=\"#armor\">Armor &amp; Weapons</a>\n"
+			"<a href=\"#trinkets\">Trinkets</a>\n"
+			"<a href=\"#ar\">Fractal AR</a>",
+			R"BODY(
+  <section class="block" id="priority">
+    <div class="head"><h2>Priority Order</h2><p>Do the cheap impactful pieces first.</p></div>
+    <div class="body">
+      <ol class="list">
+        <li><strong>Trinkets</strong> — Laurel / fractal / LS vendors (fast stats).</li>
+        <li><strong>Weapons</strong> — craft, fractal, or raid drops for your main sets.</li>
+        <li><strong>Armor</strong> — craft, fractal, or strike/raid — full set last if needed.</li>
+        <li><strong>Infusions</strong> — agony for fractals (see AR); attribute infusions later.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block" id="armor">
+    <div class="head"><h2>Armor &amp; Weapons</h2><p>Common acquisition paths.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Crafting</strong></td><td>Ascended recipes · Bloodstone / Empyreal / Dragonite · time-gated</td></tr>
+          <tr><td><strong>Fractals</strong></td><td>Encapsulated / fractal vendors · good for AR gearing in parallel</td></tr>
+          <tr><td><strong>Raids / strikes</strong></td><td>Token vendors · weekly chests</td></tr>
+          <tr><td><strong>PvP / WvW</strong></td><td>Reward tracks · legendary armor lines later</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="trinkets">
+    <div class="head"><h2>Trinkets</h2><p>Usually the first ascended slots.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Laurels</strong> — rings / accessories / amulets from laurel vendors.</li>
+        <li><strong>Fractal</strong> — rings / accessories with agony infusion slots.</li>
+        <li><strong>Living World / expansion</strong> — map vendors and collections.</li>
+        <li><strong>Enrichment</strong> — +5 AR on jewelry helps early fractal goals.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="ar">
+    <div class="head"><h2>Fractal AR Gearing</h2><p>Pairs with Fractal Consumables AR table.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Goal</th><th>AR target</th></tr></thead>
+        <tbody>
+          <tr><td>Enter T2 (scale 26)</td><td><strong>+18</strong></td></tr>
+          <tr><td>Comfortable T2</td><td><strong>+61</strong></td></tr>
+          <tr><td>T3</td><td>Min <strong>+75</strong> · target <strong>+82</strong></td></tr>
+          <tr><td>T4 / CM</td><td>Min <strong>+150</strong> · community <strong>+162</strong></td></tr>
+        </tbody>
+      </table>
+      <ul class="list" style="margin-top:14px">
+        <li>Socket <strong>agony infusions</strong> into ascended/legendary gear (+5 / +7 / +9).</li>
+        <li>Recycle lower infusions via mystic forge / vendors as you upgrade.</li>
+        <li>Full details → Fractal Consumables · Fractal CM / T4.</li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlPortalsPulls()
+	{
+		return BuildHtml(
+			"Portals / Pulls / Utility",
+			"Guild Wars 2 · Squad Utility Reference",
+			"Portals / Pulls / Utility",
+			"Squad QoL — portals, pulls, reflects. Pairs with Stability / Cleanse and CC / Defiance.",
+			"<a href=\"#portals\">Portals</a>\n"
+			"<a href=\"#pulls\">Pulls</a>\n"
+			"<a href=\"#reflect\">Reflects</a>\n"
+			"<a href=\"#misc\">Misc</a>",
+			R"BODY(
+  <section class="block" id="portals">
+    <div class="head"><h2>Portals</h2><p>Move the squad through gates and skips.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Profession</th><th>Typical tools</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Mesmer</strong></td><td>Portal Entre / Exeunt — primary raid/fractal portal</td></tr>
+          <tr><td><strong>Thief</strong></td><td>Shadow Portal (utility) — shorter / situational</td></tr>
+          <tr><td><strong>Engineer</strong></td><td>Special action / kit portals on some builds</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Tip:</strong> One reliable mesmer portal covers most group content. Call portal before dropping it.</p>
+    </div>
+  </section>
+
+  <section class="block" id="pulls">
+    <div class="head"><h2>Pulls &amp; Stacks</h2><p>Group enemies or allies.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Necromancer</strong> — wells / spectral / scourge pulls (common trash clear).</li>
+        <li><strong>Elementalist</strong> — cyclone / magnetic / staff tools on some builds.</li>
+        <li><strong>Guardian / Revenant / Warrior</strong> — pulls on specific elite specs / utilities.</li>
+        <li><strong>Call the pull</strong> — wait for boons / tank before yanking.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="reflect">
+    <div class="head"><h2>Reflects &amp; Projectile hate</h2><p>Block or return projectiles on key fights.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Guardian</h3><p>Wall of Reflection · Shield of Absorption — classic reflect kit.</p></div>
+        <div class="callout"><h3>Mesmer</h3><p>Feedback · mirror skills — bubble / reflect windows.</p></div>
+        <div class="callout"><h3>Elementalist</h3><p>Arcane Shield / magnetic aura lines — situational.</p></div>
+        <div class="callout"><h3>Timing</h3><p>Reflect on call — wasted early is a wipe later.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="misc">
+    <div class="head"><h2>Other Squad Utility</h2><p>See also Stability / Cleanse · CC / Defiance · Boon Checklist.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Stability</strong> — for knockbacks / pulls into mechanics.</li>
+        <li><strong>Aegis / Blocks</strong> — tank and support absorb.</li>
+        <li><strong>Stealth / smoke</strong> — skips and revive covers (mesmer / thief / engi).</li>
+        <li><strong>Special action keys</strong> — fight-specific; learn per encounter guide.</li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlHomestead()
+	{
+		return BuildHtml(
+			"Homestead Extras",
+			"Guild Wars 2 · Homestead Reference",
+			"Homestead Extras",
+			"Beyond the garden — crafting stations, nodes, and account QoL. Garden herbs → Home Garden.",
+			"<a href=\"#stations\">Stations</a>\n"
+			"<a href=\"#nodes\">Nodes</a>\n"
+			"<a href=\"#qol\">QoL</a>\n"
+			"<a href=\"#garden\">Garden</a>",
+			R"BODY(
+  <section class="block" id="stations">
+    <div class="head"><h2>Crafting Stations</h2><p>Homestead crafting without leaving home.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Place / unlock <strong>crafting stations</strong> you use (weaponsmith, tailor, cook, etc.).</li>
+        <li>Keep <strong>material storage</strong> deposited so crafts pull from account mats.</li>
+        <li>Mystic forge / trading post access depends on what you’ve unlocked — check homestead upgrades.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="nodes">
+    <div class="head"><h2>Gathering Nodes</h2><p>Home nodes for daily mats.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Ore / Wood / Plants</h3><p>Upgrade homestead nodes for better yields.</p></div>
+        <div class="callout"><h3>Home instance</h3><p>Classic home nodes still exist — homestead is the modern hub.</p></div>
+        <div class="callout"><h3>Gather daily</h3><p>Quick mat drip before raids / crafts.</p></div>
+        <div class="callout"><h3>Glyphs</h3><p>Gathering tools with glyphs still apply where valid.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="qol">
+    <div class="head"><h2>Account QoL</h2><p>Make the homestead a real hub.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><span class="box"></span><span>Bank / material storage route you like</span></li>
+        <li><span class="box"></span><span>Crafting stations for your disciplines</span></li>
+        <li><span class="box"></span><span>Decor / waypoints you actually use</span></li>
+        <li><span class="box"></span><span>Portal / exit habits for map hopping</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="garden">
+    <div class="head"><h2>Garden</h2><p>Cultivated herbs for food.</p></div>
+    <div class="body">
+      <p class="note" style="margin:0"><strong>Home Garden</strong> cheat sheet lists cultivated herb uses. Open that sheet for seasoning / food pairings.</p>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlWvwConsumables()
+	{
+		return BuildHtml(
+			"WvW Consumables",
+			"Guild Wars 2 · WvW Reference",
+			"WvW Consumables",
+			"Siege, food, and utility glance for World vs World — not a build guide.",
+			"<a href=\"#siege\">Siege</a>\n"
+			"<a href=\"#food\">Food &amp; Utility</a>\n"
+			"<a href=\"#supply\">Supply</a>\n"
+			"<a href=\"#tips\">Tips</a>",
+			R"BODY(
+  <section class="block" id="siege">
+    <div class="head"><h2>Siege</h2><p>Blueprint → deploy with supply.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Siege</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Flame Ram</strong></td><td>Gates / walls — primary breach tool</td></tr>
+          <tr><td><strong>Catapult</strong></td><td>Walls / gates at range · AoE pressure</td></tr>
+          <tr><td><strong>Trebuchet</strong></td><td>Long-range structure damage</td></tr>
+          <tr><td><strong>Ballista</strong></td><td>Anti-siege / single-target · wall defense</td></tr>
+          <tr><td><strong>Arrow Cart</strong></td><td>AoE anti-player · defend walls</td></tr>
+          <tr><td><strong>Siege Golem</strong></td><td>Heavy gate / wall pressure (expensive)</td></tr>
+          <tr><td><strong>Shield Generator</strong></td><td>Protect siege / players from ranged</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="food">
+    <div class="head"><h2>Food &amp; Utility</h2><p>Bring what your build expects — raid food often still applies.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Food</strong> — power / condi / tank food matching your role (see Raid Food).</li>
+        <li><strong>Utility</strong> — oils, tuning crystals, sharpening stones as for PvE (see Raid Utilities).</li>
+        <li><strong>WvW-specific</strong> — siege / supply consumables from vendors when stocked.</li>
+        <li><strong>Maintenance oil / crystals</strong> — same logic as open world / raids.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="supply">
+    <div class="head"><h2>Supply</h2><p>Carried resource for siege and repairs.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Carry supply</h3><p>Pick up from camps / dolyaks — don’t run empty to a fight.</p></div>
+        <div class="callout"><h3>Deploy</h3><p>Blueprints consume supply — call before dropping.</p></div>
+        <div class="callout"><h3>Repair</h3><p>Walls / gates / siege need supply to fix.</p></div>
+        <div class="callout"><h3>Dolyaks</h3><p>Escort / kill enemy dolyaks to swing camp income.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="tips">
+    <div class="head"><h2>Quick Tips</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Stock <strong>common blueprints</strong> on the character you tag with.</li>
+        <li><strong>Warclaw</strong> — WvW mount unlock via reward track (see Mount Unlock).</li>
+        <li>Builds / trait lines → MetaBattle WvW in Browse · WvW.</li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
 	struct PageSpec
 	{
 		CheatSheets::Sheet meta;
@@ -2001,6 +2395,24 @@ namespace
 			{{"homegarden", "about:home-garden", "home-garden", "1",
 			  "Home Garden", "Home Garden — Cultivated Herbs"},
 			 HtmlHomeGarden},
+			{{"dailyweekly", "about:daily-weekly", "daily-weekly", "1",
+			  "Daily / Weekly", "Daily / Weekly Checklist"},
+			 HtmlDailyWeekly},
+			{{"currencysinks", "about:currency-sinks", "currency-sinks", "1",
+			  "Currency Sinks", "Currency Sinks"},
+			 HtmlCurrencySinks},
+			{{"ascendedstart", "about:ascended-start", "ascended-start", "1",
+			  "Ascended Start", "Ascended Start — Gearing Path"},
+			 HtmlAscendedStart},
+			{{"portalspulls", "about:portals-pulls", "portals-pulls", "1",
+			  "Portals / Pulls", "Portals / Pulls / Utility"},
+			 HtmlPortalsPulls},
+			{{"homestead", "about:homestead", "homestead-extras", "1",
+			  "Homestead", "Homestead Extras"},
+			 HtmlHomestead},
+			{{"wvwcons", "about:wvw-consumables", "wvw-consumables", "1",
+			  "WvW Consumables", "WvW Consumables — Siege & Utility"},
+			 HtmlWvwConsumables},
 		};
 		if (outCount)
 			*outCount = sizeof(kPages) / sizeof(kPages[0]);
@@ -2013,11 +2425,11 @@ const CheatSheets::Sheet* CheatSheets::All(size_t* outCount)
 	size_t n = 0;
 	const PageSpec* pages = Pages(&n);
 	/* Expose meta only — caller iterates All via Find or we return parallel. */
-	static Sheet kMeta[32];
+	static Sheet kMeta[40];
 	static bool init = false;
 	if (!init)
 	{
-		for (size_t i = 0; i < n && i < 32; ++i)
+		for (size_t i = 0; i < n && i < 40; ++i)
 			kMeta[i] = pages[i].meta;
 		init = true;
 	}
