@@ -14,10 +14,11 @@ In-game browser for GW2 sites and Discords. One DLL. Ctrl+Shift+H toggle. No mem
 
 ## Version
 
-`1.7.6.0`
+`1.7.7.0`
 
 ## Changelog highlights
 
+- **1.7.7.0** — Fix multi-tab CEF slot assignment; interactive cheat-sheet checklists
 - **1.7.6.0** — Browse section headers for Tools/Guides/Discord/Builds/Wiki/Official; fix Back→blank page
 - **1.7.5.0** — Browse + chrome UI refresh; Cheat Sheets sections; ASCII-safe labels; six sheets from 1.7.4 bundled
 - **1.7.4.0** — Six cheat sheets (dailies, currency sinks, ascended, portals, homestead, WvW); Home→default site; AR table fixes
