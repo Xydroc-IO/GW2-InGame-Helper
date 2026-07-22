@@ -81,7 +81,7 @@ struct WikiIpcState
 	uint32_t frame_h;
 	uint32_t frame_seq;
 
-	/* Legacy single-slot (still written for debug); prefer cmd ring. */
+	/* Legacy single-slot (debug mirror / ring-full fallback); prefer cmd ring. */
 	uint32_t cmd;
 	uint32_t cmd_seq;
 	uint32_t last_cmd_seq;

@@ -381,6 +381,13 @@ void BrowserTabs::Tick()
 	if (gActive < 0 || gActive >= gCount)
 		return;
 
+	/* CLOSE/ACTIVATE are async IPC. Until the helper's active_tab matches our
+	   gActive, CurrentUrl/CurrentTitle still describe the dying (or previous)
+	   browser — writing them into gTabs[gActive] overwrites the neighbour tab
+	   (closing the last tab looked like it closed the one before it). */
+	if (WikiBrowser::ActiveTabSlot() != gActive)
+		return;
+
 	BrowserTabs::Tab& active = gTabs[gActive].tab;
 	bool urlChanged = false;
 	const std::string cur = WikiBrowser::CurrentUrl();
