@@ -182,8 +182,11 @@ namespace
 			return "Getting Started";
 
 		if (std::strcmp(category, "Search") == 0)
+		{
+			if (std::strcmp(id, "gemini") == 0)
+				return "AI";
 			return "Web Search";
-
+		}
 		if (std::strcmp(category, "Cheat Sheets") == 0)
 		{
 			if (std::strcmp(id, "raidfood") == 0 || std::strcmp(id, "raidutils") == 0 ||
@@ -354,7 +357,7 @@ namespace
 		}
 		if (std::strcmp(category, "Search") == 0)
 		{
-			static const char* kSec[] = { "Web Search" };
+			static const char* kSec[] = { "Web Search", "AI" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}

@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.13`
+`1.7.8.14`
 
 ## Changelog highlights
 
+- **1.7.8.14** — Google Gemini under Search → AI
 - **1.7.8.13** — TLDR Fractals under Guides → TLDR (with other TLDR entries)
 - **1.7.8.12** — GW2 TLDR Dungeons under Guides → TLDR
 - **1.7.8.11** — MetaBattle PvP / WvW Guides hubs; Guides Browse sections for PvP and WvW

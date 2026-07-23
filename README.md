@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.13` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.14` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -18,6 +18,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | How to use (built-in) | Help |
 | [Google](https://www.google.com/) | Search |
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
+| [Gemini](https://gemini.google.com/app) | Search |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
 | [GW2 News](https://www.guildwars2.com/en/news/) | Official |
 | [Raidcore](https://raidcore.gg/gw2) | Official |

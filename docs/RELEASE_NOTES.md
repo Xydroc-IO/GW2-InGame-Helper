@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.13
+# GW2 In-Game Helper v1.7.8.14
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,10 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.14
+
+- **Search:** Google Gemini (`https://gemini.google.com/app`) under a new AI Browse section
 
 ## What’s new in 1.7.8.13
 

@@ -462,7 +462,7 @@ const char* HomePage::Html()
         <div class="body">
           <div class="grid">
             <div class="card"><span class="cat">Help</span><span>This page</span></div>
-            <div class="card"><span class="cat">Search</span><span>Google, DuckDuckGo</span></div>
+            <div class="card"><span class="cat">Search</span><span>Google, DuckDuckGo, Gemini (AI)</span></div>
             <div class="card"><span class="cat">Official</span><span>Guild Wars 2, GW2 News, Raidcore, Forums</span></div>
             <div class="card"><span class="cat">Wiki</span><span>Wiki, Game Updates, Legendaries, Mounts, Easy Objectives</span></div>
             <div class="card"><span class="cat">Builds</span><span>Snowcrows Raid Builds (per profession), AccessiBuilds (SC + Accessibility Wars), OW / PvP / WvW, MetaBattle, Gw2Skills</span></div>
