@@ -50,6 +50,15 @@ namespace
 			"https://duckduckgo.com/?q=",
 			nullptr,
 		},
+		{
+			"gemini",
+			"Search",
+			"Gemini",
+			"Google Gemini",
+			"https://gemini.google.com/app",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Official —— */
 		{

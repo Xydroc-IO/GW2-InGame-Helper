@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-Total entries: **137**
+Total entries: **138**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 
@@ -16,6 +16,10 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 
 - **Google** — [https://www.google.com/](https://www.google.com/)
 - **DuckDuckGo** — [https://duckduckgo.com/](https://duckduckgo.com/)
+
+### AI
+
+- **Gemini** — [https://gemini.google.com/app](https://gemini.google.com/app)
 
 ## Official
 
