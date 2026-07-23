@@ -1,15 +1,21 @@
 #pragma once
 
 /* Injected on every main-frame load.
-   Modern sites (Snowcrows / MetaBattle / gw2efficiency): downlevel CSS for CEF 103.
-   Everyone: strip common ad/consent overlays. */
+   Modern sites (Snowcrows / MetaBattle / gw2efficiency / Google / Gemini):
+   downlevel CSS for CEF 103 (oklch, color-mix, @property).
+   Non-Google pages: strip common ad/consent overlays. */
 static const char kSnowcrowBootJs[] = R"JS(
 (function(){
 if (window.__scBoot) return;
 window.__scBoot = 1;
 
 var host = (location.hostname || '').toLowerCase();
-var needsCssFix = /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$/.test(host);
+var isGoogleHost = /(^|\.)google\.com$/.test(host);
+var needsCssFix = isGoogleHost ||
+  /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$/.test(host);
+/* Forced wide viewport helps Snowcrows-style layouts; breaks Google/Gemini readability. */
+var clampViewport = !isGoogleHost &&
+  /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$/.test(host);
 
 function clamp01(x){ return x<0?0:x>1?1:x; }
 function oklchToRgb(L,C,h,a){
@@ -95,7 +101,12 @@ function downlevel(css){
   css=rewriteMix(css, vars);
   return css;
 }
+function needsDownlevel(text){
+  return text.indexOf('oklch(')>=0 || text.indexOf('color-mix(')>=0 || text.indexOf('@property')>=0;
+}
 function killAds(){
+  /* Broad ad selectors break Google Search / Gemini SPA chrome ([data-ad], ad-slot, etc.). */
+  if (isGoogleHost) return;
   var sel=[
     '#CookieConsent','#coiOverlay','.coi-banner',
     '[id*="nitro"]','[class*="nitro"]','[class*="nitropay"]',
@@ -105,22 +116,35 @@ function killAds(){
   ].join(',');
   try{ document.querySelectorAll(sel).forEach(function(n){ try{n.remove();}catch(e){} }); }catch(e){}
 }
+function fixInlineStyles(){
+  var styles=[].slice.call(document.querySelectorAll('style:not([data-sc-fix])'));
+  for (var i=0;i<styles.length;i++){
+    var el=styles[i];
+    var text=el.textContent||'';
+    if (!text || !needsDownlevel(text)) continue;
+    try{
+      el.textContent=downlevel(text);
+      el.setAttribute('data-sc-fix','1');
+    }catch(e){}
+  }
+}
 async function fixSheets(){
-  if (document.documentElement.getAttribute('data-sc-css')==='1') return;
-  var links=[].slice.call(document.querySelectorAll('link[rel="stylesheet"]'));
+  fixInlineStyles();
+  var links=[].slice.call(document.querySelectorAll('link[rel="stylesheet"]:not([data-sc-done])'));
   if (!links.length) return;
   var done=0;
   for (var i=0;i<links.length;i++){
     var link=links[i];
     var href=link.href||'';
+    try{ link.setAttribute('data-sc-done','1'); }catch(e){}
     if (!href || href.indexOf('data:')===0) continue;
     try{
-      var res=await fetch(href, {credentials:'same-origin', cache:'force-cache'});
+      /* omit credentials so cross-origin gstatic CSS can still be fetched under CORS */
+      var res=await fetch(href, {credentials:'omit', cache:'force-cache', mode:'cors'});
       if (!res.ok) continue;
       var text=await res.text();
       if (!text || text.length<20) continue;
-      if (text.indexOf('oklch(')<0 && text.indexOf('color-mix(')<0 && text.indexOf('@property')<0)
-        continue;
+      if (!needsDownlevel(text)) continue;
       var fixed=downlevel(text);
       var style=document.createElement('style');
       style.setAttribute('data-sc-fix','1');
@@ -134,14 +158,41 @@ async function fixSheets(){
   }
   if (done>0) document.documentElement.setAttribute('data-sc-css','1');
 }
+function watchCssMutations(){
+  try{
+    var mo=new MutationObserver(function(muts){
+      var needSheets=false;
+      for (var i=0;i<muts.length;i++){
+        var nodes=muts[i].addedNodes;
+        for (var j=0;j<nodes.length;j++){
+          var n=nodes[j];
+          if (!n || n.nodeType!==1) continue;
+          if (n.tagName==='LINK' && String(n.rel||'').indexOf('stylesheet')>=0)
+            needSheets=true;
+          else if (n.tagName==='STYLE' && !n.getAttribute('data-sc-fix')){
+            var t=n.textContent||'';
+            if (needsDownlevel(t)){
+              try{ n.textContent=downlevel(t); n.setAttribute('data-sc-fix','1'); }catch(e){}
+            }
+          }
+        }
+      }
+      if (needSheets) fixSheets();
+    });
+    mo.observe(document.documentElement,{childList:true,subtree:true});
+  }catch(e){}
+}
 function boot(){
   if (needsCssFix){
-    try{
-      var m=document.querySelector('meta[name=viewport]');
-      if(!m){ m=document.createElement('meta'); m.name='viewport'; document.head.appendChild(m); }
-      m.setAttribute('content','width=1280');
-    }catch(e){}
+    if (clampViewport){
+      try{
+        var m=document.querySelector('meta[name=viewport]');
+        if(!m){ m=document.createElement('meta'); m.name='viewport'; document.head.appendChild(m); }
+        m.setAttribute('content','width=1280');
+      }catch(e){}
+    }
     fixSheets();
+    watchCssMutations();
     try{
       document.addEventListener('livewire:navigated', function(){
         document.documentElement.removeAttribute('data-sc-css');
@@ -149,11 +200,13 @@ function boot(){
       });
     }catch(e){}
   }
-  killAds();
-  try{
-    var mo=new MutationObserver(function(){ killAds(); });
-    mo.observe(document.documentElement,{childList:true,subtree:true});
-  }catch(e){}
+  if (!isGoogleHost){
+    killAds();
+    try{
+      var mo=new MutationObserver(function(){ killAds(); });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+  }
   wireCheatSheetChecks();
 }
 /* Offline cheat sheets: ensure checklist rows toggle even if cached HTML is old. */

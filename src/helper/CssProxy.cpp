@@ -371,7 +371,7 @@ bool ShouldBlockUrl(const std::string& url)
 		HostEndsWith(host, "cookieinformation.com") ||
 		HostEndsWith(host, "googlesyndication.com") ||
 		HostEndsWith(host, "doubleclick.net") ||
-		HostEndsWith(host, "googletagmanager.com") ||
+		/* googletagmanager kept — Google Search / Gemini SPAs depend on it for UI init */
 		HostEndsWith(host, "google-analytics.com") ||
 		HostEndsWith(host, "facebook.net") ||
 		HostEndsWith(host, "facebook.com") ||
