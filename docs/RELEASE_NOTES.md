@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.14
+# GW2 In-Game Helper v1.7.8.15
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,14 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.15
+
+- **Fix:** Google Search / Gemini hard-to-read styling on CEF 103
+  - Downlevel `oklch` / `color-mix` / `@property` CSS on `*.google.com`
+  - Skip aggressive ad DOM stripping on Google hosts (was breaking SPA chrome)
+  - Do not force `viewport=1280` on Google / Gemini
+  - Allow `googletagmanager.com` (needed for Google SPA UI init)
 
 ## What’s new in 1.7.8.14
 
