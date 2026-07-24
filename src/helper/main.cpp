@@ -539,7 +539,7 @@ namespace
 
 		cef_browser_settings_t bset{};
 		bset.size = sizeof(bset);
-		bset.windowless_frame_rate = 30;
+		bset.windowless_frame_rate = 60;
 		bset.background_color = CefColorSetARGB(255, 255, 255, 255);
 
 		cef_string_t u{};
@@ -680,6 +680,12 @@ namespace
 		gBrowsers[slot] = browser;
 		gBrowsers[slot]->base.add_ref(&gBrowsers[slot]->base);
 		UpdateTabMask();
+		/* ready only after a real browser exists (not in CreateOsRBrowser). */
+		if (gIpc)
+		{
+			gIpc->ready = 1;
+			gIpc->alive = GetTickCount();
+		}
 
 		/* Prefer deferred ACTIVATE from CreateTab+ActivateTab (new tab). */
 		if (gPendingActivateSlot == slot)
@@ -702,11 +708,7 @@ namespace
 		}
 
 		if (gIpc)
-		{
-			gIpc->ready = 1;
-			gIpc->alive = GetTickCount();
 			gIpc->active_tab = slot;
-		}
 		SetStatus("Ready");
 		UpdateUrlFromBrowser();
 		NotifyWasResized();
@@ -794,16 +796,9 @@ namespace
 			gIpc->can_forward = canGoForward ? 1u : 0u;
 			SetStatus(isLoading ? "Loading…" : "Ready");
 		}
-		if (!isLoading && browser)
-		{
-			if (active)
-				UpdateUrlFromBrowser();
-			if (cef_frame_t* frame = browser->get_main_frame(browser))
-			{
-				InjectBootJs(frame);
-				frame->base.release(&frame->base);
-			}
-		}
+		if (!isLoading && active)
+			UpdateUrlFromBrowser();
+		/* BootJs injected from OnLoadEnd only — avoid double parse/exec. */
 	}
 
 	void CEF_CALLBACK OnLoadError(
@@ -918,9 +913,12 @@ namespace
 				rowBytes);
 		}
 
+		/* Publish pixels first, then metadata. MemoryBarrier so the host cannot
+		   observe a new frame_seq with stale frame_w/h/front under Wine/optimizers. */
 		gIpc->frame_w = static_cast<uint32_t>(width);
 		gIpc->frame_h = static_cast<uint32_t>(height);
 		gIpc->frame_front = back;
+		MemoryBarrier();
 		++gIpc->frame_seq;
 	}
 
@@ -1337,10 +1335,10 @@ namespace
 			   CREATE_TAB supplies the real start URL. */
 			gIpc->tab_mask = 0;
 			gIpc->active_tab = 0;
-			gIpc->ready = 1;
+			/* ready stays 0 until OnAfterCreated — avoids NAVIGATE before a browser. */
 			gIpc->alive = GetTickCount();
 		}
-		SetStatus("Ready");
+		SetStatus("Starting…");
 		return true;
 	}
 
@@ -1504,16 +1502,17 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		g_do_message_loop_work();
 		ProcessCommands();
 
-		/* Idle: wait on wake event (DLL posts cmds/input) or a short timeout
-		   so CEF timers still advance. Visible pages keep a 1ms cadence. */
+		/* Idle: wake on DLL cmds/input, else short timeout for CEF timers.
+		   Visible: 8ms is enough for 60 FPS OSR + input — old 1ms busy-wait
+		   burned a core for little gain. */
 		const bool busy = gIpc && gIpc->visible;
 		if (gWakeEvent)
 		{
-			MsgWaitForMultipleObjects(1, &gWakeEvent, FALSE, busy ? 1 : 16, QS_ALLINPUT);
+			MsgWaitForMultipleObjects(1, &gWakeEvent, FALSE, busy ? 8 : 16, QS_ALLINPUT);
 			ResetEvent(gWakeEvent);
 		}
 		else
-			Sleep(busy ? 1 : 8);
+			Sleep(busy ? 8 : 16);
 	}
 
 	for (int i = 0; i < kWikiMaxTabs; ++i)

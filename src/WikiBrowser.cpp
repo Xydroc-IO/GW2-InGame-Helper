@@ -51,6 +51,19 @@ namespace
 	uint32_t gTexW = 0;
 	uint32_t gTexH = 0;
 	uint32_t gLastFrameSeq = 0;
+	DWORD gLastPresentMs = 0;
+	DWORD gLastMouseWakeMs = 0;
+
+	/* Tab lifecycle cmds dropped when the ring is full — retry next frame. */
+	static constexpr int kPendingCmdMax = 16;
+	struct PendingCmd
+	{
+		WikiIpcCmd cmd;
+		int32_t a;
+		char arg[1536];
+	};
+	PendingCmd gPendingCmds[kPendingCmdMax]{};
+	int gPendingCmdCount = 0;
 
 	/* Fenced IPC string caches — refreshed only when *_seq changes. */
 	char gUrlCache[2048]{};
@@ -364,6 +377,7 @@ namespace
 		gUrlCacheSeq = 0xFFFFFFFFu;
 		gTitleCache[0] = 0;
 		gTitleCacheSeq = 0xFFFFFFFFu;
+		gPendingCmdCount = 0;
 	}
 
 	bool ExtractHelper()
@@ -505,13 +519,17 @@ namespace
 				++gIpc->cmd_seq;
 				WakeHelper();
 			}
-			/* Never block the game render thread for long — brief poll then kill. */
-			WaitForSingleObject(gProcess, 50);
+			/* Never block the game render thread — wake for QUIT then terminate. */
+			WakeHelper();
 		}
 		if (gProcess)
 		{
 			if (HelperAlive())
-				TerminateProcess(gProcess, 0);
+			{
+				/* Tiny grace for QUIT; never Wait long on RT_Render. */
+				if (WaitForSingleObject(gProcess, 0) == WAIT_TIMEOUT)
+					TerminateProcess(gProcess, 0);
+			}
 			CloseHandle(gProcess);
 			gProcess = nullptr;
 			gProcessId = 0;
@@ -682,39 +700,88 @@ namespace
 		return true;
 	}
 
+	void QueuePendingCmd(WikiIpcCmd cmd, const char* arg, int32_t a)
+	{
+		for (int i = 0; i < gPendingCmdCount; ++i)
+		{
+			if (gPendingCmds[i].cmd == cmd && gPendingCmds[i].a == a &&
+				(cmd == WIKI_CMD_ACTIVATE_TAB || cmd == WIKI_CMD_CREATE_TAB ||
+				 cmd == WIKI_CMD_CLOSE_TAB))
+			{
+				gPendingCmds[i].a = a;
+				std::snprintf(gPendingCmds[i].arg, sizeof(gPendingCmds[i].arg), "%s",
+					arg ? arg : "");
+				return;
+			}
+		}
+		if (gPendingCmdCount >= kPendingCmdMax)
+			return;
+		PendingCmd& p = gPendingCmds[gPendingCmdCount++];
+		p.cmd = cmd;
+		p.a = a;
+		std::snprintf(p.arg, sizeof(p.arg), "%s", arg ? arg : "");
+	}
+
+	bool TryPostCmdImmediate(WikiIpcCmd cmd, const char* arg, int32_t a)
+	{
+		if (!gIpc || !HelperAlive())
+			return false;
+		const uint32_t w = gIpc->cmd_write;
+		const uint32_t next = (w + 1u) % kWikiCmdQueueSize;
+		if (next == gIpc->cmd_read)
+			return false;
+		WikiCmdEvent& ev = gIpc->cmd_q[w % kWikiCmdQueueSize];
+		ev.cmd = cmd;
+		ev.a = a;
+		std::snprintf(ev.arg, sizeof(ev.arg), "%s", arg ? arg : "");
+		gIpc->cmd_write = next;
+		std::snprintf(gIpc->cmd_arg, sizeof(gIpc->cmd_arg), "%s", arg ? arg : "");
+		gIpc->cmd_a = a;
+		gIpc->cmd = cmd;
+		WakeHelper();
+		return true;
+	}
+
+	void FlushPendingCmds()
+	{
+		while (gPendingCmdCount > 0)
+		{
+			const PendingCmd& p = gPendingCmds[0];
+			if (!TryPostCmdImmediate(p.cmd, p.arg, p.a))
+			{
+				WakeHelper();
+				return;
+			}
+			--gPendingCmdCount;
+			if (gPendingCmdCount > 0)
+			{
+				std::memmove(&gPendingCmds[0], &gPendingCmds[1],
+					static_cast<size_t>(gPendingCmdCount) * sizeof(PendingCmd));
+			}
+		}
+	}
+
 	void PostCmd(WikiIpcCmd cmd, const char* arg = "", int32_t a = 0)
 	{
 		if (!gIpc || !HelperAlive())
 			return;
 
-		const uint32_t w = gIpc->cmd_write;
-		const uint32_t next = (w + 1u) % kWikiCmdQueueSize;
-		if (next != gIpc->cmd_read)
-		{
-			WikiCmdEvent& ev = gIpc->cmd_q[w % kWikiCmdQueueSize];
-			ev.cmd = cmd;
-			ev.a = a;
-			std::snprintf(ev.arg, sizeof(ev.arg), "%s", arg ? arg : "");
-			gIpc->cmd_write = next;
+		FlushPendingCmds();
+		if (TryPostCmdImmediate(cmd, arg, a))
+			return;
 
-			/* Mirror into legacy fields for debug only — do NOT bump cmd_seq.
-			   Bumping both ring + legacy made the helper run every command twice
-			   (CLOSE_TAB twice closes the neighbour after compaction). */
-			std::snprintf(gIpc->cmd_arg, sizeof(gIpc->cmd_arg), "%s", arg ? arg : "");
-			gIpc->cmd_a = a;
-			gIpc->cmd = cmd;
+		/* Ring full: SET_BOUNDS is coalesced in view_w/h already — drop.
+		   Tab lifecycle cmds retry next frame (never use legacy single-slot). */
+		if (cmd == WIKI_CMD_SET_BOUNDS)
+		{
 			WakeHelper();
 			return;
 		}
-
-		/* Ring full: SET_BOUNDS is coalesced in view_w/h already — drop.
-		   Tab lifecycle cmds must not use the legacy single-slot (reorders /
-		   double-CLOSE). Retry next frame instead. */
-		if (cmd == WIKI_CMD_SET_BOUNDS ||
-			cmd == WIKI_CMD_CREATE_TAB ||
+		if (cmd == WIKI_CMD_CREATE_TAB ||
 			cmd == WIKI_CMD_ACTIVATE_TAB ||
 			cmd == WIKI_CMD_CLOSE_TAB)
 		{
+			QueuePendingCmd(cmd, arg, a);
 			WakeHelper();
 			return;
 		}
@@ -923,19 +990,31 @@ void WikiBrowser::PresentFrame()
 	if (!gWantVisible.load() || !gIpc || !gFramePixels)
 		return;
 
+	FlushPendingCmds();
 	FlushPendingNavigate();
 
 	if (!gIpc->ready || gIpc->frame_seq == 0)
 		return;
 
-	/* Snapshot + clamp — never trust IPC sizes blindly (avoids overruns). */
+	/* Acquire ordering paired with helper MemoryBarrier before frame_seq++. */
+	MemoryBarrier();
 	const uint32_t seq = gIpc->frame_seq;
+	if (seq == gLastFrameSeq)
+		return;
+
+	/* Cap GPU upload ~60 FPS — matches CEF OSR; skip redundant ImGui-frame copies. */
+	const DWORD now = GetTickCount();
+	if (gLastPresentMs != 0 && (now - gLastPresentMs) < 16u)
+		return;
+
+	MemoryBarrier();
 	const uint32_t front = gIpc->frame_front & 1u;
 	uint32_t w = gIpc->frame_w;
 	uint32_t h = gIpc->frame_h;
 	if (w == 0 || h == 0 || w > kWikiFrameMaxW || h > kWikiFrameMaxH)
 		return;
-	if (seq == gLastFrameSeq)
+	/* Seq changed mid-read — try again next frame. */
+	if (gIpc->frame_seq != seq)
 		return;
 	if (!EnsureTexture(w, h) || !gContext || !gTex)
 		return;
@@ -951,14 +1030,17 @@ void WikiBrowser::PresentFrame()
 
 	/* Pin the front buffer so the helper will not overwrite mid-copy. */
 	gIpc->frame_reading = front;
+	MemoryBarrier();
 	const uint8_t* src = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
 	uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
 	const size_t rowBytes = static_cast<size_t>(w) * 4;
 	for (uint32_t y = 0; y < h; ++y)
 		std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+	MemoryBarrier();
 	gIpc->frame_reading = 0xFFFFFFFFu;
 	gContext->Unmap(gTex, 0);
 	gLastFrameSeq = seq;
+	gLastPresentMs = now;
 }
 
 void WikiBrowser::FeedMouseMove(int x, int y, bool leave, unsigned mods)
@@ -973,7 +1055,13 @@ void WikiBrowser::FeedMouseMove(int x, int y, bool leave, unsigned mods)
 	gIpc->mouse_mods = mods;
 	gIpc->mouse_leave = leave ? 1u : 0u;
 	++gIpc->mouse_seq;
-	WakeHelper();
+	/* Always update live mouse fields; wake helper at most ~30 Hz. */
+	const DWORD now = GetTickCount();
+	if (leave || gLastMouseWakeMs == 0 || (now - gLastMouseWakeMs) >= 33u)
+	{
+		gLastMouseWakeMs = now;
+		WakeHelper();
+	}
 }
 
 void WikiBrowser::FeedMouseClick(int x, int y, int button, bool up, int clicks, unsigned mods)

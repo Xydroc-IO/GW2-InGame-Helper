@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.29
+# GW2 In-Game Helper v1.7.8.30
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,10 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.30
+
+- **Perf/stability:** Throttle frame present + mouse wakes (~60 FPS); CEF OSR at 60 FPS; tab-cmd retry queue; frame IPC barriers; helper ready only after first browser; softer close; BootJs MutationObservers debounced; single BootJs inject
 
 ## What’s new in 1.7.8.29
 
