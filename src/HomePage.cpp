@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "36";
+	static constexpr const char* kHomePageVersion = "37";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -507,7 +507,7 @@ std::string HomePage::EnsureFileUrl(const std::wstring& addonDir)
 	const std::wstring logoPath = addonDir + L"\\home-logo.png";
 	const std::wstring coverPath = addonDir + L"\\home-cover.jpg";
 
-	bool needWrite = true;
+	bool assetsCurrent = false;
 	HANDLE verFile = CreateFileW(verPath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (verFile != INVALID_HANDLE_VALUE)
@@ -520,34 +520,37 @@ std::string HomePage::EnsureFileUrl(const std::wstring& addonDir)
 			while (read > 0 && (buf[read - 1] == '\n' || buf[read - 1] == '\r'))
 				buf[--read] = 0;
 			if (std::strcmp(buf, kHomePageVersion) == 0)
-				needWrite = false;
+				assetsCurrent = true;
 		}
 		CloseHandle(verFile);
 	}
 
 	const bool missingAssets =
-		GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES ||
 		GetFileAttributesW(logoPath.c_str()) == INVALID_FILE_ATTRIBUTES ||
 		GetFileAttributesW(coverPath.c_str()) == INVALID_FILE_ATTRIBUTES;
 
-	if (needWrite || missingAssets)
+	/* Always rewrite HTML — version stamps alone left Wine/Proton installs on
+	   stale helper-home (Browse/Favorites pills). Assets only when needed. */
 	{
 		const char* html = Html();
 		const DWORD len = static_cast<DWORD>(std::strlen(html));
 		if (!WriteBytes(path, html, len))
 			return {};
+	}
 
+	if (!assetsCurrent || missingAssets)
+	{
 		const DWORD logoLen = static_cast<DWORD>(_binary_home_logo_png_end - _binary_home_logo_png_start);
 		const DWORD coverLen = static_cast<DWORD>(_binary_home_cover_jpg_end - _binary_home_cover_jpg_start);
 		if (!WriteBytes(logoPath, _binary_home_logo_png_start, logoLen))
 			return {};
 		if (!WriteBytes(coverPath, _binary_home_cover_jpg_start, coverLen))
 			return {};
-
 		WriteBytes(verPath, kHomePageVersion, static_cast<DWORD>(std::strlen(kHomePageVersion)));
 	}
 
 	if (GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
 		return {};
-	return PathToFileUrl(path);
+	/* Cache-bust so CEF does not keep serving an old file:// document. */
+	return PathToFileUrl(path) + "?v=" + kHomePageVersion;
 }
