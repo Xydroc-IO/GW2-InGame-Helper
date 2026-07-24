@@ -1349,6 +1349,15 @@ namespace
 			nullptr,
 		},
 		{
+			"gj_siege_turtle",
+			"Guides",
+			"Siege Turtle Unlock",
+			"Guildjen — Siege Turtle Mount Unlock Guide",
+			"https://guildjen.com/siege-turtle-mount-unlock-guide/",
+			nullptr,
+			nullptr,
+		},
+		{
 			"gj_fractals_hub",
 			"Guides",
 			"Guildjen Fractals",

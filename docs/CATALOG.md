@@ -190,6 +190,7 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 - **Griffon Unlock** — [https://metabattle.com/wiki/Guide:How_to_Unlock_the_Griffon_Mount](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Griffon_Mount)
 - **Skyscale Unlock** — [https://metabattle.com/wiki/Guide:How_to_Unlock_the_Skyscale_Mount](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Skyscale_Mount)
 - **Roller Beetle Unlock** — [https://guildjen.com/roller-beetle-mount-achievement-guide/](https://guildjen.com/roller-beetle-mount-achievement-guide/)
+- **Siege Turtle Unlock** — [https://guildjen.com/siege-turtle-mount-unlock-guide/](https://guildjen.com/siege-turtle-mount-unlock-guide/)
 
 ### Fractals
 - **Intro to Fractals** — [https://metabattle.com/wiki/Guide:Introduction_to_Fractals](https://metabattle.com/wiki/Guide:Introduction_to_Fractals)

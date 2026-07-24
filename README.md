@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.33` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.34` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -80,7 +80,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
 | [Snowcrows Guides](https://snowcrows.com/guides) | Guides |
 | Progress (new-player roadmap, leveling, gold, Gem Store, Wizard’s Vault) | Guides |
-| Mounts (Griffon, Skyscale, Roller Beetle) | Guides |
+| Mounts (Griffon, Skyscale, Roller Beetle, Siege Turtle) | Guides |
 | [PvE Guides Hub](https://metabattle.com/wiki/PvE_Guides) | Guides |
 | [PvP Guides Hub](https://metabattle.com/wiki/PvP_Guides) + Guildjen PvP beginner/hub | Guides |
 | [WvW Guides Hub](https://metabattle.com/wiki/WvW_Guides) + Guildjen WvW beginner | Guides |
