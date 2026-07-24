@@ -113,16 +113,35 @@ Works on Windows and on Linux via Wine/Proton.
 
 Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
+## What’s new (1.7.8.47–48)
+
+Stability / hitch **audit** fixes — full detail in [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
+
+**1.7.8.48**
+- Warm URL-match indexes at addon load (no first-navigate hitch)
+- Host→site map for tab label matching (no full-catalog scan every click)
+- Adaptive OSR present — ~60 FPS while interacting, ~30 FPS when idle
+- Cheaper status chip cache (`strcmp`, no per-frame hash)
+
+**1.7.8.47**
+- Collapsing the window no longer kills / relaunches the CEF helper
+- Precomputed URL keys — no alloc storm on navigate / title sync
+- One max-size OSR texture (UV crop) — resize no longer recreates GPU textures every pixel
+- `SET_BOUNDS` wakes throttled (~100 ms)
+- Cached status string; in-window hotkeys via ImGuiIO; closed-window poll ~30 Hz
+
+**1.7.8.46** — Browse: category/section caching + list clipping on large Wiki lists (Food / Utility / Minis)
+
 ## Features
 
-- In-game CEF browser with **Browse** panel (search + categories)
+- In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
 - **Compact toolbar** — Browse · nav cluster · Search · `...` menu (Find / Copy / Open Ext)
 - **GW2-themed** chrome (gold tabs + muted status); Browse picker with section headers (Tools, Guides, Discord, Cheat Sheets, …)
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
 - **Find in page** — Ctrl+F
 - **Favorites** — star + drag-reorder
-- **Keep browser warm** — optional hide without killing CEF
+- **Keep browser warm** — optional hide without killing CEF (collapse also keeps the helper alive)
 - **Default landing site** — Options picker; used by the Home button and when no tabs are saved
 - Nexus **QuickAccess** icon at the top of the screen
 - Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
