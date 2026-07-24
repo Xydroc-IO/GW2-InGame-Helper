@@ -280,6 +280,9 @@ namespace
 				return "Achievements";
 			if (std::strcmp(id, "gj_jp_hub") == 0 || std::strncmp(id, "gj_jp_", 6) == 0)
 				return "Jumping Puzzles";
+			if (std::strcmp(id, "wiki_cosmetic_infusions") == 0 ||
+				std::strcmp(id, "gj_infusion_hub") == 0 || std::strncmp(id, "gj_infusion_", 12) == 0)
+				return "Cosmetic Infusions";
 			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0 ||
 				std::strcmp(id, "gw2tldr_fractals") == 0 || std::strcmp(id, "gw2tldr_dungeons") == 0)
 				return "TLDR";
@@ -398,7 +401,7 @@ namespace
 			static const char* kSec[] = {
 				"Living World", "Progress", "Mounts", "Fractals", "Raids",
 				"Strikes", "Rifts", "PvP", "WvW", "Achievements",
-				"Jumping Puzzles", "TLDR", "Other"
+				"Jumping Puzzles", "Cosmetic Infusions", "TLDR", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
@@ -541,6 +544,31 @@ namespace
 			return "Visions of Eternity";
 		if (std::strncmp(id, "gj_ach_fest_", 12) == 0)
 			return "Festivals";
+		if (std::strncmp(id, "gj_ach_side_", 12) == 0)
+			return "Side Stories";
+		return nullptr;
+	}
+
+	/* Acquisition subsection under Guides → Cosmetic Infusions (nullptr = hub). */
+	const char* InfusionSub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "wiki_cosmetic_infusions") == 0 ||
+			std::strcmp(id, "gj_infusion_hub") == 0)
+			return nullptr;
+		if (std::strncmp(id, "gj_infusion_vault_", 18) == 0)
+			return "Wizard's Vault";
+		if (std::strncmp(id, "gj_infusion_forge_", 18) == 0)
+			return "Mystic Forge";
+		if (std::strncmp(id, "gj_infusion_ow_", 15) == 0)
+			return "Open World";
+		if (std::strncmp(id, "gj_infusion_inst_", 17) == 0)
+			return "Instanced";
+		if (std::strncmp(id, "gj_infusion_fest_", 17) == 0)
+			return "Festival";
+		if (std::strncmp(id, "gj_infusion_wvw_", 16) == 0)
+			return "WvW";
 		return nullptr;
 	}
 
@@ -1088,11 +1116,61 @@ namespace
 						ImGui::Unindent(10.f);
 						continue;
 					}
+					if (std::strcmp(section, "Cosmetic Infusions") == 0)
+					{
+						static const char* kInfSubs[] = {
+							"Wizard's Vault", "Mystic Forge", "Open World",
+							"Instanced", "Festival", "WvW"
+						};
+						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						{
+							const SiteDef& site = sites[i];
+							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+								continue;
+							const char* sec = BrowseSection(selectedCat, site.id);
+							if (!sec || std::strcmp(sec, "Cosmetic Infusions") != 0)
+								continue;
+							if (InfusionSub(site.id))
+								continue;
+							DrawSiteRow(i, false);
+						}
+						ImGui::Indent(10.f);
+						for (const char* sub : kInfSubs)
+						{
+							int subCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = InfusionSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
+							}
+							if (subCount == 0)
+								continue;
+							if (!BeginBrowseSection("Cosmetic Infusions", sub, subCount))
+								continue;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = InfusionSub(site.id);
+								if (!s || std::strcmp(s, sub) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
 					if (std::strcmp(section, "Achievements") == 0)
 					{
 						static const char* kAchSubs[] = {
 							"Living World", "Heart of Thorns", "Path of Fire", "End of Dragons",
-							"Secrets of the Obscure", "Janthir Wilds", "Visions of Eternity", "Festivals"
+							"Secrets of the Obscure", "Janthir Wilds", "Visions of Eternity",
+							"Festivals", "Side Stories"
 						};
 						for (int i = 0; i < static_cast<int>(siteCount); ++i)
 						{

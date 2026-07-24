@@ -351,6 +351,8 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 - **HoT Act 2** — [https://guildjen.com/heart-of-thorns-act-2-story-achievements-guide/](https://guildjen.com/heart-of-thorns-act-2-story-achievements-guide/)
 - **HoT Act 3** — [https://guildjen.com/heart-of-thorns-act-3-story-achievements-guide/](https://guildjen.com/heart-of-thorns-act-3-story-achievements-guide/)
 - **HoT Act 4** — [https://guildjen.com/heart-of-thorns-act-4-story-achievements-guide/](https://guildjen.com/heart-of-thorns-act-4-story-achievements-guide/)
+- **Verdant Brink** — [https://guildjen.com/verdant-brink-achievement-guide/](https://guildjen.com/verdant-brink-achievement-guide/)
+- **Auric Basin** — [https://guildjen.com/auric-basin-achievements-guide/](https://guildjen.com/auric-basin-achievements-guide/)
 - **PoF Hub** — [https://guildjen.com/gw2-path-of-fire-guides/](https://guildjen.com/gw2-path-of-fire-guides/)
 - **PoF Act 1** — [https://guildjen.com/path-of-fire-act-1-story-achievements-guide/](https://guildjen.com/path-of-fire-act-1-story-achievements-guide/)
 - **PoF Act 2** — [https://guildjen.com/path-of-fire-act-2-story-achievements-guide/](https://guildjen.com/path-of-fire-act-2-story-achievements-guide/)
@@ -420,6 +422,8 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 - **Wintersday** — [https://guildjen.com/wintersday-festival-achievements-guide/](https://guildjen.com/wintersday-festival-achievements-guide/)
 - **Halloween** — [https://guildjen.com/halloween-festival-achievements-guide/](https://guildjen.com/halloween-festival-achievements-guide/)
 - **Four Winds** — [https://guildjen.com/festival-of-the-four-winds-achievements-guide/](https://guildjen.com/festival-of-the-four-winds-achievements-guide/)
+- **Side Stories Hub** — [https://guildjen.com/category/gw2/gw2-achievements/gw2-side-stories/](https://guildjen.com/category/gw2/gw2-achievements/gw2-side-stories/)
+- **Wizard's Portal Tome** — [https://guildjen.com/wizards-portal-tome-guide-work-hard-for-now/](https://guildjen.com/wizards-portal-tome-guide-work-hard-for-now/)
 
 ### Jumping Puzzles
 
@@ -470,6 +474,19 @@ Guildjen jumping puzzles ([category](https://guildjen.com/category/gw2/gw2-guide
 - **Crimson Plateau** — [https://guildjen.com/crimson-plateau-jumping-puzzle-guide/](https://guildjen.com/crimson-plateau-jumping-puzzle-guide/)
 - **Fawcett’s Bounty** — [https://guildjen.com/fawcetts-bounty-jumping-puzzle-guide/](https://guildjen.com/fawcetts-bounty-jumping-puzzle-guide/)
 - **Tribulation Caverns** — [https://guildjen.com/tribulation-caverns-jumping-puzzle-guide/](https://guildjen.com/tribulation-caverns-jumping-puzzle-guide/)
+
+### Cosmetic Infusions
+
+All cosmetic infusions from the [GW2 Wiki list](https://wiki.guildwars2.com/wiki/Cosmetic_infusion), nested by acquisition. Per-infusion rows open Guildjen’s [how-to guide](https://guildjen.com/how-to-get-cosmetic-infusions-in-guild-wars-2/) (covers every infusion on one page).
+
+- **Wiki Cosmetic Infusions** — [https://wiki.guildwars2.com/wiki/Cosmetic_infusion](https://wiki.guildwars2.com/wiki/Cosmetic_infusion)
+- **Cosmetic Infusions Hub** — [https://guildjen.com/how-to-get-cosmetic-infusions-in-guild-wars-2/](https://guildjen.com/how-to-get-cosmetic-infusions-in-guild-wars-2/)
+- **Wizard's Vault:** Arcane Flow Infusion, Forest Wisp Infusion
+- **Mystic Forge:** Mystic Infusion
+- **Open World:** Queen Bee, Liquid Aurillium, Chak, Festive Confetti, Crystal, Heart of the Khan-Ur, Frost Legion, Jormag Left/Right Eye, Echo of the Dragonvoid, Chromatic Bubbles, Seer Transcendence, Ethereal Sea-Life
+- **Instanced:** Celestial (Blue/Red), Abyssal, Mote of Darkness, Ghostly, Peerless, Imperial Everbloom, Clockwork, Jotun, Possession, Bloodstone, Demonic, Deldrimor Stoneskin
+- **Festival:** Ember, Phospholuminescent, Polysaturating Reverberating (Gray/Purple/Red), Polyluminescent Undulating (Black/Green/Orange/Teal), Moto's Unstable Bauble (Red/Blue), Winter's Heart, Snow Diamond, Toy-Shell, Silent Symphony
+- **WvW:** Mistwalker Infusion, Heat Core Infusion
 
 ### TLDR
 - **GW2 TLDR** — [https://gw2tldr.com/](https://gw2tldr.com/)
