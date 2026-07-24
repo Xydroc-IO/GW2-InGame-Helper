@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.15
+# GW2 In-Game Helper v1.7.8.23
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,44 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.23
+
+- **Browse:** Sections start collapsed; expanded sections are saved in settings and restored next time
+
+## What’s new in 1.7.8.22
+
+- **Browse:** Raid Boss wings (W1–W8) are collapsible subsections under a single **Raid Boss** section
+
+## What’s new in 1.7.8.21
+
+- **Guides → Raid Boss:** Hardstuck 10-Player Content, Squad Composition, Envoy Armor
+- **Tools → Logs / KP:** Hardstuck ArcDPS setup guide
+
+## What’s new in 1.7.8.20
+
+- **Guides:** Hardstuck [Raid Boss](https://hardstuck.gg/gw2/guides/raids/) section — every encounter from W1–W8, grouped by wing (collapsible)
+
+## What’s new in 1.7.8.19
+
+- **Browse:** Sections within a category are collapsible (click header; start expanded; shows site count)
+
+## What’s new in 1.7.8.18
+
+- **Fix:** Google Search + DuckDuckGo on the same CSS downlevel path as Gemini (response filter + BootJs)
+- **Compat:** Rewrite `color(display-p3 …)` → `rgba(...)`; strip `@property` / map `dvh` on DDG sheets
+- **UX:** Don’t strip “ad” DOM on DuckDuckGo (same SPA-chrome breakage as Google)
+
+## What’s new in 1.7.8.17
+
+- **Fix:** Gemini / Google Material theme — rewrite `color-mix(...)` in `<style>` **before first paint** via a CEF response filter (JS-after-load was too late)
+- **Fix:** Prefer Chrome User-Agent (Firefox spoof for login confused Google frontends)
+- **Compat:** Map `dvh`/`dvw` → `vh`/`vw`; flatten invalid nesting `&` selectors; Gemini readability fallback CSS
+
+## What’s new in 1.7.8.16
+
+- **Workaround:** Spoof a desktop Firefox User-Agent so Google Account / Gemini Pro sign-in is less likely to hit “This browser may not be secure” (Google still blocks many embedded browsers; if login fails, use **Open Ext**)
+- **UX:** Tip banner on Google sign-in pages; Home tips note that Open Ext sessions are separate from in-game tabs
 
 ## What’s new in 1.7.8.15
 

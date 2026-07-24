@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <unordered_set>
 
 #include <windows.h>
 #include <shellapi.h>
@@ -224,7 +225,8 @@ namespace
 			if (std::strcmp(id, "gw2crafts") == 0 || std::strcmp(id, "gw2bltc") == 0 ||
 				std::strcmp(id, "gw2treasures") == 0)
 				return "Economy";
-			if (std::strcmp(id, "killproof") == 0 || std::strcmp(id, "wingman") == 0)
+			if (std::strcmp(id, "killproof") == 0 || std::strcmp(id, "wingman") == 0 ||
+				std::strcmp(id, "hs_arcdps") == 0)
 				return "Logs / KP";
 			if (std::strcmp(id, "gw2mb") == 0 || std::strcmp(id, "peuresearch") == 0)
 				return "Misc";
@@ -252,6 +254,13 @@ namespace
 				std::strcmp(id, "mb_rw5") == 0 || std::strcmp(id, "mb_rw6") == 0 ||
 				std::strcmp(id, "mb_rw7") == 0)
 				return "Raid Wings";
+			if (std::strcmp(id, "hs_raids_hub") == 0 || std::strcmp(id, "hs_10player_content") == 0 ||
+				std::strcmp(id, "hs_squad_comp") == 0 || std::strcmp(id, "hs_envoy_armor") == 0 ||
+				std::strncmp(id, "hs_w1_", 6) == 0 || std::strncmp(id, "hs_w2_", 6) == 0 ||
+				std::strncmp(id, "hs_w3_", 6) == 0 || std::strncmp(id, "hs_w4_", 6) == 0 ||
+				std::strncmp(id, "hs_w5_", 6) == 0 || std::strncmp(id, "hs_w6_", 6) == 0 ||
+				std::strncmp(id, "hs_w7_", 6) == 0 || std::strncmp(id, "hs_w8_", 6) == 0)
+				return "Raid Boss";
 			if (std::strcmp(id, "mb_mai_trin") == 0 || std::strcmp(id, "mb_boneskinner") == 0 ||
 				std::strcmp(id, "mb_cold_war") == 0 || std::strcmp(id, "mb_cosmic_obs") == 0 ||
 				std::strcmp(id, "mb_forging_steel") == 0 || std::strcmp(id, "mb_fraenir") == 0 ||
@@ -380,8 +389,9 @@ namespace
 		if (std::strcmp(category, "Guides") == 0)
 		{
 			static const char* kSec[] = {
-				"Living World", "Progress", "Mounts", "Fractals", "Raid Wings", "Strikes",
-				"PvP", "WvW", "TLDR", "Other"
+				"Living World", "Progress", "Mounts", "Fractals", "Raid Wings",
+				"Raid Boss",
+				"Strikes", "PvP", "WvW", "TLDR", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
@@ -424,15 +434,83 @@ namespace
 		return nullptr;
 	}
 
-	void DrawBrowseSectionHeader(const char* name)
+	/* Open Browse sections only — missing key means collapsed (default). */
+	std::unordered_set<std::string> gBrowseOpen;
+
+	std::string BrowseSectionKey(const char* category, const char* section)
 	{
-		if (!name || !name[0])
+		std::string k;
+		k.reserve(64);
+		k += category && category[0] ? category : "_";
+		k += '|';
+		k += section && section[0] ? section : "_";
+		return k;
+	}
+
+	bool BrowseSectionIsOpen(const char* category, const char* section)
+	{
+		return gBrowseOpen.find(BrowseSectionKey(category, section)) != gBrowseOpen.end();
+	}
+
+	void BrowseSectionSetOpen(const char* category, const char* section, bool open)
+	{
+		const std::string key = BrowseSectionKey(category, section);
+		const bool was = gBrowseOpen.find(key) != gBrowseOpen.end();
+		if (open == was)
 			return;
+		if (open)
+			gBrowseOpen.insert(key);
+		else
+			gBrowseOpen.erase(key);
+		Settings::SetDirty();
+	}
+
+	/* Wing subsection under Guides → Raid Boss (nullptr = overview / prep links). */
+	const char* RaidBossWing(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strncmp(id, "hs_w1_", 6) == 0)
+			return "W1 Spirit Vale";
+		if (std::strncmp(id, "hs_w2_", 6) == 0)
+			return "W2 Salvation Pass";
+		if (std::strncmp(id, "hs_w3_", 6) == 0)
+			return "W3 Stronghold";
+		if (std::strncmp(id, "hs_w4_", 6) == 0)
+			return "W4 Bastion";
+		if (std::strncmp(id, "hs_w5_", 6) == 0)
+			return "W5 Hall of Chains";
+		if (std::strncmp(id, "hs_w6_", 6) == 0)
+			return "W6 Mythwright";
+		if (std::strncmp(id, "hs_w7_", 6) == 0)
+			return "W7 Ahdashim";
+		if (std::strncmp(id, "hs_w8_", 6) == 0)
+			return "W8 Mount Balrior";
+		return nullptr;
+	}
+
+	/* Returns true when the section body should be drawn. Defaults collapsed;
+	   open state is restored from settings and saved when the user toggles. */
+	bool BeginBrowseSection(const char* category, const char* section, int count)
+	{
+		if (!section || !section[0])
+			return true;
+		char label[160];
+		std::snprintf(label, sizeof(label), "%s (%d)###bsec_%s_%s",
+			section, count,
+			category && category[0] ? category : "_",
+			section);
 		ImGui::Spacing();
 		ImGui::PushStyleColor(ImGuiCol_Text, kGoldDim);
-		ImGui::TextUnformatted(name);
-		ImGui::PopStyleColor();
-		ImGui::Separator();
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.12f, 0.10f, 0.055f, 0.85f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.22f, 0.18f, 0.09f, 0.95f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.32f, 0.26f, 0.12f, 1.f));
+		ImGui::SetNextItemOpen(BrowseSectionIsOpen(category, section), ImGuiCond_Once);
+		const bool open = ImGui::CollapsingHeader(label);
+		ImGui::PopStyleColor(4);
+		if (ImGui::IsItemToggledOpen())
+			BrowseSectionSetOpen(category, section, open);
+		return open;
 	}
 
 	void ActivateSiteIndex(int index, bool navigate, bool newTab)
@@ -847,12 +925,77 @@ namespace
 		{
 			size_t secCount = 0;
 			const char* const* sections = BrowseSectionsForCategory(selectedCat, &secCount);
+			bool anyInCategory = false;
 			if (sections && secCount > 0)
 			{
 				for (size_t s = 0; s < secCount; ++s)
 				{
 					const char* section = sections[s];
-					bool any = false;
+					int secSites = 0;
+					for (int i = 0; i < static_cast<int>(siteCount); ++i)
+					{
+						const SiteDef& site = sites[i];
+						if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+							continue;
+						const char* sec = BrowseSection(selectedCat, site.id);
+						if (sec && std::strcmp(sec, section) == 0)
+							++secSites;
+					}
+					if (secSites == 0)
+						continue;
+					anyInCategory = true;
+					if (!BeginBrowseSection(selectedCat, section, secSites))
+						continue;
+					/* Raid Boss: overview links, then collapsible wing subsections. */
+					if (std::strcmp(section, "Raid Boss") == 0)
+					{
+						static const char* kWings[] = {
+							"W1 Spirit Vale", "W2 Salvation Pass", "W3 Stronghold", "W4 Bastion",
+							"W5 Hall of Chains", "W6 Mythwright", "W7 Ahdashim", "W8 Mount Balrior"
+						};
+						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						{
+							const SiteDef& site = sites[i];
+							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+								continue;
+							const char* sec = BrowseSection(selectedCat, site.id);
+							if (!sec || std::strcmp(sec, "Raid Boss") != 0)
+								continue;
+							if (RaidBossWing(site.id))
+								continue;
+							DrawSiteRow(i, false);
+						}
+						ImGui::Indent(10.f);
+						for (const char* wing : kWings)
+						{
+							int wingCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* w = RaidBossWing(site.id);
+								if (w && std::strcmp(w, wing) == 0)
+									++wingCount;
+							}
+							if (wingCount == 0)
+								continue;
+							if (!BeginBrowseSection("Raid Boss", wing, wingCount))
+								continue;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* w = RaidBossWing(site.id);
+								if (!w || std::strcmp(w, wing) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
 					for (int i = 0; i < static_cast<int>(siteCount); ++i)
 					{
 						const SiteDef& site = sites[i];
@@ -861,11 +1004,6 @@ namespace
 						const char* sec = BrowseSection(selectedCat, site.id);
 						if (!sec || std::strcmp(sec, section) != 0)
 							continue;
-						if (!any)
-						{
-							DrawBrowseSectionHeader(section);
-							any = true;
-						}
 						DrawSiteRow(i, false);
 					}
 				}
@@ -878,9 +1016,13 @@ namespace
 					const char* cat = site.category ? site.category : "";
 					if (std::strcmp(cat, selectedCat) != 0)
 						continue;
+					anyInCategory = true;
 					DrawSiteRow(i, false);
 				}
 			}
+			/* All sections collapsed still means the category has sites. */
+			if (shown == 0 && anyInCategory)
+				shown = 1;
 		}
 
 		if (shown == 0)
@@ -1298,6 +1440,47 @@ namespace
 bool UI_BlocksGameKeyboard()
 {
 	return gBlockGameKeyboard;
+}
+
+void UI_ParseBrowseOpen(const char* val)
+{
+	gBrowseOpen.clear();
+	if (!val || !val[0])
+		return;
+	const char* p = val;
+	while (*p)
+	{
+		while (*p == ';' || *p == ' ')
+			++p;
+		if (!*p)
+			break;
+		const char* start = p;
+		while (*p && *p != ';')
+			++p;
+		std::string key(start, p);
+		while (!key.empty() && (key.back() == ' ' || key.back() == '\r' || key.back() == '\n'))
+			key.pop_back();
+		if (!key.empty() && key.find('|') != std::string::npos)
+			gBrowseOpen.insert(std::move(key));
+	}
+}
+
+void UI_WriteBrowseOpen(FILE* f)
+{
+	if (!f)
+		return;
+	std::fputs("BrowseOpen=", f);
+	bool first = true;
+	for (const std::string& key : gBrowseOpen)
+	{
+		if (key.find('|') == std::string::npos)
+			continue;
+		if (!first)
+			std::fputc(';', f);
+		first = false;
+		std::fputs(key.c_str(), f);
+	}
+	std::fputc('\n', f);
 }
 
 bool UI_BlocksGameMouse()

@@ -4,6 +4,7 @@
 #include "BrowserTabs.h"
 #include "Globals.h"
 #include "Sites.h"
+#include "UI.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -94,6 +95,8 @@ void Settings::Load()
 			G::KeepHelperWarm = AsBool(val);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
+		else if (std::strcmp(key, "BrowseOpen") == 0)
+			UI_ParseBrowseOpen(val);
 		else
 			BrowserTabs::ParseKey(key, val);
 	}
@@ -162,6 +165,7 @@ void Settings::Save(bool force)
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);
+	UI_WriteBrowseOpen(f);
 	BrowserTabs::WriteSettings(f);
 
 	std::fclose(f);

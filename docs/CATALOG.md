@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-Total entries: **138**
+Total entries: **170**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 
@@ -19,7 +19,7 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 
 ### AI
 
-- **Gemini** — [https://gemini.google.com/app](https://gemini.google.com/app)
+- **Gemini** — [https://gemini.google.com/app](https://gemini.google.com/app) (Google login / Pro often needs **Open Ext**; Google blocks embedded CEF sign-in)
 
 ## Official
 
@@ -119,6 +119,7 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 
 - **KillProof** — [https://killproof.me/](https://killproof.me/)
 - **Wingman** — [https://gw2wingman.nevermindcreations.de/](https://gw2wingman.nevermindcreations.de/)
+- **ArcDPS Guide** — [https://hardstuck.gg/gw2/guides/other/arcdps/](https://hardstuck.gg/gw2/guides/other/arcdps/)
 
 ### Misc
 
@@ -214,6 +215,42 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 - **Wing 5 Hall of Chains** — [https://metabattle.com/wiki/Guide:Raid_Wing_5_-_Hall_of_Chains](https://metabattle.com/wiki/Guide:Raid_Wing_5_-_Hall_of_Chains)
 - **Wing 6 Mythwright** — [https://metabattle.com/wiki/Guide:Raid_Wing_6_-_Mythwright_Gambit](https://metabattle.com/wiki/Guide:Raid_Wing_6_-_Mythwright_Gambit)
 - **Wing 7 Ahdashim** — [https://metabattle.com/wiki/Guide:Raid_Wing_7_-_The_Key_of_Ahdashim](https://metabattle.com/wiki/Guide:Raid_Wing_7_-_The_Key_of_Ahdashim)
+
+### Raid Boss
+
+Hardstuck per-encounter guides ([hub](https://hardstuck.gg/gw2/guides/raids/)).
+
+- **Hardstuck Raids Hub** — [https://hardstuck.gg/gw2/guides/raids/](https://hardstuck.gg/gw2/guides/raids/)
+- **10-Player Content** — [https://hardstuck.gg/gw2/guides/strike-missions/guide-to-10-player-content/](https://hardstuck.gg/gw2/guides/strike-missions/guide-to-10-player-content/)
+- **Squad Composition** — [https://hardstuck.gg/gw2/guides/strike-missions/10-player-pve-squad-composition-guide/](https://hardstuck.gg/gw2/guides/strike-missions/10-player-pve-squad-composition-guide/)
+- **Envoy Armor** — [https://hardstuck.gg/gw2/guides/other/legendary-armor-guide/](https://hardstuck.gg/gw2/guides/other/legendary-armor-guide/)
+- **Vale Guardian** — [https://hardstuck.gg/gw2/guides/w1-spirit-vale/vale-guardian/](https://hardstuck.gg/gw2/guides/w1-spirit-vale/vale-guardian/)
+- **Spirit Woods** — [https://hardstuck.gg/gw2/guides/w1-spirit-vale/spirit-woods/](https://hardstuck.gg/gw2/guides/w1-spirit-vale/spirit-woods/)
+- **Gorseval** — [https://hardstuck.gg/gw2/guides/w1-spirit-vale/gorseval/](https://hardstuck.gg/gw2/guides/w1-spirit-vale/gorseval/)
+- **Sabetha** — [https://hardstuck.gg/gw2/guides/w1-spirit-vale/sabetha-the-saboteur/](https://hardstuck.gg/gw2/guides/w1-spirit-vale/sabetha-the-saboteur/)
+- **Slothasor** — [https://hardstuck.gg/gw2/guides/w2-salvation-pass/slothasor/](https://hardstuck.gg/gw2/guides/w2-salvation-pass/slothasor/)
+- **Bandit Trio** — [https://hardstuck.gg/gw2/guides/w2-salvation-pass/bandit-trio/](https://hardstuck.gg/gw2/guides/w2-salvation-pass/bandit-trio/)
+- **Matthias Gabrel** — [https://hardstuck.gg/gw2/guides/w2-salvation-pass/matthias-gabrel/](https://hardstuck.gg/gw2/guides/w2-salvation-pass/matthias-gabrel/)
+- **Escort** — [https://hardstuck.gg/gw2/guides/w3-stronghold-of-the-faithful/escort/](https://hardstuck.gg/gw2/guides/w3-stronghold-of-the-faithful/escort/)
+- **Keep Construct** — [https://hardstuck.gg/gw2/guides/w3-stronghold-of-the-faithful/keep-construct/](https://hardstuck.gg/gw2/guides/w3-stronghold-of-the-faithful/keep-construct/)
+- **Twisted Castle** — [https://hardstuck.gg/gw2/guides/w3-stronghold-of-the-faithful/twisted-castle/](https://hardstuck.gg/gw2/guides/w3-stronghold-of-the-faithful/twisted-castle/)
+- **Xera** — [https://hardstuck.gg/gw2/guides/w3-stronghold-of-the-faithful/xera/](https://hardstuck.gg/gw2/guides/w3-stronghold-of-the-faithful/xera/)
+- **Cairn** — [https://hardstuck.gg/gw2/guides/w4-bastion-of-the-penitent/cairn-the-indomitable/](https://hardstuck.gg/gw2/guides/w4-bastion-of-the-penitent/cairn-the-indomitable/)
+- **Mursaat Overseer** — [https://hardstuck.gg/gw2/guides/w4-bastion-of-the-penitent/mursaat-overseer/](https://hardstuck.gg/gw2/guides/w4-bastion-of-the-penitent/mursaat-overseer/)
+- **Samarog** — [https://hardstuck.gg/gw2/guides/w4-bastion-of-the-penitent/samarog/](https://hardstuck.gg/gw2/guides/w4-bastion-of-the-penitent/samarog/)
+- **Deimos** — [https://hardstuck.gg/gw2/guides/w4-bastion-of-the-penitent/deimos/](https://hardstuck.gg/gw2/guides/w4-bastion-of-the-penitent/deimos/)
+- **Soulless Horror** — [https://hardstuck.gg/gw2/guides/w5-hall-of-chains/soulless-horror/](https://hardstuck.gg/gw2/guides/w5-hall-of-chains/soulless-horror/)
+- **River of Souls** — [https://hardstuck.gg/gw2/guides/w5-hall-of-chains/river-of-souls/](https://hardstuck.gg/gw2/guides/w5-hall-of-chains/river-of-souls/)
+- **Statues of Grenth** — [https://hardstuck.gg/gw2/guides/w5-hall-of-chains/statues-of-grenth/](https://hardstuck.gg/gw2/guides/w5-hall-of-chains/statues-of-grenth/)
+- **Dhuum** — [https://hardstuck.gg/gw2/guides/w5-hall-of-chains/dhuum/](https://hardstuck.gg/gw2/guides/w5-hall-of-chains/dhuum/)
+- **Conjured Amalgamate** — [https://hardstuck.gg/gw2/guides/w6-mythwright-gambit/conjured-amalgamate/](https://hardstuck.gg/gw2/guides/w6-mythwright-gambit/conjured-amalgamate/)
+- **Twin Largos** — [https://hardstuck.gg/gw2/guides/w6-mythwright-gambit/twin-largos/](https://hardstuck.gg/gw2/guides/w6-mythwright-gambit/twin-largos/)
+- **Qadim** — [https://hardstuck.gg/gw2/guides/w6-mythwright-gambit/qadim/](https://hardstuck.gg/gw2/guides/w6-mythwright-gambit/qadim/)
+- **Gate of Ahdashim** — [https://hardstuck.gg/gw2/guides/w7-key-of-ahdashim/gate/](https://hardstuck.gg/gw2/guides/w7-key-of-ahdashim/gate/)
+- **Cardinal Adina** — [https://hardstuck.gg/gw2/guides/w7-key-of-ahdashim/adina/](https://hardstuck.gg/gw2/guides/w7-key-of-ahdashim/adina/)
+- **Cardinal Sabir** — [https://hardstuck.gg/gw2/guides/w7-key-of-ahdashim/sabir/](https://hardstuck.gg/gw2/guides/w7-key-of-ahdashim/sabir/)
+- **Qadim the Peerless** — [https://hardstuck.gg/gw2/guides/w7-key-of-ahdashim/qadim-the-peerless/](https://hardstuck.gg/gw2/guides/w7-key-of-ahdashim/qadim-the-peerless/)
+- **Decima** — [https://hardstuck.gg/gw2/guides/w8-mount-balrior/decima-the-stormsinger/](https://hardstuck.gg/gw2/guides/w8-mount-balrior/decima-the-stormsinger/)
 
 ### Strikes
 
