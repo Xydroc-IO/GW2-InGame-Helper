@@ -236,9 +236,25 @@ function watchCssMutations(){
           }
         }
       }
-      if (needSheets) fixSheets();
+      if (needSheets) scheduleWork(function(){ fixSheets(); });
     });
     mo.observe(document.documentElement,{childList:true,subtree:true});
+  }catch(e){}
+}
+var __scWorkTimer=0;
+var __scWorkQueue=[];
+function scheduleWork(fn){
+  try{
+    if (typeof fn==='function') __scWorkQueue.push(fn);
+    if (__scWorkTimer) return;
+    __scWorkTimer=setTimeout(function(){
+      __scWorkTimer=0;
+      var q=__scWorkQueue.slice();
+      __scWorkQueue=[];
+      for (var i=0;i<q.length;i++){
+        try{ q[i](); }catch(e){}
+      }
+    }, 100);
   }catch(e){}
 }
 function boot(){
@@ -250,19 +266,21 @@ function boot(){
         m.setAttribute('content','width=1280');
       }catch(e){}
     }
+    /* Response filter already downlevels CSS on these hosts — BootJs only
+       patches what the filter missed (SPA-injected sheets). */
     fixSheets();
     watchCssMutations();
     try{
       document.addEventListener('livewire:navigated', function(){
         document.documentElement.removeAttribute('data-sc-css');
-        fixSheets(); killAds();
+        scheduleWork(function(){ fixSheets(); killAds(); });
       });
     }catch(e){}
   }
   if (!isSearchHost){
     killAds();
     try{
-      var mo=new MutationObserver(function(){ killAds(); });
+      var mo=new MutationObserver(function(){ scheduleWork(killAds); });
       mo.observe(document.documentElement,{childList:true,subtree:true});
     }catch(e){}
   }
@@ -306,7 +324,7 @@ function unlockGuildjenMedia(){
     }
     hydrate();
     try{
-      var mo=new MutationObserver(function(){ hydrate(); });
+      var mo=new MutationObserver(function(){ scheduleWork(hydrate); });
       mo.observe(document.documentElement,{childList:true,subtree:true});
     }catch(e){}
   }catch(e){}
@@ -383,46 +401,54 @@ function unlockSnowcrowsGuides(){
         traits:'https://api.guildwars2.com/v2/traits',
         items:'https://api.guildwars2.com/v2/items'
       };
+      if (!window.__gw2ArmoryCache) window.__gw2ArmoryCache={};
       Object.keys(kinds).forEach(function(kind){
         var nodes=document.querySelectorAll('[data-armory-embed="'+kind+'"][data-armory-ids]');
         if (!nodes.length) return;
+        var cache=window.__gw2ArmoryCache[kind]||(window.__gw2ArmoryCache[kind]={});
         var ids={}, list=[];
         for (var i=0;i<nodes.length;i++){
           if ((nodes[i].textContent||'').trim()) continue;
+          if (nodes[i].getAttribute('data-gw2-armory')==='1') continue;
           String(nodes[i].getAttribute('data-armory-ids')||'').split(',').forEach(function(id){
             id=String(id||'').trim();
-            if (id && !ids[id]){ ids[id]=1; list.push(id); }
+            if (!id) return;
+            if (cache[id]) return;
+            if (!ids[id]){ ids[id]=1; list.push(id); }
           });
         }
+        /* Apply any already-cached entries without network. */
+        fillArmory(cache, kind);
         if (!list.length) return;
         for (var off=0; off<list.length; off+=100){
           var part=list.slice(off, off+100);
-          (function(endpoint, batch, embedKind){
+          (function(endpoint, batch, embedKind, cacheMap){
             fetch(endpoint+'?ids='+batch.join(',')+'&lang=en', {credentials:'omit'})
               .then(function(r){ return r.ok ? r.json() : []; })
               .then(function(arr){
                 if (!arr || !arr.length) return;
-                var map={};
                 for (var k=0;k<arr.length;k++){
-                  if (arr[k] && arr[k].id!=null) map[String(arr[k].id)]=arr[k];
+                  if (arr[k] && arr[k].id!=null) cacheMap[String(arr[k].id)]=arr[k];
                 }
-                fillArmory(map, embedKind);
+                fillArmory(cacheMap, embedKind);
               })
               .catch(function(){});
-          })(kinds[kind], part, kind);
+          })(kinds[kind], part, kind, cache);
         }
       });
     }
-    fixImages();
-    revealCloaked();
-    hydrateArmory();
+    function scTick(){
+      fixImages();
+      revealCloaked();
+      hydrateArmory();
+    }
+    scTick();
     try{
-      var mo=new MutationObserver(function(){
-        fixImages();
-        revealCloaked();
-        hydrateArmory();
-      });
+      var mo=new MutationObserver(function(){ scheduleWork(scTick); });
       mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+    try{
+      document.addEventListener('livewire:navigated', function(){ scheduleWork(scTick); });
     }catch(e){}
   }catch(e){}
 }
