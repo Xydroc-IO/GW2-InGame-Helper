@@ -856,7 +856,6 @@ namespace
 			return;
 		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "%s", sites[index].id);
 		Settings::SetDirty();
-		Settings::Save(true); /* Options can change while the helper is closed */
 	}
 
 	const SiteDef* SiteById(const char* id)
@@ -2381,9 +2380,7 @@ void UI_Render()
 	HelperHotkeys_Poll();
 	WikiBrowser::Tick();
 	/* Finish URL-match indexes across frames (started in WikiBrowser::Init). */
-	Sites::TickWarmUrlKeys(96);
-	/* Debounced settings flush even while closed (no force on close). */
-	Settings::Save(false);
+	Sites::TickWarmUrlKeys(64);
 
 	gBlockGameKeyboard = false;
 	gBlockGameMouse = false;
@@ -2406,6 +2403,7 @@ void UI_Render()
 		}
 		BlurBrowser();
 		WikiBrowser::SetVisible(false);
+		Settings::Save(false);
 		return;
 	}
 
@@ -2443,6 +2441,7 @@ void UI_Render()
 		ImGui::End();
 		ImGui::PopStyleVar();
 		PopWikiTheme();
+		Settings::Save(false);
 		return;
 	}
 	if (!open)
@@ -2726,4 +2725,5 @@ void UI_Options()
 	ImGui::TextWrapped(
 		"Hotkeys: Ctrl+Shift+H open/close | Ctrl+T new tab | Ctrl+W close | "
 		"Ctrl+Tab cycle | Ctrl+Shift+T reopen | Ctrl+F find");
+	Settings::Save(false);
 }

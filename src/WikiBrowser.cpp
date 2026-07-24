@@ -624,11 +624,11 @@ namespace
 
 	void StopHelper()
 	{
-		/* Forced stop (unload). Prefer QUIT, allow one short wait off hot path. */
+		/* Prefer QUIT, allow one short wait on unload only — never on RT_Render. */
 		PostQuitCmd();
 		if (gProcess)
 		{
-			WaitForSingleObject(gProcess, 100);
+			WaitForSingleObject(gProcess, 50);
 			if (HelperAlive())
 				TerminateProcess(gProcess, 0);
 		}
@@ -1038,18 +1038,19 @@ void WikiBrowser::SetVisible(bool visible)
 	{
 		const bool was = gWantVisible.exchange(false);
 		gPendingNavigate.clear();
-		if (was || HelperAlive() || gQuitPending.load())
+		/* Already hidden — do not PostCmd/Wake every RT_Render (KeepHelperWarm spam). */
+		if (!was)
 		{
-			PostCmd(WIKI_CMD_SET_VISIBLE, "0");
-			if (G::KeepHelperWarm && HelperAlive() && !gQuitPending.load())
-			{
-				SetLocalStatus("Ready");
-			}
-			else if (!G::KeepHelperWarm)
-			{
+			if (!G::KeepHelperWarm && HelperAlive() && !gQuitPending.load())
 				RequestStopHelper();
-			}
+			return;
 		}
+		if (HelperAlive())
+			PostCmd(WIKI_CMD_SET_VISIBLE, "0");
+		if (G::KeepHelperWarm && HelperAlive() && !gQuitPending.load())
+			SetLocalStatus("Ready");
+		else if (!G::KeepHelperWarm)
+			RequestStopHelper();
 		return;
 	}
 
