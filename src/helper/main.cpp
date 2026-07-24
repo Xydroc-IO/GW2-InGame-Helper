@@ -962,8 +962,34 @@ namespace
 	{
 		/* Do not proxy CSS via WinHTTP — under Wine/Proton it often fails and
 		   replaces working (if incomplete) sheets with empty stubs. Styles are
-		   fixed in OnLoadEnd via fetch()+JS downlevel using CEF's network. */
+		   fixed via response filter + OnLoadEnd BootJs using CEF's network. */
 		return nullptr;
+	}
+
+	cef_response_filter_t* CEF_CALLBACK GetResourceResponseFilter(
+		cef_resource_request_handler_t*, cef_browser_t*, cef_frame_t*,
+		cef_request_t* request, cef_response_t* response)
+	{
+		if (!request || !response || !request->get_url || !response->get_mime_type ||
+			!g_userfree_free)
+			return nullptr;
+		cef_string_userfree_t ufUrl = request->get_url(request);
+		if (!ufUrl)
+			return nullptr;
+		const std::string url = CefStringToUtf8(ufUrl);
+		g_userfree_free(ufUrl);
+		cef_string_userfree_t ufMime = response->get_mime_type(response);
+		std::string mime;
+		if (ufMime)
+		{
+			mime = CefStringToUtf8(ufMime);
+			g_userfree_free(ufMime);
+		}
+		if (!ShouldDownlevelResponse(url, mime))
+			return nullptr;
+		const bool isHtml = mime.find("html") != std::string::npos ||
+			mime.find("HTML") != std::string::npos;
+		return CreateCssDownlevelFilter(isHtml);
 	}
 
 	cef_resource_request_handler_t* CEF_CALLBACK GetResourceRequestHandler(
@@ -1013,6 +1039,7 @@ namespace
 		InitBase(&gResourceRequest.base, sizeof(gResourceRequest));
 		gResourceRequest.on_before_resource_load = OnBeforeResourceLoad;
 		gResourceRequest.get_resource_handler = GetResourceHandler;
+		gResourceRequest.get_resource_response_filter = GetResourceResponseFilter;
 
 		std::memset(&gRequest, 0, sizeof(gRequest));
 		InitBase(&gRequest.base, sizeof(gRequest));
@@ -1393,6 +1420,12 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	const std::string cacheUtf8 = WideToUtf8(cache);
 	MakeCefString(&settings.cache_path, cacheUtf8.c_str());
 	MakeCefString(&settings.root_cache_path, cacheUtf8.c_str());
+	/* Prefer a modern Chrome UA for Google/Gemini (engine is still CEF 103).
+	   Firefox UA spoofing for login confused some Google frontends. Account
+	   sign-in in CEF remains blocked — use Open Ext. */
+	MakeCefString(&settings.user_agent,
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+		"Chrome/120.0.0.0 Safari/537.36");
 
 	if (!g_initialize(&mainArgs, &settings, &gApp, nullptr))
 	{
@@ -1402,6 +1435,7 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		ClearCefString(&settings.locales_dir_path);
 		ClearCefString(&settings.cache_path);
 		ClearCefString(&settings.root_cache_path);
+		ClearCefString(&settings.user_agent);
 		return 7;
 	}
 	ClearCefString(&settings.browser_subprocess_path);
@@ -1409,6 +1443,7 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	ClearCefString(&settings.locales_dir_path);
 	ClearCefString(&settings.cache_path);
 	ClearCefString(&settings.root_cache_path);
+	ClearCefString(&settings.user_agent);
 
 	WNDCLASSEXW wc{};
 	wc.cbSize = sizeof(wc);

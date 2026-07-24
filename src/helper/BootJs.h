@@ -1,9 +1,9 @@
 #pragma once
 
 /* Injected on every main-frame load.
-   Modern sites (Snowcrows / MetaBattle / gw2efficiency / Google / Gemini):
-   downlevel CSS for CEF 103 (oklch, color-mix, @property).
-   Non-Google pages: strip common ad/consent overlays. */
+   Modern sites (Snowcrows / MetaBattle / gw2efficiency / Google / Gemini / DDG):
+   downlevel CSS for CEF 103 (oklch, color-mix, @property, display-p3, dvh).
+   Non-search pages: strip common ad/consent overlays. */
 static const char kSnowcrowBootJs[] = R"JS(
 (function(){
 if (window.__scBoot) return;
@@ -11,11 +11,13 @@ window.__scBoot = 1;
 
 var host = (location.hostname || '').toLowerCase();
 var isGoogleHost = /(^|\.)google\.com$/.test(host);
-var needsCssFix = isGoogleHost ||
-  /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$/.test(host);
-/* Forced wide viewport helps Snowcrows-style layouts; breaks Google/Gemini readability. */
-var clampViewport = !isGoogleHost &&
-  /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$/.test(host);
+var isDdgHost = /(^|\.)duckduckgo\.com$/.test(host);
+var isSearchHost = isGoogleHost || isDdgHost;
+var needsCssFix = isSearchHost ||
+  /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$/.test(host);
+/* Forced wide viewport helps Snowcrows-style layouts; breaks Google/Gemini/DDG readability. */
+var clampViewport = !isSearchHost &&
+  /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$/.test(host);
 
 function clamp01(x){ return x<0?0:x>1?1:x; }
 function oklchToRgb(L,C,h,a){
@@ -51,7 +53,8 @@ function replOklch(css){
   });
 }
 function stripIn(css){
-  return css.replace(/\s+in (?:oklab|oklch|srgb|hsl|lab|xyz)\b/g,'');
+  /* Gradients only — never strip "in srgb" from color-mix() (that broke Gemini). */
+  return css.replace(/(linear|radial|conic)-gradient\(\s*in\s+(?:oklab|oklch|srgb|hsl|lab|xyz)\s*,?/g,'$1-gradient(');
 }
 function stripProperty(css){
   return css.replace(/@property\s+[^{]+\{[^}]*\}/g,'');
@@ -82,7 +85,8 @@ function collectVars(css){
 }
 function rewriteMix(css, vars){
   return css.replace(/color-mix\((?:[^()]|\([^)]*\))*\)/g, function(full){
-    var m=/color-mix\(\s*in\s+[\w-]+\s*,\s*(.+)\s+(\d+(?:\.\d+)?)%\s*,\s*transparent\s*\)/.exec(full);
+    /* Gemini: color-mix(in srgb,#1f1f1f 10%,transparent) — "in SPACE," optional if already stripped */
+    var m=/color-mix\(\s*(?:in\s+[\w-]+\s*,\s*)?(.+?)\s+(\d+(?:\.\d+)?)%\s*,\s*transparent\s*\)/.exec(full);
     if (!m) return full;
     var col=m[1].trim(), pct=+m[2];
     if (col.indexOf('color-mix(')>=0) return full;
@@ -92,21 +96,72 @@ function rewriteMix(css, vars){
     return 'rgba('+c.r+','+c.g+','+c.b+','+a+')';
   });
 }
+function rewriteDisplayP3(css){
+  return css.replace(/color\(display-p3\s+([^)]*)\)/g, function(full, body){
+    body=String(body).trim();
+    var rgbPart=body, alphaPart='';
+    var slash=body.lastIndexOf('/');
+    if (slash>=0){ rgbPart=body.slice(0,slash).trim(); alphaPart=body.slice(slash+1).trim(); }
+    var nums=rgbPart.split(/[\s,]+/).filter(Boolean);
+    if (nums.length<3) return full;
+    function ch(x){ var v=parseFloat(x); return isNaN(v)?0:Math.max(0,Math.min(1,v)); }
+    var r=Math.round(ch(nums[0])*255), g=Math.round(ch(nums[1])*255), b=Math.round(ch(nums[2])*255);
+    var a=1;
+    if (alphaPart){
+      var A=parseNum(alphaPart);
+      a=A.pct?A.v/100:A.v;
+      if (isNaN(a)) a=1;
+    }
+    return 'rgba('+r+','+g+','+b+','+a+')';
+  });
+}
+function flattenViewportUnits(css){
+  return css.replace(/\b(\d+(?:\.\d+)?)dvh\b/g,'$1vh').replace(/\b(\d+(?:\.\d+)?)dvw\b/g,'$1vw');
+}
+function flattenNestingMarkers(css){
+  /* Gemini emits some nesting "&" selectors at top level — invalid on CEF 103. */
+  return css.replace(/ &/g,' ').replace(/&>/g,'>').replace(/&\./g,'.').replace(/&:/g,':').replace(/&\[/g,'[');
+}
 function downlevel(css){
+  /* Rewrite color-mix BEFORE stripping gradient color spaces — a broad stripIn
+     used to destroy "in srgb" inside color-mix and leave Gemini Material vars invalid. */
   css=replOklch(css);
-  css=stripIn(css);
-  css=css.split('@supports (color:color-mix(in lab,red,red))').join('@supports (color:red)');
-  css=stripProperty(css);
+  css=rewriteDisplayP3(css);
   var vars=collectVars(css);
   css=rewriteMix(css, vars);
+  css=stripIn(css);
+  css=flattenViewportUnits(css);
+  css=flattenNestingMarkers(css);
+  css=css.split('@supports (color:color-mix(in lab,red,red))').join('@supports (color:red)');
+  css=stripProperty(css);
   return css;
 }
+function injectGeminiReadability(){
+  try{
+    if (!/(^|\.)gemini\.google\.com$/.test(host)) return;
+    if (document.getElementById('gw2-gemini-readability')) return;
+    var st=document.createElement('style');
+    st.id='gw2-gemini-readability';
+    st.setAttribute('data-sc-fix','1');
+    st.textContent=[
+      'html,body{min-height:100%;}',
+      '.theme-host{color:var(--gem-sys-color--on-surface,#1f1f1f);',
+      'background-color:var(--gem-sys-color--surface,#f0f4f8);}',
+      '.theme-host.dark-theme{color:var(--gem-sys-color--on-surface,#e3e3e3);',
+      'background-color:var(--gem-sys-color--surface,#1f1f1f);}',
+      'input,textarea,button,[contenteditable]{color:inherit;}'
+    ].join('');
+    (document.head||document.documentElement).appendChild(st);
+  }catch(e){}
+}
 function needsDownlevel(text){
-  return text.indexOf('oklch(')>=0 || text.indexOf('color-mix(')>=0 || text.indexOf('@property')>=0;
+  return text.indexOf('oklch(')>=0 || text.indexOf('color-mix(')>=0 || text.indexOf('@property')>=0 ||
+    text.indexOf('dvh')>=0 || text.indexOf('dvw')>=0 || text.indexOf('color(display')>=0 ||
+    text.indexOf(' &')>=0;
 }
 function killAds(){
-  /* Broad ad selectors break Google Search / Gemini SPA chrome ([data-ad], ad-slot, etc.). */
-  if (isGoogleHost) return;
+  /* Broad ad selectors break Google Search / Gemini / DDG SPA chrome. */
+  if (isSearchHost) return;
   var sel=[
     '#CookieConsent','#coiOverlay','.coi-banner',
     '[id*="nitro"]','[class*="nitro"]','[class*="nitropay"]',
@@ -200,14 +255,44 @@ function boot(){
       });
     }catch(e){}
   }
-  if (!isGoogleHost){
+  if (!isSearchHost){
     killAds();
     try{
       var mo=new MutationObserver(function(){ killAds(); });
       mo.observe(document.documentElement,{childList:true,subtree:true});
     }catch(e){}
   }
+  tipGoogleLogin();
+  injectGeminiReadability();
   wireCheatSheetChecks();
+}
+/* Google Account sign-in is blocked in embedded CEF. Point users at Open Ext. */
+function tipGoogleLogin(){
+  try{
+    var h=(location.hostname||'').toLowerCase();
+    var path=(location.pathname||'').toLowerCase();
+    var isAccounts=/(^|\.)accounts\.google\.com$/.test(h);
+    var isSignin=isGoogleHost && /signin|ServiceLogin|oauth/i.test(path+location.search);
+    if (!isAccounts && !isSignin) return;
+    if (document.getElementById('gw2-google-login-tip')) return;
+    var tip=document.createElement('div');
+    tip.id='gw2-google-login-tip';
+    tip.setAttribute('role','status');
+    tip.style.cssText=[
+      'position:fixed','z-index:2147483646','left:12px','right:12px','top:12px',
+      'padding:10px 36px 10px 12px','border-radius:8px','font:13px/1.35 system-ui,sans-serif',
+      'color:#1a1a1a','background:#fff8e6','border:1px solid #e0c36a','box-shadow:0 2px 10px rgba(0,0,0,.18)'
+    ].join(';');
+    tip.innerHTML='Google often blocks sign-in in this in-game browser. Use <b>Open Ext</b> in the toolbar for Gemini Pro / Google login in your system browser (sessions are separate).';
+    var x=document.createElement('button');
+    x.type='button';
+    x.textContent='\u00d7';
+    x.setAttribute('aria-label','Dismiss');
+    x.style.cssText='position:absolute;right:8px;top:6px;border:0;background:transparent;font:18px/1 sans-serif;cursor:pointer;color:#553';
+    x.onclick=function(){ tip.remove(); };
+    tip.appendChild(x);
+    (document.body||document.documentElement).appendChild(tip);
+  }catch(e){}
 }
 /* Offline cheat sheets: ensure checklist rows toggle even if cached HTML is old. */
 function wireCheatSheetChecks(){
