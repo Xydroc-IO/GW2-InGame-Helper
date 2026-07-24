@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.36
+# GW2 In-Game Helper v1.7.8.37
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,10 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.37
+
+- **How to use:** Always rewrite helper-home.html and open it with a `?v=` cache-bust so Browse/Favorites pills cannot stick from CEF/disk cache
 
 ## What’s new in 1.7.8.36
 
