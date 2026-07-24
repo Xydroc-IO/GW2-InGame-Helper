@@ -95,18 +95,19 @@
 
       <h2>What’s new in 1.7.8.48</h2>
       <ul>
-        <li><strong>Load:</strong> Warm URL-match indexes at init (no first-click hitch)</li>
-        <li><strong>Navigate:</strong> Host→site map for tab label matching</li>
-        <li><strong>Present:</strong> ~30 FPS when idle; 60 FPS while interacting</li>
-        <li><strong>Status:</strong> strcmp cache (no per-frame hash)</li>
+        <li><strong>Load:</strong> Warm URL-match indexes at addon init (no first-navigate hitch)</li>
+        <li><strong>Navigate:</strong> Host→site map — <code>BestMatchForUrl</code> only scans same-host candidates</li>
+        <li><strong>Present:</strong> ~60 FPS while interacting; ~30 FPS after 500 ms idle</li>
+        <li><strong>Status:</strong> <code>StatusCStr</code> strcmp cache (no per-frame hash walk)</li>
       </ul>
 
       <h2>What’s new in 1.7.8.47</h2>
       <ul>
-        <li><strong>Collapse:</strong> Title-bar collapse no longer kills the CEF helper</li>
+        <li><strong>Collapse:</strong> Title-bar collapse no longer kills / relaunches the CEF helper</li>
         <li><strong>Navigate:</strong> Precomputed URL keys — no alloc storm on tab label sync</li>
-        <li><strong>Present:</strong> One max-size OSR texture (UV crop) + throttled resize wakes</li>
-        <li><strong>Status / hotkeys:</strong> Cached status string; ImGuiIO keys; ~30 Hz poll when closed</li>
+        <li><strong>Present:</strong> One max-size OSR texture with UV crop; <code>SET_BOUNDS</code> wakes throttled (~100 ms)</li>
+        <li><strong>Status:</strong> Cached <code>StatusCStr</code> — no per-frame <code>std::string</code> / mutex</li>
+        <li><strong>Input:</strong> In-window hotkeys via ImGuiIO; closed-window poll capped ~30 Hz</li>
       </ul>
 
       <h2>What’s new in 1.7.8.46</h2>

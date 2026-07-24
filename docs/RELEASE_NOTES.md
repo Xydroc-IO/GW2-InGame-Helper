@@ -18,20 +18,24 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ## What’s new in 1.7.8.48
 
-- **Load:** Warm URL-match indexes at addon init (no first-navigate hitch)
-- **Navigate:** Host→site map for `BestMatchForUrl` (only candidates on the same host)
-- **Present:** ~30 FPS GPU upload when idle (>500 ms without input); 60 FPS while interacting
-- **Status:** `StatusCStr` uses strcmp vs cache (no per-frame hash walk)
+Follow-up **audit** pass (on top of 1.7.8.47):
+
+- **Load:** `Sites::WarmUrlKeys()` runs at addon init — URL-match indexes are ready before the first navigate (no first-click hitch on the render thread)
+- **Navigate:** Host→site index for `BestMatchForUrl` — only same-host catalog entries are scanned (was a full ~2600-site walk every URL/title sync)
+- **Present:** Adaptive OSR upload — ~60 FPS while the page is receiving input; drops to ~30 FPS after 500 ms idle
+- **Status:** `StatusCStr` refreshes via `strcmp` against the cache (removed per-frame FNV hash walk)
 
 ## What’s new in 1.7.8.47
 
-Render / UX **audit** fixes (less host hitching, keep CEF alive):
+Render / UX / IPC **audit** fixes (less host hitching, keep CEF alive):
 
-- **Collapse:** Title-bar collapse no longer tears down the CEF helper (`TerminateProcess` on every collapse/expand)
-- **Navigate:** Precompute site URL keys so `BestMatchForUrl` does not allocate thousands of strings per click
-- **Present:** Allocate the OSR D3D texture once at max size (UV crop) — window drag no longer recreates GPU textures every pixel; throttle `SET_BOUNDS` wakes (~100 ms)
-- **Status:** Cached `StatusCStr` — no per-frame `std::string` / mutex on the loading path
-- **Input:** In-window Ctrl+T/W/F/Tab use ImGuiIO (no GetAsyncKeyState); closed-window hotkey poll capped ~30 Hz
+- **Collapse:** Title-bar collapse no longer calls `SetVisible(false)` / `TerminateProcess` — expanding the window no longer relaunches the helper
+- **Navigate:** Precomputed site URL keys (`path` / `host` / `path/`) so `BestMatchForUrl` does not allocate thousands of strings per click
+- **Present:** OSR D3D texture allocated once at max size (1920×1200) with UV crop via `FrameUvMax` — window drag no longer `CreateTexture2D` every pixel
+- **Present:** `SET_BOUNDS` helper wakes throttled (~100 ms) while still publishing `view_w` / `view_h` immediately for CEF `GetViewRect`
+- **Status:** Cached `StatusCStr` for the loading chip and “Waiting for first paint…” path — no per-frame `std::string` / mutex
+- **Input:** In-window Ctrl+T / Ctrl+W / Ctrl+F / Ctrl+Tab read Nexus-filled `ImGuiIO::KeysDown` (not `GetAsyncKeyState`)
+- **Input:** Closed-window hotkey fallback poll capped ~30 Hz (WndProc + Nexus bind remain primary)
 
 ## What’s new in 1.7.8.46
 
