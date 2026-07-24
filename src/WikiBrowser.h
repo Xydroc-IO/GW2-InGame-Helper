@@ -9,6 +9,8 @@ namespace WikiBrowser
 {
 	void Init();
 	void Shutdown();
+	/* Poll graceful helper quit + deferred work — call every RT_Render. */
+	void Tick();
 
 	void SetVisible(bool visible);
 	void SetBounds(float screenX, float screenY, float width, float height);
