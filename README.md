@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.38` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.39` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -88,8 +88,9 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | Guildjen Raid Wings (hub, intro, Wings 1–8) + Snow Crows Raid Boss (W1–W7) + Mount Balrior W8 — under Guides → Raids | Guides |
 | MetaBattle Strikes + Guildjen Harvest Temple | Guides |
 | [Rifts & Convergences](https://guildjen.com/rift-hunting-and-convergences-guide/) | Guides |
-| Guildjen Achievements (LW / HoT / PoF / EoD / SotO / JW / VoE / Festivals) | Guides |
+| Guildjen Achievements (LW / HoT / PoF / EoD / SotO / JW / VoE / Festivals / Side Stories) | Guides |
 | Guildjen Jumping Puzzles (hub + all JP guides) | Guides |
+| Cosmetic Infusions (wiki list + Guildjen how-to, nested by acquisition) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
