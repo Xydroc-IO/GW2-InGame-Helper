@@ -23930,6 +23930,7 @@ namespace
 
 	constexpr int kMaxCategories = 32;
 	const char* gCategories[kMaxCategories] = {};
+	int gCategoryCounts[kMaxCategories] = {};
 	int gCategoryCount = -1;
 
 	constexpr int kMaxFavorites = 48;
@@ -23942,14 +23943,20 @@ namespace
 			return;
 		gCategoryCount = 0;
 		const char* last = nullptr;
+		int lastIdx = -1;
 		for (int i = 0; i < kSiteCount && gCategoryCount < kMaxCategories; ++i)
 		{
 			const char* cat = gSites[i].category ? gSites[i].category : "";
 			if (!last || std::strcmp(last, cat) != 0)
 			{
-				gCategories[gCategoryCount++] = cat;
+				lastIdx = gCategoryCount;
+				gCategories[gCategoryCount] = cat;
+				gCategoryCounts[gCategoryCount] = 1;
+				++gCategoryCount;
 				last = cat;
 			}
+			else if (lastIdx >= 0)
+				++gCategoryCounts[lastIdx];
 		}
 	}
 
@@ -24014,16 +24021,16 @@ const char* const* Sites::Categories(size_t* outCount)
 
 int Sites::CountInCategory(const char* category)
 {
+	EnsureCategories();
 	if (!category)
 		category = "";
-	int n = 0;
-	for (int i = 0; i < kSiteCount; ++i)
+	for (int i = 0; i < gCategoryCount; ++i)
 	{
-		const char* cat = gSites[i].category ? gSites[i].category : "";
+		const char* cat = gCategories[i] ? gCategories[i] : "";
 		if (std::strcmp(cat, category) == 0)
-			++n;
+			return gCategoryCounts[i];
 	}
-	return n;
+	return 0;
 }
 
 bool Sites::MatchesFilter(const SiteDef& site, const char* query)

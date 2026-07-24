@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.45`
+`1.7.8.46`
 
 ## Changelog highlights
 
+- **1.7.8.46** — Browse scroll: cache category/section indices + clip large lists
 - **1.7.8.45** — Wiki Utility by attribute; Minis section (all miniature pages by wiki subsections)
 - **1.7.8.44** — Wiki Food / Ascended Food nested by attribute (wiki TOC); ascended feasts under Ascended Food only
 - **1.7.8.43** — Gen 3 legendary variants; Wiki Utility; Upgrades (Superior Runes / Relics / Superior Sigils)

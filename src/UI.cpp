@@ -13,6 +13,7 @@
 #include <cstring>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include <windows.h>
 #include <shellapi.h>
@@ -1091,6 +1092,28 @@ namespace
 			: Sites::ActiveIndex();
 		int shown = 0;
 
+		/* Cache site indices for the selected category (Wiki alone is 1000+). */
+		static std::string sBrowseCatKey;
+		static std::vector<int> sBrowseCatIdx;
+		{
+			const char* key = filtering ? "\x01" "filter" : (showFavorites ? "\x01" "fav" : selectedCat);
+			if (sBrowseCatKey != key)
+			{
+				sBrowseCatKey = key;
+				sBrowseCatIdx.clear();
+				if (!filtering && !showFavorites && selectedCat && selectedCat[0])
+				{
+					sBrowseCatIdx.reserve(512);
+					for (int i = 0; i < static_cast<int>(siteCount); ++i)
+					{
+						const char* cat = sites[i].category ? sites[i].category : "";
+						if (std::strcmp(cat, selectedCat) == 0)
+							sBrowseCatIdx.push_back(i);
+					}
+				}
+			}
+		}
+
 		auto DrawSiteRow = [&](int siteIndex, bool withCategoryPrefix) {
 			if (siteIndex < 0 || siteIndex >= static_cast<int>(siteCount))
 				return;
@@ -1134,31 +1157,23 @@ namespace
 				if (pickNewTab)
 					ImGui::SetTooltip("Open in a new tab");
 				else if (!pickDefaultSite)
-					ImGui::SetTooltip("Click: this tab | Ctrl+click: new tab");
+				{
+					if (site.title && site.title[0] && site.label &&
+						std::strcmp(site.title, site.label) != 0)
+					{
+						char tip[192];
+						SanitizeForUi(tip, sizeof(tip), site.title);
+						ImGui::SetTooltip("%s\nClick: this tab | Ctrl+click: new tab", tip);
+					}
+					else
+						ImGui::SetTooltip("Click: this tab | Ctrl+click: new tab");
+				}
 				else if (site.title && site.title[0])
 				{
 					char tip[160];
 					SanitizeForUi(tip, sizeof(tip), site.title);
 					ImGui::SetTooltip("%s", tip);
 				}
-			}
-
-			/* ASCII subtitle when title adds detail beyond the label. */
-			if (!withCategoryPrefix && site.title && site.title[0] && site.label &&
-				std::strcmp(site.title, site.label) != 0)
-			{
-				char sanitized[160];
-				SanitizeForUi(sanitized, sizeof(sanitized), site.title);
-				const char* src = sanitized;
-				const char* dash = std::strstr(sanitized, " - ");
-				if (dash)
-					src = dash + 3;
-				ImGui::SameLine();
-				ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
-				char shortSub[72];
-				std::snprintf(shortSub, sizeof(shortSub), "%.48s", src);
-				ImGui::TextUnformatted(shortSub);
-				ImGui::PopStyleColor();
 			}
 
 			/* Drag-reorder favorites */
@@ -1206,25 +1221,49 @@ namespace
 			++shown;
 		};
 
+		/* Even-height rows + only submit visible ones (Browse lists can be 1000+). */
+		auto DrawClippedRows = [&](const std::vector<int>& idxs, bool withCategoryPrefix) {
+			if (idxs.empty())
+				return;
+			ImGuiListClipper clipper;
+			clipper.Begin(static_cast<int>(idxs.size()));
+			while (clipper.Step())
+			{
+				for (int n = clipper.DisplayStart; n < clipper.DisplayEnd; ++n)
+					DrawSiteRow(idxs[static_cast<size_t>(n)], withCategoryPrefix);
+			}
+		};
+
 		if (showFavorites)
 		{
+			std::vector<int> favIdx;
 			const int favN = Sites::FavoriteCount();
+			favIdx.reserve(static_cast<size_t>(favN));
 			for (int f = 0; f < favN; ++f)
-				DrawSiteRow(Sites::FavoriteSiteIndex(f), true);
+			{
+				const int si = Sites::FavoriteSiteIndex(f);
+				if (si >= 0)
+					favIdx.push_back(si);
+			}
+			DrawClippedRows(favIdx, true);
 		}
 		else if (filtering)
 		{
+			std::vector<int> matches;
+			matches.reserve(64);
 			for (int i = 0; i < static_cast<int>(siteCount); ++i)
 			{
 				if (!Sites::MatchesFilter(sites[i], sFilter))
 					continue;
-				DrawSiteRow(i, true);
+				matches.push_back(i);
 			}
-			if (shown > 0)
+			DrawClippedRows(matches, true);
+			if (!matches.empty())
 			{
 				ImGui::Spacing();
 				ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
-				ImGui::Text("%d match%s", shown, shown == 1 ? "" : "es");
+				ImGui::Text("%d match%s", static_cast<int>(matches.size()),
+					matches.size() == 1 ? "" : "es");
 				ImGui::PopStyleColor();
 			}
 		}
@@ -1235,19 +1274,33 @@ namespace
 			bool anyInCategory = false;
 			if (sections && secCount > 0)
 			{
+				/* One pass: bucket indices by top-level section (stable until category changes). */
+				static std::string sSecBucketKey;
+				static std::vector<std::vector<int>> sSecBuckets;
+				if (sSecBucketKey != selectedCat)
+				{
+					sSecBucketKey = selectedCat;
+					sSecBuckets.assign(secCount, {});
+					for (int i : sBrowseCatIdx)
+					{
+						const char* sec = BrowseSection(selectedCat, sites[i].id);
+						if (!sec)
+							continue;
+						for (size_t s = 0; s < secCount; ++s)
+						{
+							if (std::strcmp(sec, sections[s]) == 0)
+							{
+								sSecBuckets[s].push_back(i);
+								break;
+							}
+						}
+					}
+				}
 				for (size_t s = 0; s < secCount; ++s)
 				{
 					const char* section = sections[s];
-					int secSites = 0;
-					for (int i = 0; i < static_cast<int>(siteCount); ++i)
-					{
-						const SiteDef& site = sites[i];
-						if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-							continue;
-						const char* sec = BrowseSection(selectedCat, site.id);
-						if (sec && std::strcmp(sec, section) == 0)
-							++secSites;
-					}
+					const std::vector<int>& secIdx = sSecBuckets[s];
+					const int secSites = static_cast<int>(secIdx.size());
 					if (secSites == 0)
 						continue;
 					anyInCategory = true;
@@ -1265,11 +1318,9 @@ namespace
 						for (const char* sub : kRaidSubs)
 						{
 							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = RaidsSub(site.id);
 								if (s && std::strcmp(s, sub) == 0)
 									++subCount;
@@ -1281,11 +1332,9 @@ namespace
 
 							if (std::strcmp(sub, "Raid Wings") == 0)
 							{
-								for (int i = 0; i < static_cast<int>(siteCount); ++i)
+								for (int i : sBrowseCatIdx)
 								{
 									const SiteDef& site = sites[i];
-									if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-										continue;
 									const char* s = RaidsSub(site.id);
 									if (!s || std::strcmp(s, "Raid Wings") != 0)
 										continue;
@@ -1295,11 +1344,9 @@ namespace
 							}
 
 							/* Raid Boss: prep/overview, then wing subsections. */
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = RaidsSub(site.id);
 								if (!s || std::strcmp(s, "Raid Boss") != 0)
 									continue;
@@ -1311,11 +1358,9 @@ namespace
 							for (const char* wing : kWings)
 							{
 								int wingCount = 0;
-								for (int i = 0; i < static_cast<int>(siteCount); ++i)
+								for (int i : sBrowseCatIdx)
 								{
 									const SiteDef& site = sites[i];
-									if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-										continue;
 									const char* w = RaidBossWing(site.id);
 									if (w && std::strcmp(w, wing) == 0)
 										++wingCount;
@@ -1324,11 +1369,9 @@ namespace
 									continue;
 								if (!BeginBrowseSection("Raid Boss", wing, wingCount))
 									continue;
-								for (int i = 0; i < static_cast<int>(siteCount); ++i)
+								for (int i : sBrowseCatIdx)
 								{
 									const SiteDef& site = sites[i];
-									if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-										continue;
 									const char* w = RaidBossWing(site.id);
 									if (!w || std::strcmp(w, wing) != 0)
 										continue;
@@ -1350,11 +1393,9 @@ namespace
 							"Zhaitan", "Mordremoth", "Kralkatorrik",
 							"Jormag", "Primordus", "Soo-Won"
 						};
-						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						for (int i : sBrowseCatIdx)
 						{
 							const SiteDef& site = sites[i];
-							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-								continue;
 							const char* sec = BrowseSection(selectedCat, site.id);
 							if (!sec || std::strcmp(sec, "Legendary Weapons") != 0)
 								continue;
@@ -1366,11 +1407,9 @@ namespace
 						for (const char* sub : kLegSubs)
 						{
 							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = LegendaryWeaponSub(site.id);
 								if (s && std::strcmp(s, sub) == 0)
 									++subCount;
@@ -1383,11 +1422,9 @@ namespace
 							if (std::strcmp(sub, "Generation 3 Variants") == 0)
 							{
 								/* Variant set hubs + facet collections, then per-dragon skins. */
-								for (int i = 0; i < static_cast<int>(siteCount); ++i)
+								for (int i : sBrowseCatIdx)
 								{
 									const SiteDef& site = sites[i];
-									if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-										continue;
 									const char* s = LegendaryWeaponSub(site.id);
 									if (!s || std::strcmp(s, "Generation 3 Variants") != 0)
 										continue;
@@ -1399,11 +1436,9 @@ namespace
 								for (const char* dragon : kDragons)
 								{
 									int dragonCount = 0;
-									for (int i = 0; i < static_cast<int>(siteCount); ++i)
+									for (int i : sBrowseCatIdx)
 									{
 										const SiteDef& site = sites[i];
-										if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-											continue;
 										const char* d = Gen3VariantDragon(site.id);
 										if (d && std::strcmp(d, dragon) == 0)
 											++dragonCount;
@@ -1412,11 +1447,9 @@ namespace
 										continue;
 									if (!BeginBrowseSection("Generation 3 Variants", dragon, dragonCount))
 										continue;
-									for (int i = 0; i < static_cast<int>(siteCount); ++i)
+									for (int i : sBrowseCatIdx)
 									{
 										const SiteDef& site = sites[i];
-										if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-											continue;
 										const char* d = Gen3VariantDragon(site.id);
 										if (!d || std::strcmp(d, dragon) != 0)
 											continue;
@@ -1427,11 +1460,9 @@ namespace
 								continue;
 							}
 
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = LegendaryWeaponSub(site.id);
 								if (!s || std::strcmp(s, sub) != 0)
 									continue;
@@ -1447,11 +1478,9 @@ namespace
 							"Wizard's Vault", "Mystic Forge", "Open World",
 							"Instanced", "Festival", "WvW"
 						};
-						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						for (int i : sBrowseCatIdx)
 						{
 							const SiteDef& site = sites[i];
-							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-								continue;
 							const char* sec = BrowseSection(selectedCat, site.id);
 							if (!sec || std::strcmp(sec, "Cosmetic Infusions") != 0)
 								continue;
@@ -1463,11 +1492,9 @@ namespace
 						for (const char* sub : kInfSubs)
 						{
 							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = InfusionSub(site.id);
 								if (s && std::strcmp(s, sub) == 0)
 									++subCount;
@@ -1476,11 +1503,9 @@ namespace
 								continue;
 							if (!BeginBrowseSection("Cosmetic Infusions", sub, subCount))
 								continue;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = InfusionSub(site.id);
 								if (!s || std::strcmp(s, sub) != 0)
 									continue;
@@ -1494,11 +1519,9 @@ namespace
 						std::strcmp(selectedCat, "Wiki") == 0)
 					{
 						static const char* kCraftSubs[] = { "Disciplines", "Related" };
-						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						for (int i : sBrowseCatIdx)
 						{
 							const SiteDef& site = sites[i];
-							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-								continue;
 							const char* sec = BrowseSection(selectedCat, site.id);
 							if (!sec || std::strcmp(sec, "Crafting") != 0)
 								continue;
@@ -1510,11 +1533,9 @@ namespace
 						for (const char* sub : kCraftSubs)
 						{
 							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = WikiCraftingSub(site.id);
 								if (s && std::strcmp(s, sub) == 0)
 									++subCount;
@@ -1523,11 +1544,9 @@ namespace
 								continue;
 							if (!BeginBrowseSection("Crafting", sub, subCount))
 								continue;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = WikiCraftingSub(site.id);
 								if (!s || std::strcmp(s, sub) != 0)
 									continue;
@@ -1543,11 +1562,9 @@ namespace
 						static const char* kCraftSubs[] = {
 							"Normal Guides", "Fast Guides", "400-500", "Special"
 						};
-						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						for (int i : sBrowseCatIdx)
 						{
 							const SiteDef& site = sites[i];
-							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-								continue;
 							const char* sec = BrowseSection(selectedCat, site.id);
 							if (!sec || std::strcmp(sec, "Crafting") != 0)
 								continue;
@@ -1559,11 +1576,9 @@ namespace
 						for (const char* sub : kCraftSubs)
 						{
 							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = GuidesCraftingSub(site.id);
 								if (s && std::strcmp(s, sub) == 0)
 									++subCount;
@@ -1572,11 +1587,9 @@ namespace
 								continue;
 							if (!BeginBrowseSection("Crafting", sub, subCount))
 								continue;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = GuidesCraftingSub(site.id);
 								if (!s || std::strcmp(s, sub) != 0)
 									continue;
@@ -1595,11 +1608,9 @@ namespace
 						for (const char* sub : kUpgSubs)
 						{
 							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = UpgradesSub(site.id);
 								if (s && std::strcmp(s, sub) == 0)
 									++subCount;
@@ -1608,11 +1619,9 @@ namespace
 								continue;
 							if (!BeginBrowseSection("Upgrades", sub, subCount))
 								continue;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = UpgradesSub(site.id);
 								if (!s || std::strcmp(s, sub) != 0)
 									continue;
@@ -1631,51 +1640,37 @@ namespace
 							"Concentration", "Condition Damage", "Expertise",
 							"Ferocity", "Healing Power", "All Attributes", "Other"
 						};
-						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						constexpr int kAttrN = static_cast<int>(sizeof(kFoodAttrs) / sizeof(kFoodAttrs[0]));
+						std::vector<int> hubs;
+						std::vector<int> byAttr[kAttrN];
+						hubs.reserve(8);
+						for (int i : secIdx)
 						{
-							const SiteDef& site = sites[i];
-							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+							const char* a = FoodAttrSub(sites[i].id);
+							if (!a)
+							{
+								hubs.push_back(i);
 								continue;
-							const char* sec = BrowseSection(selectedCat, site.id);
-							if (!sec || std::strcmp(sec, section) != 0)
-								continue;
-							if (FoodAttrSub(site.id))
-								continue;
-							DrawSiteRow(i, false);
+							}
+							for (int ai = 0; ai < kAttrN; ++ai)
+							{
+								if (std::strcmp(a, kFoodAttrs[ai]) == 0)
+								{
+									byAttr[ai].push_back(i);
+									break;
+								}
+							}
 						}
+						DrawClippedRows(hubs, false);
 						ImGui::Indent(10.f);
-						for (const char* sub : kFoodAttrs)
+						for (int ai = 0; ai < kAttrN; ++ai)
 						{
-							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
-							{
-								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
-								const char* sec = BrowseSection(selectedCat, site.id);
-								if (!sec || std::strcmp(sec, section) != 0)
-									continue;
-								const char* s = FoodAttrSub(site.id);
-								if (s && std::strcmp(s, sub) == 0)
-									++subCount;
-							}
-							if (subCount == 0)
+							if (byAttr[ai].empty())
 								continue;
-							if (!BeginBrowseSection(section, sub, subCount))
+							if (!BeginBrowseSection(section, kFoodAttrs[ai],
+									static_cast<int>(byAttr[ai].size())))
 								continue;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
-							{
-								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
-								const char* sec = BrowseSection(selectedCat, site.id);
-								if (!sec || std::strcmp(sec, section) != 0)
-									continue;
-								const char* s = FoodAttrSub(site.id);
-								if (!s || std::strcmp(s, sub) != 0)
-									continue;
-								DrawSiteRow(i, false);
-							}
+							DrawClippedRows(byAttr[ai], false);
 						}
 						ImGui::Unindent(10.f);
 						continue;
@@ -1695,45 +1690,37 @@ namespace
 							"Festival Minis - Wintersday",
 							"Gem Store/Black Lion", "Promotional Minis", "Unavailable"
 						};
-						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						constexpr int kMiniN = static_cast<int>(sizeof(kMiniSubs) / sizeof(kMiniSubs[0]));
+						std::vector<int> hubs;
+						std::vector<int> bySub[kMiniN];
+						hubs.reserve(4);
+						for (int i : secIdx)
 						{
-							const SiteDef& site = sites[i];
-							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+							const char* a = MinisSub(sites[i].id);
+							if (!a)
+							{
+								hubs.push_back(i);
 								continue;
-							const char* sec = BrowseSection(selectedCat, site.id);
-							if (!sec || std::strcmp(sec, "Minis") != 0)
-								continue;
-							if (MinisSub(site.id))
-								continue;
-							DrawSiteRow(i, false);
+							}
+							for (int si = 0; si < kMiniN; ++si)
+							{
+								if (std::strcmp(a, kMiniSubs[si]) == 0)
+								{
+									bySub[si].push_back(i);
+									break;
+								}
+							}
 						}
+						DrawClippedRows(hubs, false);
 						ImGui::Indent(10.f);
-						for (const char* sub : kMiniSubs)
+						for (int si = 0; si < kMiniN; ++si)
 						{
-							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
-							{
-								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
-								const char* s = MinisSub(site.id);
-								if (s && std::strcmp(s, sub) == 0)
-									++subCount;
-							}
-							if (subCount == 0)
+							if (bySub[si].empty())
 								continue;
-							if (!BeginBrowseSection("Minis", sub, subCount))
+							if (!BeginBrowseSection("Minis", kMiniSubs[si],
+									static_cast<int>(bySub[si].size())))
 								continue;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
-							{
-								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
-								const char* s = MinisSub(site.id);
-								if (!s || std::strcmp(s, sub) != 0)
-									continue;
-								DrawSiteRow(i, false);
-							}
+							DrawClippedRows(bySub[si], false);
 						}
 						ImGui::Unindent(10.f);
 						continue;
@@ -1745,11 +1732,9 @@ namespace
 							"Secrets of the Obscure", "Janthir Wilds", "Visions of Eternity",
 							"Festivals", "Side Stories"
 						};
-						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						for (int i : sBrowseCatIdx)
 						{
 							const SiteDef& site = sites[i];
-							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-								continue;
 							const char* sec = BrowseSection(selectedCat, site.id);
 							if (!sec || std::strcmp(sec, "Achievements") != 0)
 								continue;
@@ -1761,11 +1746,9 @@ namespace
 						for (const char* sub : kAchSubs)
 						{
 							int subCount = 0;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = AchievementsSub(site.id);
 								if (s && std::strcmp(s, sub) == 0)
 									++subCount;
@@ -1774,11 +1757,9 @@ namespace
 								continue;
 							if (!BeginBrowseSection("Achievements", sub, subCount))
 								continue;
-							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							for (int i : sBrowseCatIdx)
 							{
 								const SiteDef& site = sites[i];
-								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-									continue;
 								const char* s = AchievementsSub(site.id);
 								if (!s || std::strcmp(s, sub) != 0)
 									continue;
@@ -1788,29 +1769,13 @@ namespace
 						ImGui::Unindent(10.f);
 						continue;
 					}
-					for (int i = 0; i < static_cast<int>(siteCount); ++i)
-					{
-						const SiteDef& site = sites[i];
-						if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-							continue;
-						const char* sec = BrowseSection(selectedCat, site.id);
-						if (!sec || std::strcmp(sec, section) != 0)
-							continue;
-						DrawSiteRow(i, false);
-					}
+					DrawClippedRows(secIdx, false);
 				}
 			}
 			else
 			{
-				for (int i = 0; i < static_cast<int>(siteCount); ++i)
-				{
-					const SiteDef& site = sites[i];
-					const char* cat = site.category ? site.category : "";
-					if (std::strcmp(cat, selectedCat) != 0)
-						continue;
-					anyInCategory = true;
-					DrawSiteRow(i, false);
-				}
+				anyInCategory = !sBrowseCatIdx.empty();
+				DrawClippedRows(sBrowseCatIdx, false);
 			}
 			/* All sections collapsed still means the category has sites. */
 			if (shown == 0 && anyInCategory)
