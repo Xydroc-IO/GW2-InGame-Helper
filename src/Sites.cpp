@@ -24237,9 +24237,9 @@ namespace
 	{
 		if (gUrlKeysReady)
 			return;
-		/* Caller needs indexes now — finish remaining chunks without blocking forever. */
-		while (!gUrlKeysReady)
-			TickUrlKeysBuild(512);
+		/* Never finish the full ~2600-site build on the render thread.
+		   Callers must tolerate a miss until TickWarmUrlKeys completes. */
+		TickUrlKeysBuild(96);
 	}
 }
 
@@ -24265,10 +24265,15 @@ int Sites::BestMatchForUrl(const std::string& url)
 
 	if (url.rfind("about:", 0) == 0 || url.rfind("file:", 0) == 0)
 	{
-		EnsureUrlKeys();
-		const auto exact = gExactBuiltin.find(url);
-		if (exact != gExactBuiltin.end())
-			return exact->second;
+		if (gUrlKeysReady)
+		{
+			const auto exact = gExactBuiltin.find(url);
+			if (exact != gExactBuiltin.end())
+				return exact->second;
+		}
+		else
+			EnsureUrlKeys(); /* one chunk only */
+
 		/* file:///…/helper-home.html etc. (resolved paths, not about: keys). */
 		auto fileHit = [&](const char* needle, const char* id) -> int {
 			if (url.find(needle) != std::string::npos)
@@ -24327,6 +24332,8 @@ int Sites::BestMatchForUrl(const std::string& url)
 	}
 
 	EnsureUrlKeys();
+	if (!gUrlKeysReady)
+		return -1;
 
 	const std::string live = UrlHostPath(url, false);
 	const std::string liveHost = UrlHostPath(url, true);

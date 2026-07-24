@@ -73,8 +73,16 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowOptions") == 0) G::ShowOptions = AsBool(val);
 		else if (std::strcmp(key, "Opacity") == 0) G::Opacity = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "FontScale") == 0) G::FontScale = static_cast<float>(std::atof(val));
-		else if (std::strcmp(key, "WindowWidth") == 0) G::WindowWidth = static_cast<float>(std::atof(val));
-		else if (std::strcmp(key, "WindowHeight") == 0) G::WindowHeight = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WindowWidth") == 0)
+		{
+			G::WindowWidth = static_cast<float>(std::atof(val));
+			G::HasSavedSize = true;
+		}
+		else if (std::strcmp(key, "WindowHeight") == 0)
+		{
+			G::WindowHeight = static_cast<float>(std::atof(val));
+			G::HasSavedSize = true;
+		}
 		else if (std::strcmp(key, "WindowPosX") == 0)
 		{
 			G::WindowPosX = static_cast<float>(std::atof(val));
@@ -133,7 +141,7 @@ void Settings::Save(bool force)
 
 	/* Opening the helper used to call Save every ImGui frame. Title/URL sync
 	   and float window pos could keep the dirty flag set → fopen settings.ini
-	   every frame and freeze GW2. Debounce unless forced (unload). */
+	   every frame and freeze GW2. Debounce unless forced (unload only). */
 	static DWORD sLastSaveMs = 0;
 	const DWORD now = GetTickCount();
 	if (!force && sLastSaveMs != 0 && (now - sLastSaveMs) < 2500u)
