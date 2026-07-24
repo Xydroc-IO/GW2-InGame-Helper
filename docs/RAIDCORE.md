@@ -18,8 +18,8 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Changelog highlights
 
-- **1.7.8.48** — Warm URL indexes at load; host-map BestMatch; idle ~30 FPS present; StatusCStr strcmp cache
-- **1.7.8.47** — Audit: keep CEF on collapse; URL-match key cache; max-size OSR texture + bounds throttle; StatusCStr; ImGuiIO hotkeys
+- **1.7.8.48** — Audit follow-up: warm URL indexes at init; host-map BestMatch; idle ~30 FPS present; StatusCStr strcmp
+- **1.7.8.47** — Audit: keep CEF on collapse; URL-key cache; max-size OSR + UV crop; SET_BOUNDS throttle; StatusCStr; ImGuiIO hotkeys; ~30 Hz closed poll
 - **1.7.8.46** — Browse scroll: cache category/section indices + clip large lists
 - **1.7.8.45** — Wiki Utility by attribute; Minis section (all miniature pages by wiki subsections)
 - **1.7.8.44** — Wiki Food / Ascended Food nested by attribute (wiki TOC); ascended feasts under Ascended Food only
