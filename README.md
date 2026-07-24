@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.52` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.0.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -113,40 +113,17 @@ Works on Windows and on Linux via Wine/Proton.
 
 Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
-## What’s new (1.7.8.47–52)
+## What’s new (2.0.0.0)
 
-Stability / hitch **audit** fixes — full detail in [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
+Major stability release — full detail in [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
 
-**1.7.8.52**
-- Browse credit footer: Created by Xydroc; IGN and Discord on one line
+**2.0.0.0**
+- IPC v5: PID-scoped shared memory (multi-client safe)
+- Graceful helper quit across frames (no instant Terminate on RT_Render)
+- No force `settings.ini` write on overlay close; URL warm never blocks the render thread
+- Dirty-rect GPU present path; Browse/window sizing polish from 1.7.8.53
 
-**1.7.8.51**
-- Browse popup credit footer (Created by Xydroc · IGN · Discord)
-
-**1.7.8.50**
-- Fix dropped letters when typing fast (`ToUnicode` on keydown + CEF scan codes + larger input queue)
-
-**1.7.8.49**
-- Chunked URL-index warm-up across frames (no AddonLoad stall)
-- Exact `about:`/`file:` map; longest-path-first per host
-- GPU texture Map uses `DO_NOT_WAIT` (skip frame instead of stall)
-- How to use cache stamp aligned to `49`
-
-**1.7.8.48**
-- Warm URL-match indexes at addon load (no first-navigate hitch)
-- Host→site map for tab label matching (no full-catalog scan every click)
-- Adaptive OSR present — ~60 FPS while interacting, ~30 FPS when idle
-- Cheaper status chip cache (`strcmp`, no per-frame hash)
-- How to use page refreshed (tab hotkeys, warm/collapse tips, Browse clipping)
-
-**1.7.8.47**
-- Collapsing the window no longer kills / relaunches the CEF helper
-- Precomputed URL keys — no alloc storm on navigate / title sync
-- One max-size OSR texture (UV crop) — resize no longer recreates GPU textures every pixel
-- `SET_BOUNDS` wakes throttled (~100 ms)
-- Cached status string; in-window hotkeys via ImGuiIO; closed-window poll ~30 Hz
-
-**1.7.8.46** — Browse: category/section caching + list clipping on large Wiki lists (Food / Utility / Minis)
+Prior 1.7.8.x audit notes remain in the release notes history.
 
 ## Features
 
