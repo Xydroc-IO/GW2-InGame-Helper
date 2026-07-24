@@ -1051,12 +1051,12 @@ namespace
 		const ImGuiIO& io = ImGui::GetIO();
 		ImVec2 pos = anchor;
 		if (pos.x + lay.width > io.DisplaySize.x - 8.f)
-			pos.x = ImMax(8.f, io.DisplaySize.x - lay.width - 8.f);
+			pos.x = Clampf(io.DisplaySize.x - lay.width - 8.f, 8.f, io.DisplaySize.x);
 		if (pos.x < 8.f)
 			pos.x = 8.f;
 		/* Flip above the button when there isn't room below. */
 		if (pos.y + lay.height > io.DisplaySize.y - 8.f)
-			pos.y = ImMax(8.f, anchor.y - lay.height - ImGui::GetFrameHeight() - 6.f);
+			pos.y = Clampf(anchor.y - lay.height - ImGui::GetFrameHeight() - 6.f, 8.f, io.DisplaySize.y);
 
 		ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
 		ImGui::SetNextWindowSize(ImVec2(lay.width, lay.height), ImGuiCond_Always);
