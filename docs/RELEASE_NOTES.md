@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.25
+# GW2 In-Game Helper v1.7.8.29
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,22 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.29
+
+- **Helper:** Stop ad-strip from deleting Snow Crows guide bodies (`id="nitro-article-*"` matched the old `[id*="nitro"]` rule — content flashed then vanished)
+
+## What’s new in 1.7.8.28
+
+- **Helper:** Snow Crows raid guides — fill empty GW2 armory skill chips via the official API, reveal Alpine-cloaked TLDR, convert `<image>` diagrams to `<img>`
+
+## What’s new in 1.7.8.27
+
+- **Helper:** Hydrate Guildjen Breeze lazy images (`data-breeze`) so raid wing guides show diagrams/screenshots in CEF
+
+## What’s new in 1.7.8.26
+
+- **Helper:** Don’t replace the current page when YouTube/media embeds open popups (fixes Guildjen guide “refresh” on play); auto-activate Complianz YouTube embeds on guildjen.com
 
 ## What’s new in 1.7.8.25
 

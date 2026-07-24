@@ -162,9 +162,13 @@ function needsDownlevel(text){
 function killAds(){
   /* Broad ad selectors break Google Search / Gemini / DDG SPA chrome. */
   if (isSearchHost) return;
+  /* Do NOT use [id*="nitro"] / [class*="nitro"] — Snow Crows puts NitroPay
+     placement ids on the real article (e.g. id="nitro-article-1"), and that
+     deleted the whole guide after BootJs ran. */
   var sel=[
     '#CookieConsent','#coiOverlay','.coi-banner',
-    '[id*="nitro"]','[class*="nitro"]','[class*="nitropay"]',
+    '[class*="nitropay"]','[id*="nitropay"]',
+    '[id*="nitro-ad"]','[id*="nitro_ad"]','[id^="nitro--ad"]',
     'iframe[src*="doubleclick"]','iframe[src*="googlesyndication"]',
     'iframe[src*="nitropay"]','ins.adsbygoogle','[id^="google_ads"]',
     '[class*="adsbygoogle"]','[data-ad]','[id*="ad-slot"]','[class*="ad-slot"]'
@@ -263,8 +267,164 @@ function boot(){
     }catch(e){}
   }
   tipGoogleLogin();
+  unlockGuildjenMedia();
+  unlockSnowcrowsGuides();
   injectGeminiReadability();
   wireCheatSheetChecks();
+}
+/* Guildjen: Breeze leaves images as empty SVG placeholders (data-breeze) until
+   lazy JS runs — that often never fires in CEF, so guides look empty. Also
+   Complianz blocks YouTube until marketing cookies. */
+function unlockGuildjenMedia(){
+  try{
+    if (!/(^|\.)guildjen\.com$/.test(host)) return;
+    function hydrate(){
+      var imgs=document.querySelectorAll('img.br-lazy[data-breeze],img[data-breeze]');
+      for (var i=0;i<imgs.length;i++){
+        var img=imgs[i];
+        var src=img.getAttribute('data-breeze')||'';
+        if (!src) continue;
+        try{
+          img.setAttribute('src', src);
+          var srcset=img.getAttribute('data-brsrcset');
+          if (srcset) img.setAttribute('srcset', srcset);
+          img.classList.remove('br-lazy');
+          img.removeAttribute('data-breeze');
+        }catch(e){}
+      }
+      var nodes=document.querySelectorAll('iframe[data-src-cmplz*="youtube"],iframe[data-src-cmplz*="youtu.be"]');
+      for (var j=0;j<nodes.length;j++){
+        var el=nodes[j];
+        var ysrc=el.getAttribute('data-src-cmplz')||'';
+        if (!ysrc) continue;
+        if (el.getAttribute('src')===ysrc) continue;
+        try{
+          el.setAttribute('src', ysrc);
+          el.classList.remove('cmplz-placeholder-element');
+        }catch(e){}
+      }
+    }
+    hydrate();
+    try{
+      var mo=new MutationObserver(function(){ hydrate(); });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+  }catch(e){}
+}
+/* Snow Crows raid guides: armory skill chips stay empty when webpack chunks fail
+   in CEF; TLDR may stay hidden behind Alpine x-cloak; <image src> diagrams. */
+function unlockSnowcrowsGuides(){
+  try{
+    if (!/(^|\.)snowcrows\.com$/.test(host)) return;
+    function fixImages(){
+      var images=document.querySelectorAll('image[src]');
+      for (var i=0;i<images.length;i++){
+        var el=images[i];
+        try{
+          if (el.tagName && el.tagName.toLowerCase()==='img') continue;
+          var src=el.getAttribute('src');
+          if (!src) continue;
+          var img=document.createElement('img');
+          img.src=src;
+          img.alt=el.getAttribute('alt')||'';
+          img.style.maxWidth='100%';
+          img.style.height='auto';
+          if (el.parentNode) el.parentNode.replaceChild(img, el);
+        }catch(e){}
+      }
+    }
+    function revealCloaked(){
+      var nodes=document.querySelectorAll('[x-cloak]');
+      for (var i=0;i<nodes.length;i++){
+        var el=nodes[i];
+        try{
+          el.removeAttribute('x-cloak');
+          var show=el.getAttribute('x-show')||'';
+          if (show==='showExpander' || show.indexOf('showExpander')>=0){
+            el.style.display='block';
+            el.style.visibility='visible';
+          }
+        }catch(e){}
+      }
+    }
+    function fillArmory(map, endpoint){
+      var sel='[data-armory-embed="'+endpoint+'"][data-armory-ids]';
+      var nodes=document.querySelectorAll(sel);
+      for (var i=0;i<nodes.length;i++){
+        var el=nodes[i];
+        if ((el.textContent||'').trim()) continue;
+        if (el.getAttribute('data-gw2-armory')==='1') continue;
+        var id=String(el.getAttribute('data-armory-ids')||'').split(',')[0].trim();
+        var info=map[id];
+        if (!info) continue;
+        try{
+          el.setAttribute('data-gw2-armory','1');
+          var size=parseInt(el.getAttribute('data-armory-size')||'20',10)||20;
+          if (info.icon){
+            var ic=document.createElement('img');
+            ic.src=info.icon;
+            ic.alt='';
+            ic.width=size;
+            ic.height=size;
+            ic.style.cssText='display:inline-block;vertical-align:middle;margin-right:4px;border-radius:2px';
+            el.appendChild(ic);
+          }
+          if (el.getAttribute('data-armory-inline-text') || !info.icon){
+            el.appendChild(document.createTextNode(info.name||('#'+id)));
+          }else if (info.name){
+            el.title=info.name;
+          }
+        }catch(e){}
+      }
+    }
+    function hydrateArmory(){
+      var kinds={
+        skills:'https://api.guildwars2.com/v2/skills',
+        traits:'https://api.guildwars2.com/v2/traits',
+        items:'https://api.guildwars2.com/v2/items'
+      };
+      Object.keys(kinds).forEach(function(kind){
+        var nodes=document.querySelectorAll('[data-armory-embed="'+kind+'"][data-armory-ids]');
+        if (!nodes.length) return;
+        var ids={}, list=[];
+        for (var i=0;i<nodes.length;i++){
+          if ((nodes[i].textContent||'').trim()) continue;
+          String(nodes[i].getAttribute('data-armory-ids')||'').split(',').forEach(function(id){
+            id=String(id||'').trim();
+            if (id && !ids[id]){ ids[id]=1; list.push(id); }
+          });
+        }
+        if (!list.length) return;
+        for (var off=0; off<list.length; off+=100){
+          var part=list.slice(off, off+100);
+          (function(endpoint, batch, embedKind){
+            fetch(endpoint+'?ids='+batch.join(',')+'&lang=en', {credentials:'omit'})
+              .then(function(r){ return r.ok ? r.json() : []; })
+              .then(function(arr){
+                if (!arr || !arr.length) return;
+                var map={};
+                for (var k=0;k<arr.length;k++){
+                  if (arr[k] && arr[k].id!=null) map[String(arr[k].id)]=arr[k];
+                }
+                fillArmory(map, embedKind);
+              })
+              .catch(function(){});
+          })(kinds[kind], part, kind);
+        }
+      });
+    }
+    fixImages();
+    revealCloaked();
+    hydrateArmory();
+    try{
+      var mo=new MutationObserver(function(){
+        fixImages();
+        revealCloaked();
+        hydrateArmory();
+      });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+  }catch(e){}
 }
 /* Google Account sign-in is blocked in embedded CEF. Point users at Open Ext. */
 function tipGoogleLogin(){
