@@ -20,6 +20,13 @@
 
 namespace
 {
+	float Clampf(float v, float lo, float hi)
+	{
+		if (v < lo) return lo;
+		if (v > hi) return hi;
+		return v;
+	}
+
 	bool gBrowserFocused = false;
 	bool gBlockGameKeyboard = false;
 	bool gBlockGameMouse = false;
@@ -967,7 +974,68 @@ namespace
 			Sites::ToggleFavorite(siteId);
 	}
 
-	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickDefaultSite = false, bool pickNewTab = false)
+	/* Browse popup sized from the display — comfortable on 1080p, a bit roomier on 4K. */
+	struct BrowsePopupLayout
+	{
+		float width;
+		float height;
+		float listH;
+		float leftW;
+	};
+
+	BrowsePopupLayout CalcBrowsePopupLayout(bool withBanner, bool pickDefaultSite)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		const ImGuiStyle& st = ImGui::GetStyle();
+		const float dispW = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x : 800.f;
+		const float dispH = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y : 600.f;
+
+		static float sCacheDispW = -1.f;
+		static float sCacheDispH = -1.f;
+		static float sCacheFont = -1.f;
+		static bool sCacheBanner = false;
+		static bool sCacheDefault = false;
+		static BrowsePopupLayout sCache{};
+
+		const float fontScale = ImGui::GetFontSize();
+		if (sCacheDispW == dispW && sCacheDispH == dispH && sCacheFont == fontScale &&
+			sCacheBanner == withBanner && sCacheDefault == pickDefaultSite)
+			return sCache;
+
+		/* ~1/3 of screen width, clamped so 1080p stays modest and 4K isn't tiny. */
+		const float width = Clampf(dispW * 0.34f, 520.f, 860.f);
+		/* Cap total popup to half the screen so it never eats a 1080p desktop. */
+		const float maxOuter = Clampf(dispH * 0.50f, 380.f, 720.f);
+
+		float chrome = st.WindowPadding.y * 2.f;
+		if (withBanner)
+			chrome += ImGui::GetTextLineHeightWithSpacing() * 2.f;
+		chrome += ImGui::GetFrameHeightWithSpacing(); /* Search + filter */
+		chrome += st.ItemSpacing.y; /* Spacing() */
+		chrome += 1.f;             /* Separator */
+		chrome += st.ItemSpacing.y;
+		chrome += ImGui::GetTextLineHeightWithSpacing(); /* Created by */
+		chrome += ImGui::GetTextLineHeight();            /* IGN | Discord */
+		chrome += 8.f;
+
+		const float listMax = pickDefaultSite ? 340.f : 420.f;
+		const float listH = Clampf(maxOuter - chrome, 200.f, listMax);
+		BrowsePopupLayout lay{};
+		lay.width = width;
+		lay.height = chrome + listH;
+		lay.listH = listH;
+		lay.leftW = Clampf(width * 0.27f, 150.f, 200.f);
+
+		sCacheDispW = dispW;
+		sCacheDispH = dispH;
+		sCacheFont = fontScale;
+		sCacheBanner = withBanner;
+		sCacheDefault = pickDefaultSite;
+		sCache = lay;
+		return lay;
+	}
+
+	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickDefaultSite = false, bool pickNewTab = false, float listHArg = -1.f, float leftWArg = -1.f)
 	{
 		size_t siteCount = 0;
 		const SiteDef* sites = Sites::All(&siteCount);
@@ -1036,8 +1104,8 @@ namespace
 				selectedCat = cats[catIdx] ? cats[catIdx] : "";
 		}
 
-		const float listH = pickDefaultSite ? 300.f : 320.f;
-		const float leftW = 172.f;
+		const float listH = (listHArg > 0.f) ? listHArg : (pickDefaultSite ? 300.f : 320.f);
+		const float leftW = (leftWArg > 0.f) ? leftWArg : 172.f;
 
 		ImGui::BeginChild("##browse_cats", ImVec2(leftW, listH), true);
 		ImGui::PushStyleColor(ImGuiCol_Text, kGold);
@@ -1931,11 +1999,12 @@ namespace
 			}
 		}
 
-		ImGui::SetNextWindowSize(ImVec2(640.f, 420.f), ImGuiCond_Always);
+		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(true, false);
+		ImGui::SetNextWindowSize(ImVec2(browseLay.width, browseLay.height), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##site_browse_newtab"))
 		{
 			bool closePanel = false;
-			DrawBrowsePanelContents(true, &closePanel, false, true);
+			DrawBrowsePanelContents(true, &closePanel, false, true, browseLay.listH, browseLay.leftW);
 			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
@@ -2160,11 +2229,12 @@ namespace
 		DrawMoreMenu();
 		DrawStatusChip();
 
-		ImGui::SetNextWindowSize(ImVec2(640.f, 420.f), ImGuiCond_Always);
+		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(false, false);
+		ImGui::SetNextWindowSize(ImVec2(browseLay.width, browseLay.height), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##site_browse"))
 		{
 			bool closePanel = false;
-			DrawBrowsePanelContents(true, &closePanel);
+			DrawBrowsePanelContents(true, &closePanel, false, false, browseLay.listH, browseLay.leftW);
 			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
@@ -2190,11 +2260,12 @@ namespace
 		else
 			ImGui::TextColored(kMuted, "%s", G::DefaultSiteId);
 
-		ImGui::SetNextWindowSize(ImVec2(640.f, 420.f), ImGuiCond_Always);
+		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(true, true);
+		ImGui::SetNextWindowSize(ImVec2(browseLay.width, browseLay.height), ImGuiCond_Always);
 		if (ImGui::BeginPopup("##default_site_browse"))
 		{
 			bool closePanel = false;
-			DrawBrowsePanelContents(false, &closePanel, true);
+			DrawBrowsePanelContents(false, &closePanel, true, false, browseLay.listH, browseLay.leftW);
 			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
@@ -2273,8 +2344,11 @@ void UI_Render()
 {
 	/* Always poll first — must run while the helper is closed too. */
 	HelperHotkeys_Poll();
+	WikiBrowser::Tick();
 	/* Finish URL-match indexes across frames (started in WikiBrowser::Init). */
-	Sites::TickWarmUrlKeys(160);
+	Sites::TickWarmUrlKeys(96);
+	/* Debounced settings flush even while closed (no force on close). */
+	Settings::Save(false);
 
 	gBlockGameKeyboard = false;
 	gBlockGameMouse = false;
@@ -2293,7 +2367,6 @@ void UI_Render()
 		{
 			BrowserTabs::PrepareSave();
 			Settings::SetDirty();
-			Settings::Save(true);
 			sWasOpen = false;
 		}
 		BlurBrowser();
@@ -2307,6 +2380,18 @@ void UI_Render()
 		sWasOpen = true;
 	}
 
+	if (!G::HasSavedSize)
+	{
+		const ImGuiIO& dio = ImGui::GetIO();
+		if (dio.DisplaySize.x > 100.f && dio.DisplaySize.y > 100.f)
+		{
+			/* First open: ~30% of the display (clamped so it stays usable). */
+			G::WindowWidth = Clampf(dio.DisplaySize.x * 0.30f, 640.f, 1600.f);
+			G::WindowHeight = Clampf(dio.DisplaySize.y * 0.30f, 420.f, 1000.f);
+			G::HasSavedSize = true; /* apply once — ImGui FirstUseEver + persist */
+			Settings::SetDirty();
+		}
+	}
 	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), ImGuiCond_FirstUseEver);
 	if (G::HasSavedPos)
 		ImGui::SetNextWindowPos(ImVec2(G::WindowPosX, G::WindowPosY), ImGuiCond_FirstUseEver);
@@ -2564,6 +2649,7 @@ void UI_Render()
 		G::WindowWidth = winSize.x;
 		G::WindowHeight = winSize.y;
 		G::HasSavedPos = true;
+		G::HasSavedSize = true;
 		Settings::SetDirty();
 	}
 
