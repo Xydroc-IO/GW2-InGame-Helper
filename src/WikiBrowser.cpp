@@ -50,9 +50,15 @@ namespace
 	ID3D11ShaderResourceView* gSrv = nullptr;
 	uint32_t gTexW = 0;
 	uint32_t gTexH = 0;
+	uint32_t gContentW = 0; /* last uploaded CEF frame size (may be < gTexW/H) */
+	uint32_t gContentH = 0;
 	uint32_t gLastFrameSeq = 0;
 	DWORD gLastPresentMs = 0;
 	DWORD gLastMouseWakeMs = 0;
+
+	/* Local status mirror for StatusCStr (avoids std::string every frame). */
+	char gStatusCache[256] = "Closed — press Ctrl+Shift+H to open";
+	uint32_t gStatusCacheIpcHash = 0;
 
 	/* Tab lifecycle cmds dropped when the ring is full — retry next frame. */
 	static constexpr int kPendingCmdMax = 16;
@@ -154,6 +160,8 @@ namespace
 	{
 		std::lock_guard<std::mutex> lock(gMutex);
 		gStatus = s;
+		std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", s.c_str());
+		gStatusCacheIpcHash = 0;
 		if (G::API && G::API->Log)
 			G::API->Log(LOGL_INFO, ADDON_NAME, s.c_str());
 	}
@@ -268,6 +276,7 @@ namespace
 		if (gSrv) { gSrv->Release(); gSrv = nullptr; }
 		if (gTex) { gTex->Release(); gTex = nullptr; }
 		gTexW = gTexH = 0;
+		gContentW = gContentH = 0;
 		gLastFrameSeq = 0;
 	}
 
@@ -304,14 +313,16 @@ namespace
 	{
 		if (!EnsureDevice() || w == 0 || h == 0)
 			return false;
-		if (gTex && gSrv && gTexW == w && gTexH == h)
+		/* Allocate once at max OSR size — window drag used to CreateTexture2D
+		   every pixel and hitch the game. Content is uploaded into the top-left. */
+		if (gTex && gSrv && gTexW == kWikiFrameMaxW && gTexH == kWikiFrameMaxH)
 			return true;
 
 		ReleaseGpu();
 
 		D3D11_TEXTURE2D_DESC td{};
-		td.Width = w;
-		td.Height = h;
+		td.Width = kWikiFrameMaxW;
+		td.Height = kWikiFrameMaxH;
 		td.MipLevels = 1;
 		td.ArraySize = 1;
 		td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -332,8 +343,8 @@ namespace
 			ReleaseGpu();
 			return false;
 		}
-		gTexW = w;
-		gTexH = h;
+		gTexW = kWikiFrameMaxW;
+		gTexH = kWikiFrameMaxH;
 		return true;
 	}
 
@@ -978,11 +989,17 @@ void WikiBrowser::SetBounds(float, float, float width, float height)
 
 	if (gIpc->view_w == w && gIpc->view_h == h)
 		return;
+	/* Always publish size for GetViewRect; throttle SET_BOUNDS wake during drag. */
 	gIpc->view_w = w;
 	gIpc->view_h = h;
-	/* Don't stomp a queued navigate — view size is already in IPC for GetViewRect. */
-	if (gPendingNavigate.empty())
+	static DWORD sLastBoundsCmdMs = 0;
+	const DWORD now = GetTickCount();
+	if (gPendingNavigate.empty() &&
+		(sLastBoundsCmdMs == 0 || (now - sLastBoundsCmdMs) >= 100u))
+	{
+		sLastBoundsCmdMs = now;
 		PostCmd(WIKI_CMD_SET_BOUNDS);
+	}
 }
 
 void WikiBrowser::PresentFrame()
@@ -1039,6 +1056,8 @@ void WikiBrowser::PresentFrame()
 	MemoryBarrier();
 	gIpc->frame_reading = 0xFFFFFFFFu;
 	gContext->Unmap(gTex, 0);
+	gContentW = w;
+	gContentH = h;
 	gLastFrameSeq = seq;
 	gLastPresentMs = now;
 }
@@ -1213,7 +1232,7 @@ int WikiBrowser::ActiveTabSlot()
 
 bool WikiBrowser::HasFrame()
 {
-	return gSrv && gIpc && gIpc->frame_seq > 0 && gTexW > 0 && gTexH > 0;
+	return gSrv && gIpc && gIpc->frame_seq > 0 && gContentW > 0 && gContentH > 0;
 }
 
 ID3D11ShaderResourceView* WikiBrowser::FrameSrv()
@@ -1221,8 +1240,16 @@ ID3D11ShaderResourceView* WikiBrowser::FrameSrv()
 	return gSrv;
 }
 
-int WikiBrowser::FrameWidth() { return static_cast<int>(gTexW); }
-int WikiBrowser::FrameHeight() { return static_cast<int>(gTexH); }
+int WikiBrowser::FrameWidth() { return static_cast<int>(gContentW); }
+int WikiBrowser::FrameHeight() { return static_cast<int>(gContentH); }
+
+void WikiBrowser::FrameUvMax(float* outU, float* outV)
+{
+	if (outU)
+		*outU = (gTexW > 0 && gContentW > 0) ? static_cast<float>(gContentW) / static_cast<float>(gTexW) : 1.f;
+	if (outV)
+		*outV = (gTexH > 0 && gContentH > 0) ? static_cast<float>(gContentH) / static_cast<float>(gTexH) : 1.f;
+}
 
 bool WikiBrowser::CanGoBack() { return gIpc && gIpc->can_back; }
 bool WikiBrowser::CanGoForward() { return gIpc && gIpc->can_forward; }
@@ -1253,10 +1280,28 @@ std::string WikiBrowser::CurrentTitle()
 
 std::string WikiBrowser::Status()
 {
-	if (gIpc && gIpc->status[0] && HelperAlive())
-		return gIpc->status;
+	return StatusCStr();
+}
+
+const char* WikiBrowser::StatusCStr()
+{
+	if (gIpc && HelperAlive() && gIpc->status[0])
+	{
+		/* Cheap change detect — avoid copying every frame. */
+		uint32_t hash = 2166136261u;
+		for (const char* p = gIpc->status; *p; ++p)
+			hash = (hash ^ static_cast<unsigned char>(*p)) * 16777619u;
+		if (hash != gStatusCacheIpcHash)
+		{
+			std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", gIpc->status);
+			gStatusCacheIpcHash = hash;
+		}
+		return gStatusCache;
+	}
 	std::lock_guard<std::mutex> lock(gMutex);
-	return gStatus;
+	std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", gStatus.c_str());
+	gStatusCacheIpcHash = 0;
+	return gStatusCache;
 }
 
 uint32_t WikiBrowser::FindCount()

@@ -1991,31 +1991,31 @@ namespace
 	/* Friendly status — muted gold; hide Ready / closed noise. */
 	void DrawStatusChip()
 	{
-		const std::string raw = WikiBrowser::Status();
-		if (raw.empty() || raw == "Ready")
+		const char* raw = WikiBrowser::StatusCStr();
+		if (!raw || !raw[0] || std::strcmp(raw, "Ready") == 0)
 			return;
 
 		const char* label = nullptr;
 		ImVec4 col = kGoldMuted;
-		if (raw.find("Loading") != std::string::npos ||
-			raw.find("Navigating") != std::string::npos ||
-			raw.find("Launching") != std::string::npos ||
-			raw.find("Creating") != std::string::npos)
+		if (std::strstr(raw, "Loading") ||
+			std::strstr(raw, "Navigating") ||
+			std::strstr(raw, "Launching") ||
+			std::strstr(raw, "Creating"))
 		{
 			label = "Loading...";
 			col = kGold;
 		}
-		else if (raw.find("Closed") != std::string::npos ||
-			raw.find("Hidden") != std::string::npos)
+		else if (std::strstr(raw, "Closed") ||
+			std::strstr(raw, "Hidden"))
 		{
 			return;
 		}
-		else if (raw.find("fail") != std::string::npos ||
-			raw.find("Fail") != std::string::npos ||
-			raw.find("error") != std::string::npos ||
-			raw.find("Error") != std::string::npos ||
-			raw.find("not found") != std::string::npos ||
-			raw.find("disabled") != std::string::npos)
+		else if (std::strstr(raw, "fail") ||
+			std::strstr(raw, "Fail") ||
+			std::strstr(raw, "error") ||
+			std::strstr(raw, "Error") ||
+			std::strstr(raw, "not found") ||
+			std::strstr(raw, "disabled"))
 		{
 			label = "Error - check Nexus log";
 			col = kWarn;
@@ -2024,13 +2024,14 @@ namespace
 		{
 			/* Truncate long technical strings. */
 			static char buf[48];
-			if (raw.size() > 40)
+			const size_t n = std::strlen(raw);
+			if (n > 40)
 			{
-				std::snprintf(buf, sizeof(buf), "%.37s...", raw.c_str());
+				std::snprintf(buf, sizeof(buf), "%.37s...", raw);
 				label = buf;
 			}
 			else
-				label = raw.c_str();
+				label = raw;
 			col = kGoldDim;
 		}
 
@@ -2308,7 +2309,8 @@ void UI_Render()
 	bool open = G::ShowWiki;
 	if (!ImGui::Begin("In-Game Helper##GW2InGameHelper", &open))
 	{
-		WikiBrowser::SetVisible(false);
+		/* Collapsed title bar — keep the CEF helper alive (SetVisible(false)
+		   used to TerminateProcess and hitch on every expand). */
 		ImGui::End();
 		ImGui::PopStyleVar();
 		PopWikiTheme();
@@ -2331,17 +2333,20 @@ void UI_Render()
 	ImGui::SameLine(0.f, 12.f);
 	DrawToolbar();
 
-	/* Tab / find hotkeys — skip while typing in ImGui fields. */
+	/* Tab / find hotkeys — use ImGuiIO (Nexus-filled KeysDown), not GetAsyncKeyState. */
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		const bool typing = io.WantTextInput;
-		const bool ctrl = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
-		const bool shift = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
-		const bool alt = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
-		const bool keyF = (GetAsyncKeyState('F') & 0x8000) != 0;
-		const bool keyT = (GetAsyncKeyState('T') & 0x8000) != 0;
-		const bool keyW = (GetAsyncKeyState('W') & 0x8000) != 0;
-		const bool keyTab = (GetAsyncKeyState(VK_TAB) & 0x8000) != 0;
+		const bool ctrl = io.KeyCtrl;
+		const bool shift = io.KeyShift;
+		const bool alt = io.KeyAlt;
+		auto keyDown = [&](int vk) -> bool {
+			return vk >= 0 && vk < IM_ARRAYSIZE(io.KeysDown) && io.KeysDown[vk];
+		};
+		const bool keyF = keyDown('F');
+		const bool keyT = keyDown('T');
+		const bool keyW = keyDown('W');
+		const bool keyTab = ImGui::IsKeyDown(ImGuiKey_Tab);
 
 		static bool sCtrlFWasDown = false;
 		static bool sCtrlTWasDown = false;
@@ -2464,7 +2469,12 @@ void UI_Render()
 	if (WikiBrowser::HasFrame())
 	{
 		const ImVec2 cursor = ImGui::GetCursorScreenPos();
-		ImGui::Image(reinterpret_cast<ImTextureID>(WikiBrowser::FrameSrv()), imageSize);
+		{
+			float uvU = 1.f, uvV = 1.f;
+			WikiBrowser::FrameUvMax(&uvU, &uvV);
+			ImGui::Image(reinterpret_cast<ImTextureID>(WikiBrowser::FrameSrv()), imageSize,
+				ImVec2(0.f, 0.f), ImVec2(uvU, uvV));
+		}
 
 		ImGui::SetCursorScreenPos(cursor);
 		ImGui::InvisibleButton("##wiki_hit", imageSize,
@@ -2515,7 +2525,7 @@ void UI_Render()
 		ImGui::TextColored(kGold, WikiBrowser::IsReady()
 			? "Waiting for first paint..."
 			: "Loading browser...");
-		ImGui::TextWrapped("%s", WikiBrowser::Status().c_str());
+		ImGui::TextWrapped("%s", WikiBrowser::StatusCStr());
 	}
 
 	ImGui::EndChild();

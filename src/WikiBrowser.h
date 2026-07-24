@@ -51,6 +51,10 @@ namespace WikiBrowser
 	std::string CurrentUrl();
 	std::string CurrentTitle(); /* active page title from CEF */
 	std::string Status();
+	const char* StatusCStr(); /* cached; no per-frame allocation */
+
+	/* Used region of the OSR texture (content / tex size). Defaults to 1,1. */
+	void FrameUvMax(float* outU, float* outV);
 
 	uint32_t FindCount();
 	uint32_t FindOrdinal();

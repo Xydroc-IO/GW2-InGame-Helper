@@ -105,6 +105,15 @@ static void OnToggle(const char*, bool release)
 
 void HelperHotkeys_Poll()
 {
+	/* WndProc already handles the chord; this is a fallback. Cap ~30 Hz when
+	   closed so every Nexus render tick is not a GetAsyncKeyState storm. */
+	static DWORD sLastPollMs = 0;
+	const DWORD now = GetTickCount();
+	if (!G::ShowWiki && !gSwallowHotkeyKeys &&
+		sLastPollMs != 0 && (now - sLastPollMs) < 33u)
+		return;
+	sLastPollMs = now;
+
 	UpdateHotkeySwallow();
 
 	const bool mods = ModsCtrlShiftNoAlt();
@@ -285,7 +294,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 7;
 	G::AddonDef.Version.Build    = 8;
-	G::AddonDef.Version.Revision = 46;
+	G::AddonDef.Version.Revision = 47;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.";
