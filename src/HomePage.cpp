@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "46";
+	static constexpr const char* kHomePageVersion = "48";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -430,9 +430,12 @@ const char* HomePage::Html()
         <div class="body">
           <ul>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>) — open / close this helper</li>
+            <li><kbd>Ctrl</kbd>+<kbd>T</kbd> — new tab picker · <kbd>Ctrl</kbd>+<kbd>W</kbd> — close tab · <kbd>Ctrl</kbd>+<kbd>Tab</kbd> — cycle tabs</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> — reopen last closed tab</li>
+            <li><kbd>Ctrl</kbd>+<kbd>F</kbd> — find in page</li>
             <li>Or click the helper icon in the Nexus QuickAccess bar</li>
           </ul>
-          <p class="muted">Rebind in Nexus (<kbd>Ctrl</kbd>+<kbd>O</kbd>) under <strong>KB_HELPER_TOGGLE</strong>.</p>
+          <p class="muted">Rebind the open/close toggle in Nexus (<kbd>Ctrl</kbd>+<kbd>O</kbd>) under <strong>KB_HELPER_TOGGLE</strong>.</p>
         </div>
       </section>
 
@@ -440,14 +443,14 @@ const char* HomePage::Html()
         <div class="head"><h2>Toolbar</h2></div>
         <div class="body">
           <ul>
-            <li><strong>Browse</strong> — search and pick sites by category</li>
+            <li><strong>Browse</strong> — search and pick sites by category (large Wiki lists scroll smoothly)</li>
             <li><strong>Search box</strong> — query Wiki/Google (or Google for other sites); press Enter or Go</li>
             <li><strong>Tabs</strong> — stay loaded while open; <strong>+</strong> / Ctrl+click / <strong>Ctrl+T</strong> new tab; <strong>Ctrl+W</strong> close; <strong>Ctrl+Tab</strong> cycle</li>
             <li><strong>New Tab</strong> — duplicate the current page</li>
             <li><strong>Find</strong> — Ctrl+F search within the page</li>
             <li><strong>Star</strong> — add or remove the current site from Favorites</li>
             <li><strong>Back / Forward</strong> — browser history</li>
-            <li><strong>Home</strong> — return to this page</li>
+            <li><strong>Home</strong> — return to this page (or your default landing site from Options)</li>
             <li><strong>Reload</strong> — refresh the current page</li>
             <li><strong>Copy URL</strong> — copy the current page link</li>
             <li><strong>Open Ext</strong> — open in your system browser (Discord joins, Google / Gemini login)</li>
@@ -477,9 +480,10 @@ const char* HomePage::Html()
         <div class="head"><h2>Tips</h2></div>
         <div class="body">
           <ul>
-            <li>Opacity and font scale are in the addon’s Nexus options.</li>
+            <li>Opacity, font scale, and <strong>Keep browser warm</strong> are in the addon’s Nexus options. Warm keeps CEF ready while the helper is closed (uses more RAM).</li>
+            <li>Collapsing the title bar hides the UI but <strong>keeps the browser running</strong> — expand again without a full reload.</li>
             <li>Opening the helper restores your saved tabs (or your default landing site). The Home button opens that default site.</li>
-            <li>In Browse, sections start collapsed — expand what you need; open/closed state is remembered.</li>
+            <li>In Browse, sections start collapsed — expand what you need; open/closed state is remembered. Large Wiki lists (Food, Utility, Minis) use clipped scrolling.</li>
             <li>Use <strong>Open Ext</strong> for Discord invites and Google / Gemini login. Google blocks sign-in inside the embedded game browser (“This browser may not be secure”); the system browser works, but that session is separate from in-game tabs.</li>
           </ul>
         </div>

@@ -122,6 +122,7 @@ Stability / hitch **audit** fixes — full detail in [`docs/RELEASE_NOTES.md`](d
 - Host→site map for tab label matching (no full-catalog scan every click)
 - Adaptive OSR present — ~60 FPS while interacting, ~30 FPS when idle
 - Cheaper status chip cache (`strcmp`, no per-frame hash)
+- How to use page refreshed (tab hotkeys, warm/collapse tips, Browse clipping)
 
 **1.7.8.47**
 - Collapsing the window no longer kills / relaunches the CEF helper

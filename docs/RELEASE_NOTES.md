@@ -24,6 +24,7 @@ Follow-up **audit** pass (on top of 1.7.8.47):
 - **Navigate:** Host→site index for `BestMatchForUrl` — only same-host catalog entries are scanned (was a full ~2600-site walk every URL/title sync)
 - **Present:** Adaptive OSR upload — ~60 FPS while the page is receiving input; drops to ~30 FPS after 500 ms idle
 - **Status:** `StatusCStr` refreshes via `strcmp` against the cache (removed per-frame FNV hash walk)
+- **How to use:** Homepage refresh (stamp `48`) — tab hotkeys, Keep browser warm / collapse tip, Browse clipping note
 
 ## What’s new in 1.7.8.47
 
