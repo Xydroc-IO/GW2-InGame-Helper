@@ -25,6 +25,7 @@ namespace G
 	float WindowPosX   = 60.f;
 	float WindowPosY   = 60.f;
 	bool  HasSavedPos  = false;
+	bool  HasSavedSize = false;
 	bool  KeepHelperWarm = false;
 	char  LastQuery[128] = "";
 	char  ActiveSiteId[64] = "home";
@@ -315,10 +316,10 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Signature        = ADDON_SIG;
 	G::AddonDef.APIVersion       = NEXUS_API_VERSION;
 	G::AddonDef.Name             = ADDON_NAME;
-	G::AddonDef.Version.Major    = 1;
-	G::AddonDef.Version.Minor    = 7;
-	G::AddonDef.Version.Build    = 8;
-	G::AddonDef.Version.Revision = 52;
+	G::AddonDef.Version.Major    = 2;
+	G::AddonDef.Version.Minor    = 0;
+	G::AddonDef.Version.Build    = 0;
+	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.";

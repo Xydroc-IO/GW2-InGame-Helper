@@ -14,10 +14,12 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.52`
+`2.0.0.0`
 
 ## Changelog highlights
 
+- **2.0.0.0** — IPC v5 multi-client; graceful quit; non-blocking URL warm; deferred settings; dirty-rect present
+- **1.7.8.53** — Browse display-scaled popup; first-open ~30% window size
 - **1.7.8.52** — Browse credit footer: Created by Xydroc; IGN | Discord on one line
 - **1.7.8.51** — Browse popup credit footer (Xydroc · IGN · Discord)
 - **1.7.8.50** — Fix fast-typing dropped letters (ToUnicode synth + lParam scan codes + input ring v4)

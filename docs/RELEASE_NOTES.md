@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.52
+# GW2 In-Game Helper v2.0.0.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,24 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.0
+
+Major stability release (engine / IPC audit):
+
+- **IPC v5:** Shared memory and wake events are scoped by the GW2 process ID — multiple game clients no longer collide
+- **Quit:** Closing the helper posts `QUIT` and finishes across render frames (~120 ms grace) instead of instantly `TerminateProcess` on the game thread
+- **Settings:** Overlay close no longer force-writes `settings.ini` on the render thread (debounced flush; force only on unload)
+- **URL index:** `BestMatchForUrl` never finishes the ~2600-site warm-up synchronously — chunked only (`TickWarmUrlKeys`)
+- **Present:** Dirty-rect metadata from CEF; partial GPU upload when `Map(WRITE)` is available (full `WRITE_DISCARD` fallback)
+- **UI:** First-open window size applied once (~30% display); Browse popup layout cached; warmer URL ticks at 96 sites/frame
+- **Input:** Status tip when the key/click ring is full
+- **How to use:** Homepage cache stamp `200`
+
+## What’s new in 1.7.8.53
+
+- **Browse:** Display-scaled popup (credit always visible; roomier on 4K, capped on 1080p)
+- **Window:** First-open size ~30% of the display (saved size still wins after that)
 
 ## What’s new in 1.7.8.52
 
