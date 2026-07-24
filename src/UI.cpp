@@ -1002,10 +1002,12 @@ namespace
 			sCacheBanner == withBanner && sCacheDefault == pickDefaultSite)
 			return sCache;
 
-		/* ~1/3 of screen width, clamped so 1080p stays modest and 4K isn't tiny. */
-		const float width = Clampf(dispW * 0.34f, 520.f, 860.f);
-		/* Cap total popup to half the screen so it never eats a 1080p desktop. */
-		const float maxOuter = Clampf(dispH * 0.50f, 380.f, 720.f);
+		/* Compact on 1080p (~540×390), a bit wider on 1440p/4K — never half the screen. */
+		const float width = Clampf(dispW * 0.28f, 480.f, 680.f);
+		const float maxOuter = Clampf(dispH * 0.36f, 300.f, 480.f);
+		const float listMax = pickDefaultSite
+			? Clampf(dispH * 0.20f, 160.f, 260.f)
+			: Clampf(dispH * 0.24f, 180.f, 300.f);
 
 		float chrome = st.WindowPadding.y * 2.f;
 		if (withBanner)
@@ -1018,13 +1020,12 @@ namespace
 		chrome += ImGui::GetTextLineHeight();            /* IGN | Discord */
 		chrome += 8.f;
 
-		const float listMax = pickDefaultSite ? 340.f : 420.f;
-		const float listH = Clampf(maxOuter - chrome, 200.f, listMax);
+		const float listH = Clampf(maxOuter - chrome, 160.f, listMax);
 		BrowsePopupLayout lay{};
 		lay.width = width;
 		lay.height = chrome + listH;
 		lay.listH = listH;
-		lay.leftW = Clampf(width * 0.27f, 150.f, 200.f);
+		lay.leftW = Clampf(width * 0.26f, 140.f, 180.f);
 
 		sCacheDispW = dispW;
 		sCacheDispH = dispH;
@@ -1034,6 +1035,36 @@ namespace
 		sCache = lay;
 		return lay;
 	}
+
+	/* Dropdown-style picker: pin under the button that opened it (not a free window). */
+	static constexpr ImGuiWindowFlags kBrowsePopupFlags =
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+
+	ImVec2 CaptureAnchorBelowItem()
+	{
+		return ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y + 2.f);
+	}
+
+	void PrepareBrowsePopup(ImVec2 anchor, const BrowsePopupLayout& lay)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		ImVec2 pos = anchor;
+		if (pos.x + lay.width > io.DisplaySize.x - 8.f)
+			pos.x = ImMax(8.f, io.DisplaySize.x - lay.width - 8.f);
+		if (pos.x < 8.f)
+			pos.x = 8.f;
+		/* Flip above the button when there isn't room below. */
+		if (pos.y + lay.height > io.DisplaySize.y - 8.f)
+			pos.y = ImMax(8.f, anchor.y - lay.height - ImGui::GetFrameHeight() - 6.f);
+
+		ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(lay.width, lay.height), ImGuiCond_Always);
+	}
+
+	ImVec2 sBrowseAnchor{};
+	ImVec2 sNewTabBrowseAnchor{};
+	ImVec2 sDefaultSiteBrowseAnchor{};
 
 	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickDefaultSite = false, bool pickNewTab = false, float listHArg = -1.f, float leftWArg = -1.f)
 	{
@@ -1967,7 +1998,9 @@ namespace
 		const bool canAdd = (n < BrowserTabs::kMaxTabs);
 		if (canAdd)
 		{
-			if (ImGui::Button("+##new_tab") || sRequestNewTabPicker)
+			const bool plusClicked = ImGui::Button("+##new_tab");
+			sNewTabBrowseAnchor = CaptureAnchorBelowItem();
+			if (plusClicked || sRequestNewTabPicker)
 			{
 				sRequestNewTabPicker = false;
 				sSyncCategory = true;
@@ -2000,8 +2033,8 @@ namespace
 		}
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(true, false);
-		ImGui::SetNextWindowSize(ImVec2(browseLay.width, browseLay.height), ImGuiCond_Always);
-		if (ImGui::BeginPopup("##site_browse_newtab"))
+		PrepareBrowsePopup(sNewTabBrowseAnchor, browseLay);
+		if (ImGui::BeginPopup("##site_browse_newtab", kBrowsePopupFlags))
 		{
 			bool closePanel = false;
 			DrawBrowsePanelContents(true, &closePanel, false, true, browseLay.listH, browseLay.leftW);
@@ -2161,6 +2194,7 @@ namespace
 			sFocusFilter = true;
 			ImGui::OpenPopup("##site_browse");
 		}
+		sBrowseAnchor = CaptureAnchorBelowItem();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("%s - %s",
 				active.category ? active.category : "",
@@ -2230,8 +2264,8 @@ namespace
 		DrawStatusChip();
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(false, false);
-		ImGui::SetNextWindowSize(ImVec2(browseLay.width, browseLay.height), ImGuiCond_Always);
-		if (ImGui::BeginPopup("##site_browse"))
+		PrepareBrowsePopup(sBrowseAnchor, browseLay);
+		if (ImGui::BeginPopup("##site_browse", kBrowsePopupFlags))
 		{
 			bool closePanel = false;
 			DrawBrowsePanelContents(true, &closePanel, false, false, browseLay.listH, browseLay.leftW);
@@ -2250,6 +2284,7 @@ namespace
 			sFocusFilter = true;
 			ImGui::OpenPopup("##default_site_browse");
 		}
+		sDefaultSiteBrowseAnchor = CaptureAnchorBelowItem();
 
 		ImGui::SameLine();
 		const SiteDef* def = SiteById(G::DefaultSiteId);
@@ -2261,8 +2296,8 @@ namespace
 			ImGui::TextColored(kMuted, "%s", G::DefaultSiteId);
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(true, true);
-		ImGui::SetNextWindowSize(ImVec2(browseLay.width, browseLay.height), ImGuiCond_Always);
-		if (ImGui::BeginPopup("##default_site_browse"))
+		PrepareBrowsePopup(sDefaultSiteBrowseAnchor, browseLay);
+		if (ImGui::BeginPopup("##default_site_browse", kBrowsePopupFlags))
 		{
 			bool closePanel = false;
 			DrawBrowsePanelContents(false, &closePanel, true, false, browseLay.listH, browseLay.leftW);
