@@ -48,9 +48,74 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 - **Legendaries** — [https://wiki.guildwars2.com/wiki/Legendary_equipment](https://wiki.guildwars2.com/wiki/Legendary_equipment)
 - **Mounts** — [https://wiki.guildwars2.com/wiki/Mount](https://wiki.guildwars2.com/wiki/Mount)
 
+### Legendary Weapons
+
+All legendary weapons from the [GW2 Wiki table](https://wiki.guildwars2.com/wiki/Legendary_weapon), nested by generation.
+
+- **Legendary Weapons Hub** — [https://wiki.guildwars2.com/wiki/Legendary_weapon](https://wiki.guildwars2.com/wiki/Legendary_weapon)
+- **Generation 1 (21):** Frostfang, Incinerator, The Moot, Quip, Meteorlogicus, Bolt, The Minstrel, The Flameseeker Prophecies, Rodgort, Howler, Sunrise, Twilight, Eternity, The Juggernaut, Kudzu, The Predator, The Dreamer, The Bifrost, Frenzy, Kamohoali'i Kotaki, Kraitkin
+- **Generation 2 (16):** Astralaria, Claw of the Khan-Ur, Eureka, HOPE, Xiuquatl, The Shining Blade, The Binding of Ipos, Shooshadoo, Flames of War, Verdarach, Exordium, Sharur, Pharus, The HMS Divinity, Chuka and Champawat, Nevermore
+- **Generation 3 (18):** Aurene's set (16), Klobjarne Geirr, Ancora Bellum
+- **Generation 3 Variants:** Zhaitan / Mordremoth / Kralkatorrik / Jormag / Primordus / Soo-Won set hubs, Facet collections, and all 96 variant skins
+
+### Cosmetic Infusions
+
+All cosmetic infusions from the [GW2 Wiki list](https://wiki.guildwars2.com/wiki/Cosmetic_infusion), nested by acquisition. Each infusion opens its wiki page; Guildjen’s how-to remains as an optional overview.
+
+- **Wiki Cosmetic Infusions** — [https://wiki.guildwars2.com/wiki/Cosmetic_infusion](https://wiki.guildwars2.com/wiki/Cosmetic_infusion)
+- **Guildjen How-To** — [https://guildjen.com/how-to-get-cosmetic-infusions-in-guild-wars-2/](https://guildjen.com/how-to-get-cosmetic-infusions-in-guild-wars-2/)
+- **Wizard's Vault:** [Arcane Flow Infusion](https://wiki.guildwars2.com/wiki/Arcane_Flow_Infusion), [Forest Wisp Infusion](https://wiki.guildwars2.com/wiki/Forest_Wisp_Infusion)
+- **Mystic Forge:** [Mystic Infusion](https://wiki.guildwars2.com/wiki/Mystic_Infusion)
+- **Open World:** [Queen Bee](https://wiki.guildwars2.com/wiki/Queen_Bee_Infusion), [Liquid Aurillium](https://wiki.guildwars2.com/wiki/Liquid_Aurillium_Infusion), [Chak](https://wiki.guildwars2.com/wiki/Chak_Infusion), [Festive Confetti](https://wiki.guildwars2.com/wiki/Festive_Confetti_Infusion), [Crystal](https://wiki.guildwars2.com/wiki/Crystal_Infusion), [Heart of the Khan-Ur](https://wiki.guildwars2.com/wiki/Heart_of_the_Khan-Ur), [Frost Legion](https://wiki.guildwars2.com/wiki/Frost_Legion_Infusion), [Jormag Left Eye](https://wiki.guildwars2.com/wiki/Jormag_Left_Eye_Infusion), [Jormag Right Eye](https://wiki.guildwars2.com/wiki/Jormag_Right_Eye_Infusion), [Echo of the Dragonvoid](https://wiki.guildwars2.com/wiki/Echo_of_the_Dragonvoid), [Chromatic Bubbles](https://wiki.guildwars2.com/wiki/Chromatic_Bubbles), [Seer Transcendence](https://wiki.guildwars2.com/wiki/Seer_Transcendence), [Ethereal Sea-Life](https://wiki.guildwars2.com/wiki/Ethereal_Sea-Life_Infusion)
+- **Instanced:** [Celestial (Blue)](https://wiki.guildwars2.com/wiki/Celestial_Infusion_(Blue)), [Celestial (Red)](https://wiki.guildwars2.com/wiki/Celestial_Infusion_(Red)), [Abyssal](https://wiki.guildwars2.com/wiki/Abyssal_Infusion), [Mote of Darkness](https://wiki.guildwars2.com/wiki/Mote_of_Darkness), [Ghostly](https://wiki.guildwars2.com/wiki/Ghostly_Infusion), [Peerless](https://wiki.guildwars2.com/wiki/Peerless_Infusion), [Imperial Everbloom](https://wiki.guildwars2.com/wiki/Imperial_Everbloom), [Clockwork](https://wiki.guildwars2.com/wiki/Clockwork_Infusion), [Jotun](https://wiki.guildwars2.com/wiki/Jotun_Infusion), [Possession](https://wiki.guildwars2.com/wiki/Possession_Infusion), [Bloodstone](https://wiki.guildwars2.com/wiki/Bloodstone_Infusion), [Demonic](https://wiki.guildwars2.com/wiki/Demonic_Infusion), [Deldrimor Stoneskin](https://wiki.guildwars2.com/wiki/Deldrimor_Stoneskin_Infusion)
+- **Festival:** [Ember](https://wiki.guildwars2.com/wiki/Ember_Infusion), [Phospholuminescent](https://wiki.guildwars2.com/wiki/Phospholuminescent_Infusion), [Polysaturating Reverberating (Gray/Purple/Red)](https://wiki.guildwars2.com/wiki/Polysaturating_Reverberating_Infusion_(Gray)), [Polyluminescent Undulating (Black/Green/Orange/Teal)](https://wiki.guildwars2.com/wiki/Polyluminescent_Undulating_Infusion_(Black)), [Moto's Unstable Bauble (Red/Blue)](https://wiki.guildwars2.com/wiki/Moto%27s_Unstable_Bauble_Infusion:_Red), [Winter's Heart](https://wiki.guildwars2.com/wiki/Winter%27s_Heart_Infusion), [Snow Diamond](https://wiki.guildwars2.com/wiki/Snow_Diamond_Infusion), [Toy-Shell](https://wiki.guildwars2.com/wiki/Toy-Shell_Infusion), [Silent Symphony](https://wiki.guildwars2.com/wiki/Silent_Symphony)
+- **WvW:** [Mistwalker Infusion](https://wiki.guildwars2.com/wiki/Mistwalker_Infusion), [Heat Core Infusion](https://wiki.guildwars2.com/wiki/Heat_Core_Infusion)
+
 ### Wizards Vault
 
 - **Easy Objectives** — [https://wiki.guildwars2.com/wiki/Wizard%27s_Vault/Easy_objectives](https://wiki.guildwars2.com/wiki/Wizard%27s_Vault/Easy_objectives)
+
+### Lifestyle
+
+- **Fishing** — [https://wiki.guildwars2.com/wiki/Fishing](https://wiki.guildwars2.com/wiki/Fishing)
+- **Jade Bot** — [https://wiki.guildwars2.com/wiki/Jade_Bot](https://wiki.guildwars2.com/wiki/Jade_Bot)
+- **Skiff** — [https://wiki.guildwars2.com/wiki/Skiff](https://wiki.guildwars2.com/wiki/Skiff)
+- **Home Instance** — [https://wiki.guildwars2.com/wiki/Home_instance](https://wiki.guildwars2.com/wiki/Home_instance)
+- **Homestead** — [https://wiki.guildwars2.com/wiki/Homestead](https://wiki.guildwars2.com/wiki/Homestead)
+
+### Crafting
+
+Hub + disciplines + related pages from [Crafting](https://wiki.guildwars2.com/wiki/Crafting).
+
+- **Crafting Hub** — [https://wiki.guildwars2.com/wiki/Crafting](https://wiki.guildwars2.com/wiki/Crafting)
+- **Disciplines:** Armorsmith, Artificer, Chef, Huntsman, Jeweler, Leatherworker, Scribe, Tailor, Weaponsmith, Handiworker
+- **Related:** Crafting station, Recipe, Crafting material, Time-gated recipes (Crafting section)
+
+### Food
+
+All non-ascended food wiki pages from [Food](https://wiki.guildwars2.com/wiki/Food), nested by primary attribute (wiki TOC order):
+
+- Power · Precision · Toughness · Vitality · Concentration · Condition Damage · Expertise · Ferocity · Healing Power · All Attributes · Other
+
+### Ascended Food
+
+Ascended feasts only from [Ascended feast](https://wiki.guildwars2.com/wiki/Ascended_feast) — hub + Gourmet Training + feast pages, nested by major attribute (same sections as Food).
+
+### Utility
+
+Utility items from [Utility item/list](https://wiki.guildwars2.com/wiki/Utility_item/list), nested by primary effect attribute (same sections as Food: Power, Precision, … All Attributes, Other). Hub pages (list, enhancement, slayer potions, LW/festival utilities) stay at the section top.
+
+### Minis
+
+All miniatures from [Miniature](https://wiki.guildwars2.com/wiki/Miniature), nested by wiki subsections: Sets 1–3, Core, PvP, WvW, expansions / living world, festivals, Gem Store/Black Lion, Promotional, Unavailable.
+
+### Upgrades
+
+Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
+
+- **Superior Runes:** Rune hub + all Superior Rune of … pages (~99)
+- **Relics:** Relic hub, Legendary Relic, + all Relic of … pages (~113)
+- **Superior Sigils:** Sigil hub + all Superior Sigil of … pages (~81)
 
 ## Builds
 
@@ -475,18 +540,15 @@ Guildjen jumping puzzles ([category](https://guildjen.com/category/gw2/gw2-guide
 - **Fawcett’s Bounty** — [https://guildjen.com/fawcetts-bounty-jumping-puzzle-guide/](https://guildjen.com/fawcetts-bounty-jumping-puzzle-guide/)
 - **Tribulation Caverns** — [https://guildjen.com/tribulation-caverns-jumping-puzzle-guide/](https://guildjen.com/tribulation-caverns-jumping-puzzle-guide/)
 
-### Cosmetic Infusions
+### Crafting
 
-All cosmetic infusions from the [GW2 Wiki list](https://wiki.guildwars2.com/wiki/Cosmetic_infusion), nested by acquisition. Per-infusion rows open Guildjen’s [how-to guide](https://guildjen.com/how-to-get-cosmetic-infusions-in-guild-wars-2/) (covers every infusion on one page).
+TP-priced guides from [GW2 Crafts](https://gw2crafts.net/) (Normal / Fast / 400-500 / Special).
 
-- **Wiki Cosmetic Infusions** — [https://wiki.guildwars2.com/wiki/Cosmetic_infusion](https://wiki.guildwars2.com/wiki/Cosmetic_infusion)
-- **Cosmetic Infusions Hub** — [https://guildjen.com/how-to-get-cosmetic-infusions-in-guild-wars-2/](https://guildjen.com/how-to-get-cosmetic-infusions-in-guild-wars-2/)
-- **Wizard's Vault:** Arcane Flow Infusion, Forest Wisp Infusion
-- **Mystic Forge:** Mystic Infusion
-- **Open World:** Queen Bee, Liquid Aurillium, Chak, Festive Confetti, Crystal, Heart of the Khan-Ur, Frost Legion, Jormag Left/Right Eye, Echo of the Dragonvoid, Chromatic Bubbles, Seer Transcendence, Ethereal Sea-Life
-- **Instanced:** Celestial (Blue/Red), Abyssal, Mote of Darkness, Ghostly, Peerless, Imperial Everbloom, Clockwork, Jotun, Possession, Bloodstone, Demonic, Deldrimor Stoneskin
-- **Festival:** Ember, Phospholuminescent, Polysaturating Reverberating (Gray/Purple/Red), Polyluminescent Undulating (Black/Green/Orange/Teal), Moto's Unstable Bauble (Red/Blue), Winter's Heart, Snow Diamond, Toy-Shell, Silent Symphony
-- **WvW:** Mistwalker Infusion, Heat Core Infusion
+- **GW2 Crafts Hub** — [https://gw2crafts.net/](https://gw2crafts.net/)
+- **Normal Guides:** Cooking (No / Top 5 / All Hearts), Jewelcrafting, Artificing, Huntsman, Weaponcrafting, Armorcrafting, Leatherworking, Tailoring, Scribe
+- **Fast Guides:** Cooking variants + same disciplines (no Scribe)
+- **400-500:** Artificing, Huntsman, Weaponcrafting, Armorcrafting, Leatherworking, Tailoring
+- **Special:** Cooking 1-200 / 400-450, discipline 400-450, F2P, Production Downtime, Totals
 
 ### TLDR
 - **GW2 TLDR** — [https://gw2tldr.com/](https://gw2tldr.com/)

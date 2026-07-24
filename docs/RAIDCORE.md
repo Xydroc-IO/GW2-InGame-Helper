@@ -14,10 +14,16 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.39`
+`1.7.8.45`
 
 ## Changelog highlights
 
+- **1.7.8.45** — Wiki Utility by attribute; Minis section (all miniature pages by wiki subsections)
+- **1.7.8.44** — Wiki Food / Ascended Food nested by attribute (wiki TOC); ascended feasts under Ascended Food only
+- **1.7.8.43** — Gen 3 legendary variants; Wiki Utility; Upgrades (Superior Runes / Relics / Superior Sigils)
+- **1.7.8.42** — Wiki Lifestyle / Crafting / Food / Ascended Feasts; Guides → Crafting (GW2 Crafts Normal/Fast/400-500/Special)
+- **1.7.8.41** — Wiki: Cosmetic Infusions moved from Guides; Legendary Weapons (Gen 1–3) section
+- **1.7.8.40** — Cosmetic Infusions: per-infusion GW2 Wiki pages
 - **1.7.8.39** — Guides → Cosmetic Infusions (all wiki cosmetic infusions); Achievements Side Stories + HoT Verdant Brink / Auric Basin
 - **1.7.8.38** — Guides Browse: Raids section nests Raid Wings + Raid Boss
 - **1.7.8.37** — How to use: always rewrite helper-home + CEF cache-bust (Browse/Favorites pills)

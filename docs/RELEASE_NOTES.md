@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.39
+# GW2 In-Game Helper v1.7.8.45
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,35 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.45
+
+- **Wiki → Utility:** Utility items nested by primary effect attribute (same attribute sections as Food)
+- **Wiki → Minis:** All miniature wiki pages nested by hub subsections (Sets, Core, expansions, festivals, Gem Store, etc.)
+
+## What’s new in 1.7.8.44
+
+- **Wiki → Food:** All non-ascended food pages nested by primary attribute (Power through All Attributes + Other), matching the wiki TOC
+- **Wiki → Ascended Food:** Ascended feasts only (hub + Gourmet Training + feast pages), nested by the same attribute sections
+
+## What’s new in 1.7.8.43
+
+- **Legendary Weapons:** Generation 3 Variants (6 dragon set hubs, Facet collections, all 96 skins)
+- **Wiki → Utility:** Utility item hubs (list, enhancement, slayer potions, oils/stones/crystals)
+- **Wiki → Upgrades:** Superior Runes, Relics, and Superior Sigils (all wiki pages)
+
+## What’s new in 1.7.8.42
+
+- **Wiki:** Lifestyle (Fishing, Jade Bot, Skiff, Home Instance, Homestead); Crafting (disciplines + related); Food; Ascended Feasts (all feast pages)
+- **Guides → Crafting:** Full [GW2 Crafts](https://gw2crafts.net/) catalog (Normal / Fast / 400-500 / Special)
+
+## What’s new in 1.7.8.41
+
+- **Wiki:** Cosmetic Infusions moved here from Guides; new **Legendary Weapons** section (all Gen 1–3 wiki pages, nested by generation)
+
+## What’s new in 1.7.8.40
+
+- **Guides → Cosmetic Infusions:** Each infusion opens its GW2 Wiki page (Guildjen how-to kept as overview)
 
 ## What’s new in 1.7.8.39
 
