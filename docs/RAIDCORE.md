@@ -18,8 +18,8 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Changelog highlights
 
-- **1.7.8.31** — Fix stuck “Starting…”: IPC ready when helper accepts CREATE_TAB (not after first browser)
-- **1.7.8.30** — Render/IPC audit fixes: ~60 FPS present+OSR, mouse wake throttle, tab-cmd retry, frame barriers, BootJs debounce
+- **1.7.8.31** — Fix stuck “Starting…” after audit: ready when helper accepts CREATE_TAB (not after first browser)
+- **1.7.8.30** — Render/IPC/BootJs audit: ~60 FPS present+OSR, mouse wake throttle, tab-cmd retry, frame barriers, softer close, BootJs debounce/cache
 - **1.7.8.29** — Fix Snow Crows guides vanishing: ad-strip no longer matches nitro-article placement ids
 - **1.7.8.28** — Snow Crows guides: hydrate armory skill embeds + reveal cloaked TLDR / image diagrams
 - **1.7.8.27** — Hydrate Guildjen Breeze lazy images so wing guides show content in CEF
