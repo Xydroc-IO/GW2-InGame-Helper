@@ -1794,6 +1794,14 @@ namespace
 			ImGui::PopStyleColor();
 		}
 		ImGui::EndChild();
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
+		ImGui::TextUnformatted("Created by Xydroc");
+		ImGui::TextUnformatted("IGN - swift shadow kuda.5981");
+		ImGui::TextUnformatted("Discord Name - xydroc");
+		ImGui::PopStyleColor();
 	}
 
 	void DrawTabBar()
