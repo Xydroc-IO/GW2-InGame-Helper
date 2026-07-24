@@ -47,10 +47,16 @@ namespace
 	std::atomic<bool> gWantVisible{false};
 	std::atomic<bool> gLaunchDisabled{false}; /* set if helper launch fails hard */
 	std::atomic<bool> gStarting{false};       /* StartHelper in progress (avoid re-entry) */
+	std::atomic<bool> gLaunchRequested{false}; /* CreateProcess deferred off RT_Render */
 	std::atomic<bool> gQuitPending{false};    /* QUIT posted — finish across frames */
 	DWORD gQuitStartedMs = 0;
 	DWORD gLastStartAttemptMs = 0;
 	bool gTexHasContent = false; /* false → next present must full-upload after DISCARD */
+	/* Full-frame GPU copy can be split across frames (~1.4 MB / tick). */
+	uint32_t gPartialCopySeq = 0;
+	uint32_t gPartialCopyFront = 0;
+	uint32_t gPartialCopyY = 0;
+	static constexpr uint32_t kMaxCopyRowsPerFrame = 180;
 
 	ID3D11Device* gDevice = nullptr;
 	ID3D11DeviceContext* gContext = nullptr;
@@ -582,7 +588,11 @@ namespace
 		}
 		gLastFrameSeq = 0;
 		gTexHasContent = false;
+		gPartialCopySeq = 0;
+		gPartialCopyFront = 0;
+		gPartialCopyY = 0;
 		gStarting.store(false);
+		gLaunchRequested.store(false);
 		gQuitPending.store(false);
 		gQuitStartedMs = 0;
 		ReleaseGpu();
@@ -790,9 +800,11 @@ namespace
 	{
 		for (int i = 0; i < gPendingCmdCount; ++i)
 		{
-			if (gPendingCmds[i].cmd == cmd && gPendingCmds[i].a == a &&
-				(cmd == WIKI_CMD_ACTIVATE_TAB || cmd == WIKI_CMD_CREATE_TAB ||
-				 cmd == WIKI_CMD_CLOSE_TAB))
+			if (gPendingCmds[i].cmd == cmd &&
+				(cmd == WIKI_CMD_SET_VISIBLE ||
+				 ((gPendingCmds[i].a == a) &&
+				  (cmd == WIKI_CMD_ACTIVATE_TAB || cmd == WIKI_CMD_CREATE_TAB ||
+				   cmd == WIKI_CMD_CLOSE_TAB))))
 			{
 				gPendingCmds[i].a = a;
 				std::snprintf(gPendingCmds[i].arg, sizeof(gPendingCmds[i].arg), "%s",
@@ -849,8 +861,18 @@ namespace
 
 	void PostCmd(WikiIpcCmd cmd, const char* arg = "", int32_t a = 0)
 	{
-		if (!gIpc || !HelperAlive())
+		if (!gIpc)
 			return;
+		if (!HelperAlive())
+		{
+			/* Helper still launching — keep visibility / tab lifecycle for FlushPendingCmds. */
+			if (cmd == WIKI_CMD_SET_VISIBLE ||
+				cmd == WIKI_CMD_CREATE_TAB ||
+				cmd == WIKI_CMD_ACTIVATE_TAB ||
+				cmd == WIKI_CMD_CLOSE_TAB)
+				QueuePendingCmd(cmd, arg, a);
+			return;
+		}
 
 		FlushPendingCmds();
 		if (TryPostCmdImmediate(cmd, arg, a))
@@ -863,7 +885,8 @@ namespace
 			WakeHelper();
 			return;
 		}
-		if (cmd == WIKI_CMD_CREATE_TAB ||
+		if (cmd == WIKI_CMD_SET_VISIBLE ||
+			cmd == WIKI_CMD_CREATE_TAB ||
 			cmd == WIKI_CMD_ACTIVATE_TAB ||
 			cmd == WIKI_CMD_CLOSE_TAB)
 		{
@@ -941,23 +964,68 @@ namespace
 	{
 		if (!gIpc || !HelperAlive())
 			return;
-		const uint32_t w = gIpc->input_write;
-		const uint32_t next = (w + 1u) % kWikiInputQueueSize;
+		uint32_t w = gIpc->input_write;
+		uint32_t next = (w + 1u) % kWikiInputQueueSize;
 		if (next == gIpc->input_read)
 		{
-			/* Queue full — drop and surface once (fast typing / paste). */
+			/* Queue full — drop oldest so newest keys/clicks still land. */
+			gIpc->input_read = (gIpc->input_read + 1u) % kWikiInputQueueSize;
 			static DWORD sLastFullMs = 0;
 			const DWORD now = GetTickCount();
 			if (sLastFullMs == 0 || (now - sLastFullMs) > 1000u)
 			{
 				sLastFullMs = now;
-				SetLocalStatus("Input queue full — slow down typing");
+				SetLocalStatus("Input queue full — dropping oldest events");
 			}
-			return;
+			w = gIpc->input_write;
+			next = (w + 1u) % kWikiInputQueueSize;
+			if (next == gIpc->input_read)
+				return;
 		}
 		gIpc->input_q[w % kWikiInputQueueSize] = ev;
 		gIpc->input_write = next;
 		WakeHelper();
+	}
+
+	void RequestStartHelper()
+	{
+		if (gLaunchDisabled.load())
+		{
+			SetLocalStatus("Browser helper disabled after launch failure — restart GW2 to retry");
+			return;
+		}
+		if (HelperAlive() || gStarting.load())
+			return;
+		if (gLaunchRequested.exchange(true))
+			return;
+		SetLocalStatus("Launching…");
+	}
+
+	/* Runs CreateProcess / extract on Tick — never block RT_Render mid-frame. */
+	void TickLaunchPending()
+	{
+		if (!gLaunchRequested.load())
+			return;
+		if (gLaunchDisabled.load() || HelperAlive())
+		{
+			gLaunchRequested.store(false);
+			if (HelperAlive() && gWantVisible.load())
+			{
+				FlushPendingCmds();
+				FlushPendingNavigate();
+			}
+			return;
+		}
+		if (gStarting.load())
+			return;
+		gLaunchRequested.store(false);
+		if (!StartHelper())
+			return;
+		if (gWantVisible.load())
+		{
+			FlushPendingCmds();
+			FlushPendingNavigate();
+		}
 	}
 }
 
@@ -988,6 +1056,7 @@ void WikiBrowser::Init()
 	CleanupStaleAddonRootFiles();
 	gLaunchDisabled.store(false);
 	gStarting.store(false);
+	gLaunchRequested.store(false);
 	gQuitPending.store(false);
 	EnsureIpcNames();
 	/* Kick URL-match index build (chunked in UI_Render via TickWarmUrlKeys). */
@@ -998,6 +1067,7 @@ void WikiBrowser::Init()
 void WikiBrowser::Tick()
 {
 	TickQuitPending();
+	TickLaunchPending();
 }
 
 void WikiBrowser::Shutdown()
@@ -1065,8 +1135,13 @@ void WikiBrowser::SetVisible(bool visible)
 	if (!EnsureIpc())
 		return;
 	const bool alreadyAlive = HelperAlive();
-	if (!alreadyAlive && !StartHelper())
-		return;
+	if (!alreadyAlive)
+	{
+		/* Defer CreateProcess/extract to Tick — keep this RT_Render frame short. */
+		RequestStartHelper();
+		if (gLaunchDisabled.load())
+			return;
+	}
 	/* Only notify on show/start — posting SET_VISIBLE every frame stomps
 	   pending NAVIGATE/BACK/FORWARD/RELOAD commands (single IPC slot). */
 	if (!wasWanted || !alreadyAlive)
@@ -1157,14 +1232,23 @@ void WikiBrowser::PresentFrame()
 		return;
 
 	D3D11_MAPPED_SUBRESOURCE mapped{};
-	/* Prefer WRITE for partial dirty uploads; DISCARD when the whole texture must be rewritten.
+	/* Prefer WRITE for dirty rects and multi-frame full copies (DISCARD wipes prior rows).
 	   DO_NOT_WAIT — skip this frame if the GPU still owns the dynamic texture. */
-	D3D11_MAP mapType = uploadFull ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE;
+	const bool continuingPartial =
+		uploadFull && gPartialCopySeq == seq && gPartialCopyFront == front && gPartialCopyY > 0;
+	const bool wantSplitFull = uploadFull && (continuingPartial || h > kMaxCopyRowsPerFrame);
+	D3D11_MAP mapType = wantSplitFull ? D3D11_MAP_WRITE
+		: (uploadFull ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE);
 	HRESULT hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
 	if (FAILED(hr) && mapType == D3D11_MAP_WRITE)
 	{
+		if (continuingPartial)
+			return; /* keep prior rows; retry WRITE next frame */
+		/* Cannot split with DISCARD — fall back to one-shot full rewrite. */
 		mapType = D3D11_MAP_WRITE_DISCARD;
 		uploadFull = true;
+		gPartialCopySeq = 0;
+		gPartialCopyY = 0;
 		hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
 	}
 	if (FAILED(hr))
@@ -1174,6 +1258,7 @@ void WikiBrowser::PresentFrame()
 		gContext->Unmap(gTex, 0);
 		return;
 	}
+	const bool canSplit = (mapType == D3D11_MAP_WRITE);
 	if (mapType == D3D11_MAP_WRITE_DISCARD)
 		uploadFull = true;
 
@@ -1183,14 +1268,44 @@ void WikiBrowser::PresentFrame()
 	const uint8_t* src = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
 	uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
 
+	bool copyComplete = true;
 	if (uploadFull)
 	{
-		const size_t rowBytes = static_cast<size_t>(w) * 4;
-		for (uint32_t y = 0; y < h; ++y)
-			std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+		if (canSplit && h > kMaxCopyRowsPerFrame)
+		{
+			/* Split large full-frame uploads across RT ticks (~1.4 MB / frame). */
+			if (gPartialCopySeq != seq || gPartialCopyFront != front)
+			{
+				gPartialCopySeq = seq;
+				gPartialCopyFront = front;
+				gPartialCopyY = 0;
+			}
+			const uint32_t endY = gPartialCopyY + kMaxCopyRowsPerFrame;
+			const uint32_t y1 = endY < h ? endY : h;
+			const size_t rowBytes = static_cast<size_t>(w) * 4;
+			for (uint32_t y = gPartialCopyY; y < y1; ++y)
+				std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+			gPartialCopyY = y1;
+			copyComplete = (gPartialCopyY >= h);
+			if (copyComplete)
+			{
+				gPartialCopySeq = 0;
+				gPartialCopyY = 0;
+			}
+		}
+		else
+		{
+			gPartialCopySeq = 0;
+			gPartialCopyY = 0;
+			const size_t rowBytes = static_cast<size_t>(w) * 4;
+			for (uint32_t y = 0; y < h; ++y)
+				std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+		}
 	}
 	else
 	{
+		gPartialCopySeq = 0;
+		gPartialCopyY = 0;
 		const size_t rowBytes = static_cast<size_t>(dw) * 4;
 		const size_t xOff = static_cast<size_t>(dx) * 4;
 		for (uint32_t y = 0; y < dh; ++y)
@@ -1203,8 +1318,16 @@ void WikiBrowser::PresentFrame()
 		}
 	}
 	MemoryBarrier();
-	gIpc->frame_reading = 0xFFFFFFFFu;
+	/* Hold frame_reading across partial full-uploads so the helper cannot clobber. */
+	if (copyComplete)
+		gIpc->frame_reading = 0xFFFFFFFFu;
 	gContext->Unmap(gTex, 0);
+	if (!copyComplete)
+	{
+		/* Retry remaining rows next frame — do not advance gLastFrameSeq. */
+		gLastPresentMs = now;
+		return;
+	}
 	gContentW = w;
 	gContentH = h;
 	gTexHasContent = true;
@@ -1294,8 +1417,12 @@ void WikiBrowser::Navigate(const std::string& url)
 	gWantVisible.store(true);
 	if (!EnsureIpc())
 		return;
-	if (!HelperAlive() && !StartHelper())
-		return;
+	if (!HelperAlive())
+	{
+		RequestStartHelper();
+		if (gLaunchDisabled.load())
+			return;
+	}
 	QueueNavigate(url);
 	FlushPendingNavigate();
 }

@@ -353,8 +353,18 @@ namespace
 				return "News";
 			if (std::strcmp(id, "wiki_legendaries") == 0 || std::strcmp(id, "wiki_mounts") == 0)
 				return "Collections";
-			if (std::strcmp(id, "wiki_leg_hub") == 0 || std::strncmp(id, "wiki_leg_", 9) == 0)
-				return "Legendary Weapons";
+			/* All legendary equipment nests under Legendary Armory. */
+			if (std::strcmp(id, "wiki_larmory_hub") == 0 ||
+				std::strcmp(id, "wiki_larmor_hub") == 0 || std::strncmp(id, "wiki_larmor_", 12) == 0 ||
+				std::strncmp(id, "wiki_laccessory_", 16) == 0 ||
+				std::strncmp(id, "wiki_lamulet_", 13) == 0 ||
+				std::strncmp(id, "wiki_lring_", 11) == 0 ||
+				std::strncmp(id, "wiki_lback_", 11) == 0 ||
+				std::strncmp(id, "wiki_lrune_", 11) == 0 ||
+				std::strncmp(id, "wiki_lsigil_", 12) == 0 ||
+				std::strncmp(id, "wiki_lrelic_", 12) == 0 ||
+				std::strcmp(id, "wiki_leg_hub") == 0 || std::strncmp(id, "wiki_leg_", 9) == 0)
+				return "Legendary Armory";
 			if (std::strcmp(id, "wiki_cosmetic_infusions") == 0 ||
 				std::strcmp(id, "gj_infusion_hub") == 0 || std::strncmp(id, "gj_infusion_", 12) == 0)
 				return "Cosmetic Infusions";
@@ -369,8 +379,7 @@ namespace
 			if (std::strcmp(id, "wiki_mini_hub") == 0 || std::strncmp(id, "wiki_mini_", 10) == 0)
 				return "Minis";
 			if (std::strcmp(id, "wiki_rune_hub") == 0 || std::strncmp(id, "wiki_rune_", 10) == 0 ||
-				std::strcmp(id, "wiki_relic_hub") == 0 || std::strcmp(id, "wiki_relic_legendary") == 0 ||
-				std::strncmp(id, "wiki_relic_", 11) == 0 ||
+				std::strcmp(id, "wiki_relic_hub") == 0 || std::strncmp(id, "wiki_relic_", 11) == 0 ||
 				std::strcmp(id, "wiki_sigil_hub") == 0 || std::strncmp(id, "wiki_sigil_", 11) == 0)
 				return "Upgrades";
 			if (std::strcmp(id, "wiki_afood_hub") == 0 || std::strcmp(id, "wiki_afood_gourmet") == 0 ||
@@ -461,7 +470,7 @@ namespace
 		if (std::strcmp(category, "Wiki") == 0)
 		{
 			static const char* kSec[] = {
-				"Main", "News", "Collections", "Legendary Weapons",
+				"Main", "News", "Collections", "Legendary Armory",
 				"Cosmetic Infusions", "Lifestyle", "Crafting", "Food", "Ascended Food",
 				"Utility", "Minis", "Upgrades", "Wizards Vault", "Other"
 			};
@@ -606,7 +615,33 @@ namespace
 		return nullptr;
 	}
 
-	/* Generation subsection under Wiki → Legendary Weapons (nullptr = hub). */
+	/* Subsection under Wiki → Legendary Armory (nullptr = armory hub). */
+	const char* LegendaryArmorySub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "wiki_larmory_hub") == 0)
+			return nullptr;
+		if (std::strcmp(id, "wiki_larmor_hub") == 0 || std::strncmp(id, "wiki_larmor_", 12) == 0)
+			return "Legendary Armor";
+		if (std::strcmp(id, "wiki_leg_hub") == 0 || std::strncmp(id, "wiki_leg_", 9) == 0)
+			return "Legendary Weapons";
+		if (std::strncmp(id, "wiki_laccessory_", 16) == 0)
+			return "Legendary Accessory";
+		if (std::strncmp(id, "wiki_lamulet_", 13) == 0)
+			return "Legendary Amulet";
+		if (std::strncmp(id, "wiki_lring_", 11) == 0)
+			return "Legendary Rings";
+		if (std::strncmp(id, "wiki_lback_", 11) == 0)
+			return "Legendary Back Items";
+		if (std::strncmp(id, "wiki_lrune_", 11) == 0 ||
+			std::strncmp(id, "wiki_lsigil_", 12) == 0 ||
+			std::strncmp(id, "wiki_lrelic_", 12) == 0)
+			return "Legendary Upgrade Components";
+		return nullptr;
+	}
+
+	/* Generation subsection under Wiki → Legendary Armory → Legendary Weapons (nullptr = hub). */
 	const char* LegendaryWeaponSub(const char* id)
 	{
 		if (!id || !id[0])
@@ -656,8 +691,7 @@ namespace
 			return nullptr;
 		if (std::strcmp(id, "wiki_rune_hub") == 0 || std::strncmp(id, "wiki_rune_", 10) == 0)
 			return "Superior Runes";
-		if (std::strcmp(id, "wiki_relic_hub") == 0 || std::strcmp(id, "wiki_relic_legendary") == 0 ||
-			std::strncmp(id, "wiki_relic_", 11) == 0)
+		if (std::strcmp(id, "wiki_relic_hub") == 0 || std::strncmp(id, "wiki_relic_", 11) == 0)
 			return "Relics";
 		if (std::strcmp(id, "wiki_sigil_hub") == 0 || std::strncmp(id, "wiki_sigil_", 11) == 0)
 			return "Superior Sigils";
@@ -1347,21 +1381,27 @@ namespace
 		}
 		else if (filtering)
 		{
-			std::vector<int> matches;
-			matches.reserve(64);
-			for (int i = 0; i < static_cast<int>(siteCount); ++i)
+			static char sFilterCache[128]{};
+			static std::vector<int> sFilterMatches;
+			if (std::strcmp(sFilterCache, sFilter) != 0)
 			{
-				if (!Sites::MatchesFilter(sites[i], sFilter))
-					continue;
-				matches.push_back(i);
+				std::snprintf(sFilterCache, sizeof(sFilterCache), "%s", sFilter);
+				sFilterMatches.clear();
+				sFilterMatches.reserve(64);
+				for (int i = 0; i < static_cast<int>(siteCount); ++i)
+				{
+					if (!Sites::MatchesFilter(sites[i], sFilter))
+						continue;
+					sFilterMatches.push_back(i);
+				}
 			}
-			DrawClippedRows(matches, true);
-			if (!matches.empty())
+			DrawClippedRows(sFilterMatches, true);
+			if (!sFilterMatches.empty())
 			{
 				ImGui::Spacing();
 				ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
-				ImGui::Text("%d match%s", static_cast<int>(matches.size()),
-					matches.size() == 1 ? "" : "es");
+				ImGui::Text("%d match%s", static_cast<int>(sFilterMatches.size()),
+					sFilterMatches.size() == 1 ? "" : "es");
 				ImGui::PopStyleColor();
 			}
 		}
@@ -1481,8 +1521,13 @@ namespace
 						ImGui::Unindent(10.f);
 						continue;
 					}
-					if (std::strcmp(section, "Legendary Weapons") == 0)
+					if (std::strcmp(section, "Legendary Armory") == 0)
 					{
+						static const char* kArmorySubs[] = {
+							"Legendary Armor", "Legendary Weapons", "Legendary Accessory",
+							"Legendary Amulet", "Legendary Rings", "Legendary Back Items",
+							"Legendary Upgrade Components"
+						};
 						static const char* kLegSubs[] = {
 							"Generation 1", "Generation 2", "Generation 3",
 							"Generation 3 Variants", "Generation 4"
@@ -1491,81 +1536,135 @@ namespace
 							"Zhaitan", "Mordremoth", "Kralkatorrik",
 							"Jormag", "Primordus", "Soo-Won"
 						};
-						for (int i : sBrowseCatIdx)
+						constexpr int kArmN = static_cast<int>(sizeof(kArmorySubs) / sizeof(kArmorySubs[0]));
+						constexpr int kLegN = static_cast<int>(sizeof(kLegSubs) / sizeof(kLegSubs[0]));
+						constexpr int kDragonN = static_cast<int>(sizeof(kDragons) / sizeof(kDragons[0]));
+
+						static std::string sArmCacheKey;
+						static std::vector<int> sArmHubs;
+						static std::vector<std::vector<int>> sArmBySub;
+						static std::vector<int> sLegHubs;
+						static std::vector<std::vector<int>> sLegByGen;
+						static std::vector<int> sG3vHubs;
+						static std::vector<std::vector<int>> sG3vByDragon;
+						if (sArmCacheKey != selectedCat)
 						{
-							const SiteDef& site = sites[i];
-							const char* sec = BrowseSection(selectedCat, site.id);
-							if (!sec || std::strcmp(sec, "Legendary Weapons") != 0)
-								continue;
-							if (LegendaryWeaponSub(site.id))
-								continue;
-							DrawSiteRow(i, false);
-						}
-						ImGui::Indent(10.f);
-						for (const char* sub : kLegSubs)
-						{
-							int subCount = 0;
-							for (int i : sBrowseCatIdx)
+							sArmCacheKey = selectedCat;
+							sArmHubs.clear();
+							sArmBySub.assign(static_cast<size_t>(kArmN), {});
+							sLegHubs.clear();
+							sLegByGen.assign(static_cast<size_t>(kLegN), {});
+							sG3vHubs.clear();
+							sG3vByDragon.assign(static_cast<size_t>(kDragonN), {});
+							for (int i : secIdx)
 							{
-								const SiteDef& site = sites[i];
-								const char* s = LegendaryWeaponSub(site.id);
-								if (s && std::strcmp(s, sub) == 0)
-									++subCount;
+								const char* arm = LegendaryArmorySub(sites[i].id);
+								if (!arm)
+								{
+									sArmHubs.push_back(i);
+									continue;
+								}
+								int ai = -1;
+								for (int a = 0; a < kArmN; ++a)
+								{
+									if (std::strcmp(arm, kArmorySubs[a]) == 0)
+									{
+										ai = a;
+										break;
+									}
+								}
+								if (ai < 0)
+									continue;
+								sArmBySub[static_cast<size_t>(ai)].push_back(i);
+								if (std::strcmp(arm, "Legendary Weapons") != 0)
+									continue;
+								const char* gen = LegendaryWeaponSub(sites[i].id);
+								if (!gen)
+								{
+									sLegHubs.push_back(i);
+									continue;
+								}
+								int gi = -1;
+								for (int g = 0; g < kLegN; ++g)
+								{
+									if (std::strcmp(gen, kLegSubs[g]) == 0)
+									{
+										gi = g;
+										break;
+									}
+								}
+								if (gi < 0)
+									continue;
+								sLegByGen[static_cast<size_t>(gi)].push_back(i);
+								if (std::strcmp(gen, "Generation 3 Variants") != 0)
+									continue;
+								const char* d = Gen3VariantDragon(sites[i].id);
+								if (!d)
+								{
+									sG3vHubs.push_back(i);
+									continue;
+								}
+								for (int di = 0; di < kDragonN; ++di)
+								{
+									if (std::strcmp(d, kDragons[di]) == 0)
+									{
+										sG3vByDragon[static_cast<size_t>(di)].push_back(i);
+										break;
+									}
+								}
 							}
-							if (subCount == 0)
+						}
+
+						DrawClippedRows(sArmHubs, false);
+						ImGui::Indent(10.f);
+						for (int ai = 0; ai < kArmN; ++ai)
+						{
+							const std::vector<int>& armIdx = sArmBySub[static_cast<size_t>(ai)];
+							if (armIdx.empty())
 								continue;
-							if (!BeginBrowseSection("Legendary Weapons", sub, subCount))
+							if (!BeginBrowseSection("Legendary Armory", kArmorySubs[ai],
+									static_cast<int>(armIdx.size())))
 								continue;
 
-							if (std::strcmp(sub, "Generation 3 Variants") == 0)
+							if (std::strcmp(kArmorySubs[ai], "Legendary Weapons") == 0)
 							{
-								/* Variant set hubs + facet collections, then per-dragon skins. */
-								for (int i : sBrowseCatIdx)
-								{
-									const SiteDef& site = sites[i];
-									const char* s = LegendaryWeaponSub(site.id);
-									if (!s || std::strcmp(s, "Generation 3 Variants") != 0)
-										continue;
-									if (Gen3VariantDragon(site.id))
-										continue;
-									DrawSiteRow(i, false);
-								}
+								DrawClippedRows(sLegHubs, false);
 								ImGui::Indent(10.f);
-								for (const char* dragon : kDragons)
+								for (int gi = 0; gi < kLegN; ++gi)
 								{
-									int dragonCount = 0;
-									for (int i : sBrowseCatIdx)
-									{
-										const SiteDef& site = sites[i];
-										const char* d = Gen3VariantDragon(site.id);
-										if (d && std::strcmp(d, dragon) == 0)
-											++dragonCount;
-									}
-									if (dragonCount == 0)
+									const std::vector<int>& genIdx = sLegByGen[static_cast<size_t>(gi)];
+									if (genIdx.empty())
 										continue;
-									if (!BeginBrowseSection("Generation 3 Variants", dragon, dragonCount))
+									if (!BeginBrowseSection("Legendary Weapons", kLegSubs[gi],
+											static_cast<int>(genIdx.size())))
 										continue;
-									for (int i : sBrowseCatIdx)
+
+									if (std::strcmp(kLegSubs[gi], "Generation 3 Variants") == 0)
 									{
-										const SiteDef& site = sites[i];
-										const char* d = Gen3VariantDragon(site.id);
-										if (!d || std::strcmp(d, dragon) != 0)
-											continue;
-										DrawSiteRow(i, false);
+										DrawClippedRows(sG3vHubs, false);
+										ImGui::Indent(10.f);
+										for (int di = 0; di < kDragonN; ++di)
+										{
+											const std::vector<int>& dIdx =
+												sG3vByDragon[static_cast<size_t>(di)];
+											if (dIdx.empty())
+												continue;
+											if (!BeginBrowseSection("Generation 3 Variants", kDragons[di],
+													static_cast<int>(dIdx.size())))
+												continue;
+											DrawClippedRows(dIdx, false);
+										}
+										ImGui::Unindent(10.f);
+										continue;
 									}
+
+									DrawClippedRows(genIdx, false);
 								}
 								ImGui::Unindent(10.f);
 								continue;
 							}
 
-							for (int i : sBrowseCatIdx)
-							{
-								const SiteDef& site = sites[i];
-								const char* s = LegendaryWeaponSub(site.id);
-								if (!s || std::strcmp(s, sub) != 0)
-									continue;
-								DrawSiteRow(i, false);
-							}
+							DrawClippedRows(armIdx, false);
 						}
 						ImGui::Unindent(10.f);
 						continue;
@@ -1739,36 +1838,44 @@ namespace
 							"Ferocity", "Healing Power", "All Attributes", "Other"
 						};
 						constexpr int kAttrN = static_cast<int>(sizeof(kFoodAttrs) / sizeof(kFoodAttrs[0]));
-						std::vector<int> hubs;
-						std::vector<int> byAttr[kAttrN];
-						hubs.reserve(8);
-						for (int i : secIdx)
+						static std::string sFoodCacheKey;
+						static std::vector<int> sFoodHubs;
+						static std::vector<std::vector<int>> sFoodByAttr;
+						const std::string foodKey = std::string(selectedCat) + "|" + section;
+						if (sFoodCacheKey != foodKey)
 						{
-							const char* a = FoodAttrSub(sites[i].id);
-							if (!a)
+							sFoodCacheKey = foodKey;
+							sFoodHubs.clear();
+							sFoodByAttr.assign(static_cast<size_t>(kAttrN), {});
+							sFoodHubs.reserve(8);
+							for (int i : secIdx)
 							{
-								hubs.push_back(i);
-								continue;
-							}
-							for (int ai = 0; ai < kAttrN; ++ai)
-							{
-								if (std::strcmp(a, kFoodAttrs[ai]) == 0)
+								const char* a = FoodAttrSub(sites[i].id);
+								if (!a)
 								{
-									byAttr[ai].push_back(i);
-									break;
+									sFoodHubs.push_back(i);
+									continue;
+								}
+								for (int ai = 0; ai < kAttrN; ++ai)
+								{
+									if (std::strcmp(a, kFoodAttrs[ai]) == 0)
+									{
+										sFoodByAttr[static_cast<size_t>(ai)].push_back(i);
+										break;
+									}
 								}
 							}
 						}
-						DrawClippedRows(hubs, false);
+						DrawClippedRows(sFoodHubs, false);
 						ImGui::Indent(10.f);
 						for (int ai = 0; ai < kAttrN; ++ai)
 						{
-							if (byAttr[ai].empty())
+							if (sFoodByAttr[static_cast<size_t>(ai)].empty())
 								continue;
 							if (!BeginBrowseSection(section, kFoodAttrs[ai],
-									static_cast<int>(byAttr[ai].size())))
+									static_cast<int>(sFoodByAttr[static_cast<size_t>(ai)].size())))
 								continue;
-							DrawClippedRows(byAttr[ai], false);
+							DrawClippedRows(sFoodByAttr[static_cast<size_t>(ai)], false);
 						}
 						ImGui::Unindent(10.f);
 						continue;
@@ -1789,36 +1896,43 @@ namespace
 							"Gem Store/Black Lion", "Promotional Minis", "Unavailable"
 						};
 						constexpr int kMiniN = static_cast<int>(sizeof(kMiniSubs) / sizeof(kMiniSubs[0]));
-						std::vector<int> hubs;
-						std::vector<int> bySub[kMiniN];
-						hubs.reserve(4);
-						for (int i : secIdx)
+						static std::string sMiniCacheKey;
+						static std::vector<int> sMiniHubs;
+						static std::vector<std::vector<int>> sMiniBySub;
+						if (sMiniCacheKey != selectedCat)
 						{
-							const char* a = MinisSub(sites[i].id);
-							if (!a)
+							sMiniCacheKey = selectedCat;
+							sMiniHubs.clear();
+							sMiniBySub.assign(static_cast<size_t>(kMiniN), {});
+							sMiniHubs.reserve(4);
+							for (int i : secIdx)
 							{
-								hubs.push_back(i);
-								continue;
-							}
-							for (int si = 0; si < kMiniN; ++si)
-							{
-								if (std::strcmp(a, kMiniSubs[si]) == 0)
+								const char* a = MinisSub(sites[i].id);
+								if (!a)
 								{
-									bySub[si].push_back(i);
-									break;
+									sMiniHubs.push_back(i);
+									continue;
+								}
+								for (int si = 0; si < kMiniN; ++si)
+								{
+									if (std::strcmp(a, kMiniSubs[si]) == 0)
+									{
+										sMiniBySub[static_cast<size_t>(si)].push_back(i);
+										break;
+									}
 								}
 							}
 						}
-						DrawClippedRows(hubs, false);
+						DrawClippedRows(sMiniHubs, false);
 						ImGui::Indent(10.f);
 						for (int si = 0; si < kMiniN; ++si)
 						{
-							if (bySub[si].empty())
+							if (sMiniBySub[static_cast<size_t>(si)].empty())
 								continue;
 							if (!BeginBrowseSection("Minis", kMiniSubs[si],
-									static_cast<int>(bySub[si].size())))
+									static_cast<int>(sMiniBySub[static_cast<size_t>(si)].size())))
 								continue;
-							DrawClippedRows(bySub[si], false);
+							DrawClippedRows(sMiniBySub[static_cast<size_t>(si)], false);
 						}
 						ImGui::Unindent(10.f);
 						continue;
@@ -2379,8 +2493,9 @@ void UI_Render()
 	/* Always poll first — must run while the helper is closed too. */
 	HelperHotkeys_Poll();
 	WikiBrowser::Tick();
-	/* Finish URL-match indexes across frames (started in WikiBrowser::Init). */
-	Sites::TickWarmUrlKeys(64);
+	/* Finish URL-match indexes across frames (started in WikiBrowser::Init).
+	   Lighter tick while the overlay is open so Browse stays responsive. */
+	Sites::TickWarmUrlKeys(G::ShowWiki ? 32 : 64);
 
 	gBlockGameKeyboard = false;
 	gBlockGameMouse = false;

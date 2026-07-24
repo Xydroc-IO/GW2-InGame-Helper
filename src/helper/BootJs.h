@@ -420,21 +420,35 @@ function unlockSnowcrowsGuides(){
         /* Apply any already-cached entries without network. */
         fillArmory(cache, kind);
         if (!list.length) return;
-        for (var off=0; off<list.length; off+=100){
-          var part=list.slice(off, off+100);
-          (function(endpoint, batch, embedKind, cacheMap){
+        (function(endpoint, idList, embedKind, cacheMap){
+          var off=0;
+          function next(){
+            if (off>=idList.length) return;
+            var batch=idList.slice(off, off+100);
+            off+=100;
             fetch(endpoint+'?ids='+batch.join(',')+'&lang=en', {credentials:'omit'})
-              .then(function(r){ return r.ok ? r.json() : []; })
-              .then(function(arr){
-                if (!arr || !arr.length) return;
-                for (var k=0;k<arr.length;k++){
-                  if (arr[k] && arr[k].id!=null) cacheMap[String(arr[k].id)]=arr[k];
+              .then(function(r){
+                if (r.status===429){
+                  off-=batch.length;
+                  setTimeout(next, 1000);
+                  return null;
                 }
-                fillArmory(cacheMap, embedKind);
+                return r.ok ? r.json() : [];
               })
-              .catch(function(){});
-          })(kinds[kind], part, kind, cache);
-        }
+              .then(function(arr){
+                if (arr===null) return;
+                if (arr && arr.length){
+                  for (var k=0;k<arr.length;k++){
+                    if (arr[k] && arr[k].id!=null) cacheMap[String(arr[k].id)]=arr[k];
+                  }
+                  fillArmory(cacheMap, embedKind);
+                }
+                next();
+              })
+              .catch(function(){ next(); });
+          }
+          next();
+        })(kinds[kind], list, kind, cache);
       });
     }
     function scTick(){
