@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.23
+# GW2 In-Game Helper v1.7.8.25
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,15 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.25
+
+- **Guides → Raid Wings:** Guildjen hub, beginner raid guide, and W1–W8 wing guides (replaces MetaBattle wing pages)
+
+## What’s new in 1.7.8.24
+
+- **Guides → Raid Boss:** Snow Crows per-encounter guides (W1–W7) instead of Hardstuck — Hardstuck H.264 clips don’t play in CEF; Video.js CDN unblocked for Snow Crows
+- Prep links under Raid Boss now use Snow Crows squad guides; W8 omitted until Snow Crows publishes Mount Balrior
 
 ## What’s new in 1.7.8.23
 

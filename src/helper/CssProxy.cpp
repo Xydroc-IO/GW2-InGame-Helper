@@ -375,9 +375,9 @@ bool ShouldBlockUrl(const std::string& url)
 		HostEndsWith(host, "google-analytics.com") ||
 		HostEndsWith(host, "facebook.net") ||
 		HostEndsWith(host, "facebook.com") ||
-		HostEndsWith(host, "hotjar.com") ||
-		host == "vjs.zencdn.net")
+		HostEndsWith(host, "hotjar.com"))
 		return true;
+	/* vjs.zencdn.net kept — Snow Crows loads Video.js from there. */
 
 	if ((host == "www.google.com" || host == "google.com" || HostEndsWith(host, "gstatic.com")) &&
 		path.find("recaptcha") != std::string::npos)

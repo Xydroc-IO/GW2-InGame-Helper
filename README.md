@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.23` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.25` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -88,8 +88,8 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [WvW Guides Hub](https://metabattle.com/wiki/WvW_Guides) | Guides |
 | MetaBattle Fractals (Intro, Aquatic Ruins, Deepstone, Lonely Tower, Molten Furnace, Shattered Observatory, Silent Surf, Siren's Reef, Sunqua Peak, Twilight Oasis, Underground Facility) | Guides |
 | [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
-| MetaBattle Raid Wings (Intro, Hand Kiting, Wings 1–7) | Guides |
-| Hardstuck Raid Boss (W1–W8 encounters) | Guides |
+| Guildjen Raid Wings (hub, intro, Wings 1–8) | Guides |
+| Snow Crows Raid Boss (W1–W7 encounters) | Guides |
 | MetaBattle Strikes (Mai Trin, Boneskinner, Cold War, Dagda, Forging Steel, Fraenir, Icebrood, Kaineng, Lion's Court, Cerus, Voice/Claw, Whisper, Ankka) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
