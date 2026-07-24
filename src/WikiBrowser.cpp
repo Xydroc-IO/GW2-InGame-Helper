@@ -1267,7 +1267,6 @@ void WikiBrowser::PresentFrame()
 	uint32_t h = gIpc->frame_h;
 	if (w == 0 || h == 0 || w > kWikiFrameMaxW || h > kWikiFrameMaxH)
 		return;
-	/* Seq changed mid-read — try again next frame. */
 	if (gIpc->frame_seq != seq)
 		return;
 
@@ -1290,69 +1289,69 @@ void WikiBrowser::PresentFrame()
 	if (!EnsureTexture(w, h) || !gContext || !gTex)
 		return;
 
-	D3D11_MAPPED_SUBRESOURCE mapped{};
-	/* Prefer WRITE for dirty rects and multi-frame full copies (DISCARD wipes prior rows).
-	   DO_NOT_WAIT — skip this frame if the GPU still owns the dynamic texture. */
 	const bool interactive =
 		gLastUserInputMs != 0 && (now - gLastUserInputMs) < 500u;
 	const uint32_t rowBudget = interactive ? kMaxCopyRowsInteractive : kMaxCopyRowsPerFrame;
+	/* Chunked staging only AFTER the texture has been initialized with DISCARD.
+	   First paint must WRITE_DISCARD — MAP_WRITE on a virgin dynamic texture fails
+	   and used to leave the UI stuck on "Waiting for first paint…". */
 	const bool continuingPartial =
-		uploadFull && gPartialCopySeq == seq && gPartialCopyFront == front && gPartialCopyY > 0;
-	const bool wantSplitFull = uploadFull && (continuingPartial || h > rowBudget);
+		gTexHasContent && uploadFull && gPartialCopySeq == seq &&
+		gPartialCopyFront == front && gPartialCopyY > 0 && gStagingReady;
+	const bool wantChunk = gTexHasContent && uploadFull &&
+		(continuingPartial || h > rowBudget);
 
-	/* Snapshot shared front → CPU staging once, then release frame_reading before Map.
-	   Avoids multi-frame pin stalls on the helper paint path. */
-	if (wantSplitFull)
+	if (wantChunk && (!gStagingReady || gStagingSeq != seq || gStagingW != w || gStagingH != h))
 	{
-		if (!gStagingReady || gStagingSeq != seq || gStagingW != w || gStagingH != h)
+		gIpc->frame_reading = front;
+		MemoryBarrier();
+		if (gIpc->frame_seq != seq)
 		{
-			gIpc->frame_reading = front;
-			MemoryBarrier();
-			if (gIpc->frame_seq != seq)
-			{
-				gIpc->frame_reading = 0xFFFFFFFFu;
-				return;
-			}
-			const uint8_t* srcSnap = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
-			const size_t need = static_cast<size_t>(h) * kWikiFrameStride;
-			gStagingFrame.resize(need);
-			if (gStagingFrame.size() < need)
-			{
-				gIpc->frame_reading = 0xFFFFFFFFu;
-				return;
-			}
-			for (uint32_t y = 0; y < h; ++y)
-			{
-				std::memcpy(
-					gStagingFrame.data() + static_cast<size_t>(y) * kWikiFrameStride,
-					srcSnap + static_cast<size_t>(y) * kWikiFrameStride,
-					static_cast<size_t>(w) * 4);
-			}
-			MemoryBarrier();
 			gIpc->frame_reading = 0xFFFFFFFFu;
-			gStagingSeq = seq;
-			gStagingW = w;
-			gStagingH = h;
-			gStagingReady = true;
-			gPartialCopySeq = seq;
-			gPartialCopyFront = front;
-			gPartialCopyY = 0;
-			/* Snapshot done this frame — upload first chunk next tick to spread cost. */
-			gLastPresentMs = now;
 			return;
 		}
+		const uint8_t* srcSnap = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
+		const size_t need = static_cast<size_t>(h) * kWikiFrameStride;
+		gStagingFrame.resize(need);
+		if (gStagingFrame.size() < need)
+		{
+			gIpc->frame_reading = 0xFFFFFFFFu;
+			return;
+		}
+		for (uint32_t y = 0; y < h; ++y)
+		{
+			std::memcpy(
+				gStagingFrame.data() + static_cast<size_t>(y) * kWikiFrameStride,
+				srcSnap + static_cast<size_t>(y) * kWikiFrameStride,
+				static_cast<size_t>(w) * 4);
+		}
+		MemoryBarrier();
+		gIpc->frame_reading = 0xFFFFFFFFu;
+		gStagingSeq = seq;
+		gStagingW = w;
+		gStagingH = h;
+		gStagingReady = true;
+		gPartialCopySeq = seq;
+		gPartialCopyFront = front;
+		gPartialCopyY = 0;
+		gLastPresentMs = now;
+		return;
 	}
 
-	D3D11_MAP mapType = wantSplitFull ? D3D11_MAP_WRITE
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	D3D11_MAP mapType = wantChunk ? D3D11_MAP_WRITE
 		: (uploadFull ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE);
 	HRESULT hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
 	if (FAILED(hr) && mapType == D3D11_MAP_WRITE)
 	{
-		if (continuingPartial || wantSplitFull)
-			return; /* never DISCARD mid split / large full — retry WRITE next frame */
-		/* Small full upload only — DISCARD is acceptable. */
+		if (continuingPartial)
+			return; /* keep prior rows; retry WRITE next frame */
+		/* Fall back to one-shot DISCARD (also covers first-paint safety). */
 		mapType = D3D11_MAP_WRITE_DISCARD;
 		uploadFull = true;
+		gStagingReady = false;
+		gPartialCopySeq = 0;
+		gPartialCopyY = 0;
 		hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
 	}
 	if (FAILED(hr))
@@ -1362,15 +1361,9 @@ void WikiBrowser::PresentFrame()
 		gContext->Unmap(gTex, 0);
 		return;
 	}
-	const bool canSplit = (mapType == D3D11_MAP_WRITE) && gStagingReady && wantSplitFull;
-	if (mapType == D3D11_MAP_WRITE_DISCARD)
-	{
-		uploadFull = true;
-		gStagingReady = false;
-	}
 
 	bool copyComplete = true;
-	if (uploadFull && canSplit)
+	if (wantChunk && mapType == D3D11_MAP_WRITE && gStagingReady)
 	{
 		const uint32_t endY = gPartialCopyY + rowBudget;
 		const uint32_t y1 = endY < h ? endY : h;
