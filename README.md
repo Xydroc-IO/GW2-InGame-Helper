@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.39` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.45` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -26,6 +26,13 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
+| Legendary Weapons (hub + all Gen 1–3 wiki pages + Gen 3 Variants) | Wiki |
+| Cosmetic Infusions (per-infusion wiki pages + Guildjen how-to) | Wiki |
+| Lifestyle (Fishing, Jade Bot, Skiff, Home Instance, Homestead) | Wiki |
+| Crafting (disciplines + related wiki pages) | Wiki |
+| Food + Ascended Food + Utility (by attribute) · Minis (by wiki subsections) | Wiki |
+| Utility (utility item hubs) | Wiki |
+| Upgrades (Superior Runes, Relics, Superior Sigils) | Wiki |
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
 | [Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
 | [SC Raid Builds](https://snowcrows.com/builds/raids) | Builds |
@@ -90,7 +97,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Rifts & Convergences](https://guildjen.com/rift-hunting-and-convergences-guide/) | Guides |
 | Guildjen Achievements (LW / HoT / PoF / EoD / SotO / JW / VoE / Festivals / Side Stories) | Guides |
 | Guildjen Jumping Puzzles (hub + all JP guides) | Guides |
-| Cosmetic Infusions (wiki list + Guildjen how-to, nested by acquisition) | Guides |
+| Crafting guides ([GW2 Crafts](https://gw2crafts.net/) Normal / Fast / 400-500 / Special) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |

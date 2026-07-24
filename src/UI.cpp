@@ -280,9 +280,8 @@ namespace
 				return "Achievements";
 			if (std::strcmp(id, "gj_jp_hub") == 0 || std::strncmp(id, "gj_jp_", 6) == 0)
 				return "Jumping Puzzles";
-			if (std::strcmp(id, "wiki_cosmetic_infusions") == 0 ||
-				std::strcmp(id, "gj_infusion_hub") == 0 || std::strncmp(id, "gj_infusion_", 12) == 0)
-				return "Cosmetic Infusions";
+			if (std::strcmp(id, "crafts_hub") == 0 || std::strncmp(id, "crafts_", 7) == 0)
+				return "Crafting";
 			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0 ||
 				std::strcmp(id, "gw2tldr_fractals") == 0 || std::strcmp(id, "gw2tldr_dungeons") == 0)
 				return "TLDR";
@@ -346,6 +345,29 @@ namespace
 				return "News";
 			if (std::strcmp(id, "wiki_legendaries") == 0 || std::strcmp(id, "wiki_mounts") == 0)
 				return "Collections";
+			if (std::strcmp(id, "wiki_leg_hub") == 0 || std::strncmp(id, "wiki_leg_", 9) == 0)
+				return "Legendary Weapons";
+			if (std::strcmp(id, "wiki_cosmetic_infusions") == 0 ||
+				std::strcmp(id, "gj_infusion_hub") == 0 || std::strncmp(id, "gj_infusion_", 12) == 0)
+				return "Cosmetic Infusions";
+			if (std::strncmp(id, "wiki_life_", 10) == 0)
+				return "Lifestyle";
+			if (std::strcmp(id, "wiki_craft_hub") == 0 || std::strncmp(id, "wiki_craft_", 11) == 0)
+				return "Crafting";
+			if (std::strcmp(id, "wiki_food_hub") == 0 || std::strncmp(id, "wiki_food_", 10) == 0)
+				return "Food";
+			if (std::strncmp(id, "wiki_util_", 10) == 0)
+				return "Utility";
+			if (std::strcmp(id, "wiki_mini_hub") == 0 || std::strncmp(id, "wiki_mini_", 10) == 0)
+				return "Minis";
+			if (std::strcmp(id, "wiki_rune_hub") == 0 || std::strncmp(id, "wiki_rune_", 10) == 0 ||
+				std::strcmp(id, "wiki_relic_hub") == 0 || std::strcmp(id, "wiki_relic_legendary") == 0 ||
+				std::strncmp(id, "wiki_relic_", 11) == 0 ||
+				std::strcmp(id, "wiki_sigil_hub") == 0 || std::strncmp(id, "wiki_sigil_", 11) == 0)
+				return "Upgrades";
+			if (std::strcmp(id, "wiki_afood_hub") == 0 || std::strcmp(id, "wiki_afood_gourmet") == 0 ||
+				std::strncmp(id, "wiki_afood_", 11) == 0)
+				return "Ascended Food";
 			if (std::strcmp(id, "wiki_vault_easy") == 0)
 				return "Wizards Vault";
 			return "Other";
@@ -401,7 +423,7 @@ namespace
 			static const char* kSec[] = {
 				"Living World", "Progress", "Mounts", "Fractals", "Raids",
 				"Strikes", "Rifts", "PvP", "WvW", "Achievements",
-				"Jumping Puzzles", "Cosmetic Infusions", "TLDR", "Other"
+				"Jumping Puzzles", "Crafting", "TLDR", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
@@ -430,7 +452,11 @@ namespace
 		}
 		if (std::strcmp(category, "Wiki") == 0)
 		{
-			static const char* kSec[] = { "Main", "News", "Collections", "Wizards Vault", "Other" };
+			static const char* kSec[] = {
+				"Main", "News", "Collections", "Legendary Weapons",
+				"Cosmetic Infusions", "Lifestyle", "Crafting", "Food", "Ascended Food",
+				"Utility", "Minis", "Upgrades", "Wizards Vault", "Other"
+			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
@@ -549,7 +575,7 @@ namespace
 		return nullptr;
 	}
 
-	/* Acquisition subsection under Guides → Cosmetic Infusions (nullptr = hub). */
+	/* Acquisition subsection under Wiki → Cosmetic Infusions (nullptr = hub). */
 	const char* InfusionSub(const char* id)
 	{
 		if (!id || !id[0])
@@ -569,6 +595,204 @@ namespace
 			return "Festival";
 		if (std::strncmp(id, "gj_infusion_wvw_", 16) == 0)
 			return "WvW";
+		return nullptr;
+	}
+
+	/* Generation subsection under Wiki → Legendary Weapons (nullptr = hub). */
+	const char* LegendaryWeaponSub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "wiki_leg_hub") == 0)
+			return nullptr;
+		if (std::strncmp(id, "wiki_leg_g3v_", 13) == 0)
+			return "Generation 3 Variants";
+		if (std::strncmp(id, "wiki_leg_g1_", 12) == 0)
+			return "Generation 1";
+		if (std::strncmp(id, "wiki_leg_g2_", 12) == 0)
+			return "Generation 2";
+		if (std::strncmp(id, "wiki_leg_g3_", 12) == 0)
+			return "Generation 3";
+		if (std::strncmp(id, "wiki_leg_g4_", 12) == 0)
+			return "Generation 4";
+		return nullptr;
+	}
+
+	/* Dragon set under Wiki → Legendary Weapons → Generation 3 Variants. */
+	const char* Gen3VariantDragon(const char* id)
+	{
+		if (!id || std::strncmp(id, "wiki_leg_g3v_", 13) != 0)
+			return nullptr;
+		if (std::strncmp(id, "wiki_leg_g3v_hub_", 17) == 0 ||
+			std::strncmp(id, "wiki_leg_g3v_facet_", 19) == 0)
+			return nullptr; /* overview rows drawn before dragon subs */
+		if (std::strncmp(id, "wiki_leg_g3v_zhaitan_", 21) == 0)
+			return "Zhaitan";
+		if (std::strncmp(id, "wiki_leg_g3v_mordremoth_", 24) == 0)
+			return "Mordremoth";
+		if (std::strncmp(id, "wiki_leg_g3v_kralkatorrik_", 26) == 0)
+			return "Kralkatorrik";
+		if (std::strncmp(id, "wiki_leg_g3v_jormag_", 20) == 0)
+			return "Jormag";
+		if (std::strncmp(id, "wiki_leg_g3v_primordus_", 23) == 0)
+			return "Primordus";
+		if (std::strncmp(id, "wiki_leg_g3v_soo_won_", 21) == 0)
+			return "Soo-Won";
+		return nullptr;
+	}
+
+	/* Subsection under Wiki → Upgrades. */
+	const char* UpgradesSub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "wiki_rune_hub") == 0 || std::strncmp(id, "wiki_rune_", 10) == 0)
+			return "Superior Runes";
+		if (std::strcmp(id, "wiki_relic_hub") == 0 || std::strcmp(id, "wiki_relic_legendary") == 0 ||
+			std::strncmp(id, "wiki_relic_", 11) == 0)
+			return "Relics";
+		if (std::strcmp(id, "wiki_sigil_hub") == 0 || std::strncmp(id, "wiki_sigil_", 11) == 0)
+			return "Superior Sigils";
+		return nullptr;
+	}
+
+	/* Subsection under Wiki → Crafting (nullptr = hub). */
+	const char* WikiCraftingSub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "wiki_craft_hub") == 0)
+			return nullptr;
+		if (std::strncmp(id, "wiki_craft_disc_", 16) == 0)
+			return "Disciplines";
+		if (std::strncmp(id, "wiki_craft_rel_", 15) == 0)
+			return "Related";
+		return nullptr;
+	}
+
+	/* Attribute subsection under Wiki → Food / Ascended Food / Utility (nullptr = hub). */
+	const char* FoodAttrSub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "wiki_food_hub") == 0 ||
+			std::strcmp(id, "wiki_afood_hub") == 0 ||
+			std::strcmp(id, "wiki_afood_gourmet") == 0 ||
+			std::strcmp(id, "wiki_util_hub") == 0 ||
+			std::strcmp(id, "wiki_util_list") == 0 ||
+			std::strcmp(id, "wiki_util_enhancement") == 0 ||
+			std::strcmp(id, "wiki_util_slayer") == 0 ||
+			std::strcmp(id, "wiki_util_lw_exp") == 0 ||
+			std::strcmp(id, "wiki_util_festival") == 0)
+			return nullptr;
+		const char* p = nullptr;
+		if (std::strncmp(id, "wiki_food_", 10) == 0)
+			p = id + 10;
+		else if (std::strncmp(id, "wiki_afood_", 11) == 0)
+			p = id + 11;
+		else if (std::strncmp(id, "wiki_util_", 10) == 0)
+			p = id + 10;
+		else
+			return nullptr;
+		if (std::strncmp(p, "power_", 6) == 0)
+			return "Power";
+		if (std::strncmp(p, "precision_", 10) == 0)
+			return "Precision";
+		if (std::strncmp(p, "toughness_", 10) == 0)
+			return "Toughness";
+		if (std::strncmp(p, "vitality_", 9) == 0)
+			return "Vitality";
+		if (std::strncmp(p, "concentration_", 14) == 0)
+			return "Concentration";
+		if (std::strncmp(p, "condition_damage_", 17) == 0)
+			return "Condition Damage";
+		if (std::strncmp(p, "expertise_", 10) == 0)
+			return "Expertise";
+		if (std::strncmp(p, "ferocity_", 9) == 0)
+			return "Ferocity";
+		if (std::strncmp(p, "healing_power_", 14) == 0)
+			return "Healing Power";
+		if (std::strncmp(p, "all_attributes_", 15) == 0)
+			return "All Attributes";
+		if (std::strncmp(p, "other_", 6) == 0)
+			return "Other";
+		return nullptr;
+	}
+
+	/* Subsection under Wiki → Minis (nullptr = hub). */
+	const char* MinisSub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "wiki_mini_hub") == 0)
+			return nullptr;
+		if (std::strncmp(id, "wiki_mini_", 10) != 0)
+			return nullptr;
+		const char* p = id + 10;
+		if (std::strncmp(p, "sets_", 5) == 0)
+			return "Sets 1 to 3";
+		if (std::strncmp(p, "core_", 5) == 0)
+			return "Core";
+		if (std::strncmp(p, "pvp_", 4) == 0)
+			return "PvP";
+		if (std::strncmp(p, "wvw_", 4) == 0)
+			return "WvW";
+		if (std::strncmp(p, "hot_", 4) == 0)
+			return "Heart of Thorns";
+		if (std::strncmp(p, "raids_", 6) == 0)
+			return "Raids";
+		if (std::strncmp(p, "lws3_", 5) == 0)
+			return "Living World Season 3";
+		if (std::strncmp(p, "pof_", 4) == 0)
+			return "Path of Fire";
+		if (std::strncmp(p, "lws4_", 5) == 0)
+			return "Living World Season 4";
+		if (std::strncmp(p, "ibs_", 4) == 0)
+			return "The Icebrood Saga";
+		if (std::strncmp(p, "eod_", 4) == 0)
+			return "End of Dragons";
+		if (std::strncmp(p, "soto_", 5) == 0)
+			return "Secrets of the Obscure";
+		if (std::strncmp(p, "jw_", 3) == 0)
+			return "Janthir Wilds";
+		if (std::strncmp(p, "voe_", 4) == 0)
+			return "Visions of Eternity";
+		if (std::strncmp(p, "fest_lny_", 9) == 0)
+			return "Festival Minis - Lunar New Year";
+		if (std::strncmp(p, "fest_sab_", 9) == 0)
+			return "Festival Minis - Super Adventure Box";
+		if (std::strncmp(p, "fest_db_", 8) == 0)
+			return "Festival Minis - Dragon Bash";
+		if (std::strncmp(p, "fest_ffw_", 9) == 0)
+			return "Festival Minis - Festival of the Four Winds";
+		if (std::strncmp(p, "fest_hw_", 8) == 0)
+			return "Festival Minis - Halloween";
+		if (std::strncmp(p, "fest_ws_", 8) == 0)
+			return "Festival Minis - Wintersday";
+		if (std::strncmp(p, "gem_", 4) == 0)
+			return "Gem Store/Black Lion";
+		if (std::strncmp(p, "promo_", 6) == 0)
+			return "Promotional Minis";
+		if (std::strncmp(p, "unavailable_", 12) == 0)
+			return "Unavailable";
+		return nullptr;
+	}
+
+	/* Subsection under Guides → Crafting (nullptr = hub). */
+	const char* GuidesCraftingSub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "crafts_hub") == 0)
+			return nullptr;
+		if (std::strncmp(id, "crafts_n_", 9) == 0)
+			return "Normal Guides";
+		if (std::strncmp(id, "crafts_f_", 9) == 0)
+			return "Fast Guides";
+		if (std::strncmp(id, "crafts_400_", 11) == 0)
+			return "400-500";
+		if (std::strncmp(id, "crafts_s_", 9) == 0)
+			return "Special";
 		return nullptr;
 	}
 
@@ -1116,6 +1340,107 @@ namespace
 						ImGui::Unindent(10.f);
 						continue;
 					}
+					if (std::strcmp(section, "Legendary Weapons") == 0)
+					{
+						static const char* kLegSubs[] = {
+							"Generation 1", "Generation 2", "Generation 3",
+							"Generation 3 Variants", "Generation 4"
+						};
+						static const char* kDragons[] = {
+							"Zhaitan", "Mordremoth", "Kralkatorrik",
+							"Jormag", "Primordus", "Soo-Won"
+						};
+						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						{
+							const SiteDef& site = sites[i];
+							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+								continue;
+							const char* sec = BrowseSection(selectedCat, site.id);
+							if (!sec || std::strcmp(sec, "Legendary Weapons") != 0)
+								continue;
+							if (LegendaryWeaponSub(site.id))
+								continue;
+							DrawSiteRow(i, false);
+						}
+						ImGui::Indent(10.f);
+						for (const char* sub : kLegSubs)
+						{
+							int subCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = LegendaryWeaponSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
+							}
+							if (subCount == 0)
+								continue;
+							if (!BeginBrowseSection("Legendary Weapons", sub, subCount))
+								continue;
+
+							if (std::strcmp(sub, "Generation 3 Variants") == 0)
+							{
+								/* Variant set hubs + facet collections, then per-dragon skins. */
+								for (int i = 0; i < static_cast<int>(siteCount); ++i)
+								{
+									const SiteDef& site = sites[i];
+									if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+										continue;
+									const char* s = LegendaryWeaponSub(site.id);
+									if (!s || std::strcmp(s, "Generation 3 Variants") != 0)
+										continue;
+									if (Gen3VariantDragon(site.id))
+										continue;
+									DrawSiteRow(i, false);
+								}
+								ImGui::Indent(10.f);
+								for (const char* dragon : kDragons)
+								{
+									int dragonCount = 0;
+									for (int i = 0; i < static_cast<int>(siteCount); ++i)
+									{
+										const SiteDef& site = sites[i];
+										if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+											continue;
+										const char* d = Gen3VariantDragon(site.id);
+										if (d && std::strcmp(d, dragon) == 0)
+											++dragonCount;
+									}
+									if (dragonCount == 0)
+										continue;
+									if (!BeginBrowseSection("Generation 3 Variants", dragon, dragonCount))
+										continue;
+									for (int i = 0; i < static_cast<int>(siteCount); ++i)
+									{
+										const SiteDef& site = sites[i];
+										if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+											continue;
+										const char* d = Gen3VariantDragon(site.id);
+										if (!d || std::strcmp(d, dragon) != 0)
+											continue;
+										DrawSiteRow(i, false);
+									}
+								}
+								ImGui::Unindent(10.f);
+								continue;
+							}
+
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = LegendaryWeaponSub(site.id);
+								if (!s || std::strcmp(s, sub) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
 					if (std::strcmp(section, "Cosmetic Infusions") == 0)
 					{
 						static const char* kInfSubs[] = {
@@ -1157,6 +1482,254 @@ namespace
 								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
 									continue;
 								const char* s = InfusionSub(site.id);
+								if (!s || std::strcmp(s, sub) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
+					if (std::strcmp(section, "Crafting") == 0 &&
+						std::strcmp(selectedCat, "Wiki") == 0)
+					{
+						static const char* kCraftSubs[] = { "Disciplines", "Related" };
+						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						{
+							const SiteDef& site = sites[i];
+							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+								continue;
+							const char* sec = BrowseSection(selectedCat, site.id);
+							if (!sec || std::strcmp(sec, "Crafting") != 0)
+								continue;
+							if (WikiCraftingSub(site.id))
+								continue;
+							DrawSiteRow(i, false);
+						}
+						ImGui::Indent(10.f);
+						for (const char* sub : kCraftSubs)
+						{
+							int subCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = WikiCraftingSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
+							}
+							if (subCount == 0)
+								continue;
+							if (!BeginBrowseSection("Crafting", sub, subCount))
+								continue;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = WikiCraftingSub(site.id);
+								if (!s || std::strcmp(s, sub) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
+					if (std::strcmp(section, "Crafting") == 0 &&
+						std::strcmp(selectedCat, "Guides") == 0)
+					{
+						static const char* kCraftSubs[] = {
+							"Normal Guides", "Fast Guides", "400-500", "Special"
+						};
+						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						{
+							const SiteDef& site = sites[i];
+							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+								continue;
+							const char* sec = BrowseSection(selectedCat, site.id);
+							if (!sec || std::strcmp(sec, "Crafting") != 0)
+								continue;
+							if (GuidesCraftingSub(site.id))
+								continue;
+							DrawSiteRow(i, false);
+						}
+						ImGui::Indent(10.f);
+						for (const char* sub : kCraftSubs)
+						{
+							int subCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = GuidesCraftingSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
+							}
+							if (subCount == 0)
+								continue;
+							if (!BeginBrowseSection("Crafting", sub, subCount))
+								continue;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = GuidesCraftingSub(site.id);
+								if (!s || std::strcmp(s, sub) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
+					if (std::strcmp(section, "Upgrades") == 0)
+					{
+						static const char* kUpgSubs[] = {
+							"Superior Runes", "Relics", "Superior Sigils"
+						};
+						ImGui::Indent(10.f);
+						for (const char* sub : kUpgSubs)
+						{
+							int subCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = UpgradesSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
+							}
+							if (subCount == 0)
+								continue;
+							if (!BeginBrowseSection("Upgrades", sub, subCount))
+								continue;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = UpgradesSub(site.id);
+								if (!s || std::strcmp(s, sub) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
+					if (std::strcmp(section, "Food") == 0 ||
+						std::strcmp(section, "Ascended Food") == 0 ||
+						std::strcmp(section, "Utility") == 0)
+					{
+						static const char* kFoodAttrs[] = {
+							"Power", "Precision", "Toughness", "Vitality",
+							"Concentration", "Condition Damage", "Expertise",
+							"Ferocity", "Healing Power", "All Attributes", "Other"
+						};
+						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						{
+							const SiteDef& site = sites[i];
+							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+								continue;
+							const char* sec = BrowseSection(selectedCat, site.id);
+							if (!sec || std::strcmp(sec, section) != 0)
+								continue;
+							if (FoodAttrSub(site.id))
+								continue;
+							DrawSiteRow(i, false);
+						}
+						ImGui::Indent(10.f);
+						for (const char* sub : kFoodAttrs)
+						{
+							int subCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* sec = BrowseSection(selectedCat, site.id);
+								if (!sec || std::strcmp(sec, section) != 0)
+									continue;
+								const char* s = FoodAttrSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
+							}
+							if (subCount == 0)
+								continue;
+							if (!BeginBrowseSection(section, sub, subCount))
+								continue;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* sec = BrowseSection(selectedCat, site.id);
+								if (!sec || std::strcmp(sec, section) != 0)
+									continue;
+								const char* s = FoodAttrSub(site.id);
+								if (!s || std::strcmp(s, sub) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
+					if (std::strcmp(section, "Minis") == 0)
+					{
+						static const char* kMiniSubs[] = {
+							"Sets 1 to 3", "Core", "PvP", "WvW", "Heart of Thorns", "Raids",
+							"Living World Season 3", "Path of Fire", "Living World Season 4",
+							"The Icebrood Saga", "End of Dragons", "Secrets of the Obscure",
+							"Janthir Wilds", "Visions of Eternity",
+							"Festival Minis - Lunar New Year",
+							"Festival Minis - Super Adventure Box",
+							"Festival Minis - Dragon Bash",
+							"Festival Minis - Festival of the Four Winds",
+							"Festival Minis - Halloween",
+							"Festival Minis - Wintersday",
+							"Gem Store/Black Lion", "Promotional Minis", "Unavailable"
+						};
+						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						{
+							const SiteDef& site = sites[i];
+							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+								continue;
+							const char* sec = BrowseSection(selectedCat, site.id);
+							if (!sec || std::strcmp(sec, "Minis") != 0)
+								continue;
+							if (MinisSub(site.id))
+								continue;
+							DrawSiteRow(i, false);
+						}
+						ImGui::Indent(10.f);
+						for (const char* sub : kMiniSubs)
+						{
+							int subCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = MinisSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
+							}
+							if (subCount == 0)
+								continue;
+							if (!BeginBrowseSection("Minis", sub, subCount))
+								continue;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = MinisSub(site.id);
 								if (!s || std::strcmp(s, sub) != 0)
 									continue;
 								DrawSiteRow(i, false);
