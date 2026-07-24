@@ -170,17 +170,38 @@ namespace
 
 	std::string StripGradientColorSpaces(std::string css)
 	{
+		/* Only strip color-space from gradients — never from color-mix(in srgb, …). */
 		static const char* spaces[] = {
-			" in oklab", " in oklch", " in srgb", " in hsl", " in lab", " in xyz",
+			"oklab", "oklch", "srgb", "hsl", "lab", "xyz",
 		};
-		for (const char* sp : spaces)
+		for (const char* kind : {"linear-gradient(", "radial-gradient(", "conic-gradient("})
 		{
-			for (;;)
+			const size_t kindLen = std::strlen(kind);
+			size_t pos = 0;
+			while ((pos = css.find(kind, pos)) != std::string::npos)
 			{
-				const size_t pos = css.find(sp);
-				if (pos == std::string::npos)
-					break;
-				css.erase(pos, std::strlen(sp));
+				size_t i = pos + kindLen;
+				while (i < css.size() && (css[i] == ' ' || css[i] == '\t' || css[i] == '\n'))
+					++i;
+				if (i + 3 <= css.size() && css.compare(i, 3, "in ") == 0)
+				{
+					size_t sp = i + 3;
+					for (const char* space : spaces)
+					{
+						const size_t n = std::strlen(space);
+						if (css.compare(sp, n, space) == 0)
+						{
+							size_t end = sp + n;
+							while (end < css.size() && (css[end] == ' ' || css[end] == '\t'))
+								++end;
+							if (end < css.size() && css[end] == ',')
+								++end;
+							css.erase(i, end - i);
+							break;
+						}
+					}
+				}
+				pos += kindLen;
 			}
 		}
 		return css;
@@ -420,6 +441,81 @@ namespace
 		}
 		return out;
 	}
+
+	std::string RewriteDisplayP3(const std::string& css)
+	{
+		/* color(display-p3 R G B[/A]) with 0–1 channels → rgba (approx sRGB). */
+		std::string out;
+		out.reserve(css.size());
+		size_t i = 0;
+		const char* prefix = "color(display-p3";
+		const size_t plen = 16;
+		while (i < css.size())
+		{
+			if (css.compare(i, plen, prefix) == 0)
+			{
+				size_t depth = 0;
+				size_t j = i;
+				for (; j < css.size(); ++j)
+				{
+					if (css[j] == '(') ++depth;
+					else if (css[j] == ')')
+					{
+						--depth;
+						if (depth == 0) { ++j; break; }
+					}
+				}
+				const std::string full = css.substr(i, j - i);
+				/* color(display-p3 0 0 0/6%) or color(display-p3 1 1 1/.72) */
+				float r = 0.f, g = 0.f, b = 0.f, a = 1.f;
+				const size_t open = full.find('3'); /* end of p3 */
+				std::string body = full.substr(open + 1);
+				if (!body.empty() && body.back() == ')')
+					body.pop_back();
+				/* trim */
+				size_t a0 = 0, b0 = body.size();
+				while (a0 < b0 && (body[a0] == ' ' || body[a0] == '\t')) ++a0;
+				while (b0 > a0 && (body[b0 - 1] == ' ' || body[b0 - 1] == '\t')) --b0;
+				body = body.substr(a0, b0 - a0);
+				/* split alpha on last '/' */
+				std::string rgbPart = body;
+				std::string alphaPart;
+				const size_t slash = body.find_last_of('/');
+				if (slash != std::string::npos)
+				{
+					rgbPart = body.substr(0, slash);
+					alphaPart = body.substr(slash + 1);
+				}
+				float rv = 0, gv = 0, bv = 0;
+				if (std::sscanf(rgbPart.c_str(), "%f %f %f", &rv, &gv, &bv) == 3)
+				{
+					r = Clamp01(rv); g = Clamp01(gv); b = Clamp01(bv);
+					if (!alphaPart.empty())
+					{
+						size_t ap = 0;
+						bool apct = false;
+						float av = 1.f;
+						if (ParseNumber(alphaPart, ap, &av, &apct))
+							a = Clamp01(apct ? av * 0.01f : av);
+					}
+					char buf[64];
+					std::snprintf(buf, sizeof(buf), "rgba(%d,%d,%d,%g)",
+						static_cast<int>(std::lround(r * 255.f)),
+						static_cast<int>(std::lround(g * 255.f)),
+						static_cast<int>(std::lround(b * 255.f)),
+						static_cast<double>(a));
+					out += buf;
+					i = j;
+					continue;
+				}
+				out += full;
+				i = j;
+				continue;
+			}
+			out.push_back(css[i++]);
+		}
+		return out;
+	}
 }
 
 std::string DownlevelCss(const std::string& input)
@@ -431,7 +527,7 @@ std::string DownlevelCss(const std::string& input)
 		return input;
 
 	std::string css = ReplaceOklch(input);
-	css = StripGradientColorSpaces(std::move(css));
+	css = RewriteDisplayP3(css);
 	ReplaceAll(css, "@supports (color:color-mix(in lab,red,red))", "@supports (color:red)");
 	/* @property gradient tokens break on Chromium ≤110 — drop them. */
 	{
@@ -465,7 +561,80 @@ std::string DownlevelCss(const std::string& input)
 		}
 		css = std::move(stripped);
 	}
+	/* color-mix before stripping " in srgb" — otherwise Gemini vars stay invalid. */
 	const auto vars = CollectVars(css);
 	css = RewriteColorMix(css, vars);
+	css = StripGradientColorSpaces(std::move(css));
+	/* CEF 103: no dvh/dvw; Gemini dialogs use them. */
+	ReplaceAll(css, "dvh", "vh");
+	ReplaceAll(css, "dvw", "vw");
+	/* Flatten leftover nesting markers that Gemini emits as top-level selectors. */
+	ReplaceAll(css, " &", " ");
+	ReplaceAll(css, "&>", ">");
+	ReplaceAll(css, "&.", ".");
+	ReplaceAll(css, "&:", ":");
+	ReplaceAll(css, "&[", "[");
 	return css;
+}
+
+std::string DownlevelHtmlStyles(const std::string& html)
+{
+	if (html.empty())
+		return html;
+	std::string out;
+	out.reserve(html.size());
+	size_t i = 0;
+	while (i < html.size())
+	{
+		/* Case-insensitive <style ...> … </style> */
+		const size_t open = html.find("<style", i);
+		if (open == std::string::npos)
+		{
+			out.append(html, i, std::string::npos);
+			break;
+		}
+		/* Verify tag boundary */
+		size_t tagEnd = open + 6;
+		if (tagEnd < html.size() && html[tagEnd] != '>' && html[tagEnd] != ' ' &&
+			html[tagEnd] != '\t' && html[tagEnd] != '\n' && html[tagEnd] != '/')
+		{
+			out.append(html, i, open + 6 - i);
+			i = open + 6;
+			continue;
+		}
+		const size_t gt = html.find('>', open);
+		if (gt == std::string::npos)
+		{
+			out.append(html, i, std::string::npos);
+			break;
+		}
+		size_t close = html.find("</style", gt + 1);
+		if (close == std::string::npos)
+			close = html.find("</STYLE", gt + 1);
+		if (close == std::string::npos)
+		{
+			out.append(html, i, std::string::npos);
+			break;
+		}
+		const size_t closeGt = html.find('>', close);
+		if (closeGt == std::string::npos)
+		{
+			out.append(html, i, std::string::npos);
+			break;
+		}
+		out.append(html, i, gt + 1 - i);
+		const std::string css = html.substr(gt + 1, close - (gt + 1));
+		if (css.find("color-mix(") != std::string::npos ||
+			css.find("oklch(") != std::string::npos ||
+			css.find("@property") != std::string::npos ||
+			css.find("dvh") != std::string::npos ||
+			css.find("color(display") != std::string::npos ||
+			css.find(" &") != std::string::npos)
+			out += DownlevelCss(css);
+		else
+			out += css;
+		out.append(html, close, closeGt + 1 - close);
+		i = closeGt + 1;
+	}
+	return out;
 }
