@@ -1799,8 +1799,7 @@ namespace
 		ImGui::Separator();
 		ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
 		ImGui::TextUnformatted("Created by Xydroc");
-		ImGui::TextUnformatted("IGN - swift shadow kuda.5981");
-		ImGui::TextUnformatted("Discord Name - xydroc");
+		ImGui::TextUnformatted("IGN - swift shadow kuda.5981 | Discord Name - xydroc");
 		ImGui::PopStyleColor();
 	}
 
