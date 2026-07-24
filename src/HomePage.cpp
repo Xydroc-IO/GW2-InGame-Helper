@@ -405,8 +405,6 @@ const char* HomePage::Html()
         <p class="tagline">Wiki, builds, timers, guides, and Discords — without leaving Tyria.</p>
         <div class="rule" aria-hidden="true"></div>
         <div class="cta-row">
-          <span class="pill">Browse</span>
-          <span class="pill">Favorites</span>
           <span class="pill">Ctrl+Shift+H</span>
           <span class="pill">One DLL</span>
         </div>
