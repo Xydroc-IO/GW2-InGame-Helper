@@ -14,10 +14,12 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.23`
+`1.7.8.25`
 
 ## Changelog highlights
 
+- **1.7.8.25** — Raid Wings: Guildjen W1–W8 + hub / beginner guide (replaces MetaBattle wing pages)
+- **1.7.8.24** — Raid Boss: Snow Crows W1–W7 encounters (replaces Hardstuck); unblock Video.js CDN
 - **1.7.8.23** — Browse sections start collapsed; remember expanded state in settings
 - **1.7.8.22** — Raid Boss wings nested as collapsible subsections under Raid Boss
 - **1.7.8.21** — Hardstuck 10-Player / Squad / Envoy Armor under Raid Boss; ArcDPS under Tools

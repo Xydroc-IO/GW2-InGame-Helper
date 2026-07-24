@@ -248,18 +248,18 @@ namespace
 				std::strcmp(id, "mb_sunqua_peak") == 0 || std::strcmp(id, "mb_twilight_oasis") == 0 ||
 				std::strcmp(id, "mb_underground") == 0 || std::strcmp(id, "mukluk_fractals") == 0)
 				return "Fractals";
-			if (std::strcmp(id, "mb_intro_raiding") == 0 || std::strcmp(id, "mb_hand_kiting") == 0 ||
-				std::strcmp(id, "mb_rw1") == 0 || std::strcmp(id, "mb_rw2") == 0 ||
-				std::strcmp(id, "mb_rw3") == 0 || std::strcmp(id, "mb_rw4") == 0 ||
-				std::strcmp(id, "mb_rw5") == 0 || std::strcmp(id, "mb_rw6") == 0 ||
-				std::strcmp(id, "mb_rw7") == 0)
+			if (std::strcmp(id, "gj_raid_guides") == 0 || std::strcmp(id, "gj_intro_raiding") == 0 ||
+				std::strcmp(id, "gj_rw1") == 0 || std::strcmp(id, "gj_rw2") == 0 ||
+				std::strcmp(id, "gj_rw3") == 0 || std::strcmp(id, "gj_rw4") == 0 ||
+				std::strcmp(id, "gj_rw5") == 0 || std::strcmp(id, "gj_rw6") == 0 ||
+				std::strcmp(id, "gj_rw7") == 0 || std::strcmp(id, "gj_rw8") == 0)
 				return "Raid Wings";
-			if (std::strcmp(id, "hs_raids_hub") == 0 || std::strcmp(id, "hs_10player_content") == 0 ||
-				std::strcmp(id, "hs_squad_comp") == 0 || std::strcmp(id, "hs_envoy_armor") == 0 ||
-				std::strncmp(id, "hs_w1_", 6) == 0 || std::strncmp(id, "hs_w2_", 6) == 0 ||
-				std::strncmp(id, "hs_w3_", 6) == 0 || std::strncmp(id, "hs_w4_", 6) == 0 ||
-				std::strncmp(id, "hs_w5_", 6) == 0 || std::strncmp(id, "hs_w6_", 6) == 0 ||
-				std::strncmp(id, "hs_w7_", 6) == 0 || std::strncmp(id, "hs_w8_", 6) == 0)
+			if (std::strcmp(id, "sc_raids_hub") == 0 || std::strcmp(id, "sc_intro_squads") == 0 ||
+				std::strcmp(id, "sc_squad_roles") == 0 || std::strcmp(id, "sc_joining_squads") == 0 ||
+				std::strncmp(id, "sc_w1_", 6) == 0 || std::strncmp(id, "sc_w2_", 6) == 0 ||
+				std::strncmp(id, "sc_w3_", 6) == 0 || std::strncmp(id, "sc_w4_", 6) == 0 ||
+				std::strncmp(id, "sc_w5_", 6) == 0 || std::strncmp(id, "sc_w6_", 6) == 0 ||
+				std::strncmp(id, "sc_w7_", 6) == 0)
 				return "Raid Boss";
 			if (std::strcmp(id, "mb_mai_trin") == 0 || std::strcmp(id, "mb_boneskinner") == 0 ||
 				std::strcmp(id, "mb_cold_war") == 0 || std::strcmp(id, "mb_cosmic_obs") == 0 ||
@@ -470,22 +470,20 @@ namespace
 	{
 		if (!id || !id[0])
 			return nullptr;
-		if (std::strncmp(id, "hs_w1_", 6) == 0)
+		if (std::strncmp(id, "sc_w1_", 6) == 0)
 			return "W1 Spirit Vale";
-		if (std::strncmp(id, "hs_w2_", 6) == 0)
+		if (std::strncmp(id, "sc_w2_", 6) == 0)
 			return "W2 Salvation Pass";
-		if (std::strncmp(id, "hs_w3_", 6) == 0)
+		if (std::strncmp(id, "sc_w3_", 6) == 0)
 			return "W3 Stronghold";
-		if (std::strncmp(id, "hs_w4_", 6) == 0)
+		if (std::strncmp(id, "sc_w4_", 6) == 0)
 			return "W4 Bastion";
-		if (std::strncmp(id, "hs_w5_", 6) == 0)
+		if (std::strncmp(id, "sc_w5_", 6) == 0)
 			return "W5 Hall of Chains";
-		if (std::strncmp(id, "hs_w6_", 6) == 0)
+		if (std::strncmp(id, "sc_w6_", 6) == 0)
 			return "W6 Mythwright";
-		if (std::strncmp(id, "hs_w7_", 6) == 0)
+		if (std::strncmp(id, "sc_w7_", 6) == 0)
 			return "W7 Ahdashim";
-		if (std::strncmp(id, "hs_w8_", 6) == 0)
-			return "W8 Mount Balrior";
 		return nullptr;
 	}
 
@@ -951,7 +949,7 @@ namespace
 					{
 						static const char* kWings[] = {
 							"W1 Spirit Vale", "W2 Salvation Pass", "W3 Stronghold", "W4 Bastion",
-							"W5 Hall of Chains", "W6 Mythwright", "W7 Ahdashim", "W8 Mount Balrior"
+							"W5 Hall of Chains", "W6 Mythwright", "W7 Ahdashim"
 						};
 						for (int i = 0; i < static_cast<int>(siteCount); ++i)
 						{
