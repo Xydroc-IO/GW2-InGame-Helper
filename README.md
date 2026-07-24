@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `2.0.0.2` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.0.3` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -26,7 +26,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
-| Legendary Weapons (hub + all Gen 1–3 wiki pages + Gen 3 Variants) | Wiki |
+| Legendary Armory (Armor / Weapons / Accessory / Amulet / Rings / Back / Upgrade Components) | Wiki |
 | Cosmetic Infusions (per-infusion wiki pages + Guildjen how-to) | Wiki |
 | Lifestyle (Fishing, Jade Bot, Skiff, Home Instance, Homestead) | Wiki |
 | Crafting (disciplines + related wiki pages) | Wiki |
@@ -113,7 +113,11 @@ Works on Windows and on Linux via Wine/Proton.
 
 Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
-## What’s new (2.0.0.2)
+## What’s new (2.0.0.3)
+
+**2.0.0.3**
+- Audit: defer helper launch off the render thread; split large GPU frame uploads; cache Browse filter / Food / Minis; serialize GW2 API armory fetches with 429 backoff
+- Wiki Browse: Legendary Armory section (armor, weapons, trinkets, back items, legendary upgrades)
 
 **2.0.0.2**
 - Keep-warm close no longer wakes CEF every frame; Options default-site no longer force-saves on the UI thread

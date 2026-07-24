@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.2`
+`2.0.0.3`
 
 ## Changelog highlights
 
+- **2.0.0.3** — Defer helper CreateProcess off RT_Render; split full-frame GPU uploads; Browse filter/Food/Minis caches; BootJs armory rate-limit; Legendary Armory wiki nesting
 - **2.0.0.2** — Fix keep-warm SET_VISIBLE spam; Options default-site debounced save; gentler URL warm
 - **2.0.0.1** — Browse: compact 1080p sizing; anchored non-movable dropdown under Browse / +
 - **2.0.0.0** — IPC v5 multi-client; graceful quit; non-blocking URL warm; deferred settings; dirty-rect present

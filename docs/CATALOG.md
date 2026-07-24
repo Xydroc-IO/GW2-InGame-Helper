@@ -48,15 +48,23 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 - **Legendaries** — [https://wiki.guildwars2.com/wiki/Legendary_equipment](https://wiki.guildwars2.com/wiki/Legendary_equipment)
 - **Mounts** — [https://wiki.guildwars2.com/wiki/Mount](https://wiki.guildwars2.com/wiki/Mount)
 
-### Legendary Weapons
+### Legendary Armory
 
-All legendary weapons from the [GW2 Wiki table](https://wiki.guildwars2.com/wiki/Legendary_weapon), nested by generation.
+Legendary equipment nested under [Legendary Armory](https://wiki.guildwars2.com/wiki/Legendary_Armory):
 
-- **Legendary Weapons Hub** — [https://wiki.guildwars2.com/wiki/Legendary_weapon](https://wiki.guildwars2.com/wiki/Legendary_weapon)
-- **Generation 1 (21):** Frostfang, Incinerator, The Moot, Quip, Meteorlogicus, Bolt, The Minstrel, The Flameseeker Prophecies, Rodgort, Howler, Sunrise, Twilight, Eternity, The Juggernaut, Kudzu, The Predator, The Dreamer, The Bifrost, Frenzy, Kamohoali'i Kotaki, Kraitkin
-- **Generation 2 (16):** Astralaria, Claw of the Khan-Ur, Eureka, HOPE, Xiuquatl, The Shining Blade, The Binding of Ipos, Shooshadoo, Flames of War, Verdarach, Exordium, Sharur, Pharus, The HMS Divinity, Chuka and Champawat, Nevermore
-- **Generation 3 (18):** Aurene's set (16), Klobjarne Geirr, Ancora Bellum
-- **Generation 3 Variants:** Zhaitan / Mordremoth / Kralkatorrik / Jormag / Primordus / Soo-Won set hubs, Facet collections, and all 96 variant skins
+- **Legendary Armory Hub** — [https://wiki.guildwars2.com/wiki/Legendary_Armory](https://wiki.guildwars2.com/wiki/Legendary_Armory)
+- **Legendary Armor:** Obsidian, Suffused Obsidian, Perfected Envoy, Ardent Glorious, Glorious Hero's, Mistforged Glorious, Triumphant Hero's, Mistforged Triumphant, Eikasia, Selachimorpha
+- **Legendary Weapons:** all weapons from the [GW2 Wiki table](https://wiki.guildwars2.com/wiki/Legendary_weapon), nested by generation
+  - **Generation 1 (21):** Frostfang, Incinerator, The Moot, Quip, Meteorlogicus, Bolt, The Minstrel, The Flameseeker Prophecies, Rodgort, Howler, Sunrise, Twilight, Eternity, The Juggernaut, Kudzu, The Predator, The Dreamer, The Bifrost, Frenzy, Kamohoali'i Kotaki, Kraitkin
+  - **Generation 2 (16):** Astralaria, Claw of the Khan-Ur, Eureka, HOPE, Xiuquatl, The Shining Blade, The Binding of Ipos, Shooshadoo, Flames of War, Verdarach, Exordium, Sharur, Pharus, The HMS Divinity, Chuka and Champawat, Nevermore
+  - **Generation 3 (18):** Aurene's set (16), Klobjarne Geirr, Ancora Bellum
+  - **Generation 3 Variants:** Zhaitan / Mordremoth / Kralkatorrik / Jormag / Primordus / Soo-Won set hubs, Facet collections, and all 96 variant skins
+  - **Generation 4:** as listed on the wiki
+- **Legendary Accessory:** Aurora, Vision, Stella Radians, Strife Unending
+- **Legendary Amulet:** Transcendence, Prismatic Champion's Regalia
+- **Legendary Rings:** Coalescence, Conflux, Endless Summer
+- **Legendary Back Items:** Ad Infinitum, The Ascension, Warbringer, Orrax Manifested
+- **Legendary Upgrade Components:** Legendary Rune, Legendary Sigil, Legendary Relic
 
 ### Cosmetic Infusions
 
@@ -114,7 +122,7 @@ All miniatures from [Miniature](https://wiki.guildwars2.com/wiki/Miniature), nes
 Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 
 - **Superior Runes:** Rune hub + all Superior Rune of … pages (~99)
-- **Relics:** Relic hub, Legendary Relic, + all Relic of … pages (~113)
+- **Relics:** Relic hub + all Relic of … pages (~113)
 - **Superior Sigils:** Sigil hub + all Superior Sigil of … pages (~81)
 
 ## Builds

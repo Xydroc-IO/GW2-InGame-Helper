@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.2
+# GW2 In-Game Helper v2.0.0.3
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,19 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.3
+
+Engine / Browse audit follow-up:
+
+- **Launch:** `CreateProcess` / helper extract deferred to `WikiBrowser::Tick` — no longer blocks `RT_Render` on first open
+- **Present:** Large full-frame GPU uploads split across frames (~180 rows / tick) when `Map(WRITE)` is available
+- **Input:** Full IPC input ring drops oldest events instead of newest (paste / fast typing)
+- **Browse:** Filter matches and Food / Minis section buckets are cached (no per-frame rebuild)
+- **URL warm:** 32 sites/frame while the overlay is open; 64 when closed
+- **BootJs:** Snow Crows armory API fetches are serialized with HTTP 429 backoff
+- **Wiki:** Legendary Armory nesting — armor, weapons (by gen), accessories, amulet, rings, back items, legendary upgrades
+- **How to use:** Homepage cache stamp `203`
 
 ## What’s new in 2.0.0.2
 
