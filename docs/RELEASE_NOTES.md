@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.0
+# GW2 In-Game Helper v2.0.0.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,11 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.1
+
+- **Browse:** Smaller display-scaled picker (~540×370 on 1080p) so it no longer eats half the screen
+- **Browse:** Anchored dropdown under Browse / + / default-site (no move, no resize) — stays with the helper window
 
 ## What’s new in 2.0.0.0
 

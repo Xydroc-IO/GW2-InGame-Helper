@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.0`
+`2.0.0.1`
 
 ## Changelog highlights
 
+- **2.0.0.1** — Browse: compact 1080p sizing; anchored non-movable dropdown under Browse / +
 - **2.0.0.0** — IPC v5 multi-client; graceful quit; non-blocking URL warm; deferred settings; dirty-rect present
 - **1.7.8.53** — Browse display-scaled popup; first-open ~30% window size
 - **1.7.8.52** — Browse credit footer: Created by Xydroc; IGN | Discord on one line
