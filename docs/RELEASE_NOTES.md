@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.47
+# GW2 In-Game Helper v1.7.8.48
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,13 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.48
+
+- **Load:** Warm URL-match indexes at addon init (no first-navigate hitch)
+- **Navigate:** Host→site map for `BestMatchForUrl` (only candidates on the same host)
+- **Present:** ~30 FPS GPU upload when idle (>500 ms without input); 60 FPS while interacting
+- **Status:** `StatusCStr` uses strcmp vs cache (no per-frame hash walk)
 
 ## What’s new in 1.7.8.47
 
