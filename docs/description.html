@@ -95,12 +95,14 @@
 
       <h2>What’s new in 1.7.8.31</h2>
       <ul>
-        <li><strong>Fix:</strong> Browser no longer stuck on “Starting…” / “Loading browser…” (ready flag gated tab create)</li>
+        <li><strong>Fix:</strong> Browser no longer stuck on “Starting…” / “Loading browser…” (audit ready-after-browser deadlocked tab create)</li>
       </ul>
 
       <h2>What’s new in 1.7.8.30</h2>
       <ul>
-        <li><strong>Perf / stability:</strong> Browser present and CEF OSR at ~60 FPS; throttled mouse wakes; tab command retry; safer frame IPC; BootJs observers debounced</li>
+        <li><strong>Audit — present / input:</strong> Overlay present + CEF OSR ~60 FPS; mouse-move wakes throttled</li>
+        <li><strong>Audit — IPC:</strong> Retry CREATE/ACTIVATE/CLOSE when the command ring is full; frame publish memory barriers</li>
+        <li><strong>Audit — helper / BootJs:</strong> Softer close; calmer idle; BootJs inject once; observers debounced; armory response cache</li>
       </ul>
 
       <h2>What’s new in 1.7.8.29</h2>

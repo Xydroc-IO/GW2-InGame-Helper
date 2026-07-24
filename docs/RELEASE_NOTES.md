@@ -18,11 +18,17 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ## What’s new in 1.7.8.31
 
-- **Helper:** Fix stuck “Starting…” — mark IPC ready when the helper can accept `CREATE_TAB` (waiting for the first browser deadlocked tab sync)
+- **Helper:** Fix stuck “Starting…” / “Loading browser…” — IPC `ready` when the helper can accept `CREATE_TAB` (the 1.7.8.30 audit deferred ready until the first browser, which deadlocked tab sync)
 
 ## What’s new in 1.7.8.30
 
-- **Perf/stability:** Throttle frame present + mouse wakes (~60 FPS); CEF OSR at 60 FPS; tab-cmd retry queue; frame IPC barriers; softer close; BootJs MutationObservers debounced; single BootJs inject
+Render / IPC / BootJs **audit** fixes (less host hitching, safer tab IPC):
+
+- **Present:** Cap overlay frame upload at ~60 FPS (16 ms); CEF OSR `windowless_frame_rate` 60
+- **Input:** Throttle mouse-move wakes to the helper (~30 Hz)
+- **IPC:** Retry queue for CREATE / ACTIVATE / CLOSE when the command ring is full; `MemoryBarrier` on frame publish
+- **Helper:** Softer close (no 50 ms wait on the render thread); visible idle 8 ms (was 1 ms busy-wait)
+- **BootJs:** Inject once per load (`OnLoadEnd` only); MutationObservers debounced 100 ms; armory API response cache
 
 ## What’s new in 1.7.8.29
 
