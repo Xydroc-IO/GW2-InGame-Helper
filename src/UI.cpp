@@ -615,7 +615,11 @@ namespace
 		return nullptr;
 	}
 
-	/* Subsection under Wiki → Legendary Armory (nullptr = armory hub). */
+	/* Subsection under Wiki → Legendary Armory (nullptr = armory hub).
+	   Exclusive id prefixes (do not overlap with Upgrades wiki_relic_/wiki_rune_/wiki_sigil_):
+	     wiki_larmory_  wiki_larmor_  wiki_leg_  wiki_laccessory_
+	     wiki_lamulet_  wiki_lring_   wiki_lback_ wiki_lrune_
+	     wiki_lsigil_   wiki_lrelic_  */
 	const char* LegendaryArmorySub(const char* id)
 	{
 		if (!id || !id[0])
@@ -1368,16 +1372,23 @@ namespace
 
 		if (showFavorites)
 		{
-			std::vector<int> favIdx;
-			const int favN = Sites::FavoriteCount();
-			favIdx.reserve(static_cast<size_t>(favN));
-			for (int f = 0; f < favN; ++f)
+			static unsigned sFavGen = 0;
+			static std::vector<int> sFavIdx;
+			const unsigned gen = Sites::FavoritesGeneration();
+			if (sFavGen != gen)
 			{
-				const int si = Sites::FavoriteSiteIndex(f);
-				if (si >= 0)
-					favIdx.push_back(si);
+				sFavGen = gen;
+				sFavIdx.clear();
+				const int favN = Sites::FavoriteCount();
+				sFavIdx.reserve(static_cast<size_t>(favN));
+				for (int f = 0; f < favN; ++f)
+				{
+					const int si = Sites::FavoriteSiteIndex(f);
+					if (si >= 0)
+						sFavIdx.push_back(si);
+				}
 			}
-			DrawClippedRows(favIdx, true);
+			DrawClippedRows(sFavIdx, true);
 		}
 		else if (filtering)
 		{
@@ -1452,69 +1463,80 @@ namespace
 							"W1 Spirit Vale", "W2 Salvation Pass", "W3 Stronghold", "W4 Bastion",
 							"W5 Hall of Chains", "W6 Mythwright", "W7 Ahdashim", "W8 Mount Balrior"
 						};
-						ImGui::Indent(10.f);
-						for (const char* sub : kRaidSubs)
+						constexpr int kRaidSubN = 2;
+						constexpr int kWingN = static_cast<int>(sizeof(kWings) / sizeof(kWings[0]));
+						static std::string sRaidCacheKey;
+						static std::vector<int> sRaidWings;
+						static std::vector<int> sRaidBossHubs;
+						static std::vector<std::vector<int>> sRaidBossByWing;
+						if (sRaidCacheKey != selectedCat)
 						{
-							int subCount = 0;
+							sRaidCacheKey = selectedCat;
+							sRaidWings.clear();
+							sRaidBossHubs.clear();
+							sRaidBossByWing.assign(static_cast<size_t>(kWingN), {});
 							for (int i : sBrowseCatIdx)
 							{
-								const SiteDef& site = sites[i];
-								const char* s = RaidsSub(site.id);
-								if (s && std::strcmp(s, sub) == 0)
-									++subCount;
+								const char* s = RaidsSub(sites[i].id);
+								if (!s)
+									continue;
+								if (std::strcmp(s, "Raid Wings") == 0)
+								{
+									sRaidWings.push_back(i);
+									continue;
+								}
+								if (std::strcmp(s, "Raid Boss") != 0)
+									continue;
+								const char* w = RaidBossWing(sites[i].id);
+								if (!w)
+								{
+									sRaidBossHubs.push_back(i);
+									continue;
+								}
+								for (int wi = 0; wi < kWingN; ++wi)
+								{
+									if (std::strcmp(w, kWings[wi]) == 0)
+									{
+										sRaidBossByWing[static_cast<size_t>(wi)].push_back(i);
+										break;
+									}
+								}
 							}
-							if (subCount == 0)
-								continue;
-							if (!BeginBrowseSection("Raids", sub, subCount))
-								continue;
-
+						}
+						ImGui::Indent(10.f);
+						for (int rsi = 0; rsi < kRaidSubN; ++rsi)
+						{
+							const char* sub = kRaidSubs[rsi];
 							if (std::strcmp(sub, "Raid Wings") == 0)
 							{
-								for (int i : sBrowseCatIdx)
-								{
-									const SiteDef& site = sites[i];
-									const char* s = RaidsSub(site.id);
-									if (!s || std::strcmp(s, "Raid Wings") != 0)
-										continue;
-									DrawSiteRow(i, false);
-								}
+								if (sRaidWings.empty())
+									continue;
+								if (!BeginBrowseSection("Raids", sub, static_cast<int>(sRaidWings.size())))
+									continue;
+								DrawClippedRows(sRaidWings, false);
 								continue;
 							}
-
-							/* Raid Boss: prep/overview, then wing subsections. */
-							for (int i : sBrowseCatIdx)
-							{
-								const SiteDef& site = sites[i];
-								const char* s = RaidsSub(site.id);
-								if (!s || std::strcmp(s, "Raid Boss") != 0)
-									continue;
-								if (RaidBossWing(site.id))
-									continue;
-								DrawSiteRow(i, false);
-							}
+							const int bossCount = static_cast<int>(sRaidBossHubs.size()) +
+								[&]() {
+									int n = 0;
+									for (const auto& v : sRaidBossByWing)
+										n += static_cast<int>(v.size());
+									return n;
+								}();
+							if (bossCount == 0)
+								continue;
+							if (!BeginBrowseSection("Raids", sub, bossCount))
+								continue;
+							DrawClippedRows(sRaidBossHubs, false);
 							ImGui::Indent(10.f);
-							for (const char* wing : kWings)
+							for (int wi = 0; wi < kWingN; ++wi)
 							{
-								int wingCount = 0;
-								for (int i : sBrowseCatIdx)
-								{
-									const SiteDef& site = sites[i];
-									const char* w = RaidBossWing(site.id);
-									if (w && std::strcmp(w, wing) == 0)
-										++wingCount;
-								}
-								if (wingCount == 0)
+								if (sRaidBossByWing[static_cast<size_t>(wi)].empty())
 									continue;
-								if (!BeginBrowseSection("Raid Boss", wing, wingCount))
+								if (!BeginBrowseSection("Raid Boss", kWings[wi],
+										static_cast<int>(sRaidBossByWing[static_cast<size_t>(wi)].size())))
 									continue;
-								for (int i : sBrowseCatIdx)
-								{
-									const SiteDef& site = sites[i];
-									const char* w = RaidBossWing(site.id);
-									if (!w || std::strcmp(w, wing) != 0)
-										continue;
-									DrawSiteRow(i, false);
-								}
+								DrawClippedRows(sRaidBossByWing[static_cast<size_t>(wi)], false);
 							}
 							ImGui::Unindent(10.f);
 						}
@@ -1944,39 +1966,46 @@ namespace
 							"Secrets of the Obscure", "Janthir Wilds", "Visions of Eternity",
 							"Festivals", "Side Stories"
 						};
-						for (int i : sBrowseCatIdx)
+						constexpr int kAchN = static_cast<int>(sizeof(kAchSubs) / sizeof(kAchSubs[0]));
+						static std::string sAchCacheKey;
+						static std::vector<int> sAchHubs;
+						static std::vector<std::vector<int>> sAchBySub;
+						if (sAchCacheKey != selectedCat)
 						{
-							const SiteDef& site = sites[i];
-							const char* sec = BrowseSection(selectedCat, site.id);
-							if (!sec || std::strcmp(sec, "Achievements") != 0)
-								continue;
-							if (AchievementsSub(site.id))
-								continue;
-							DrawSiteRow(i, false);
-						}
-						ImGui::Indent(10.f);
-						for (const char* sub : kAchSubs)
-						{
-							int subCount = 0;
+							sAchCacheKey = selectedCat;
+							sAchHubs.clear();
+							sAchBySub.assign(static_cast<size_t>(kAchN), {});
 							for (int i : sBrowseCatIdx)
 							{
-								const SiteDef& site = sites[i];
-								const char* s = AchievementsSub(site.id);
-								if (s && std::strcmp(s, sub) == 0)
-									++subCount;
-							}
-							if (subCount == 0)
-								continue;
-							if (!BeginBrowseSection("Achievements", sub, subCount))
-								continue;
-							for (int i : sBrowseCatIdx)
-							{
-								const SiteDef& site = sites[i];
-								const char* s = AchievementsSub(site.id);
-								if (!s || std::strcmp(s, sub) != 0)
+								const char* sec = BrowseSection(selectedCat, sites[i].id);
+								if (!sec || std::strcmp(sec, "Achievements") != 0)
 									continue;
-								DrawSiteRow(i, false);
+								const char* a = AchievementsSub(sites[i].id);
+								if (!a)
+								{
+									sAchHubs.push_back(i);
+									continue;
+								}
+								for (int ai = 0; ai < kAchN; ++ai)
+								{
+									if (std::strcmp(a, kAchSubs[ai]) == 0)
+									{
+										sAchBySub[static_cast<size_t>(ai)].push_back(i);
+										break;
+									}
+								}
 							}
+						}
+						DrawClippedRows(sAchHubs, false);
+						ImGui::Indent(10.f);
+						for (int ai = 0; ai < kAchN; ++ai)
+						{
+							if (sAchBySub[static_cast<size_t>(ai)].empty())
+								continue;
+							if (!BeginBrowseSection("Achievements", kAchSubs[ai],
+									static_cast<int>(sAchBySub[static_cast<size_t>(ai)].size())))
+								continue;
+							DrawClippedRows(sAchBySub[static_cast<size_t>(ai)], false);
 						}
 						ImGui::Unindent(10.f);
 						continue;
@@ -2493,9 +2522,11 @@ void UI_Render()
 	/* Always poll first — must run while the helper is closed too. */
 	HelperHotkeys_Poll();
 	WikiBrowser::Tick();
-	/* Finish URL-match indexes across frames (started in WikiBrowser::Init).
-	   Lighter tick while the overlay is open so Browse stays responsive. */
-	Sites::TickWarmUrlKeys(G::ShowWiki ? 32 : 64);
+	/* URL-index warm: heavier when closed; light drip while open so Browse stays snappy. */
+	if (!G::ShowWiki)
+		Sites::TickWarmUrlKeys(96);
+	else if (!Sites::UrlKeysReady())
+		Sites::TickWarmUrlKeys(16);
 
 	gBlockGameKeyboard = false;
 	gBlockGameMouse = false;

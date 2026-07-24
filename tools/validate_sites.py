@@ -73,6 +73,16 @@ def main() -> int:
         if mid not in seen_ids:
             errors.append(f"UI.cpp BrowseSection references unknown id: {mid!r}")
 
+    # Legendary Armory uses wiki_l* prefixes; ordinary upgrades use wiki_relic_/rune_/sigil_.
+    # Ensure no id is ambiguous under both strncmp rules (e.g. wiki_relic_ vs wiki_lrelic_).
+    for site_id, _category, *_rest in entries:
+        if site_id.startswith("wiki_relic_") and site_id.startswith("wiki_lrelic_"):
+            errors.append(f"ambiguous relic id prefix: {site_id!r}")
+        if site_id.startswith("wiki_rune_") and site_id.startswith("wiki_lrune_"):
+            errors.append(f"ambiguous rune id prefix: {site_id!r}")
+        if site_id.startswith("wiki_sigil_") and site_id.startswith("wiki_lsigil_"):
+            errors.append(f"ambiguous sigil id prefix: {site_id!r}")
+
     if errors:
         print(f"validate_sites: FAIL ({len(errors)} issue(s))", file=sys.stderr)
         for err in errors:

@@ -3,9 +3,12 @@
 #include <cstddef>
 #include <string>
 
-/* One entry per site the helper can open. Add new sites in Sites.cpp.
+/* One entry per site the helper can open. Add new sites in Sites.cpp
+   (large static table — prefer editing via tools/validate_sites.py checks;
+   a generated JSON→C++ path is the long-term maintainability goal).
    Keep sites grouped by category (same category string, contiguous order).
    Map Browse sub-section headers in UI.cpp (BrowseSection / BrowseSectionsForCategory).
+   Legendary Armory ids use wiki_l* prefixes; ordinary upgrades use wiki_relic_/wiki_rune_/wiki_sigil_.
    Run: python3 tools/validate_sites.py  (or make validate-sites) after edits. */
 struct SiteDef
 {
@@ -53,11 +56,15 @@ namespace Sites
 	bool ToggleFavorite(const char* id); /* returns true if now favorited */
 	int  FavoriteCount();
 	int  FavoriteSiteIndex(int favSlot); /* registry index, or -1 */
+	/* Bumps when favorites add/remove/reorder/load — Browse cache invalidation. */
+	unsigned FavoritesGeneration();
 	int  IndexOfId(const char* id);      /* registry index, or -1 */
 	/* Best registry site for a live URL (−1 if none). Prefers longest homeUrl match. */
 	int  BestMatchForUrl(const std::string& url);
 	/* Start URL-match index build (chunked — finish via TickWarmUrlKeys). */
 	void WarmUrlKeys();
+	/* True when URL-match indexes are fully built. */
+	bool UrlKeysReady();
 	/* Continue index build on the render thread (returns true when ready). */
 	bool TickWarmUrlKeys(int sitesPerTick = 128);
 

@@ -48,6 +48,8 @@ namespace
 	std::atomic<bool> gLaunchDisabled{false}; /* set if helper launch fails hard */
 	std::atomic<bool> gStarting{false};       /* StartHelper in progress (avoid re-entry) */
 	std::atomic<bool> gLaunchRequested{false}; /* CreateProcess deferred off RT_Render */
+	std::atomic<bool> gLaunchWorkerBusy{false}; /* worker thread running StartHelper */
+	std::atomic<bool> gRelaunchAfterQuit{false}; /* open again after graceful quit finishes */
 	std::atomic<bool> gQuitPending{false};    /* QUIT posted — finish across frames */
 	DWORD gQuitStartedMs = 0;
 	DWORD gLastStartAttemptMs = 0;
@@ -57,6 +59,13 @@ namespace
 	uint32_t gPartialCopyFront = 0;
 	uint32_t gPartialCopyY = 0;
 	static constexpr uint32_t kMaxCopyRowsPerFrame = 180;
+	static constexpr uint32_t kMaxCopyRowsInteractive = 360;
+	/* CPU staging for split full uploads — release shared-mem pin before Map. */
+	std::vector<uint8_t> gStagingFrame;
+	uint32_t gStagingSeq = 0;
+	uint32_t gStagingW = 0;
+	uint32_t gStagingH = 0;
+	bool gStagingReady = false;
 
 	ID3D11Device* gDevice = nullptr;
 	ID3D11DeviceContext* gContext = nullptr;
@@ -177,6 +186,9 @@ namespace
 		gStatus = s;
 		std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", s.c_str());
 		gStatusCacheFromIpc = false;
+		/* Keep IPC status in sync so StatusCStr has one logical source. */
+		if (gIpc)
+			std::snprintf(gIpc->status, sizeof(gIpc->status), "%s", s.c_str());
 		if (G::API && G::API->Log)
 			G::API->Log(LOGL_INFO, ADDON_NAME, s.c_str());
 	}
@@ -591,17 +603,23 @@ namespace
 		gPartialCopySeq = 0;
 		gPartialCopyFront = 0;
 		gPartialCopyY = 0;
+		gStagingReady = false;
+		gStagingSeq = 0;
 		gStarting.store(false);
 		gLaunchRequested.store(false);
+		gRelaunchAfterQuit.store(false);
 		gQuitPending.store(false);
 		gQuitStartedMs = 0;
 		ReleaseGpu();
 	}
 
+	void RequestStartHelper();
+
 	void RequestStopHelper()
 	{
 		if (gQuitPending.load())
 			return;
+		gRelaunchAfterQuit.store(false);
 		if (!HelperAlive() && !gProcess)
 		{
 			FinishStopHelper(false);
@@ -613,7 +631,7 @@ namespace
 		SetLocalStatus("Closing browser…");
 	}
 
-	/* Complete a pending QUIT across frames — never Sleep on RT_Render. */
+	/* Complete a pending QUIT across frames — never Sleep/Terminate mid-SetVisible. */
 	void TickQuitPending()
 	{
 		if (!gQuitPending.load())
@@ -621,14 +639,26 @@ namespace
 		if (!HelperAlive())
 		{
 			FinishStopHelper(false);
-			SetLocalStatus("Closed — press Ctrl+Shift+H to open");
+			if (gRelaunchAfterQuit.exchange(false) && gWantVisible.load())
+			{
+				SetLocalStatus("Restarting browser…");
+				RequestStartHelper();
+			}
+			else
+				SetLocalStatus("Closed — press Ctrl+Shift+H to open");
 			return;
 		}
-		/* ~120 ms grace for CEF to flush; then terminate. */
+		/* ~120 ms grace for CEF to flush; then terminate (only from Tick). */
 		if (GetTickCount() - gQuitStartedMs >= 120u)
 		{
 			FinishStopHelper(true);
-			SetLocalStatus("Closed — press Ctrl+Shift+H to open");
+			if (gRelaunchAfterQuit.exchange(false) && gWantVisible.load())
+			{
+				SetLocalStatus("Restarting browser…");
+				RequestStartHelper();
+			}
+			else
+				SetLocalStatus("Closed — press Ctrl+Shift+H to open");
 		}
 	}
 
@@ -994,18 +1024,40 @@ namespace
 			SetLocalStatus("Browser helper disabled after launch failure — restart GW2 to retry");
 			return;
 		}
-		if (HelperAlive() || gStarting.load())
+		if (gQuitPending.load())
+		{
+			/* Wait for TickQuitPending — do not CreateProcess over a dying helper. */
+			gRelaunchAfterQuit.store(true);
+			return;
+		}
+		if (HelperAlive() || gStarting.load() || gLaunchWorkerBusy.load())
 			return;
 		if (gLaunchRequested.exchange(true))
 			return;
 		SetLocalStatus("Launching…");
 	}
 
-	/* Runs CreateProcess / extract on Tick — never block RT_Render mid-frame. */
+	DWORD WINAPI LaunchHelperWorker(LPVOID)
+	{
+		StartHelper();
+		gLaunchWorkerBusy.store(false);
+		return 0;
+	}
+
+	/* Queue CreateProcess/extract on a worker thread — RT_Render only polls. */
 	void TickLaunchPending()
 	{
-		if (!gLaunchRequested.load())
+		if (gQuitPending.load())
 			return;
+		if (!gLaunchRequested.load())
+		{
+			if (HelperAlive() && gWantVisible.load() && gPendingCmdCount > 0)
+			{
+				FlushPendingCmds();
+				FlushPendingNavigate();
+			}
+			return;
+		}
 		if (gLaunchDisabled.load() || HelperAlive())
 		{
 			gLaunchRequested.store(false);
@@ -1016,16 +1068,19 @@ namespace
 			}
 			return;
 		}
-		if (gStarting.load())
+		if (gStarting.load() || gLaunchWorkerBusy.load())
 			return;
 		gLaunchRequested.store(false);
-		if (!StartHelper())
-			return;
-		if (gWantVisible.load())
+		gLaunchWorkerBusy.store(true);
+		HANDLE th = CreateThread(nullptr, 0, LaunchHelperWorker, nullptr, 0, nullptr);
+		if (!th)
 		{
-			FlushPendingCmds();
-			FlushPendingNavigate();
+			gLaunchWorkerBusy.store(false);
+			/* Fallback: sync launch if the OS refuses a worker. */
+			StartHelper();
 		}
+		else
+			CloseHandle(th);
 	}
 }
 
@@ -1057,6 +1112,8 @@ void WikiBrowser::Init()
 	gLaunchDisabled.store(false);
 	gStarting.store(false);
 	gLaunchRequested.store(false);
+	gLaunchWorkerBusy.store(false);
+	gRelaunchAfterQuit.store(false);
 	gQuitPending.store(false);
 	EnsureIpcNames();
 	/* Kick URL-match index build (chunked in UI_Render via TickWarmUrlKeys). */
@@ -1124,11 +1181,13 @@ void WikiBrowser::SetVisible(bool visible)
 		return;
 	}
 
-	/* Re-open during graceful quit — finish stop then relaunch. */
+	/* Re-open during graceful quit — never TerminateProcess here; Tick finishes quit. */
 	if (gQuitPending.load())
 	{
-		FinishStopHelper(true);
+		gWantVisible.store(true);
+		gRelaunchAfterQuit.store(true);
 		SetLocalStatus("Restarting browser…");
+		return;
 	}
 
 	const bool wasWanted = gWantVisible.exchange(true);
@@ -1137,7 +1196,7 @@ void WikiBrowser::SetVisible(bool visible)
 	const bool alreadyAlive = HelperAlive();
 	if (!alreadyAlive)
 	{
-		/* Defer CreateProcess/extract to Tick — keep this RT_Render frame short. */
+		/* Defer CreateProcess/extract to a worker via Tick — keep RT_Render short. */
 		RequestStartHelper();
 		if (gLaunchDisabled.load())
 			return;
@@ -1234,21 +1293,66 @@ void WikiBrowser::PresentFrame()
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	/* Prefer WRITE for dirty rects and multi-frame full copies (DISCARD wipes prior rows).
 	   DO_NOT_WAIT — skip this frame if the GPU still owns the dynamic texture. */
+	const bool interactive =
+		gLastUserInputMs != 0 && (now - gLastUserInputMs) < 500u;
+	const uint32_t rowBudget = interactive ? kMaxCopyRowsInteractive : kMaxCopyRowsPerFrame;
 	const bool continuingPartial =
 		uploadFull && gPartialCopySeq == seq && gPartialCopyFront == front && gPartialCopyY > 0;
-	const bool wantSplitFull = uploadFull && (continuingPartial || h > kMaxCopyRowsPerFrame);
+	const bool wantSplitFull = uploadFull && (continuingPartial || h > rowBudget);
+
+	/* Snapshot shared front → CPU staging once, then release frame_reading before Map.
+	   Avoids multi-frame pin stalls on the helper paint path. */
+	if (wantSplitFull)
+	{
+		if (!gStagingReady || gStagingSeq != seq || gStagingW != w || gStagingH != h)
+		{
+			gIpc->frame_reading = front;
+			MemoryBarrier();
+			if (gIpc->frame_seq != seq)
+			{
+				gIpc->frame_reading = 0xFFFFFFFFu;
+				return;
+			}
+			const uint8_t* srcSnap = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
+			const size_t need = static_cast<size_t>(h) * kWikiFrameStride;
+			gStagingFrame.resize(need);
+			if (gStagingFrame.size() < need)
+			{
+				gIpc->frame_reading = 0xFFFFFFFFu;
+				return;
+			}
+			for (uint32_t y = 0; y < h; ++y)
+			{
+				std::memcpy(
+					gStagingFrame.data() + static_cast<size_t>(y) * kWikiFrameStride,
+					srcSnap + static_cast<size_t>(y) * kWikiFrameStride,
+					static_cast<size_t>(w) * 4);
+			}
+			MemoryBarrier();
+			gIpc->frame_reading = 0xFFFFFFFFu;
+			gStagingSeq = seq;
+			gStagingW = w;
+			gStagingH = h;
+			gStagingReady = true;
+			gPartialCopySeq = seq;
+			gPartialCopyFront = front;
+			gPartialCopyY = 0;
+			/* Snapshot done this frame — upload first chunk next tick to spread cost. */
+			gLastPresentMs = now;
+			return;
+		}
+	}
+
 	D3D11_MAP mapType = wantSplitFull ? D3D11_MAP_WRITE
 		: (uploadFull ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE);
 	HRESULT hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
 	if (FAILED(hr) && mapType == D3D11_MAP_WRITE)
 	{
-		if (continuingPartial)
-			return; /* keep prior rows; retry WRITE next frame */
-		/* Cannot split with DISCARD — fall back to one-shot full rewrite. */
+		if (continuingPartial || wantSplitFull)
+			return; /* never DISCARD mid split / large full — retry WRITE next frame */
+		/* Small full upload only — DISCARD is acceptable. */
 		mapType = D3D11_MAP_WRITE_DISCARD;
 		uploadFull = true;
-		gPartialCopySeq = 0;
-		gPartialCopyY = 0;
 		hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
 	}
 	if (FAILED(hr))
@@ -1258,54 +1362,59 @@ void WikiBrowser::PresentFrame()
 		gContext->Unmap(gTex, 0);
 		return;
 	}
-	const bool canSplit = (mapType == D3D11_MAP_WRITE);
+	const bool canSplit = (mapType == D3D11_MAP_WRITE) && gStagingReady && wantSplitFull;
 	if (mapType == D3D11_MAP_WRITE_DISCARD)
+	{
 		uploadFull = true;
-
-	/* Pin the front buffer so the helper will not overwrite mid-copy. */
-	gIpc->frame_reading = front;
-	MemoryBarrier();
-	const uint8_t* src = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
-	uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
+		gStagingReady = false;
+	}
 
 	bool copyComplete = true;
-	if (uploadFull)
+	if (uploadFull && canSplit)
 	{
-		if (canSplit && h > kMaxCopyRowsPerFrame)
+		const uint32_t endY = gPartialCopyY + rowBudget;
+		const uint32_t y1 = endY < h ? endY : h;
+		const size_t rowBytes = static_cast<size_t>(w) * 4;
+		for (uint32_t y = gPartialCopyY; y < y1; ++y)
 		{
-			/* Split large full-frame uploads across RT ticks (~1.4 MB / frame). */
-			if (gPartialCopySeq != seq || gPartialCopyFront != front)
-			{
-				gPartialCopySeq = seq;
-				gPartialCopyFront = front;
-				gPartialCopyY = 0;
-			}
-			const uint32_t endY = gPartialCopyY + kMaxCopyRowsPerFrame;
-			const uint32_t y1 = endY < h ? endY : h;
-			const size_t rowBytes = static_cast<size_t>(w) * 4;
-			for (uint32_t y = gPartialCopyY; y < y1; ++y)
-				std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
-			gPartialCopyY = y1;
-			copyComplete = (gPartialCopyY >= h);
-			if (copyComplete)
-			{
-				gPartialCopySeq = 0;
-				gPartialCopyY = 0;
-			}
+			std::memcpy(
+				static_cast<uint8_t*>(mapped.pData) + y * mapped.RowPitch,
+				gStagingFrame.data() + static_cast<size_t>(y) * kWikiFrameStride,
+				rowBytes);
 		}
-		else
+		gPartialCopyY = y1;
+		copyComplete = (gPartialCopyY >= h);
+		if (copyComplete)
 		{
 			gPartialCopySeq = 0;
 			gPartialCopyY = 0;
-			const size_t rowBytes = static_cast<size_t>(w) * 4;
-			for (uint32_t y = 0; y < h; ++y)
-				std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+			gStagingReady = false;
 		}
+	}
+	else if (uploadFull)
+	{
+		gPartialCopySeq = 0;
+		gPartialCopyY = 0;
+		gStagingReady = false;
+		gIpc->frame_reading = front;
+		MemoryBarrier();
+		const uint8_t* src = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
+		uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
+		const size_t rowBytes = static_cast<size_t>(w) * 4;
+		for (uint32_t y = 0; y < h; ++y)
+			std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+		MemoryBarrier();
+		gIpc->frame_reading = 0xFFFFFFFFu;
 	}
 	else
 	{
 		gPartialCopySeq = 0;
 		gPartialCopyY = 0;
+		gStagingReady = false;
+		gIpc->frame_reading = front;
+		MemoryBarrier();
+		const uint8_t* src = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
+		uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
 		const size_t rowBytes = static_cast<size_t>(dw) * 4;
 		const size_t xOff = static_cast<size_t>(dx) * 4;
 		for (uint32_t y = 0; y < dh; ++y)
@@ -1316,15 +1425,12 @@ void WikiBrowser::PresentFrame()
 				src + row * kWikiFrameStride + xOff,
 				rowBytes);
 		}
-	}
-	MemoryBarrier();
-	/* Hold frame_reading across partial full-uploads so the helper cannot clobber. */
-	if (copyComplete)
+		MemoryBarrier();
 		gIpc->frame_reading = 0xFFFFFFFFu;
+	}
 	gContext->Unmap(gTex, 0);
 	if (!copyComplete)
 	{
-		/* Retry remaining rows next frame — do not advance gLastFrameSeq. */
 		gLastPresentMs = now;
 		return;
 	}

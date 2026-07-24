@@ -24219,6 +24219,7 @@ namespace
 	constexpr int kMaxFavorites = 48;
 	char gFavoriteIds[kMaxFavorites][64] = {};
 	int gFavoriteCount = 0;
+	unsigned gFavoriteGeneration = 1;
 
 	void EnsureCategories()
 	{
@@ -24537,6 +24538,11 @@ bool Sites::TickWarmUrlKeys(int sitesPerTick)
 	return gUrlKeysReady;
 }
 
+bool Sites::UrlKeysReady()
+{
+	return gUrlKeysReady;
+}
+
 int Sites::BestMatchForUrl(const std::string& url)
 {
 	if (url.empty())
@@ -24664,6 +24670,7 @@ bool Sites::ToggleFavorite(const char* id)
 				std::snprintf(gFavoriteIds[j], sizeof(gFavoriteIds[j]), "%s", gFavoriteIds[j + 1]);
 			gFavoriteIds[gFavoriteCount - 1][0] = 0;
 			--gFavoriteCount;
+			++gFavoriteGeneration;
 			Settings::SetDirty();
 			return false;
 		}
@@ -24673,6 +24680,7 @@ bool Sites::ToggleFavorite(const char* id)
 		return false;
 	std::snprintf(gFavoriteIds[gFavoriteCount], sizeof(gFavoriteIds[gFavoriteCount]), "%s", id);
 	++gFavoriteCount;
+	++gFavoriteGeneration;
 	Settings::SetDirty();
 	return true;
 }
@@ -24680,6 +24688,11 @@ bool Sites::ToggleFavorite(const char* id)
 int Sites::FavoriteCount()
 {
 	return gFavoriteCount;
+}
+
+unsigned Sites::FavoritesGeneration()
+{
+	return gFavoriteGeneration;
 }
 
 int Sites::FavoriteSiteIndex(int favSlot)
@@ -24692,6 +24705,7 @@ int Sites::FavoriteSiteIndex(int favSlot)
 void Sites::ParseFavorites(const char* csv)
 {
 	gFavoriteCount = 0;
+	++gFavoriteGeneration;
 	if (!csv || !csv[0])
 		return;
 
@@ -24765,6 +24779,8 @@ void Sites::PruneFavorites()
 	}
 	for (int i = w; i < gFavoriteCount; ++i)
 		gFavoriteIds[i][0] = 0;
+	if (w != gFavoriteCount)
+		++gFavoriteGeneration;
 	gFavoriteCount = w;
 }
 
@@ -24788,6 +24804,7 @@ bool Sites::MoveFavorite(int fromSlot, int toSlot)
 			std::snprintf(gFavoriteIds[i], sizeof(gFavoriteIds[i]), "%s", gFavoriteIds[i - 1]);
 	}
 	std::snprintf(gFavoriteIds[toSlot], sizeof(gFavoriteIds[toSlot]), "%s", tmp);
+	++gFavoriteGeneration;
 	Settings::SetDirty();
 	return true;
 }

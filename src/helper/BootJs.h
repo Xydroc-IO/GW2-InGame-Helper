@@ -402,6 +402,11 @@ function unlockSnowcrowsGuides(){
         items:'https://api.guildwars2.com/v2/items'
       };
       if (!window.__gw2ArmoryCache) window.__gw2ArmoryCache={};
+      if (window.__gw2ArmoryFetchBusy){
+        window.__gw2ArmoryFetchPending=1;
+        return;
+      }
+      var jobs=[];
       Object.keys(kinds).forEach(function(kind){
         var nodes=document.querySelectorAll('[data-armory-embed="'+kind+'"][data-armory-ids]');
         if (!nodes.length) return;
@@ -417,39 +422,52 @@ function unlockSnowcrowsGuides(){
             if (!ids[id]){ ids[id]=1; list.push(id); }
           });
         }
-        /* Apply any already-cached entries without network. */
         fillArmory(cache, kind);
-        if (!list.length) return;
-        (function(endpoint, idList, embedKind, cacheMap){
-          var off=0;
-          function next(){
-            if (off>=idList.length) return;
-            var batch=idList.slice(off, off+100);
-            off+=100;
-            fetch(endpoint+'?ids='+batch.join(',')+'&lang=en', {credentials:'omit'})
-              .then(function(r){
-                if (r.status===429){
-                  off-=batch.length;
-                  setTimeout(next, 1000);
-                  return null;
-                }
-                return r.ok ? r.json() : [];
-              })
-              .then(function(arr){
-                if (arr===null) return;
-                if (arr && arr.length){
-                  for (var k=0;k<arr.length;k++){
-                    if (arr[k] && arr[k].id!=null) cacheMap[String(arr[k].id)]=arr[k];
-                  }
-                  fillArmory(cacheMap, embedKind);
-                }
-                next();
-              })
-              .catch(function(){ next(); });
-          }
-          next();
-        })(kinds[kind], list, kind, cache);
+        if (list.length)
+          jobs.push({endpoint:kinds[kind], list:list, kind:kind, cache:cache});
       });
+      if (!jobs.length) return;
+      window.__gw2ArmoryFetchBusy=1;
+      var ji=0;
+      function finishAll(){
+        window.__gw2ArmoryFetchBusy=0;
+        if (window.__gw2ArmoryFetchPending){
+          window.__gw2ArmoryFetchPending=0;
+          scheduleWork(hydrateArmory);
+        }
+      }
+      function runJob(){
+        if (ji>=jobs.length){ finishAll(); return; }
+        var job=jobs[ji++];
+        var off=0;
+        function next(){
+          if (off>=job.list.length){ runJob(); return; }
+          var batch=job.list.slice(off, off+100);
+          off+=100;
+          fetch(job.endpoint+'?ids='+batch.join(',')+'&lang=en', {credentials:'omit'})
+            .then(function(r){
+              if (r.status===429){
+                off-=batch.length;
+                setTimeout(next, 1000);
+                return null;
+              }
+              return r.ok ? r.json() : [];
+            })
+            .then(function(arr){
+              if (arr===null) return;
+              if (arr && arr.length){
+                for (var k=0;k<arr.length;k++){
+                  if (arr[k] && arr[k].id!=null) job.cache[String(arr[k].id)]=arr[k];
+                }
+                fillArmory(job.cache, job.kind);
+              }
+              next();
+            })
+            .catch(function(){ next(); });
+        }
+        next();
+      }
+      runJob();
     }
     function scTick(){
       fixImages();
