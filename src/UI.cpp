@@ -237,16 +237,16 @@ namespace
 		{
 			if (std::strcmp(id, "guildjen") == 0 || std::strcmp(id, "guildjen_lw") == 0)
 				return "Living World";
-			if (std::strcmp(id, "mb_leveling") == 0 || std::strcmp(id, "mb_gold") == 0)
+			if (std::strcmp(id, "mb_leveling") == 0 || std::strcmp(id, "mb_gold") == 0 ||
+				std::strcmp(id, "gj_new_player") == 0 || std::strcmp(id, "gj_gold") == 0 ||
+				std::strcmp(id, "gj_gem_store") == 0 || std::strcmp(id, "gj_wizards_vault") == 0)
 				return "Progress";
-			if (std::strcmp(id, "mb_griffon") == 0 || std::strcmp(id, "mb_skyscale") == 0)
+			if (std::strcmp(id, "mb_griffon") == 0 || std::strcmp(id, "mb_skyscale") == 0 ||
+				std::strcmp(id, "gj_roller_beetle") == 0)
 				return "Mounts";
-			if (std::strcmp(id, "mb_intro_fractals") == 0 || std::strcmp(id, "mb_aquatic_ruins") == 0 ||
-				std::strcmp(id, "mb_deepstone") == 0 || std::strcmp(id, "mb_lonely_tower") == 0 ||
-				std::strcmp(id, "mb_molten_furnace") == 0 || std::strcmp(id, "mb_shattered_obs") == 0 ||
-				std::strcmp(id, "mb_silent_surf") == 0 || std::strcmp(id, "mb_sirens_reef") == 0 ||
-				std::strcmp(id, "mb_sunqua_peak") == 0 || std::strcmp(id, "mb_twilight_oasis") == 0 ||
-				std::strcmp(id, "mb_underground") == 0 || std::strcmp(id, "mukluk_fractals") == 0)
+			if (std::strcmp(id, "mb_intro_fractals") == 0 || std::strcmp(id, "mukluk_fractals") == 0 ||
+				std::strcmp(id, "gj_fractals_hub") == 0 || std::strcmp(id, "gj_fractals_beginner") == 0 ||
+				std::strncmp(id, "gj_frac_", 8) == 0)
 				return "Fractals";
 			if (std::strcmp(id, "gj_raid_guides") == 0 || std::strcmp(id, "gj_intro_raiding") == 0 ||
 				std::strcmp(id, "gj_rw1") == 0 || std::strcmp(id, "gj_rw2") == 0 ||
@@ -259,7 +259,8 @@ namespace
 				std::strncmp(id, "sc_w1_", 6) == 0 || std::strncmp(id, "sc_w2_", 6) == 0 ||
 				std::strncmp(id, "sc_w3_", 6) == 0 || std::strncmp(id, "sc_w4_", 6) == 0 ||
 				std::strncmp(id, "sc_w5_", 6) == 0 || std::strncmp(id, "sc_w6_", 6) == 0 ||
-				std::strncmp(id, "sc_w7_", 6) == 0)
+				std::strncmp(id, "sc_w7_", 6) == 0 || std::strncmp(id, "gj_w8_", 6) == 0 ||
+				std::strcmp(id, "mb_w8_balrior") == 0)
 				return "Raid Boss";
 			if (std::strcmp(id, "mb_mai_trin") == 0 || std::strcmp(id, "mb_boneskinner") == 0 ||
 				std::strcmp(id, "mb_cold_war") == 0 || std::strcmp(id, "mb_cosmic_obs") == 0 ||
@@ -267,12 +268,17 @@ namespace
 				std::strcmp(id, "mb_icebrood") == 0 || std::strcmp(id, "mb_kaineng") == 0 ||
 				std::strcmp(id, "mb_lions_court") == 0 || std::strcmp(id, "mb_cerus") == 0 ||
 				std::strcmp(id, "mb_voice_claw") == 0 || std::strcmp(id, "mb_whisper") == 0 ||
-				std::strcmp(id, "mb_ankka") == 0)
+				std::strcmp(id, "mb_ankka") == 0 || std::strcmp(id, "gj_harvest_temple") == 0)
 				return "Strikes";
-			if (std::strcmp(id, "mb_pvp_guides") == 0)
+			if (std::strcmp(id, "gj_rifts") == 0)
+				return "Rifts";
+			if (std::strcmp(id, "mb_pvp_guides") == 0 || std::strcmp(id, "gj_pvp_hub") == 0 ||
+				std::strcmp(id, "gj_pvp_beginner") == 0)
 				return "PvP";
-			if (std::strcmp(id, "mb_wvw_guides") == 0)
+			if (std::strcmp(id, "mb_wvw_guides") == 0 || std::strcmp(id, "gj_wvw_beginner") == 0)
 				return "WvW";
+			if (std::strncmp(id, "gj_ach_", 7) == 0)
+				return "Achievements";
 			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0 ||
 				std::strcmp(id, "gw2tldr_fractals") == 0 || std::strcmp(id, "gw2tldr_dungeons") == 0)
 				return "TLDR";
@@ -390,8 +396,8 @@ namespace
 		{
 			static const char* kSec[] = {
 				"Living World", "Progress", "Mounts", "Fractals", "Raid Wings",
-				"Raid Boss",
-				"Strikes", "PvP", "WvW", "TLDR", "Other"
+				"Raid Boss", "Strikes", "Rifts", "PvP", "WvW", "Achievements",
+				"TLDR", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
@@ -484,6 +490,34 @@ namespace
 			return "W6 Mythwright";
 		if (std::strncmp(id, "sc_w7_", 6) == 0)
 			return "W7 Ahdashim";
+		if (std::strncmp(id, "gj_w8_", 6) == 0 || std::strcmp(id, "mb_w8_balrior") == 0)
+			return "W8 Mount Balrior";
+		return nullptr;
+	}
+
+	/* Expansion subsection under Guides → Achievements (nullptr = hub overview). */
+	const char* AchievementsSub(const char* id)
+	{
+		if (!id || std::strncmp(id, "gj_ach_", 7) != 0)
+			return nullptr;
+		if (std::strcmp(id, "gj_ach_hub") == 0)
+			return nullptr;
+		if (std::strncmp(id, "gj_ach_lw_", 10) == 0)
+			return "Living World";
+		if (std::strncmp(id, "gj_ach_hot_", 11) == 0)
+			return "Heart of Thorns";
+		if (std::strncmp(id, "gj_ach_pof_", 11) == 0)
+			return "Path of Fire";
+		if (std::strncmp(id, "gj_ach_eod_", 11) == 0)
+			return "End of Dragons";
+		if (std::strncmp(id, "gj_ach_soto_", 12) == 0)
+			return "Secrets of the Obscure";
+		if (std::strncmp(id, "gj_ach_jw_", 10) == 0)
+			return "Janthir Wilds";
+		if (std::strncmp(id, "gj_ach_voe_", 11) == 0)
+			return "Visions of Eternity";
+		if (std::strncmp(id, "gj_ach_fest_", 12) == 0)
+			return "Festivals";
 		return nullptr;
 	}
 
@@ -949,7 +983,7 @@ namespace
 					{
 						static const char* kWings[] = {
 							"W1 Spirit Vale", "W2 Salvation Pass", "W3 Stronghold", "W4 Bastion",
-							"W5 Hall of Chains", "W6 Mythwright", "W7 Ahdashim"
+							"W5 Hall of Chains", "W6 Mythwright", "W7 Ahdashim", "W8 Mount Balrior"
 						};
 						for (int i = 0; i < static_cast<int>(siteCount); ++i)
 						{
@@ -987,6 +1021,55 @@ namespace
 									continue;
 								const char* w = RaidBossWing(site.id);
 								if (!w || std::strcmp(w, wing) != 0)
+									continue;
+								DrawSiteRow(i, false);
+							}
+						}
+						ImGui::Unindent(10.f);
+						continue;
+					}
+					if (std::strcmp(section, "Achievements") == 0)
+					{
+						static const char* kAchSubs[] = {
+							"Living World", "Heart of Thorns", "Path of Fire", "End of Dragons",
+							"Secrets of the Obscure", "Janthir Wilds", "Visions of Eternity", "Festivals"
+						};
+						for (int i = 0; i < static_cast<int>(siteCount); ++i)
+						{
+							const SiteDef& site = sites[i];
+							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+								continue;
+							const char* sec = BrowseSection(selectedCat, site.id);
+							if (!sec || std::strcmp(sec, "Achievements") != 0)
+								continue;
+							if (AchievementsSub(site.id))
+								continue;
+							DrawSiteRow(i, false);
+						}
+						ImGui::Indent(10.f);
+						for (const char* sub : kAchSubs)
+						{
+							int subCount = 0;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = AchievementsSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
+							}
+							if (subCount == 0)
+								continue;
+							if (!BeginBrowseSection("Achievements", sub, subCount))
+								continue;
+							for (int i = 0; i < static_cast<int>(siteCount); ++i)
+							{
+								const SiteDef& site = sites[i];
+								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+									continue;
+								const char* s = AchievementsSub(site.id);
+								if (!s || std::strcmp(s, sub) != 0)
 									continue;
 								DrawSiteRow(i, false);
 							}

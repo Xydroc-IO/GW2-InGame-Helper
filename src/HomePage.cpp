@@ -466,7 +466,7 @@ const char* HomePage::Html()
             <div class="card"><span class="cat">Builds</span><span>Snowcrows Raid Builds (per profession), AccessiBuilds (SC + Accessibility Wars), OW / PvP / WvW, MetaBattle, Gw2Skills</span></div>
             <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu</span></div>
             <div class="card"><span class="cat">Cheat Sheets</span><span>Food, Utilities, Fractals, Squad, Wings, Strikes, Dailies, Currencies, Ascended, Portals, Homestead, WvW, …</span></div>
-            <div class="card"><span class="cat">Guides</span><span>Living World, Progress, Mounts, Fractals, Raid Wings, Raid Boss (Hardstuck), Strikes, PvP, WvW, TLDR</span></div>
+            <div class="card"><span class="cat">Guides</span><span>Living World, Progress, Mounts, Fractals, Raid Wings, Raid Boss, Strikes, Rifts, Achievements, PvP, WvW, TLDR</span></div>
             <div class="card"><span class="cat">Farming</span><span>Fast Farming Community</span></div>
             <div class="card"><span class="cat">Discord</span><span>Official, Community, builds, training, PvP, WvW, trading, Raidcore</span></div>
           </div>

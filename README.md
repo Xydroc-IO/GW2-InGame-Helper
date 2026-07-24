@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.32` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.33` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -79,18 +79,17 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
 | [Snowcrows Guides](https://snowcrows.com/guides) | Guides |
-| [Leveling](https://metabattle.com/wiki/Guide:Leveling_Up) | Guides |
-| [Earn Gold](https://metabattle.com/wiki/Guide:Ways_to_Earn_Gold) | Guides |
-| [Griffon Unlock](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Griffon_Mount) | Guides |
-| [Skyscale Unlock](https://metabattle.com/wiki/Guide:How_to_Unlock_the_Skyscale_Mount) | Guides |
+| Progress (new-player roadmap, leveling, gold, Gem Store, Wizard’s Vault) | Guides |
+| Mounts (Griffon, Skyscale, Roller Beetle) | Guides |
 | [PvE Guides Hub](https://metabattle.com/wiki/PvE_Guides) | Guides |
-| [PvP Guides Hub](https://metabattle.com/wiki/PvP_Guides) | Guides |
-| [WvW Guides Hub](https://metabattle.com/wiki/WvW_Guides) | Guides |
-| MetaBattle Fractals (Intro, Aquatic Ruins, Deepstone, Lonely Tower, Molten Furnace, Shattered Observatory, Silent Surf, Siren's Reef, Sunqua Peak, Twilight Oasis, Underground Facility) | Guides |
-| [Mukluk Fractals](https://mukluklabs.com/gw2-fractal-guides) | Guides |
+| [PvP Guides Hub](https://metabattle.com/wiki/PvP_Guides) + Guildjen PvP beginner/hub | Guides |
+| [WvW Guides Hub](https://metabattle.com/wiki/WvW_Guides) + Guildjen WvW beginner | Guides |
+| Guildjen Fractals (hub, beginner, all maps) + [Mukluk](https://mukluklabs.com/gw2-fractal-guides) | Guides |
 | Guildjen Raid Wings (hub, intro, Wings 1–8) | Guides |
-| Snow Crows Raid Boss (W1–W7 encounters) | Guides |
-| MetaBattle Strikes (Mai Trin, Boneskinner, Cold War, Dagda, Forging Steel, Fraenir, Icebrood, Kaineng, Lion's Court, Cerus, Voice/Claw, Whisper, Ankka) | Guides |
+| Snow Crows Raid Boss (W1–W7) + Mount Balrior W8 (Guildjen / MetaBattle) | Guides |
+| MetaBattle Strikes + Guildjen Harvest Temple | Guides |
+| [Rifts & Convergences](https://guildjen.com/rift-hunting-and-convergences-guide/) | Guides |
+| Guildjen Achievements (LW / HoT / PoF / EoD / SotO / JW / VoE / Festivals) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
