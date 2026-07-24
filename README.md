@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.37` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.38` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -85,8 +85,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [PvP Guides Hub](https://metabattle.com/wiki/PvP_Guides) + Guildjen PvP beginner/hub | Guides |
 | [WvW Guides Hub](https://metabattle.com/wiki/WvW_Guides) + Guildjen WvW beginner | Guides |
 | Guildjen Fractals (hub, beginner, all maps) + [Mukluk](https://mukluklabs.com/gw2-fractal-guides) | Guides |
-| Guildjen Raid Wings (hub, intro, Wings 1–8) | Guides |
-| Snow Crows Raid Boss (W1–W7) + Mount Balrior W8 (Guildjen / MetaBattle) | Guides |
+| Guildjen Raid Wings (hub, intro, Wings 1–8) + Snow Crows Raid Boss (W1–W7) + Mount Balrior W8 — under Guides → Raids | Guides |
 | MetaBattle Strikes + Guildjen Harvest Temple | Guides |
 | [Rifts & Convergences](https://guildjen.com/rift-hunting-and-convergences-guide/) | Guides |
 | Guildjen Achievements (LW / HoT / PoF / EoD / SotO / JW / VoE / Festivals) | Guides |

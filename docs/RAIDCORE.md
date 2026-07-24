@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.37`
+`1.7.8.38`
 
 ## Changelog highlights
 
+- **1.7.8.38** — Guides Browse: Raids section nests Raid Wings + Raid Boss
 - **1.7.8.37** — How to use: always rewrite helper-home + CEF cache-bust (Browse/Favorites pills)
 - **1.7.8.36** — How to use: rewrite helper-home so Browse/Favorites pills stay gone
 - **1.7.8.35** — Guides → Jumping Puzzles: Guildjen hub + all JP guides

@@ -222,7 +222,11 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 - **Snowblind** — [https://guildjen.com/snowblind-fractal-guide/](https://guildjen.com/snowblind-fractal-guide/)
 - **Solid Ocean** — [https://guildjen.com/solid-ocean-fractal-guide/](https://guildjen.com/solid-ocean-fractal-guide/)
 
-### Raid Wings
+
+
+### Raids
+
+#### Raid Wings
 - **Guildjen Raid Guides** — [https://guildjen.com/gw2-raid-guides/](https://guildjen.com/gw2-raid-guides/)
 - **Intro to Raiding** — [https://guildjen.com/beginners-guide-to-guild-wars-2-raids/](https://guildjen.com/beginners-guide-to-guild-wars-2-raids/)
 - **Wing 1 Spirit Vale** — [https://guildjen.com/spirit-vale-wing-1-raid-guide/](https://guildjen.com/spirit-vale-wing-1-raid-guide/)
@@ -234,7 +238,7 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 - **Wing 7 Ahdashim** — [https://guildjen.com/the-key-of-ahdashim-wing-7-raid-guide/](https://guildjen.com/the-key-of-ahdashim-wing-7-raid-guide/)
 - **Wing 8 Mount Balrior** — [https://guildjen.com/mount-balrior-wing-8-guide/](https://guildjen.com/mount-balrior-wing-8-guide/)
 
-### Raid Boss
+#### Raid Boss
 - **SC Raids Hub** — [https://snowcrows.com/guides/raids](https://snowcrows.com/guides/raids)
 - **Intro to Squads** — [https://snowcrows.com/guides/getting-started/introduction-to-squads](https://snowcrows.com/guides/getting-started/introduction-to-squads)
 - **Squad Roles** — [https://snowcrows.com/guides/getting-started/understanding-squad-roles](https://snowcrows.com/guides/getting-started/understanding-squad-roles)
