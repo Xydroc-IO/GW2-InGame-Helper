@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.4
+# GW2 In-Game Helper v2.0.0.5
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -16,17 +16,22 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 2.0.0.5
+
+- **Present:** Fix black panel stuck on “Waiting for first paint…” — first GPU upload uses `WRITE_DISCARD` to initialize the dynamic texture; chunked staging `WRITE` only runs after the texture already has content
+- **How to use:** Homepage cache stamp `205`
+
 ## What’s new in 2.0.0.4
 
 Full audit follow-up (#1–#19):
 
 - **Quit/reopen:** Never `TerminateProcess` from `SetVisible` — relaunch waits for graceful quit on `Tick`
 - **Launch:** `CreateProcess` / helper extract run on a worker thread (RT only queues/polls)
-- **Present:** Large frames snapshot to CPU staging then chunked GPU upload; no DISCARD fallback for large splits; pin released before Map
+- **Present:** Large frames can snapshot to CPU staging then chunked GPU upload (after first paint); pin released before Map
 - **Browse:** Cached favorites / Raids / Achievements; URL warm mostly when overlay closed
 - **BootJs:** Single-flight armory fetch queue + 429 backoff across skills/traits/items
 - **Status:** Local status also writes IPC `status[]` (one logical source)
-- **Build:** CssProxy WinHTTP path removed from the helper link; stub header only
+- **Build:** CssProxy WinHTTP path removed; ad-block + CSS downlevel filter retained
 - **Docs:** `docs/COMPLIANCE.md`; hot-reload / TOS / dual-load notes; site id prefix validation
 - **How to use:** Homepage cache stamp `204`
 
