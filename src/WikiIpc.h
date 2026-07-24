@@ -1,18 +1,18 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdio>
+
+#include <windows.h>
 
 /* Shared memory IPC between addon DLL and CEF helper process.
    Uses GW2's own bin64/cef runtime — no WebView2 / winetricks.
    Browser is windowless (OSR); frames are BGRA in a second mapping.
    Up to kWikiMaxTabs OSR browsers; only the active tab paints.
 
-   v4: larger input ring (fast typing); same frame fencing as v3. */
+   v5: PID-scoped map/event names (multi-client safe) + dirty-rect frame metadata. */
 
-static constexpr uint32_t kWikiIpcMagic = 0x484C4934u; /* 'HLI4' */
-static constexpr const char* kWikiIpcMapName = "Local\\GW2InGameHelper_CEF_IPC_v4";
-static constexpr const char* kWikiFrameMapName = "Local\\GW2InGameHelper_CEF_FRAME_v4";
-static constexpr const char* kWikiWakeEventName = "Local\\GW2InGameHelper_CEF_WAKE_v4";
+static constexpr uint32_t kWikiIpcMagic = 0x484C4935u; /* 'HLI5' */
 
 static constexpr uint32_t kWikiFrameMaxW = 1920;
 static constexpr uint32_t kWikiFrameMaxH = 1200;
@@ -25,6 +25,17 @@ static constexpr uint32_t kWikiFrameMapBytes = kWikiFrameBytes * kWikiFrameBuffe
 static constexpr uint32_t kWikiInputQueueSize = 256;
 static constexpr uint32_t kWikiCmdQueueSize = 32;
 static constexpr int kWikiMaxTabs = 8;
+
+/* Format PID-scoped IPC object names (host GW2 PID). Buffers >= 96 recommended. */
+inline void WikiIpcFormatNames(DWORD hostPid, char* ipcOut, char* frameOut, char* wakeOut, size_t n)
+{
+	std::snprintf(ipcOut, n, "Local\\GW2InGameHelper_CEF_IPC_v5_%lu",
+		static_cast<unsigned long>(hostPid));
+	std::snprintf(frameOut, n, "Local\\GW2InGameHelper_CEF_FRAME_v5_%lu",
+		static_cast<unsigned long>(hostPid));
+	std::snprintf(wakeOut, n, "Local\\GW2InGameHelper_CEF_WAKE_v5_%lu",
+		static_cast<unsigned long>(hostPid));
+}
 
 enum WikiIpcCmd : uint32_t
 {
@@ -91,6 +102,11 @@ struct WikiIpcState
 	/* Set to frame_front while PresentFrame copies; 0xFFFFFFFF when idle.
 	   Helper skips paints that would overwrite the buffer being read. */
 	uint32_t frame_reading;
+	/* Dirty rect in frame pixels (union). Full frame when dirty_w/h cover content. */
+	uint32_t dirty_x;
+	uint32_t dirty_y;
+	uint32_t dirty_w;
+	uint32_t dirty_h;
 
 	/* Legacy single-slot (debug mirror / ring-full fallback for non-tab cmds). */
 	uint32_t cmd;

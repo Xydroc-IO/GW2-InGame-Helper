@@ -875,7 +875,7 @@ namespace
 
 	void CEF_CALLBACK OnPaint(
 		cef_render_handler_t*, cef_browser_t* browser, cef_paint_element_type_t type,
-		size_t, cef_rect_t const*, const void* buffer, int width, int height)
+		size_t dirtyCount, cef_rect_t const* dirtyRects, const void* buffer, int width, int height)
 	{
 		if (type != PET_VIEW || !buffer || !gFramePixels || !gIpc || width <= 0 || height <= 0)
 			return;
@@ -890,6 +890,43 @@ namespace
 		if (gIpc->frame_reading == back)
 			return;
 
+		int ux = 0, uy = 0, uw = width, uh = height;
+		if (dirtyCount > 0 && dirtyRects)
+		{
+			ux = dirtyRects[0].x;
+			uy = dirtyRects[0].y;
+			uw = dirtyRects[0].width;
+			uh = dirtyRects[0].height;
+			for (size_t i = 1; i < dirtyCount; ++i)
+			{
+				const int x0 = dirtyRects[i].x;
+				const int y0 = dirtyRects[i].y;
+				const int x1 = x0 + dirtyRects[i].width;
+				const int y1 = y0 + dirtyRects[i].height;
+				const int rx1 = ux + uw;
+				const int ry1 = uy + uh;
+				const int nx = x0 < ux ? x0 : ux;
+				const int ny = y0 < uy ? y0 : uy;
+				uw = (x1 > rx1 ? x1 : rx1) - nx;
+				uh = (y1 > ry1 ? y1 : ry1) - ny;
+				ux = nx;
+				uy = ny;
+			}
+			if (ux < 0) { uw += ux; ux = 0; }
+			if (uy < 0) { uh += uy; uy = 0; }
+			if (ux + uw > width) uw = width - ux;
+			if (uy + uh > height) uh = height - uy;
+			if (uw <= 0 || uh <= 0)
+			{
+				ux = 0;
+				uy = 0;
+				uw = width;
+				uh = height;
+			}
+		}
+
+		/* Always write a full frame into the back buffer (CEF buffer is the full view).
+		   Dirty rects are published so the DLL can partially Map/upload when safe. */
 		uint8_t* dstBase = gFramePixels + static_cast<size_t>(back) * kWikiFrameBytes;
 		const uint8_t* src = static_cast<const uint8_t*>(buffer);
 		const size_t rowBytes = static_cast<size_t>(width) * 4;
@@ -905,6 +942,10 @@ namespace
 		   observe a new frame_seq with stale frame_w/h/front under Wine/optimizers. */
 		gIpc->frame_w = static_cast<uint32_t>(width);
 		gIpc->frame_h = static_cast<uint32_t>(height);
+		gIpc->dirty_x = static_cast<uint32_t>(ux);
+		gIpc->dirty_y = static_cast<uint32_t>(uy);
+		gIpc->dirty_w = static_cast<uint32_t>(uw);
+		gIpc->dirty_h = static_cast<uint32_t>(uh);
 		gIpc->frame_front = back;
 		MemoryBarrier();
 		++gIpc->frame_seq;
@@ -1359,6 +1400,12 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		if (!start.empty())
 			gStartUrl = WideToUtf8(start);
 	}
+	DWORD hostPid = 0;
+	{
+		const std::wstring pidStr = GetArg(L"host-pid", argc, argv);
+		if (!pidStr.empty())
+			hostPid = static_cast<DWORD>(_wtoi(pidStr.c_str()));
+	}
 	LocalFree(argv);
 
 	if (gCefDir.empty())
@@ -1383,14 +1430,22 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	if (exitCode >= 0)
 		return exitCode;
 
-	gMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, kWikiIpcMapName);
+	if (hostPid == 0)
+		hostPid = GetCurrentProcessId(); /* fallback — still unique vs other clients */
+
+	char ipcName[96]{};
+	char frameName[96]{};
+	char wakeName[96]{};
+	WikiIpcFormatNames(hostPid, ipcName, frameName, wakeName, sizeof(ipcName));
+
+	gMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, ipcName);
 	if (!gMap)
 		return 4;
 	gIpc = static_cast<WikiIpcState*>(MapViewOfFile(gMap, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(WikiIpcState)));
 	if (!gIpc || gIpc->magic != kWikiIpcMagic)
 		return 5;
 
-	gFrameMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, kWikiFrameMapName);
+	gFrameMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, frameName);
 	if (!gFrameMap)
 	{
 		SetStatus("Failed to open frame mapping");
@@ -1404,7 +1459,9 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	}
 	gIpc->frame_front = 0;
 	gIpc->frame_reading = 0xFFFFFFFFu;
-	gWakeEvent = OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE, FALSE, kWikiWakeEventName);
+	gIpc->dirty_w = kWikiFrameMaxW;
+	gIpc->dirty_h = kWikiFrameMaxH;
+	gWakeEvent = OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE, FALSE, wakeName);
 
 	SetStatus("Initializing CEF…");
 

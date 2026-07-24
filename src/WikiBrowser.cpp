@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <cwchar>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -36,13 +37,20 @@ namespace
 	HANDLE gProcess = nullptr;
 	HANDLE gJob = nullptr;
 	DWORD gProcessId = 0;
+	DWORD gHostPid = 0; /* GW2 PID — scopes IPC names for multi-client */
+	char gIpcName[96]{};
+	char gFrameName[96]{};
+	char gWakeName[96]{};
 	std::mutex gMutex;
 	std::string gStatus = "Closed — press Ctrl+Shift+H to open";
 	std::string gPendingNavigate;
 	std::atomic<bool> gWantVisible{false};
 	std::atomic<bool> gLaunchDisabled{false}; /* set if helper launch fails hard */
 	std::atomic<bool> gStarting{false};       /* StartHelper in progress (avoid re-entry) */
+	std::atomic<bool> gQuitPending{false};    /* QUIT posted — finish across frames */
+	DWORD gQuitStartedMs = 0;
 	DWORD gLastStartAttemptMs = 0;
+	bool gTexHasContent = false; /* false → next present must full-upload after DISCARD */
 
 	ID3D11Device* gDevice = nullptr;
 	ID3D11DeviceContext* gContext = nullptr;
@@ -279,6 +287,7 @@ namespace
 		gTexW = gTexH = 0;
 		gContentW = gContentH = 0;
 		gLastFrameSeq = 0;
+		gTexHasContent = false;
 	}
 
 	void ReleaseDevice()
@@ -433,15 +442,26 @@ namespace
 		return GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES;
 	}
 
+	void EnsureIpcNames()
+	{
+		const DWORD pid = GetCurrentProcessId();
+		if (gHostPid == pid && gIpcName[0])
+			return;
+		gHostPid = pid;
+		WikiIpcFormatNames(pid, gIpcName, gFrameName, gWakeName, sizeof(gIpcName));
+	}
+
 	bool EnsureIpc()
 	{
 		if (gIpc && gFramePixels)
 			return true;
 
+		EnsureIpcNames();
+
 		if (!gMap)
 		{
 			gMap = CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-				0, sizeof(WikiIpcState), kWikiIpcMapName);
+				0, sizeof(WikiIpcState), gIpcName);
 			if (!gMap)
 			{
 				SetLocalStatus("Failed to create IPC mapping");
@@ -459,12 +479,14 @@ namespace
 			std::memset(gIpc, 0, sizeof(*gIpc));
 			gIpc->magic = kWikiIpcMagic;
 			gIpc->frame_reading = 0xFFFFFFFFu;
+			gIpc->dirty_w = kWikiFrameMaxW;
+			gIpc->dirty_h = kWikiFrameMaxH;
 			std::snprintf(gIpc->status, sizeof(gIpc->status), "Idle");
 		}
 
 		if (!gWakeEvent)
 		{
-			gWakeEvent = CreateEventA(nullptr, FALSE, FALSE, kWikiWakeEventName);
+			gWakeEvent = CreateEventA(nullptr, FALSE, FALSE, gWakeName);
 			if (!gWakeEvent)
 			{
 				/* Non-fatal — helper falls back to Sleep. */
@@ -474,7 +496,7 @@ namespace
 		if (!gFrameMap)
 		{
 			gFrameMap = CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-				0, kWikiFrameMapBytes, kWikiFrameMapName);
+				0, kWikiFrameMapBytes, gFrameName);
 			if (!gFrameMap)
 			{
 				SetLocalStatus("Failed to create frame mapping");
@@ -502,51 +524,47 @@ namespace
 		return WaitForSingleObject(gProcess, 0) == WAIT_TIMEOUT;
 	}
 
-	void StopHelper()
+	void PostQuitCmd()
+	{
+		if (!gIpc || !HelperAlive())
+			return;
+		/* Same ring-first rule as PostCmd — do not bump cmd_seq when the
+		   ring accepts QUIT (avoids double HandleCmd on shutdown). */
+		const uint32_t w = gIpc->cmd_write;
+		const uint32_t next = (w + 1u) % kWikiCmdQueueSize;
+		if (next != gIpc->cmd_read)
+		{
+			WikiCmdEvent& ev = gIpc->cmd_q[w % kWikiCmdQueueSize];
+			ev.cmd = WIKI_CMD_QUIT;
+			ev.a = 0;
+			ev.arg[0] = 0;
+			gIpc->cmd_write = next;
+			gIpc->cmd = WIKI_CMD_QUIT;
+			gIpc->cmd_a = 0;
+			gIpc->cmd_arg[0] = 0;
+		}
+		else
+		{
+			gIpc->cmd = WIKI_CMD_QUIT;
+			gIpc->cmd_a = 0;
+			gIpc->cmd_arg[0] = 0;
+			++gIpc->cmd_seq;
+		}
+		WakeHelper();
+	}
+
+	void FinishStopHelper(bool terminateIfAlive)
 	{
 		const DWORD ownedPid = gProcessId;
-		if (gIpc && HelperAlive())
-		{
-			/* Same ring-first rule as PostCmd — do not bump cmd_seq when the
-			   ring accepts QUIT (avoids double HandleCmd on shutdown). */
-			const uint32_t w = gIpc->cmd_write;
-			const uint32_t next = (w + 1u) % kWikiCmdQueueSize;
-			if (next != gIpc->cmd_read)
-			{
-				WikiCmdEvent& ev = gIpc->cmd_q[w % kWikiCmdQueueSize];
-				ev.cmd = WIKI_CMD_QUIT;
-				ev.a = 0;
-				ev.arg[0] = 0;
-				gIpc->cmd_write = next;
-				gIpc->cmd = WIKI_CMD_QUIT;
-				gIpc->cmd_a = 0;
-				gIpc->cmd_arg[0] = 0;
-				WakeHelper();
-			}
-			else
-			{
-				gIpc->cmd = WIKI_CMD_QUIT;
-				gIpc->cmd_a = 0;
-				gIpc->cmd_arg[0] = 0;
-				++gIpc->cmd_seq;
-				WakeHelper();
-			}
-			/* Never block the game render thread — wake for QUIT then terminate. */
-			WakeHelper();
-		}
 		if (gProcess)
 		{
-			if (HelperAlive())
-			{
-				/* Tiny grace for QUIT; never Wait long on RT_Render. */
-				if (WaitForSingleObject(gProcess, 0) == WAIT_TIMEOUT)
-					TerminateProcess(gProcess, 0);
-			}
+			if (terminateIfAlive && HelperAlive())
+				TerminateProcess(gProcess, 0);
 			CloseHandle(gProcess);
 			gProcess = nullptr;
 			gProcessId = 0;
 		}
-		else if (ownedPid)
+		else if (terminateIfAlive && ownedPid)
 		{
 			KillHelperByPid(ownedPid);
 		}
@@ -563,8 +581,58 @@ namespace
 			std::snprintf(gIpc->status, sizeof(gIpc->status), "Stopped");
 		}
 		gLastFrameSeq = 0;
+		gTexHasContent = false;
 		gStarting.store(false);
+		gQuitPending.store(false);
+		gQuitStartedMs = 0;
 		ReleaseGpu();
+	}
+
+	void RequestStopHelper()
+	{
+		if (gQuitPending.load())
+			return;
+		if (!HelperAlive() && !gProcess)
+		{
+			FinishStopHelper(false);
+			return;
+		}
+		PostQuitCmd();
+		gQuitPending.store(true);
+		gQuitStartedMs = GetTickCount();
+		SetLocalStatus("Closing browser…");
+	}
+
+	/* Complete a pending QUIT across frames — never Sleep on RT_Render. */
+	void TickQuitPending()
+	{
+		if (!gQuitPending.load())
+			return;
+		if (!HelperAlive())
+		{
+			FinishStopHelper(false);
+			SetLocalStatus("Closed — press Ctrl+Shift+H to open");
+			return;
+		}
+		/* ~120 ms grace for CEF to flush; then terminate. */
+		if (GetTickCount() - gQuitStartedMs >= 120u)
+		{
+			FinishStopHelper(true);
+			SetLocalStatus("Closed — press Ctrl+Shift+H to open");
+		}
+	}
+
+	void StopHelper()
+	{
+		/* Forced stop (unload). Prefer QUIT, allow one short wait off hot path. */
+		PostQuitCmd();
+		if (gProcess)
+		{
+			WaitForSingleObject(gProcess, 100);
+			if (HelperAlive())
+				TerminateProcess(gProcess, 0);
+		}
+		FinishStopHelper(true);
 	}
 
 	HANDLE EnsureJob()
@@ -647,9 +715,14 @@ namespace
 			if (!cwd.empty() && GetFileAttributesW(cwd.c_str()) == INVALID_FILE_ATTRIBUTES)
 				return false;
 
-			/* Keep cmdline identical to the working Snowcrow form — extra quoted
-			   --start-url= args broke CEF launch under Wine/Proton. */
+			/* host-pid scopes IPC maps so two GW2 clients cannot collide.
+			   Avoid extra quoted --start-url= (broke CEF under Wine/Proton). */
+			EnsureIpcNames();
+			wchar_t pidArg[48];
+			std::swprintf(pidArg, 48, L" --host-pid=%lu",
+				static_cast<unsigned long>(gHostPid));
 			std::wstring cmdLine = L"\"" + helper + L"\" --cef-dir=\"" + cef + L"\"";
+			cmdLine += pidArg;
 			ZeroMemory(&pi, sizeof(pi));
 			/* No CREATE_SUSPENDED / no Sleep — keep the game frame responsive. */
 			BOOL ok = CreateProcessW(
@@ -661,6 +734,7 @@ namespace
 			{
 				lastErr = GetLastError();
 				cmdLine = L"\"" + helper + L"\" --cef-dir=\"" + cef + L"\"";
+				cmdLine += pidArg;
 				ZeroMemory(&pi, sizeof(pi));
 				ok = CreateProcessW(
 					nullptr, cmdLine.data(),
@@ -870,7 +944,17 @@ namespace
 		const uint32_t w = gIpc->input_write;
 		const uint32_t next = (w + 1u) % kWikiInputQueueSize;
 		if (next == gIpc->input_read)
-			return; /* queue full — drop (clicks shouldn't pile up that deep) */
+		{
+			/* Queue full — drop and surface once (fast typing / paste). */
+			static DWORD sLastFullMs = 0;
+			const DWORD now = GetTickCount();
+			if (sLastFullMs == 0 || (now - sLastFullMs) > 1000u)
+			{
+				sLastFullMs = now;
+				SetLocalStatus("Input queue full — slow down typing");
+			}
+			return;
+		}
 		gIpc->input_q[w % kWikiInputQueueSize] = ev;
 		gIpc->input_write = next;
 		WakeHelper();
@@ -904,9 +988,16 @@ void WikiBrowser::Init()
 	CleanupStaleAddonRootFiles();
 	gLaunchDisabled.store(false);
 	gStarting.store(false);
+	gQuitPending.store(false);
+	EnsureIpcNames();
 	/* Kick URL-match index build (chunked in UI_Render via TickWarmUrlKeys). */
 	Sites::WarmUrlKeys();
 	SetLocalStatus("Closed — press Ctrl+Shift+H to open");
+}
+
+void WikiBrowser::Tick()
+{
+	TickQuitPending();
 }
 
 void WikiBrowser::Shutdown()
@@ -947,20 +1038,26 @@ void WikiBrowser::SetVisible(bool visible)
 	{
 		const bool was = gWantVisible.exchange(false);
 		gPendingNavigate.clear();
-		if (was || HelperAlive())
+		if (was || HelperAlive() || gQuitPending.load())
 		{
 			PostCmd(WIKI_CMD_SET_VISIBLE, "0");
-			if (G::KeepHelperWarm && HelperAlive())
+			if (G::KeepHelperWarm && HelperAlive() && !gQuitPending.load())
 			{
 				SetLocalStatus("Ready");
 			}
-			else
+			else if (!G::KeepHelperWarm)
 			{
-				StopHelper();
-				SetLocalStatus("Closed — press Ctrl+Shift+H to open");
+				RequestStopHelper();
 			}
 		}
 		return;
+	}
+
+	/* Re-open during graceful quit — finish stop then relaunch. */
+	if (gQuitPending.load())
+	{
+		FinishStopHelper(true);
+		SetLocalStatus("Restarting browser…");
 	}
 
 	const bool wasWanted = gWantVisible.exchange(true);
@@ -1038,32 +1135,78 @@ void WikiBrowser::PresentFrame()
 	/* Seq changed mid-read — try again next frame. */
 	if (gIpc->frame_seq != seq)
 		return;
+
+	uint32_t dx = gIpc->dirty_x;
+	uint32_t dy = gIpc->dirty_y;
+	uint32_t dw = gIpc->dirty_w;
+	uint32_t dh = gIpc->dirty_h;
+	if (dw == 0 || dh == 0 || dx >= w || dy >= h)
+	{
+		dx = 0;
+		dy = 0;
+		dw = w;
+		dh = h;
+	}
+	if (dx + dw > w) dw = w - dx;
+	if (dy + dh > h) dh = h - dy;
+	const bool dirtyIsFull = (dx == 0 && dy == 0 && dw == w && dh == h);
+	bool uploadFull = dirtyIsFull || !gTexHasContent || gContentW != w || gContentH != h;
+
 	if (!EnsureTexture(w, h) || !gContext || !gTex)
 		return;
 
 	D3D11_MAPPED_SUBRESOURCE mapped{};
-	/* DO_NOT_WAIT — skip this frame if the GPU still owns the dynamic texture. */
-	if (FAILED(gContext->Map(gTex, 0, D3D11_MAP_WRITE_DISCARD, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped)))
+	/* Prefer WRITE for partial dirty uploads; DISCARD when the whole texture must be rewritten.
+	   DO_NOT_WAIT — skip this frame if the GPU still owns the dynamic texture. */
+	D3D11_MAP mapType = uploadFull ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE;
+	HRESULT hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
+	if (FAILED(hr) && mapType == D3D11_MAP_WRITE)
+	{
+		mapType = D3D11_MAP_WRITE_DISCARD;
+		uploadFull = true;
+		hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
+	}
+	if (FAILED(hr))
 		return;
 	if (!mapped.pData)
 	{
 		gContext->Unmap(gTex, 0);
 		return;
 	}
+	if (mapType == D3D11_MAP_WRITE_DISCARD)
+		uploadFull = true;
 
 	/* Pin the front buffer so the helper will not overwrite mid-copy. */
 	gIpc->frame_reading = front;
 	MemoryBarrier();
 	const uint8_t* src = gFramePixels + static_cast<size_t>(front) * kWikiFrameBytes;
 	uint8_t* dst = static_cast<uint8_t*>(mapped.pData);
-	const size_t rowBytes = static_cast<size_t>(w) * 4;
-	for (uint32_t y = 0; y < h; ++y)
-		std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+
+	if (uploadFull)
+	{
+		const size_t rowBytes = static_cast<size_t>(w) * 4;
+		for (uint32_t y = 0; y < h; ++y)
+			std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
+	}
+	else
+	{
+		const size_t rowBytes = static_cast<size_t>(dw) * 4;
+		const size_t xOff = static_cast<size_t>(dx) * 4;
+		for (uint32_t y = 0; y < dh; ++y)
+		{
+			const uint32_t row = dy + y;
+			std::memcpy(
+				dst + row * mapped.RowPitch + xOff,
+				src + row * kWikiFrameStride + xOff,
+				rowBytes);
+		}
+	}
 	MemoryBarrier();
 	gIpc->frame_reading = 0xFFFFFFFFu;
 	gContext->Unmap(gTex, 0);
 	gContentW = w;
 	gContentH = h;
+	gTexHasContent = true;
 	gLastFrameSeq = seq;
 	gLastPresentMs = now;
 }
