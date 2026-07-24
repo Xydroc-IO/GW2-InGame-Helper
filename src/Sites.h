@@ -56,8 +56,10 @@ namespace Sites
 	int  IndexOfId(const char* id);      /* registry index, or -1 */
 	/* Best registry site for a live URL (−1 if none). Prefers longest homeUrl match. */
 	int  BestMatchForUrl(const std::string& url);
-	/* Build URL match indexes at addon load (avoids first-navigate hitch). */
+	/* Start URL-match index build (chunked — finish via TickWarmUrlKeys). */
 	void WarmUrlKeys();
+	/* Continue index build on the render thread (returns true when ready). */
+	bool TickWarmUrlKeys(int sitesPerTick = 128);
 
 	void ParseFavorites(const char* csv);
 	void SerializeFavorites(char* out, size_t outLen);

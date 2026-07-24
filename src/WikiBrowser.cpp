@@ -904,7 +904,7 @@ void WikiBrowser::Init()
 	CleanupStaleAddonRootFiles();
 	gLaunchDisabled.store(false);
 	gStarting.store(false);
-	/* Build host→site indexes here so the first navigate does not hitch RT_Render. */
+	/* Kick URL-match index build (chunked in UI_Render via TickWarmUrlKeys). */
 	Sites::WarmUrlKeys();
 	SetLocalStatus("Closed — press Ctrl+Shift+H to open");
 }
@@ -1042,7 +1042,8 @@ void WikiBrowser::PresentFrame()
 		return;
 
 	D3D11_MAPPED_SUBRESOURCE mapped{};
-	if (FAILED(gContext->Map(gTex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+	/* DO_NOT_WAIT — skip this frame if the GPU still owns the dynamic texture. */
+	if (FAILED(gContext->Map(gTex, 0, D3D11_MAP_WRITE_DISCARD, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped)))
 		return;
 	if (!mapped.pData)
 	{
