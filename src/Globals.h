@@ -20,6 +20,7 @@ namespace G
 	extern float WindowPosX;
 	extern float WindowPosY;
 	extern bool  HasSavedPos;
+	extern bool  HasSavedSize; /* false until WindowWidth/Height loaded or user resizes */
 	extern bool  KeepHelperWarm; /* hide helper without killing CEF (uses more RAM) */
 	extern char  LastQuery[128];
 	extern char  ActiveSiteId[64];
