@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.48
+# GW2 In-Game Helper v1.7.8.49
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,14 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.49
+
+Final **audit** cleanup:
+
+- **Load:** URL-match indexes build in chunks across `UI_Render` frames (no AddonLoad stall); first navigate still finishes sync if needed
+- **Navigate:** Exact `about:` / `file:` homeUrl map; per-host candidates sorted longest-path-first (first hit wins)
+- **Present:** `Map(..., DO_NOT_WAIT)` — skip a frame instead of stalling the GPU when the dynamic texture is busy
 
 ## What’s new in 1.7.8.48
 

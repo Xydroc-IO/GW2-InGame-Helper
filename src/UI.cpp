@@ -2266,6 +2266,8 @@ void UI_Render()
 {
 	/* Always poll first — must run while the helper is closed too. */
 	HelperHotkeys_Poll();
+	/* Finish URL-match indexes across frames (started in WikiBrowser::Init). */
+	Sites::TickWarmUrlKeys(160);
 
 	gBlockGameKeyboard = false;
 	gBlockGameMouse = false;

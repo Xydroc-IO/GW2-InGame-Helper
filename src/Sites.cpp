@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <algorithm>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -24155,7 +24156,7 @@ namespace
 		return u;
 	}
 
-	/* Precomputed home URL keys + host→indices map.
+	/* Precomputed home URL keys + host→indices map (chunked warm).
 	   BestMatchForUrl used to allocate ~2 strings per site on every navigate. */
 	struct SiteUrlKey
 	{
@@ -24166,20 +24167,57 @@ namespace
 	};
 	SiteUrlKey gUrlKeys[sizeof(gSites) / sizeof(gSites[0])];
 	std::unordered_map<std::string, std::vector<int>> gUrlKeysByHost;
+	std::unordered_map<std::string, int> gExactBuiltin; /* about:/file: homeUrl → index */
 	bool gUrlKeysReady = false;
+	bool gUrlKeysStarted = false;
+	int  gUrlKeysBuildIndex = 0;
 
-	void EnsureUrlKeys()
+	void FinalizeUrlKeys()
 	{
-		if (gUrlKeysReady)
+		for (auto& kv : gUrlKeysByHost)
+		{
+			std::vector<int>& idxs = kv.second;
+			std::sort(idxs.begin(), idxs.end(), [](int a, int b) {
+				return gUrlKeys[a].path.size() > gUrlKeys[b].path.size();
+			});
+		}
+		gUrlKeysReady = true;
+	}
+
+	void StartUrlKeysBuild()
+	{
+		if (gUrlKeysStarted || gUrlKeysReady)
 			return;
 		gUrlKeysByHost.clear();
 		gUrlKeysByHost.reserve(512);
-		for (int i = 0; i < kSiteCount; ++i)
+		gExactBuiltin.clear();
+		gExactBuiltin.reserve(64);
+		gUrlKeysBuildIndex = 0;
+		gUrlKeysStarted = true;
+	}
+
+	void TickUrlKeysBuild(int chunk)
+	{
+		if (gUrlKeysReady)
+			return;
+		StartUrlKeysBuild();
+		if (chunk < 1)
+			chunk = 1;
+		const int end = (gUrlKeysBuildIndex + chunk < kSiteCount)
+			? (gUrlKeysBuildIndex + chunk) : kSiteCount;
+		for (int i = gUrlKeysBuildIndex; i < end; ++i)
 		{
 			SiteUrlKey& k = gUrlKeys[i];
 			k = SiteUrlKey{};
 			const char* home = gSites[i].homeUrl;
-			if (!home || !home[0] || std::strncmp(home, "http", 4) != 0)
+			if (!home || !home[0])
+				continue;
+			if (std::strncmp(home, "about:", 6) == 0 || std::strncmp(home, "file:", 5) == 0)
+			{
+				gExactBuiltin.emplace(home, i);
+				continue;
+			}
+			if (std::strncmp(home, "http", 4) != 0)
 				continue;
 			k.path = UrlHostPath(home, false);
 			k.host = UrlHostPath(home, true);
@@ -24190,13 +24228,34 @@ namespace
 			if (!k.host.empty())
 				gUrlKeysByHost[k.host].push_back(i);
 		}
-		gUrlKeysReady = true;
+		gUrlKeysBuildIndex = end;
+		if (gUrlKeysBuildIndex >= kSiteCount)
+			FinalizeUrlKeys();
+	}
+
+	void EnsureUrlKeys()
+	{
+		if (gUrlKeysReady)
+			return;
+		/* Caller needs indexes now — finish remaining chunks without blocking forever. */
+		while (!gUrlKeysReady)
+			TickUrlKeysBuild(512);
 	}
 }
 
 void Sites::WarmUrlKeys()
 {
-	EnsureUrlKeys();
+	/* Kick off only — do not build all ~2600 keys on AddonLoad. */
+	StartUrlKeysBuild();
+	TickUrlKeysBuild(64);
+}
+
+bool Sites::TickWarmUrlKeys(int sitesPerTick)
+{
+	if (gUrlKeysReady)
+		return true;
+	TickUrlKeysBuild(sitesPerTick > 0 ? sitesPerTick : 128);
+	return gUrlKeysReady;
 }
 
 int Sites::BestMatchForUrl(const std::string& url)
@@ -24206,15 +24265,11 @@ int Sites::BestMatchForUrl(const std::string& url)
 
 	if (url.rfind("about:", 0) == 0 || url.rfind("file:", 0) == 0)
 	{
-		for (int i = 0; i < kSiteCount; ++i)
-		{
-			const char* home = gSites[i].homeUrl;
-			if (!home || !home[0])
-				continue;
-			if (std::strcmp(home, url.c_str()) == 0)
-				return i;
-		}
-		/* file:///…/helper-home.html etc. */
+		EnsureUrlKeys();
+		const auto exact = gExactBuiltin.find(url);
+		if (exact != gExactBuiltin.end())
+			return exact->second;
+		/* file:///…/helper-home.html etc. (resolved paths, not about: keys). */
 		auto fileHit = [&](const char* needle, const char* id) -> int {
 			if (url.find(needle) != std::string::npos)
 				return IndexOfId(id);
@@ -24282,33 +24337,20 @@ int Sites::BestMatchForUrl(const std::string& url)
 	if (hostIt == gUrlKeysByHost.end())
 		return -1;
 
-	int best = -1;
-	size_t bestLen = 0;
-	int hostBest = -1;
-	size_t hostBestLen = 0;
-
+	/* Candidates are longest-path-first — first path hit is the best match. */
+	int hostFallback = -1;
 	for (int i : hostIt->second)
 	{
 		const SiteUrlKey& key = gUrlKeys[i];
 		if (!key.http || key.path.empty())
 			continue;
-
 		if (live == key.path || live.rfind(key.pathSlash, 0) == 0 || live.rfind(key.path, 0) == 0)
-		{
-			if (key.path.size() > bestLen)
-			{
-				bestLen = key.path.size();
-				best = i;
-			}
-		}
-		else if (key.host.size() > hostBestLen)
-		{
-			hostBestLen = key.host.size();
-			hostBest = i;
-		}
+			return i;
+		if (hostFallback < 0)
+			hostFallback = i;
 	}
 
-	return best >= 0 ? best : hostBest;
+	return hostFallback;
 }
 
 bool Sites::IsFavorite(const char* id)
