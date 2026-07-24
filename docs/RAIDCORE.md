@@ -14,10 +14,14 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.25`
+`1.7.8.29`
 
 ## Changelog highlights
 
+- **1.7.8.29** — Fix Snow Crows guides vanishing: ad-strip no longer matches nitro-article placement ids
+- **1.7.8.28** — Snow Crows guides: hydrate armory skill embeds + reveal cloaked TLDR / image diagrams
+- **1.7.8.27** — Hydrate Guildjen Breeze lazy images so wing guides show content in CEF
+- **1.7.8.26** — Stop YouTube embed popups from navigating the main tab; unlock Guildjen YouTube embeds
 - **1.7.8.25** — Raid Wings: Guildjen W1–W8 + hub / beginner guide (replaces MetaBattle wing pages)
 - **1.7.8.24** — Raid Boss: Snow Crows W1–W7 encounters (replaces Hardstuck); unblock Video.js CDN
 - **1.7.8.23** — Browse sections start collapsed; remember expanded state in settings

@@ -737,14 +737,41 @@ namespace
 			gIpc->ready = 0;
 	}
 
+	/* YouTube / media embeds open popups (Watch on YouTube, account, etc.).
+	   Promoting those into the main frame looks like a refresh/crash of the guide. */
+	bool IsMediaEmbedPopupUrl(const std::string& url)
+	{
+		auto has = [&](const char* s) {
+			return url.find(s) != std::string::npos;
+		};
+		return has("youtube.com") || has("youtu.be") || has("youtube-nocookie.com") ||
+			has("googlevideo.com") || has("ytimg.com") || has("vimeo.com") ||
+			has("player.vimeo.com");
+	}
+
 	int CEF_CALLBACK OnBeforePopup(
-		cef_life_span_handler_t*, cef_browser_t*, cef_frame_t*, const cef_string_t* target_url,
-		const cef_string_t*, cef_window_open_disposition_t, int, const cef_popup_features_t*,
+		cef_life_span_handler_t*, cef_browser_t*, cef_frame_t* frame, const cef_string_t* target_url,
+		const cef_string_t*, cef_window_open_disposition_t, int user_gesture, const cef_popup_features_t*,
 		cef_window_info_t*, cef_client_t**, cef_browser_settings_t*, cef_dictionary_value_t**, int*)
 	{
-		if (target_url)
-			NavigateTo(CefStringToUtf8(target_url).c_str());
-		return 1; /* cancel popup — open in same browser */
+		/* Always cancel native popup windows (OSR has no place for them). */
+		if (!target_url)
+			return 1;
+
+		const std::string url = CefStringToUtf8(target_url);
+		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
+			return 1;
+
+		/* Never steal the guide page for embed / media popups. */
+		if (IsMediaEmbedPopupUrl(url))
+			return 1;
+
+		/* Iframe-initiated popups stay cancelled — only promote real target=_blank
+		   clicks from the main document (Discord invites, external links). */
+		const bool fromMain = frame && frame->is_main && frame->is_main(frame);
+		if (user_gesture && fromMain)
+			NavigateTo(url.c_str());
+		return 1;
 	}
 
 	void InjectBootJs(cef_frame_t* frame)
