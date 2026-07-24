@@ -279,6 +279,8 @@ namespace
 				return "WvW";
 			if (std::strncmp(id, "gj_ach_", 7) == 0)
 				return "Achievements";
+			if (std::strcmp(id, "gj_jp_hub") == 0 || std::strncmp(id, "gj_jp_", 6) == 0)
+				return "Jumping Puzzles";
 			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0 ||
 				std::strcmp(id, "gw2tldr_fractals") == 0 || std::strcmp(id, "gw2tldr_dungeons") == 0)
 				return "TLDR";
@@ -397,7 +399,7 @@ namespace
 			static const char* kSec[] = {
 				"Living World", "Progress", "Mounts", "Fractals", "Raid Wings",
 				"Raid Boss", "Strikes", "Rifts", "PvP", "WvW", "Achievements",
-				"TLDR", "Other"
+				"Jumping Puzzles", "TLDR", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;

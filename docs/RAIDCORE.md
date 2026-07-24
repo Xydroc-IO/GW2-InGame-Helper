@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.34`
+`1.7.8.35`
 
 ## Changelog highlights
 
+- **1.7.8.35** — Guides → Jumping Puzzles: Guildjen hub + all JP guides
 - **1.7.8.34** — Guides → Mounts: Guildjen Siege Turtle unlock
 - **1.7.8.33** — Guides: Guildjen fractals / achievements / beginners / Harvest Temple / W8; Progress + Rifts sections
 - **1.7.8.32** — Home hero: remove decorative Browse / Favorites pills

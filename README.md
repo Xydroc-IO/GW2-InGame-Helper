@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `1.7.8.34` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `1.7.8.35` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -90,6 +90,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | MetaBattle Strikes + Guildjen Harvest Temple | Guides |
 | [Rifts & Convergences](https://guildjen.com/rift-hunting-and-convergences-guide/) | Guides |
 | Guildjen Achievements (LW / HoT / PoF / EoD / SotO / JW / VoE / Festivals) | Guides |
+| Guildjen Jumping Puzzles (hub + all JP guides) | Guides |
 | [GW2 TLDR](https://gw2tldr.com/) | Guides |
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
