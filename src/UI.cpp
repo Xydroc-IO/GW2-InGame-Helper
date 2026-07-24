@@ -252,16 +252,15 @@ namespace
 				std::strcmp(id, "gj_rw1") == 0 || std::strcmp(id, "gj_rw2") == 0 ||
 				std::strcmp(id, "gj_rw3") == 0 || std::strcmp(id, "gj_rw4") == 0 ||
 				std::strcmp(id, "gj_rw5") == 0 || std::strcmp(id, "gj_rw6") == 0 ||
-				std::strcmp(id, "gj_rw7") == 0 || std::strcmp(id, "gj_rw8") == 0)
-				return "Raid Wings";
-			if (std::strcmp(id, "sc_raids_hub") == 0 || std::strcmp(id, "sc_intro_squads") == 0 ||
+				std::strcmp(id, "gj_rw7") == 0 || std::strcmp(id, "gj_rw8") == 0 ||
+				std::strcmp(id, "sc_raids_hub") == 0 || std::strcmp(id, "sc_intro_squads") == 0 ||
 				std::strcmp(id, "sc_squad_roles") == 0 || std::strcmp(id, "sc_joining_squads") == 0 ||
 				std::strncmp(id, "sc_w1_", 6) == 0 || std::strncmp(id, "sc_w2_", 6) == 0 ||
 				std::strncmp(id, "sc_w3_", 6) == 0 || std::strncmp(id, "sc_w4_", 6) == 0 ||
 				std::strncmp(id, "sc_w5_", 6) == 0 || std::strncmp(id, "sc_w6_", 6) == 0 ||
 				std::strncmp(id, "sc_w7_", 6) == 0 || std::strncmp(id, "gj_w8_", 6) == 0 ||
 				std::strcmp(id, "mb_w8_balrior") == 0)
-				return "Raid Boss";
+				return "Raids";
 			if (std::strcmp(id, "mb_mai_trin") == 0 || std::strcmp(id, "mb_boneskinner") == 0 ||
 				std::strcmp(id, "mb_cold_war") == 0 || std::strcmp(id, "mb_cosmic_obs") == 0 ||
 				std::strcmp(id, "mb_forging_steel") == 0 || std::strcmp(id, "mb_fraenir") == 0 ||
@@ -397,8 +396,8 @@ namespace
 		if (std::strcmp(category, "Guides") == 0)
 		{
 			static const char* kSec[] = {
-				"Living World", "Progress", "Mounts", "Fractals", "Raid Wings",
-				"Raid Boss", "Strikes", "Rifts", "PvP", "WvW", "Achievements",
+				"Living World", "Progress", "Mounts", "Fractals", "Raids",
+				"Strikes", "Rifts", "PvP", "WvW", "Achievements",
 				"Jumping Puzzles", "TLDR", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
@@ -473,7 +472,7 @@ namespace
 		Settings::SetDirty();
 	}
 
-	/* Wing subsection under Guides → Raid Boss (nullptr = overview / prep links). */
+	/* Wing subsection under Guides → Raids → Raid Boss (nullptr = overview / prep). */
 	const char* RaidBossWing(const char* id)
 	{
 		if (!id || !id[0])
@@ -494,6 +493,28 @@ namespace
 			return "W7 Ahdashim";
 		if (std::strncmp(id, "gj_w8_", 6) == 0 || std::strcmp(id, "mb_w8_balrior") == 0)
 			return "W8 Mount Balrior";
+		return nullptr;
+	}
+
+	/* Raid Wings vs Raid Boss under Guides → Raids. */
+	const char* RaidsSub(const char* id)
+	{
+		if (!id || !id[0])
+			return nullptr;
+		if (std::strcmp(id, "gj_raid_guides") == 0 || std::strcmp(id, "gj_intro_raiding") == 0 ||
+			std::strcmp(id, "gj_rw1") == 0 || std::strcmp(id, "gj_rw2") == 0 ||
+			std::strcmp(id, "gj_rw3") == 0 || std::strcmp(id, "gj_rw4") == 0 ||
+			std::strcmp(id, "gj_rw5") == 0 || std::strcmp(id, "gj_rw6") == 0 ||
+			std::strcmp(id, "gj_rw7") == 0 || std::strcmp(id, "gj_rw8") == 0)
+			return "Raid Wings";
+		if (std::strcmp(id, "sc_raids_hub") == 0 || std::strcmp(id, "sc_intro_squads") == 0 ||
+			std::strcmp(id, "sc_squad_roles") == 0 || std::strcmp(id, "sc_joining_squads") == 0 ||
+			std::strncmp(id, "sc_w1_", 6) == 0 || std::strncmp(id, "sc_w2_", 6) == 0 ||
+			std::strncmp(id, "sc_w3_", 6) == 0 || std::strncmp(id, "sc_w4_", 6) == 0 ||
+			std::strncmp(id, "sc_w5_", 6) == 0 || std::strncmp(id, "sc_w6_", 6) == 0 ||
+			std::strncmp(id, "sc_w7_", 6) == 0 || std::strncmp(id, "gj_w8_", 6) == 0 ||
+			std::strcmp(id, "mb_w8_balrior") == 0)
+			return "Raid Boss";
 		return nullptr;
 	}
 
@@ -980,52 +1001,89 @@ namespace
 					anyInCategory = true;
 					if (!BeginBrowseSection(selectedCat, section, secSites))
 						continue;
-					/* Raid Boss: overview links, then collapsible wing subsections. */
-					if (std::strcmp(section, "Raid Boss") == 0)
+					/* Raids: Raid Wings + Raid Boss (wings nested under Raid Boss). */
+					if (std::strcmp(section, "Raids") == 0)
 					{
+						static const char* kRaidSubs[] = { "Raid Wings", "Raid Boss" };
 						static const char* kWings[] = {
 							"W1 Spirit Vale", "W2 Salvation Pass", "W3 Stronghold", "W4 Bastion",
 							"W5 Hall of Chains", "W6 Mythwright", "W7 Ahdashim", "W8 Mount Balrior"
 						};
-						for (int i = 0; i < static_cast<int>(siteCount); ++i)
-						{
-							const SiteDef& site = sites[i];
-							if (!site.category || std::strcmp(site.category, selectedCat) != 0)
-								continue;
-							const char* sec = BrowseSection(selectedCat, site.id);
-							if (!sec || std::strcmp(sec, "Raid Boss") != 0)
-								continue;
-							if (RaidBossWing(site.id))
-								continue;
-							DrawSiteRow(i, false);
-						}
 						ImGui::Indent(10.f);
-						for (const char* wing : kWings)
+						for (const char* sub : kRaidSubs)
 						{
-							int wingCount = 0;
+							int subCount = 0;
 							for (int i = 0; i < static_cast<int>(siteCount); ++i)
 							{
 								const SiteDef& site = sites[i];
 								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
 									continue;
-								const char* w = RaidBossWing(site.id);
-								if (w && std::strcmp(w, wing) == 0)
-									++wingCount;
+								const char* s = RaidsSub(site.id);
+								if (s && std::strcmp(s, sub) == 0)
+									++subCount;
 							}
-							if (wingCount == 0)
+							if (subCount == 0)
 								continue;
-							if (!BeginBrowseSection("Raid Boss", wing, wingCount))
+							if (!BeginBrowseSection("Raids", sub, subCount))
 								continue;
+
+							if (std::strcmp(sub, "Raid Wings") == 0)
+							{
+								for (int i = 0; i < static_cast<int>(siteCount); ++i)
+								{
+									const SiteDef& site = sites[i];
+									if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+										continue;
+									const char* s = RaidsSub(site.id);
+									if (!s || std::strcmp(s, "Raid Wings") != 0)
+										continue;
+									DrawSiteRow(i, false);
+								}
+								continue;
+							}
+
+							/* Raid Boss: prep/overview, then wing subsections. */
 							for (int i = 0; i < static_cast<int>(siteCount); ++i)
 							{
 								const SiteDef& site = sites[i];
 								if (!site.category || std::strcmp(site.category, selectedCat) != 0)
 									continue;
-								const char* w = RaidBossWing(site.id);
-								if (!w || std::strcmp(w, wing) != 0)
+								const char* s = RaidsSub(site.id);
+								if (!s || std::strcmp(s, "Raid Boss") != 0)
+									continue;
+								if (RaidBossWing(site.id))
 									continue;
 								DrawSiteRow(i, false);
 							}
+							ImGui::Indent(10.f);
+							for (const char* wing : kWings)
+							{
+								int wingCount = 0;
+								for (int i = 0; i < static_cast<int>(siteCount); ++i)
+								{
+									const SiteDef& site = sites[i];
+									if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+										continue;
+									const char* w = RaidBossWing(site.id);
+									if (w && std::strcmp(w, wing) == 0)
+										++wingCount;
+								}
+								if (wingCount == 0)
+									continue;
+								if (!BeginBrowseSection("Raid Boss", wing, wingCount))
+									continue;
+								for (int i = 0; i < static_cast<int>(siteCount); ++i)
+								{
+									const SiteDef& site = sites[i];
+									if (!site.category || std::strcmp(site.category, selectedCat) != 0)
+										continue;
+									const char* w = RaidBossWing(site.id);
+									if (!w || std::strcmp(w, wing) != 0)
+										continue;
+									DrawSiteRow(i, false);
+								}
+							}
+							ImGui::Unindent(10.f);
 						}
 						ImGui::Unindent(10.f);
 						continue;
