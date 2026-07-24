@@ -55,10 +55,11 @@ namespace
 	uint32_t gLastFrameSeq = 0;
 	DWORD gLastPresentMs = 0;
 	DWORD gLastMouseWakeMs = 0;
+	DWORD gLastUserInputMs = 0; /* PresentFrame drops to ~30 FPS when idle */
 
 	/* Local status mirror for StatusCStr (avoids std::string every frame). */
 	char gStatusCache[256] = "Closed — press Ctrl+Shift+H to open";
-	uint32_t gStatusCacheIpcHash = 0;
+	bool gStatusCacheFromIpc = false;
 
 	/* Tab lifecycle cmds dropped when the ring is full — retry next frame. */
 	static constexpr int kPendingCmdMax = 16;
@@ -161,7 +162,7 @@ namespace
 		std::lock_guard<std::mutex> lock(gMutex);
 		gStatus = s;
 		std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", s.c_str());
-		gStatusCacheIpcHash = 0;
+		gStatusCacheFromIpc = false;
 		if (G::API && G::API->Log)
 			G::API->Log(LOGL_INFO, ADDON_NAME, s.c_str());
 	}
@@ -903,6 +904,8 @@ void WikiBrowser::Init()
 	CleanupStaleAddonRootFiles();
 	gLaunchDisabled.store(false);
 	gStarting.store(false);
+	/* Build host→site indexes here so the first navigate does not hitch RT_Render. */
+	Sites::WarmUrlKeys();
 	SetLocalStatus("Closed — press Ctrl+Shift+H to open");
 }
 
@@ -1019,9 +1022,11 @@ void WikiBrowser::PresentFrame()
 	if (seq == gLastFrameSeq)
 		return;
 
-	/* Cap GPU upload ~60 FPS — matches CEF OSR; skip redundant ImGui-frame copies. */
+	/* Cap GPU upload — 60 FPS while interacting, ~30 FPS when idle. */
 	const DWORD now = GetTickCount();
-	if (gLastPresentMs != 0 && (now - gLastPresentMs) < 16u)
+	const DWORD budgetMs =
+		(gLastUserInputMs != 0 && (now - gLastUserInputMs) < 500u) ? 16u : 33u;
+	if (gLastPresentMs != 0 && (now - gLastPresentMs) < budgetMs)
 		return;
 
 	MemoryBarrier();
@@ -1074,8 +1079,9 @@ void WikiBrowser::FeedMouseMove(int x, int y, bool leave, unsigned mods)
 	gIpc->mouse_mods = mods;
 	gIpc->mouse_leave = leave ? 1u : 0u;
 	++gIpc->mouse_seq;
+	gLastUserInputMs = GetTickCount();
 	/* Always update live mouse fields; wake helper at most ~30 Hz. */
-	const DWORD now = GetTickCount();
+	const DWORD now = gLastUserInputMs;
 	if (leave || gLastMouseWakeMs == 0 || (now - gLastMouseWakeMs) >= 33u)
 	{
 		gLastMouseWakeMs = now;
@@ -1085,6 +1091,7 @@ void WikiBrowser::FeedMouseMove(int x, int y, bool leave, unsigned mods)
 
 void WikiBrowser::FeedMouseClick(int x, int y, int button, bool up, int clicks, unsigned mods)
 {
+	gLastUserInputMs = GetTickCount();
 	WikiInputEvent ev{};
 	ev.type = WIKI_IN_MOUSE_CLICK;
 	ev.x = x;
@@ -1100,6 +1107,7 @@ void WikiBrowser::FeedMouseClick(int x, int y, int button, bool up, int clicks, 
 
 void WikiBrowser::FeedMouseWheel(int x, int y, int dx, int dy, unsigned mods)
 {
+	gLastUserInputMs = GetTickCount();
 	WikiInputEvent ev{};
 	ev.type = WIKI_IN_MOUSE_WHEEL;
 	ev.x = x;
@@ -1112,6 +1120,7 @@ void WikiBrowser::FeedMouseWheel(int x, int y, int dx, int dy, unsigned mods)
 
 void WikiBrowser::FeedKey(int cefKeyType, int windowsVk, unsigned mods, unsigned character)
 {
+	gLastUserInputMs = GetTickCount();
 	WikiInputEvent ev{};
 	ev.type = WIKI_IN_KEY;
 	ev.a = cefKeyType;
@@ -1287,20 +1296,20 @@ const char* WikiBrowser::StatusCStr()
 {
 	if (gIpc && HelperAlive() && gIpc->status[0])
 	{
-		/* Cheap change detect — avoid copying every frame. */
-		uint32_t hash = 2166136261u;
-		for (const char* p = gIpc->status; *p; ++p)
-			hash = (hash ^ static_cast<unsigned char>(*p)) * 16777619u;
-		if (hash != gStatusCacheIpcHash)
+		/* strcmp vs cache — no FNV walk every frame. */
+		if (!gStatusCacheFromIpc || std::strcmp(gIpc->status, gStatusCache) != 0)
 		{
 			std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", gIpc->status);
-			gStatusCacheIpcHash = hash;
+			gStatusCacheFromIpc = true;
 		}
 		return gStatusCache;
 	}
 	std::lock_guard<std::mutex> lock(gMutex);
-	std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", gStatus.c_str());
-	gStatusCacheIpcHash = 0;
+	if (gStatusCacheFromIpc || std::strcmp(gStatusCache, gStatus.c_str()) != 0)
+	{
+		std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", gStatus.c_str());
+		gStatusCacheFromIpc = false;
+	}
 	return gStatusCache;
 }
 

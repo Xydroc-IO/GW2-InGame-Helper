@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.47`
+`1.7.8.48`
 
 ## Changelog highlights
 
+- **1.7.8.48** — Warm URL indexes at load; host-map BestMatch; idle ~30 FPS present; StatusCStr strcmp cache
 - **1.7.8.47** — Audit: keep CEF on collapse; URL-match key cache; max-size OSR texture + bounds throttle; StatusCStr; ImGuiIO hotkeys
 - **1.7.8.46** — Browse scroll: cache category/section indices + clip large lists
 - **1.7.8.45** — Wiki Utility by attribute; Minis section (all miniature pages by wiki subsections)

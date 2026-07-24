@@ -6,6 +6,9 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace
 {
@@ -24152,8 +24155,8 @@ namespace
 		return u;
 	}
 
-	/* Precomputed home URL keys — BestMatchForUrl used to allocate ~2 strings
-	   per site (~5k allocs) on every navigate/title sync and hitch GW2. */
+	/* Precomputed home URL keys + host→indices map.
+	   BestMatchForUrl used to allocate ~2 strings per site on every navigate. */
 	struct SiteUrlKey
 	{
 		std::string path;
@@ -24162,12 +24165,15 @@ namespace
 		bool http = false;
 	};
 	SiteUrlKey gUrlKeys[sizeof(gSites) / sizeof(gSites[0])];
+	std::unordered_map<std::string, std::vector<int>> gUrlKeysByHost;
 	bool gUrlKeysReady = false;
 
 	void EnsureUrlKeys()
 	{
 		if (gUrlKeysReady)
 			return;
+		gUrlKeysByHost.clear();
+		gUrlKeysByHost.reserve(512);
 		for (int i = 0; i < kSiteCount; ++i)
 		{
 			SiteUrlKey& k = gUrlKeys[i];
@@ -24181,9 +24187,16 @@ namespace
 				continue;
 			k.pathSlash = k.path + "/";
 			k.http = true;
+			if (!k.host.empty())
+				gUrlKeysByHost[k.host].push_back(i);
 		}
 		gUrlKeysReady = true;
 	}
+}
+
+void Sites::WarmUrlKeys()
+{
+	EnsureUrlKeys();
 }
 
 int Sites::BestMatchForUrl(const std::string& url)
@@ -24262,7 +24275,11 @@ int Sites::BestMatchForUrl(const std::string& url)
 
 	const std::string live = UrlHostPath(url, false);
 	const std::string liveHost = UrlHostPath(url, true);
-	if (live.empty())
+	if (live.empty() || liveHost.empty())
+		return -1;
+
+	const auto hostIt = gUrlKeysByHost.find(liveHost);
+	if (hostIt == gUrlKeysByHost.end())
 		return -1;
 
 	int best = -1;
@@ -24270,7 +24287,7 @@ int Sites::BestMatchForUrl(const std::string& url)
 	int hostBest = -1;
 	size_t hostBestLen = 0;
 
-	for (int i = 0; i < kSiteCount; ++i)
+	for (int i : hostIt->second)
 	{
 		const SiteUrlKey& key = gUrlKeys[i];
 		if (!key.http || key.path.empty())
@@ -24284,13 +24301,10 @@ int Sites::BestMatchForUrl(const std::string& url)
 				best = i;
 			}
 		}
-		else if (!key.host.empty() && liveHost == key.host)
+		else if (key.host.size() > hostBestLen)
 		{
-			if (key.host.size() > hostBestLen)
-			{
-				hostBestLen = key.host.size();
-				hostBest = i;
-			}
+			hostBestLen = key.host.size();
+			hostBest = i;
 		}
 	}
 
