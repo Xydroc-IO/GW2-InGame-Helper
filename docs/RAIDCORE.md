@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.31`
+`1.7.8.32`
 
 ## Changelog highlights
 
+- **1.7.8.32** — Home hero: remove decorative Browse / Favorites pills
 - **1.7.8.31** — Fix stuck “Starting…” after audit: ready when helper accepts CREATE_TAB (not after first browser)
 - **1.7.8.30** — Render/IPC/BootJs audit: ~60 FPS present+OSR, mouse wake throttle, tab-cmd retry, frame barriers, softer close, BootJs debounce/cache
 - **1.7.8.29** — Fix Snow Crows guides vanishing: ad-strip no longer matches nitro-article placement ids
