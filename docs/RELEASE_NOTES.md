@@ -23,6 +23,7 @@ Final **audit** cleanup:
 - **Load:** URL-match indexes build in chunks across `UI_Render` frames (no AddonLoad stall); first navigate still finishes sync if needed
 - **Navigate:** Exact `about:` / `file:` homeUrl map; per-host candidates sorted longest-path-first (first hit wins)
 - **Present:** `Map(..., DO_NOT_WAIT)` — skip a frame instead of stalling the GPU when the dynamic texture is busy
+- **How to use:** Homepage cache stamp bumped to `49` (aligned with addon version)
 
 ## What’s new in 1.7.8.48
 
