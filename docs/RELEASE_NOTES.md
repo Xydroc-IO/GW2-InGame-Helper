@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.30
+# GW2 In-Game Helper v1.7.8.31
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -16,9 +16,13 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 1.7.8.31
+
+- **Helper:** Fix stuck “Starting…” — mark IPC ready when the helper can accept `CREATE_TAB` (waiting for the first browser deadlocked tab sync)
+
 ## What’s new in 1.7.8.30
 
-- **Perf/stability:** Throttle frame present + mouse wakes (~60 FPS); CEF OSR at 60 FPS; tab-cmd retry queue; frame IPC barriers; helper ready only after first browser; softer close; BootJs MutationObservers debounced; single BootJs inject
+- **Perf/stability:** Throttle frame present + mouse wakes (~60 FPS); CEF OSR at 60 FPS; tab-cmd retry queue; frame IPC barriers; softer close; BootJs MutationObservers debounced; single BootJs inject
 
 ## What’s new in 1.7.8.29
 

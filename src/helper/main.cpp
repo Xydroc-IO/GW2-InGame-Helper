@@ -120,17 +120,6 @@ namespace
 		gIpc->tab_mask = mask;
 	}
 
-	bool AnyBrowser()
-	{
-		for (int i = 0; i < kWikiMaxTabs; ++i)
-		{
-			if (gBrowsers[i])
-				return true;
-		}
-		return false;
-	}
-
-
 	void SetStatus(const char* text)
 	{
 		if (!gIpc || !text)
@@ -625,8 +614,7 @@ namespace
 			}
 			if (ActiveBrowser())
 				ActivateSlot(gActiveSlot);
-			else if (gIpc)
-				gIpc->ready = 0;
+			/* Keep ready=1 with no browsers — host still sends CREATE_TAB. */
 		}
 		else if (oldActive > slot)
 		{
@@ -680,7 +668,7 @@ namespace
 		gBrowsers[slot] = browser;
 		gBrowsers[slot]->base.add_ref(&gBrowsers[slot]->base);
 		UpdateTabMask();
-		/* ready only after a real browser exists (not in CreateOsRBrowser). */
+		/* Reinforce ready (also set at CreateOsRBrowser so CREATE_TAB can start). */
 		if (gIpc)
 		{
 			gIpc->ready = 1;
@@ -735,8 +723,8 @@ namespace
 				break;
 			}
 		}
-		if (gIpc && !AnyBrowser())
-			gIpc->ready = 0;
+		/* Keep ready=1 after the last browser closes — CREATE_TAB must still be
+		   accepted (same chicken-egg as startup). */
 	}
 
 	/* YouTube / media embeds open popups (Watch on YouTube, account, etc.).
@@ -1335,7 +1323,9 @@ namespace
 			   CREATE_TAB supplies the real start URL. */
 			gIpc->tab_mask = 0;
 			gIpc->active_tab = 0;
-			/* ready stays 0 until OnAfterCreated — avoids NAVIGATE before a browser. */
+			/* ready = accepting cmds (CREATE_TAB). Must NOT wait for OnAfterCreated:
+			   the host only SyncAllToHelper after ready — that would deadlock. */
+			gIpc->ready = 1;
 			gIpc->alive = GetTickCount();
 		}
 		SetStatus("Starting…");
