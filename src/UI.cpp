@@ -242,7 +242,7 @@ namespace
 				std::strcmp(id, "gj_gem_store") == 0 || std::strcmp(id, "gj_wizards_vault") == 0)
 				return "Progress";
 			if (std::strcmp(id, "mb_griffon") == 0 || std::strcmp(id, "mb_skyscale") == 0 ||
-				std::strcmp(id, "gj_roller_beetle") == 0)
+				std::strcmp(id, "gj_roller_beetle") == 0 || std::strcmp(id, "gj_siege_turtle") == 0)
 				return "Mounts";
 			if (std::strcmp(id, "mb_intro_fractals") == 0 || std::strcmp(id, "mukluk_fractals") == 0 ||
 				std::strcmp(id, "gj_fractals_hub") == 0 || std::strcmp(id, "gj_fractals_beginner") == 0 ||
