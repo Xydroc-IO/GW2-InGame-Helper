@@ -2759,6 +2759,9 @@ void UI_Render()
 		const bool active = ImGui::IsItemActive();
 		overPage = hovered || active;
 		const unsigned mods = CefModsFromImGui(io);
+		/* Shared across enter/leave so remainder isn't a different static. */
+		static float sWheelAccX = 0.f;
+		static float sWheelAccY = 0.f;
 
 		if (overPage)
 		{
@@ -2786,11 +2789,25 @@ void UI_Render()
 
 			if (io.MouseWheel != 0.f || io.MouseWheelH != 0.f)
 			{
-				WikiBrowser::FeedMouseWheel(cx, cy,
-					static_cast<int>(io.MouseWheelH * 120.f),
-					static_cast<int>(io.MouseWheel * 120.f),
-					mods);
+				/* Accumulate fractional trackpad deltas so smooth scroll isn't
+				   quantized away by int(wheel*120). Discrete notches still land as ±120. */
+				sWheelAccX += io.MouseWheelH * 120.f;
+				sWheelAccY += io.MouseWheel * 120.f;
+				const int dx = static_cast<int>(sWheelAccX);
+				const int dy = static_cast<int>(sWheelAccY);
+				if (dx != 0 || dy != 0)
+				{
+					sWheelAccX -= static_cast<float>(dx);
+					sWheelAccY -= static_cast<float>(dy);
+					FocusBrowser();
+					WikiBrowser::FeedMouseWheel(cx, cy, dx, dy, mods);
+				}
 			}
+		}
+		else
+		{
+			sWheelAccX = 0.f;
+			sWheelAccY = 0.f;
 		}
 	}
 	else

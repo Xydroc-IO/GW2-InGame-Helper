@@ -78,7 +78,8 @@ namespace
 	uint32_t gLastFrameSeq = 0;
 	DWORD gLastPresentMs = 0;
 	DWORD gLastMouseWakeMs = 0;
-	DWORD gLastUserInputMs = 0; /* PresentFrame drops to ~30 FPS when idle */
+	DWORD gLastUserInputMs = 0; /* PresentFrame: high-rate while interacting */
+	DWORD gLastWheelMs = 0;     /* wheel keeps present path in “smooth scroll” mode */
 
 	/* Local status mirror for StatusCStr (avoids std::string every frame). */
 	char gStatusCache[256] = "Closed — press Ctrl+Shift+H to open";
@@ -1254,10 +1255,16 @@ void WikiBrowser::PresentFrame()
 	if (seq == gLastFrameSeq)
 		return;
 
-	/* Cap GPU upload — 60 FPS while interacting, ~30 FPS when idle. */
+	/* Cap GPU upload — display-rate while scrolling/interacting, ~30 FPS idle.
+	   Wheel gets a longer smooth window so coasting after a flick stays fluid. */
 	const DWORD now = GetTickCount();
-	const DWORD budgetMs =
-		(gLastUserInputMs != 0 && (now - gLastUserInputMs) < 500u) ? 16u : 33u;
+	const bool wheelSmooth =
+		gLastWheelMs != 0 && (now - gLastWheelMs) < 400u;
+	const bool interactive =
+		wheelSmooth ||
+		(gLastUserInputMs != 0 && (now - gLastUserInputMs) < 750u);
+	/* ~120 Hz while wheel-scrolling; ~60 Hz for other input; ~30 Hz idle. */
+	const DWORD budgetMs = wheelSmooth ? 8u : (interactive ? 16u : 33u);
 	if (gLastPresentMs != 0 && (now - gLastPresentMs) < budgetMs)
 		return;
 
@@ -1289,16 +1296,19 @@ void WikiBrowser::PresentFrame()
 	if (!EnsureTexture(w, h) || !gContext || !gTex)
 		return;
 
-	const bool interactive =
-		gLastUserInputMs != 0 && (now - gLastUserInputMs) < 500u;
 	const uint32_t rowBudget = interactive ? kMaxCopyRowsInteractive : kMaxCopyRowsPerFrame;
-	/* Chunked staging only AFTER the texture has been initialized with DISCARD.
-	   First paint must WRITE_DISCARD — MAP_WRITE on a virgin dynamic texture fails
-	   and used to leave the UI stuck on "Waiting for first paint…". */
+	/* Never chunk while interacting/scrolling — multi-frame staging lags behind
+	   CEF paints and feels like stuttering scroll. First paint still DISCARD. */
+	if (interactive)
+	{
+		gStagingReady = false;
+		gPartialCopySeq = 0;
+		gPartialCopyY = 0;
+	}
 	const bool continuingPartial =
-		gTexHasContent && uploadFull && gPartialCopySeq == seq &&
+		!interactive && gTexHasContent && uploadFull && gPartialCopySeq == seq &&
 		gPartialCopyFront == front && gPartialCopyY > 0 && gStagingReady;
-	const bool wantChunk = gTexHasContent && uploadFull &&
+	const bool wantChunk = !interactive && gTexHasContent && uploadFull &&
 		(continuingPartial || h > rowBudget);
 
 	if (wantChunk && (!gStagingReady || gStagingSeq != seq || gStagingW != w || gStagingH != h))
@@ -1475,6 +1485,7 @@ void WikiBrowser::FeedMouseClick(int x, int y, int button, bool up, int clicks, 
 void WikiBrowser::FeedMouseWheel(int x, int y, int dx, int dy, unsigned mods)
 {
 	gLastUserInputMs = GetTickCount();
+	gLastWheelMs = gLastUserInputMs;
 	WikiInputEvent ev{};
 	ev.type = WIKI_IN_MOUSE_WHEEL;
 	ev.x = x;

@@ -1551,16 +1551,17 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		ProcessCommands();
 
 		/* Idle: wake on DLL cmds/input, else short timeout for CEF timers.
-		   Visible: 8ms is enough for 60 FPS OSR + input — old 1ms busy-wait
-		   burned a core for little gain. */
-		const bool busy = gIpc && (gIpc->visible || gIpc->input_read != gIpc->input_write);
+		   Visible / input pending: 2ms keeps wheel scroll fluid under Wine. */
+		const bool inputPending = gIpc && (gIpc->input_read != gIpc->input_write);
+		const bool busy = gIpc && (gIpc->visible || inputPending);
 		if (gWakeEvent)
 		{
-			MsgWaitForMultipleObjects(1, &gWakeEvent, FALSE, busy ? 4 : 16, QS_ALLINPUT);
+			MsgWaitForMultipleObjects(1, &gWakeEvent, FALSE,
+				inputPending ? 1 : (busy ? 2 : 16), QS_ALLINPUT);
 			ResetEvent(gWakeEvent);
 		}
 		else
-			Sleep(busy ? 4 : 16);
+			Sleep(inputPending ? 1 : (busy ? 2 : 16));
 	}
 
 	for (int i = 0; i < kWikiMaxTabs; ++i)

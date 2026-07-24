@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.5`
+`2.0.0.6`
 
 ## Changelog highlights
 
+- **2.0.0.6** — Smoother page scroll (no staging lag while interacting; trackpad wheel accumulate)
 - **2.0.0.5** — Fix black “Waiting for first paint…” panel (first upload WRITE_DISCARD)
 - **2.0.0.4** — Worker-thread launch; quit/reopen without RT Terminate; staging present; Browse caches; BootJs single-flight; CssProxy unlinked; compliance docs
 - **2.0.0.3** — Defer helper CreateProcess off RT_Render; split full-frame GPU uploads; Browse filter/Food/Minis caches; BootJs armory rate-limit; Legendary Armory wiki nesting
