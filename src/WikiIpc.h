@@ -7,13 +7,12 @@
    Browser is windowless (OSR); frames are BGRA in a second mapping.
    Up to kWikiMaxTabs OSR browsers; only the active tab paints.
 
-   v3: url/title seq+len fencing, double-buffered frames + reader lock,
-   named wake event for idle helper. */
+   v4: larger input ring (fast typing); same frame fencing as v3. */
 
-static constexpr uint32_t kWikiIpcMagic = 0x484C4933u; /* 'HLI3' */
-static constexpr const char* kWikiIpcMapName = "Local\\GW2InGameHelper_CEF_IPC_v3";
-static constexpr const char* kWikiFrameMapName = "Local\\GW2InGameHelper_CEF_FRAME_v3";
-static constexpr const char* kWikiWakeEventName = "Local\\GW2InGameHelper_CEF_WAKE_v3";
+static constexpr uint32_t kWikiIpcMagic = 0x484C4934u; /* 'HLI4' */
+static constexpr const char* kWikiIpcMapName = "Local\\GW2InGameHelper_CEF_IPC_v4";
+static constexpr const char* kWikiFrameMapName = "Local\\GW2InGameHelper_CEF_FRAME_v4";
+static constexpr const char* kWikiWakeEventName = "Local\\GW2InGameHelper_CEF_WAKE_v4";
 
 static constexpr uint32_t kWikiFrameMaxW = 1920;
 static constexpr uint32_t kWikiFrameMaxH = 1200;
@@ -23,7 +22,7 @@ static constexpr uint32_t kWikiFrameBytes = kWikiFrameStride * kWikiFrameMaxH;
 static constexpr uint32_t kWikiFrameBufferCount = 2;
 static constexpr uint32_t kWikiFrameMapBytes = kWikiFrameBytes * kWikiFrameBufferCount;
 
-static constexpr uint32_t kWikiInputQueueSize = 128;
+static constexpr uint32_t kWikiInputQueueSize = 256;
 static constexpr uint32_t kWikiCmdQueueSize = 32;
 static constexpr int kWikiMaxTabs = 8;
 

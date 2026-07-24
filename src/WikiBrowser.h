@@ -33,7 +33,8 @@ namespace WikiBrowser
 	void FeedMouseMove(int x, int y, bool leave, unsigned mods);
 	void FeedMouseClick(int x, int y, int button, bool up, int clicks, unsigned mods);
 	void FeedMouseWheel(int x, int y, int dx, int dy, unsigned mods);
-	void FeedKey(int cefKeyType, int windowsVk, unsigned mods, unsigned character);
+	void FeedKey(int cefKeyType, int windowsVk, unsigned mods, unsigned character,
+		int nativeKeyCode = 0, bool systemKey = false);
 	void FeedFocus(bool focused);
 
 	bool IsReady();

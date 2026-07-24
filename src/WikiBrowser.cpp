@@ -1119,7 +1119,8 @@ void WikiBrowser::FeedMouseWheel(int x, int y, int dx, int dy, unsigned mods)
 	PushInput(ev);
 }
 
-void WikiBrowser::FeedKey(int cefKeyType, int windowsVk, unsigned mods, unsigned character)
+void WikiBrowser::FeedKey(int cefKeyType, int windowsVk, unsigned mods, unsigned character,
+	int nativeKeyCode, bool systemKey)
 {
 	gLastUserInputMs = GetTickCount();
 	WikiInputEvent ev{};
@@ -1128,6 +1129,9 @@ void WikiBrowser::FeedKey(int cefKeyType, int windowsVk, unsigned mods, unsigned
 	ev.b = windowsVk;
 	ev.c = static_cast<int32_t>(mods);
 	ev.character = character;
+	/* x = Win32 lParam (scan/repeat); y = is_system_key for CEF. */
+	ev.x = nativeKeyCode;
+	ev.y = systemKey ? 1 : 0;
 	PushInput(ev);
 }
 
