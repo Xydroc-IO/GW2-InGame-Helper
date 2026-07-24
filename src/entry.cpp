@@ -165,7 +165,7 @@ static bool ClientCursor(HWND hwnd, int* outX, int* outY)
 	return true;
 }
 
-static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM)
+static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	UpdateHotkeySwallow();
 
@@ -206,20 +206,44 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM)
 		}
 
 		const unsigned mods = CefModsFromWin();
+		const int native = static_cast<int>(lp);
+		const bool sys = (msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP || msg == WM_SYSCHAR);
 		switch (msg)
 		{
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			WikiBrowser::FeedKey(0, static_cast<int>(wp), mods, 0);
+			/* KEYEVENT_RAWKEYDOWN = 0 */
+			WikiBrowser::FeedKey(0, static_cast<int>(wp), mods, 0, native, sys);
+			/* Nexus often skips TranslateMessage when we return 0, so WM_CHAR
+			   never arrives — synthesize characters here (fixes dropped letters). */
+			{
+				BYTE state[256];
+				if (GetKeyboardState(state))
+				{
+					WCHAR chars[8]{};
+					const UINT sc = (static_cast<UINT>(lp) >> 16) & 0xffu;
+					const int n = ToUnicode(static_cast<UINT>(wp), sc, state, chars, 8, 0);
+					if (n > 0)
+					{
+						for (int i = 0; i < n; ++i)
+						{
+							const unsigned ch = static_cast<unsigned>(chars[i]);
+							if (ch >= 32 || ch == 8 || ch == 9 || ch == 13)
+								WikiBrowser::FeedKey(3, static_cast<int>(ch), mods, ch, native, sys);
+						}
+					}
+				}
+			}
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			WikiBrowser::FeedKey(2, static_cast<int>(wp), mods, 0);
+			/* KEYEVENT_KEYUP = 2 */
+			WikiBrowser::FeedKey(2, static_cast<int>(wp), mods, 0, native, sys);
 			break;
 		case WM_CHAR:
 		case WM_SYSCHAR:
-			if (wp >= 32 || wp == 8 || wp == 9 || wp == 13)
-				WikiBrowser::FeedKey(3, static_cast<int>(wp), mods, static_cast<unsigned>(wp));
+			/* Ignore — characters already sent from KEYDOWN via ToUnicode.
+			   Forwarding both would duplicate glyphs when TranslateMessage runs. */
 			break;
 		default:
 			break;
@@ -294,7 +318,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 1;
 	G::AddonDef.Version.Minor    = 7;
 	G::AddonDef.Version.Build    = 8;
-	G::AddonDef.Version.Revision = 49;
+	G::AddonDef.Version.Revision = 50;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.";

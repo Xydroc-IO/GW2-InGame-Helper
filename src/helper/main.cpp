@@ -1114,7 +1114,7 @@ namespace
 		host->base.release(&host->base);
 	}
 
-	void SendKey(int type, int windowsVk, uint32_t mods, uint32_t character)
+	void SendKey(int type, int windowsVk, uint32_t mods, uint32_t character, int nativeKeyCode, int isSystemKey)
 	{
 		cef_browser_host_t* host = Host();
 		if (!host)
@@ -1127,8 +1127,9 @@ namespace
 			ev.windows_key_code = static_cast<int>(character ? character : windowsVk);
 		else
 			ev.windows_key_code = windowsVk;
-		ev.native_key_code = windowsVk;
-		ev.is_system_key = 0;
+		/* Full WM_* lParam — scan code / repeat live here; VK alone drops chars under load. */
+		ev.native_key_code = nativeKeyCode ? nativeKeyCode : windowsVk;
+		ev.is_system_key = isSystemKey ? 1 : 0;
 		ev.character = static_cast<char16>(character);
 		ev.unmodified_character = static_cast<char16>(character);
 		ev.focus_on_editable_field = 1;
@@ -1172,7 +1173,7 @@ namespace
 				SendMouseWheel(ev.x, ev.y, ev.a, ev.b, ev.character);
 				break;
 			case WIKI_IN_KEY:
-				SendKey(ev.a, ev.b, static_cast<uint32_t>(ev.c), ev.character);
+				SendKey(ev.a, ev.b, static_cast<uint32_t>(ev.c), ev.character, ev.x, ev.y);
 				break;
 			case WIKI_IN_FOCUS:
 				SendFocus(ev.a);
@@ -1495,14 +1496,14 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		/* Idle: wake on DLL cmds/input, else short timeout for CEF timers.
 		   Visible: 8ms is enough for 60 FPS OSR + input — old 1ms busy-wait
 		   burned a core for little gain. */
-		const bool busy = gIpc && gIpc->visible;
+		const bool busy = gIpc && (gIpc->visible || gIpc->input_read != gIpc->input_write);
 		if (gWakeEvent)
 		{
-			MsgWaitForMultipleObjects(1, &gWakeEvent, FALSE, busy ? 8 : 16, QS_ALLINPUT);
+			MsgWaitForMultipleObjects(1, &gWakeEvent, FALSE, busy ? 4 : 16, QS_ALLINPUT);
 			ResetEvent(gWakeEvent);
 		}
 		else
-			Sleep(busy ? 8 : 16);
+			Sleep(busy ? 4 : 16);
 	}
 
 	for (int i = 0; i < kWikiMaxTabs; ++i)
