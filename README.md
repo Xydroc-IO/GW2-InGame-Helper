@@ -121,6 +121,7 @@ Stability / hitch **audit** fixes — full detail in [`docs/RELEASE_NOTES.md`](d
 - Chunked URL-index warm-up across frames (no AddonLoad stall)
 - Exact `about:`/`file:` map; longest-path-first per host
 - GPU texture Map uses `DO_NOT_WAIT` (skip frame instead of stall)
+- How to use cache stamp aligned to `49`
 
 **1.7.8.48**
 - Warm URL-match indexes at addon load (no first-navigate hitch)

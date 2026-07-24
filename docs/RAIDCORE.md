@@ -18,7 +18,7 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Changelog highlights
 
-- **1.7.8.49** — Chunked URL warm; about/file map; longest-path host match; Present Map DO_NOT_WAIT
+- **1.7.8.49** — Chunked URL warm; about/file map; longest-path host match; Present Map DO_NOT_WAIT; how-to stamp 49
 - **1.7.8.48** — Audit follow-up: warm URL indexes; host-map BestMatch; idle ~30 FPS present; StatusCStr strcmp; How to use homepage refresh
 - **1.7.8.47** — Audit: keep CEF on collapse; URL-key cache; max-size OSR + UV crop; SET_BOUNDS throttle; StatusCStr; ImGuiIO hotkeys; ~30 Hz closed poll
 - **1.7.8.46** — Browse scroll: cache category/section indices + clip large lists
