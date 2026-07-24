@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.3
+# GW2 In-Game Helper v2.0.0.4
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,20 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.4
+
+Full audit follow-up (#1–#19):
+
+- **Quit/reopen:** Never `TerminateProcess` from `SetVisible` — relaunch waits for graceful quit on `Tick`
+- **Launch:** `CreateProcess` / helper extract run on a worker thread (RT only queues/polls)
+- **Present:** Large frames snapshot to CPU staging then chunked GPU upload; no DISCARD fallback for large splits; pin released before Map
+- **Browse:** Cached favorites / Raids / Achievements; URL warm mostly when overlay closed
+- **BootJs:** Single-flight armory fetch queue + 429 backoff across skills/traits/items
+- **Status:** Local status also writes IPC `status[]` (one logical source)
+- **Build:** CssProxy WinHTTP path removed from the helper link; stub header only
+- **Docs:** `docs/COMPLIANCE.md`; hot-reload / TOS / dual-load notes; site id prefix validation
+- **How to use:** Homepage cache stamp `204`
 
 ## What’s new in 2.0.0.3
 

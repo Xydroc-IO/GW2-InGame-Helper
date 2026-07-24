@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `2.0.0.3` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.0.4` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -111,9 +111,12 @@ Works on Windows and on Linux via Wine/Proton.
 
 > **Players only need the DLL** in `addons/`. The browser helper and homepage assets extract into `addons/GW2-InGame-Helper/` on first use; Chromium comes from the game’s `bin64/cef`.
 
-Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
+Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
-## What’s new (2.0.0.3)
+## What’s new (2.0.0.4)
+
+**2.0.0.4**
+- Full audit: worker-thread helper launch; quit/reopen without RT Terminate; staging GPU present; Browse Raids/Achievements/favorites caches; BootJs single-flight API; CssProxy unlinked; compliance docs
 
 **2.0.0.3**
 - Audit: defer helper launch off the render thread; split large GPU frame uploads; cache Browse filter / Food / Minis; serialize GW2 API armory fetches with 429 backoff
