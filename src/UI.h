@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdio>
+
 void UI_Render();
 void UI_Options();
 
@@ -12,6 +14,10 @@ bool UI_BlocksGameMouse();
 bool UI_IsPointerOverWiki(int clientX, int clientY);
 /* Drop wiki keyboard focus so the game can move/skills again. */
 void UI_ReleaseGameInput();
+
+/* Persist Browse collapsing-header open state (settings.ini). */
+void UI_ParseBrowseOpen(const char* val);
+void UI_WriteBrowseOpen(FILE* f);
 
 /* Frame poll for Ctrl+Shift hotkeys — defined in entry.cpp, runs even when closed. */
 void HelperHotkeys_Poll();

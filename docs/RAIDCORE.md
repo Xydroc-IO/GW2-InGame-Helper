@@ -14,10 +14,18 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`1.7.8.15`
+`1.7.8.23`
 
 ## Changelog highlights
 
+- **1.7.8.23** — Browse sections start collapsed; remember expanded state in settings
+- **1.7.8.22** — Raid Boss wings nested as collapsible subsections under Raid Boss
+- **1.7.8.21** — Hardstuck 10-Player / Squad / Envoy Armor under Raid Boss; ArcDPS under Tools
+- **1.7.8.20** — Guides: Hardstuck Raid Boss encounters W1–W8, grouped by wing
+- **1.7.8.19** — Browse: collapsible sections within categories
+- **1.7.8.18** — Google Search + DuckDuckGo CSS downlevel (display-p3, @property, dvh); skip ad-strip on DDG
+- **1.7.8.17** — Gemini color-mix response filter (before paint); Chrome UA; dvh/nesting compat
+- **1.7.8.16** — Firefox UA spoof for Google / Gemini login; tip banner + docs for Open Ext when Google blocks CEF
 - **1.7.8.15** — Fix Google / Gemini readability (CSS downlevel, skip ad-strip on google.com, allow GTM)
 - **1.7.8.14** — Google Gemini under Search → AI
 - **1.7.8.13** — TLDR Fractals under Guides → TLDR (with other TLDR entries)

@@ -452,7 +452,7 @@ const char* HomePage::Html()
             <li><strong>Home</strong> — return to this page</li>
             <li><strong>Reload</strong> — refresh the current page</li>
             <li><strong>Copy URL</strong> — copy the current page link</li>
-            <li><strong>Open Ext</strong> — open in your system browser (best for Discord joins)</li>
+            <li><strong>Open Ext</strong> — open in your system browser (Discord joins, Google / Gemini login)</li>
           </ul>
         </div>
       </section>
@@ -468,7 +468,7 @@ const char* HomePage::Html()
             <div class="card"><span class="cat">Builds</span><span>Snowcrows Raid Builds (per profession), AccessiBuilds (SC + Accessibility Wars), OW / PvP / WvW, MetaBattle, Gw2Skills</span></div>
             <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu</span></div>
             <div class="card"><span class="cat">Cheat Sheets</span><span>Food, Utilities, Fractals, Squad, Wings, Strikes, Dailies, Currencies, Ascended, Portals, Homestead, WvW, …</span></div>
-            <div class="card"><span class="cat">Guides</span><span>Living World, Progress, Mounts, Fractals, Raid Wings, Strikes, PvP, WvW, TLDR</span></div>
+            <div class="card"><span class="cat">Guides</span><span>Living World, Progress, Mounts, Fractals, Raid Wings, Raid Boss (Hardstuck), Strikes, PvP, WvW, TLDR</span></div>
             <div class="card"><span class="cat">Farming</span><span>Fast Farming Community</span></div>
             <div class="card"><span class="cat">Discord</span><span>Official, Community, builds, training, PvP, WvW, trading, Raidcore</span></div>
           </div>
@@ -481,7 +481,8 @@ const char* HomePage::Html()
           <ul>
             <li>Opacity and font scale are in the addon’s Nexus options.</li>
             <li>Opening the helper restores your saved tabs (or your default landing site). The Home button opens that default site.</li>
-            <li>Use <strong>Open Ext</strong> for Discord invites and pages that need a full browser login.</li>
+            <li>In Browse, sections start collapsed — expand what you need; open/closed state is remembered.</li>
+            <li>Use <strong>Open Ext</strong> for Discord invites and Google / Gemini login. Google blocks sign-in inside the embedded game browser (“This browser may not be secure”); the system browser works, but that session is separate from in-game tabs.</li>
           </ul>
         </div>
       </section>
