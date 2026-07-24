@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v1.7.8.46
+# GW2 In-Game Helper v1.7.8.47
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,16 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 1.7.8.47
+
+Render / UX **audit** fixes (less host hitching, keep CEF alive):
+
+- **Collapse:** Title-bar collapse no longer tears down the CEF helper (`TerminateProcess` on every collapse/expand)
+- **Navigate:** Precompute site URL keys so `BestMatchForUrl` does not allocate thousands of strings per click
+- **Present:** Allocate the OSR D3D texture once at max size (UV crop) — window drag no longer recreates GPU textures every pixel; throttle `SET_BOUNDS` wakes (~100 ms)
+- **Status:** Cached `StatusCStr` — no per-frame `std::string` / mutex on the loading path
+- **Input:** In-window Ctrl+T/W/F/Tab use ImGuiIO (no GetAsyncKeyState); closed-window hotkey poll capped ~30 Hz
 
 ## What’s new in 1.7.8.46
 

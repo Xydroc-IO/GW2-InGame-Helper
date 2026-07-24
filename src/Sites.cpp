@@ -24151,6 +24151,39 @@ namespace
 		}
 		return u;
 	}
+
+	/* Precomputed home URL keys — BestMatchForUrl used to allocate ~2 strings
+	   per site (~5k allocs) on every navigate/title sync and hitch GW2. */
+	struct SiteUrlKey
+	{
+		std::string path;
+		std::string host;
+		std::string pathSlash; /* path + "/" */
+		bool http = false;
+	};
+	SiteUrlKey gUrlKeys[sizeof(gSites) / sizeof(gSites[0])];
+	bool gUrlKeysReady = false;
+
+	void EnsureUrlKeys()
+	{
+		if (gUrlKeysReady)
+			return;
+		for (int i = 0; i < kSiteCount; ++i)
+		{
+			SiteUrlKey& k = gUrlKeys[i];
+			k = SiteUrlKey{};
+			const char* home = gSites[i].homeUrl;
+			if (!home || !home[0] || std::strncmp(home, "http", 4) != 0)
+				continue;
+			k.path = UrlHostPath(home, false);
+			k.host = UrlHostPath(home, true);
+			if (k.path.empty())
+				continue;
+			k.pathSlash = k.path + "/";
+			k.http = true;
+		}
+		gUrlKeysReady = true;
+	}
 }
 
 int Sites::BestMatchForUrl(const std::string& url)
@@ -24225,6 +24258,8 @@ int Sites::BestMatchForUrl(const std::string& url)
 		return -1;
 	}
 
+	EnsureUrlKeys();
+
 	const std::string live = UrlHostPath(url, false);
 	const std::string liveHost = UrlHostPath(url, true);
 	if (live.empty())
@@ -24237,30 +24272,23 @@ int Sites::BestMatchForUrl(const std::string& url)
 
 	for (int i = 0; i < kSiteCount; ++i)
 	{
-		const char* home = gSites[i].homeUrl;
-		if (!home || !home[0])
-			continue;
-		if (std::strncmp(home, "http", 4) != 0)
+		const SiteUrlKey& key = gUrlKeys[i];
+		if (!key.http || key.path.empty())
 			continue;
 
-		const std::string homePath = UrlHostPath(home, false);
-		const std::string homeHost = UrlHostPath(home, true);
-		if (homePath.empty())
-			continue;
-
-		if (live == homePath || live.rfind(homePath + "/", 0) == 0 || live.rfind(homePath, 0) == 0)
+		if (live == key.path || live.rfind(key.pathSlash, 0) == 0 || live.rfind(key.path, 0) == 0)
 		{
-			if (homePath.size() > bestLen)
+			if (key.path.size() > bestLen)
 			{
-				bestLen = homePath.size();
+				bestLen = key.path.size();
 				best = i;
 			}
 		}
-		else if (!homeHost.empty() && liveHost == homeHost)
+		else if (!key.host.empty() && liveHost == key.host)
 		{
-			if (homeHost.size() > hostBestLen)
+			if (key.host.size() > hostBestLen)
 			{
-				hostBestLen = homeHost.size();
+				hostBestLen = key.host.size();
 				hostBest = i;
 			}
 		}
