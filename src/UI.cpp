@@ -1233,12 +1233,17 @@ namespace
 		/* Cache site indices for the selected category (Wiki alone is 1000+). */
 		static std::string sBrowseCatKey;
 		static std::vector<int> sBrowseCatIdx;
+		static std::string sSecBucketKey; /* invalidated with cat idx below */
+		static std::vector<std::vector<int>> sSecBuckets;
+		bool browseCatRebuilt = false;
 		{
 			const char* key = filtering ? "\x01" "filter" : (showFavorites ? "\x01" "fav" : selectedCat);
 			if (sBrowseCatKey != key)
 			{
 				sBrowseCatKey = key;
 				sBrowseCatIdx.clear();
+				sSecBucketKey.clear(); /* force section re-bucket with fresh indices */
+				browseCatRebuilt = true;
 				if (!filtering && !showFavorites && selectedCat && selectedCat[0])
 				{
 					sBrowseCatIdx.reserve(512);
@@ -1257,10 +1262,13 @@ namespace
 				return;
 			const SiteDef& site = sites[siteIndex];
 			ImGui::PushID(siteIndex);
+			/* Keep star+label on one row without SameLine edge cases that can
+			   leave ListClipper with ItemsHeight==0 under nested headers. */
+			const float rowStartY = ImGui::GetCursorPosY();
 			if (!pickDefaultSite)
 			{
 				DrawFavoriteStar(site.id);
-				ImGui::SameLine();
+				ImGui::SameLine(0.f, 4.f);
 			}
 			char row[160];
 			if (withCategoryPrefix)
@@ -1274,7 +1282,7 @@ namespace
 				std::snprintf(row, sizeof(row), "%s", safe);
 			}
 			else
-				std::snprintf(row, sizeof(row), "%s", site.label ? site.label : "");
+				std::snprintf(row, sizeof(row), "%s", site.label ? site.label : site.id ? site.id : "(site)");
 
 			const bool selected = (siteIndex == current);
 			const bool ctrl = ImGui::GetIO().KeyCtrl;
@@ -1290,6 +1298,10 @@ namespace
 					*closePanel = true;
 				sSyncCategory = true;
 			}
+			/* Guarantee the row advanced — empty labels / SameLine quirks must
+			   not leave the cursor stuck (breaks clipper height measure). */
+			if (ImGui::GetCursorPosY() <= rowStartY + 0.5f)
+				ImGui::SetCursorPosY(rowStartY + ImGui::GetFrameHeightWithSpacing());
 			if (ImGui::IsItemHovered())
 			{
 				if (pickNewTab)
@@ -1359,16 +1371,27 @@ namespace
 			++shown;
 		};
 
-		/* Even-height rows + only submit visible ones (Browse lists can be 1000+). */
+		/* Even-height rows + only submit visible ones (Browse lists can be 1000+).
+		   Always pass an explicit row height. Auto-measure + favorite-star SameLine
+		   under nested CollapsingHeaders can yield ItemsHeight==0 (assert-only in
+		   ImGui 1.80), which then seeks by zero and the expanded section looks empty. */
 		auto DrawClippedRows = [&](const std::vector<int>& idxs, bool withCategoryPrefix) {
 			if (idxs.empty())
 				return;
+			const int n = static_cast<int>(idxs.size());
+			const float rowH = ImGui::GetFrameHeightWithSpacing();
+			if (n <= 96)
+			{
+				for (int i = 0; i < n; ++i)
+					DrawSiteRow(idxs[static_cast<size_t>(i)], withCategoryPrefix);
+				return;
+			}
 			ImGuiListClipper clipper;
-			clipper.Begin(static_cast<int>(idxs.size()));
+			clipper.Begin(n, rowH);
 			while (clipper.Step())
 			{
-				for (int n = clipper.DisplayStart; n < clipper.DisplayEnd; ++n)
-					DrawSiteRow(idxs[static_cast<size_t>(n)], withCategoryPrefix);
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+					DrawSiteRow(idxs[static_cast<size_t>(i)], withCategoryPrefix);
 			}
 		};
 
@@ -1426,11 +1449,9 @@ namespace
 			if (sections && secCount > 0)
 			{
 				/* One pass: bucket indices by top-level section (stable until category changes). */
-				static std::string sSecBucketKey;
-				static std::vector<std::vector<int>> sSecBuckets;
-				if (sSecBucketKey != selectedCat)
+				if (browseCatRebuilt || sSecBucketKey != selectedCat)
 				{
-					sSecBucketKey = selectedCat;
+					sSecBucketKey = selectedCat ? selectedCat : "";
 					sSecBuckets.assign(secCount, {});
 					for (int i : sBrowseCatIdx)
 					{
@@ -1447,6 +1468,9 @@ namespace
 						}
 					}
 				}
+				/* Guard: section table size can never shrink under us, but don't read OOB. */
+				if (sSecBuckets.size() < secCount)
+					sSecBuckets.resize(secCount);
 				for (size_t s = 0; s < secCount; ++s)
 				{
 					const char* section = sections[s];
@@ -1471,7 +1495,7 @@ namespace
 						static std::vector<int> sRaidWings;
 						static std::vector<int> sRaidBossHubs;
 						static std::vector<std::vector<int>> sRaidBossByWing;
-						if (sRaidCacheKey != selectedCat)
+						if (sRaidCacheKey != selectedCat || browseCatRebuilt)
 						{
 							sRaidCacheKey = selectedCat;
 							sRaidWings.clear();
@@ -1495,14 +1519,18 @@ namespace
 									sRaidBossHubs.push_back(i);
 									continue;
 								}
+								bool placed = false;
 								for (int wi = 0; wi < kWingN; ++wi)
 								{
 									if (std::strcmp(w, kWings[wi]) == 0)
 									{
 										sRaidBossByWing[static_cast<size_t>(wi)].push_back(i);
+										placed = true;
 										break;
 									}
 								}
+								if (!placed)
+									sRaidBossHubs.push_back(i);
 							}
 						}
 						ImGui::Indent(10.f);
@@ -1571,7 +1599,7 @@ namespace
 						static std::vector<std::vector<int>> sLegByGen;
 						static std::vector<int> sG3vHubs;
 						static std::vector<std::vector<int>> sG3vByDragon;
-						if (sArmCacheKey != selectedCat)
+						if (sArmCacheKey != selectedCat || browseCatRebuilt)
 						{
 							sArmCacheKey = selectedCat;
 							sArmHubs.clear();
@@ -1598,7 +1626,11 @@ namespace
 									}
 								}
 								if (ai < 0)
+								{
+									/* Unknown armory bucket — keep visible at hub level. */
+									sArmHubs.push_back(i);
 									continue;
+								}
 								sArmBySub[static_cast<size_t>(ai)].push_back(i);
 								if (std::strcmp(arm, "Legendary Weapons") != 0)
 									continue;
@@ -1866,7 +1898,7 @@ namespace
 						static std::vector<int> sFoodHubs;
 						static std::vector<std::vector<int>> sFoodByAttr;
 						const std::string foodKey = std::string(selectedCat) + "|" + section;
-						if (sFoodCacheKey != foodKey)
+						if (sFoodCacheKey != foodKey || browseCatRebuilt)
 						{
 							sFoodCacheKey = foodKey;
 							sFoodHubs.clear();
@@ -1880,14 +1912,18 @@ namespace
 									sFoodHubs.push_back(i);
 									continue;
 								}
+								bool placed = false;
 								for (int ai = 0; ai < kAttrN; ++ai)
 								{
 									if (std::strcmp(a, kFoodAttrs[ai]) == 0)
 									{
 										sFoodByAttr[static_cast<size_t>(ai)].push_back(i);
+										placed = true;
 										break;
 									}
 								}
+								if (!placed)
+									sFoodHubs.push_back(i);
 							}
 						}
 						DrawClippedRows(sFoodHubs, false);
@@ -1923,7 +1959,7 @@ namespace
 						static std::string sMiniCacheKey;
 						static std::vector<int> sMiniHubs;
 						static std::vector<std::vector<int>> sMiniBySub;
-						if (sMiniCacheKey != selectedCat)
+						if (sMiniCacheKey != selectedCat || browseCatRebuilt)
 						{
 							sMiniCacheKey = selectedCat;
 							sMiniHubs.clear();
@@ -1937,14 +1973,18 @@ namespace
 									sMiniHubs.push_back(i);
 									continue;
 								}
+								bool placed = false;
 								for (int si = 0; si < kMiniN; ++si)
 								{
 									if (std::strcmp(a, kMiniSubs[si]) == 0)
 									{
 										sMiniBySub[static_cast<size_t>(si)].push_back(i);
+										placed = true;
 										break;
 									}
 								}
+								if (!placed)
+									sMiniHubs.push_back(i);
 							}
 						}
 						DrawClippedRows(sMiniHubs, false);
@@ -1972,7 +2012,7 @@ namespace
 						static std::string sAchCacheKey;
 						static std::vector<int> sAchHubs;
 						static std::vector<std::vector<int>> sAchBySub;
-						if (sAchCacheKey != selectedCat)
+						if (sAchCacheKey != selectedCat || browseCatRebuilt)
 						{
 							sAchCacheKey = selectedCat;
 							sAchHubs.clear();
@@ -1988,14 +2028,18 @@ namespace
 									sAchHubs.push_back(i);
 									continue;
 								}
+								bool placed = false;
 								for (int ai = 0; ai < kAchN; ++ai)
 								{
 									if (std::strcmp(a, kAchSubs[ai]) == 0)
 									{
 										sAchBySub[static_cast<size_t>(ai)].push_back(i);
+										placed = true;
 										break;
 									}
 								}
+								if (!placed)
+									sAchHubs.push_back(i);
 							}
 						}
 						DrawClippedRows(sAchHubs, false);

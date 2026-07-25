@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.10`
+`2.0.0.11`
 
 ## Changelog highlights
 
+- **2.0.0.11** — Fix Browse sections expanding blank (ListClipper row height under nested headers)
 - **2.0.0.10** — Fix game freeze on exit (join launch worker before unload); helper watchdogs the GW2 process
 - **2.0.0.9** — Search → Video-On-Demand: YouTube
 - **2.0.0.8** — Fix window drag after click-through fix (don't eat WM_MOUSEMOVE; feed ImGui on down)

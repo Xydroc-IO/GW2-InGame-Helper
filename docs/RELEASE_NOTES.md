@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.10
+# GW2 In-Game Helper v2.0.0.11
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,15 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.11
+
+- **Browse:** Expanding some sections (Food / Minis / Armory / etc.) could show a blank body.
+  `ImGuiListClipper` was auto-measuring row height next to the favorite-star `SameLine` layout;
+  a zero height under nested headers made the clipper seek by zero — no rows, no scrollbar.
+  Clipper now uses an explicit row height; small lists draw unclipped; section caches invalidate
+  together with the category index; unmatched sub-buckets fall back to the hub row
+- **How to use:** Homepage cache stamp `211`
 
 ## What’s new in 2.0.0.10
 
