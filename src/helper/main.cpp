@@ -727,23 +727,38 @@ namespace
 		   accepted (same chicken-egg as startup). */
 	}
 
-	/* YouTube / media embeds open popups (Watch on YouTube, account, etc.).
-	   Promoting those into the main frame looks like a refresh/crash of the guide. */
-	bool IsMediaEmbedPopupUrl(const std::string& url)
+	/* Media / CDN URLs must never become the main-frame document — promoting
+	   them looks like the page refreshed or the helper crashed. */
+	bool IsMediaOrCdnUrl(const std::string& url)
 	{
 		auto has = [&](const char* s) {
 			return url.find(s) != std::string::npos;
 		};
-		return has("youtube.com") || has("youtu.be") || has("youtube-nocookie.com") ||
-			has("googlevideo.com") || has("ytimg.com") || has("vimeo.com") ||
-			has("player.vimeo.com");
+		return has("googlevideo.com") || has("ytimg.com") || has("ggpht.com") ||
+			has("googleusercontent.com") || has("youtube-nocookie.com/embed") ||
+			has("youtube.com/embed") || has("youtube.com/live_chat") ||
+			has("accounts.google.com") || has("accounts.youtube.com") ||
+			has("vimeo.com") || has("player.vimeo.com");
 	}
 
-	bool IsYoutubeBrowseUrl(const std::string& url)
+	bool IsYoutubeHostUrl(const std::string& url)
 	{
 		return url.find("youtube.com") != std::string::npos ||
 			url.find("youtu.be") != std::string::npos ||
 			url.find("youtube-nocookie.com") != std::string::npos;
+	}
+
+	/* Safe to promote into the OSR main frame (Discord invite, external doc). */
+	bool IsPromotablePopupUrl(const std::string& url)
+	{
+		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
+			return false;
+		if (IsMediaOrCdnUrl(url))
+			return false;
+		/* Stay on YouTube in-page — never tear down the player for a popup. */
+		if (IsYoutubeHostUrl(url))
+			return false;
+		return true;
 	}
 
 	std::string MainFrameUrl(cef_browser_t* browser)
@@ -774,22 +789,50 @@ namespace
 			return 1;
 
 		const std::string url = CefStringToUtf8(target_url);
-		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
+		const std::string cur = MainFrameUrl(browser);
+		const bool onYoutube = IsYoutubeHostUrl(cur);
+
+		/* Playing YouTube must stay in the current document. Promoting any
+		   popup (googlevideo, accounts, share, embed) into the main frame
+		   reloads the tab and looks like a refresh/crash. */
+		if (onYoutube || IsMediaOrCdnUrl(url) || IsYoutubeHostUrl(url))
 			return 1;
 
 		const bool fromMain = frame && frame->is_main && frame->is_main(frame);
-		const std::string cur = MainFrameUrl(browser);
-		const bool browsingYoutube = IsYoutubeBrowseUrl(cur);
-
-		/* Never steal a guide page for embed / media popups — unless the user
-		   is already on YouTube as the Browse site (Video-On-Demand). */
-		if (IsMediaEmbedPopupUrl(url) && !browsingYoutube)
-			return 1;
-
-		/* Iframe-initiated popups stay cancelled — only promote real target=_blank
-		   clicks from the main document (Discord invites, external links, YT). */
-		if (user_gesture && fromMain)
+		if (user_gesture && fromMain && IsPromotablePopupUrl(url))
 			NavigateTo(url.c_str());
+		return 1;
+	}
+
+	/* Block main-frame navigations that would replace the page with a CDN blob. */
+	int CEF_CALLBACK OnBeforeBrowse(
+		cef_request_handler_t*, cef_browser_t*, cef_frame_t* frame,
+		cef_request_t* request, int /*user_gesture*/, int /*is_redirect*/)
+	{
+		if (!request || !request->get_url || !g_userfree_free)
+			return 0;
+		const bool isMain = frame && frame->is_main && frame->is_main(frame);
+		if (!isMain)
+			return 0;
+
+		cef_string_userfree_t uf = request->get_url(request);
+		if (!uf)
+			return 0;
+		const std::string url = CefStringToUtf8(uf);
+		g_userfree_free(uf);
+
+		/* googlevideo / accounts / embed as top-level = blank refresh. */
+		if (IsMediaOrCdnUrl(url))
+			return 1;
+		return 0;
+	}
+
+	int CEF_CALLBACK OnOpenUrlFromTab(
+		cef_request_handler_t*, cef_browser_t*, cef_frame_t*,
+		const cef_string_t* target_url, cef_window_open_disposition_t, int)
+	{
+		/* No new tabs in OSR — ignore middle-click / ctrl-click opens. */
+		(void)target_url;
 		return 1;
 	}
 
@@ -1143,6 +1186,8 @@ namespace
 
 		std::memset(&gRequest, 0, sizeof(gRequest));
 		InitBase(&gRequest.base, sizeof(gRequest));
+		gRequest.on_before_browse = OnBeforeBrowse;
+		gRequest.on_open_urlfrom_tab = OnOpenUrlFromTab;
 		gRequest.get_resource_request_handler = GetResourceRequestHandler;
 
 		std::memset(&gClient, 0, sizeof(gClient));

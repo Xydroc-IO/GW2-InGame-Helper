@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.12
+# GW2 In-Game Helper v2.0.0.13
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,13 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.13
+
+- **YouTube:** Clicking Play no longer promotes googlevideo / accounts / embed popups into
+  the main frame (that looked like a refresh or crash). Popups stay cancelled on YouTube;
+  CDN top-level navigations are blocked; BootJs no longer auto-clicks Play in a loop
+- **How to use:** Homepage cache stamp `213`
 
 ## What’s new in 2.0.0.12
 

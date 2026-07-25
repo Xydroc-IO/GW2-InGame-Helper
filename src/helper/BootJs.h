@@ -292,12 +292,18 @@ function boot(){
   injectGeminiReadability();
   wireCheatSheetChecks();
 }
-/* YouTube in CEF OSR: nudge HTML5 player + dismiss thin consent walls.
-   Real decode needs SwiftShader/OSR paint path (see helper command line). */
+/* YouTube in CEF OSR: consent once + playsinline only.
+   Do NOT auto-click Play in a MutationObserver — that re-fires popups /
+   navigations and looks like the addon refreshed or crashed. */
 function unlockYoutubePlayer(){
   try{
     if (!isYoutubeHost) return;
-    function tick(){
+    if (window.__gw2YtUnlock) return;
+    window.__gw2YtUnlock = 1;
+    try{
+      window.open = function(){ return null; };
+    }catch(e){}
+    function consentOnce(){
       try{
         var consent=document.querySelector(
           'button[aria-label*="Accept the use of cookies"],'+
@@ -307,26 +313,22 @@ function unlockYoutubePlayer(){
           'tp-yt-paper-button#button[aria-label*="Accept"]');
         if (consent) consent.click();
       }catch(e){}
+    }
+    function tagVideos(){
       try{
-        var v=document.querySelector('video.html5-main-video,ytd-player video,video');
-        if (v){
-          v.setAttribute('playsinline','');
-          v.setAttribute('webkit-playsinline','');
-          if (v.paused){
-            var p=v.play();
-            if (p && p.catch) p.catch(function(){});
-          }
+        var nodes=document.querySelectorAll('video.html5-main-video,ytd-player video,video');
+        for (var i=0;i<nodes.length;i++){
+          nodes[i].setAttribute('playsinline','');
+          nodes[i].setAttribute('webkit-playsinline','');
         }
-        var big=document.querySelector('.ytp-large-play-button,button.ytp-play-button');
-        if (big && document.querySelector('video') && document.querySelector('video').paused)
-          big.click();
       }catch(e){}
     }
-    tick();
-    setTimeout(tick, 800);
-    setTimeout(tick, 2500);
+    consentOnce();
+    tagVideos();
+    setTimeout(consentOnce, 1200);
+    setTimeout(tagVideos, 1200);
     try{
-      var mo=new MutationObserver(function(){ scheduleWork(tick); });
+      var mo=new MutationObserver(function(){ scheduleWork(tagVideos); });
       mo.observe(document.documentElement,{childList:true,subtree:true});
     }catch(e){}
   }catch(e){}
