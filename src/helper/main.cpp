@@ -739,8 +739,33 @@ namespace
 			has("player.vimeo.com");
 	}
 
+	bool IsYoutubeBrowseUrl(const std::string& url)
+	{
+		return url.find("youtube.com") != std::string::npos ||
+			url.find("youtu.be") != std::string::npos ||
+			url.find("youtube-nocookie.com") != std::string::npos;
+	}
+
+	std::string MainFrameUrl(cef_browser_t* browser)
+	{
+		if (!browser || !g_userfree_free)
+			return {};
+		cef_frame_t* frame = browser->get_main_frame(browser);
+		if (!frame)
+			return {};
+		std::string out;
+		cef_string_userfree_t uf = frame->get_url(frame);
+		if (uf)
+		{
+			out = CefStringToUtf8(uf);
+			g_userfree_free(uf);
+		}
+		frame->base.release(&frame->base);
+		return out;
+	}
+
 	int CEF_CALLBACK OnBeforePopup(
-		cef_life_span_handler_t*, cef_browser_t*, cef_frame_t* frame, const cef_string_t* target_url,
+		cef_life_span_handler_t*, cef_browser_t* browser, cef_frame_t* frame, const cef_string_t* target_url,
 		const cef_string_t*, cef_window_open_disposition_t, int user_gesture, const cef_popup_features_t*,
 		cef_window_info_t*, cef_client_t**, cef_browser_settings_t*, cef_dictionary_value_t**, int*)
 	{
@@ -752,13 +777,17 @@ namespace
 		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
 			return 1;
 
-		/* Never steal the guide page for embed / media popups. */
-		if (IsMediaEmbedPopupUrl(url))
+		const bool fromMain = frame && frame->is_main && frame->is_main(frame);
+		const std::string cur = MainFrameUrl(browser);
+		const bool browsingYoutube = IsYoutubeBrowseUrl(cur);
+
+		/* Never steal a guide page for embed / media popups — unless the user
+		   is already on YouTube as the Browse site (Video-On-Demand). */
+		if (IsMediaEmbedPopupUrl(url) && !browsingYoutube)
 			return 1;
 
 		/* Iframe-initiated popups stay cancelled — only promote real target=_blank
-		   clicks from the main document (Discord invites, external links). */
-		const bool fromMain = frame && frame->is_main && frame->is_main(frame);
+		   clicks from the main document (Discord invites, external links, YT). */
 		if (user_gesture && fromMain)
 			NavigateTo(url.c_str());
 		return 1;
@@ -1433,6 +1462,12 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	if (hostPid == 0)
 		hostPid = GetCurrentProcessId(); /* fallback — still unique vs other clients */
 
+	/* Watchdog: if GW2 dies without a clean QUIT (crash, hard kill), exit too.
+	   Orphaned helpers keep the named sections alive and stall the next launch. */
+	HANDLE hostProc = nullptr;
+	if (hostPid != GetCurrentProcessId())
+		hostProc = OpenProcess(SYNCHRONIZE, FALSE, hostPid);
+
 	char ipcName[96]{};
 	char frameName[96]{};
 	char wakeName[96]{};
@@ -1550,18 +1585,31 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		g_do_message_loop_work();
 		ProcessCommands();
 
+		if (hostProc && WaitForSingleObject(hostProc, 0) == WAIT_OBJECT_0)
+		{
+			gRunning = false;
+			break;
+		}
+
 		/* Idle: wake on DLL cmds/input, else short timeout for CEF timers.
 		   Visible / input pending: 2ms keeps wheel scroll fluid under Wine. */
 		const bool inputPending = gIpc && (gIpc->input_read != gIpc->input_write);
 		const bool busy = gIpc && (gIpc->visible || inputPending);
+		const DWORD timeout = inputPending ? 1u : (busy ? 2u : 16u);
+		HANDLE waits[2]{};
+		DWORD waitCount = 0;
 		if (gWakeEvent)
+			waits[waitCount++] = gWakeEvent;
+		if (hostProc)
+			waits[waitCount++] = hostProc;
+		if (waitCount)
 		{
-			MsgWaitForMultipleObjects(1, &gWakeEvent, FALSE,
-				inputPending ? 1 : (busy ? 2 : 16), QS_ALLINPUT);
-			ResetEvent(gWakeEvent);
+			MsgWaitForMultipleObjects(waitCount, waits, FALSE, timeout, QS_ALLINPUT);
+			if (gWakeEvent)
+				ResetEvent(gWakeEvent);
 		}
 		else
-			Sleep(inputPending ? 1 : (busy ? 2 : 16));
+			Sleep(timeout);
 	}
 
 	for (int i = 0; i < kWikiMaxTabs; ++i)
@@ -1586,5 +1634,7 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		CloseHandle(gFrameMap);
 	if (gWakeEvent)
 		CloseHandle(gWakeEvent);
+	if (hostProc)
+		CloseHandle(hostProc);
 	return 0;
 }

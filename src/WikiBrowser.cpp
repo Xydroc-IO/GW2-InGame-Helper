@@ -49,6 +49,8 @@ namespace
 	std::atomic<bool> gStarting{false};       /* StartHelper in progress (avoid re-entry) */
 	std::atomic<bool> gLaunchRequested{false}; /* CreateProcess deferred off RT_Render */
 	std::atomic<bool> gLaunchWorkerBusy{false}; /* worker thread running StartHelper */
+	std::atomic<bool> gShuttingDown{false};   /* unload started — no new launches */
+	HANDLE gLaunchThread = nullptr;           /* joined on Shutdown (DLL unload safety) */
 	std::atomic<bool> gRelaunchAfterQuit{false}; /* open again after graceful quit finishes */
 	std::atomic<bool> gQuitPending{false};    /* QUIT posted — finish across frames */
 	DWORD gQuitStartedMs = 0;
@@ -695,6 +697,8 @@ namespace
 
 	bool StartHelper()
 	{
+		if (gShuttingDown.load())
+			return false;
 		if (gLaunchDisabled.load())
 		{
 			SetLocalStatus("Browser helper disabled after launch failure — restart GW2 to retry");
@@ -1020,6 +1024,8 @@ namespace
 
 	void RequestStartHelper()
 	{
+		if (gShuttingDown.load())
+			return;
 		if (gLaunchDisabled.load())
 		{
 			SetLocalStatus("Browser helper disabled after launch failure — restart GW2 to retry");
@@ -1048,6 +1054,8 @@ namespace
 	/* Queue CreateProcess/extract on a worker thread — RT_Render only polls. */
 	void TickLaunchPending()
 	{
+		if (gShuttingDown.load())
+			return;
 		if (gQuitPending.load())
 			return;
 		if (!gLaunchRequested.load())
@@ -1073,15 +1081,20 @@ namespace
 			return;
 		gLaunchRequested.store(false);
 		gLaunchWorkerBusy.store(true);
-		HANDLE th = CreateThread(nullptr, 0, LaunchHelperWorker, nullptr, 0, nullptr);
-		if (!th)
+		/* Keep the handle — Shutdown must join before the DLL unmaps, or the
+		   worker runs on freed code/state and the game hangs on exit. */
+		if (gLaunchThread)
+		{
+			CloseHandle(gLaunchThread);
+			gLaunchThread = nullptr;
+		}
+		gLaunchThread = CreateThread(nullptr, 0, LaunchHelperWorker, nullptr, 0, nullptr);
+		if (!gLaunchThread)
 		{
 			gLaunchWorkerBusy.store(false);
 			/* Fallback: sync launch if the OS refuses a worker. */
 			StartHelper();
 		}
-		else
-			CloseHandle(th);
 	}
 }
 
@@ -1114,6 +1127,7 @@ void WikiBrowser::Init()
 	gStarting.store(false);
 	gLaunchRequested.store(false);
 	gLaunchWorkerBusy.store(false);
+	gShuttingDown.store(false);
 	gRelaunchAfterQuit.store(false);
 	gQuitPending.store(false);
 	EnsureIpcNames();
@@ -1131,6 +1145,18 @@ void WikiBrowser::Tick()
 void WikiBrowser::Shutdown()
 {
 	gWantVisible.store(false);
+	/* Stop new launches, then join the worker BEFORE freeing shared state.
+	   Unloading the DLL under a live worker hung the game on exit. */
+	gShuttingDown.store(true);
+	gLaunchRequested.store(false);
+	if (gLaunchThread)
+	{
+		/* Bounded: CreateProcess/extract on Wine can be slow, but never block
+		   game exit forever — the job object kills any helper we lose. */
+		WaitForSingleObject(gLaunchThread, 3000);
+		CloseHandle(gLaunchThread);
+		gLaunchThread = nullptr;
+	}
 	StopHelper();
 	ReleaseDevice();
 	if (gFramePixels)

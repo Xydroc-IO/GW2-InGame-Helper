@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.6
+# GW2 In-Game Helper v2.0.0.10
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,35 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.10
+
+- **Fix:** Game could freeze while closing out. Unload never joined the helper-launch
+  worker thread, so Nexus unmapped the IPC and unloaded the DLL while that thread was
+  still inside `CreateProcess`/extract — the loader then stalled on exit. Shutdown now
+  blocks new launches and joins the worker (3 s cap) before freeing anything
+- **Fix:** Helper process had no host watchdog — it only exited on a clean IPC `QUIT`.
+  If GW2 died hard the helper was orphaned and kept the named shared sections alive,
+  stalling the next launch. It now waits on the GW2 process handle and exits with it
+- **How to use:** Homepage cache stamp `210`
+
+## What’s new in 2.0.0.9
+
+- **Search:** YouTube under Browse → Search → Video-On-Demand (toolbar search via `results?search_query=`); BootJs skips ad-strip on YouTube; popups allowed when already browsing YouTube
+- **Note:** In-overlay playback is best-effort (software CEF). Use **Open Ext** if video fails
+- **How to use:** Homepage cache stamp `209`
+
+## What’s new in 2.0.0.8
+
+- **Input:** Fix window drag broken by 2.0.0.7 — addon WndProc runs *before* Nexus ImGui input; eating `WM_MOUSEMOVE` starved drag. Now feed ImGui on button-down/wheel only, always pass move/up
+- **Input:** `CaptureMouseFromApp` while over the overlay so Nexus `WantCaptureMouse` gating stays sticky
+- **How to use:** Homepage cache stamp `208`
+
+## What’s new in 2.0.0.7
+
+- **Input:** Fix click-through — WndProc now eats mouse down/up/move/wheel over the overlay (`return 0`); `WantCaptureMouse` alone never blocked GW2 skills/camera
+- **Input:** Collapsed title bar also blocks clicks; press-latch keeps capture until button-up if a drag leaves the window
+- **How to use:** Homepage cache stamp `207`
 
 ## What’s new in 2.0.0.6
 

@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `2.0.0.6` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.0.10` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -19,6 +19,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Google](https://www.google.com/) | Search |
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
+| [YouTube](https://www.youtube.com/) | Search (Video-On-Demand) |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
 | [GW2 News](https://www.guildwars2.com/en/news/) | Official |
 | [Raidcore](https://raidcore.gg/gw2) | Official |
@@ -113,7 +114,20 @@ Works on Windows and on Linux via Wine/Proton.
 
 Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
-## What’s new (2.0.0.6)
+## What’s new (2.0.0.10)
+
+**2.0.0.10**
+- Fix game freeze on exit — unload now joins the helper-launch worker before unmapping IPC
+- Helper exits with GW2 (host-process watchdog) so a hard crash can't orphan it
+
+**2.0.0.9**
+- Search → Video-On-Demand: YouTube (browse/search in-helper; Open Ext if playback fails)
+
+**2.0.0.8**
+- Fix window drag (2.0.0.7 ate mouse-move before Nexus ImGui); keep click-through blocked
+
+**2.0.0.7**
+- Fix click-through: WndProc eats mouse over the overlay (skills/camera no longer fire through the window)
 
 **2.0.0.6**
 - Smoother in-page scrolling (no staging lag while wheel/input active; trackpad delta accumulation)

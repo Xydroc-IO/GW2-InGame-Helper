@@ -12,11 +12,12 @@ window.__scBoot = 1;
 var host = (location.hostname || '').toLowerCase();
 var isGoogleHost = /(^|\.)google\.com$/.test(host);
 var isDdgHost = /(^|\.)duckduckgo\.com$/.test(host);
+var isYoutubeHost = /(^|\.)youtube\.com$|(^|\.)youtu\.be$|(^|\.)youtube-nocookie\.com$/.test(host);
 var isSearchHost = isGoogleHost || isDdgHost;
 var needsCssFix = isSearchHost ||
   /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$/.test(host);
-/* Forced wide viewport helps Snowcrows-style layouts; breaks Google/Gemini/DDG readability. */
-var clampViewport = !isSearchHost &&
+/* Forced wide viewport helps Snowcrows-style layouts; breaks Google/Gemini/DDG/YouTube readability. */
+var clampViewport = !isSearchHost && !isYoutubeHost &&
   /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$/.test(host);
 
 function clamp01(x){ return x<0?0:x>1?1:x; }
@@ -160,8 +161,8 @@ function needsDownlevel(text){
     text.indexOf(' &')>=0;
 }
 function killAds(){
-  /* Broad ad selectors break Google Search / Gemini / DDG SPA chrome. */
-  if (isSearchHost) return;
+  /* Broad ad selectors break Google Search / Gemini / DDG / YouTube SPA chrome. */
+  if (isSearchHost || isYoutubeHost) return;
   /* Do NOT use [id*="nitro"] / [class*="nitro"] — Snow Crows puts NitroPay
      placement ids on the real article (e.g. id="nitro-article-1"), and that
      deleted the whole guide after BootJs ran. */

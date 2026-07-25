@@ -194,6 +194,8 @@ namespace
 		{
 			if (std::strcmp(id, "gemini") == 0)
 				return "AI";
+			if (std::strcmp(id, "youtube") == 0)
+				return "Video-On-Demand";
 			return "Web Search";
 		}
 		if (std::strcmp(category, "Cheat Sheets") == 0)
@@ -415,7 +417,7 @@ namespace
 		}
 		if (std::strcmp(category, "Search") == 0)
 		{
-			static const char* kSec[] = { "Web Search", "AI" };
+			static const char* kSec[] = { "Web Search", "AI", "Video-On-Demand" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
@@ -2583,7 +2585,21 @@ void UI_Render()
 	if (!ImGui::Begin("In-Game Helper##GW2InGameHelper", &open))
 	{
 		/* Collapsed title bar — keep the CEF helper alive (SetVisible(false)
-		   used to TerminateProcess and hitch on every expand). */
+		   used to TerminateProcess and hitch on every expand). Still block
+		   clicks on the bar so they don't fire skills through it. */
+		const ImVec2 pos = ImGui::GetWindowPos();
+		const ImVec2 winSize = ImGui::GetWindowSize();
+		gWikiMin = pos;
+		gWikiMax = ImVec2(pos.x + winSize.x, pos.y + winSize.y);
+		gWikiRectValid = true;
+		const bool mouseOver =
+			ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+		gBlockGameMouse = mouseOver;
+		if (mouseOver)
+		{
+			ImGui::GetIO().WantCaptureMouse = true;
+			ImGui::CaptureMouseFromApp(true);
+		}
 		ImGui::End();
 		ImGui::PopStyleVar();
 		PopWikiTheme();
@@ -2834,7 +2850,11 @@ void UI_Render()
 	gBlockGameKeyboard = G::ShowWiki && gBrowserFocused;
 
 	if (gBlockGameMouse)
+	{
 		io.WantCaptureMouse = true;
+		/* Sticky for next NewFrame — Nexus UiInput gates game clicks on this flag. */
+		ImGui::CaptureMouseFromApp(true);
+	}
 	if (gBlockGameKeyboard)
 		io.WantCaptureKeyboard = true;
 

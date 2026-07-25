@@ -14,10 +14,14 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.6`
+`2.0.0.10`
 
 ## Changelog highlights
 
+- **2.0.0.10** — Fix game freeze on exit (join launch worker before unload); helper watchdogs the GW2 process
+- **2.0.0.9** — Search → Video-On-Demand: YouTube
+- **2.0.0.8** — Fix window drag after click-through fix (don't eat WM_MOUSEMOVE; feed ImGui on down)
+- **2.0.0.7** — Fix click-through (WndProc eats mouse over overlay; collapsed bar too)
 - **2.0.0.6** — Smoother page scroll (no staging lag while interacting; trackpad wheel accumulate)
 - **2.0.0.5** — Fix black “Waiting for first paint…” panel (first upload WRITE_DISCARD)
 - **2.0.0.4** — Worker-thread launch; quit/reopen without RT Terminate; staging present; Browse caches; BootJs single-flight; CssProxy unlinked; compliance docs

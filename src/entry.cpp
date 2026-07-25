@@ -184,14 +184,63 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		}
 	}
 
-	if (msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN ||
-		msg == WM_LBUTTONDBLCLK || msg == WM_RBUTTONDBLCLK || msg == WM_MBUTTONDBLCLK)
+	/* Mouse: Addon WndProcs run BEFORE Nexus UiInput (see Nexus Hooks.cpp).
+	   Returning 0 here skips ImGui MouseDown/MousePos updates → can't drag.
+	   Mirror UiInput: feed ImGui on button-down when over us, eat the down;
+	   always pass MOVE/UP so UiInput can track position and releases. */
+	const bool mouseDown =
+		msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN ||
+		msg == WM_LBUTTONDBLCLK || msg == WM_RBUTTONDBLCLK || msg == WM_MBUTTONDBLCLK ||
+		msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK;
+	const bool mouseUp =
+		msg == WM_LBUTTONUP || msg == WM_RBUTTONUP || msg == WM_MBUTTONUP ||
+		msg == WM_XBUTTONUP;
+	const bool mouseWheel = msg == WM_MOUSEWHEEL || msg == WM_MOUSEHWHEEL;
+	if (mouseDown || mouseUp || mouseWheel)
 	{
 		int cx = 0, cy = 0;
-		if (UI_BlocksGameKeyboard() && ClientCursor(hwnd, &cx, &cy) &&
-			!UI_IsPointerOverWiki(cx, cy))
-		{
+		const bool haveCursor = ClientCursor(hwnd, &cx, &cy);
+		const bool overWiki = haveCursor && UI_IsPointerOverWiki(cx, cy);
+		const bool blockNow = overWiki || UI_BlocksGameMouse();
+
+		/* Click outside while typing/focused → release so the game can take over. */
+		if (mouseDown && UI_BlocksGameKeyboard() && haveCursor && !overWiki)
 			UI_ReleaseGameInput();
+
+		if (blockNow && mouseDown)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			int button = 0;
+			if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK) button = 0;
+			else if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) button = 1;
+			else if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) button = 2;
+			else if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK)
+				button = (GET_XBUTTON_WPARAM(wp) == XBUTTON1) ? 3 : 4;
+			io.MouseDown[button] = true;
+			return 0; /* block game skill/camera; ImGui already has the press */
+		}
+
+		if (blockNow && mouseWheel)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			const float delta = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) /
+				static_cast<float>(WHEEL_DELTA);
+			if (msg == WM_MOUSEWHEEL)
+				io.MouseWheel += delta;
+			else
+				io.MouseWheelH += delta;
+			return 0;
+		}
+
+		/* Button-ups: clear ImGui state but pass through (Nexus UiInput does the same). */
+		if (mouseUp)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			if (msg == WM_LBUTTONUP) io.MouseDown[0] = false;
+			else if (msg == WM_RBUTTONUP) io.MouseDown[1] = false;
+			else if (msg == WM_MBUTTONUP) io.MouseDown[2] = false;
+			else if (msg == WM_XBUTTONUP)
+				io.MouseDown[(GET_XBUTTON_WPARAM(wp) == XBUTTON1) ? 3 : 4] = false;
 		}
 		return 1;
 	}
@@ -319,7 +368,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 0;
 	G::AddonDef.Version.Build    = 0;
-	G::AddonDef.Version.Revision = 6;
+	G::AddonDef.Version.Revision = 10;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.";
