@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.14
+# GW2 In-Game Helper v2.0.0.15
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,15 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.15
+
+- **Input:** Typing in Browse filter, toolbar Search, or Find no longer leaks keys to
+  Guild Wars 2. Previously only the CEF page blocked the keyboard, so typing `R`
+  toggled autorun and could leave the character stuck running
+- **Input:** Key-up is paired with the sink that ate key-down (CEF vs ImGui) so focus
+  flips mid-press do not leave a lonely up/down for the game
+- **How to use:** Homepage cache stamp `215`
 
 ## What’s new in 2.0.0.14
 

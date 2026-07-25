@@ -2502,6 +2502,12 @@ bool UI_BlocksGameKeyboard()
 	return gBlockGameKeyboard;
 }
 
+/* True while keystrokes should go to the CEF page (not ImGui chrome). */
+bool UI_BrowserKeyboardActive()
+{
+	return G::ShowWiki && gBrowserFocused;
+}
+
 void UI_ParseBrowseOpen(const char* val)
 {
 	gBrowseOpen.clear();
@@ -2892,7 +2898,10 @@ void UI_Render()
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 
 	gBlockGameMouse = G::ShowWiki && (overPage || mouseOverWiki);
-	gBlockGameKeyboard = G::ShowWiki && gBrowserFocused;
+	/* Block game keys while typing in ImGui (Browse filter / Search / Find) OR
+	   while the CEF page is focused. WantTextInput alone used to be ignored —
+	   typing "r" leaked to GW2 autorun and could not be cancelled. */
+	gBlockGameKeyboard = G::ShowWiki && (gBrowserFocused || io.WantTextInput);
 
 	if (gBlockGameMouse)
 	{
@@ -2901,7 +2910,10 @@ void UI_Render()
 		ImGui::CaptureMouseFromApp(true);
 	}
 	if (gBlockGameKeyboard)
+	{
 		io.WantCaptureKeyboard = true;
+		ImGui::CaptureKeyboardFromApp(true);
+	}
 
 	if (std::fabs(pos.x - G::WindowPosX) > 0.5f || std::fabs(pos.y - G::WindowPosY) > 0.5f ||
 		std::fabs(winSize.x - G::WindowWidth) > 0.5f || std::fabs(winSize.y - G::WindowHeight) > 0.5f)

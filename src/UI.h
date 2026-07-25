@@ -7,6 +7,8 @@ void UI_Options();
 
 /* True while the wiki UI should eat keyboard (no game skills / movement). */
 bool UI_BlocksGameKeyboard();
+/* True while keystrokes belong to the CEF page (vs ImGui filter/search/find). */
+bool UI_BrowserKeyboardActive();
 /* True while the wiki UI should eat mouse buttons (no game skill clicks). */
 bool UI_BlocksGameMouse();
 

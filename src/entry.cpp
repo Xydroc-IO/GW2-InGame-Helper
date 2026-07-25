@@ -246,59 +246,135 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	}
 
 	const bool blockKeys = UI_BlocksGameKeyboard();
+	/* Keys we ate on KEYDOWN must also eat KEYUP even if focus flipped mid-press
+	   (otherwise GW2 can see a lonely down or up and stick autorun / movement).
+	   Dest tracks who got the down so keyup is routed to the same sink. */
+	enum : uint8_t { kKeyNone = 0, kKeyBrowser = 1, kKeyImGui = 2 };
+	static uint8_t sAteKeyDest[256]{};
 
-	if (blockKeys && IsKeyMsg(msg))
+	if (IsKeyMsg(msg))
 	{
-		if (ModsCtrlShiftNoAlt() && IsToggleVk(wp))
-		{
-			BeginHotkeySwallow();
-			return 0;
-		}
+		const UINT vk = static_cast<UINT>(wp);
+		const bool vkOk = vk < 256;
+		const uint8_t pending = vkOk ? sAteKeyDest[vk] : static_cast<uint8_t>(kKeyNone);
 
-		const unsigned mods = CefModsFromWin();
-		const int native = static_cast<int>(lp);
-		const bool sys = (msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP || msg == WM_SYSCHAR);
-		switch (msg)
+		if (blockKeys || pending != kKeyNone)
 		{
-		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:
-			/* KEYEVENT_RAWKEYDOWN = 0 */
-			WikiBrowser::FeedKey(0, static_cast<int>(wp), mods, 0, native, sys);
-			/* Nexus often skips TranslateMessage when we return 0, so WM_CHAR
-			   never arrives — synthesize characters here (fixes dropped letters). */
+			if (ModsCtrlShiftNoAlt() && IsToggleVk(wp))
 			{
-				BYTE state[256];
-				if (GetKeyboardState(state))
+				BeginHotkeySwallow();
+				if (vkOk)
+					sAteKeyDest[vk] = kKeyNone;
+				return 0;
+			}
+
+			const unsigned mods = CefModsFromWin();
+			const int native = static_cast<int>(lp);
+			const bool sys = (msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP || msg == WM_SYSCHAR);
+			const bool down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN;
+			const bool up = msg == WM_KEYUP || msg == WM_SYSKEYUP;
+
+			/* Prefer the sink that received KEYDOWN; on a fresh down use current focus. */
+			const bool toBrowser = (pending == kKeyBrowser) ||
+				(pending == kKeyNone && UI_BrowserKeyboardActive());
+
+			if (toBrowser)
+			{
+				switch (msg)
 				{
-					WCHAR chars[8]{};
-					const UINT sc = (static_cast<UINT>(lp) >> 16) & 0xffu;
-					const int n = ToUnicode(static_cast<UINT>(wp), sc, state, chars, 8, 0);
-					if (n > 0)
+				case WM_KEYDOWN:
+				case WM_SYSKEYDOWN:
+					/* KEYEVENT_RAWKEYDOWN = 0 */
+					WikiBrowser::FeedKey(0, static_cast<int>(wp), mods, 0, native, sys);
+					/* Nexus often skips TranslateMessage when we return 0, so WM_CHAR
+					   never arrives — synthesize characters here (fixes dropped letters). */
 					{
-						for (int i = 0; i < n; ++i)
+						BYTE state[256];
+						if (GetKeyboardState(state))
 						{
-							const unsigned ch = static_cast<unsigned>(chars[i]);
-							if (ch >= 32 || ch == 8 || ch == 9 || ch == 13)
-								WikiBrowser::FeedKey(3, static_cast<int>(ch), mods, ch, native, sys);
+							WCHAR chars[8]{};
+							const UINT sc = (static_cast<UINT>(lp) >> 16) & 0xffu;
+							const int n = ToUnicode(static_cast<UINT>(wp), sc, state, chars, 8, 0);
+							if (n > 0)
+							{
+								for (int i = 0; i < n; ++i)
+								{
+									const unsigned ch = static_cast<unsigned>(chars[i]);
+									if (ch >= 32 || ch == 8 || ch == 9 || ch == 13)
+										WikiBrowser::FeedKey(3, static_cast<int>(ch), mods, ch, native, sys);
+								}
+							}
+						}
+					}
+					if (vkOk)
+						sAteKeyDest[vk] = kKeyBrowser;
+					break;
+				case WM_KEYUP:
+				case WM_SYSKEYUP:
+					/* KEYEVENT_KEYUP = 2 */
+					WikiBrowser::FeedKey(2, static_cast<int>(wp), mods, 0, native, sys);
+					if (vkOk)
+						sAteKeyDest[vk] = kKeyNone;
+					break;
+				case WM_CHAR:
+				case WM_SYSCHAR:
+					/* Ignore — characters already sent from KEYDOWN via ToUnicode. */
+					break;
+				default:
+					break;
+				}
+				(void)down;
+				(void)up;
+				return 0;
+			}
+
+			/* ImGui chrome (Browse filter / toolbar Search / Find) — feed ImGui
+			   ourselves and eat the message so GW2 never sees it (autorun "R"). */
+			ImGuiIO& io = ImGui::GetIO();
+			switch (msg)
+			{
+			case WM_KEYDOWN:
+			case WM_SYSKEYDOWN:
+				if (vkOk)
+				{
+					io.KeysDown[vk] = true;
+					sAteKeyDest[vk] = kKeyImGui;
+				}
+				{
+					BYTE state[256];
+					if (GetKeyboardState(state))
+					{
+						WCHAR chars[8]{};
+						const UINT sc = (static_cast<UINT>(lp) >> 16) & 0xffu;
+						const int n = ToUnicode(static_cast<UINT>(wp), sc, state, chars, 8, 0);
+						if (n > 0)
+						{
+							for (int i = 0; i < n; ++i)
+							{
+								const unsigned ch = static_cast<unsigned>(chars[i]);
+								if (ch >= 32 || ch == 8 || ch == 9 || ch == 13)
+									io.AddInputCharacter(ch);
+							}
 						}
 					}
 				}
+				break;
+			case WM_KEYUP:
+			case WM_SYSKEYUP:
+				if (vkOk)
+				{
+					io.KeysDown[vk] = false;
+					sAteKeyDest[vk] = kKeyNone;
+				}
+				break;
+			case WM_CHAR:
+			case WM_SYSCHAR:
+				break;
+			default:
+				break;
 			}
-			break;
-		case WM_KEYUP:
-		case WM_SYSKEYUP:
-			/* KEYEVENT_KEYUP = 2 */
-			WikiBrowser::FeedKey(2, static_cast<int>(wp), mods, 0, native, sys);
-			break;
-		case WM_CHAR:
-		case WM_SYSCHAR:
-			/* Ignore — characters already sent from KEYDOWN via ToUnicode.
-			   Forwarding both would duplicate glyphs when TranslateMessage runs. */
-			break;
-		default:
-			break;
+			return 0;
 		}
-		return 0;
 	}
 
 	return 1;
@@ -368,7 +444,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 0;
 	G::AddonDef.Version.Build    = 0;
-	G::AddonDef.Version.Revision = 14;
+	G::AddonDef.Version.Revision = 15;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.";

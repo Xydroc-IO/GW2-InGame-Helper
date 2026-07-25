@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.14`
+`2.0.0.15`
 
 ## Changelog highlights
 
+- **2.0.0.15** — Fix typing in Browse/Search/Find leaking keys to GW2 (autorun `R`)
 - **2.0.0.14** — Remove broken YouTube integration; restore stable software-only CEF on Wine / Proton
 - **2.0.0.13** — YouTube popup hardening (superseded by removal)
 - **2.0.0.12** — Fix Builds → Raids empty list; YouTube experiment (superseded by removal)
