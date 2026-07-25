@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `2.0.0.13` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.0.14` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -19,7 +19,6 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [Google](https://www.google.com/) | Search |
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
-| [YouTube](https://www.youtube.com/) | Search (Video-On-Demand) |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
 | [GW2 News](https://www.guildwars2.com/en/news/) | Official |
 | [Raidcore](https://raidcore.gg/gw2) | Official |
@@ -114,14 +113,18 @@ Works on Windows and on Linux via Wine/Proton.
 
 Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
-## What’s new (2.0.0.13)
+## What’s new (2.0.0.14)
+
+**2.0.0.14**
+- Remove YouTube: GW2's CEF 103 OSR cannot play it reliably and repeatedly refreshed
+- Restore the proven software-only CEF path (`--disable-gpu`) for Wine/Proton stability
 
 **2.0.0.13**
-- YouTube Play no longer refreshes/crashes the overlay (block popup→main-frame promotion)
+- YouTube Play popup hardening (superseded by removal in 2.0.0.14)
 
 **2.0.0.12**
 - Fix Builds → Raids showing (10) with an empty body (Guides nesting was applied by mistake)
-- YouTube playback attempt: SwiftShader OSR path + CEF 103 UA (remove if still broken)
+- YouTube playback experiment (superseded by removal in 2.0.0.14)
 
 **2.0.0.11**
 - Fix Browse sections expanding to a blank body (ListClipper row-height under nested headers)

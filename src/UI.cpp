@@ -194,8 +194,6 @@ namespace
 		{
 			if (std::strcmp(id, "gemini") == 0)
 				return "AI";
-			if (std::strcmp(id, "youtube") == 0)
-				return "Video-On-Demand";
 			return "Web Search";
 		}
 		if (std::strcmp(category, "Cheat Sheets") == 0)
@@ -417,7 +415,7 @@ namespace
 		}
 		if (std::strcmp(category, "Search") == 0)
 		{
-			static const char* kSec[] = { "Web Search", "AI", "Video-On-Demand" };
+			static const char* kSec[] = { "Web Search", "AI" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}

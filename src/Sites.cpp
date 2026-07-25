@@ -63,15 +63,6 @@ namespace
 			nullptr,
 			nullptr,
 		},
-		{
-			"youtube",
-			"Search",
-			"YouTube",
-			"YouTube",
-			"https://www.youtube.com/",
-			"https://www.youtube.com/results?search_query=",
-			nullptr,
-		},
 
 		/* —— Official —— */
 		{

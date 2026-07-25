@@ -12,12 +12,11 @@ window.__scBoot = 1;
 var host = (location.hostname || '').toLowerCase();
 var isGoogleHost = /(^|\.)google\.com$/.test(host);
 var isDdgHost = /(^|\.)duckduckgo\.com$/.test(host);
-var isYoutubeHost = /(^|\.)youtube\.com$|(^|\.)youtu\.be$|(^|\.)youtube-nocookie\.com$/.test(host);
 var isSearchHost = isGoogleHost || isDdgHost;
 var needsCssFix = isSearchHost ||
   /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$/.test(host);
-/* Forced wide viewport helps Snowcrows-style layouts; breaks Google/Gemini/DDG/YouTube readability. */
-var clampViewport = !isSearchHost && !isYoutubeHost &&
+/* Forced wide viewport helps Snowcrows-style layouts; breaks Google/Gemini/DDG readability. */
+var clampViewport = !isSearchHost &&
   /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$/.test(host);
 
 function clamp01(x){ return x<0?0:x>1?1:x; }
@@ -161,8 +160,8 @@ function needsDownlevel(text){
     text.indexOf(' &')>=0;
 }
 function killAds(){
-  /* Broad ad selectors break Google Search / Gemini / DDG / YouTube SPA chrome. */
-  if (isSearchHost || isYoutubeHost) return;
+  /* Broad ad selectors break Google Search / Gemini / DDG SPA chrome. */
+  if (isSearchHost) return;
   /* Do NOT use [id*="nitro"] / [class*="nitro"] — Snow Crows puts NitroPay
      placement ids on the real article (e.g. id="nitro-article-1"), and that
      deleted the whole guide after BootJs ran. */
@@ -288,50 +287,8 @@ function boot(){
   tipGoogleLogin();
   unlockGuildjenMedia();
   unlockSnowcrowsGuides();
-  unlockYoutubePlayer();
   injectGeminiReadability();
   wireCheatSheetChecks();
-}
-/* YouTube in CEF OSR: consent once + playsinline only.
-   Do NOT auto-click Play in a MutationObserver — that re-fires popups /
-   navigations and looks like the addon refreshed or crashed. */
-function unlockYoutubePlayer(){
-  try{
-    if (!isYoutubeHost) return;
-    if (window.__gw2YtUnlock) return;
-    window.__gw2YtUnlock = 1;
-    try{
-      window.open = function(){ return null; };
-    }catch(e){}
-    function consentOnce(){
-      try{
-        var consent=document.querySelector(
-          'button[aria-label*="Accept the use of cookies"],'+
-          'button[aria-label*="Accept all"],'+
-          'form[action*="consent"] button,'+
-          'ytd-button-renderer#accept-button button,'+
-          'tp-yt-paper-button#button[aria-label*="Accept"]');
-        if (consent) consent.click();
-      }catch(e){}
-    }
-    function tagVideos(){
-      try{
-        var nodes=document.querySelectorAll('video.html5-main-video,ytd-player video,video');
-        for (var i=0;i<nodes.length;i++){
-          nodes[i].setAttribute('playsinline','');
-          nodes[i].setAttribute('webkit-playsinline','');
-        }
-      }catch(e){}
-    }
-    consentOnce();
-    tagVideos();
-    setTimeout(consentOnce, 1200);
-    setTimeout(tagVideos, 1200);
-    try{
-      var mo=new MutationObserver(function(){ scheduleWork(tagVideos); });
-      mo.observe(document.documentElement,{childList:true,subtree:true});
-    }catch(e){}
-  }catch(e){}
 }
 /* Guildjen: Breeze leaves images as empty SVG placeholders (data-breeze) until
    lazy JS runs — that often never fires in CEF, so guides look empty. Also

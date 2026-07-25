@@ -727,60 +727,20 @@ namespace
 		   accepted (same chicken-egg as startup). */
 	}
 
-	/* Media / CDN URLs must never become the main-frame document — promoting
-	   them looks like the page refreshed or the helper crashed. */
-	bool IsMediaOrCdnUrl(const std::string& url)
+	/* Media embeds open popups (Watch on YouTube, etc.). Promoting those into
+	   the main frame looks like a refresh/crash of the guide. */
+	bool IsMediaEmbedPopupUrl(const std::string& url)
 	{
 		auto has = [&](const char* s) {
 			return url.find(s) != std::string::npos;
 		};
-		return has("googlevideo.com") || has("ytimg.com") || has("ggpht.com") ||
-			has("googleusercontent.com") || has("youtube-nocookie.com/embed") ||
-			has("youtube.com/embed") || has("youtube.com/live_chat") ||
-			has("accounts.google.com") || has("accounts.youtube.com") ||
-			has("vimeo.com") || has("player.vimeo.com");
-	}
-
-	bool IsYoutubeHostUrl(const std::string& url)
-	{
-		return url.find("youtube.com") != std::string::npos ||
-			url.find("youtu.be") != std::string::npos ||
-			url.find("youtube-nocookie.com") != std::string::npos;
-	}
-
-	/* Safe to promote into the OSR main frame (Discord invite, external doc). */
-	bool IsPromotablePopupUrl(const std::string& url)
-	{
-		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
-			return false;
-		if (IsMediaOrCdnUrl(url))
-			return false;
-		/* Stay on YouTube in-page — never tear down the player for a popup. */
-		if (IsYoutubeHostUrl(url))
-			return false;
-		return true;
-	}
-
-	std::string MainFrameUrl(cef_browser_t* browser)
-	{
-		if (!browser || !g_userfree_free)
-			return {};
-		cef_frame_t* frame = browser->get_main_frame(browser);
-		if (!frame)
-			return {};
-		std::string out;
-		cef_string_userfree_t uf = frame->get_url(frame);
-		if (uf)
-		{
-			out = CefStringToUtf8(uf);
-			g_userfree_free(uf);
-		}
-		frame->base.release(&frame->base);
-		return out;
+		return has("youtube.com") || has("youtu.be") || has("youtube-nocookie.com") ||
+			has("googlevideo.com") || has("ytimg.com") || has("vimeo.com") ||
+			has("player.vimeo.com");
 	}
 
 	int CEF_CALLBACK OnBeforePopup(
-		cef_life_span_handler_t*, cef_browser_t* browser, cef_frame_t* frame, const cef_string_t* target_url,
+		cef_life_span_handler_t*, cef_browser_t*, cef_frame_t* frame, const cef_string_t* target_url,
 		const cef_string_t*, cef_window_open_disposition_t, int user_gesture, const cef_popup_features_t*,
 		cef_window_info_t*, cef_client_t**, cef_browser_settings_t*, cef_dictionary_value_t**, int*)
 	{
@@ -789,50 +749,18 @@ namespace
 			return 1;
 
 		const std::string url = CefStringToUtf8(target_url);
-		const std::string cur = MainFrameUrl(browser);
-		const bool onYoutube = IsYoutubeHostUrl(cur);
-
-		/* Playing YouTube must stay in the current document. Promoting any
-		   popup (googlevideo, accounts, share, embed) into the main frame
-		   reloads the tab and looks like a refresh/crash. */
-		if (onYoutube || IsMediaOrCdnUrl(url) || IsYoutubeHostUrl(url))
+		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
 			return 1;
 
+		/* Never steal the guide page for embed / media popups. */
+		if (IsMediaEmbedPopupUrl(url))
+			return 1;
+
+		/* Iframe-initiated popups stay cancelled — only promote real target=_blank
+		   clicks from the main document (Discord invites, external links). */
 		const bool fromMain = frame && frame->is_main && frame->is_main(frame);
-		if (user_gesture && fromMain && IsPromotablePopupUrl(url))
+		if (user_gesture && fromMain)
 			NavigateTo(url.c_str());
-		return 1;
-	}
-
-	/* Block main-frame navigations that would replace the page with a CDN blob. */
-	int CEF_CALLBACK OnBeforeBrowse(
-		cef_request_handler_t*, cef_browser_t*, cef_frame_t* frame,
-		cef_request_t* request, int /*user_gesture*/, int /*is_redirect*/)
-	{
-		if (!request || !request->get_url || !g_userfree_free)
-			return 0;
-		const bool isMain = frame && frame->is_main && frame->is_main(frame);
-		if (!isMain)
-			return 0;
-
-		cef_string_userfree_t uf = request->get_url(request);
-		if (!uf)
-			return 0;
-		const std::string url = CefStringToUtf8(uf);
-		g_userfree_free(uf);
-
-		/* googlevideo / accounts / embed as top-level = blank refresh. */
-		if (IsMediaOrCdnUrl(url))
-			return 1;
-		return 0;
-	}
-
-	int CEF_CALLBACK OnOpenUrlFromTab(
-		cef_request_handler_t*, cef_browser_t*, cef_frame_t*,
-		const cef_string_t* target_url, cef_window_open_disposition_t, int)
-	{
-		/* No new tabs in OSR — ignore middle-click / ctrl-click opens. */
-		(void)target_url;
 		return 1;
 	}
 
@@ -1038,20 +966,18 @@ namespace
 	{
 		if (!cmd || !cmd->append_switch)
 			return;
-		/* OSR helper is a separate process from GW2. Full --disable-gpu leaves
-		   YouTube/HTML5 video with "browser can't play this video" because the
-		   software path never paints decoded frames into OnPaint. Prefer ANGLE
-		   SwiftShader (GW2 ships vk_swiftshader.dll) — GPU-safe under Wine,
-		   still paints media into the OSR buffer. */
+		/* Software OSR — avoids fighting GW2's D3D device on Wine. */
 		const char* switches[] = {
+			"disable-gpu",
+			"disable-gpu-compositing",
+			"disable-gpu-vsync",
+			"disable-d3d11",
+			"disable-direct-composition",
 			"no-sandbox",
 			"disable-extensions",
 			"disable-pdf-extension",
 			"allow-file-access-from-files",
 			"allow-file-access",
-			"disable-direct-composition",
-			"disable-gpu-vsync",
-			"disable-accelerated-video-decode",
 		};
 		for (const char* sw : switches)
 		{
@@ -1059,21 +985,6 @@ namespace
 			MakeCefString(&s, sw);
 			cmd->append_switch(cmd, &s);
 			ClearCefString(&s);
-		}
-		if (cmd->append_switch_with_value)
-		{
-			cef_string_t key{};
-			cef_string_t val{};
-			MakeCefString(&key, "use-angle");
-			MakeCefString(&val, "swiftshader");
-			cmd->append_switch_with_value(cmd, &key, &val);
-			ClearCefString(&key);
-			ClearCefString(&val);
-			MakeCefString(&key, "autoplay-policy");
-			MakeCefString(&val, "no-user-gesture-required");
-			cmd->append_switch_with_value(cmd, &key, &val);
-			ClearCefString(&key);
-			ClearCefString(&val);
 		}
 	}
 
@@ -1186,8 +1097,6 @@ namespace
 
 		std::memset(&gRequest, 0, sizeof(gRequest));
 		InitBase(&gRequest.base, sizeof(gRequest));
-		gRequest.on_before_browse = OnBeforeBrowse;
-		gRequest.on_open_urlfrom_tab = OnOpenUrlFromTab;
 		gRequest.get_resource_request_handler = GetResourceRequestHandler;
 
 		std::memset(&gClient, 0, sizeof(gClient));
@@ -1590,11 +1499,12 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	const std::string cacheUtf8 = WideToUtf8(cache);
 	MakeCefString(&settings.cache_path, cacheUtf8.c_str());
 	MakeCefString(&settings.root_cache_path, cacheUtf8.c_str());
-	/* Match CEF 103 — a Chrome/120 UA made YouTube hand us formats/clients
-	   this engine can't decode ("Your browser can't play this video"). */
+	/* Prefer a modern Chrome UA for Google/Gemini (engine is still CEF 103).
+	   Firefox UA spoofing for login confused some Google frontends. Account
+	   sign-in in CEF remains blocked — use Open Ext. */
 	MakeCefString(&settings.user_agent,
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-		"Chrome/103.0.5060.134 Safari/537.36");
+		"Chrome/120.0.0.0 Safari/537.36");
 
 	if (!g_initialize(&mainArgs, &settings, &gApp, nullptr))
 	{

@@ -14,12 +14,13 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.13`
+`2.0.0.14`
 
 ## Changelog highlights
 
-- **2.0.0.13** — YouTube Play no longer refreshes/crashes (cancel media popups; block CDN top-level nav)
-- **2.0.0.12** — Fix Builds → Raids empty list; YouTube playback attempt (SwiftShader / CEF 103 UA)
+- **2.0.0.14** — Remove broken YouTube integration; restore stable software-only CEF on Wine / Proton
+- **2.0.0.13** — YouTube popup hardening (superseded by removal)
+- **2.0.0.12** — Fix Builds → Raids empty list; YouTube experiment (superseded by removal)
 - **2.0.0.11** — Fix Browse sections expanding blank (ListClipper row height under nested headers)
 - **2.0.0.10** — Fix game freeze on exit (join launch worker before unload); helper watchdogs the GW2 process
 - **2.0.0.9** — Search → Video-On-Demand: YouTube

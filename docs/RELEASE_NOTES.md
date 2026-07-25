@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.13
+# GW2 In-Game Helper v2.0.0.14
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -16,9 +16,20 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 ---
 
+## What’s new in 2.0.0.14
+
+- **Removed YouTube:** GW2's bundled CEF 103 off-screen renderer cannot play YouTube
+  reliably. The playback experiment still caused constant page refreshes, so the site and
+  Video-On-Demand section have been removed instead of shipping a broken feature
+- **Stability:** Restored the proven software-only CEF flags (`--disable-gpu`,
+  `--disable-gpu-compositing`, `--disable-d3d11`) and the existing Google/Gemini UA.
+  This removes the global SwiftShader experiment and minimizes Wine / Proton risk
+- **Catalog:** 2,674 entries; Search returns to Google, DuckDuckGo, and Gemini
+- **How to use:** Homepage cache stamp `214`
+
 ## What’s new in 2.0.0.13
 
-- **YouTube:** Clicking Play no longer promotes googlevideo / accounts / embed popups into
+- **Superseded by 2.0.0.14:** Clicking Play no longer promoted googlevideo / accounts / embed popups into
   the main frame (that looked like a refresh or crash). Popups stay cancelled on YouTube;
   CDN top-level navigations are blocked; BootJs no longer auto-clicks Play in a loop
 - **How to use:** Homepage cache stamp `213`

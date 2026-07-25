@@ -21,10 +21,6 @@ Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 
 - **Gemini** — [https://gemini.google.com/app](https://gemini.google.com/app) (Google login / Pro often needs **Open Ext**; Google blocks embedded CEF sign-in)
 
-### Video-On-Demand
-
-- **YouTube** — [https://www.youtube.com/](https://www.youtube.com/) (toolbar search supported; in-overlay playback best-effort — use **Open Ext** if needed)
-
 ## Official
 
 ### ArenaNet
