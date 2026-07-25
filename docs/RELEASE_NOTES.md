@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.11
+# GW2 In-Game Helper v2.0.0.12
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,17 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.12
+
+- **Browse:** Builds → Raids showed (10) but listed nothing — the Guides-only Raid Wings /
+  Raid Boss nesting was incorrectly applied to Builds. Snow Crows raid builds draw as a
+  flat list again
+- **YouTube:** First pass at in-helper playback — drop hard `--disable-gpu` (it broke HTML5
+  video in OSR), use ANGLE SwiftShader + software video decode, match UA to CEF 103, and
+  nudge the HTML5 player / consent. If videos still fail after this, YouTube will be removed
+  (use **Open Ext**)
+- **How to use:** Homepage cache stamp `212`
 
 ## What’s new in 2.0.0.11
 

@@ -995,18 +995,20 @@ namespace
 	{
 		if (!cmd || !cmd->append_switch)
 			return;
-		/* Software OSR — avoids fighting GW2's D3D device on Wine. */
+		/* OSR helper is a separate process from GW2. Full --disable-gpu leaves
+		   YouTube/HTML5 video with "browser can't play this video" because the
+		   software path never paints decoded frames into OnPaint. Prefer ANGLE
+		   SwiftShader (GW2 ships vk_swiftshader.dll) — GPU-safe under Wine,
+		   still paints media into the OSR buffer. */
 		const char* switches[] = {
-			"disable-gpu",
-			"disable-gpu-compositing",
-			"disable-gpu-vsync",
-			"disable-d3d11",
-			"disable-direct-composition",
 			"no-sandbox",
 			"disable-extensions",
 			"disable-pdf-extension",
 			"allow-file-access-from-files",
 			"allow-file-access",
+			"disable-direct-composition",
+			"disable-gpu-vsync",
+			"disable-accelerated-video-decode",
 		};
 		for (const char* sw : switches)
 		{
@@ -1014,6 +1016,21 @@ namespace
 			MakeCefString(&s, sw);
 			cmd->append_switch(cmd, &s);
 			ClearCefString(&s);
+		}
+		if (cmd->append_switch_with_value)
+		{
+			cef_string_t key{};
+			cef_string_t val{};
+			MakeCefString(&key, "use-angle");
+			MakeCefString(&val, "swiftshader");
+			cmd->append_switch_with_value(cmd, &key, &val);
+			ClearCefString(&key);
+			ClearCefString(&val);
+			MakeCefString(&key, "autoplay-policy");
+			MakeCefString(&val, "no-user-gesture-required");
+			cmd->append_switch_with_value(cmd, &key, &val);
+			ClearCefString(&key);
+			ClearCefString(&val);
 		}
 	}
 
@@ -1528,12 +1545,11 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	const std::string cacheUtf8 = WideToUtf8(cache);
 	MakeCefString(&settings.cache_path, cacheUtf8.c_str());
 	MakeCefString(&settings.root_cache_path, cacheUtf8.c_str());
-	/* Prefer a modern Chrome UA for Google/Gemini (engine is still CEF 103).
-	   Firefox UA spoofing for login confused some Google frontends. Account
-	   sign-in in CEF remains blocked — use Open Ext. */
+	/* Match CEF 103 — a Chrome/120 UA made YouTube hand us formats/clients
+	   this engine can't decode ("Your browser can't play this video"). */
 	MakeCefString(&settings.user_agent,
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-		"Chrome/120.0.0.0 Safari/537.36");
+		"Chrome/103.0.5060.134 Safari/537.36");
 
 	if (!g_initialize(&mainArgs, &settings, &gApp, nullptr))
 	{

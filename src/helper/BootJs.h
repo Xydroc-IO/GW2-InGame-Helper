@@ -288,8 +288,48 @@ function boot(){
   tipGoogleLogin();
   unlockGuildjenMedia();
   unlockSnowcrowsGuides();
+  unlockYoutubePlayer();
   injectGeminiReadability();
   wireCheatSheetChecks();
+}
+/* YouTube in CEF OSR: nudge HTML5 player + dismiss thin consent walls.
+   Real decode needs SwiftShader/OSR paint path (see helper command line). */
+function unlockYoutubePlayer(){
+  try{
+    if (!isYoutubeHost) return;
+    function tick(){
+      try{
+        var consent=document.querySelector(
+          'button[aria-label*="Accept the use of cookies"],'+
+          'button[aria-label*="Accept all"],'+
+          'form[action*="consent"] button,'+
+          'ytd-button-renderer#accept-button button,'+
+          'tp-yt-paper-button#button[aria-label*="Accept"]');
+        if (consent) consent.click();
+      }catch(e){}
+      try{
+        var v=document.querySelector('video.html5-main-video,ytd-player video,video');
+        if (v){
+          v.setAttribute('playsinline','');
+          v.setAttribute('webkit-playsinline','');
+          if (v.paused){
+            var p=v.play();
+            if (p && p.catch) p.catch(function(){});
+          }
+        }
+        var big=document.querySelector('.ytp-large-play-button,button.ytp-play-button');
+        if (big && document.querySelector('video') && document.querySelector('video').paused)
+          big.click();
+      }catch(e){}
+    }
+    tick();
+    setTimeout(tick, 800);
+    setTimeout(tick, 2500);
+    try{
+      var mo=new MutationObserver(function(){ scheduleWork(tick); });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+  }catch(e){}
 }
 /* Guildjen: Breeze leaves images as empty SVG placeholders (data-breeze) until
    lazy JS runs — that often never fires in CEF, so guides look empty. Also

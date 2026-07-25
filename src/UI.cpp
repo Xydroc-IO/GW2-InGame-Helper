@@ -1481,8 +1481,11 @@ namespace
 					anyInCategory = true;
 					if (!BeginBrowseSection(selectedCat, section, secSites))
 						continue;
-					/* Raids: Raid Wings + Raid Boss (wings nested under Raid Boss). */
-					if (std::strcmp(section, "Raids") == 0)
+					/* Guides → Raids only: nest Raid Wings / Raid Boss.
+					   Builds → Raids is a flat Snow Crows profession list — do not
+					   reuse RaidsSub or the section expands empty (count 10, body 0). */
+					if (std::strcmp(section, "Raids") == 0 &&
+						std::strcmp(selectedCat, "Guides") == 0)
 					{
 						static const char* kRaidSubs[] = { "Raid Wings", "Raid Boss" };
 						static const char* kWings[] = {
