@@ -286,28 +286,60 @@ function boot(){
   }
   tipGoogleLogin();
   unlockGuildjenMedia();
+  replaceYoutubeEmbeds();
   unlockSnowcrowsGuides();
   injectGeminiReadability();
   wireCheatSheetChecks();
 }
-/* Prefer nocookie embed + playsinline so Play is less likely to break out of
-   the iframe into a top-level watch URL (that looked like a page refresh). */
-function softenYoutubeEmbedSrc(src){
+/* CEF 103 OSR cannot keep YouTube embeds without tearing down the guide.
+   Replace players with a card that opens the system browser instead. */
+function youtubeWatchUrl(src){
   try{
-    if (!src) return src;
-    var u=src;
-    u=u.replace('://www.youtube.com/','://www.youtube-nocookie.com/');
-    u=u.replace('://youtube.com/','://www.youtube-nocookie.com/');
-    if (u.indexOf('playsinline=')<0)
-      u+=(u.indexOf('?')>=0?'&':'?')+'playsinline=1';
-    if (u.indexOf('rel=')<0)
-      u+='&rel=0';
-    return u;
-  }catch(e){ return src; }
+    if (!src) return '';
+    var m=src.match(/\/embed\/([A-Za-z0-9_-]{6,})/)||
+      src.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/)||
+      src.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
+    if (m && m[1]) return 'https://www.youtube.com/watch?v='+m[1];
+    if (/youtube\.com|youtu\.be|youtube-nocookie\.com/.test(src)) return src;
+    return '';
+  }catch(e){ return ''; }
+}
+function replaceYoutubeEmbeds(){
+  try{
+    function sweep(){
+      var nodes=document.querySelectorAll(
+        'iframe[src*="youtube.com"],iframe[src*="youtu.be"],iframe[src*="youtube-nocookie.com"],'+
+        'iframe[data-src-cmplz*="youtube"],iframe[data-src-cmplz*="youtu.be"],'+
+        'iframe[data-src*="youtube"],iframe[data-src*="youtu.be"]');
+      for (var i=0;i<nodes.length;i++){
+        var el=nodes[i];
+        if (!el || el.getAttribute('data-gw2-yt')==='1') continue;
+        var raw=el.getAttribute('data-src-cmplz')||el.getAttribute('data-src')||
+          el.getAttribute('src')||'';
+        var watch=youtubeWatchUrl(raw);
+        if (!watch) continue;
+        try{
+          var box=document.createElement('div');
+          box.setAttribute('data-gw2-yt','1');
+          box.style.cssText='margin:12px 0;padding:14px 16px;border:1px solid #c9a227;'+
+            'border-radius:6px;background:#1a1c24;color:#e8e6e3;font:14px/1.45 Segoe UI,sans-serif;';
+          box.innerHTML=
+            '<div style="font-weight:600;margin-bottom:6px;color:#e0c35a;">YouTube video</div>'+
+            '<div style="opacity:.85;margin-bottom:10px;">In-game playback refreshes this page. Open it in your system browser instead.</div>'+
+            '<a href="'+watch.replace(/"/g,'&quot;')+'" style="color:#7eb6ff;font-weight:600;">Watch on YouTube</a>';
+          if (el.parentNode) el.parentNode.replaceChild(box, el);
+        }catch(e){}
+      }
+    }
+    sweep();
+    try{
+      var mo=new MutationObserver(function(){ scheduleWork(sweep); });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+  }catch(e){}
 }
 /* Guildjen: Breeze leaves images as empty SVG placeholders (data-breeze) until
-   lazy JS runs — that often never fires in CEF, so guides look empty. Also
-   Complianz blocks YouTube until marketing cookies. */
+   lazy JS runs — that often never fires in CEF, so guides look empty. */
 function unlockGuildjenMedia(){
   try{
     if (!/(^|\.)guildjen\.com$/.test(host)) return;
@@ -323,21 +355,6 @@ function unlockGuildjenMedia(){
           if (srcset) img.setAttribute('srcset', srcset);
           img.classList.remove('br-lazy');
           img.removeAttribute('data-breeze');
-        }catch(e){}
-      }
-      var nodes=document.querySelectorAll(
-        'iframe[data-src-cmplz*="youtube"],iframe[data-src-cmplz*="youtu.be"],'+
-        'iframe[src*="youtube.com/embed"],iframe[src*="youtube-nocookie.com/embed"]');
-      for (var j=0;j<nodes.length;j++){
-        var el=nodes[j];
-        var ysrc=el.getAttribute('data-src-cmplz')||el.getAttribute('src')||'';
-        if (!ysrc) continue;
-        ysrc=softenYoutubeEmbedSrc(ysrc);
-        if (el.getAttribute('src')===ysrc) continue;
-        try{
-          el.setAttribute('src', ysrc);
-          el.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-          el.classList.remove('cmplz-placeholder-element');
         }catch(e){}
       }
     }

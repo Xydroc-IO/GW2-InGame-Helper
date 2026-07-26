@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.16
+# GW2 In-Game Helper v2.0.0.17
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,14 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.17
+
+- **Embeds:** In-page YouTube players are replaced with a “Watch on YouTube” card.
+  Clicking it opens your system browser and leaves the guide alone. Loading the
+  player in CEF 103 OSR still caused mid-play refreshes even after navigation
+  guards, so embeds are no longer activated in-helper
+- **How to use:** Homepage cache stamp `217`
 
 ## What’s new in 2.0.0.16
 

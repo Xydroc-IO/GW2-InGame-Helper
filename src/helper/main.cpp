@@ -727,6 +727,13 @@ namespace
 		   accepted (same chicken-egg as startup). */
 	}
 
+	void OpenExternalUrl(const std::string& url)
+	{
+		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
+			return;
+		ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+	}
+
 	/* Media / CDN / account URLs must never become the main-frame document —
 	   promoting them after an embed Play looks like the guide refreshed. */
 	bool IsMediaOrCdnUrl(const std::string& url)
@@ -739,6 +746,7 @@ namespace
 			has("youtube.com/embed") || has("youtube.com/live_chat") ||
 			has("youtube.com/watch") || has("youtu.be/") ||
 			has("accounts.google.com") || has("accounts.youtube.com") ||
+			has("consent.youtube.com") || has("consent.google.com") ||
 			has("vimeo.com") || has("player.vimeo.com");
 	}
 
@@ -788,12 +796,18 @@ namespace
 		const std::string url = CefStringToUtf8(target_url);
 		const std::string cur = MainFrameUrl(browser);
 
-		/* Embed Play / share / accounts must not replace Guildjen etc. */
-		if (IsMediaOrCdnUrl(url) || IsYoutubeHostUrl(url) || IsYoutubeHostUrl(cur))
+		/* YouTube cannot stay in OSR — open the system browser instead of
+		   replacing the guide (that looked like a mid-play refresh). */
+		if (IsYoutubeHostUrl(url))
+		{
+			if (user_gesture)
+				OpenExternalUrl(url);
+			return 1;
+		}
+
+		if (IsMediaOrCdnUrl(url) || IsYoutubeHostUrl(cur))
 			return 1;
 
-		/* Iframe-initiated popups stay cancelled — only promote real target=_blank
-		   clicks from the main document (Discord invites, external links). */
 		const bool fromMain = frame && frame->is_main && frame->is_main(frame);
 		if (user_gesture && fromMain && IsPromotablePopupUrl(url))
 			NavigateTo(url.c_str());
@@ -803,7 +817,7 @@ namespace
 	/* Block main-frame navigations that steal the guide after an embed starts. */
 	int CEF_CALLBACK OnBeforeBrowse(
 		cef_request_handler_t*, cef_browser_t* browser, cef_frame_t* frame,
-		cef_request_t* request, int /*user_gesture*/, int /*is_redirect*/)
+		cef_request_t* request, int user_gesture, int /*is_redirect*/)
 	{
 		if (!request || !request->get_url || !g_userfree_free)
 			return 0;
@@ -820,10 +834,14 @@ namespace
 		if (IsMediaOrCdnUrl(url))
 			return 1;
 
-		/* Guide pages must not become youtube.com/watch after Play. */
 		const std::string cur = MainFrameUrl(browser);
 		if (!IsYoutubeHostUrl(cur) && IsYoutubeHostUrl(url))
+		{
+			/* "Watch on YouTube" cards use a normal <a href> — open externally. */
+			if (user_gesture)
+				OpenExternalUrl(url);
 			return 1;
+		}
 
 		return 0;
 	}

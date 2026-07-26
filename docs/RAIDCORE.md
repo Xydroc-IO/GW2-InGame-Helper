@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.16`
+`2.0.0.17`
 
 ## Changelog highlights
 
+- **2.0.0.17** — Replace YouTube embeds with system-browser “Watch on YouTube” cards (no in-page play / refresh)
 - **2.0.0.16** — Stop guide pages refreshing when embedded YouTube Play starts
 - **2.0.0.15** — Fix typing in Browse/Search/Find leaking keys to GW2 (autorun `R`)
 - **2.0.0.14** — Remove broken YouTube integration; restore stable software-only CEF on Wine / Proton
