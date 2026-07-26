@@ -14,10 +14,11 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.17`
+`2.0.0.18`
 
 ## Changelog highlights
 
+- **2.0.0.18** — Rewrite Guildjen YouTube iframes to Watch cards + block embed loads (no more play→refresh)
 - **2.0.0.17** — Replace YouTube embeds with system-browser “Watch on YouTube” cards (no in-page play / refresh)
 - **2.0.0.16** — Stop guide pages refreshing when embedded YouTube Play starts
 - **2.0.0.15** — Fix typing in Browse/Search/Find leaking keys to GW2 (autorun `R`)

@@ -304,34 +304,63 @@ function youtubeWatchUrl(src){
     return '';
   }catch(e){ return ''; }
 }
+function makeYoutubeCard(watch){
+  var box=document.createElement('div');
+  box.setAttribute('data-gw2-yt','1');
+  box.style.cssText='margin:12px 0;padding:14px 16px;border:1px solid #c9a227;'+
+    'border-radius:6px;background:#1a1c24;color:#e8e6e3;font:14px/1.45 Segoe UI,sans-serif;';
+  box.innerHTML=
+    '<div style="font-weight:600;margin-bottom:6px;color:#e0c35a;">YouTube video</div>'+
+    '<div style="opacity:.85;margin-bottom:10px;">In-game playback refreshes this page. Open it in your system browser instead.</div>'+
+    '<a href="'+String(watch).replace(/"/g,'&quot;')+'" style="color:#7eb6ff;font-weight:600;">Watch on YouTube</a>';
+  return box;
+}
 function replaceYoutubeEmbeds(){
   try{
     function sweep(){
       var nodes=document.querySelectorAll(
-        'iframe[src*="youtube.com"],iframe[src*="youtu.be"],iframe[src*="youtube-nocookie.com"],'+
-        'iframe[data-src-cmplz*="youtube"],iframe[data-src-cmplz*="youtu.be"],'+
-        'iframe[data-src*="youtube"],iframe[data-src*="youtu.be"]');
+        'iframe.cmplz-video,iframe[data-service="youtube"],iframe[data-src-cmplz*="youtube"],'+
+        'iframe[data-src-cmplz*="youtu.be"],iframe[src*="youtube.com"],iframe[src*="youtu.be"],'+
+        'iframe[src*="youtube-nocookie.com"],iframe[data-src*="youtube"],iframe[data-src*="youtu.be"]');
       for (var i=0;i<nodes.length;i++){
         var el=nodes[i];
-        if (!el || el.getAttribute('data-gw2-yt')==='1') continue;
+        if (!el || !el.parentNode) continue;
+        if (el.getAttribute('data-gw2-yt')==='1') continue;
         var raw=el.getAttribute('data-src-cmplz')||el.getAttribute('data-src')||
           el.getAttribute('src')||'';
+        var svc=el.getAttribute('data-service')||'';
         var watch=youtubeWatchUrl(raw);
+        if (!watch && svc==='youtube') watch='https://www.youtube.com/';
         if (!watch) continue;
         try{
-          var box=document.createElement('div');
-          box.setAttribute('data-gw2-yt','1');
-          box.style.cssText='margin:12px 0;padding:14px 16px;border:1px solid #c9a227;'+
-            'border-radius:6px;background:#1a1c24;color:#e8e6e3;font:14px/1.45 Segoe UI,sans-serif;';
-          box.innerHTML=
-            '<div style="font-weight:600;margin-bottom:6px;color:#e0c35a;">YouTube video</div>'+
-            '<div style="opacity:.85;margin-bottom:10px;">In-game playback refreshes this page. Open it in your system browser instead.</div>'+
-            '<a href="'+watch.replace(/"/g,'&quot;')+'" style="color:#7eb6ff;font-weight:600;">Watch on YouTube</a>';
-          if (el.parentNode) el.parentNode.replaceChild(box, el);
+          el.parentNode.replaceChild(makeYoutubeCard(watch), el);
+        }catch(e){}
+      }
+      var figs=document.querySelectorAll('figure.wp-block-embed-youtube');
+      for (var f=0;f<figs.length;f++){
+        var fig=figs[f];
+        if (!fig || fig.getAttribute('data-gw2-yt')==='1') continue;
+        if (fig.querySelector('[data-gw2-yt="1"]')) {
+          fig.setAttribute('data-gw2-yt','1');
+          continue;
+        }
+        var a=fig.querySelector('a[href*="youtube"],a[href*="youtu.be"]');
+        var href=a?a.getAttribute('href'):'';
+        var w=youtubeWatchUrl(href||'');
+        if (!w) continue;
+        try{
+          fig.setAttribute('data-gw2-yt','1');
+          fig.innerHTML='';
+          fig.appendChild(makeYoutubeCard(w));
         }catch(e){}
       }
     }
     sweep();
+    var ticks=0;
+    var iv=setInterval(function(){
+      sweep();
+      if (++ticks>=20) clearInterval(iv);
+    }, 250);
     try{
       var mo=new MutationObserver(function(){ scheduleWork(sweep); });
       mo.observe(document.documentElement,{childList:true,subtree:true});

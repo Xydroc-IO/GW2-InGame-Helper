@@ -1079,15 +1079,17 @@ namespace
 	}
 
 	cef_return_value_t CEF_CALLBACK OnBeforeResourceLoad(
-		cef_resource_request_handler_t*, cef_browser_t*, cef_frame_t*,
+		cef_resource_request_handler_t*, cef_browser_t* browser, cef_frame_t*,
 		cef_request_t* request, cef_callback_t*)
 	{
 		if (!request || !request->get_url || !g_userfree_free)
 			return RV_CONTINUE;
 
 		/* Never cancel the top-level document — that shows up as ERR_ABORTED. */
-		if (request->get_resource_type &&
-			request->get_resource_type(request) == RT_MAIN_FRAME)
+		const cef_resource_type_t rtype = request->get_resource_type
+			? request->get_resource_type(request)
+			: RT_MAIN_FRAME;
+		if (rtype == RT_MAIN_FRAME)
 			return RV_CONTINUE;
 
 		cef_string_userfree_t uf = request->get_url(request);
@@ -1097,6 +1099,19 @@ namespace
 		g_userfree_free(uf);
 		if (ShouldBlockUrl(url))
 			return RV_CANCEL;
+
+		/* Never let YouTube / googlevideo load as a subframe or media stream on
+		   guide pages — that is what "starts then refreshes" the tab. */
+		const std::string cur = MainFrameUrl(browser);
+		if (!IsYoutubeHostUrl(cur) &&
+			(IsYoutubeHostUrl(url) ||
+				url.find("googlevideo.com") != std::string::npos ||
+				url.find("ytimg.com/an_webp") != std::string::npos))
+		{
+			if (rtype == RT_SUB_FRAME || rtype == RT_MEDIA ||
+				url.find("/embed/") != std::string::npos)
+				return RV_CANCEL;
+		}
 		return RV_CONTINUE;
 	}
 

@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.17
+# GW2 In-Game Helper v2.0.0.18
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,14 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.18
+
+- **Embeds:** Guildjen HTML is rewritten before paint — YouTube `<iframe>` tags become
+  **Watch on YouTube** cards (Complianz never activates the player). youtube.com /
+  googlevideo subframe loads are cancelled. Helper exe re-extracts when the stamp
+  mismatches so a warm/old helper cannot keep the refresh bug
+- **How to use:** Homepage cache stamp `218`
 
 ## What’s new in 2.0.0.17
 

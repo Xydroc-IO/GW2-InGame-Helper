@@ -430,14 +430,31 @@ namespace
 			return false;
 		const size_t size = static_cast<size_t>(end - begin);
 		const std::wstring path = HelperPath();
+		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
+		   if the blob happens to match byte length (or Wine holds the old file). */
+		static constexpr const char* kHelperStamp = "18";
+		const std::wstring verPath = path + L".ver";
 
-		/* Fast path: reuse existing extract if size matches (avoids ~3MB write hitch). */
+		bool stampOk = false;
+		HANDLE verIn = CreateFileW(verPath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
+			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (verIn != INVALID_HANDLE_VALUE)
+		{
+			char buf[32]{};
+			DWORD got = 0;
+			if (ReadFile(verIn, buf, sizeof(buf) - 1, &got, nullptr) && got > 0)
+				stampOk = (std::strncmp(buf, kHelperStamp, std::strlen(kHelperStamp)) == 0);
+			CloseHandle(verIn);
+		}
+
+		/* Fast path: reuse existing extract if size + stamp match. */
 		HANDLE existing = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (existing != INVALID_HANDLE_VALUE)
 		{
 			LARGE_INTEGER li{};
-			const bool same = GetFileSizeEx(existing, &li) && static_cast<size_t>(li.QuadPart) == size;
+			const bool same = stampOk && GetFileSizeEx(existing, &li) &&
+				static_cast<size_t>(li.QuadPart) == size;
 			CloseHandle(existing);
 			if (same)
 				return true;
@@ -459,6 +476,15 @@ namespace
 		{
 			SetLocalStatus("Extract WriteFile incomplete");
 			return false;
+		}
+
+		HANDLE verOut = CreateFileW(verPath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+			FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (verOut != INVALID_HANDLE_VALUE)
+		{
+			DWORD vw = 0;
+			WriteFile(verOut, kHelperStamp, static_cast<DWORD>(std::strlen(kHelperStamp)), &vw, nullptr);
+			CloseHandle(verOut);
 		}
 		return GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES;
 	}

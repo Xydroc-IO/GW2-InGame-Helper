@@ -121,8 +121,11 @@ namespace
 				{
 					f->finishedInput = true;
 					f->prepared = true;
-					f->output = std::move(f->input);
+					std::string body = std::move(f->input);
 					f->input.clear();
+					if (f->isHtml)
+						body = RewriteYoutubeEmbedsInHtml(body);
+					f->output = std::move(body);
 				}
 			}
 			else
@@ -135,19 +138,23 @@ namespace
 		f->finishedInput = true;
 		if (!f->prepared)
 		{
-			const bool needs = f->input.find("color-mix(") != std::string::npos ||
-				f->input.find("oklch(") != std::string::npos ||
-				f->input.find("@property") != std::string::npos ||
-				f->input.find("dvh") != std::string::npos ||
-				f->input.find("color(display") != std::string::npos ||
-				f->input.find(" &") != std::string::npos;
-			if (!needs)
-				f->output = std::move(f->input);
-			else if (f->isHtml)
-				f->output = DownlevelHtmlStyles(f->input);
-			else
-				f->output = DownlevelCss(f->input);
+			std::string body = std::move(f->input);
 			f->input.clear();
+			if (f->isHtml)
+				body = RewriteYoutubeEmbedsInHtml(body);
+
+			const bool needs = body.find("color-mix(") != std::string::npos ||
+				body.find("oklch(") != std::string::npos ||
+				body.find("@property") != std::string::npos ||
+				body.find("dvh") != std::string::npos ||
+				body.find("color(display") != std::string::npos ||
+				body.find(" &") != std::string::npos;
+			if (!needs)
+				f->output = std::move(body);
+			else if (f->isHtml)
+				f->output = DownlevelHtmlStyles(body);
+			else
+				f->output = DownlevelCss(body);
 			f->prepared = true;
 		}
 
@@ -203,6 +210,10 @@ bool ShouldDownlevelResponse(const std::string& url, const std::string& mime)
 		m.find("application/xhtml") != std::string::npos;
 	if (!cssLike && !htmlLike)
 		return false;
+	/* Guildjen HTML is filtered so YouTube iframes become Watch cards before
+	   Complianz / the player can load (in-page Play refreshes the guide). */
+	if (htmlLike && HostEndsWith(host, "guildjen.com"))
+		return true;
 	if (HostEndsWith(host, "google.com") || HostEndsWith(host, "gstatic.com") ||
 		HostEndsWith(host, "googleapis.com") ||
 		HostEndsWith(host, "duckduckgo.com") ||
