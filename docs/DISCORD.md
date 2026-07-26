@@ -1,4 +1,4 @@
-# :rocket: GW2 In-Game Helper — **v2.0.0.18**
+# :rocket: GW2 In-Game Helper — **v2.0.0.19**
 
 > Wiki, builds, guides, cheat sheets, tools, and community Discords — **inside Guild Wars 2**. One DLL. No memory reads.
 
@@ -50,6 +50,7 @@ Favorites, up to **8 tabs**, pin, find-in-page, and a GW2-themed chrome.
 
 ## :sparkles: Recent highlights
 
+- **v2.0.0.19** — Fix Windows “Waiting for first paint…” stall; Defender `Wacatac.B!ml` is a false positive on this unsigned build
 - **v2.0.0.18** — Guildjen YouTube iframes rewritten to Watch cards + embed loads blocked (no play→refresh)
 - **v2.0.0.17** — YouTube embeds → system-browser cards
 - **v2.0.0.15** — Typing in Browse / Search / Find no longer leaks keys to GW2 (no more stuck autorun from `R`)
@@ -67,6 +68,15 @@ Favorites, up to **8 tabs**, pin, find-in-page, and a GW2-themed chrome.
 - Keep browser warm / collapse the title bar if you want CEF to stay alive between opens
 - Google / Gemini login often needs **Open Ext** (“This browser may not be secure”)
 - After updating, **fully restart GW2** so the helper exe re-extracts
+
+---
+
+## :shield: Windows Defender (`Wacatac.B!ml`)
+
+Defender may ML-flag the DLL as `Trojan:Win32/Wacatac.B!ml`. That is a **false positive** common on unsigned MinGW builds — the addon is open source and does not contain malware.
+
+- **Players:** Windows Security → Protection history → Allow / restore the file (or exclude the GW2 `addons` folder)
+- **Devs:** Submit the release DLL at https://www.microsoft.com/en-us/wdsi/filesubmission → Software developer → incorrectly detected
 
 ---
 

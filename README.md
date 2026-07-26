@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `2.0.0.18` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.0.19` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -113,7 +113,11 @@ Works on Windows and on Linux via Wine/Proton.
 
 Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
-## What’s new (2.0.0.18)
+## What’s new (2.0.0.19)
+
+**2.0.0.19**
+- Fix Windows users stuck on “Waiting for first paint…” while status says Ready (blocking first GPU Map; was_resized kick after load)
+- Note: Windows Defender may ML-flag the unsigned MinGW DLL as `Wacatac.B!ml` — false positive; allow the file or submit to Microsoft
 
 **2.0.0.18**
 - Force YouTube embeds off guides: rewrite Guildjen HTML to Watch cards before the player loads, block youtube/googlevideo subframes, and re-extract the helper on stamp mismatch (old helper could keep refreshing)
@@ -227,6 +231,15 @@ The DLL embeds its browser helper. On first use it extracts `GW2HelperBrowser.ex
 into the addon’s Nexus directory and loads CEF from the game’s existing
 `bin64/cef` folder. Do **not** download or ship a separate CEF runtime or helper
 exe — players only install the DLL.
+
+### Windows Defender false positive
+
+Windows Defender may flag the DLL as `Trojan:Win32/Wacatac.B!ml`. That is a
+**machine-learning false positive** common with unsigned MinGW builds — not real malware.
+Allow/restore the file in Windows Security, or exclude the GW2 `addons` folder.
+Developers can submit the release binary at
+[Microsoft file submission](https://www.microsoft.com/en-us/wdsi/filesubmission)
+(Software developer → incorrectly detected). Source is on GitHub.
 
 ### Common install paths
 

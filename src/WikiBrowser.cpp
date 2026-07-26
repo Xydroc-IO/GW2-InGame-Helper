@@ -432,7 +432,7 @@ namespace
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "18";
+		static constexpr const char* kHelperStamp = "19";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;
@@ -1403,10 +1403,18 @@ void WikiBrowser::PresentFrame()
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	D3D11_MAP mapType = wantChunk ? D3D11_MAP_WRITE
 		: (uploadFull ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE);
-	HRESULT hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
+	/* DO_NOT_WAIT skips a busy frame — fine when we already have a picture.
+	   On native Windows the first Map often returns WAS_STILL_DRAWING forever
+	   (game + ImGui still own the device), which leaves users stuck on
+	   "Waiting for first paint…" while status already says Ready. */
+	const bool firstPaint = !gTexHasContent;
+	UINT mapFlags = D3D11_MAP_FLAG_DO_NOT_WAIT;
+	if (firstPaint || mapType == D3D11_MAP_WRITE_DISCARD)
+		mapFlags = 0u;
+	HRESULT hr = gContext->Map(gTex, 0, mapType, mapFlags, &mapped);
 	if (FAILED(hr) && mapType == D3D11_MAP_WRITE)
 	{
-		if (continuingPartial)
+		if (continuingPartial && !firstPaint)
 			return; /* keep prior rows; retry WRITE next frame */
 		/* Fall back to one-shot DISCARD (also covers first-paint safety). */
 		mapType = D3D11_MAP_WRITE_DISCARD;
@@ -1414,7 +1422,18 @@ void WikiBrowser::PresentFrame()
 		gStagingReady = false;
 		gPartialCopySeq = 0;
 		gPartialCopyY = 0;
-		hr = gContext->Map(gTex, 0, mapType, D3D11_MAP_FLAG_DO_NOT_WAIT, &mapped);
+		mapFlags = 0u;
+		hr = gContext->Map(gTex, 0, mapType, mapFlags, &mapped);
+	}
+	if (FAILED(hr) && mapFlags != 0u)
+	{
+		/* Blocking DISCARD last resort — better a hitch than a permanent black panel. */
+		mapType = D3D11_MAP_WRITE_DISCARD;
+		uploadFull = true;
+		gStagingReady = false;
+		gPartialCopySeq = 0;
+		gPartialCopyY = 0;
+		hr = gContext->Map(gTex, 0, mapType, 0u, &mapped);
 	}
 	if (FAILED(hr))
 		return;

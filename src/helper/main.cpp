@@ -875,7 +875,14 @@ namespace
 			SetStatus(isLoading ? "Loading…" : "Ready");
 		}
 		if (!isLoading && active)
+		{
 			UpdateUrlFromBrowser();
+			/* Native Windows OSR sometimes never paints until was_resized after
+			   the first document finishes — kick CEF so the DLL can leave
+			   "Waiting for first paint…". */
+			if (gIpc && gIpc->frame_seq == 0)
+				NotifyWasResized();
+		}
 		/* BootJs injected from OnLoadEnd only — avoid double parse/exec. */
 	}
 

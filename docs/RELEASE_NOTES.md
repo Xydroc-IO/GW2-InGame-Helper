@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.18
+# GW2 In-Game Helper v2.0.0.19
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,19 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.19
+
+- **Present:** Fix native Windows stuck on “Waiting for first paint…” while status
+  already says Ready. First GPU upload no longer uses `DO_NOT_WAIT` (Defender-busy
+  devices were failing Map forever); falls back to a blocking `WRITE_DISCARD`.
+  Helper also kicks `was_resized` after load if no paint has arrived yet
+- **Security note:** Windows Defender may ML-flag the unsigned MinGW build as
+  `Trojan:Win32/Wacatac.B!ml`. That is a known false positive on unsigned / statically
+  linked tools — allow/restore the DLL, or submit it at
+  [Microsoft file submission](https://www.microsoft.com/en-us/wdsi/filesubmission)
+  (Software developer → incorrectly detected). Source is open on GitHub
+- **How to use:** Homepage cache stamp `219`
 
 ## What’s new in 2.0.0.18
 
