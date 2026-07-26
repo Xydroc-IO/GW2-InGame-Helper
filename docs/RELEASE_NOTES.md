@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.15
+# GW2 In-Game Helper v2.0.0.16
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -15,6 +15,16 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.16
+
+- **Embeds:** Clicking Play on a YouTube iframe in a guide (e.g. Guildjen) no longer
+  replaces the page with `youtube.com/watch` / googlevideo / accounts — that looked like
+  a mid-playback refresh. Main-frame CDN and YouTube navigations are blocked while you
+  are on a normal site; Guildjen embeds prefer youtube-nocookie + playsinline
+- **Note:** In-overlay decode is still best-effort on CEF 103 OSR. If the player stalls,
+  use **Open Ext**. The guide itself should stay put
+- **How to use:** Homepage cache stamp `216`
 
 ## What’s new in 2.0.0.15
 

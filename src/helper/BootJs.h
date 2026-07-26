@@ -290,6 +290,21 @@ function boot(){
   injectGeminiReadability();
   wireCheatSheetChecks();
 }
+/* Prefer nocookie embed + playsinline so Play is less likely to break out of
+   the iframe into a top-level watch URL (that looked like a page refresh). */
+function softenYoutubeEmbedSrc(src){
+  try{
+    if (!src) return src;
+    var u=src;
+    u=u.replace('://www.youtube.com/','://www.youtube-nocookie.com/');
+    u=u.replace('://youtube.com/','://www.youtube-nocookie.com/');
+    if (u.indexOf('playsinline=')<0)
+      u+=(u.indexOf('?')>=0?'&':'?')+'playsinline=1';
+    if (u.indexOf('rel=')<0)
+      u+='&rel=0';
+    return u;
+  }catch(e){ return src; }
+}
 /* Guildjen: Breeze leaves images as empty SVG placeholders (data-breeze) until
    lazy JS runs — that often never fires in CEF, so guides look empty. Also
    Complianz blocks YouTube until marketing cookies. */
@@ -310,14 +325,18 @@ function unlockGuildjenMedia(){
           img.removeAttribute('data-breeze');
         }catch(e){}
       }
-      var nodes=document.querySelectorAll('iframe[data-src-cmplz*="youtube"],iframe[data-src-cmplz*="youtu.be"]');
+      var nodes=document.querySelectorAll(
+        'iframe[data-src-cmplz*="youtube"],iframe[data-src-cmplz*="youtu.be"],'+
+        'iframe[src*="youtube.com/embed"],iframe[src*="youtube-nocookie.com/embed"]');
       for (var j=0;j<nodes.length;j++){
         var el=nodes[j];
-        var ysrc=el.getAttribute('data-src-cmplz')||'';
+        var ysrc=el.getAttribute('data-src-cmplz')||el.getAttribute('src')||'';
         if (!ysrc) continue;
+        ysrc=softenYoutubeEmbedSrc(ysrc);
         if (el.getAttribute('src')===ysrc) continue;
         try{
           el.setAttribute('src', ysrc);
+          el.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
           el.classList.remove('cmplz-placeholder-element');
         }catch(e){}
       }

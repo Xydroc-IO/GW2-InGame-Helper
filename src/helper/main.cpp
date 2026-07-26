@@ -727,20 +727,57 @@ namespace
 		   accepted (same chicken-egg as startup). */
 	}
 
-	/* Media embeds open popups (Watch on YouTube, etc.). Promoting those into
-	   the main frame looks like a refresh/crash of the guide. */
-	bool IsMediaEmbedPopupUrl(const std::string& url)
+	/* Media / CDN / account URLs must never become the main-frame document —
+	   promoting them after an embed Play looks like the guide refreshed. */
+	bool IsMediaOrCdnUrl(const std::string& url)
 	{
 		auto has = [&](const char* s) {
 			return url.find(s) != std::string::npos;
 		};
-		return has("youtube.com") || has("youtu.be") || has("youtube-nocookie.com") ||
-			has("googlevideo.com") || has("ytimg.com") || has("vimeo.com") ||
-			has("player.vimeo.com");
+		return has("googlevideo.com") || has("ytimg.com") || has("ggpht.com") ||
+			has("googleusercontent.com") || has("youtube-nocookie.com/embed") ||
+			has("youtube.com/embed") || has("youtube.com/live_chat") ||
+			has("youtube.com/watch") || has("youtu.be/") ||
+			has("accounts.google.com") || has("accounts.youtube.com") ||
+			has("vimeo.com") || has("player.vimeo.com");
+	}
+
+	bool IsYoutubeHostUrl(const std::string& url)
+	{
+		return url.find("youtube.com") != std::string::npos ||
+			url.find("youtu.be") != std::string::npos ||
+			url.find("youtube-nocookie.com") != std::string::npos;
+	}
+
+	bool IsPromotablePopupUrl(const std::string& url)
+	{
+		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
+			return false;
+		if (IsMediaOrCdnUrl(url) || IsYoutubeHostUrl(url))
+			return false;
+		return true;
+	}
+
+	std::string MainFrameUrl(cef_browser_t* browser)
+	{
+		if (!browser || !g_userfree_free)
+			return {};
+		cef_frame_t* frame = browser->get_main_frame(browser);
+		if (!frame)
+			return {};
+		std::string out;
+		cef_string_userfree_t uf = frame->get_url(frame);
+		if (uf)
+		{
+			out = CefStringToUtf8(uf);
+			g_userfree_free(uf);
+		}
+		frame->base.release(&frame->base);
+		return out;
 	}
 
 	int CEF_CALLBACK OnBeforePopup(
-		cef_life_span_handler_t*, cef_browser_t*, cef_frame_t* frame, const cef_string_t* target_url,
+		cef_life_span_handler_t*, cef_browser_t* browser, cef_frame_t* frame, const cef_string_t* target_url,
 		const cef_string_t*, cef_window_open_disposition_t, int user_gesture, const cef_popup_features_t*,
 		cef_window_info_t*, cef_client_t**, cef_browser_settings_t*, cef_dictionary_value_t**, int*)
 	{
@@ -749,19 +786,54 @@ namespace
 			return 1;
 
 		const std::string url = CefStringToUtf8(target_url);
-		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
-			return 1;
+		const std::string cur = MainFrameUrl(browser);
 
-		/* Never steal the guide page for embed / media popups. */
-		if (IsMediaEmbedPopupUrl(url))
+		/* Embed Play / share / accounts must not replace Guildjen etc. */
+		if (IsMediaOrCdnUrl(url) || IsYoutubeHostUrl(url) || IsYoutubeHostUrl(cur))
 			return 1;
 
 		/* Iframe-initiated popups stay cancelled — only promote real target=_blank
 		   clicks from the main document (Discord invites, external links). */
 		const bool fromMain = frame && frame->is_main && frame->is_main(frame);
-		if (user_gesture && fromMain)
+		if (user_gesture && fromMain && IsPromotablePopupUrl(url))
 			NavigateTo(url.c_str());
 		return 1;
+	}
+
+	/* Block main-frame navigations that steal the guide after an embed starts. */
+	int CEF_CALLBACK OnBeforeBrowse(
+		cef_request_handler_t*, cef_browser_t* browser, cef_frame_t* frame,
+		cef_request_t* request, int /*user_gesture*/, int /*is_redirect*/)
+	{
+		if (!request || !request->get_url || !g_userfree_free)
+			return 0;
+		const bool isMain = frame && frame->is_main && frame->is_main(frame);
+		if (!isMain)
+			return 0; /* allow iframe / media subloads */
+
+		cef_string_userfree_t uf = request->get_url(request);
+		if (!uf)
+			return 0;
+		const std::string url = CefStringToUtf8(uf);
+		g_userfree_free(uf);
+
+		if (IsMediaOrCdnUrl(url))
+			return 1;
+
+		/* Guide pages must not become youtube.com/watch after Play. */
+		const std::string cur = MainFrameUrl(browser);
+		if (!IsYoutubeHostUrl(cur) && IsYoutubeHostUrl(url))
+			return 1;
+
+		return 0;
+	}
+
+	int CEF_CALLBACK OnOpenUrlFromTab(
+		cef_request_handler_t*, cef_browser_t*, cef_frame_t*,
+		const cef_string_t* target_url, cef_window_open_disposition_t, int)
+	{
+		(void)target_url;
+		return 1; /* no new tabs in OSR */
 	}
 
 	void InjectBootJs(cef_frame_t* frame)
@@ -1097,6 +1169,8 @@ namespace
 
 		std::memset(&gRequest, 0, sizeof(gRequest));
 		InitBase(&gRequest.base, sizeof(gRequest));
+		gRequest.on_before_browse = OnBeforeBrowse;
+		gRequest.on_open_urlfrom_tab = OnOpenUrlFromTab;
 		gRequest.get_resource_request_handler = GetResourceRequestHandler;
 
 		std::memset(&gClient, 0, sizeof(gClient));
