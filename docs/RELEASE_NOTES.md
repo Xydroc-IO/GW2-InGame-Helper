@@ -1,8 +1,8 @@
-# GW2 In-Game Helper v2.0.0.19
+# GW2 In-Game Helper v2.0.0.21
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
-In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
+In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.
 One DLL for Nexus — no memory reads.
 
 ## Install
@@ -15,6 +15,24 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.0.21
+
+- **Browse:** **GW2.app** links under Tools → GW2.app (hub, lists, database, maps, vault, TP, sign-in)
+- **Helper:** CSS downlevel + wide viewport for `gw2.app`; login/account pages show an
+  Open Ext tip (cookie banners left alone so ads / consent can work)
+- **How to use:** Homepage cache stamp `221`
+
+## What’s new in 2.0.0.20
+
+- **Catalog:** Snow Crows removed at their request. Builds → Raids uses MetaBattle
+  raid builds (hub + professions); Guides → Raid Boss uses MetaBattle wing strategy
+  guides; Accessibility Wars remains for accessible builds; Snow Crows Discord invite gone
+- **Ads:** Site ads are allowed — NitroPay / AdSense / analytics / consent hosts are no
+  longer cancelled or stripped in the helper
+- **Present:** Staging → DEFAULT GPU upload (avoids Mapping the ImGui-bound texture) plus
+  paint-wait reason text if first paint stalls
+- **How to use:** Homepage cache stamp `220`
 
 ## What’s new in 2.0.0.19
 

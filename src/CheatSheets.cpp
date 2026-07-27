@@ -717,7 +717,7 @@ namespace
           </tr>
         </tbody>
       </table>
-      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Always defer</strong> to Snowcrows / MetaBattle / your static’s sheet — rune/sigil meta shifts with balance patches.</p>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Always defer</strong> to MetaBattle / Guildjen / your static’s sheet — rune/sigil meta shifts with balance patches.</p>
     </div>
   </section>
 )BODY");
@@ -1101,7 +1101,7 @@ namespace
         </tbody>
       </table>
       <p class="note" style="margin-top:14px;margin-bottom:0"><strong>KP:</strong> KillProof.me tracks clears / CMs / title KP. LFG often asks “full KP” meaning prior clears on that wing’s bosses.
-      Strategies → TLDR Raids / Snowcrows links in Guides.</p>
+      Strategies → TLDR Raids / MetaBattle links in Guides.</p>
     </div>
   </section>
 )BODY");
@@ -1528,7 +1528,7 @@ namespace
         <div class="step"><span class="n">EoD</span><p><strong>Arborstone</strong> — Cantha story unlocks CMs.</p></div>
         <div class="step"><span class="n">SotO</span><p><strong>Wizard’s Tower</strong> — story gates apply.</p></div>
       </div>
-      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Strategies:</strong> use TLDR / Snowcrows — this sheet is a map only.</p>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Strategies:</strong> use TLDR / MetaBattle — this sheet is a map only.</p>
     </div>
   </section>
 

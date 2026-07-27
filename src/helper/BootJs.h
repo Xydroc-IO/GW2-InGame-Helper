@@ -1,9 +1,8 @@
 #pragma once
 
 /* Injected on every main-frame load.
-   Modern sites (Snowcrows / MetaBattle / gw2efficiency / Google / Gemini / DDG):
-   downlevel CSS for CEF 103 (oklch, color-mix, @property, display-p3, dvh).
-   Non-search pages: strip common ad/consent overlays. */
+   Modern sites (MetaBattle / gw2efficiency / gw2.app / Google / Gemini / DDG):
+   downlevel CSS for CEF 103 (oklch, color-mix, @property, display-p3, dvh). */
 static const char kSnowcrowBootJs[] = R"JS(
 (function(){
 if (window.__scBoot) return;
@@ -12,12 +11,13 @@ window.__scBoot = 1;
 var host = (location.hostname || '').toLowerCase();
 var isGoogleHost = /(^|\.)google\.com$/.test(host);
 var isDdgHost = /(^|\.)duckduckgo\.com$/.test(host);
+var isGw2App = /(^|\.)gw2\.app$/.test(host);
 var isSearchHost = isGoogleHost || isDdgHost;
-var needsCssFix = isSearchHost ||
-  /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$/.test(host);
-/* Forced wide viewport helps Snowcrows-style layouts; breaks Google/Gemini/DDG readability. */
-var clampViewport = !isSearchHost &&
-  /(^|\.)snowcrows\.com$|(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$/.test(host);
+var needsCssFix = isSearchHost || isGw2App ||
+  /(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$|(^|\.)guildjen\.com$/.test(host);
+/* Forced wide viewport helps wiki-style layouts; breaks Google/Gemini/DDG readability. */
+var clampViewport = !isSearchHost && (isGw2App ||
+  /(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$|(^|\.)guildjen\.com$/.test(host));
 
 function clamp01(x){ return x<0?0:x>1?1:x; }
 function oklchToRgb(L,C,h,a){
@@ -160,20 +160,7 @@ function needsDownlevel(text){
     text.indexOf(' &')>=0;
 }
 function killAds(){
-  /* Broad ad selectors break Google Search / Gemini / DDG SPA chrome. */
-  if (isSearchHost) return;
-  /* Do NOT use [id*="nitro"] / [class*="nitro"] — Snow Crows puts NitroPay
-     placement ids on the real article (e.g. id="nitro-article-1"), and that
-     deleted the whole guide after BootJs ran. */
-  var sel=[
-    '#CookieConsent','#coiOverlay','.coi-banner',
-    '[class*="nitropay"]','[id*="nitropay"]',
-    '[id*="nitro-ad"]','[id*="nitro_ad"]','[id^="nitro--ad"]',
-    'iframe[src*="doubleclick"]','iframe[src*="googlesyndication"]',
-    'iframe[src*="nitropay"]','ins.adsbygoogle','[id^="google_ads"]',
-    '[class*="adsbygoogle"]','[data-ad]','[id*="ad-slot"]','[class*="ad-slot"]'
-  ].join(',');
-  try{ document.querySelectorAll(sel).forEach(function(n){ try{n.remove();}catch(e){} }); }catch(e){}
+  /* Ads allowed — do not strip NitroPay / AdSense / consent UI. */
 }
 function fixInlineStyles(){
   var styles=[].slice.call(document.querySelectorAll('style:not([data-sc-fix])'));
@@ -285,9 +272,9 @@ function boot(){
     }catch(e){}
   }
   tipGoogleLogin();
+  tipGw2AppLogin();
   unlockGuildjenMedia();
   replaceYoutubeEmbeds();
-  unlockSnowcrowsGuides();
   injectGeminiReadability();
   wireCheatSheetChecks();
 }
@@ -394,161 +381,6 @@ function unlockGuildjenMedia(){
     }catch(e){}
   }catch(e){}
 }
-/* Snow Crows raid guides: armory skill chips stay empty when webpack chunks fail
-   in CEF; TLDR may stay hidden behind Alpine x-cloak; <image src> diagrams. */
-function unlockSnowcrowsGuides(){
-  try{
-    if (!/(^|\.)snowcrows\.com$/.test(host)) return;
-    function fixImages(){
-      var images=document.querySelectorAll('image[src]');
-      for (var i=0;i<images.length;i++){
-        var el=images[i];
-        try{
-          if (el.tagName && el.tagName.toLowerCase()==='img') continue;
-          var src=el.getAttribute('src');
-          if (!src) continue;
-          var img=document.createElement('img');
-          img.src=src;
-          img.alt=el.getAttribute('alt')||'';
-          img.style.maxWidth='100%';
-          img.style.height='auto';
-          if (el.parentNode) el.parentNode.replaceChild(img, el);
-        }catch(e){}
-      }
-    }
-    function revealCloaked(){
-      var nodes=document.querySelectorAll('[x-cloak]');
-      for (var i=0;i<nodes.length;i++){
-        var el=nodes[i];
-        try{
-          el.removeAttribute('x-cloak');
-          var show=el.getAttribute('x-show')||'';
-          if (show==='showExpander' || show.indexOf('showExpander')>=0){
-            el.style.display='block';
-            el.style.visibility='visible';
-          }
-        }catch(e){}
-      }
-    }
-    function fillArmory(map, endpoint){
-      var sel='[data-armory-embed="'+endpoint+'"][data-armory-ids]';
-      var nodes=document.querySelectorAll(sel);
-      for (var i=0;i<nodes.length;i++){
-        var el=nodes[i];
-        if ((el.textContent||'').trim()) continue;
-        if (el.getAttribute('data-gw2-armory')==='1') continue;
-        var id=String(el.getAttribute('data-armory-ids')||'').split(',')[0].trim();
-        var info=map[id];
-        if (!info) continue;
-        try{
-          el.setAttribute('data-gw2-armory','1');
-          var size=parseInt(el.getAttribute('data-armory-size')||'20',10)||20;
-          if (info.icon){
-            var ic=document.createElement('img');
-            ic.src=info.icon;
-            ic.alt='';
-            ic.width=size;
-            ic.height=size;
-            ic.style.cssText='display:inline-block;vertical-align:middle;margin-right:4px;border-radius:2px';
-            el.appendChild(ic);
-          }
-          if (el.getAttribute('data-armory-inline-text') || !info.icon){
-            el.appendChild(document.createTextNode(info.name||('#'+id)));
-          }else if (info.name){
-            el.title=info.name;
-          }
-        }catch(e){}
-      }
-    }
-    function hydrateArmory(){
-      var kinds={
-        skills:'https://api.guildwars2.com/v2/skills',
-        traits:'https://api.guildwars2.com/v2/traits',
-        items:'https://api.guildwars2.com/v2/items'
-      };
-      if (!window.__gw2ArmoryCache) window.__gw2ArmoryCache={};
-      if (window.__gw2ArmoryFetchBusy){
-        window.__gw2ArmoryFetchPending=1;
-        return;
-      }
-      var jobs=[];
-      Object.keys(kinds).forEach(function(kind){
-        var nodes=document.querySelectorAll('[data-armory-embed="'+kind+'"][data-armory-ids]');
-        if (!nodes.length) return;
-        var cache=window.__gw2ArmoryCache[kind]||(window.__gw2ArmoryCache[kind]={});
-        var ids={}, list=[];
-        for (var i=0;i<nodes.length;i++){
-          if ((nodes[i].textContent||'').trim()) continue;
-          if (nodes[i].getAttribute('data-gw2-armory')==='1') continue;
-          String(nodes[i].getAttribute('data-armory-ids')||'').split(',').forEach(function(id){
-            id=String(id||'').trim();
-            if (!id) return;
-            if (cache[id]) return;
-            if (!ids[id]){ ids[id]=1; list.push(id); }
-          });
-        }
-        fillArmory(cache, kind);
-        if (list.length)
-          jobs.push({endpoint:kinds[kind], list:list, kind:kind, cache:cache});
-      });
-      if (!jobs.length) return;
-      window.__gw2ArmoryFetchBusy=1;
-      var ji=0;
-      function finishAll(){
-        window.__gw2ArmoryFetchBusy=0;
-        if (window.__gw2ArmoryFetchPending){
-          window.__gw2ArmoryFetchPending=0;
-          scheduleWork(hydrateArmory);
-        }
-      }
-      function runJob(){
-        if (ji>=jobs.length){ finishAll(); return; }
-        var job=jobs[ji++];
-        var off=0;
-        function next(){
-          if (off>=job.list.length){ runJob(); return; }
-          var batch=job.list.slice(off, off+100);
-          off+=100;
-          fetch(job.endpoint+'?ids='+batch.join(',')+'&lang=en', {credentials:'omit'})
-            .then(function(r){
-              if (r.status===429){
-                off-=batch.length;
-                setTimeout(next, 1000);
-                return null;
-              }
-              return r.ok ? r.json() : [];
-            })
-            .then(function(arr){
-              if (arr===null) return;
-              if (arr && arr.length){
-                for (var k=0;k<arr.length;k++){
-                  if (arr[k] && arr[k].id!=null) job.cache[String(arr[k].id)]=arr[k];
-                }
-                fillArmory(job.cache, job.kind);
-              }
-              next();
-            })
-            .catch(function(){ next(); });
-        }
-        next();
-      }
-      runJob();
-    }
-    function scTick(){
-      fixImages();
-      revealCloaked();
-      hydrateArmory();
-    }
-    scTick();
-    try{
-      var mo=new MutationObserver(function(){ scheduleWork(scTick); });
-      mo.observe(document.documentElement,{childList:true,subtree:true});
-    }catch(e){}
-    try{
-      document.addEventListener('livewire:navigated', function(){ scheduleWork(scTick); });
-    }catch(e){}
-  }catch(e){}
-}
 /* Google Account sign-in is blocked in embedded CEF. Point users at Open Ext. */
 function tipGoogleLogin(){
   try{
@@ -567,6 +399,34 @@ function tipGoogleLogin(){
       'color:#1a1a1a','background:#fff8e6','border:1px solid #e0c36a','box-shadow:0 2px 10px rgba(0,0,0,.18)'
     ].join(';');
     tip.innerHTML='Google often blocks sign-in in this in-game browser. Use <b>Open Ext</b> in the toolbar for Gemini Pro / Google login in your system browser (sessions are separate).';
+    var x=document.createElement('button');
+    x.type='button';
+    x.textContent='\u00d7';
+    x.setAttribute('aria-label','Dismiss');
+    x.style.cssText='position:absolute;right:8px;top:6px;border:0;background:transparent;font:18px/1 sans-serif;cursor:pointer;color:#553';
+    x.onclick=function(){ tip.remove(); };
+    tip.appendChild(x);
+    (document.body||document.documentElement).appendChild(tip);
+  }catch(e){}
+}
+/* gw2.app account login / OAuth may fail in CEF — tip Open Ext; leave cookie banners alone. */
+function tipGw2AppLogin(){
+  try{
+    if (!isGw2App) return;
+    var path=(location.pathname||'').toLowerCase();
+    if (path.indexOf('/users/login')<0 && path.indexOf('/users/register')<0 &&
+        path.indexOf('/users/reset-password')<0 && path.indexOf('/users/account')<0)
+      return;
+    if (document.getElementById('gw2-app-login-tip')) return;
+    var tip=document.createElement('div');
+    tip.id='gw2-app-login-tip';
+    tip.setAttribute('role','status');
+    tip.style.cssText=[
+      'position:fixed','z-index:2147483646','left:12px','right:12px','top:12px',
+      'padding:10px 36px 10px 12px','border-radius:8px','font:13px/1.35 system-ui,sans-serif',
+      'color:#1a1a1a','background:#fff8e6','border:1px solid #e0c36a','box-shadow:0 2px 10px rgba(0,0,0,.18)'
+    ].join(';');
+    tip.innerHTML='If GW2.app sign-in or Discord / account linking fails here, use <b>Open Ext</b> in the toolbar (system browser session is separate from in-game tabs). Accept cookies on the page if ads / login need them.';
     var x=document.createElement('button');
     x.type='button';
     x.textContent='\u00d7';

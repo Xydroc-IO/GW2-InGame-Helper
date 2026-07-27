@@ -1,7 +1,7 @@
 /* GW2HelperBrowser.exe — windowless CEF helper using Guild Wars 2's
    bin64/cef/libcef.dll. Paints BGRA frames into shared memory for the addon.
    Rewrites Tailwind v4 CSS (oklch / color-mix) so Chromium 103 can render
-   snowcrows.com. */
+   modern site CSS. */
 
 #include <windows.h>
 #include <shellapi.h>

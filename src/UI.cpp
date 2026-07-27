@@ -223,6 +223,8 @@ namespace
 
 		if (std::strcmp(category, "Tools") == 0)
 		{
+			if (std::strncmp(id, "gw2app", 6) == 0)
+				return "GW2.app";
 			if (std::strcmp(id, "gw2efficiency") == 0 || std::strcmp(id, "gw2eff_legendaries") == 0)
 				return "Account";
 			if (std::strcmp(id, "blishhud") == 0)
@@ -261,12 +263,8 @@ namespace
 				std::strcmp(id, "gj_rw3") == 0 || std::strcmp(id, "gj_rw4") == 0 ||
 				std::strcmp(id, "gj_rw5") == 0 || std::strcmp(id, "gj_rw6") == 0 ||
 				std::strcmp(id, "gj_rw7") == 0 || std::strcmp(id, "gj_rw8") == 0 ||
-				std::strcmp(id, "sc_raids_hub") == 0 || std::strcmp(id, "sc_intro_squads") == 0 ||
-				std::strcmp(id, "sc_squad_roles") == 0 || std::strcmp(id, "sc_joining_squads") == 0 ||
-				std::strncmp(id, "sc_w1_", 6) == 0 || std::strncmp(id, "sc_w2_", 6) == 0 ||
-				std::strncmp(id, "sc_w3_", 6) == 0 || std::strncmp(id, "sc_w4_", 6) == 0 ||
-				std::strncmp(id, "sc_w5_", 6) == 0 || std::strncmp(id, "sc_w6_", 6) == 0 ||
-				std::strncmp(id, "sc_w7_", 6) == 0 || std::strncmp(id, "gj_w8_", 6) == 0 ||
+				std::strcmp(id, "mb_raids_hub") == 0 || std::strcmp(id, "mb_intro_raiding") == 0 ||
+				std::strncmp(id, "mb_rb_w", 7) == 0 || std::strncmp(id, "gj_w8_", 6) == 0 ||
 				std::strcmp(id, "mb_w8_balrior") == 0)
 				return "Raids";
 			if (std::strcmp(id, "mb_mai_trin") == 0 || std::strcmp(id, "mb_boneskinner") == 0 ||
@@ -301,7 +299,7 @@ namespace
 			if (std::strcmp(id, "discord_official") == 0 || std::strcmp(id, "discord_community") == 0 ||
 				std::strcmp(id, "discord_central") == 0)
 				return "Community";
-			if (std::strcmp(id, "discord_snowcrows") == 0 || std::strcmp(id, "discord_metabattle") == 0 ||
+			if (std::strcmp(id, "discord_metabattle") == 0 ||
 				std::strcmp(id, "discord_guildjen") == 0 || std::strcmp(id, "discord_mukluk") == 0 ||
 				std::strcmp(id, "discord_aw2") == 0 || std::strcmp(id, "discord_skein") == 0)
 				return "Builds / Sites";
@@ -322,20 +320,19 @@ namespace
 
 		if (std::strcmp(category, "Builds") == 0)
 		{
-			if (std::strcmp(id, "snowcrows") == 0 || std::strcmp(id, "sc_raid_ele") == 0 ||
-				std::strcmp(id, "sc_raid_mes") == 0 || std::strcmp(id, "sc_raid_nec") == 0 ||
-				std::strcmp(id, "sc_raid_eng") == 0 || std::strcmp(id, "sc_raid_ran") == 0 ||
-				std::strcmp(id, "sc_raid_thf") == 0 || std::strcmp(id, "sc_raid_gua") == 0 ||
-				std::strcmp(id, "sc_raid_rev") == 0 || std::strcmp(id, "sc_raid_war") == 0)
+			if (std::strcmp(id, "mb_raid_builds") == 0 || std::strcmp(id, "mb_raid_ele") == 0 ||
+				std::strcmp(id, "mb_raid_mes") == 0 || std::strcmp(id, "mb_raid_nec") == 0 ||
+				std::strcmp(id, "mb_raid_eng") == 0 || std::strcmp(id, "mb_raid_ran") == 0 ||
+				std::strcmp(id, "mb_raid_thf") == 0 || std::strcmp(id, "mb_raid_gua") == 0 ||
+				std::strcmp(id, "mb_raid_rev") == 0 || std::strcmp(id, "mb_raid_war") == 0)
 				return "Raids";
-			if (std::strcmp(id, "sc_accessibuilds") == 0 || std::strcmp(id, "aw2help") == 0)
+			if (std::strcmp(id, "aw2help") == 0)
 				return "AccessiBuilds";
-			if (std::strcmp(id, "metabattle") == 0 || std::strcmp(id, "metabattle_ow") == 0 ||
-				std::strcmp(id, "sc_open_world") == 0)
+			if (std::strcmp(id, "metabattle") == 0 || std::strcmp(id, "metabattle_ow") == 0)
 				return "Open World / General";
-			if (std::strcmp(id, "metabattle_pvp") == 0 || std::strcmp(id, "sc_pvp") == 0)
+			if (std::strcmp(id, "metabattle_pvp") == 0)
 				return "PvP";
-			if (std::strcmp(id, "metabattle_wvw") == 0 || std::strcmp(id, "sc_wvw") == 0)
+			if (std::strcmp(id, "metabattle_wvw") == 0)
 				return "WvW";
 			if (std::strcmp(id, "gw2skills") == 0)
 				return "Editor";
@@ -430,7 +427,7 @@ namespace
 		if (std::strcmp(category, "Tools") == 0)
 		{
 			static const char* kSec[] = {
-				"Account", "Overlay", "Timers", "Economy", "Logs / KP", "Misc", "Other"
+				"Account", "Overlay", "Timers", "Economy", "Logs / KP", "GW2.app", "Misc", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
@@ -523,19 +520,19 @@ namespace
 	{
 		if (!id || !id[0])
 			return nullptr;
-		if (std::strncmp(id, "sc_w1_", 6) == 0)
+		if (std::strcmp(id, "mb_rb_w1") == 0)
 			return "W1 Spirit Vale";
-		if (std::strncmp(id, "sc_w2_", 6) == 0)
+		if (std::strcmp(id, "mb_rb_w2") == 0)
 			return "W2 Salvation Pass";
-		if (std::strncmp(id, "sc_w3_", 6) == 0)
+		if (std::strcmp(id, "mb_rb_w3") == 0)
 			return "W3 Stronghold";
-		if (std::strncmp(id, "sc_w4_", 6) == 0)
+		if (std::strcmp(id, "mb_rb_w4") == 0)
 			return "W4 Bastion";
-		if (std::strncmp(id, "sc_w5_", 6) == 0)
+		if (std::strcmp(id, "mb_rb_w5") == 0)
 			return "W5 Hall of Chains";
-		if (std::strncmp(id, "sc_w6_", 6) == 0)
+		if (std::strcmp(id, "mb_rb_w6") == 0)
 			return "W6 Mythwright";
-		if (std::strncmp(id, "sc_w7_", 6) == 0)
+		if (std::strcmp(id, "mb_rb_w7") == 0)
 			return "W7 Ahdashim";
 		if (std::strncmp(id, "gj_w8_", 6) == 0 || std::strcmp(id, "mb_w8_balrior") == 0)
 			return "W8 Mount Balrior";
@@ -553,12 +550,8 @@ namespace
 			std::strcmp(id, "gj_rw5") == 0 || std::strcmp(id, "gj_rw6") == 0 ||
 			std::strcmp(id, "gj_rw7") == 0 || std::strcmp(id, "gj_rw8") == 0)
 			return "Raid Wings";
-		if (std::strcmp(id, "sc_raids_hub") == 0 || std::strcmp(id, "sc_intro_squads") == 0 ||
-			std::strcmp(id, "sc_squad_roles") == 0 || std::strcmp(id, "sc_joining_squads") == 0 ||
-			std::strncmp(id, "sc_w1_", 6) == 0 || std::strncmp(id, "sc_w2_", 6) == 0 ||
-			std::strncmp(id, "sc_w3_", 6) == 0 || std::strncmp(id, "sc_w4_", 6) == 0 ||
-			std::strncmp(id, "sc_w5_", 6) == 0 || std::strncmp(id, "sc_w6_", 6) == 0 ||
-			std::strncmp(id, "sc_w7_", 6) == 0 || std::strncmp(id, "gj_w8_", 6) == 0 ||
+		if (std::strcmp(id, "mb_raids_hub") == 0 || std::strcmp(id, "mb_intro_raiding") == 0 ||
+			std::strncmp(id, "mb_rb_w", 7) == 0 || std::strncmp(id, "gj_w8_", 6) == 0 ||
 			std::strcmp(id, "mb_w8_balrior") == 0)
 			return "Raid Boss";
 		return nullptr;
@@ -1480,7 +1473,7 @@ namespace
 					if (!BeginBrowseSection(selectedCat, section, secSites))
 						continue;
 					/* Guides → Raids only: nest Raid Wings / Raid Boss.
-					   Builds → Raids is a flat Snow Crows profession list — do not
+					   Builds → Raids is a flat MetaBattle profession list — do not
 					   reuse RaidsSub or the section expands empty (count 10, body 0). */
 					if (std::strcmp(section, "Raids") == 0 &&
 						std::strcmp(selectedCat, "Guides") == 0)
@@ -2884,6 +2877,16 @@ void UI_Render()
 			? "Waiting for first paint..."
 			: "Loading browser...");
 		ImGui::TextWrapped("%s", WikiBrowser::StatusCStr());
+		if (WikiBrowser::IsReady())
+		{
+			const char* why = WikiBrowser::PaintWaitReasonCStr();
+			if (why && why[0])
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
+				ImGui::TextWrapped("%s", why);
+				ImGui::PopStyleColor();
+			}
+		}
 	}
 
 	ImGui::EndChild();

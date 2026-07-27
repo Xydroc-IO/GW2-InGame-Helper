@@ -41,6 +41,8 @@ namespace WikiBrowser
 
 	bool IsReady();
 	bool HasFrame();
+	/* Why HasFrame is still false while Ready — for Windows first-paint reports. */
+	const char* PaintWaitReasonCStr();
 	bool HasTab(int slot); /* true if helper has a live CEF browser for this slot */
 	int ActiveTabSlot(); /* helper IPC active_tab, or -1 if unknown */
 	ID3D11ShaderResourceView* FrameSrv();

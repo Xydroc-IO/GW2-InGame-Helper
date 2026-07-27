@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-Total entries: **170**
+Total entries: **2,661**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 
@@ -129,43 +129,71 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 
 ### Raids
 
-- **SC Raid Builds** — [https://snowcrows.com/builds/raids](https://snowcrows.com/builds/raids)
-- **SC Raid Elementalist** — [https://snowcrows.com/builds/raids/elementalist](https://snowcrows.com/builds/raids/elementalist)
-- **SC Raid Mesmer** — [https://snowcrows.com/builds/raids/mesmer](https://snowcrows.com/builds/raids/mesmer)
-- **SC Raid Necromancer** — [https://snowcrows.com/builds/raids/necromancer](https://snowcrows.com/builds/raids/necromancer)
-- **SC Raid Engineer** — [https://snowcrows.com/builds/raids/engineer](https://snowcrows.com/builds/raids/engineer)
-- **SC Raid Ranger** — [https://snowcrows.com/builds/raids/ranger](https://snowcrows.com/builds/raids/ranger)
-- **SC Raid Thief** — [https://snowcrows.com/builds/raids/thief](https://snowcrows.com/builds/raids/thief)
-- **SC Raid Guardian** — [https://snowcrows.com/builds/raids/guardian](https://snowcrows.com/builds/raids/guardian)
-- **SC Raid Revenant** — [https://snowcrows.com/builds/raids/revenant](https://snowcrows.com/builds/raids/revenant)
-- **SC Raid Warrior** — [https://snowcrows.com/builds/raids/warrior](https://snowcrows.com/builds/raids/warrior)
+- **MB Raid Builds** — [https://metabattle.com/wiki/Raid_Builds](https://metabattle.com/wiki/Raid_Builds)
+- **MB Raid Elementalist** — [https://metabattle.com/wiki/Elementalist](https://metabattle.com/wiki/Elementalist)
+- **MB Raid Mesmer** — [https://metabattle.com/wiki/Mesmer](https://metabattle.com/wiki/Mesmer)
+- **MB Raid Necromancer** — [https://metabattle.com/wiki/Necromancer](https://metabattle.com/wiki/Necromancer)
+- **MB Raid Engineer** — [https://metabattle.com/wiki/Engineer](https://metabattle.com/wiki/Engineer)
+- **MB Raid Ranger** — [https://metabattle.com/wiki/Ranger](https://metabattle.com/wiki/Ranger)
+- **MB Raid Thief** — [https://metabattle.com/wiki/Thief](https://metabattle.com/wiki/Thief)
+- **MB Raid Guardian** — [https://metabattle.com/wiki/Guardian](https://metabattle.com/wiki/Guardian)
+- **MB Raid Revenant** — [https://metabattle.com/wiki/Revenant](https://metabattle.com/wiki/Revenant)
+- **MB Raid Warrior** — [https://metabattle.com/wiki/Warrior](https://metabattle.com/wiki/Warrior)
 
 ### AccessiBuilds
 
-- **SC AccessiBuilds** — [https://snowcrows.com/builds/accessibuilds](https://snowcrows.com/builds/accessibuilds)
 - **Accessibility Wars** — [https://aw2.help/](https://aw2.help/)
 
 ### Open World / General
 
-- **SC Open World** — [https://snowcrows.com/builds/open-world](https://snowcrows.com/builds/open-world)
 - **MetaBattle** — [https://metabattle.com/wiki/MetaBattle_Wiki](https://metabattle.com/wiki/MetaBattle_Wiki)
 - **MetaBattle OW** — [https://metabattle.com/wiki/Open_World](https://metabattle.com/wiki/Open_World)
 
 ### PvP
 
-- **SC PvP** — [https://snowcrows.com/builds/pvp](https://snowcrows.com/builds/pvp)
 - **MetaBattle PvP** — [https://metabattle.com/wiki/PvP_Builds](https://metabattle.com/wiki/PvP_Builds)
 
 ### WvW
 
-- **SC WvW** — [https://snowcrows.com/builds/wvw](https://snowcrows.com/builds/wvw)
 - **MetaBattle WvW** — [https://metabattle.com/wiki/WvW](https://metabattle.com/wiki/WvW)
 
 ### Editor
 
 - **Gw2Skills Editor** — [https://en.gw2skills.net/editor/](https://en.gw2skills.net/editor/)
 
+
 ## Tools
+
+### GW2.app
+
+#### Hub
+- **GW2.app Hub** — [https://gw2.app/](https://gw2.app/)
+
+#### Lists
+- **My Lists** — [https://gw2.app/lists](https://gw2.app/lists)
+- **Summary** — [https://gw2.app/summary](https://gw2.app/summary)
+
+#### Database
+- **Items** — [https://gw2.app/items](https://gw2.app/items)
+- **Achievements** — [https://gw2.app/achievements](https://gw2.app/achievements)
+- **Skins** — [https://gw2.app/skins](https://gw2.app/skins)
+- **Skills** — [https://gw2.app/skills](https://gw2.app/skills)
+- **Currencies** — [https://gw2.app/currencies](https://gw2.app/currencies)
+- **Timers** — [https://gw2.app/timers](https://gw2.app/timers)
+
+#### Game
+- **Maps** — [https://gw2.app/maps](https://gw2.app/maps)
+- **Wizard's Vault** — [https://gw2.app/wizards-vault](https://gw2.app/wizards-vault)
+- **Trading Post** — [https://gw2.app/trading-post](https://gw2.app/trading-post)
+
+#### Overlay
+- **Blish HUD** — [https://gw2.app/blish](https://gw2.app/blish)
+
+#### Account
+- **Sign In** — [https://gw2.app/users/login](https://gw2.app/users/login)
+
+#### About
+- **About** — [https://gw2.app/about](https://gw2.app/about)
 
 ### Account
 
@@ -312,41 +340,20 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 - **Wing 8 Mount Balrior** — [https://guildjen.com/mount-balrior-wing-8-guide/](https://guildjen.com/mount-balrior-wing-8-guide/)
 
 #### Raid Boss
-- **SC Raids Hub** — [https://snowcrows.com/guides/raids](https://snowcrows.com/guides/raids)
-- **Intro to Squads** — [https://snowcrows.com/guides/getting-started/introduction-to-squads](https://snowcrows.com/guides/getting-started/introduction-to-squads)
-- **Squad Roles** — [https://snowcrows.com/guides/getting-started/understanding-squad-roles](https://snowcrows.com/guides/getting-started/understanding-squad-roles)
-- **Joining Squads** — [https://snowcrows.com/guides/getting-started/joining-squads](https://snowcrows.com/guides/getting-started/joining-squads)
-- **Vale Guardian** — [https://snowcrows.com/guides/raids/spirit-vale/vale-guardian](https://snowcrows.com/guides/raids/spirit-vale/vale-guardian)
-- **Spirit Woods** — [https://snowcrows.com/guides/raids/spirit-vale/spirit-woods](https://snowcrows.com/guides/raids/spirit-vale/spirit-woods)
-- **Gorseval** — [https://snowcrows.com/guides/raids/spirit-vale/gorseval](https://snowcrows.com/guides/raids/spirit-vale/gorseval)
-- **Sabetha** — [https://snowcrows.com/guides/raids/spirit-vale/sabetha](https://snowcrows.com/guides/raids/spirit-vale/sabetha)
-- **Slothasor** — [https://snowcrows.com/guides/raids/salvation-pass/slothasor](https://snowcrows.com/guides/raids/salvation-pass/slothasor)
-- **Bandit Trio** — [https://snowcrows.com/guides/raids/salvation-pass/bandit-trio](https://snowcrows.com/guides/raids/salvation-pass/bandit-trio)
-- **Matthias Gabrel** — [https://snowcrows.com/guides/raids/salvation-pass/matthias-gabrel](https://snowcrows.com/guides/raids/salvation-pass/matthias-gabrel)
-- **Escort** — [https://snowcrows.com/guides/raids/stronghold-faithful/siege-the-stronghold](https://snowcrows.com/guides/raids/stronghold-faithful/siege-the-stronghold)
-- **Keep Construct** — [https://snowcrows.com/guides/raids/stronghold-faithful/keep-construct](https://snowcrows.com/guides/raids/stronghold-faithful/keep-construct)
-- **Twisted Castle** — [https://snowcrows.com/guides/raids/stronghold-faithful/twisted-castle](https://snowcrows.com/guides/raids/stronghold-faithful/twisted-castle)
-- **Xera** — [https://snowcrows.com/guides/raids/stronghold-faithful/xera](https://snowcrows.com/guides/raids/stronghold-faithful/xera)
-- **Cairn** — [https://snowcrows.com/guides/raids/bastion-penitent/cairn-the-indomitable](https://snowcrows.com/guides/raids/bastion-penitent/cairn-the-indomitable)
-- **Mursaat Overseer** — [https://snowcrows.com/guides/raids/bastion-penitent/mursaat-overseer](https://snowcrows.com/guides/raids/bastion-penitent/mursaat-overseer)
-- **Samarog** — [https://snowcrows.com/guides/raids/bastion-penitent/samarog](https://snowcrows.com/guides/raids/bastion-penitent/samarog)
-- **Deimos** — [https://snowcrows.com/guides/raids/bastion-penitent/deimos](https://snowcrows.com/guides/raids/bastion-penitent/deimos)
-- **Soulless Horror** — [https://snowcrows.com/guides/raids/hall-chains/soulless-horror](https://snowcrows.com/guides/raids/hall-chains/soulless-horror)
-- **River of Souls** — [https://snowcrows.com/guides/raids/hall-chains/river-of-souls](https://snowcrows.com/guides/raids/hall-chains/river-of-souls)
-- **Statues of Grenth** — [https://snowcrows.com/guides/raids/hall-chains/statues-of-grenth](https://snowcrows.com/guides/raids/hall-chains/statues-of-grenth)
-- **Dhuum** — [https://snowcrows.com/guides/raids/hall-chains/dhuum](https://snowcrows.com/guides/raids/hall-chains/dhuum)
-- **Conjured Amalgamate** — [https://snowcrows.com/guides/raids/mythwright-gambit/conjured-amalgamate](https://snowcrows.com/guides/raids/mythwright-gambit/conjured-amalgamate)
-- **Twin Largos** — [https://snowcrows.com/guides/raids/mythwright-gambit/twin-largos](https://snowcrows.com/guides/raids/mythwright-gambit/twin-largos)
-- **Qadim** — [https://snowcrows.com/guides/raids/mythwright-gambit/qadim](https://snowcrows.com/guides/raids/mythwright-gambit/qadim)
-- **Sorting & Appraisal** — [https://snowcrows.com/guides/raids/mythwright-gambit/sorting-appraisal](https://snowcrows.com/guides/raids/mythwright-gambit/sorting-appraisal)
-- **Gates of Ahdashim** — [https://snowcrows.com/guides/raids/key-ahdashim/gates-of-ahdashim](https://snowcrows.com/guides/raids/key-ahdashim/gates-of-ahdashim)
-- **Cardinal Adina** — [https://snowcrows.com/guides/raids/key-ahdashim/cardinal-adina](https://snowcrows.com/guides/raids/key-ahdashim/cardinal-adina)
-- **Cardinal Sabir** — [https://snowcrows.com/guides/raids/key-ahdashim/cardinal-sabir](https://snowcrows.com/guides/raids/key-ahdashim/cardinal-sabir)
-- **Qadim the Peerless** — [https://snowcrows.com/guides/raids/key-ahdashim/qadim-the-peerless](https://snowcrows.com/guides/raids/key-ahdashim/qadim-the-peerless)
+- **MB Raids Hub** — [https://metabattle.com/wiki/PvE_Guides](https://metabattle.com/wiki/PvE_Guides)
+- **Intro to Raiding** — [https://metabattle.com/wiki/Guide:Introduction_to_Raiding](https://metabattle.com/wiki/Guide:Introduction_to_Raiding)
+- **Wing 1 Spirit Vale** — [https://metabattle.com/wiki/Guide:Raid_Wing_1_-_Spirit_Vale](https://metabattle.com/wiki/Guide:Raid_Wing_1_-_Spirit_Vale)
+- **Wing 2 Salvation Pass** — [https://metabattle.com/wiki/Guide:Raid_Wing_2_-_Salvation_Pass](https://metabattle.com/wiki/Guide:Raid_Wing_2_-_Salvation_Pass)
+- **Wing 3 Stronghold** — [https://metabattle.com/wiki/Guide:Raid_Wing_3_-_Stronghold_of_the_Faithful](https://metabattle.com/wiki/Guide:Raid_Wing_3_-_Stronghold_of_the_Faithful)
+- **Wing 4 Bastion** — [https://metabattle.com/wiki/Guide:Raid_Wing_4_-_Bastion_of_the_Penitent](https://metabattle.com/wiki/Guide:Raid_Wing_4_-_Bastion_of_the_Penitent)
+- **Wing 5 Hall of Chains** — [https://metabattle.com/wiki/Guide:Raid_Wing_5_-_Hall_of_Chains](https://metabattle.com/wiki/Guide:Raid_Wing_5_-_Hall_of_Chains)
+- **Wing 6 Mythwright** — [https://metabattle.com/wiki/Guide:Raid_Wing_6_-_Mythwright_Gambit](https://metabattle.com/wiki/Guide:Raid_Wing_6_-_Mythwright_Gambit)
+- **Wing 7 Ahdashim** — [https://metabattle.com/wiki/Guide:Raid_Wing_7_-_The_Key_of_Ahdashim](https://metabattle.com/wiki/Guide:Raid_Wing_7_-_The_Key_of_Ahdashim)
 - **Decima** — [https://guildjen.com/mount-balrior-wing-8-guide/](https://guildjen.com/mount-balrior-wing-8-guide/)
 - **Greer** — [https://guildjen.com/mount-balrior-wing-8-guide/](https://guildjen.com/mount-balrior-wing-8-guide/)
 - **Ura** — [https://guildjen.com/mount-balrior-wing-8-guide/](https://guildjen.com/mount-balrior-wing-8-guide/)
 - **Mount Balrior (MB)** — [https://metabattle.com/wiki/Guide:Raid_Wing_8_-_Mount_Balrior](https://metabattle.com/wiki/Guide:Raid_Wing_8_-_Mount_Balrior)
+
 
 ### Strikes
 - **Aetherblade Hideout** — [https://metabattle.com/wiki/Guide:Aetherblade_Hideout_Raid_Encounter_Strategy_Guide](https://metabattle.com/wiki/Guide:Aetherblade_Hideout_Raid_Encounter_Strategy_Guide)
@@ -565,7 +572,6 @@ TP-priced guides from [GW2 Crafts](https://gw2crafts.net/) (Normal / Fast / 400-
 - **TLDR Dungeons** — [https://gw2tldr.com/dungeons](https://gw2tldr.com/dungeons)
 
 ### Other
-- **Snowcrows Guides** — [https://snowcrows.com/guides](https://snowcrows.com/guides)
 - **PvE Guides Hub** — [https://metabattle.com/wiki/PvE_Guides](https://metabattle.com/wiki/PvE_Guides)
 
 ## Farming
@@ -584,7 +590,6 @@ TP-priced guides from [GW2 Crafts](https://gw2crafts.net/) (Normal / Fast / 400-
 
 ### Builds / Sites
 
-- **Snowcrows** — [https://discord.com/invite/qTs63YH](https://discord.com/invite/qTs63YH)
 - **MetaBattle** — [https://discord.com/invite/0jdZWe6xdIy46Yp5](https://discord.com/invite/0jdZWe6xdIy46Yp5)
 - **Guildjen** — [https://discord.com/invite/8NZNRvC](https://discord.com/invite/8NZNRvC)
 - **Mukluk Labs** — [https://discord.com/invite/h5qS6Pk](https://discord.com/invite/h5qS6Pk)

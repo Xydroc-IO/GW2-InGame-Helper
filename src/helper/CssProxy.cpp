@@ -21,18 +21,6 @@ namespace
 		return s;
 	}
 
-	std::string UrlPath(const std::string& url)
-	{
-		const size_t scheme = url.find("://");
-		size_t start = scheme == std::string::npos ? 0 : scheme + 3;
-		const size_t slash = url.find('/', start);
-		std::string path = slash == std::string::npos ? std::string() : url.substr(slash);
-		const size_t q = path.find('?');
-		if (q != std::string::npos)
-			path.resize(q);
-		return ToLower(path);
-	}
-
 	std::string UrlHost(const std::string& url)
 	{
 		const size_t scheme = url.find("://");
@@ -177,26 +165,9 @@ namespace
 
 bool ShouldBlockUrl(const std::string& url)
 {
-	const std::string host = UrlHost(url);
-	const std::string path = UrlPath(url);
-
-	if (host == "fonts.googleapis.com" || host == "fonts.gstatic.com")
-		return false;
-
-	if (HostEndsWith(host, "nitropay.com") ||
-		HostEndsWith(host, "cookieinformation.com") ||
-		HostEndsWith(host, "googlesyndication.com") ||
-		HostEndsWith(host, "doubleclick.net") ||
-		HostEndsWith(host, "google-analytics.com") ||
-		HostEndsWith(host, "facebook.net") ||
-		HostEndsWith(host, "facebook.com") ||
-		HostEndsWith(host, "hotjar.com"))
-		return true;
-
-	if ((host == "www.google.com" || host == "google.com" || HostEndsWith(host, "gstatic.com")) &&
-		path.find("recaptcha") != std::string::npos)
-		return true;
-
+	(void)url;
+	/* Ads / consent / analytics allowed site-wide (including MetaBattle NitroPay).
+	   YouTube subframe cancel stays in OnBeforeResourceLoad — separate from ads. */
 	return false;
 }
 
@@ -218,9 +189,9 @@ bool ShouldDownlevelResponse(const std::string& url, const std::string& mime)
 		HostEndsWith(host, "googleapis.com") ||
 		HostEndsWith(host, "duckduckgo.com") ||
 		HostEndsWith(host, "hardstuck.gg") ||
-		HostEndsWith(host, "snowcrows.com") ||
 		HostEndsWith(host, "metabattle.com") ||
-		HostEndsWith(host, "gw2efficiency.com"))
+		HostEndsWith(host, "gw2efficiency.com") ||
+		HostEndsWith(host, "gw2.app"))
 		return true;
 	return false;
 }

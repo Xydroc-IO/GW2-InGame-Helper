@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "219";
+	static constexpr const char* kHomePageVersion = "221";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -466,8 +466,8 @@ const char* HomePage::Html()
             <div class="card"><span class="cat">Search</span><span>Google, DuckDuckGo, Gemini (AI)</span></div>
             <div class="card"><span class="cat">Official</span><span>Guild Wars 2, GW2 News, Raidcore, Forums</span></div>
             <div class="card"><span class="cat">Wiki</span><span>Wiki, Updates, Legendaries, Legendary Armor, Legendary Weapons (+ Gen 3 Variants), Cosmetic Infusions, Lifestyle, Crafting, Food, Ascended Food, Utility, Minis, Upgrades, Mounts</span></div>
-            <div class="card"><span class="cat">Builds</span><span>Snowcrows Raid Builds (per profession), AccessiBuilds (SC + Accessibility Wars), OW / PvP / WvW, MetaBattle, Gw2Skills</span></div>
-            <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu</span></div>
+            <div class="card"><span class="cat">Builds</span><span>MetaBattle Raid Builds (per profession), Accessibility Wars, OW / PvP / WvW, Gw2Skills</span></div>
+            <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu, GW2.app (lists / database / vault)</span></div>
             <div class="card"><span class="cat">Cheat Sheets</span><span>Food, Utilities, Fractals, Squad, Wings, Strikes, Dailies, Currencies, Ascended, Portals, Homestead, WvW, …</span></div>
             <div class="card"><span class="cat">Guides</span><span>Living World, Progress, Mounts, Fractals, Raids (Wings / Boss), Strikes, Rifts, Achievements, Jumping Puzzles, Crafting (GW2 Crafts), PvP, WvW, TLDR</span></div>
             <div class="card"><span class="cat">Farming</span><span>Fast Farming Community</span></div>

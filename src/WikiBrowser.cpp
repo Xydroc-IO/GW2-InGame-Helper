@@ -55,14 +55,14 @@ namespace
 	std::atomic<bool> gQuitPending{false};    /* QUIT posted — finish across frames */
 	DWORD gQuitStartedMs = 0;
 	DWORD gLastStartAttemptMs = 0;
-	bool gTexHasContent = false; /* false → next present must full-upload after DISCARD */
+	bool gTexHasContent = false; /* false → next present must full-upload */
 	/* Full-frame GPU copy can be split across frames (~1.4 MB / tick). */
 	uint32_t gPartialCopySeq = 0;
 	uint32_t gPartialCopyFront = 0;
 	uint32_t gPartialCopyY = 0;
 	static constexpr uint32_t kMaxCopyRowsPerFrame = 180;
 	static constexpr uint32_t kMaxCopyRowsInteractive = 360;
-	/* CPU staging for split full uploads — release shared-mem pin before Map. */
+	/* CPU staging for split full uploads — release shared-mem pin before GPU Map. */
 	std::vector<uint8_t> gStagingFrame;
 	uint32_t gStagingSeq = 0;
 	uint32_t gStagingW = 0;
@@ -71,7 +71,9 @@ namespace
 
 	ID3D11Device* gDevice = nullptr;
 	ID3D11DeviceContext* gContext = nullptr;
+	/* Display texture is DEFAULT (never Mapped). CPU writes go to STAGING then Copy. */
 	ID3D11Texture2D* gTex = nullptr;
+	ID3D11Texture2D* gStagingTex = nullptr;
 	ID3D11ShaderResourceView* gSrv = nullptr;
 	uint32_t gTexW = 0;
 	uint32_t gTexH = 0;
@@ -82,6 +84,11 @@ namespace
 	DWORD gLastMouseWakeMs = 0;
 	DWORD gLastUserInputMs = 0; /* PresentFrame: high-rate while interacting */
 	DWORD gLastWheelMs = 0;     /* wheel keeps present path in “smooth scroll” mode */
+	HRESULT gLastMapHr = S_OK;
+	uint32_t gMapFailCount = 0;
+	HRESULT gLastTexHr = S_OK;
+	DWORD gLastPaintKickMs = 0;
+	char gPaintWaitReason[192]{};
 
 	/* Local status mirror for StatusCStr (avoids std::string every frame). */
 	char gStatusCache[256] = "Closed — press Ctrl+Shift+H to open";
@@ -305,10 +312,14 @@ namespace
 	{
 		if (gSrv) { gSrv->Release(); gSrv = nullptr; }
 		if (gTex) { gTex->Release(); gTex = nullptr; }
+		if (gStagingTex) { gStagingTex->Release(); gStagingTex = nullptr; }
 		gTexW = gTexH = 0;
 		gContentW = gContentH = 0;
 		gLastFrameSeq = 0;
 		gTexHasContent = false;
+		gLastMapHr = S_OK;
+		gMapFailCount = 0;
+		gLastTexHr = S_OK;
 	}
 
 	void ReleaseDevice()
@@ -346,7 +357,8 @@ namespace
 			return false;
 		/* Allocate once at max OSR size — window drag used to CreateTexture2D
 		   every pixel and hitch the game. Content is uploaded into the top-left. */
-		if (gTex && gSrv && gTexW == kWikiFrameMaxW && gTexH == kWikiFrameMaxH)
+		if (gTex && gStagingTex && gSrv &&
+			gTexW == kWikiFrameMaxW && gTexH == kWikiFrameMaxH)
 			return true;
 
 		ReleaseGpu();
@@ -358,22 +370,37 @@ namespace
 		td.ArraySize = 1;
 		td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		td.SampleDesc.Count = 1;
-		td.Usage = D3D11_USAGE_DYNAMIC;
+		/* DEFAULT display texture — never Map'd. DYNAMIC+Map under GW2's busy
+		   device was the Windows-only "Ready but Waiting for first paint" stall. */
+		td.Usage = D3D11_USAGE_DEFAULT;
 		td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		td.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		td.CPUAccessFlags = 0;
 
-		if (FAILED(gDevice->CreateTexture2D(&td, nullptr, &gTex)) || !gTex)
+		gLastTexHr = gDevice->CreateTexture2D(&td, nullptr, &gTex);
+		if (FAILED(gLastTexHr) || !gTex)
 			return false;
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC sd{};
 		sd.Format = td.Format;
 		sd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		sd.Texture2D.MipLevels = 1;
-		if (FAILED(gDevice->CreateShaderResourceView(gTex, &sd, &gSrv)) || !gSrv)
+		gLastTexHr = gDevice->CreateShaderResourceView(gTex, &sd, &gSrv);
+		if (FAILED(gLastTexHr) || !gSrv)
 		{
 			ReleaseGpu();
 			return false;
 		}
+
+		td.Usage = D3D11_USAGE_STAGING;
+		td.BindFlags = 0;
+		td.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		gLastTexHr = gDevice->CreateTexture2D(&td, nullptr, &gStagingTex);
+		if (FAILED(gLastTexHr) || !gStagingTex)
+		{
+			ReleaseGpu();
+			return false;
+		}
+
 		gTexW = kWikiFrameMaxW;
 		gTexH = kWikiFrameMaxH;
 		return true;
@@ -432,7 +459,7 @@ namespace
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "19";
+		static constexpr const char* kHelperStamp = "21";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;
@@ -1298,6 +1325,19 @@ void WikiBrowser::PresentFrame()
 	FlushPendingCmds();
 	FlushPendingNavigate();
 
+	/* Ready but CEF never called OnPaint — kick was_resized via SET_BOUNDS.
+	   Distinct from GPU Map stalls (frame_seq > 0). */
+	if (gIpc->ready && gIpc->frame_seq == 0)
+	{
+		const DWORD now = GetTickCount();
+		if (gLastPaintKickMs == 0 || (now - gLastPaintKickMs) >= 500u)
+		{
+			gLastPaintKickMs = now;
+			PostCmd(WIKI_CMD_SET_BOUNDS);
+		}
+		return;
+	}
+
 	if (!gIpc->ready || gIpc->frame_seq == 0)
 		return;
 
@@ -1345,12 +1385,12 @@ void WikiBrowser::PresentFrame()
 	const bool dirtyIsFull = (dx == 0 && dy == 0 && dw == w && dh == h);
 	bool uploadFull = dirtyIsFull || !gTexHasContent || gContentW != w || gContentH != h;
 
-	if (!EnsureTexture(w, h) || !gContext || !gTex)
+	if (!EnsureTexture(w, h) || !gContext || !gTex || !gStagingTex)
 		return;
 
 	const uint32_t rowBudget = interactive ? kMaxCopyRowsInteractive : kMaxCopyRowsPerFrame;
 	/* Never chunk while interacting/scrolling — multi-frame staging lags behind
-	   CEF paints and feels like stuttering scroll. First paint still DISCARD. */
+	   CEF paints and feels like stuttering scroll. First paint still full copy. */
 	if (interactive)
 	{
 		gStagingReady = false;
@@ -1400,56 +1440,42 @@ void WikiBrowser::PresentFrame()
 		return;
 	}
 
+	/* STAGING Map — never Map the ImGui-bound DEFAULT texture. WRITE_DISCARD is
+	   invalid on STAGING; block on first paint so a busy game device cannot
+	   leave us on "Waiting for first paint…" forever. */
 	D3D11_MAPPED_SUBRESOURCE mapped{};
-	D3D11_MAP mapType = wantChunk ? D3D11_MAP_WRITE
-		: (uploadFull ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE);
-	/* DO_NOT_WAIT skips a busy frame — fine when we already have a picture.
-	   On native Windows the first Map often returns WAS_STILL_DRAWING forever
-	   (game + ImGui still own the device), which leaves users stuck on
-	   "Waiting for first paint…" while status already says Ready. */
 	const bool firstPaint = !gTexHasContent;
-	UINT mapFlags = D3D11_MAP_FLAG_DO_NOT_WAIT;
-	if (firstPaint || mapType == D3D11_MAP_WRITE_DISCARD)
-		mapFlags = 0u;
-	HRESULT hr = gContext->Map(gTex, 0, mapType, mapFlags, &mapped);
-	if (FAILED(hr) && mapType == D3D11_MAP_WRITE)
-	{
-		if (continuingPartial && !firstPaint)
-			return; /* keep prior rows; retry WRITE next frame */
-		/* Fall back to one-shot DISCARD (also covers first-paint safety). */
-		mapType = D3D11_MAP_WRITE_DISCARD;
-		uploadFull = true;
-		gStagingReady = false;
-		gPartialCopySeq = 0;
-		gPartialCopyY = 0;
-		mapFlags = 0u;
-		hr = gContext->Map(gTex, 0, mapType, mapFlags, &mapped);
-	}
+	UINT mapFlags = firstPaint ? 0u : static_cast<UINT>(D3D11_MAP_FLAG_DO_NOT_WAIT);
+	HRESULT hr = gContext->Map(gStagingTex, 0, D3D11_MAP_WRITE, mapFlags, &mapped);
 	if (FAILED(hr) && mapFlags != 0u)
-	{
-		/* Blocking DISCARD last resort — better a hitch than a permanent black panel. */
-		mapType = D3D11_MAP_WRITE_DISCARD;
-		uploadFull = true;
-		gStagingReady = false;
-		gPartialCopySeq = 0;
-		gPartialCopyY = 0;
-		hr = gContext->Map(gTex, 0, mapType, 0u, &mapped);
-	}
+		hr = gContext->Map(gStagingTex, 0, D3D11_MAP_WRITE, 0u, &mapped);
+	gLastMapHr = hr;
 	if (FAILED(hr))
+	{
+		++gMapFailCount;
 		return;
+	}
 	if (!mapped.pData)
 	{
-		gContext->Unmap(gTex, 0);
+		gContext->Unmap(gStagingTex, 0);
+		gLastMapHr = E_POINTER;
+		++gMapFailCount;
 		return;
 	}
+	gMapFailCount = 0;
 
+	uint32_t copyY0 = 0;
+	uint32_t copyY1 = h;
+	uint32_t copyX0 = 0;
+	uint32_t copyX1 = w;
 	bool copyComplete = true;
-	if (wantChunk && mapType == D3D11_MAP_WRITE && gStagingReady)
+	if (wantChunk && gStagingReady)
 	{
+		const uint32_t y0 = gPartialCopyY;
 		const uint32_t endY = gPartialCopyY + rowBudget;
 		const uint32_t y1 = endY < h ? endY : h;
 		const size_t rowBytes = static_cast<size_t>(w) * 4;
-		for (uint32_t y = gPartialCopyY; y < y1; ++y)
+		for (uint32_t y = y0; y < y1; ++y)
 		{
 			std::memcpy(
 				static_cast<uint8_t*>(mapped.pData) + y * mapped.RowPitch,
@@ -1458,6 +1484,8 @@ void WikiBrowser::PresentFrame()
 		}
 		gPartialCopyY = y1;
 		copyComplete = (gPartialCopyY >= h);
+		copyY0 = y0;
+		copyY1 = y1;
 		if (copyComplete)
 		{
 			gPartialCopySeq = 0;
@@ -1479,6 +1507,10 @@ void WikiBrowser::PresentFrame()
 			std::memcpy(dst + y * mapped.RowPitch, src + y * kWikiFrameStride, rowBytes);
 		MemoryBarrier();
 		gIpc->frame_reading = 0xFFFFFFFFu;
+		copyY0 = 0;
+		copyY1 = h;
+		copyX0 = 0;
+		copyX1 = w;
 	}
 	else
 	{
@@ -1501,8 +1533,23 @@ void WikiBrowser::PresentFrame()
 		}
 		MemoryBarrier();
 		gIpc->frame_reading = 0xFFFFFFFFu;
+		copyX0 = dx;
+		copyY0 = dy;
+		copyX1 = dx + dw;
+		copyY1 = dy + dh;
 	}
-	gContext->Unmap(gTex, 0);
+	gContext->Unmap(gStagingTex, 0);
+
+	D3D11_BOX box{};
+	box.left = copyX0;
+	box.top = copyY0;
+	box.front = 0;
+	box.right = copyX1;
+	box.bottom = copyY1;
+	box.back = 1;
+	gContext->CopySubresourceRegion(
+		gTex, 0, copyX0, copyY0, 0, gStagingTex, 0, &box);
+
 	if (!copyComplete)
 	{
 		gLastPresentMs = now;
@@ -1699,6 +1746,48 @@ int WikiBrowser::ActiveTabSlot()
 bool WikiBrowser::HasFrame()
 {
 	return gSrv && gIpc && gIpc->frame_seq > 0 && gContentW > 0 && gContentH > 0;
+}
+
+const char* WikiBrowser::PaintWaitReasonCStr()
+{
+	if (!gIpc)
+		return "no IPC";
+	if (!gIpc->ready)
+		return "helper not ready";
+	if (gIpc->frame_seq == 0)
+	{
+		std::snprintf(gPaintWaitReason, sizeof(gPaintWaitReason),
+			"CEF has not painted yet (frame_seq=0) — kicking resize");
+		return gPaintWaitReason;
+	}
+	if (FAILED(gLastTexHr) && !gSrv)
+	{
+		std::snprintf(gPaintWaitReason, sizeof(gPaintWaitReason),
+			"D3D texture create failed hr=0x%08lX",
+			static_cast<unsigned long>(gLastTexHr));
+		return gPaintWaitReason;
+	}
+	if (!gSrv || !gStagingTex)
+		return "D3D textures not ready";
+	if (gContentW == 0 || gContentH == 0)
+	{
+		if (FAILED(gLastMapHr))
+		{
+			std::snprintf(gPaintWaitReason, sizeof(gPaintWaitReason),
+				"CEF painted (seq=%u) but staging Map failed hr=0x%08lX x%u",
+				static_cast<unsigned>(gIpc->frame_seq),
+				static_cast<unsigned long>(gLastMapHr),
+				static_cast<unsigned>(gMapFailCount));
+			return gPaintWaitReason;
+		}
+		std::snprintf(gPaintWaitReason, sizeof(gPaintWaitReason),
+			"CEF painted (seq=%u %ux%u) — GPU upload pending",
+			static_cast<unsigned>(gIpc->frame_seq),
+			static_cast<unsigned>(gIpc->frame_w),
+			static_cast<unsigned>(gIpc->frame_h));
+		return gPaintWaitReason;
+	}
+	return "";
 }
 
 ID3D11ShaderResourceView* WikiBrowser::FrameSrv()

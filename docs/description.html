@@ -64,12 +64,12 @@
         <img src="media/logo.png" alt="GW2 In-Game Helper logo"/>
         <div>
           <h1>GW2 In-Game Helper</h1>
-          <p class="tagline">In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.</p>
+          <p class="tagline">In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.</p>
         </div>
       </div>
 
       <div class="meta">
-        <strong>Version</strong> 2.0.0.19 ·
+        <strong>Version</strong> 2.0.0.21 ·
         <strong>Signature</strong> 0x48454C50 ·
         <strong>Author</strong> xydroc ·
         <strong>License</strong> MIT ·
@@ -80,7 +80,7 @@
       <p>
         <strong>GW2 In-Game Helper</strong> opens useful Guild Wars 2 websites and community
         Discord invites <em>inside the game</em> —
-        <strong>2,674</strong> Browse entries covering Wiki, builds, tools, guides, farming, and more.
+        <strong>2,661</strong> Browse entries covering Wiki, builds, tools, guides, farming, and more.
       </p>
       <p>
         Players install a <strong>single DLL</strong>. No memory reads; official Nexus APIs only.
@@ -96,13 +96,13 @@
 
       <h2>Features</h2>
       <div class="note">
-        <strong>Catalog size:</strong> <strong>2,674</strong> Browse entries —
+        <strong>Catalog size:</strong> <strong>2,661</strong> Browse entries —
         <strong>2,271</strong> Wiki pages ·
-        <strong>317</strong> guides ·
+        <strong>294</strong> guides ·
         <strong>23</strong> offline cheat sheets ·
-        <strong>20</strong> build hubs ·
-        <strong>20</strong> Discord invites ·
-        plus Tools, Search, Official, and Farming.
+        <strong>16</strong> build hubs ·
+        <strong>19</strong> Discord invites ·
+        plus Tools (incl. GW2.app), Search, Official, and Farming.
       </div>
       <ul>
         <li><strong>In-game browser</strong> — full CEF pages inside Guild Wars 2 (uses the game’s <code>bin64/cef</code>)</li>
@@ -151,6 +151,17 @@
         <li>Click outside the window (on the game) to return movement / skills to Guild Wars 2.</li>
       </ol>
 
+      <h2>What’s new in 2.0.0.21</h2>
+      <ul>
+        <li><strong>Browse:</strong> <strong>GW2.app</strong> deep links under Tools — lists, database, maps, Wizard’s Vault, trading post, and sign-in.</li>
+        <li><strong>Helper:</strong> CSS polish for gw2.app; Open Ext tip on login pages if OAuth fails in CEF.</li>
+      </ul>
+      <h2>What’s new in 2.0.0.20</h2>
+      <ul>
+        <li><strong>Catalog:</strong> Snow Crows removed at their request — MetaBattle raid builds and wing guides replace those entries; Accessibility Wars kept.</li>
+        <li><strong>Ads:</strong> Site ads are allowed (NitroPay / AdSense / analytics are no longer blocked).</li>
+        <li><strong>Present:</strong> Staging GPU upload + paint-wait diagnostics for Windows first-paint stalls.</li>
+      </ul>
       <h2>What’s new in 2.0.0.19</h2>
       <ul>
         <li><strong>Fix:</strong> Native Windows could stick on “Waiting for first paint…” while status said Ready — first GPU upload now waits for the Map instead of skipping forever.</li>
@@ -184,8 +195,8 @@
 
       <h2>Included sites</h2>
       <p style="color: var(--muted); font-family: &quot;Segoe UI&quot;, Tahoma, sans-serif; font-size: 0.92rem;">
-        <strong style="color: var(--gold-dim);">2,674</strong> pages and guides in Browse
-        (mostly Wiki + Guildjen / Snow Crows / MetaBattle guides). Counts below are category totals.
+        <strong style="color: var(--gold-dim);">2,646</strong> pages and guides in Browse
+        (mostly Wiki + Guildjen / MetaBattle guides). Counts below are category totals.
       </p>
       <table>
         <thead><tr><th>Category</th><th>Count</th><th>Sites</th></tr></thead>
@@ -195,12 +206,12 @@
           <tr><td>Search</td><td>3</td><td>Google, DuckDuckGo, Gemini (AI)</td></tr>
           <tr><td>Official</td><td>4</td><td>Guild Wars 2, GW2 News, Raidcore, Forums</td></tr>
           <tr><td>Wiki</td><td>2,271</td><td>GW2 Wiki, Legendary Armory (Armor / Weapons / Accessory / Amulet / Rings / Back / Upgrades), Cosmetic Infusions, Lifestyle, Crafting, Food, Ascended Food, Utility, Minis, Upgrades (Runes/Relics/Sigils), Mounts, Easy Objectives</td></tr>
-          <tr><td>Builds</td><td>20</td><td>Snowcrows Raid Builds (all + per profession), AccessiBuilds (SC + Accessibility Wars), Open World / PvP / WvW, MetaBattle (+ OW / PvP / WvW), Gw2Skills Editor</td></tr>
-          <tr><td>Tools</td><td>14</td><td>gw2efficiency, Legendary Tracker, Blish HUD, GW2Timer Events/Map, Meta Timers, Crafts, Music Box, Peu, KillProof, Wingman, GW2BLTC, GW2 Treasures</td></tr>
+          <tr><td>Builds</td><td>16</td><td>MetaBattle Raid Builds (all + per profession), Accessibility Wars, MetaBattle OW / PvP / WvW, Gw2Skills Editor</td></tr>
+          <tr><td>Tools</td><td>29</td><td>gw2efficiency, Legendary Tracker, Blish HUD, timers, Crafts, Music Box, Peu, KillProof, Wingman, BLTC, Treasures, ArcDPS guide, <strong>GW2.app</strong> (hub / lists / DB / maps / vault / TP / sign-in)</td></tr>
           <tr><td>Cheat Sheets</td><td>23</td><td>Uber's All-In-One, Raid Food, Raid Utilities, Fractal Consumables, Fractal CM / T4, Sigils &amp; Runes, Relics, Boon Checklist, Squad Template, Stability / Cleanse, CC / Defiance, Raid Wings, Strike Missions, Material Conversions, Legendary Paths, Mount Unlock, Home Garden, Daily / Weekly, Currency Sinks, Ascended Start, Portals / Pulls, Homestead, WvW Consumables (built-in)</td></tr>
-          <tr><td>Guides</td><td>317</td><td>Guildjen Achievements (LW–VoE + Festivals + Side Stories), Jumping Puzzles, Crafting (GW2 Crafts), Fractals, <strong>Raids</strong> (Wings W1–W8 + Boss W1–W8), Strikes (+ Harvest Temple), Rifts, Progress / PvP / WvW beginners, TLDR</td></tr>
+          <tr><td>Guides</td><td>294</td><td>Guildjen Achievements (LW–VoE + Festivals + Side Stories), Jumping Puzzles, Crafting (GW2 Crafts), Fractals, <strong>Raids</strong> (Guildjen Wings + MetaBattle Boss W1–W8), Strikes (+ Harvest Temple), Rifts, Progress / PvP / WvW beginners, TLDR</td></tr>
           <tr><td>Farming</td><td>1</td><td>Fast Farming</td></tr>
-          <tr><td>Discord</td><td>20</td><td>Official, Community, builds, training, PvP, WvW, farming, trading, Raidcore, Central Hub</td></tr>
+          <tr><td>Discord</td><td>19</td><td>Official, Community, MetaBattle, Guildjen, training, PvP, WvW, farming, trading, Raidcore, Central Hub</td></tr>
         </tbody>
       </table>
 
@@ -208,8 +219,7 @@
       <ul>
         <li><a href="https://discord.com/invite/guildwars">Official GW2</a></li>
         <li><a href="https://discord.com/invite/guildwars2">Community</a></li>
-        <li><a href="https://discord.com/invite/qTs63YH">Snowcrows</a></li>
-        <li><a href="https://discord.com/invite/0jdZWe6xdIy46Yp5">MetaBattle</a></li>
+                <li><a href="https://discord.com/invite/0jdZWe6xdIy46Yp5">MetaBattle</a></li>
         <li><a href="https://discord.com/invite/8NZNRvC">Guildjen</a></li>
         <li><a href="https://discord.com/invite/h5qS6Pk">Mukluk Labs</a></li>
         <li><a href="https://discord.com/invite/bKt2CdS8k3">Accessibility Wars</a></li>

@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `2.0.0.19` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.0.21` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -35,12 +35,8 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | Upgrades (Superior Runes, Relics, Superior Sigils) | Wiki |
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
 | [Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
-| [SC Raid Builds](https://snowcrows.com/builds/raids) | Builds |
-| SC Raid Elementalist / Mesmer / Necromancer / Engineer / Ranger / Thief / Guardian / Revenant / Warrior | Builds |
-| [SC AccessiBuilds](https://snowcrows.com/builds/accessibuilds) | Builds |
-| [SC Open World](https://snowcrows.com/builds/open-world) | Builds |
-| [SC PvP](https://snowcrows.com/builds/pvp) | Builds |
-| [SC WvW](https://snowcrows.com/builds/wvw) | Builds |
+| [MB Raid Builds](https://metabattle.com/wiki/Raid_Builds) | Builds |
+| MB Raid Elementalist / Mesmer / Necromancer / Engineer / Ranger / Thief / Guardian / Revenant / Warrior | Builds |
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
 | [MetaBattle OW](https://metabattle.com/wiki/Open_World) | Builds |
 | [Accessibility Wars](https://aw2.help/) | Builds |
@@ -85,14 +81,13 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | WvW Consumables (built-in) | Cheat Sheets |
 | [Guildjen](https://guildjen.com/) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
-| [Snowcrows Guides](https://snowcrows.com/guides) | Guides |
 | Progress (new-player roadmap, leveling, gold, Gem Store, Wizard’s Vault) | Guides |
 | Mounts (Griffon, Skyscale, Roller Beetle, Siege Turtle) | Guides |
 | [PvE Guides Hub](https://metabattle.com/wiki/PvE_Guides) | Guides |
 | [PvP Guides Hub](https://metabattle.com/wiki/PvP_Guides) + Guildjen PvP beginner/hub | Guides |
 | [WvW Guides Hub](https://metabattle.com/wiki/WvW_Guides) + Guildjen WvW beginner | Guides |
 | Guildjen Fractals (hub, beginner, all maps) + [Mukluk](https://mukluklabs.com/gw2-fractal-guides) | Guides |
-| Guildjen Raid Wings (hub, intro, Wings 1–8) + Snow Crows Raid Boss (W1–W7) + Mount Balrior W8 — under Guides → Raids | Guides |
+| Guildjen Raid Wings (hub, intro, Wings 1–8) + MetaBattle Raid Boss (W1–W7) + Mount Balrior W8 — under Guides → Raids | Guides |
 | MetaBattle Strikes + Guildjen Harvest Temple | Guides |
 | [Rifts & Convergences](https://guildjen.com/rift-hunting-and-convergences-guide/) | Guides |
 | Guildjen Achievements (LW / HoT / PoF / EoD / SotO / JW / VoE / Festivals / Side Stories) | Guides |
@@ -103,17 +98,26 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
 | [TLDR Dungeons](https://gw2tldr.com/dungeons) | Guides |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
-| Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
+| Official · Community · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
 
 Add more sites in `src/Sites.cpp`. Hardstuck and Discretize are intentionally omitted (outdated).
-Replaces the older Wiki / Snowcrow browser addons.
+Replaces the older Wiki browser addons.
 Works on Windows and on Linux via Wine/Proton.
 
 > **Players only need the DLL** in `addons/`. The browser helper and homepage assets extract into `addons/GW2-InGame-Helper/` on first use; Chromium comes from the game’s `bin64/cef`.
 
 Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
-## What’s new (2.0.0.19)
+## What’s new (2.0.0.21)
+
+**2.0.0.21**
+- Browse → Tools → **GW2.app** subsection (lists, database, maps, Wizard’s Vault, trading post, sign-in)
+- Helper: CSS downlevel + login tip for gw2.app (use Open Ext if OAuth fails)
+
+**2.0.0.20**
+- Allow ads on all sites (NitroPay / AdSense / analytics no longer blocked)
+- Remove Snow Crows (at their request) — MetaBattle raid builds + wing guides; Accessibility Wars kept; SC Discord invite removed
+- Staging GPU present path + paint-wait diagnostics for Windows first-paint stalls
 
 **2.0.0.19**
 - Fix Windows users stuck on “Waiting for first paint…” while status says Ready (blocking first GPU Map; was_resized kick after load)
@@ -411,7 +415,7 @@ Intended to stay within ArenaNet’s
 [Third-Party Programs](https://help.guildwars2.com/hc/en-us/articles/360013625034-Policy-Third-Party-Programs)
 policy and [Raidcore’s Addon Policy](https://raidcore.gg/gw2/addon-policy).
 
-ArenaNet does not endorse third-party software. Use at your own risk. Not affiliated with ArenaNet, NCSoft, Guild Wars 2, or Snow Crows.
+ArenaNet does not endorse third-party software. Use at your own risk. Not affiliated with ArenaNet, NCSoft, Guild Wars 2.
 
 ### Does **not**
 

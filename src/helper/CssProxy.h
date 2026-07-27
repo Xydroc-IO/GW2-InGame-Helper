@@ -6,7 +6,7 @@
 #include "include/capi/cef_resource_handler_capi.h"
 #include "include/capi/cef_response_filter_capi.h"
 
-/* True for ad / consent / tracker hosts that slow CEF 103 to a crawl. */
+/* Optional URL cancel list. Currently always false — ads/trackers allowed. */
 bool ShouldBlockUrl(const std::string& url);
 
 /* True when response body should be CSS-downleveled via a CEF filter

@@ -3,7 +3,7 @@
 ## Short description
 
 ```text
-In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
+In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.
 ```
 
 ## Signature
@@ -14,10 +14,12 @@ In-game browser for Guild Wars 2 — Wiki, Snowcrows, MetaBattle, and more.
 
 ## Version
 
-`2.0.0.19`
+`2.0.0.21`
 
 ## Changelog highlights
 
+- **2.0.0.21** — Browse: GW2.app under Tools (lists / database / vault / maps)
+- **2.0.0.20** — Allow site ads; remove Snow Crows (per request) → MetaBattle builds / raid guides
 - **2.0.0.19** — Fix Windows “Waiting for first paint…” stall; note Defender Wacatac false positive
 - **2.0.0.18** — Rewrite Guildjen YouTube iframes to Watch cards + block embed loads (no more play→refresh)
 - **2.0.0.17** — Replace YouTube embeds with system-browser “Watch on YouTube” cards (no in-page play / refresh)
