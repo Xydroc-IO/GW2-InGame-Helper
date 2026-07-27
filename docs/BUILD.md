@@ -108,3 +108,15 @@ addons/GW2-InGame-Helper/        # runtime data directory
 | `deps/cef` | CEF C++ headers only (vendored; runtime from game) |
 
 See the root [README](../README.md) for install, usage, and policy notes.
+
+Also read:
+
+- [DOCUMENTATION.md](DOCUMENTATION.md) — doc index
+- [ARCHITECTURE.md](ARCHITECTURE.md) — how the DLL + helper fit together
+- [CODE_AUDIT.md](CODE_AUDIT.md) — risks and regression checklist
+
+After editing `src/Sites.cpp` or Browse section maps in `src/UI.cpp`:
+
+```bash
+make validate-sites
+```

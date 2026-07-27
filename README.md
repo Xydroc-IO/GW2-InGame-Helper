@@ -106,7 +106,12 @@ Works on Windows and on Linux via Wine/Proton.
 
 > **Players only need the DLL** in `addons/`. The browser helper and homepage assets extract into `addons/GW2-InGame-Helper/` on first use; Chromium comes from the game’s `bin64/cef`.
 
-Full HTML listing copy (Nexus / Raidcore / web): [`docs/description.html`](docs/description.html) · [`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
+Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
+architecture [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
+code audit [`docs/CODE_AUDIT.md`](docs/CODE_AUDIT.md) ·
+listing copy [`docs/description.html`](docs/description.html) ·
+[`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
+[`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
 ## What’s new (2.0.0.21)
 
@@ -403,6 +408,16 @@ Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map th
 - Allow `GW2HelperBrowser.exe` if antivirus blocks it.
 - Fully quit and restart the game.
 
+**“Waiting for first paint…” while status says Ready**
+
+- Fully restart GW2 after updating (helper stamp must re-extract).
+- Note the muted diagnostic line under the wait text (CEF never painted vs GPU Map fail) and report it if it persists.
+- See [`docs/CODE_AUDIT.md`](docs/CODE_AUDIT.md) present-path notes.
+
+**Sign-in fails (Google / Discord / GW2.app)**
+
+- Use **Open Ext** in the toolbar. Embedded CEF often cannot complete OAuth; the system-browser session is separate from in-game tabs.
+
 **Typing / clicking feels wrong**
 
 - Click inside the rendered page first.
@@ -432,18 +447,26 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 - Open public websites in a separate helper process
 - Load the game’s CEF runtime **read-only** into that helper
 - Share pixels/input via local shared-memory IPC
-- Block keyboard from the game only while the page has focus
-- Blocks keyboard from the game only while the page has focus
+- Block keyboard from the game while the page has focus **or** while typing in ImGui (Browse / Search / Find)
+- Block mouse from the game while the pointer is over the overlay
 
 ## How it works
 
-1. `GW2-InGame-Helper.dll` — Nexus UI, site picker, QuickAccess, D3D11 texture.
+Nexus loads the DLL → ImGui overlay → out-of-process CEF helper paints OSR frames into
+PID-scoped shared memory → DLL uploads via staging D3D11 texture → `ImGui::Image`.
+Browse rows are labeled hyperlinks into public sites (and built-in `about:` pages).
+
+1. `GW2-InGame-Helper.dll` — Nexus UI, site picker, QuickAccess, D3D11 present.
 2. Embedded `GW2HelperBrowser.exe` — loads `<GW2>/bin64/cef/libcef.dll` (read-only).
-3. CEF renders off-screen into shared memory.
-4. CSS is downleveled for Chromium 103 where needed; common ad/consent hosts are blocked.
-5. HTTP cache lives under `%TEMP%` (not under `addons`).
-6. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
-7. Site list lives in `src/Sites.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets.cpp`.
+3. CEF renders off-screen into shared memory (PID-scoped IPC v5).
+4. CSS is downleveled for Chromium 103 on selected hosts; **ads are allowed** (since 2.0.0.20).
+5. YouTube on guides becomes a Watch card / Open Ext (in-page play is not reliable on CEF 103 OSR).
+6. HTTP cache lives under `%TEMP%` (not under `addons`).
+7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
+8. Site list lives in `src/Sites.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets.cpp`.
+
+Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Risks and test checklist:
+[`docs/CODE_AUDIT.md`](docs/CODE_AUDIT.md). Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md).
 
 ## License
 
