@@ -111,9 +111,10 @@ See the root [README](../README.md) for install, usage, and policy notes.
 
 Also read:
 
-- [DOCUMENTATION.md](DOCUMENTATION.md) — doc index
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how the DLL + helper fit together
-- [CODE_AUDIT.md](CODE_AUDIT.md) — risks and regression checklist
+- `CODE_AUDIT.md` *(gitignored)* — local risks / regression checklist if you keep one
+- [COMPLIANCE.md](COMPLIANCE.md) — Nexus / policy boundaries
+- [DOCUMENTATION.md](DOCUMENTATION.md) — doc index
 
 After editing `src/Sites.cpp` or Browse section maps in `src/UI.cpp`:
 

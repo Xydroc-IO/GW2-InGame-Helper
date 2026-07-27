@@ -10,7 +10,7 @@ GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.1.0*
 |-----|----------|----------|
 | [`../README.md`](../README.md) | Everyone | Install, features, site list, troubleshooting, build pointers |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Contributors | Process model, IPC, present/input, CEF, Browse, stamps |
-| [`CODE_AUDIT.md`](CODE_AUDIT.md) | Contributors / reviewers | Findings, risks, regression checklist, source map |
+| `CODE_AUDIT.md` *(gitignored)* | Local audit notes — findings, risks, regression checklist |
 | [`COMPLIANCE.md`](COMPLIANCE.md) | Contributors | Allowed / forbidden Nexus and TOS boundaries |
 | [`BUILD.md`](BUILD.md) | Contributors | MinGW cross-compile, `make install`, cheat-sheet extract |
 
@@ -59,7 +59,7 @@ Bump **only when asked**. Keep these aligned:
 2. `src/WikiBrowser.cpp` — `kHelperStamp`
 3. `src/HomePage.cpp` — `kHomePageVersion`
 4. `README.md`, `RELEASE_NOTES.md`, `description.html`; local (gitignored) `RAIDCORE.md`, `DISCORD.md`, new `DISCORD_*.md`
-5. Refresh `ARCHITECTURE.md` / `CODE_AUDIT.md` headers if behavior changed
+5. Refresh `ARCHITECTURE.md` headers if behavior changed; update local `CODE_AUDIT.md` if you keep one
 6. `make && make install` (or release package)
 
 ---

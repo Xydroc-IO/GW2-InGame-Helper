@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.0.1.0 · Total entries: **2,661**
+**Revision:** 2.0.1.0 · Total entries: **2,662**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
@@ -10,6 +10,7 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 ### Getting Started
 
 - **How to use** — `about:helper-home`
+- **New Player Guide** — [https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide](https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide)
 
 ## Search
 

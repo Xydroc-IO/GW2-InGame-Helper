@@ -2,7 +2,7 @@
 
 **Current addon revision:** `2.0.1.0` · **IPC:** `HLI5` (v5) · **CEF:** Guild Wars 2 `bin64/cef` (103)
 
-This document describes how the pieces fit together. For risks and a review checklist see [`CODE_AUDIT.md`](CODE_AUDIT.md). For Nexus listing constraints see [`COMPLIANCE.md`](COMPLIANCE.md).
+This document describes how the pieces fit together. Local `CODE_AUDIT.md` *(gitignored)* holds risks and a review checklist when you keep one. For Nexus listing constraints see [`COMPLIANCE.md`](COMPLIANCE.md).
 
 ---
 
@@ -219,7 +219,7 @@ CEF libraries stay in `<GW2>/bin64/cef/`.
 | Doc | Purpose |
 |-----|---------|
 | [`DOCUMENTATION.md`](DOCUMENTATION.md) | Index of all project docs |
-| [`CODE_AUDIT.md`](CODE_AUDIT.md) | Risks, residuals, test checklist |
+| `CODE_AUDIT.md` *(gitignored)* | Local risks / regression checklist |
 | [`COMPLIANCE.md`](COMPLIANCE.md) | Allowed / forbidden host patterns |
 | [`BUILD.md`](BUILD.md) | Cross-compile and install |
 | [`CATALOG.md`](CATALOG.md) | Browse catalog outline |

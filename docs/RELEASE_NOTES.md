@@ -5,8 +5,8 @@
 In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.
 One DLL for Nexus — no memory reads.
 
-Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · architecture [`ARCHITECTURE.md`](ARCHITECTURE.md) ·
-code audit [`CODE_AUDIT.md`](CODE_AUDIT.md)
+Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · architecture [`ARCHITECTURE.md`](ARCHITECTURE.md)
+(local `CODE_AUDIT.md` is gitignored)
 
 ## Install
 

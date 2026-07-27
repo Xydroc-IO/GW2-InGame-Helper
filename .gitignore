@@ -62,6 +62,7 @@ __cmake_systeminformation/
 docs/DISCORD.md
 docs/DISCORD_*.md
 docs/RAIDCORE.md
+docs/CODE_AUDIT.md
 
 # Python (if helpers scripts appear later)
 __pycache__/

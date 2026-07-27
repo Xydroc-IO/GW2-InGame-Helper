@@ -34,6 +34,15 @@ namespace
 			nullptr,
 			nullptr,
 		},
+		{
+			"dak393_new_player",
+			"Help",
+			"New Player Guide",
+			"Dak393 — New player Guide (wiki hub)",
+			"https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide",
+			nullptr,
+			nullptr,
+		},
 
 		/* —— Search —— */
 		{

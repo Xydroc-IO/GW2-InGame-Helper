@@ -16,6 +16,7 @@ Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame
 | Site | Category |
 |------|----------|
 | How to use (built-in) | Help |
+| [New Player Guide](https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide) | Help |
 | [Google](https://www.google.com/) | Search |
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
@@ -108,12 +109,11 @@ Works on Windows and on Linux via Wine/Proton.
 
 Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 architecture [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
-code audit [`docs/CODE_AUDIT.md`](docs/CODE_AUDIT.md) ·
 listing copy [`docs/description.html`](docs/description.html) ·
 [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
-Local (gitignored) listing drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`.
+Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
 
 ## What’s new (2.0.1.0)
 
@@ -418,7 +418,7 @@ Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map th
 
 - Fully restart GW2 after updating (helper stamp must re-extract).
 - Note the muted diagnostic line under the wait text (CEF never painted vs GPU Map fail) and report it if it persists.
-- See [`docs/CODE_AUDIT.md`](docs/CODE_AUDIT.md) present-path notes.
+- See architecture present-path notes in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 **Sign-in fails (Google / Discord / GW2.app)**
 
@@ -471,8 +471,8 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
 7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
 8. Site list lives in `src/Sites.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets.cpp`.
 
-Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Risks and test checklist:
-[`docs/CODE_AUDIT.md`](docs/CODE_AUDIT.md). Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md).
+Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Full doc map:
+[`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Local audit notes (gitignored): `docs/CODE_AUDIT.md`.
 
 ## License
 
