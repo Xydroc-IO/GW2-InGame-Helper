@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.0.21
+# GW2 In-Game Helper v2.0.1.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -18,6 +18,16 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.1.0
+
+- **Release:** Stable cut of the 2.0.0.x line for Nexus / GitHub distribution
+- **Browse:** GW2.app deep links under Tools; MetaBattle / Guildjen / Accessibility Wars
+  (Snow Crows removed at their request); site ads allowed
+- **Reliability:** Windows first-paint stall fixed; YouTube embeds forced to Watch cards;
+  Browse/Search/Find keys no longer leak to GW2
+- **Docs:** Architecture and code-audit markdown; documentation index
+- **Stamps:** Helper / homepage `2010` (fully restart GW2 after updating)
 
 ## What’s new in 2.0.0.21
 

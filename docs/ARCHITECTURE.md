@@ -1,6 +1,6 @@
 # Architecture — GW2 In-Game Helper
 
-**Current addon revision:** `2.0.0.21` · **IPC:** `HLI5` (v5) · **CEF:** Guild Wars 2 `bin64/cef` (103)
+**Current addon revision:** `2.0.1.0` · **IPC:** `HLI5` (v5) · **CEF:** Guild Wars 2 `bin64/cef` (103)
 
 This document describes how the pieces fit together. For risks and a review checklist see [`CODE_AUDIT.md`](CODE_AUDIT.md). For Nexus listing constraints see [`COMPLIANCE.md`](COMPLIANCE.md).
 
@@ -32,7 +32,7 @@ Guild Wars 2.exe
 ### Embedding and extract
 
 1. **Build:** helper is compiled, copied to `build/helper_blob.exe`, linked into the DLL as a binary blob (`_binary_build_helper_blob_exe_*`).
-2. **Runtime:** `WikiBrowser::ExtractHelper()` writes `addons/GW2-InGame-Helper/GW2HelperBrowser.exe` plus a sibling `.ver` stamp (`kHelperStamp`, currently `"21"`).
+2. **Runtime:** `WikiBrowser::ExtractHelper()` writes `addons/GW2-InGame-Helper/GW2HelperBrowser.exe` plus a sibling `.ver` stamp (`kHelperStamp`, currently `"2010"`).
 3. **Reuse:** skip rewrite when file size matches the blob **and** `.ver` matches the stamp (forces re-extract after helper code changes).
 4. **Launch:** deferred off `RT_Render` via a worker thread (`TickLaunchPending` → `StartHelper`). Args include `--cef-dir=...` and `--host-pid=<GW2 PID>`.
 
@@ -176,7 +176,7 @@ Browse entries are **labeled hyperlinks**: `SiteDef { id, category, label, title
 - After edits: `make validate-sites` (`tools/validate_sites.py`).
 - Built-in pages use `about:…` URLs resolved to `file:///` under the addon data dir (homepage, cheat sheets).
 
-**GW2.app** (v2.0.0.21): deep links under **Browse → Tools → GW2.app** (not a separate top-level category).
+**GW2.app** (since v2.0.0.21 / release **2.0.1.0**): deep links under **Browse → Tools → GW2.app** (not a separate top-level category).
 
 **Snow Crows:** removed at their request (v2.0.0.20); MetaBattle / Guildjen / Accessibility Wars cover builds and raid guides.
 
@@ -188,11 +188,11 @@ Browse entries are **labeled hyperlinks**: `SiteDef { id, category, label, title
 |------|----------|
 | Settings | `addons/GW2-InGame-Helper/settings.ini` (debounced save) |
 | Tabs | Up to 8; pin; closed-tab stack; URL/title from IPC |
-| Addon version | `src/entry.cpp` → `G::AddonDef.Version` |
-| Helper extract stamp | `WikiBrowser.cpp` → `kHelperStamp` |
-| Homepage cache stamp | `HomePage.cpp` → `kHomePageVersion` |
+| Addon version | `src/entry.cpp` → `G::AddonDef.Version` (`2.0.1.0`) |
+| Helper extract stamp | `WikiBrowser.cpp` → `kHelperStamp` (`"2010"`) |
+| Homepage cache stamp | `HomePage.cpp` → `kHomePageVersion` (`"2010"`) |
 
-When shipping a release, bump **Revision**, helper stamp, homepage stamp, and docs together (see `.cursor/rules/no-version-bump.mdc` — only when explicitly asked).
+When shipping a release, bump **Version** (Major/Minor/Build/Revision), helper stamp, homepage stamp, and docs together (see `.cursor/rules/no-version-bump.mdc` — only when explicitly asked).
 
 Options: show window, default landing site, opacity, font scale, **Keep browser warm when closed**.
 
@@ -224,5 +224,5 @@ CEF libraries stay in `<GW2>/bin64/cef/`.
 | [`BUILD.md`](BUILD.md) | Cross-compile and install |
 | [`CATALOG.md`](CATALOG.md) | Browse catalog outline |
 | [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | Version history |
-| [`RAIDCORE.md`](RAIDCORE.md) | Nexus listing copy |
-| [`DISCORD.md`](DISCORD.md) | Player-facing Discord post |
+| `RAIDCORE.md` *(gitignored)* | Local Nexus listing draft |
+| `DISCORD.md` *(gitignored)* | Local Discord announcement draft |

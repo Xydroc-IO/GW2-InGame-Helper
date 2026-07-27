@@ -11,7 +11,8 @@ Never bump the addon version, homepage stamp, helper stamp, or release docs unle
 - `G::AddonDef.Version.Revision` (and Major/Minor/Build) in `src/entry.cpp`
 - `kHomePageVersion` in `src/HomePage.cpp`
 - `kHelperStamp` in `src/WikiBrowser.cpp`
-- Version strings / “What’s new” sections in `README.md`, `docs/RELEASE_NOTES.md`, `docs/RAIDCORE.md`, `docs/description.html`, `docs/DISCORD*.md`, `docs/CATALOG.md`
+- Version strings / “What’s new” sections in `README.md`, `docs/RELEASE_NOTES.md`, `docs/description.html`, `docs/CATALOG.md`
+- Local (gitignored) drafts if you maintain them: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/DISCORD_*.md`
 
 **Allowed without a version bump:** bug fixes, features, rebuild/`make install`, and commits — keep the current version numbers unless told otherwise.
 

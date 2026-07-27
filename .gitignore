@@ -58,6 +58,11 @@ settings.ini
 helper-home.html
 __cmake_systeminformation/
 
+# Local listing / announcement drafts (keep on disk; do not publish in git)
+docs/DISCORD.md
+docs/DISCORD_*.md
+docs/RAIDCORE.md
+
 # Python (if helpers scripts appear later)
 __pycache__/
 *.pyc

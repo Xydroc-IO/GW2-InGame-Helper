@@ -1,6 +1,6 @@
 # Documentation index
 
-GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.0.21**.
+GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.1.0**.
 
 ---
 
@@ -21,10 +21,9 @@ GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.0.21
 | Doc | Purpose |
 |-----|---------|
 | [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | Full changelog |
-| [`RAIDCORE.md`](RAIDCORE.md) | Short description + Nexus listing changelog |
 | [`description.html`](description.html) | HTML listing for web / Nexus description paste |
-| [`DISCORD.md`](DISCORD.md) | Current player Discord announcement |
-| [`DISCORD_2.0.0.N.md`](DISCORD_2.0.0.21.md) | Per-version Discord posts (keep latest + history) |
+| `RAIDCORE.md` *(gitignored)* | Local Nexus listing draft — short description + changelog |
+| `DISCORD.md` / `DISCORD_*.md` *(gitignored)* | Local Discord announcement drafts |
 
 ---
 
@@ -56,10 +55,10 @@ make validate-sites
 
 Bump **only when asked**. Keep these aligned:
 
-1. `src/entry.cpp` — `G::AddonDef.Version.Revision`
+1. `src/entry.cpp` — `G::AddonDef.Version` (Major / Minor / Build / Revision)
 2. `src/WikiBrowser.cpp` — `kHelperStamp`
 3. `src/HomePage.cpp` — `kHomePageVersion`
-4. `README.md`, `RELEASE_NOTES.md`, `RAIDCORE.md`, `description.html`, `DISCORD.md`, new `DISCORD_2.0.0.N.md`
+4. `README.md`, `RELEASE_NOTES.md`, `description.html`; local (gitignored) `RAIDCORE.md`, `DISCORD.md`, new `DISCORD_*.md`
 5. Refresh `ARCHITECTURE.md` / `CODE_AUDIT.md` headers if behavior changed
 6. `make && make install` (or release package)
 

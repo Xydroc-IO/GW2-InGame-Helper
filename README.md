@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `2.0.0.21` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.1.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -110,10 +110,16 @@ Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 architecture [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
 code audit [`docs/CODE_AUDIT.md`](docs/CODE_AUDIT.md) ·
 listing copy [`docs/description.html`](docs/description.html) ·
-[`docs/RAIDCORE.md`](docs/RAIDCORE.md) · [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
+[`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
-## What’s new (2.0.0.21)
+Local (gitignored) listing drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`.
+
+## What’s new (2.0.1.0)
+
+**2.0.1.0** — release cut
+- Ships the 2.0.0.x line as a stable release: GW2.app under Tools, ads allowed, Snow Crows removed (MetaBattle / Accessibility Wars), Windows first-paint fix, YouTube Watch cards, input/leak fixes
+- Architecture + code-audit docs; helper/homepage stamps `2010`
 
 **2.0.0.21**
 - Browse → Tools → **GW2.app** subsection (lists, database, maps, Wizard’s Vault, trading post, sign-in)

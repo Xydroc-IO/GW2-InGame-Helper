@@ -1,6 +1,6 @@
 # Code audit — GW2 In-Game Helper
 
-**Audit revision:** 2.0.0.21  
+**Audit revision:** 2.0.1.0  
 **Date:** 2026-07-27  
 **Scope:** Full tree under `src/`, helper, IPC, present/input paths, Sites/Browse, compliance surface  
 **Method:** Source review (not a runtime pen-test). Re-run after large CEF / present / input changes.
@@ -57,7 +57,7 @@ Companion: [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`COMPLIANCE.md`](COMPLIANCE.
 
 ### 3.1 `entry.cpp` — Nexus surface
 
-- Registers `GetAddonDef` (name, author, description, **2.0.0.21**, signature `HELP`).
+- Registers `GetAddonDef` (name, author, description, **2.0.1.0**, signature `HELP`).
 - `AF_DisableHotloading` set.
 - WndProc: routes keys to CEF or ImGui; blocks game input when UI flags say so; swallows toggle chord.
 - Unload: request helper stop, join launch thread, shutdown WikiBrowser / settings.
@@ -97,7 +97,7 @@ Companion: [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`COMPLIANCE.md`](COMPLIANCE.
 
 ### 3.6 Settings / tabs / homepage
 
-- Debounced `settings.ini`; tab restore; homepage stamp `221`; helper stamp `21`.
+- Debounced `settings.ini`; tab restore; homepage stamp `2010`; helper stamp `2010`.
 - Cheat sheets / raid food written as versioned HTML under addon dir.
 
 ---
@@ -122,8 +122,8 @@ Out of scope: protecting users from ads they choose to view, or making NitroPay 
 
 - [ ] `make -j$(nproc)` → single DLL with embedded helper
 - [ ] `make validate-sites` OK after Sites/UI Browse edits
-- [ ] Stamps: Revision **21**, helper `.ver` **21**, homepage **221**
-- [ ] Docs version strings agree (`README`, `RELEASE_NOTES`, `RAIDCORE`, `DISCORD`, `description.html`)
+- [ ] Stamps: Version **2.0.1.0**, helper `.ver` **2010**, homepage **2010**
+- [ ] Docs version strings agree (`README`, `RELEASE_NOTES`, `description.html`; local `RAIDCORE` / `DISCORD` if you keep them)
 
 ### Process / IPC
 
@@ -183,6 +183,7 @@ Out of scope: protecting users from ads they choose to view, or making NitroPay 
 
 | Date | Rev | Notes |
 |------|-----|--------|
+| 2026-07-27 | 2.0.1.0 | Release cut; stamps `2010`; docs already filed under 2.0.0.21 audit |
 | 2026-07-27 | 2.0.0.21 | Full written audit: staging present, ads on, SC removed, GW2.app under Tools |
 | (prior) | 2.0.0.x | Informal RT_Render / YouTube / input audits in chat; not previously filed as `CODE_AUDIT.md` |
 
