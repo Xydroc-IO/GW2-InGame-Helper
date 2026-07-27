@@ -1,5 +1,8 @@
 # Raidcore / Nexus listing notes
 
+Full project docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) ·
+[`CODE_AUDIT.md`](CODE_AUDIT.md) · [`COMPLIANCE.md`](COMPLIANCE.md)
+
 ## Short description
 
 ```text
