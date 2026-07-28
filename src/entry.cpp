@@ -166,8 +166,47 @@ static bool ClientCursor(HWND hwnd, int* outX, int* outY)
 	return true;
 }
 
+/* Key routing: who ate KEYDOWN so KEYUP goes to the same place. */
+enum : uint8_t { kKeyNone = 0, kKeyBrowser = 1, kKeyImGui = 2, kKeyGame = 3 };
+static uint8_t sAteKeyDest[256]{};
+static HWND sGameHwnd = nullptr;
+
+static LPARAM MakeKeyUpLParam(UINT vk)
+{
+	const UINT sc = MapVirtualKeyW(vk, MAPVK_VK_TO_VSC);
+	/* repeat=1, scan, prev-down=1, up=1 */
+	return static_cast<LPARAM>(1u | ((sc & 0xffu) << 16) | (1u << 30) | (1u << 31));
+}
+
+void UI_ReleaseHeldGameKeys()
+{
+	if (!G::API || !G::API->WndProc_SendToGameOnly || !sGameHwnd)
+		return;
+
+	for (int vk = 1; vk < 256; ++vk)
+	{
+		if (sAteKeyDest[vk] == kKeyBrowser || sAteKeyDest[vk] == kKeyImGui)
+			continue;
+
+		const bool markedGame = sAteKeyDest[vk] == kKeyGame;
+		const bool held = (GetAsyncKeyState(vk) & 0x8000) != 0;
+		if (!markedGame && !held)
+			continue;
+
+		/* Skip mouse button VKs — movement stick is keyboard. */
+		if (vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON ||
+			vk == VK_XBUTTON1 || vk == VK_XBUTTON2)
+			continue;
+
+		G::API->WndProc_SendToGameOnly(
+			sGameHwnd, WM_KEYUP, static_cast<WPARAM>(vk), MakeKeyUpLParam(static_cast<UINT>(vk)));
+		sAteKeyDest[vk] = kKeyNone;
+	}
+}
+
 static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
+	sGameHwnd = hwnd;
 	UpdateHotkeySwallow();
 
 	if (IsKeyMsg(msg))
@@ -185,9 +224,26 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	}
 
 	/* Mouse: Addon WndProcs run BEFORE Nexus UiInput (see Nexus Hooks.cpp).
-	   Returning 0 here skips ImGui MouseDown/MousePos updates → can't drag.
-	   Mirror UiInput: feed ImGui on button-down when over us, eat the down;
-	   always pass MOVE/UP so UiInput can track position and releases. */
+	   Returning 0 without feeding ImGui skips MousePos → can't drag.
+	   Eat MOVE when over the helper (after setting MousePos) so GW2 camera
+	   look does not spin while the cursor is on the overlay. */
+	if (msg == WM_MOUSEMOVE)
+	{
+		int cx = 0, cy = 0;
+		const bool haveCursor = ClientCursor(hwnd, &cx, &cy);
+		const bool overWiki = haveCursor && UI_IsPointerOverWiki(cx, cy);
+		if (overWiki || UI_BlocksGameMouse())
+		{
+			if (haveCursor)
+			{
+				ImGuiIO& io = ImGui::GetIO();
+				io.MousePos = ImVec2(static_cast<float>(cx), static_cast<float>(cy));
+			}
+			return 0; /* block game camera look */
+		}
+		return 1;
+	}
+
 	const bool mouseDown =
 		msg == WM_LBUTTONDOWN || msg == WM_RBUTTONDOWN || msg == WM_MBUTTONDOWN ||
 		msg == WM_LBUTTONDBLCLK || msg == WM_RBUTTONDBLCLK || msg == WM_MBUTTONDBLCLK ||
@@ -209,6 +265,12 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 		if (blockNow && mouseDown)
 		{
+			/* Flush WASD only on left-click into the helper (starting to use it).
+			   Do NOT flush on hover or RMB — after camera-look the cursor often
+			   reappears over the overlay and that used to KEYUP all movement. */
+			if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK)
+				UI_ReleaseHeldGameKeys();
+
 			ImGuiIO& io = ImGui::GetIO();
 			int button = 0;
 			if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK) button = 0;
@@ -217,6 +279,8 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			else if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK)
 				button = (GET_XBUTTON_WPARAM(wp) == XBUTTON1) ? 3 : 4;
 			io.MouseDown[button] = true;
+			if (haveCursor)
+				io.MousePos = ImVec2(static_cast<float>(cx), static_cast<float>(cy));
 			return 0; /* block game skill/camera; ImGui already has the press */
 		}
 
@@ -246,17 +310,109 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	}
 
 	const bool blockKeys = UI_BlocksGameKeyboard();
-	/* Keys we ate on KEYDOWN must also eat KEYUP even if focus flipped mid-press
-	   (otherwise GW2 can see a lonely down or up and stick autorun / movement).
-	   Dest tracks who got the down so keyup is routed to the same sink. */
-	enum : uint8_t { kKeyNone = 0, kKeyBrowser = 1, kKeyImGui = 2 };
-	static uint8_t sAteKeyDest[256]{};
+	/* Keys we ate on KEYDOWN must also eat KEYUP even if focus flipped mid-press.
+	   kKeyGame marks holds that went to GW2 — on helper hover we flush KEYUPs via
+	   WndProc_SendToGameOnly so WASD does not stick. */
 
 	if (IsKeyMsg(msg))
 	{
 		const UINT vk = static_cast<UINT>(wp);
 		const bool vkOk = vk < 256;
 		const uint8_t pending = vkOk ? sAteKeyDest[vk] : static_cast<uint8_t>(kKeyNone);
+		const bool down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN;
+		const bool up = msg == WM_KEYUP || msg == WM_SYSKEYUP;
+		/* lParam bit 30: key was already down (auto-repeat / held before we blocked). */
+		const bool wasAlreadyDown = (static_cast<ULONG_PTR>(lp) & (1ull << 30)) != 0;
+
+		auto sendKeyUpToGame = [&](UINT key) {
+			if (G::API && G::API->WndProc_SendToGameOnly && sGameHwnd)
+				G::API->WndProc_SendToGameOnly(sGameHwnd, WM_KEYUP, key, MakeKeyUpLParam(key));
+		};
+
+		auto passKeyToGame = [&]() -> UINT {
+			ImGuiIO& io = ImGui::GetIO();
+			io.WantCaptureKeyboard = false;
+			ImGui::CaptureKeyboardFromApp(false);
+			if (down && vkOk)
+				sAteKeyDest[vk] = kKeyGame;
+			if (up && vkOk)
+				sAteKeyDest[vk] = kKeyNone;
+			return 1;
+		};
+
+		/* CEF page owns typing — but game-owned holds must release to GW2, not CEF. */
+		if (UI_BrowserKeyboardActive())
+		{
+			if (ModsCtrlShiftNoAlt() && IsToggleVk(wp))
+			{
+				BeginHotkeySwallow();
+				if (vkOk)
+					sAteKeyDest[vk] = kKeyNone;
+				return 0;
+			}
+
+			const unsigned mods = CefModsFromWin();
+			const int native = static_cast<int>(lp);
+			const bool sys = (msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP || msg == WM_SYSCHAR);
+			const bool gameOwned = pending == kKeyGame ||
+				(pending == kKeyNone && (wasAlreadyDown || up));
+
+			if (gameOwned && (down || up))
+			{
+				/* Stop stuck run: force KEYUP to game, do not feed movement into CEF. */
+				if (vkOk)
+				{
+					sendKeyUpToGame(vk);
+					sAteKeyDest[vk] = kKeyNone;
+				}
+				return 0;
+			}
+
+			switch (msg)
+			{
+			case WM_KEYDOWN:
+			case WM_SYSKEYDOWN:
+				WikiBrowser::FeedKey(0, static_cast<int>(wp), mods, 0, native, sys);
+				{
+					BYTE state[256];
+					if (GetKeyboardState(state))
+					{
+						WCHAR chars[8]{};
+						const UINT sc = (static_cast<UINT>(lp) >> 16) & 0xffu;
+						const int n = ToUnicode(static_cast<UINT>(wp), sc, state, chars, 8, 0);
+						if (n > 0)
+						{
+							for (int i = 0; i < n; ++i)
+							{
+								const unsigned ch = static_cast<unsigned>(chars[i]);
+								if (ch >= 32 || ch == 8 || ch == 9 || ch == 13)
+									WikiBrowser::FeedKey(3, static_cast<int>(ch), mods, ch, native, sys);
+							}
+						}
+					}
+				}
+				if (vkOk)
+					sAteKeyDest[vk] = kKeyBrowser;
+				break;
+			case WM_KEYUP:
+			case WM_SYSKEYUP:
+				WikiBrowser::FeedKey(2, static_cast<int>(wp), mods, 0, native, sys);
+				if (vkOk)
+					sAteKeyDest[vk] = kKeyNone;
+				break;
+			default:
+				break;
+			}
+			return 0;
+		}
+
+		/* Game still owns this key — never swallow the release. */
+		if (up && (pending == kKeyNone || pending == kKeyGame))
+			return passKeyToGame();
+
+		/* Holding W, then hover chrome (not page): auto-repeat must not be stolen. */
+		if (down && (pending == kKeyNone || pending == kKeyGame) && wasAlreadyDown)
+			return passKeyToGame();
 
 		if (blockKeys || pending != kKeyNone)
 		{
@@ -271,12 +427,10 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			const unsigned mods = CefModsFromWin();
 			const int native = static_cast<int>(lp);
 			const bool sys = (msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP || msg == WM_SYSCHAR);
-			const bool down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN;
-			const bool up = msg == WM_KEYUP || msg == WM_SYSKEYUP;
 
 			/* Prefer the sink that received KEYDOWN; on a fresh down use current focus. */
 			const bool toBrowser = (pending == kKeyBrowser) ||
-				(pending == kKeyNone && UI_BrowserKeyboardActive());
+				(pending == kKeyNone && down && UI_BrowserKeyboardActive());
 
 			if (toBrowser)
 			{
@@ -323,8 +477,6 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 				default:
 					break;
 				}
-				(void)down;
-				(void)up;
 				return 0;
 			}
 
@@ -375,11 +527,16 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			}
 			return 0;
 		}
+
+		/* Key goes to the game — remember so hover can flush KEYUP. */
+		if (down && vkOk)
+			sAteKeyDest[vk] = kKeyGame;
+		if (up && vkOk)
+			sAteKeyDest[vk] = kKeyNone;
 	}
 
 	return 1;
 }
-
 static void AddonLoad(AddonAPI_t* api)
 {
 	G::API = api;

@@ -28,6 +28,7 @@ namespace
 	}
 
 	bool gBrowserFocused = false;
+	bool gOverBrowserPage = false; /* pointer over OSR page — keys belong to CEF */
 	bool gBlockGameKeyboard = false;
 	bool gBlockGameMouse = false;
 	bool gWikiRectValid = false;
@@ -125,9 +126,10 @@ namespace
 
 	void BlurBrowser()
 	{
-		if (!gBrowserFocused)
+		if (!gBrowserFocused && !gOverBrowserPage)
 			return;
 		gBrowserFocused = false;
+		gOverBrowserPage = false;
 		gBlockGameKeyboard = false;
 		WikiBrowser::FeedFocus(false);
 	}
@@ -2498,7 +2500,7 @@ bool UI_BlocksGameKeyboard()
 /* True while keystrokes should go to the CEF page (not ImGui chrome). */
 bool UI_BrowserKeyboardActive()
 {
-	return G::ShowWiki && gBrowserFocused;
+	return G::ShowWiki && (gBrowserFocused || gOverBrowserPage);
 }
 
 void UI_ParseBrowseOpen(const char* val)
@@ -2576,6 +2578,7 @@ void UI_Render()
 
 	gBlockGameKeyboard = false;
 	gBlockGameMouse = false;
+	gOverBrowserPage = false;
 	gWikiRectValid = false;
 
 	if (gPendingDefocus)
@@ -2639,10 +2642,16 @@ void UI_Render()
 		const bool mouseOver =
 			ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 		gBlockGameMouse = mouseOver;
+		gBlockGameKeyboard = mouseOver || ImGui::GetIO().WantTextInput;
 		if (mouseOver)
 		{
 			ImGui::GetIO().WantCaptureMouse = true;
 			ImGui::CaptureMouseFromApp(true);
+		}
+		if (gBlockGameKeyboard)
+		{
+			ImGui::GetIO().WantCaptureKeyboard = true;
+			ImGui::CaptureKeyboardFromApp(true);
 		}
 		ImGui::End();
 		ImGui::PopStyleVar();
@@ -2825,6 +2834,10 @@ void UI_Render()
 
 		if (overPage)
 		{
+			/* MediaWiki search / inputs need CEF focus without relying on click
+			   alone — keep focus while the pointer is on the page. */
+			FocusBrowser();
+
 			const ImVec2 mouse = io.MousePos;
 			const float localX = mouse.x - cursor.x;
 			const float localY = mouse.y - cursor.y;
@@ -2900,11 +2913,24 @@ void UI_Render()
 	const bool mouseOverWiki = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 
+	gOverBrowserPage = overPage;
 	gBlockGameMouse = G::ShowWiki && (overPage || mouseOverWiki);
-	/* Block game keys while typing in ImGui (Browse filter / Search / Find) OR
-	   while the CEF page is focused. WantTextInput alone used to be ignored —
-	   typing "r" leaked to GW2 autorun and could not be cancelled. */
-	gBlockGameKeyboard = G::ShowWiki && (gBrowserFocused || io.WantTextInput);
+	/* Block game keys while using the helper. Nexus UiInput only eats KEYDOWN when
+	   WantTextInput — force that flag while the CEF page owns the keyboard so wiki
+	   search typing cannot reach GW2 even if a key slips past our WndProc. */
+	const bool wikiFocused = ImGui::IsWindowFocused(
+		ImGuiFocusedFlags_RootAndChildWindows);
+	const bool pageKeys = gBrowserFocused || gOverBrowserPage;
+	gBlockGameKeyboard = G::ShowWiki &&
+		(pageKeys || io.WantTextInput || gBlockGameMouse || wikiFocused);
+
+	if (pageKeys)
+	{
+		/* Belt-and-suspenders: Nexus CUiInput returns 0 on KEYDOWN iff WantTextInput. */
+		io.WantTextInput = true;
+		io.WantCaptureKeyboard = true;
+		ImGui::CaptureKeyboardFromApp(true);
+	}
 
 	if (gBlockGameMouse)
 	{

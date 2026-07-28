@@ -117,88 +117,12 @@ Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUD
 
 ## What’s new (2.0.1.0)
 
-**2.0.1.0** — release cut
-- Ships the 2.0.0.x line as a stable release: GW2.app under Tools, ads allowed, Snow Crows removed (MetaBattle / Accessibility Wars), Windows first-paint fix, YouTube Watch cards, input/leak fixes
-- Architecture + code-audit docs; helper/homepage stamps `2010`
+- Stable cut of the 2.0.0.x line for Nexus / GitHub distribution
+- **Browse:** GW2.app under Tools; MetaBattle / Guildjen / Accessibility Wars (Snow Crows removed at their request); site ads allowed
+- **Reliability:** Windows first-paint stall fixed; YouTube embeds → Watch cards; Browse/Search/Find keys no longer leak to GW2
+- **Docs:** Architecture docs and documentation index; helper/homepage stamps `2010` (fully restart GW2 after updating)
 
-**2.0.0.21**
-- Browse → Tools → **GW2.app** subsection (lists, database, maps, Wizard’s Vault, trading post, sign-in)
-- Helper: CSS downlevel + login tip for gw2.app (use Open Ext if OAuth fails)
-
-**2.0.0.20**
-- Allow ads on all sites (NitroPay / AdSense / analytics no longer blocked)
-- Remove Snow Crows (at their request) — MetaBattle raid builds + wing guides; Accessibility Wars kept; SC Discord invite removed
-- Staging GPU present path + paint-wait diagnostics for Windows first-paint stalls
-
-**2.0.0.19**
-- Fix Windows users stuck on “Waiting for first paint…” while status says Ready (blocking first GPU Map; was_resized kick after load)
-- Note: Windows Defender may ML-flag the unsigned MinGW DLL as `Wacatac.B!ml` — false positive; allow the file or submit to Microsoft
-
-**2.0.0.18**
-- Force YouTube embeds off guides: rewrite Guildjen HTML to Watch cards before the player loads, block youtube/googlevideo subframes, and re-extract the helper on stamp mismatch (old helper could keep refreshing)
-
-**2.0.0.17**
-- Stop embedded YouTube from refreshing guides: replace in-page players with a “Watch on YouTube” card that opens the system browser
-
-**2.0.0.16**
-- Fix guide pages refreshing when an embedded YouTube video starts playing (block CDN / watch-page top-level navigations; soften Guildjen embeds)
-
-**2.0.0.15**
-- Fix typing in Browse filter / Search / Find leaking keys to GW2 (e.g. `R` starting autorun that could not be cancelled)
-
-**2.0.0.14**
-- Remove YouTube: GW2's CEF 103 OSR cannot play it reliably and repeatedly refreshed
-- Restore the proven software-only CEF path (`--disable-gpu`) for Wine/Proton stability
-
-**2.0.0.13**
-- YouTube Play popup hardening (superseded by removal in 2.0.0.14)
-
-**2.0.0.12**
-- Fix Builds → Raids showing (10) with an empty body (Guides nesting was applied by mistake)
-- YouTube playback experiment (superseded by removal in 2.0.0.14)
-
-**2.0.0.11**
-- Fix Browse sections expanding to a blank body (ListClipper row-height under nested headers)
-
-**2.0.0.10**
-- Fix game freeze on exit — unload now joins the helper-launch worker before unmapping IPC
-- Helper exits with GW2 (host-process watchdog) so a hard crash can't orphan it
-
-**2.0.0.9**
-- Search → Video-On-Demand: YouTube (browse/search in-helper; Open Ext if playback fails)
-
-**2.0.0.8**
-- Fix window drag (2.0.0.7 ate mouse-move before Nexus ImGui); keep click-through blocked
-
-**2.0.0.7**
-- Fix click-through: WndProc eats mouse over the overlay (skills/camera no longer fire through the window)
-
-**2.0.0.6**
-- Smoother in-page scrolling (no staging lag while wheel/input active; trackpad delta accumulation)
-
-**2.0.0.5**
-- Fix black browser panel stuck on “Waiting for first paint…” (first GPU upload must `WRITE_DISCARD`)
-
-**2.0.0.4**
-- Full audit: worker-thread helper launch; quit/reopen without RT Terminate; staging GPU present; Browse Raids/Achievements/favorites caches; BootJs single-flight API; CssProxy unlinked; compliance docs
-
-**2.0.0.3**
-- Audit: defer helper launch off the render thread; split large GPU frame uploads; cache Browse filter / Food / Minis; serialize GW2 API armory fetches with 429 backoff
-- Wiki Browse: Legendary Armory section (armor, weapons, trinkets, back items, legendary upgrades)
-
-**2.0.0.2**
-- Keep-warm close no longer wakes CEF every frame; Options default-site no longer force-saves on the UI thread
-
-**2.0.0.1**
-- Browse picker smaller on 1080p; anchored dropdown under Browse / + (not a movable window)
-
-**2.0.0.0**
-- IPC v5: PID-scoped shared memory (multi-client safe)
-- Graceful helper quit across frames (no instant Terminate on RT_Render)
-- No force `settings.ini` write on overlay close; URL warm never blocks the render thread
-- Dirty-rect GPU present path; Browse/window sizing polish from 1.7.8.53
-
-Prior 1.7.8.x audit notes remain in the release notes history.
+Full history: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
 
 ## Features
 
