@@ -1,6 +1,6 @@
 # Architecture — GW2 In-Game Helper
 
-**Current addon revision:** `2.0.1.0` · **IPC:** `HLI5` (v5) · **CEF:** Guild Wars 2 `bin64/cef` (103)
+**Current addon revision:** `2.0.1.1` · **IPC:** `HLI5` (v5) · **CEF:** Guild Wars 2 `bin64/cef` (103)
 
 This document describes how the pieces fit together. Local `CODE_AUDIT.md` *(gitignored)* holds risks and a review checklist when you keep one. For Nexus listing constraints see [`COMPLIANCE.md`](COMPLIANCE.md).
 
@@ -32,7 +32,7 @@ Guild Wars 2.exe
 ### Embedding and extract
 
 1. **Build:** helper is compiled, copied to `build/helper_blob.exe`, linked into the DLL as a binary blob (`_binary_build_helper_blob_exe_*`).
-2. **Runtime:** `WikiBrowser::ExtractHelper()` writes `addons/GW2-InGame-Helper/GW2HelperBrowser.exe` plus a sibling `.ver` stamp (`kHelperStamp`, currently `"2010"`).
+2. **Runtime:** `WikiBrowser::ExtractHelper()` writes `addons/GW2-InGame-Helper/GW2HelperBrowser.exe` plus a sibling `.ver` stamp (`kHelperStamp`, currently `"2011"`).
 3. **Reuse:** skip rewrite when file size matches the blob **and** `.ver` matches the stamp (forces re-extract after helper code changes).
 4. **Launch:** deferred off `RT_Render` via a worker thread (`TickLaunchPending` → `StartHelper`). Args include `--cef-dir=...` and `--host-pid=<GW2 PID>`.
 
@@ -188,9 +188,9 @@ Browse entries are **labeled hyperlinks**: `SiteDef { id, category, label, title
 |------|----------|
 | Settings | `addons/GW2-InGame-Helper/settings.ini` (debounced save) |
 | Tabs | Up to 8; pin; closed-tab stack; URL/title from IPC |
-| Addon version | `src/entry.cpp` → `G::AddonDef.Version` (`2.0.1.0`) |
-| Helper extract stamp | `WikiBrowser.cpp` → `kHelperStamp` (`"2010"`) |
-| Homepage cache stamp | `HomePage.cpp` → `kHomePageVersion` (`"2010"`) |
+| Addon version | `src/entry.cpp` → `G::AddonDef.Version` (`2.0.1.1`) |
+| Helper extract stamp | `WikiBrowser.cpp` → `kHelperStamp` (`"2011"`) |
+| Homepage cache stamp | `HomePage.cpp` → `kHomePageVersion` (`"2011"`) |
 
 When shipping a release, bump **Version** (Major/Minor/Build/Revision), helper stamp, homepage stamp, and docs together (see `.cursor/rules/no-version-bump.mdc` — only when explicitly asked).
 

@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.1.0
+# GW2 In-Game Helper v2.0.1.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -18,6 +18,15 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 ---
+
+## What’s new in 2.0.1.1
+
+- **Input:** Typing in on-page wiki search no longer drives the character / skills
+- **Input:** Game-owned key-ups stay paired (no stuck WASD); hovering after RMB
+  camera look no longer flushes movement keys when the cursor lands on the overlay
+- **Input:** Left-click into the helper can still release held game keys so autorun
+  does not stick when you start using the UI
+- **Stamps:** Helper / homepage `2011`
 
 ## What’s new in 2.0.1.0
 

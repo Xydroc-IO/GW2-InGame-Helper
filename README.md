@@ -8,7 +8,7 @@ A Raidcore Nexus addon that opens useful Guild Wars 2 websites and community
 Discords inside the game. One DLL — pick Wiki, builds, tools, guides, and more
 from an in-game browser. No memory reads; uses Nexus APIs and the game’s built-in CEF.
 
-**Version:** `2.0.1.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.1.1` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`. That’s it.
 Runtime files (helper, homepage, settings) extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -115,12 +115,11 @@ listing copy [`docs/description.html`](docs/description.html) ·
 
 Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
 
-## What’s new (2.0.1.0)
+## What’s new (2.0.1.1)
 
-- Stable cut of the 2.0.0.x line for Nexus / GitHub distribution
-- **Browse:** GW2.app under Tools; MetaBattle / Guildjen / Accessibility Wars (Snow Crows removed at their request); site ads allowed
-- **Reliability:** Windows first-paint stall fixed; YouTube embeds → Watch cards; Browse/Search/Find keys no longer leak to GW2
-- **Docs:** Architecture docs and documentation index; helper/homepage stamps `2010` (fully restart GW2 after updating)
+- **Input:** Wiki page typing (e.g. MediaWiki search) no longer leaks keys to GW2
+- **Input:** Holding WASD then using the helper no longer sticks movement; RMB camera look no longer kills walk when the cursor reappears on the overlay
+- Helper/homepage stamps `2011` (fully restart GW2 after updating)
 
 Full history: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
 

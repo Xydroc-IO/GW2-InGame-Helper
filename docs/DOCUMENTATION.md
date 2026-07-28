@@ -1,6 +1,6 @@
 # Documentation index
 
-GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.1.0**.
+GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.1.1**.
 
 ---
 
