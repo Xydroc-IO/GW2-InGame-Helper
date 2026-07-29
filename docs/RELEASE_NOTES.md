@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.1
+# GW2 In-Game Helper v2.0.2.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -30,23 +30,12 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
-## What’s new in 2.0.2.1
-
-- **Input:** With the helper open, GW2 chat works when the cursor is on the game
-  (including **Space**). Keys are only stolen while the pointer is over the helper
-- **Close:** Stale CEF/ImGui key ownership is cleared on hide so chat/WASD work after close
-- **Browse:** Site-picker / toolbar popups no longer dismiss when the cursor moves onto them
-- **Find:** Toolbar field **Enter** runs find-in-page; **Web** runs site/Google search
-- **Focus:** CEF editable caret shows again when clicking/typing in page fields
-- **Stamps:** Helper `2038` · homepage `2013`
-
 ## What’s new in 2.0.2.0
 
 - **Runtime:** Private CEF **150.0.14** / Chromium **150.0.7871.129** under
   `addons/GW2-InGame-Helper/cef/` (SHA-256 verify + extract). Never uses or writes
   game `bin64/cef`
 - **Product:** Former Beta channel is now the shipping addon (`GW2-InGame-Helper.dll`)
-- **Catalog:** No Snow Crows Browse links (test hub / login removed for release)
 - **Sites:** Modern CSS/JS via CEF 150; Discord **Continue to Discord** handoff;
   in-page `<select>` polyfill; header chrome above NitroPay when needed
 - **Input:** CEF 150 key events set `cef_key_event_t.size` (typing works); same Nexus
