@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.0.2.1** — see [`ARCHITECTURE.md`](ARCHITECTURE.md).
+Current policy snapshot: **v2.0.2.2** — see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Allowed
 

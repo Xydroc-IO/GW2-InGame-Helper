@@ -146,8 +146,9 @@ struct WikiIpcState
 	WikiCmdEvent cmd_q[kWikiCmdQueueSize];
 
 	/* Helper → DLL: open URL in the system browser (Wine ShellExecute from
-	   the CEF process often fails; the game process handles it reliably). */
+	   the CEF process often fails; the game process handles it reliably).
+	   Ad click trackers (doubleclick /pcs/click?xai=…) routinely exceed 2 KB. */
 	uint32_t open_ext_seq;
-	char     open_ext_url[2048];
+	char     open_ext_url[8192];
 };
 #pragma pack(pop)

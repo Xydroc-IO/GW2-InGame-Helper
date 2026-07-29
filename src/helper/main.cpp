@@ -778,6 +778,13 @@ namespace
 		/* Prefer DLL-side ShellExecute (Proton/Wine: helper process often no-ops). */
 		if (gIpc)
 		{
+			/* Half a click tracker opens a blank error page, which reads as "ads are
+			   broken" — refuse the handoff instead of sending a truncated URL. */
+			if (url.size() >= sizeof(gIpc->open_ext_url))
+			{
+				SetStatus("Link too long to open externally");
+				return;
+			}
 			std::snprintf(gIpc->open_ext_url, sizeof(gIpc->open_ext_url), "%s", url.c_str());
 			MemoryBarrier();
 			++gIpc->open_ext_seq;
@@ -896,8 +903,16 @@ namespace
 			return 1;
 
 		const bool fromMain = frame && frame->is_main && frame->is_main(frame);
-		if (user_gesture && fromMain && IsPromotablePopupUrl(url))
-			NavigateTo(url.c_str());
+		if (user_gesture && IsPromotablePopupUrl(url))
+		{
+			/* Ad creatives are cross-origin iframes opening target=_blank, so the
+			   click arrives from a subframe and used to be canceled with no action.
+			   Hand those to the system browser; the guide tab keeps its page. */
+			if (fromMain)
+				NavigateTo(url.c_str());
+			else
+				OpenExternalUrl(url);
+		}
 		return 1;
 	}
 
@@ -943,9 +958,14 @@ namespace
 
 	int CEF_CALLBACK OnOpenUrlFromTab(
 		cef_request_handler_t*, cef_browser_t*, cef_frame_t*,
-		const cef_string_t* target_url, cef_window_open_disposition_t, int)
+		const cef_string_t* target_url, cef_window_open_disposition_t, int user_gesture)
 	{
-		(void)target_url;
+		if (target_url && user_gesture)
+		{
+			const std::string url = CefStringToUtf8(target_url);
+			if (IsPromotablePopupUrl(url))
+				OpenExternalUrl(url);
+		}
 		return 1; /* no new tabs in OSR */
 	}
 

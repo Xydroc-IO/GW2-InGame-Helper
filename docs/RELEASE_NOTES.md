@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.1
+# GW2 In-Game Helper v2.0.2.2
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,16 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.2
+
+- **Ads:** Open-Ext URL buffer enlarged (2 KB → 8 KB) so long DoubleClick /
+  NitroPay click trackers are not truncated mid-query (that produced a blank page)
+- **Ads:** Ad iframe `target=_blank` / popup clicks open in the system browser
+  instead of being canceled; main-frame link clicks still navigate in-tab
+- **Safety:** Refuse external open when a URL still exceeds the buffer (status tip)
+  rather than ShellExecute of a half URL
+- **Stamps:** Helper `2039` · homepage `2014`
 
 ## What’s new in 2.0.2.1
 
