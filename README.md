@@ -133,7 +133,6 @@ Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUD
 ## What’s new in 2.0.2.0
 
 - **Runtime:** Private CEF Stable 150 under `addons/GW2-InGame-Helper/cef/` (first-run download or local zip) — never uses or writes `bin64/cef`
-- **Catalog:** No Snow Crows Browse links
 - **Sites:** Modern CSS/JS via CEF 150; Discord **Continue to Discord** handoff; in-page `<select>` polyfill
 - **Limits:** MetaBattle Cloudflare / Google login often still need **Open Ext**
 - Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
