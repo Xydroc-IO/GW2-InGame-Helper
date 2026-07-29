@@ -30,6 +30,7 @@ compile_commands.json
 *.ipdb
 
 # Editor / IDE
+.cursor/
 .vscode/
 .idea/
 *.user
