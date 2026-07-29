@@ -12,11 +12,13 @@ Guild Wars 2 `bin64/cef`.
 This tree is a sibling of the stable project (`GW2-InGame-Helper`). Do not mix
 DLLs or data folders.
 
-**Version:** `2.0.1.1` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.1.1-beta` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper-Beta.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
 Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper-Beta/`.
+
+**Beta release notes:** [`docs/RELEASE_NOTES_BETA.md`](docs/RELEASE_NOTES_BETA.md)
 
 | Site | Category |
 |------|----------|
@@ -120,18 +122,21 @@ Works on Windows and on Linux via Wine/Proton.
 Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 architecture [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
 listing copy [`docs/description.html`](docs/description.html) ·
-[`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
-[`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
+**Beta notes** [`docs/RELEASE_NOTES_BETA.md`](docs/RELEASE_NOTES_BETA.md) ·
+stable history [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
+[`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
+[`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md)
 
 Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
 
-## What’s new (2.0.1.1)
+## What’s new (Beta / private CEF 150)
 
-- **Input:** Wiki page typing (e.g. MediaWiki search) no longer leaks keys to GW2
-- **Input:** Holding WASD then using the helper no longer sticks movement; RMB camera look no longer kills walk when the cursor reappears on the overlay
-- Helper/homepage stamps `2011` (fully restart GW2 after updating)
+- **Runtime:** Private CEF Stable 150 under `addons/GW2-InGame-Helper-Beta/cef/` (first-run download or local zip) — never uses or writes `bin64/cef`
+- **Sites:** Better modern CSS/JS (Snow Crows); Discord **Continue to Discord** handoff; in-page `<select>` for region/settings; header above NitroPay
+- **Limits:** MetaBattle Cloudflare / Google login often still need **Open Ext**
+- Full write-up: [`docs/RELEASE_NOTES_BETA.md`](docs/RELEASE_NOTES_BETA.md)
 
-Full history: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
+Stable line history: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
 
 ## Features
 

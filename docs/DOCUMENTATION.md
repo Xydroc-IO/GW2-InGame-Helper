@@ -1,6 +1,10 @@
 # Documentation index
 
-GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.1.1**.
+GW2 In-Game Helper — where to find what.
+
+- **Stable shipping revision:** **2.0.1.1** (`GW2-InGame-Helper.dll`, game `bin64/cef`)
+- **Beta channel:** **2.0.1.1-beta** (`GW2-InGame-Helper-Beta.dll`, private CEF 150) —
+  see [`RELEASE_NOTES_BETA.md`](RELEASE_NOTES_BETA.md)
 
 ---
 
@@ -13,6 +17,7 @@ GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.1.1*
 | `CODE_AUDIT.md` *(gitignored)* | Local audit notes — findings, risks, regression checklist |
 | [`COMPLIANCE.md`](COMPLIANCE.md) | Contributors | Allowed / forbidden Nexus and TOS boundaries |
 | [`SNOWCROWS.md`](SNOWCROWS.md) | External (Snow Crows) | Brief for site owners — what the addon is / is not |
+| [`CEF_RUNTIME.md`](CEF_RUNTIME.md) | Contributors / Beta | Private CEF 150 first-run download, zip, SHA |
 | [`BUILD.md`](BUILD.md) | Contributors | MinGW cross-compile, `make install`, cheat-sheet extract |
 
 ---
@@ -21,7 +26,8 @@ GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.1.1*
 
 | Doc | Purpose |
 |-----|---------|
-| [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | Full changelog |
+| [`RELEASE_NOTES_BETA.md`](RELEASE_NOTES_BETA.md) | **Beta** private-CEF channel notes |
+| [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | Stable full changelog |
 | [`description.html`](description.html) | HTML listing for web / Nexus description paste |
 | `RAIDCORE.md` *(gitignored)* | Local Nexus listing draft — short description + changelog |
 | `DISCORD.md` / `DISCORD_*.md` *(gitignored)* | Local Discord announcement drafts |
