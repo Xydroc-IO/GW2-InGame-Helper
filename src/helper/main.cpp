@@ -1,7 +1,6 @@
-/* GW2HelperBrowser.exe — windowless CEF helper using Guild Wars 2's
-   bin64/cef/libcef.dll. Paints BGRA frames into shared memory for the addon.
-   Rewrites Tailwind v4 CSS (oklch / color-mix) so Chromium 103 can render
-   modern site CSS. */
+/* GW2HelperBrowser.exe — windowless CEF helper using private CEF 150 under
+   addons/GW2-InGame-Helper-Beta/cef/libcef.dll. Paints BGRA frames into shared
+   memory for the addon. CSS downlevel is gated off (native oklch / color-mix). */
 
 #include <windows.h>
 #include <shellapi.h>
@@ -12,12 +11,14 @@
 #include <cwchar>
 #include <new>
 #include <string>
+#include <vector>
 
 #include "BootJs.h"
 #include "CssCompat.h"
 #include "CssProxy.h"
 #include "WikiIpc.h"
 
+#include "include/cef_api_hash.h"
 #include "include/capi/cef_app_capi.h"
 #include "include/capi/cef_browser_capi.h"
 #include "include/capi/cef_callback_capi.h"
@@ -46,9 +47,10 @@ namespace
 		const cef_browser_settings_t*, cef_dictionary_value_t*, cef_request_context_t*);
 	using Fn_cef_string_from_utf8 = int (*)(const char*, size_t, cef_string_utf16_t*);
 	using Fn_cef_string_clear = void (*)(cef_string_t*);
-	using Fn_cef_string_utf16_to_utf8 = int (*)(const char16*, size_t, cef_string_utf8_t*);
+	using Fn_cef_string_utf16_to_utf8 = int (*)(const char16_t*, size_t, cef_string_utf8_t*);
 	using Fn_cef_string_utf8_clear = void (*)(cef_string_utf8_t*);
 	using Fn_cef_string_userfree_free = void (*)(cef_string_userfree_t);
+	using Fn_cef_api_hash = const char* (*)(int version, int entry);
 
 	HMODULE gLib = nullptr;
 	Fn_cef_execute_process g_execute_process = nullptr;
@@ -61,6 +63,7 @@ namespace
 	Fn_cef_string_utf16_to_utf8 g_utf16_to_utf8 = nullptr;
 	Fn_cef_string_utf8_clear g_utf8_clear = nullptr;
 	Fn_cef_string_userfree_free g_userfree_free = nullptr;
+	Fn_cef_api_hash g_api_hash = nullptr;
 
 	WikiIpcState* gIpc = nullptr;
 	HANDLE gMap = nullptr;
@@ -93,6 +96,20 @@ namespace
 	cef_find_handler_t gFind{};
 	cef_request_handler_t gRequest{};
 	cef_resource_request_handler_t gResourceRequest{};
+
+	/* OSR <select> / combobox popup — PET_POPUP must be composited onto the view
+	   or dropdowns are invisible and clicks miss (breaks account Save too). */
+	bool gPopupShow = false;
+	cef_rect_t gPopupRect{};
+	std::vector<uint8_t> gViewCache;
+	std::vector<uint8_t> gPopupCache;
+	int gViewCacheW = 0;
+	int gViewCacheH = 0;
+	int gPopupCacheW = 0;
+	int gPopupCacheH = 0;
+	/* One-shot: ask CEF for the first PET_POPUP after show — never invalidate
+	   from every OnPaint (that lock-loops the helper under Proton). */
+	bool gPopupInvalidateOnce = false;
 
 	cef_browser_t* ActiveBrowser()
 	{
@@ -187,11 +204,21 @@ namespace
 		g_utf16_to_utf8 = reinterpret_cast<Fn_cef_string_utf16_to_utf8>(sym("cef_string_utf16_to_utf8"));
 		g_utf8_clear = reinterpret_cast<Fn_cef_string_utf8_clear>(sym("cef_string_utf8_clear"));
 		g_userfree_free = reinterpret_cast<Fn_cef_string_userfree_free>(sym("cef_string_userfree_utf16_free"));
+		g_api_hash = reinterpret_cast<Fn_cef_api_hash>(sym("cef_api_hash"));
 
 		if (!g_execute_process || !g_initialize || !g_shutdown || !g_do_message_loop_work ||
-			!g_create_browser || !g_string_from_utf8 || !g_string_clear)
+			!g_create_browser || !g_string_from_utf8 || !g_string_clear || !g_api_hash)
 		{
 			SetStatus("libcef.dll missing required exports");
+			return false;
+		}
+
+		/* CEF 133+: must configure API version before execute_process/initialize
+		   or handlers fatal with "invalid version -1". */
+		const char* hash = g_api_hash(CEF_API_VERSION, 0);
+		if (!hash || !hash[0])
+		{
+			SetStatus("cef_api_hash failed");
 			return false;
 		}
 		return true;
@@ -523,8 +550,13 @@ namespace
 		}
 
 		cef_window_info_t info{};
+		info.size = sizeof(info);
 		info.windowless_rendering_enabled = 1;
 		info.shared_texture_enabled = 0;
+		info.external_begin_frame_enabled = 0;
+		/* CEF 150 requires size; parent helps dialogs/monitor info for OSR. */
+		if (gHelperWnd)
+			info.parent_window = gHelperWnd;
 
 		cef_browser_settings_t bset{};
 		bset.size = sizeof(bset);
@@ -727,10 +759,33 @@ namespace
 		   accepted (same chicken-egg as startup). */
 	}
 
+	bool IsDiscordProtocolUrl(const std::string& url)
+	{
+		/* discord://… — Discord desktop app deep link (OAuth handoff). */
+		return url.rfind("discord:", 0) == 0 || url.rfind("Discord:", 0) == 0;
+	}
+
+	bool IsLaunchableExternalUrl(const std::string& url)
+	{
+		return url.rfind("http://", 0) == 0 || url.rfind("https://", 0) == 0 ||
+			IsDiscordProtocolUrl(url);
+	}
+
 	void OpenExternalUrl(const std::string& url)
 	{
-		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
+		if (!IsLaunchableExternalUrl(url))
 			return;
+		/* Prefer DLL-side ShellExecute (Proton/Wine: helper process often no-ops). */
+		if (gIpc)
+		{
+			std::snprintf(gIpc->open_ext_url, sizeof(gIpc->open_ext_url), "%s", url.c_str());
+			MemoryBarrier();
+			++gIpc->open_ext_seq;
+			SetStatus(IsDiscordProtocolUrl(url)
+				? "Opening Discord app…"
+				: "Opened in system browser (Open Ext)");
+			return;
+		}
 		ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 
@@ -755,6 +810,30 @@ namespace
 		return url.find("youtube.com") != std::string::npos ||
 			url.find("youtu.be") != std::string::npos ||
 			url.find("youtube-nocookie.com") != std::string::npos;
+	}
+
+	bool IsGuildjenUrl(const std::string& url)
+	{
+		return url.find("guildjen.com") != std::string::npos;
+	}
+
+	/* Never cancel ad / consent / analytics hosts — ads must load for site partners. */
+	bool IsAdOrConsentUrl(const std::string& url)
+	{
+		auto has = [&](const char* s) {
+			return url.find(s) != std::string::npos;
+		};
+		return has("nitropay.com") || has("s.nitropay.com") ||
+			has("googlesyndication.com") || has("doubleclick.net") ||
+			has("googleadservices.com") || has("pagead2.googlesyndication") ||
+			has("adservice.google") || has("adnxs.com") ||
+			has("amazon-adsystem.com") || has("ads-twitter.com") ||
+			has("facebook.net") || has("connect.facebook") ||
+			has("cookieinformation.com") || has("policy.app.cookieinformation") ||
+			has("consent.cookiebot") || has("onetrust.com") ||
+			has("cookielaw.org") || has("fundingchoicesmessages") ||
+			has("securepubads.g.doubleclick") || has("pagead") ||
+			has("adsystem") || has("advertising");
 	}
 
 	bool IsPromotablePopupUrl(const std::string& url)
@@ -785,9 +864,10 @@ namespace
 	}
 
 	int CEF_CALLBACK OnBeforePopup(
-		cef_life_span_handler_t*, cef_browser_t* browser, cef_frame_t* frame, const cef_string_t* target_url,
-		const cef_string_t*, cef_window_open_disposition_t, int user_gesture, const cef_popup_features_t*,
-		cef_window_info_t*, cef_client_t**, cef_browser_settings_t*, cef_dictionary_value_t**, int*)
+		cef_life_span_handler_t*, cef_browser_t* browser, cef_frame_t* frame, int /*popup_id*/,
+		const cef_string_t* target_url, const cef_string_t*, cef_window_open_disposition_t,
+		int user_gesture, const cef_popup_features_t*, cef_window_info_t*, cef_client_t**,
+		cef_browser_settings_t*, cef_dictionary_value_t**, int*)
 	{
 		/* Always cancel native popup windows (OSR has no place for them). */
 		if (!target_url)
@@ -802,6 +882,13 @@ namespace
 		{
 			if (user_gesture)
 				OpenExternalUrl(url);
+			return 1;
+		}
+
+		/* Discord desktop deep links — launch the app (same as game CEF). */
+		if (IsDiscordProtocolUrl(url))
+		{
+			OpenExternalUrl(url);
 			return 1;
 		}
 
@@ -833,6 +920,14 @@ namespace
 
 		if (IsMediaOrCdnUrl(url))
 			return 1;
+
+		/* discord:// cannot render in CEF — open the Discord app and CANCEL so the
+		   https authorize page stays (navigating here = black page / web login). */
+		if (IsDiscordProtocolUrl(url))
+		{
+			OpenExternalUrl(url);
+			return 1;
+		}
 
 		const std::string cur = MainFrameUrl(browser);
 		if (!IsYoutubeHostUrl(cur) && IsYoutubeHostUrl(url))
@@ -956,6 +1051,9 @@ namespace
 
 	int CEF_CALLBACK GetScreenInfo(cef_render_handler_t*, cef_browser_t*, cef_screen_info_t* info)
 	{
+		if (!info)
+			return 0;
+		info->size = sizeof(*info);
 		int w = 800, h = 600;
 		ViewSize(&w, &h);
 		info->device_scale_factor = 1.0f;
@@ -970,75 +1068,100 @@ namespace
 		return 1;
 	}
 
-	void CEF_CALLBACK OnPaint(
-		cef_render_handler_t*, cef_browser_t* browser, cef_paint_element_type_t type,
-		size_t dirtyCount, cef_rect_t const* dirtyRects, const void* buffer, int width, int height)
+	bool IsOverPopup(int x, int y)
 	{
-		if (type != PET_VIEW || !buffer || !gFramePixels || !gIpc || width <= 0 || height <= 0)
+		return gPopupShow &&
+			x >= gPopupRect.x && y >= gPopupRect.y &&
+			x < gPopupRect.x + gPopupRect.width &&
+			y < gPopupRect.y + gPopupRect.height;
+	}
+
+	void ApplyPopupMouseOffset(int& x, int& y)
+	{
+		if (!IsOverPopup(x, y))
 			return;
-		if (!IsActiveBrowser(browser))
+		x -= gPopupRect.x;
+		y -= gPopupRect.y;
+	}
+
+	void PublishCompositedFrame(int dirtyX, int dirtyY, int dirtyW, int dirtyH)
+	{
+		if (!gFramePixels || !gIpc || gViewCacheW <= 0 || gViewCacheH <= 0)
 			return;
-		if (width > static_cast<int>(kWikiFrameMaxW) || height > static_cast<int>(kWikiFrameMaxH))
+		if (gViewCacheW > static_cast<int>(kWikiFrameMaxW) ||
+			gViewCacheH > static_cast<int>(kWikiFrameMaxH))
 			return;
 
 		const uint32_t front = gIpc->frame_front & 1u;
 		const uint32_t back = 1u - front;
-		/* DLL is still memcpy'ing this buffer — drop the paint rather than tear. */
 		if (gIpc->frame_reading == back)
 			return;
 
-		int ux = 0, uy = 0, uw = width, uh = height;
-		if (dirtyCount > 0 && dirtyRects)
-		{
-			ux = dirtyRects[0].x;
-			uy = dirtyRects[0].y;
-			uw = dirtyRects[0].width;
-			uh = dirtyRects[0].height;
-			for (size_t i = 1; i < dirtyCount; ++i)
-			{
-				const int x0 = dirtyRects[i].x;
-				const int y0 = dirtyRects[i].y;
-				const int x1 = x0 + dirtyRects[i].width;
-				const int y1 = y0 + dirtyRects[i].height;
-				const int rx1 = ux + uw;
-				const int ry1 = uy + uh;
-				const int nx = x0 < ux ? x0 : ux;
-				const int ny = y0 < uy ? y0 : uy;
-				uw = (x1 > rx1 ? x1 : rx1) - nx;
-				uh = (y1 > ry1 ? y1 : ry1) - ny;
-				ux = nx;
-				uy = ny;
-			}
-			if (ux < 0) { uw += ux; ux = 0; }
-			if (uy < 0) { uh += uy; uy = 0; }
-			if (ux + uw > width) uw = width - ux;
-			if (uy + uh > height) uh = height - uy;
-			if (uw <= 0 || uh <= 0)
-			{
-				ux = 0;
-				uy = 0;
-				uw = width;
-				uh = height;
-			}
-		}
-
-		/* Always write a full frame into the back buffer (CEF buffer is the full view).
-		   Dirty rects are published so the DLL can partially Map/upload when safe. */
 		uint8_t* dstBase = gFramePixels + static_cast<size_t>(back) * kWikiFrameBytes;
-		const uint8_t* src = static_cast<const uint8_t*>(buffer);
-		const size_t rowBytes = static_cast<size_t>(width) * 4;
-		for (int y = 0; y < height; ++y)
+		const size_t rowBytes = static_cast<size_t>(gViewCacheW) * 4;
+		for (int y = 0; y < gViewCacheH; ++y)
 		{
 			std::memcpy(
 				dstBase + static_cast<size_t>(y) * kWikiFrameStride,
-				src + static_cast<size_t>(y) * rowBytes,
+				gViewCache.data() + static_cast<size_t>(y) * rowBytes,
 				rowBytes);
 		}
 
-		/* Publish pixels first, then metadata. MemoryBarrier so the host cannot
-		   observe a new frame_seq with stale frame_w/h/front under Wine/optimizers. */
-		gIpc->frame_w = static_cast<uint32_t>(width);
-		gIpc->frame_h = static_cast<uint32_t>(height);
+		int ux = dirtyX, uy = dirtyY, uw = dirtyW, uh = dirtyH;
+		if (gPopupShow && gPopupCacheW > 0 && gPopupCacheH > 0 &&
+			!gPopupCache.empty() && gPopupRect.width > 0 && gPopupRect.height > 0)
+		{
+			const int pw = gPopupCacheW < gPopupRect.width ? gPopupCacheW : gPopupRect.width;
+			const int ph = gPopupCacheH < gPopupRect.height ? gPopupCacheH : gPopupRect.height;
+			const size_t popupRow = static_cast<size_t>(gPopupCacheW) * 4;
+			const size_t copyBytes = static_cast<size_t>(pw) * 4;
+			for (int y = 0; y < ph; ++y)
+			{
+				const int dy = gPopupRect.y + y;
+				if (dy < 0 || dy >= gViewCacheH)
+					continue;
+				int x0 = 0;
+				int dx0 = gPopupRect.x;
+				if (dx0 < 0) { x0 = -dx0; dx0 = 0; }
+				int span = pw - x0;
+				if (dx0 + span > gViewCacheW)
+					span = gViewCacheW - dx0;
+				if (span <= 0)
+					continue;
+				std::memcpy(
+					dstBase + static_cast<size_t>(dy) * kWikiFrameStride + static_cast<size_t>(dx0) * 4,
+					gPopupCache.data() + static_cast<size_t>(y) * popupRow + static_cast<size_t>(x0) * 4,
+					static_cast<size_t>(span) * 4);
+				(void)copyBytes;
+			}
+			const int px0 = gPopupRect.x;
+			const int py0 = gPopupRect.y;
+			const int px1 = gPopupRect.x + gPopupRect.width;
+			const int py1 = gPopupRect.y + gPopupRect.height;
+			const int vx1 = ux + uw;
+			const int vy1 = uy + uh;
+			const int nx = px0 < ux ? px0 : ux;
+			const int ny = py0 < uy ? py0 : uy;
+			uw = (px1 > vx1 ? px1 : vx1) - nx;
+			uh = (py1 > vy1 ? py1 : vy1) - ny;
+			ux = nx;
+			uy = ny;
+		}
+
+		if (ux < 0) { uw += ux; ux = 0; }
+		if (uy < 0) { uh += uy; uy = 0; }
+		if (ux + uw > gViewCacheW) uw = gViewCacheW - ux;
+		if (uy + uh > gViewCacheH) uh = gViewCacheH - uy;
+		if (uw <= 0 || uh <= 0)
+		{
+			ux = 0;
+			uy = 0;
+			uw = gViewCacheW;
+			uh = gViewCacheH;
+		}
+
+		gIpc->frame_w = static_cast<uint32_t>(gViewCacheW);
+		gIpc->frame_h = static_cast<uint32_t>(gViewCacheH);
 		gIpc->dirty_x = static_cast<uint32_t>(ux);
 		gIpc->dirty_y = static_cast<uint32_t>(uy);
 		gIpc->dirty_w = static_cast<uint32_t>(uw);
@@ -1046,6 +1169,131 @@ namespace
 		gIpc->frame_front = back;
 		MemoryBarrier();
 		++gIpc->frame_seq;
+	}
+
+	void UnionDirty(int* ux, int* uy, int* uw, int* uh, const cef_rect_t* dirtyRects, size_t dirtyCount, int width, int height)
+	{
+		*ux = 0;
+		*uy = 0;
+		*uw = width;
+		*uh = height;
+		if (dirtyCount == 0 || !dirtyRects)
+			return;
+		*ux = dirtyRects[0].x;
+		*uy = dirtyRects[0].y;
+		*uw = dirtyRects[0].width;
+		*uh = dirtyRects[0].height;
+		for (size_t i = 1; i < dirtyCount; ++i)
+		{
+			const int x0 = dirtyRects[i].x;
+			const int y0 = dirtyRects[i].y;
+			const int x1 = x0 + dirtyRects[i].width;
+			const int y1 = y0 + dirtyRects[i].height;
+			const int rx1 = *ux + *uw;
+			const int ry1 = *uy + *uh;
+			const int nx = x0 < *ux ? x0 : *ux;
+			const int ny = y0 < *uy ? y0 : *uy;
+			*uw = (x1 > rx1 ? x1 : rx1) - nx;
+			*uh = (y1 > ry1 ? y1 : ry1) - ny;
+			*ux = nx;
+			*uy = ny;
+		}
+		if (*ux < 0) { *uw += *ux; *ux = 0; }
+		if (*uy < 0) { *uh += *uy; *uy = 0; }
+		if (*ux + *uw > width) *uw = width - *ux;
+		if (*uy + *uh > height) *uh = height - *uy;
+		if (*uw <= 0 || *uh <= 0)
+		{
+			*ux = 0;
+			*uy = 0;
+			*uw = width;
+			*uh = height;
+		}
+	}
+
+	void CEF_CALLBACK OnPopupShow(cef_render_handler_t*, cef_browser_t* browser, int show)
+	{
+		if (!IsActiveBrowser(browser))
+			return;
+		gPopupShow = show != 0;
+		if (!gPopupShow)
+		{
+			gPopupInvalidateOnce = false;
+			gPopupCache.clear();
+			gPopupCacheW = 0;
+			gPopupCacheH = 0;
+			gPopupRect = {};
+			if (gViewCacheW > 0)
+				PublishCompositedFrame(0, 0, gViewCacheW, gViewCacheH);
+			return;
+		}
+		/* Request the first popup paint once — do not invalidate every frame. */
+		gPopupInvalidateOnce = true;
+	}
+
+	void CEF_CALLBACK OnPopupSize(cef_render_handler_t*, cef_browser_t* browser, const cef_rect_t* rect)
+	{
+		if (!IsActiveBrowser(browser) || !rect)
+			return;
+		gPopupRect = *rect;
+		if (gPopupRect.width < 0) gPopupRect.width = 0;
+		if (gPopupRect.height < 0) gPopupRect.height = 0;
+	}
+
+	void CEF_CALLBACK OnPaint(
+		cef_render_handler_t*, cef_browser_t* browser, cef_paint_element_type_t type,
+		size_t dirtyCount, cef_rect_t const* dirtyRects, const void* buffer, int width, int height)
+	{
+		if (!buffer || !gFramePixels || !gIpc || width <= 0 || height <= 0)
+			return;
+		if (!IsActiveBrowser(browser))
+			return;
+
+		if (type == PET_POPUP)
+		{
+			const size_t bytes = static_cast<size_t>(width) * static_cast<size_t>(height) * 4u;
+			if (bytes > 8u * 1024u * 1024u)
+				return; /* absurd popup — ignore rather than allocate forever */
+			gPopupCache.resize(bytes);
+			std::memcpy(gPopupCache.data(), buffer, bytes);
+			gPopupCacheW = width;
+			gPopupCacheH = height;
+			if (gPopupShow && gViewCacheW > 0)
+			{
+				PublishCompositedFrame(
+					gPopupRect.x, gPopupRect.y,
+					gPopupRect.width > 0 ? gPopupRect.width : width,
+					gPopupRect.height > 0 ? gPopupRect.height : height);
+			}
+			return;
+		}
+
+		if (type != PET_VIEW)
+			return;
+		if (width > static_cast<int>(kWikiFrameMaxW) || height > static_cast<int>(kWikiFrameMaxH))
+			return;
+
+		int ux = 0, uy = 0, uw = width, uh = height;
+		UnionDirty(&ux, &uy, &uw, &uh, dirtyRects, dirtyCount, width, height);
+
+		const size_t bytes = static_cast<size_t>(width) * static_cast<size_t>(height) * 4u;
+		gViewCache.resize(bytes);
+		std::memcpy(gViewCache.data(), buffer, bytes);
+		gViewCacheW = width;
+		gViewCacheH = height;
+
+		PublishCompositedFrame(ux, uy, uw, uh);
+
+		if (gPopupInvalidateOnce && gPopupShow)
+		{
+			gPopupInvalidateOnce = false;
+			cef_browser_host_t* host = browser->get_host(browser);
+			if (host && host->invalidate)
+			{
+				host->invalidate(host, PET_POPUP);
+				host->base.release(&host->base);
+			}
+		}
 	}
 
 	void CEF_CALLBACK OnFindResult(
@@ -1063,16 +1311,20 @@ namespace
 	{
 		if (!cmd || !cmd->append_switch)
 			return;
-		/* Software OSR — avoids fighting GW2's D3D device on Wine. */
+		/* Software OSR — avoids fighting GW2's D3D device on Wine/Proton.
+		   Cap Chromium process fan-out — CEF 150 can spawn enough children to
+		   lock the host under Proton if left unrestricted. */
 		const char* switches[] = {
 			"disable-gpu",
 			"disable-gpu-compositing",
 			"disable-gpu-vsync",
 			"disable-d3d11",
 			"disable-direct-composition",
+			"in-process-gpu",
 			"no-sandbox",
 			"disable-extensions",
 			"disable-pdf-extension",
+			"disable-site-isolation-trials",
 			"allow-file-access-from-files",
 			"allow-file-access",
 		};
@@ -1082,6 +1334,39 @@ namespace
 			MakeCefString(&s, sw);
 			cmd->append_switch(cmd, &s);
 			ClearCefString(&s);
+		}
+		if (cmd->append_switch_with_value)
+		{
+			cef_string_t key{};
+			cef_string_t val{};
+			MakeCefString(&key, "renderer-process-limit");
+			MakeCefString(&val, "1");
+			cmd->append_switch_with_value(cmd, &key, &val);
+			ClearCefString(&key);
+			ClearCefString(&val);
+			/* Chrome 141+ Local Network Access / older Private Network Access block
+			   discord.com → 127.0.0.1:6463 (Discord desktop RPC). That probe is what
+			   unlocks the “Continue to Discord” button instead of a web login form.
+			   Game CEF 103 never had this restriction. */
+			MakeCefString(&key, "disable-features");
+			MakeCefString(&val,
+				"LocalNetworkAccessChecks,"
+				"BlockInsecurePrivateNetworkRequests,"
+				"PrivateNetworkAccessSendPreflights,"
+				"PrivateNetworkAccessRespectPreflightResults,"
+				"PrivateNetworkAccessNonSecureContextAllowedDeprecationTrial");
+			cmd->append_switch_with_value(cmd, &key, &val);
+			ClearCefString(&key);
+			ClearCefString(&val);
+			/* Let discord.com talk to Discord’s local RPC (http://127.0.0.1:6463). */
+			MakeCefString(&key, "unsafely-treat-insecure-origin-as-secure");
+			MakeCefString(&val,
+				"http://127.0.0.1,http://127.0.0.1:6463,"
+				"http://localhost,http://localhost:6463,"
+				"http://[::1],http://[::1]:6463");
+			cmd->append_switch_with_value(cmd, &key, &val);
+			ClearCefString(&key);
+			ClearCefString(&val);
 		}
 	}
 
@@ -1107,10 +1392,16 @@ namespace
 		if (ShouldBlockUrl(url))
 			return RV_CANCEL;
 
-		/* Never let YouTube / googlevideo load as a subframe or media stream on
-		   guide pages — that is what "starts then refreshes" the tab. */
 		const std::string cur = MainFrameUrl(browser);
-		if (!IsYoutubeHostUrl(cur) &&
+
+		/* Never cancel ad / consent / analytics. */
+		if (IsAdOrConsentUrl(url))
+			return RV_CONTINUE;
+
+		/* Guildjen only: cancel YouTube / googlevideo subframes that steal the
+		   guide after Play. Do NOT apply site-wide — that blocks video ads and
+		   embeds on Snow Crows / MetaBattle / etc. */
+		if (IsGuildjenUrl(cur) &&
 			(IsYoutubeHostUrl(url) ||
 				url.find("googlevideo.com") != std::string::npos ||
 				url.find("ytimg.com/an_webp") != std::string::npos))
@@ -1119,7 +1410,30 @@ namespace
 				url.find("/embed/") != std::string::npos)
 				return RV_CANCEL;
 		}
+
 		return RV_CONTINUE;
+	}
+
+	/* CEF 150 blocks unknown schemes unless we opt in — allow Discord app deep links. */
+	void CEF_CALLBACK OnProtocolExecution(
+		cef_resource_request_handler_t*, cef_browser_t*, cef_frame_t*,
+		cef_request_t* request, int* allow_os_execution)
+	{
+		if (!allow_os_execution)
+			return;
+		*allow_os_execution = 0;
+		if (!request || !request->get_url || !g_userfree_free)
+			return;
+		cef_string_userfree_t uf = request->get_url(request);
+		if (!uf)
+			return;
+		const std::string url = CefStringToUtf8(uf);
+		g_userfree_free(uf);
+		if (!IsDiscordProtocolUrl(url))
+			return;
+		/* Prefer OS handler; do not ShellExecute here — OnBeforeBrowse already
+		   opens discord:// via the DLL when the main frame would navigate. */
+		*allow_os_execution = 1;
 	}
 
 	cef_resource_handler_t* CEF_CALLBACK GetResourceHandler(
@@ -1195,6 +1509,8 @@ namespace
 		InitBase(&gRender.base, sizeof(gRender));
 		gRender.get_view_rect = GetViewRect;
 		gRender.get_screen_info = GetScreenInfo;
+		gRender.on_popup_show = OnPopupShow;
+		gRender.on_popup_size = OnPopupSize;
 		gRender.on_paint = OnPaint;
 
 		std::memset(&gFind, 0, sizeof(gFind));
@@ -1206,6 +1522,7 @@ namespace
 		gResourceRequest.on_before_resource_load = OnBeforeResourceLoad;
 		gResourceRequest.get_resource_handler = GetResourceHandler;
 		gResourceRequest.get_resource_response_filter = GetResourceResponseFilter;
+		gResourceRequest.on_protocol_execution = OnProtocolExecution;
 
 		std::memset(&gRequest, 0, sizeof(gRequest));
 		InitBase(&gRequest.base, sizeof(gRequest));
@@ -1232,6 +1549,7 @@ namespace
 		cef_browser_host_t* host = Host();
 		if (!host)
 			return;
+		ApplyPopupMouseOffset(x, y);
 		cef_mouse_event_t ev{};
 		ev.x = x;
 		ev.y = y;
@@ -1245,6 +1563,7 @@ namespace
 		cef_browser_host_t* host = Host();
 		if (!host)
 			return;
+		ApplyPopupMouseOffset(x, y);
 		cef_mouse_event_t ev{};
 		ev.x = x;
 		ev.y = y;
@@ -1261,6 +1580,7 @@ namespace
 		cef_browser_host_t* host = Host();
 		if (!host)
 			return;
+		ApplyPopupMouseOffset(x, y);
 		cef_mouse_event_t ev{};
 		ev.x = x;
 		ev.y = y;
@@ -1275,6 +1595,7 @@ namespace
 		if (!host)
 			return;
 		cef_key_event_t ev{};
+		ev.size = sizeof(ev);
 		ev.type = static_cast<cef_key_event_type_t>(type);
 		ev.modifiers = mods;
 		/* CHAR events use the character as windows_key_code (cefclient OSR). */
@@ -1285,8 +1606,8 @@ namespace
 		/* Full WM_* lParam — scan code / repeat live here; VK alone drops chars under load. */
 		ev.native_key_code = nativeKeyCode ? nativeKeyCode : windowsVk;
 		ev.is_system_key = isSystemKey ? 1 : 0;
-		ev.character = static_cast<char16>(character);
-		ev.unmodified_character = static_cast<char16>(character);
+		ev.character = static_cast<char16_t>(character);
+		ev.unmodified_character = static_cast<char16_t>(character);
 		ev.focus_on_editable_field = 1;
 		host->send_key_event(host, &ev);
 		host->base.release(&host->base);
@@ -1604,21 +1925,20 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	const std::string selfUtf8 = WideToUtf8(selfPath);
 	MakeCefString(&settings.browser_subprocess_path, selfUtf8.c_str());
 	MakeCefString(&settings.resources_dir_path, cefDirUtf8.c_str());
-	MakeCefString(&settings.locales_dir_path, cefDirUtf8.c_str());
+	const std::string localesUtf8 = cefDirUtf8 + "\\locales";
+	MakeCefString(&settings.locales_dir_path, localesUtf8.c_str());
 	/* HTTP cache in %TEMP% only — never under Guild Wars 2/addons. */
 	wchar_t tmp[MAX_PATH]{};
 	GetTempPathW(MAX_PATH, tmp);
-	const std::wstring cache = std::wstring(tmp) + L"GW2-InGame-Helper-cef";
+	const std::wstring cache = std::wstring(tmp) + L"GW2-InGame-Helper-Beta-cef";
 	CreateDirectoryW(cache.c_str(), nullptr);
 	const std::string cacheUtf8 = WideToUtf8(cache);
 	MakeCefString(&settings.cache_path, cacheUtf8.c_str());
 	MakeCefString(&settings.root_cache_path, cacheUtf8.c_str());
-	/* Prefer a modern Chrome UA for Google/Gemini (engine is still CEF 103).
-	   Firefox UA spoofing for login confused some Google frontends. Account
-	   sign-in in CEF remains blocked — use Open Ext. */
+	/* Match private CEF Stable 150 — do not spoof an older Chrome major. */
 	MakeCefString(&settings.user_agent,
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-		"Chrome/120.0.0.0 Safari/537.36");
+		"Chrome/150.0.7871.129 Safari/537.36");
 
 	if (!g_initialize(&mainArgs, &settings, &gApp, nullptr))
 	{
@@ -1676,11 +1996,18 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 			break;
 		}
 
-		/* Idle: wake on DLL cmds/input, else short timeout for CEF timers.
-		   Visible / input pending: 2ms keeps wheel scroll fluid under Wine. */
+		/* Idle: wake on DLL cmds/input, else longer timeout for CEF timers.
+		   Never spin at 1–2ms forever — under Proton that can lock the host. */
 		const bool inputPending = gIpc && (gIpc->input_read != gIpc->input_write);
-		const bool busy = gIpc && (gIpc->visible || inputPending);
-		const DWORD timeout = inputPending ? 1u : (busy ? 2u : 16u);
+		const bool painted = gIpc && gIpc->frame_seq != 0;
+		const bool busy = gIpc && gIpc->visible && painted;
+		DWORD timeout = 16u;
+		if (inputPending)
+			timeout = 4u;
+		else if (busy)
+			timeout = 8u;
+		else if (gIpc && gIpc->visible && !painted)
+			timeout = 33u; /* create/paint stalled — back off hard */
 		HANDLE waits[2]{};
 		DWORD waitCount = 0;
 		if (gWakeEvent)

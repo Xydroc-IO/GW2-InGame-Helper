@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "2011";
+	static constexpr const char* kHomePageVersion = "2012";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -484,7 +484,7 @@ const char* HomePage::Html()
             <li>Collapsing the title bar hides the UI but <strong>keeps the browser running</strong> — expand again without a full reload.</li>
             <li>Opening the helper restores your saved tabs (or your default landing site). The Home button opens that default site.</li>
             <li>In Browse, sections start collapsed — expand what you need; open/closed state is remembered. Large Wiki lists (Food, Utility, Minis) use clipped scrolling.</li>
-            <li>Use <strong>Open Ext</strong> for Discord invites and Google / Gemini login. Google blocks sign-in inside the embedded game browser (“This browser may not be secure”); the system browser works, but that session is separate from in-game tabs.</li>
+            <li>Use <strong>Open Ext</strong> for Discord invites, Google / Gemini login, and site bot checks (Cloudflare “Just a moment…”). Google and Cloudflare often block the embedded game browser; the system browser works, but that session is separate from in-game tabs.</li>
           </ul>
         </div>
       </section>

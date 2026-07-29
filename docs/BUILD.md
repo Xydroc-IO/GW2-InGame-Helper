@@ -1,46 +1,35 @@
-# Building GW2 In-Game Helper
+# Building GW2 In-Game Helper (Beta)
 
 ## Prerequisites
 
-- Git (with submodule support)
+- Git
 - Make
-- MinGW-w64 C++ toolchain (`x86_64-w64-mingw32-g++`)
+- MinGW-w64 C++ toolchain (`x86_64-w64-mingw32-g++`, `x86_64-w64-mingw32-gcc`)
+- `curl`, `tar`, `zip`, `sha256sum` (for `make pack-cef`)
 
 ### Arch / Manjaro
 
 ```bash
-sudo pacman -S --needed mingw-w64-gcc make git
+sudo pacman -S --needed mingw-w64-gcc make git zip curl
 ```
 
 ### Debian / Ubuntu
 
 ```bash
-sudo apt install -y mingw-w64 make git
-```
-
-## Clone
-
-```bash
-git clone --recurse-submodules <this-repo-url>
-cd GW2-InGame-Helper
-```
-
-If you already cloned without submodules:
-
-```bash
-git submodule update --init --recursive
+sudo apt install -y mingw-w64 make git zip curl
 ```
 
 ## Build
 
 ```bash
+cd GW2-InGame-Helper-Beta
 make -j"$(nproc)"
 ```
 
 Output DLL:
 
 ```text
-build/bin/GW2-InGame-Helper.dll
+build/bin/GW2-InGame-Helper-Beta.dll
 ```
 
 `GW2HelperBrowser.exe` is built and embedded into the DLL automatically.
@@ -51,12 +40,20 @@ build/bin/GW2-InGame-Helper.dll
 make install
 # or:
 make install GW2_ROOT="/path/to/Guild Wars 2"
-
-# Also wipe settings.ini (tabs/favorites/window geometry):
-make install-reset
 ```
 
-`make install` refreshes cached HTML/`.ver` and CEF cache but **keeps** `settings.ini`.
+`make install` refreshes helper/HTML stamps but **keeps** `settings.ini` and the
+private `cef/` runtime tree.
+
+### Pack private CEF runtime zip
+
+```bash
+make pack-cef
+```
+
+Writes `build/cef-runtime/cef-runtime-150-windows64.zip` + `SHA256SUMS`.
+Upload the zip to a GitHub Release, then set `kDownloadUrl` / `kSha256Hex` in
+[`src/CefRuntime.h`](../src/CefRuntime.h).
 
 ### Clean
 
@@ -64,60 +61,19 @@ make install-reset
 make clean
 ```
 
-## CMake (optional)
-
-```bash
-cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake
-cmake --build build -j"$(nproc)"
-```
-
 ## What gets compiled
 
 | Target | Sources |
 |--------|---------|
-| `GW2HelperBrowser.exe` | `src/helper/*.cpp` |
-| `GW2-InGame-Helper.dll` | `src/*.cpp` + Dear ImGui + embedded helper blob + homepage logo/cover |
-
-The homepage (`HomePage.cpp`) embeds `docs/media/home-logo.png` and `docs/media/home-cover.jpg`
-into the DLL; they are written next to `helper-home.html` under `addons/GW2-InGame-Helper/` on first open.
-
-Built-in **Cheat Sheets** are compiled in and written on first open:
-
-| Sheet | Module | Files under addon data |
-|-------|--------|------------------------|
-| Raid Food | `src/RaidFood.cpp` | `raid-food.html` / `.ver` |
-| Uber's All-In-One, Raid Utilities, Fractal Consumables, Fractal CM / T4, Sigils & Runes, Relics, Boon Checklist, Squad Template, Stability / Cleanse, CC / Defiance, Raid Wings, Strike Missions, Material Conversions, Legendary Paths, Mount Unlock, Home Garden, Daily / Weekly, Currency Sinks, Ascended Start, Portals / Pulls, Homestead Extras, WvW Consumables | `src/CheatSheets.cpp` | matching `*.html` / `*.ver` |
-
-Uber's All-In-One waypoint list is curated by **uberduber.1249**.
-
-Runtime CEF libraries are **not** shipped — the helper loads them from the game install at `bin64/cef/`.
+| `GW2HelperBrowser.exe` | `src/helper/*.cpp` against `deps/cef` **150** headers |
+| `GW2-InGame-Helper-Beta.dll` | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob |
 
 Player install layout:
 
 ```text
-addons/GW2-InGame-Helper.dll     # only file players copy
-addons/GW2-InGame-Helper/        # runtime data directory
+addons/GW2-InGame-Helper-Beta.dll   # only file players copy
+addons/GW2-InGame-Helper-Beta/      # runtime data + cef/ after first open
 ```
 
-## Dependencies
-
-| Path | Role |
-|------|------|
-| `deps/nexus` | Raidcore Nexus API headers (submodule) |
-| `deps/imgui` | Dear ImGui (submodule) |
-| `deps/cef` | CEF C++ headers only (vendored; runtime from game) |
-
-See the root [README](../README.md) for install, usage, and policy notes.
-
-Also read:
-
-- [ARCHITECTURE.md](ARCHITECTURE.md) — how the DLL + helper fit together
-- `CODE_AUDIT.md` *(gitignored)* — local risks / regression checklist if you keep one
-- [COMPLIANCE.md](COMPLIANCE.md) — Nexus / policy boundaries
-- [DOCUMENTATION.md](DOCUMENTATION.md) — doc index
-
-After editing `src/Sites.cpp` or Browse section maps in `src/UI.cpp`:
-
-```bash
-make validate-sites
-```
+Runtime CEF is **not** embedded in the DLL. First helper open downloads it into
+`addons/GW2-InGame-Helper-Beta/cef/`. Do **not** use or write game `bin64/cef`.

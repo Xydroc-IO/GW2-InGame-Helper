@@ -1,10 +1,12 @@
-# Compliance & resilience notes
+# Compliance & resilience notes (Beta)
 
-GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an out-of-process CEF
-browser helper. Keep these constraints when changing the code.
+GW2 In-Game Helper **Beta** is a **Raidcore Nexus** ImGui addon with an
+out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.0.1.1** — see [`ARCHITECTURE.md`](ARCHITECTURE.md) (and local `CODE_AUDIT.md` if present)
-for full context.
+Stable product (`GW2-InGame-Helper`) remains on game `bin64/cef`. This Beta tree
+is an explicit opt-in channel.
+
+Current policy snapshot: **v2.0.1.1** — see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Allowed
 
@@ -12,9 +14,9 @@ for full context.
 - Local IPC shared memory between the DLL and `GW2HelperBrowser.exe`
 - Official `api.guildwars2.com` reads from injected BootJs (credentials omitted; batched; 429 backoff) where pages use them
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
-- CEF loaded from the game’s `bin64/cef` (patch-aligned with Guild Wars 2)
-- Site ads / consent / analytics loads in CEF (intentional since 2.0.0.20 — do not re-strip without review)
-- Deep links to third-party sites (MetaBattle, Guildjen, GW2.app, etc.) as Browse hyperlinks
+- **Private CEF 150** under `addons/GW2-InGame-Helper-Beta/cef/` (first-run download + SHA-256 verify)
+- Site ads / consent / analytics loads in CEF (do not re-strip without review)
+- Deep links to third-party sites as Browse hyperlinks
 
 ## Forbidden
 
@@ -22,36 +24,24 @@ for full context.
 - Present / `d3d11.dll` wrapper hooks (would conflict with ArcDPS / ReShade)
 - `SendInput` / keybd_event into Guild Wars 2 (1-to-many input / bots)
 - Combat automation or account-action automation via BootJs
-- Writing into `bin64/cef` or shipping a private Chromium build as the default path
-- Re-adding Snow Crows catalog links without an explicit product decision (removed at their request in 2.0.0.20)
+- **Writing into `bin64/cef`** (private tree stays under the addon data folder)
+- Shipping private Chromium as the **stable** product’s default path (stable stays on game CEF)
+- Re-adding Snow Crows catalog links without an explicit product decision
 
 ## Hot-reload
 
-`AF_DisableHotloading` is set intentionally. The CEF helper process and IPC maps
-are not safe to tear down via Nexus hot-reload — restart Guild Wars 2 after
-updating the DLL.
+`AF_DisableHotloading` is set intentionally. Restart Guild Wars 2 after updating the DLL.
 
 ## Dual-load testing
 
-After engine changes, smoke-test with **ArcDPS** and/or **ReShade** loaded
-alongside Nexus to confirm no Present-path conflicts (this addon does not hook
-Present; it uses Nexus `SwapChain` for a dynamic texture only).
-
-## Site registry
-
-`src/Sites.cpp` is a large static table. Prefer contiguous categories, unique
-ids, and `make validate-sites` after edits. Legendary Armory ids use `wiki_l*`
-prefixes; ordinary upgrades use `wiki_relic_` / `wiki_rune_` / `wiki_sigil_`.
-GW2.app deep links live under category **Tools** (subsection **GW2.app**).
+Smoke-test with **ArcDPS** and/or **ReShade** alongside Nexus after engine changes.
 
 ## Sign-in / OAuth
 
-Embedded CEF often cannot complete Google / Discord / site OAuth. Prefer
-**Open Ext** (system browser). Sessions do not sync back into the in-game tab —
-document that for users; do not attempt cookie bridging.
+Embedded CEF often cannot complete Google / Discord / site OAuth. Prefer **Open Ext**.
+Newer CEF helps modern CSS/JS; it does not magically fix Discord OAuth or OSR ad viewability.
 
 ## Windows Defender
 
-Unsigned MinGW builds may be ML-flagged (`Trojan:Win32/Wacatac.B!ml`). That is a
-known false-positive class. Players: allow/restore. Maintainers: WDSI file
-submission. Long-term: Authenticode signing.
+Unsigned MinGW builds may be ML-flagged. A private Chromium tree under `addons/`
+may draw extra AV scrutiny — keep the runtime out of the DLL blob and verify SHA-256.

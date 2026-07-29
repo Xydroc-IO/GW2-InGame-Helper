@@ -9,6 +9,11 @@
 #include <utility>
 #include <vector>
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
+
 namespace
 {
 	struct Rgba
@@ -518,19 +523,11 @@ namespace
 	}
 }
 
-std::string DownlevelCss(const std::string& input)
-{
-	if (input.empty())
-		return input;
-	/* Binary / compressed payloads — leave alone. */
-	if (static_cast<unsigned char>(input[0]) == 0x1f)
-		return input;
-
-	std::string css = ReplaceOklch(input);
-	css = RewriteDisplayP3(css);
-	ReplaceAll(css, "@supports (color:color-mix(in lab,red,red))", "@supports (color:red)");
-	/* @property gradient tokens break on Chromium ≤110 — drop them. */
+	std::string StripPropertyKeepInitials(std::string css)
 	{
+		/* @property is ignored / buggy on Chromium ≤110. Keep initial-value as
+		   ordinary custom props so Tailwind v4 utilities still resolve. */
+		std::string fallbacks;
 		std::string stripped;
 		stripped.reserve(css.size());
 		size_t i = 0;
@@ -538,6 +535,15 @@ std::string DownlevelCss(const std::string& input)
 		{
 			if (css.compare(i, 9, "@property") == 0)
 			{
+				size_t nameStart = i + 9;
+				while (nameStart < css.size() && (css[nameStart] == ' ' || css[nameStart] == '\t' ||
+					css[nameStart] == '\n' || css[nameStart] == '\r'))
+					++nameStart;
+				size_t nameEnd = nameStart;
+				while (nameEnd < css.size() && css[nameEnd] != '{' && css[nameEnd] != ' ' &&
+					css[nameEnd] != '\t' && css[nameEnd] != '\n')
+					++nameEnd;
+				const std::string propName = css.substr(nameStart, nameEnd - nameStart);
 				const size_t brace = css.find('{', i);
 				if (brace == std::string::npos)
 				{
@@ -554,31 +560,136 @@ std::string DownlevelCss(const std::string& input)
 						if (depth == 0) { ++j; break; }
 					}
 				}
+				const std::string body = css.substr(brace + 1, (j > brace + 1) ? (j - brace - 2) : 0);
+				const size_t iv = body.find("initial-value:");
+				if (iv != std::string::npos && propName.size() > 2 && propName[0] == '-' && propName[1] == '-')
+				{
+					size_t vs = iv + 14;
+					while (vs < body.size() && (body[vs] == ' ' || body[vs] == '\t')) ++vs;
+					size_t ve = vs;
+					while (ve < body.size() && body[ve] != ';' && body[ve] != '}') ++ve;
+					std::string val = body.substr(vs, ve - vs);
+					while (!val.empty() && (val.back() == ' ' || val.back() == '\t')) val.pop_back();
+					if (!val.empty() && val != "initial")
+						fallbacks += propName + ":" + val + ";";
+				}
 				i = j;
 				continue;
 			}
 			stripped.push_back(css[i++]);
 		}
-		css = std::move(stripped);
+		if (!fallbacks.empty())
+			return "*,:before,:after,::backdrop{" + fallbacks + "}" + stripped;
+		return stripped;
 	}
-	/* color-mix before stripping " in srgb" — otherwise Gemini vars stay invalid. */
+
+	std::string RewriteContainerQueries(std::string css)
+	{
+		/* CEF 103 has no @container — approximate with @media so peek/modal
+		   width utilities still apply at the viewport size. */
+		size_t pos = 0;
+		while ((pos = css.find("@container", pos)) != std::string::npos)
+		{
+			size_t i = pos + 10;
+			while (i < css.size() && (css[i] == ' ' || css[i] == '\t' || css[i] == '\n' || css[i] == '\r'))
+				++i;
+			/* Named container definition: @container\/modal{container:...} — drop. */
+			if (i < css.size() && css[i] == '\\')
+			{
+				const size_t brace = css.find('{', i);
+				if (brace == std::string::npos)
+				{
+					pos = i;
+					continue;
+				}
+				size_t depth = 0, j = brace;
+				for (; j < css.size(); ++j)
+				{
+					if (css[j] == '{') ++depth;
+					else if (css[j] == '}')
+					{
+						--depth;
+						if (depth == 0) { ++j; break; }
+					}
+				}
+				css.erase(pos, j - pos);
+				continue;
+			}
+			const size_t paren = css.find('(', i);
+			const size_t brace = css.find('{', i);
+			if (paren == std::string::npos || brace == std::string::npos || paren > brace)
+			{
+				pos = i;
+				continue;
+			}
+			const size_t closeParen = css.find(')', paren);
+			if (closeParen == std::string::npos || closeParen > brace)
+			{
+				pos = i;
+				continue;
+			}
+			const std::string cond = css.substr(paren, closeParen - paren + 1);
+			const std::string repl = "@media " + cond + " ";
+			css.replace(pos, brace - pos, repl);
+			pos += repl.size();
+		}
+		return css;
+	}
+
+std::string DownlevelCss(const std::string& input)
+{
+	/* CEF 150+: native modern CSS — no oklch/color-mix rewrite. */
+	return input;
+#if 0
+	/* Legacy CEF 103 downlevel kept for reference. */
+	if (input.empty())
+		return input;
+	if (static_cast<unsigned char>(input[0]) == 0x1f)
+		return input;
+
+	std::string css = ReplaceOklch(input);
+	css = RewriteDisplayP3(css);
+	ReplaceAll(css, "@supports (color:color-mix(in lab,red,red))", "@supports (color:red)");
+	css = StripPropertyKeepInitials(std::move(css));
+	css = RewriteContainerQueries(std::move(css));
 	const auto vars = CollectVars(css);
 	css = RewriteColorMix(css, vars);
 	css = StripGradientColorSpaces(std::move(css));
-	/* CEF 103: no dvh/dvw; Gemini dialogs use them. */
-	ReplaceAll(css, "dvh", "vh");
-	ReplaceAll(css, "dvw", "vw");
-	/* Flatten leftover nesting markers that Gemini emits as top-level selectors. */
+	{
+		std::string flat;
+		flat.reserve(css.size());
+		for (size_t i = 0; i < css.size();)
+		{
+			if (i > 0 && IsDigit(css[i - 1]) && css.compare(i, 3, "dvh") == 0)
+			{
+				flat += "vh";
+				i += 3;
+				continue;
+			}
+			if (i > 0 && IsDigit(css[i - 1]) && css.compare(i, 3, "dvw") == 0)
+			{
+				flat += "vw";
+				i += 3;
+				continue;
+			}
+			flat.push_back(css[i++]);
+		}
+		css = std::move(flat);
+	}
 	ReplaceAll(css, " &", " ");
 	ReplaceAll(css, "&>", ">");
 	ReplaceAll(css, "&.", ".");
 	ReplaceAll(css, "&:", ":");
 	ReplaceAll(css, "&[", "[");
 	return css;
+#endif
 }
 
 std::string DownlevelHtmlStyles(const std::string& html)
 {
+	/* CEF 150+: leave inline <style> bodies alone. */
+	return html;
+#if 0
 	if (html.empty())
 		return html;
 	std::string out;
@@ -627,7 +738,9 @@ std::string DownlevelHtmlStyles(const std::string& html)
 		if (css.find("color-mix(") != std::string::npos ||
 			css.find("oklch(") != std::string::npos ||
 			css.find("@property") != std::string::npos ||
+			css.find("@container") != std::string::npos ||
 			css.find("dvh") != std::string::npos ||
+			css.find("dvw") != std::string::npos ||
 			css.find("color(display") != std::string::npos ||
 			css.find(" &") != std::string::npos)
 			out += DownlevelCss(css);
@@ -637,6 +750,7 @@ std::string DownlevelHtmlStyles(const std::string& html)
 		i = closeGt + 1;
 	}
 	return out;
+#endif
 }
 
 namespace

@@ -12,6 +12,7 @@ GW2 In-Game Helper — where to find what. Current shipping revision: **2.0.1.1*
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Contributors | Process model, IPC, present/input, CEF, Browse, stamps |
 | `CODE_AUDIT.md` *(gitignored)* | Local audit notes — findings, risks, regression checklist |
 | [`COMPLIANCE.md`](COMPLIANCE.md) | Contributors | Allowed / forbidden Nexus and TOS boundaries |
+| [`SNOWCROWS.md`](SNOWCROWS.md) | External (Snow Crows) | Brief for site owners — what the addon is / is not |
 | [`BUILD.md`](BUILD.md) | Contributors | MinGW cross-compile, `make install`, cheat-sheet extract |
 
 ---

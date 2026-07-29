@@ -1,8 +1,8 @@
 #pragma once
 
 /* Injected on every main-frame load.
-   Modern sites (MetaBattle / gw2efficiency / gw2.app / Google / Gemini / DDG):
-   downlevel CSS for CEF 103 (oklch, color-mix, @property, display-p3, dvh). */
+   CEF Stable 150: skip oklch/color-mix CSS downlevel (native). Keep YouTube,
+   login hints, viewport, and GW2 API batching fixes. */
 static const char kSnowcrowBootJs[] = R"JS(
 (function(){
 if (window.__scBoot) return;
@@ -13,11 +13,15 @@ var isGoogleHost = /(^|\.)google\.com$/.test(host);
 var isDdgHost = /(^|\.)duckduckgo\.com$/.test(host);
 var isGw2App = /(^|\.)gw2\.app$/.test(host);
 var isSearchHost = isGoogleHost || isDdgHost;
-var needsCssFix = isSearchHost || isGw2App ||
-  /(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$|(^|\.)guildjen\.com$/.test(host);
-/* Forced wide viewport helps wiki-style layouts; breaks Google/Gemini/DDG readability. */
-var clampViewport = !isSearchHost && (isGw2App ||
+/* CSS rewrite disabled on CEF 150 — keep false. */
+var needsCssFix = false;
+var isSnowcrows = /(^|\.)snowcrows\.com$/.test(host);
+/* Forced wide viewport helps MediaWiki-style layouts. Skip Snow Crows — Livewire
+   + width=1280 inside a narrower overlay causes nested scroll / overflow jank. */
+var clampViewport = !isSearchHost && !isSnowcrows && (isGw2App ||
   /(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$|(^|\.)guildjen\.com$/.test(host));
+/* Response filter already downlevels same-origin CSS for these hosts. */
+var cssFilterHost = needsCssFix;
 
 function clamp01(x){ return x<0?0:x>1?1:x; }
 function oklchToRgb(L,C,h,a){
@@ -57,7 +61,25 @@ function stripIn(css){
   return css.replace(/(linear|radial|conic)-gradient\(\s*in\s+(?:oklab|oklch|srgb|hsl|lab|xyz)\s*,?/g,'$1-gradient(');
 }
 function stripProperty(css){
-  return css.replace(/@property\s+[^{]+\{[^}]*\}/g,'');
+  /* Preserve initial-value as ordinary custom props (Tailwind v4). */
+  var fallbacks='';
+  css=css.replace(/@property\s+(--[A-Za-z0-9_-]+)\s*\{([^}]*)\}/g, function(_, name, body){
+    var m=/initial-value\s*:\s*([^;]+)/.exec(body||'');
+    if (m){
+      var v=String(m[1]).trim();
+      if (v && v!=='initial') fallbacks+=name+':'+v+';';
+    }
+    return '';
+  });
+  if (fallbacks)
+    css='*,:before,:after,::backdrop{'+fallbacks+'}'+css;
+  return css;
+}
+function rewriteContainers(css){
+  /* CEF 103: no @container — use @media so layout utilities still apply. */
+  css=css.replace(/@container\\\/[a-zA-Z0-9_-]+\{[^}]*\}/g,'');
+  css=css.replace(/@container\s+[a-zA-Z0-9_-]+\s*(\([^)]*\))\s*\{/g,'@media $1{');
+  return css;
 }
 function parseColor(str, vars){
   str=String(str).trim();
@@ -134,6 +156,7 @@ function downlevel(css){
   css=flattenNestingMarkers(css);
   css=css.split('@supports (color:color-mix(in lab,red,red))').join('@supports (color:red)');
   css=stripProperty(css);
+  css=rewriteContainers(css);
   return css;
 }
 function injectGeminiReadability(){
@@ -156,11 +179,25 @@ function injectGeminiReadability(){
 }
 function needsDownlevel(text){
   return text.indexOf('oklch(')>=0 || text.indexOf('color-mix(')>=0 || text.indexOf('@property')>=0 ||
+    text.indexOf('@container')>=0 ||
     text.indexOf('dvh')>=0 || text.indexOf('dvw')>=0 || text.indexOf('color(display')>=0 ||
     text.indexOf(' &')>=0;
 }
 function killAds(){
-  /* Ads allowed — do not strip NitroPay / AdSense / consent UI. */
+  /* Ads + consent + analytics allowed. Never strip NitroPay / AdSense / slots. */
+}
+function isInsideAdOrConsent(el){
+  try{
+    if (!el || !el.closest) return false;
+    /* Do NOT match id*="nitro" — Snow Crows uses nitro-article-* on real content. */
+    return !!el.closest(
+      '.nitropay, [data-nitro], [data-nitropay], [id*="nitropay" i], [class*="nitropay" i],'+
+      '[id^="nitro-ad"], [class*="nitro-ad"], .adsbygoogle, [data-ad], [data-ad-slot],'+
+      '.ad-slot, [id*="google_ads" i], [id*="div-gpt-ad"],'+
+      '#CookieConsent, [id*="cookieinformation" i], .fc-consent-root,'+
+      '#onetrust-banner-sdk, .ot-sdk-container, [class*="cookie-consent" i]'
+    );
+  }catch(e){ return false; }
 }
 function fixInlineStyles(){
   var styles=[].slice.call(document.querySelectorAll('style:not([data-sc-fix])'));
@@ -245,6 +282,18 @@ function scheduleWork(fn){
   }catch(e){}
 }
 function boot(){
+  /* Snow Crows: minimal CEF-OSR helpers only (ads under header + <select> polyfill). */
+  if (isSnowcrows){
+    injectSnowcrowsCompat();
+    polyfillNativeSelects();
+    try{
+      document.addEventListener('livewire:navigated', function(){
+        injectSnowcrowsCompat();
+        polyfillNativeSelects();
+      });
+    }catch(e){}
+    return;
+  }
   if (needsCssFix){
     if (clampViewport){
       try{
@@ -253,27 +302,24 @@ function boot(){
         m.setAttribute('content','width=1280');
       }catch(e){}
     }
-    /* Response filter already downlevels CSS on these hosts — BootJs only
-       patches what the filter missed (SPA-injected sheets). */
-    fixSheets();
+    fixInlineStyles();
+    if (!cssFilterHost || isSnowcrows) fixSheets();
     watchCssMutations();
     try{
       document.addEventListener('livewire:navigated', function(){
         document.documentElement.removeAttribute('data-sc-css');
-        scheduleWork(function(){ fixSheets(); killAds(); });
+        scheduleWork(function(){ fixInlineStyles(); fixSheets(); });
       });
     }catch(e){}
   }
-  if (!isSearchHost){
-    killAds();
-    try{
-      var mo=new MutationObserver(function(){ scheduleWork(killAds); });
-      mo.observe(document.documentElement,{childList:true,subtree:true});
-    }catch(e){}
-  }
+  unlockGuildjenMedia();
   tipGoogleLogin();
   tipGw2AppLogin();
-  unlockGuildjenMedia();
+  tipCloudflareChallenge();
+  try{
+    setTimeout(tipCloudflareChallenge, 1500);
+    setTimeout(tipCloudflareChallenge, 4000);
+  }catch(e){}
   replaceYoutubeEmbeds();
   injectGeminiReadability();
   wireCheatSheetChecks();
@@ -304,6 +350,10 @@ function makeYoutubeCard(watch){
 }
 function replaceYoutubeEmbeds(){
   try{
+    /* Skip the MutationObserver/interval on hosts that never embed YT (e.g. SC
+       login) — keeps Livewire pages lighter. Always run on Guildjen. */
+    var likelyYt=/(^|\.)guildjen\.com$/.test(host) ||
+      (document.documentElement && /youtube|youtu\.be/i.test(document.documentElement.innerHTML.slice(0,120000)));
     function sweep(){
       var nodes=document.querySelectorAll(
         'iframe.cmplz-video,iframe[data-service="youtube"],iframe[data-src-cmplz*="youtube"],'+
@@ -313,6 +363,8 @@ function replaceYoutubeEmbeds(){
         var el=nodes[i];
         if (!el || !el.parentNode) continue;
         if (el.getAttribute('data-gw2-yt')==='1') continue;
+        /* Never replace YouTube iframes inside ad / consent containers. */
+        if (isInsideAdOrConsent(el)) continue;
         var raw=el.getAttribute('data-src-cmplz')||el.getAttribute('data-src')||
           el.getAttribute('src')||'';
         var svc=el.getAttribute('data-service')||'';
@@ -343,6 +395,7 @@ function replaceYoutubeEmbeds(){
       }
     }
     sweep();
+    if (!likelyYt) return;
     var ticks=0;
     var iv=setInterval(function(){
       sweep();
@@ -353,6 +406,154 @@ function replaceYoutubeEmbeds(){
       mo.observe(document.documentElement,{childList:true,subtree:true});
     }catch(e){}
   }catch(e){}
+}
+/* Snow Crows CEF-OSR: (1) keep header above NitroPay so Profile/Inbox stay
+   clickable (2) replace native <select> popups — OSR cannot show PET_POPUP
+   reliably without locking CEF. Do NOT touch Alpine [x-show] site-wide. */
+function injectSnowcrowsCompat(){
+  try{
+    if (!isSnowcrows) return;
+    if (document.getElementById('gw2-sc-compat')) return;
+    var st=document.createElement('style');
+    st.id='gw2-sc-compat';
+    st.textContent=[
+      'header, header.sticky, .sticky.top-0{z-index:2147483000!important;position:relative;}',
+      'header .nav-containment, header nav, header [x-data]{z-index:2147483000!important;}',
+      '#nitro-sidebar-1,#nitro-sidebar-2,#nitro-sidebar-3,#nitro-sidebar-4,',
+      '#nitro-footer-ad1,[id^="nitro-"],[id*="nitro-sidebar"],[id*="nitro-footer"],',
+      'iframe[src*="nitropay"],iframe[src*="doubleclick"],iframe[src*="googlesyndication"],',
+      'iframe[id*="google_ads"],iframe[src*="amazon-adsystem"]{z-index:1!important;}'
+    ].join('');
+    (document.head||document.documentElement).appendChild(st);
+  }catch(e){}
+}
+function closeGw2SelectMenu(){
+  try{
+    var m=document.getElementById('gw2-select-menu');
+    if (m) m.remove();
+  }catch(e){}
+}
+function openGw2SelectMenu(sel){
+  try{
+    closeGw2SelectMenu();
+    if (!sel || !sel.options || !sel.options.length) return;
+    var rect=sel.getBoundingClientRect();
+    var menu=document.createElement('div');
+    menu.id='gw2-select-menu';
+    menu.setAttribute('role','listbox');
+    menu.style.cssText=[
+      'position:fixed','z-index:2147483646',
+      'left:'+Math.max(8,rect.left)+'px',
+      'top:'+(rect.bottom+4)+'px',
+      'min-width:'+Math.max(rect.width,160)+'px',
+      'max-height:min(320px,calc(100vh - '+(rect.bottom+16)+'px))',
+      'overflow:auto','background:#1b1d24','color:#e8e6e3',
+      'border:1px solid #3a3f4b','border-radius:8px',
+      'box-shadow:0 8px 24px rgba(0,0,0,.45)','padding:4px 0',
+      'font:14px/1.35 system-ui,sans-serif'
+    ].join(';');
+    for (var i=0;i<sel.options.length;i++){
+      (function(opt, idx){
+        if (opt.disabled) return;
+        var row=document.createElement('button');
+        row.type='button';
+        row.setAttribute('role','option');
+        row.textContent=opt.textContent||opt.value||('Option '+(idx+1));
+        row.style.cssText=[
+          'display:block','width:100%','text-align:left','border:0',
+          'background:'+(opt.selected?'#2f3542':'transparent'),
+          'color:inherit','padding:8px 12px','cursor:pointer'
+        ].join(';');
+        row.onmouseenter=function(){ row.style.background='#2f3542'; };
+        row.onmouseleave=function(){ row.style.background=opt.selected?'#2f3542':'transparent'; };
+        row.onclick=function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          sel.selectedIndex=idx;
+          try{
+            sel.dispatchEvent(new Event('input',{bubbles:true}));
+            sel.dispatchEvent(new Event('change',{bubbles:true}));
+          }catch(e2){}
+          closeGw2SelectMenu();
+        };
+        menu.appendChild(row);
+      })(sel.options[i], i);
+    }
+    (document.body||document.documentElement).appendChild(menu);
+    /* If menu would go off-bottom, flip above the control. */
+    try{
+      var mr=menu.getBoundingClientRect();
+      if (mr.bottom>window.innerHeight-8){
+        menu.style.top=Math.max(8, rect.top-mr.height-4)+'px';
+      }
+    }catch(e3){}
+  }catch(e){}
+}
+function polyfillNativeSelects(){
+  try{
+    if (!isSnowcrows) return;
+    if (document.documentElement.getAttribute('data-gw2-select-poly')!=='1'){
+      document.documentElement.setAttribute('data-gw2-select-poly','1');
+      document.addEventListener('mousedown', function(ev){
+        try{
+          var t=ev.target;
+          if (!t) return;
+          if (t.closest && t.closest('#gw2-select-menu')) return;
+          var sel=t.closest ? t.closest('select') : null;
+          if (sel){
+            ev.preventDefault();
+            ev.stopPropagation();
+            openGw2SelectMenu(sel);
+            return;
+          }
+          closeGw2SelectMenu();
+        }catch(e){}
+      }, true);
+      document.addEventListener('keydown', function(ev){
+        if (ev.key==='Escape') closeGw2SelectMenu();
+      }, true);
+    }
+  }catch(e){}
+}
+function tipSnowcrowsLogin(){}
+function tipDiscordOAuth(){}
+function wireDiscordAppHandoff(){}
+function wireDiscordOpenExt(){}
+function markTipPresent(){
+  try{ document.documentElement.classList.add('gw2-has-tip'); }catch(e){}
+}
+function clearTipPresent(){
+  try{
+    if (!document.querySelector('[data-gw2-open-ext-tip]'))
+      document.documentElement.classList.remove('gw2-has-tip');
+  }catch(e){}
+}
+/* Open Ext tips sit at the BOTTOM — top tips covered Snow Crows Profile / Inbox. */
+function mountOpenExtTip(id, html){
+  try{
+    if (document.getElementById(id)) return null;
+    var tip=document.createElement('div');
+    tip.id=id;
+    tip.setAttribute('role','status');
+    tip.setAttribute('data-gw2-open-ext-tip','1');
+    tip.style.cssText=[
+      'position:fixed','z-index:4000','left:12px','right:12px','bottom:12px','top:auto',
+      'max-width:560px','margin:0 auto','padding:10px 36px 10px 12px','border-radius:8px',
+      'font:13px/1.35 system-ui,sans-serif','color:#1a1a1a','background:#fff8e6',
+      'border:1px solid #e0c36a','box-shadow:0 2px 10px rgba(0,0,0,.18)','pointer-events:auto'
+    ].join(';');
+    tip.innerHTML=html;
+    var x=document.createElement('button');
+    x.type='button';
+    x.textContent='\u00d7';
+    x.setAttribute('aria-label','Dismiss');
+    x.style.cssText='position:absolute;right:8px;top:6px;border:0;background:transparent;font:18px/1 sans-serif;cursor:pointer;color:#553';
+    x.onclick=function(){ tip.remove(); clearTipPresent(); };
+    tip.appendChild(x);
+    (document.body||document.documentElement).appendChild(tip);
+    markTipPresent();
+    return tip;
+  }catch(e){ return null; }
 }
 /* Guildjen: Breeze leaves images as empty SVG placeholders (data-breeze) until
    lazy JS runs — that often never fires in CEF, so guides look empty. */
@@ -389,24 +590,8 @@ function tipGoogleLogin(){
     var isAccounts=/(^|\.)accounts\.google\.com$/.test(h);
     var isSignin=isGoogleHost && /signin|ServiceLogin|oauth/i.test(path+location.search);
     if (!isAccounts && !isSignin) return;
-    if (document.getElementById('gw2-google-login-tip')) return;
-    var tip=document.createElement('div');
-    tip.id='gw2-google-login-tip';
-    tip.setAttribute('role','status');
-    tip.style.cssText=[
-      'position:fixed','z-index:2147483646','left:12px','right:12px','top:12px',
-      'padding:10px 36px 10px 12px','border-radius:8px','font:13px/1.35 system-ui,sans-serif',
-      'color:#1a1a1a','background:#fff8e6','border:1px solid #e0c36a','box-shadow:0 2px 10px rgba(0,0,0,.18)'
-    ].join(';');
-    tip.innerHTML='Google often blocks sign-in in this in-game browser. Use <b>Open Ext</b> in the toolbar for Gemini Pro / Google login in your system browser (sessions are separate).';
-    var x=document.createElement('button');
-    x.type='button';
-    x.textContent='\u00d7';
-    x.setAttribute('aria-label','Dismiss');
-    x.style.cssText='position:absolute;right:8px;top:6px;border:0;background:transparent;font:18px/1 sans-serif;cursor:pointer;color:#553';
-    x.onclick=function(){ tip.remove(); };
-    tip.appendChild(x);
-    (document.body||document.documentElement).appendChild(tip);
+    mountOpenExtTip('gw2-google-login-tip',
+      'Google often blocks sign-in in this in-game browser. Use <b>Open Ext</b> in the toolbar for Gemini Pro / Google login in your system browser (sessions are separate).');
   }catch(e){}
 }
 /* gw2.app account login / OAuth may fail in CEF — tip Open Ext; leave cookie banners alone. */
@@ -417,24 +602,29 @@ function tipGw2AppLogin(){
     if (path.indexOf('/users/login')<0 && path.indexOf('/users/register')<0 &&
         path.indexOf('/users/reset-password')<0 && path.indexOf('/users/account')<0)
       return;
-    if (document.getElementById('gw2-app-login-tip')) return;
-    var tip=document.createElement('div');
-    tip.id='gw2-app-login-tip';
-    tip.setAttribute('role','status');
-    tip.style.cssText=[
-      'position:fixed','z-index:2147483646','left:12px','right:12px','top:12px',
-      'padding:10px 36px 10px 12px','border-radius:8px','font:13px/1.35 system-ui,sans-serif',
-      'color:#1a1a1a','background:#fff8e6','border:1px solid #e0c36a','box-shadow:0 2px 10px rgba(0,0,0,.18)'
-    ].join(';');
-    tip.innerHTML='If GW2.app sign-in or Discord / account linking fails here, use <b>Open Ext</b> in the toolbar (system browser session is separate from in-game tabs). Accept cookies on the page if ads / login need them.';
-    var x=document.createElement('button');
-    x.type='button';
-    x.textContent='\u00d7';
-    x.setAttribute('aria-label','Dismiss');
-    x.style.cssText='position:absolute;right:8px;top:6px;border:0;background:transparent;font:18px/1 sans-serif;cursor:pointer;color:#553';
-    x.onclick=function(){ tip.remove(); };
-    tip.appendChild(x);
-    (document.body||document.documentElement).appendChild(tip);
+    mountOpenExtTip('gw2-app-login-tip',
+      'If GW2.app sign-in or Discord / account linking fails here, use <b>Open Ext</b> in the toolbar (system browser session is separate from in-game tabs). Accept cookies on the page if ads / login need them.');
+  }catch(e){}
+}
+/* Cloudflare / “Just a moment…” interstitial — Open Ext.
+   Only real interstitials — Turnstile widgets on normal pages must NOT cover the header. */
+function tipCloudflareChallenge(){
+  try{
+    if (document.getElementById('gw2-cf-challenge-tip')) return;
+    var title=(document.title||'').toLowerCase();
+    var body=(document.body && (document.body.textContent)||'').slice(0,4000).toLowerCase();
+    var hasInterstitial=
+      title.indexOf('just a moment')>=0 ||
+      title.indexOf('attention required')>=0 ||
+      body.indexOf('performing security verification')>=0 ||
+      body.indexOf('checking if the site connection is secure')>=0 ||
+      body.indexOf('enable javascript and cookies to continue')>=0;
+    if (!hasInterstitial) return;
+    var loginForm=document.querySelector('form input[type=password], form button[type=submit]');
+    if (loginForm && title.indexOf('just a moment')<0 && title.indexOf('attention required')<0)
+      return;
+    mountOpenExtTip('gw2-cf-challenge-tip',
+      'This site’s bot check (Cloudflare) usually cannot finish in the in-game browser. Use <b>Open Ext</b> in the toolbar to sign in with your system browser (that session is separate from in-game tabs).');
   }catch(e){}
 }
 /* Offline cheat sheets: ensure checklist rows toggle even if cached HTML is old. */

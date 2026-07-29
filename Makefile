@@ -1,14 +1,16 @@
-# Cross-compile GW2-InGame-Helper.dll (+ embedded CEF helper) for Windows / Wine
+# Cross-compile GW2-InGame-Helper-Beta.dll (+ embedded CEF helper) for Windows / Wine
+# Private CEF 150 runtime downloads into addons/GW2-InGame-Helper-Beta/cef/ on first use.
 CXX      = x86_64-w64-mingw32-g++
 LD       = x86_64-w64-mingw32-ld
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
 CXXFLAGS += -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS
-CXXFLAGS += -Isrc -Ideps -Ideps/imgui -Ideps/cef
+CXXFLAGS += -DCEF_API_VERSION=15000
+CXXFLAGS += -Isrc -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
 LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
 LDFLAGS_EXE  = -static -static-libgcc -static-libstdc++ -mwindows -municode -mcrtdll=msvcrt
-LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32
+LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt
 LIBS_EXE = -lgdi32 -lole32 -luuid -lshell32 -lwinhttp
 
 HELPER_SRC = src/helper/main.cpp src/helper/CssCompat.cpp src/helper/CssProxy.cpp
@@ -31,26 +33,35 @@ DLL_SRC = \
 	src/CheatSheets.cpp \
 	src/HelperQuickAccess.cpp \
 	src/WikiBrowser.cpp \
+	src/CefRuntime.cpp \
 	src/UI.cpp \
 	deps/imgui/imgui.cpp \
 	deps/imgui/imgui_draw.cpp \
 	deps/imgui/imgui_tables.cpp \
-	deps/imgui/imgui_widgets.cpp
+	deps/imgui/imgui_widgets.cpp \
+	deps/miniz/miniz.c \
+	deps/miniz/miniz_tdef.c \
+	deps/miniz/miniz_tinfl.c \
+	deps/miniz/miniz_zip.c
 
-DLL_OBJ = $(patsubst %.cpp,build/%.o,$(DLL_SRC))
-DLL_OUT = build/bin/GW2-InGame-Helper.dll
+DLL_OBJ = $(patsubst %.cpp,build/%.o,$(filter %.cpp,$(DLL_SRC))) \
+	$(patsubst %.c,build/%.o,$(filter %.c,$(DLL_SRC)))
+DLL_OUT = build/bin/GW2-InGame-Helper-Beta.dll
 
 GW2_ROOT   ?= $(HOME)/.local/share/Steam/steamapps/common/Guild Wars 2
 GW2_ADDONS ?= $(GW2_ROOT)/addons
-INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
-INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
+INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll
+INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper-Beta
 
-.PHONY: all clean install install-reset validate-sites
+.PHONY: all clean install install-reset validate-sites pack-cef
 
 all: $(DLL_OUT)
 
 validate-sites:
 	python3 tools/validate_sites.py
+
+pack-cef:
+	bash scripts/pack-cef-runtime.sh
 
 $(HELPER_OUT): $(HELPER_SRC) src/WikiIpc.h src/helper/CssCompat.h src/helper/CssProxy.h src/helper/BootJs.h
 	@mkdir -p $(dir $@)
@@ -91,16 +102,20 @@ build/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
+build/%.o: %.c
+	@mkdir -p $(dir $@)
+	x86_64-w64-mingw32-gcc -std=c11 -O2 -Wall -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz -c -o $@ $<
+
 install: $(DLL_OUT)
 	@mkdir -p "$(INSTALL_DIR)"
 	/bin/cp -f "$(DLL_OUT)" "$(INSTALL_DLL)"
-	/bin/rm -f "$(INSTALL_DIR)/GW2-InGame-Helper.dll" \
+	/bin/rm -f "$(INSTALL_DIR)/GW2-InGame-Helper-Beta.dll" \
 		"$(INSTALL_DIR)/GW2HelperBrowser.exe" \
 		"$(GW2_ADDONS)/GW2HelperBrowser.exe" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
 	# Clear cached offline pages so version bumps rewrite on next open.
-	# Keep settings.ini — wiping it resets tabs/favorites/window geometry.
-	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/"*.ver \
+	# Keep settings.ini and private cef/ runtime — never wipe the CEF tree.
+	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/GW2HelperBrowser.exe.ver" \
 		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"
 	@echo "Installed DLL -> $(INSTALL_DLL)"

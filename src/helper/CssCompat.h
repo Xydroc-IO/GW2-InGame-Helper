@@ -2,9 +2,8 @@
 
 #include <string>
 
-/* Downlevel Tailwind v4 / modern CSS so Chromium 103 (GW2 CEF) can paint
-   modern sites. Converts oklch(), strips gradient "in oklab", rewrites
-   color-mix(... transparent), and opens color-mix @supports probes. */
+/* Downlevel helpers kept for reference / emergency re-enable.
+   CEF Stable 150 paints oklch / color-mix / @property natively — pass-through. */
 std::string DownlevelCss(const std::string& input);
 
 /* Downlevel only <style>…</style> bodies inside an HTML document (do not

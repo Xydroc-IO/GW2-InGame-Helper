@@ -52,7 +52,7 @@ namespace
 
 std::wstring AddonPaths::DataDir()
 {
-	/* Nexus addon data folder — typically <GW2>/addons/GW2-InGame-Helper */
+	/* Nexus addon data folder — typically <GW2>/addons/GW2-InGame-Helper-Beta */
 	if (G::API && G::API->Paths_GetAddonDirectory)
 	{
 		const char* d = G::API->Paths_GetAddonDirectory(ADDON_NAME);
@@ -67,11 +67,11 @@ std::wstring AddonPaths::DataDir()
 	/* Fallback: sibling folder next to the DLL (never write into addons/ root). */
 	const std::wstring mod = ModuleDir();
 	if (!mod.empty())
-		return EnsureDir(mod + L"\\GW2-InGame-Helper");
+		return EnsureDir(mod + L"\\GW2-InGame-Helper-Beta");
 
 	wchar_t tmp[MAX_PATH]{};
 	GetTempPathW(MAX_PATH, tmp);
-	return EnsureDir(std::wstring(tmp) + L"GW2-InGame-Helper");
+	return EnsureDir(std::wstring(tmp) + L"GW2-InGame-Helper-Beta");
 }
 
 std::string AddonPaths::DataDirUtf8()

@@ -31,11 +31,13 @@
 #define CEF_INCLUDE_INTERNAL_CEF_THREAD_INTERNAL_H_
 #pragma once
 
+#if !defined(GENERATING_CEF_API_HASH)
 #if defined(OS_WIN)
 #include <windows.h>
 #elif defined(OS_POSIX)
 #include <pthread.h>
 #include <unistd.h>
+#endif
 #endif
 
 #include "include/internal/cef_export.h"
@@ -53,7 +55,7 @@ typedef pid_t cef_platform_thread_id_t;
 #endif
 
 ///
-// Returns the current platform thread ID.
+/// Returns the current platform thread ID.
 ///
 CEF_EXPORT cef_platform_thread_id_t cef_get_current_platform_thread_id(void);
 
@@ -66,7 +68,7 @@ typedef pthread_t cef_platform_thread_handle_t;
 #endif
 
 ///
-// Returns the current platform thread handle.
+/// Returns the current platform thread handle.
 ///
 CEF_EXPORT cef_platform_thread_handle_t
 cef_get_current_platform_thread_handle(void);

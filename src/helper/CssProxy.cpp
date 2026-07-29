@@ -131,12 +131,7 @@ namespace
 			if (f->isHtml)
 				body = RewriteYoutubeEmbedsInHtml(body);
 
-			const bool needs = body.find("color-mix(") != std::string::npos ||
-				body.find("oklch(") != std::string::npos ||
-				body.find("@property") != std::string::npos ||
-				body.find("dvh") != std::string::npos ||
-				body.find("color(display") != std::string::npos ||
-				body.find(" &") != std::string::npos;
+			const bool needs = false; /* CEF 150: no CSS downlevel */
 			if (!needs)
 				f->output = std::move(body);
 			else if (f->isHtml)
@@ -166,8 +161,10 @@ namespace
 bool ShouldBlockUrl(const std::string& url)
 {
 	(void)url;
-	/* Ads / consent / analytics allowed site-wide (including MetaBattle NitroPay).
-	   YouTube subframe cancel stays in OnBeforeResourceLoad — separate from ads. */
+	/* Ads / consent / analytics allowed site-wide (NitroPay, AdSense, DoubleClick,
+	   CookieInformation, etc.). Always false — do not reintroduce host blocklists
+	   without an explicit product review. YouTube subframe cancel on Guildjen only
+	   stays in OnBeforeResourceLoad — separate from ads. */
 	return false;
 }
 
@@ -175,25 +172,15 @@ bool ShouldDownlevelResponse(const std::string& url, const std::string& mime)
 {
 	const std::string host = UrlHost(url);
 	const std::string m = ToLower(mime);
-	const bool cssLike = m.find("text/css") != std::string::npos ||
-		m.find("stylesheet") != std::string::npos;
 	const bool htmlLike = m.find("text/html") != std::string::npos ||
 		m.find("application/xhtml") != std::string::npos;
-	if (!cssLike && !htmlLike)
+	/* CEF 150: never buffer CSS (pass-through). Buffering large Vite/Tailwind
+	   sheets delayed paint and could truncate past kMaxBytes — that broke
+	   Snow Crows Alpine/Livewire (dropdowns, profile settings). */
+	if (!htmlLike)
 		return false;
-	/* Guildjen HTML is filtered so YouTube iframes become Watch cards before
-	   Complianz / the player can load (in-page Play refreshes the guide). */
-	if (htmlLike && HostEndsWith(host, "guildjen.com"))
-		return true;
-	if (HostEndsWith(host, "google.com") || HostEndsWith(host, "gstatic.com") ||
-		HostEndsWith(host, "googleapis.com") ||
-		HostEndsWith(host, "duckduckgo.com") ||
-		HostEndsWith(host, "hardstuck.gg") ||
-		HostEndsWith(host, "metabattle.com") ||
-		HostEndsWith(host, "gw2efficiency.com") ||
-		HostEndsWith(host, "gw2.app"))
-		return true;
-	return false;
+	/* Guildjen HTML only — rewrite YouTube iframes before Complianz loads. */
+	return HostEndsWith(host, "guildjen.com");
 }
 
 cef_response_filter_t* CreateCssDownlevelFilter(bool isHtml)

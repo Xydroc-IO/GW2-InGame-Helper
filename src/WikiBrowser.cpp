@@ -1,6 +1,7 @@
 #include "WikiBrowser.h"
 
 #include "AddonPaths.h"
+#include "CefRuntime.h"
 #include "Globals.h"
 #include "CheatSheets.h"
 #include "HomePage.h"
@@ -21,6 +22,7 @@
 #include <d3d11.h>
 #include <dxgi.h>
 #include <windows.h>
+#include <shellapi.h>
 
 extern "C" {
 	extern const unsigned char _binary_build_helper_blob_exe_start[];
@@ -55,6 +57,8 @@ namespace
 	std::atomic<bool> gQuitPending{false};    /* QUIT posted — finish across frames */
 	DWORD gQuitStartedMs = 0;
 	DWORD gLastStartAttemptMs = 0;
+	DWORD gHelperSpawnMs = 0;                 /* when CreateProcess last succeeded */
+	int gQuickDeathCount = 0;                 /* helper died soon after spawn — lockup guard */
 	bool gTexHasContent = false; /* false → next present must full-upload */
 	/* Full-frame GPU copy can be split across frames (~1.4 MB / tick). */
 	uint32_t gPartialCopySeq = 0;
@@ -89,6 +93,7 @@ namespace
 	HRESULT gLastTexHr = S_OK;
 	DWORD gLastPaintKickMs = 0;
 	char gPaintWaitReason[192]{};
+	uint32_t gLastOpenExtSeq = 0;
 
 	/* Local status mirror for StatusCStr (avoids std::string every frame). */
 	char gStatusCache[256] = "Closed — press Ctrl+Shift+H to open";
@@ -203,28 +208,18 @@ namespace
 			G::API->Log(LOGL_INFO, ADDON_NAME, s.c_str());
 	}
 
-	std::wstring GameDir()
-	{
-		if (G::API && G::API->Paths_GetGameDirectory)
-		{
-			const char* d = G::API->Paths_GetGameDirectory();
-			if (d && d[0])
-				return Utf8ToWide(d);
-		}
-		return L"";
-	}
-
 	std::wstring AddonDir()
 	{
 		return AddonPaths::DataDir();
 	}
 
+	/* Private CEF only — never use game bin64/cef (headers are CEF 150). */
 	std::wstring CefDir()
 	{
-		const std::wstring game = GameDir();
-		if (game.empty())
+		const std::wstring addon = AddonDir();
+		if (addon.empty())
 			return L"";
-		return game + L"\\bin64\\cef";
+		return addon + L"\\cef";
 	}
 
 	std::wstring HelperPath()
@@ -442,6 +437,9 @@ namespace
 		gIpc->title[0] = 0;
 		gIpc->title_len = 0;
 		gIpc->title_seq = 0;
+		gIpc->open_ext_seq = 0;
+		gIpc->open_ext_url[0] = 0;
+		gLastOpenExtSeq = 0;
 		gUrlCache[0] = 0;
 		gUrlCacheSeq = 0xFFFFFFFFu;
 		gTitleCache[0] = 0;
@@ -459,7 +457,7 @@ namespace
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2011";
+		static constexpr const char* kHelperStamp = "2037";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;
@@ -598,6 +596,33 @@ namespace
 		return WaitForSingleObject(gProcess, 0) == WAIT_TIMEOUT;
 	}
 
+	/* Helper died soon after spawn → stop relaunching (prevents system lockup). */
+	void NoteHelperDied()
+	{
+		if (gHelperSpawnMs == 0)
+			return;
+		const DWORD lived = GetTickCount() - gHelperSpawnMs;
+		gHelperSpawnMs = 0;
+		if (lived < 12000u)
+		{
+			++gQuickDeathCount;
+			if (gQuickDeathCount >= 2)
+			{
+				gLaunchDisabled.store(true);
+				gLaunchRequested.store(false);
+				gRelaunchAfterQuit.store(false);
+				SetLocalStatus("Browser helper crashed repeatedly — closed to protect system. Restart GW2 to retry");
+			}
+		}
+		else
+			gQuickDeathCount = 0;
+	}
+
+	void NoteHelperSpawned()
+	{
+		gHelperSpawnMs = GetTickCount();
+	}
+
 	void PostQuitCmd()
 	{
 		if (!gIpc || !HelperAlive())
@@ -632,15 +657,21 @@ namespace
 		const DWORD ownedPid = gProcessId;
 		if (gProcess)
 		{
-			if (terminateIfAlive && HelperAlive())
+			const bool stillAlive = HelperAlive();
+			if (terminateIfAlive && stillAlive)
 				TerminateProcess(gProcess, 0);
 			CloseHandle(gProcess);
 			gProcess = nullptr;
 			gProcessId = 0;
+			if (terminateIfAlive)
+				gHelperSpawnMs = 0; /* intentional stop — not a crash */
+			else
+				NoteHelperDied(); /* discovered already-dead helper */
 		}
 		else if (terminateIfAlive && ownedPid)
 		{
 			KillHelperByPid(ownedPid);
+			gHelperSpawnMs = 0;
 		}
 		if (gJob)
 		{
@@ -685,6 +716,32 @@ namespace
 		gQuitPending.store(true);
 		gQuitStartedMs = GetTickCount();
 		SetLocalStatus("Closing browser…");
+	}
+
+	/* Helper asked the DLL to open a URL (Discord OAuth / YouTube) — ShellExecute
+	   from the game process works under Proton; from the CEF helper often does not. */
+	void DrainOpenExtRequests()
+	{
+		if (!gIpc)
+			return;
+		const uint32_t seq = gIpc->open_ext_seq;
+		if (seq == gLastOpenExtSeq)
+			return;
+		gLastOpenExtSeq = seq;
+		char url[sizeof(gIpc->open_ext_url)];
+		std::snprintf(url, sizeof(url), "%s", gIpc->open_ext_url);
+		if (url[0] &&
+			(std::strncmp(url, "http://", 7) == 0 ||
+				std::strncmp(url, "https://", 8) == 0 ||
+				std::strncmp(url, "discord:", 8) == 0 ||
+				std::strncmp(url, "Discord:", 8) == 0))
+		{
+			ShellExecuteA(nullptr, "open", url, nullptr, nullptr, SW_SHOWNORMAL);
+			if (std::strncmp(url, "discord:", 8) == 0 || std::strncmp(url, "Discord:", 8) == 0)
+				SetLocalStatus("Opening Discord app…");
+			else
+				SetLocalStatus("Opened in system browser (Open Ext)");
+		}
 	}
 
 	/* Complete a pending QUIT across frames — never Sleep/Terminate mid-SetVisible. */
@@ -781,10 +838,28 @@ namespace
 		gIpc->alive = 0;
 		std::snprintf(gIpc->status, sizeof(gIpc->status), "Launching…");
 
+		const std::wstring addon = AddonDir();
+		if (addon.empty())
+		{
+			SetLocalStatus("Addon data directory missing");
+			gLaunchDisabled.store(true);
+			gStarting.store(false);
+			return false;
+		}
+		if (!CefRuntime::EnsureInstalled(addon.c_str(), [](const char* msg) {
+				if (msg)
+					SetLocalStatus(msg);
+			}))
+		{
+			gLaunchDisabled.store(true);
+			gStarting.store(false);
+			return false;
+		}
+
 		const std::wstring cef = CefDir();
 		if (cef.empty() || GetFileAttributesW((cef + L"\\libcef.dll").c_str()) == INVALID_FILE_ATTRIBUTES)
 		{
-			SetLocalStatus("GW2 bin64/cef/libcef.dll not found");
+			SetLocalStatus("Private cef/libcef.dll not found");
 			gLaunchDisabled.store(true);
 			gStarting.store(false);
 			return false;
@@ -880,6 +955,7 @@ namespace
 		}
 
 		gStarting.store(false);
+		NoteHelperSpawned();
 		/* Helper readiness is polled via IPC next frames — never Sleep on this thread. */
 		return true;
 	}
@@ -1092,6 +1168,19 @@ namespace
 		}
 		if (HelperAlive() || gStarting.load() || gLaunchWorkerBusy.load())
 			return;
+		/* Dead handle still held — clear it and count a quick death before relaunch. */
+		if (gProcess)
+		{
+			NoteHelperDied();
+			CloseHandle(gProcess);
+			gProcess = nullptr;
+			gProcessId = 0;
+			if (gLaunchDisabled.load())
+				return;
+			/* Back off after a crash — do not respawn every frame. */
+			if (GetTickCount() - gLastStartAttemptMs < 5000u)
+				return;
+		}
 		if (gLaunchRequested.exchange(true))
 			return;
 		SetLocalStatus("Launching…");
@@ -1176,6 +1265,8 @@ void WikiBrowser::Init()
 {
 	/* Don't scan/kill processes at load — that can hitch startup. */
 	CleanupStaleAddonRootFiles();
+	/* Ensure addon data folder exists before first open (CEF + helper land here). */
+	(void)AddonPaths::DataDir();
 	gLaunchDisabled.store(false);
 	gStarting.store(false);
 	gLaunchRequested.store(false);
@@ -1183,6 +1274,8 @@ void WikiBrowser::Init()
 	gShuttingDown.store(false);
 	gRelaunchAfterQuit.store(false);
 	gQuitPending.store(false);
+	gHelperSpawnMs = 0;
+	gQuickDeathCount = 0;
 	EnsureIpcNames();
 	/* Kick URL-match index build (chunked in UI_Render via TickWarmUrlKeys). */
 	Sites::WarmUrlKeys();
@@ -1193,6 +1286,7 @@ void WikiBrowser::Tick()
 {
 	TickQuitPending();
 	TickLaunchPending();
+	DrainOpenExtRequests();
 }
 
 void WikiBrowser::Shutdown()

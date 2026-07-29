@@ -5,8 +5,8 @@
 
 #include <windows.h>
 
-/* Shared memory IPC between addon DLL and CEF helper process.
-   Uses GW2's own bin64/cef runtime — no WebView2 / winetricks.
+/* Shared memory IPC between addon DLL and private CEF 150 helper process.
+   Runtime lives under addons/GW2-InGame-Helper-Beta/cef/ — not game bin64/cef.
    Browser is windowless (OSR); frames are BGRA in a second mapping.
    Up to kWikiMaxTabs OSR browsers; only the active tab paints.
 
@@ -144,5 +144,10 @@ struct WikiIpcState
 	uint32_t cmd_write;
 	uint32_t cmd_read;
 	WikiCmdEvent cmd_q[kWikiCmdQueueSize];
+
+	/* Helper → DLL: open URL in the system browser (Wine ShellExecute from
+	   the CEF process often fails; the game process handles it reliably). */
+	uint32_t open_ext_seq;
+	char     open_ext_url[2048];
 };
 #pragma pack(pop)
