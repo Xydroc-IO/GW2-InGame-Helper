@@ -36,8 +36,9 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   `addons/GW2-InGame-Helper/cef/` (SHA-256 verify + extract). Never uses or writes
   game `bin64/cef`
 - **Product:** Former Beta channel is now the shipping addon (`GW2-InGame-Helper.dll`)
-- **Sites:** Modern CSS/JS (Snow Crows); Discord **Continue to Discord** handoff;
-  in-page `<select>` for region/settings; header above NitroPay
+- **Catalog:** No Snow Crows Browse links (test hub / login removed for release)
+- **Sites:** Modern CSS/JS via CEF 150; Discord **Continue to Discord** handoff;
+  in-page `<select>` polyfill; header chrome above NitroPay when needed
 - **Input:** CEF 150 key events set `cef_key_event_t.size` (typing works); same Nexus
   routing so page typing does not drive skills / WASD
 - **Reliability:** Crash-loop brake / process caps under Proton; Discord deep links

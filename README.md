@@ -44,8 +44,6 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
 | [MetaBattle OW](https://metabattle.com/wiki/Open_World) | Builds |
 | [Accessibility Wars](https://aw2.help/) | Builds |
-| [Snow Crows (test)](https://snowcrows.com/builds) | Builds |
-| [Snow Crows Login](https://snowcrows.com/login) | Builds |
 | [Gw2Skills Editor](https://en.gw2skills.net/editor/) | Builds |
 | [MetaBattle PvP](https://metabattle.com/wiki/PvP_Builds) | Builds |
 | [MetaBattle WvW](https://metabattle.com/wiki/WvW) | Builds |
@@ -127,7 +125,8 @@ Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUD
 ## What’s new in 2.0.2.0
 
 - **Runtime:** Private CEF Stable 150 under `addons/GW2-InGame-Helper/cef/` (first-run download or local zip) — never uses or writes `bin64/cef`
-- **Sites:** Better modern CSS/JS (Snow Crows); Discord **Continue to Discord** handoff; in-page `<select>` for region/settings; header above NitroPay
+- **Catalog:** No Snow Crows Browse links
+- **Sites:** Modern CSS/JS via CEF 150; Discord **Continue to Discord** handoff; in-page `<select>` polyfill
 - **Limits:** MetaBattle Cloudflare / Google login often still need **Open Ext**
 - Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 

@@ -20734,26 +20734,6 @@ namespace
 			nullptr,
 			nullptr,
 		},
-		/* Test entries — Snow Crows removed site-wide at their request (2.0.0.20);
-		   builds + login kept for CEF / ads / Cloudflare checks. */
-		{
-			"snowcrows_test",
-			"Builds",
-			"Snow Crows (test)",
-			"Snow Crows — Builds hub (test link)",
-			"https://snowcrows.com/builds",
-			nullptr,
-			nullptr,
-		},
-		{
-			"snowcrows_login",
-			"Builds",
-			"Snow Crows Login",
-			"Snow Crows — Login (Open Ext if Cloudflare / Discord fails)",
-			"https://snowcrows.com/login",
-			nullptr,
-			nullptr,
-		},
 		{
 			"metabattle",
 			"Builds",

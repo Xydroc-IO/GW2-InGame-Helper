@@ -330,8 +330,6 @@ namespace
 				return "Raids";
 			if (std::strcmp(id, "aw2help") == 0)
 				return "AccessiBuilds";
-			if (std::strcmp(id, "snowcrows_test") == 0 || std::strcmp(id, "snowcrows_login") == 0)
-				return "Other";
 			if (std::strcmp(id, "metabattle") == 0 || std::strcmp(id, "metabattle_ow") == 0)
 				return "Open World / General";
 			if (std::strcmp(id, "metabattle_pvp") == 0)

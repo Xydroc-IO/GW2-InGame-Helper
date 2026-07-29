@@ -148,9 +148,6 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 
 ### Other
 
-- **Snow Crows (test)** — [https://snowcrows.com/builds](https://snowcrows.com/builds) (test hub; SC removed site-wide at their request)
-- **Snow Crows Login** — [https://snowcrows.com/login](https://snowcrows.com/login) (Open Ext if Cloudflare / Discord OAuth fails)
-
 ### Open World / General
 
 - **MetaBattle** — [https://metabattle.com/wiki/MetaBattle_Wiki](https://metabattle.com/wiki/MetaBattle_Wiki)
