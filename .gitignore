@@ -64,6 +64,7 @@ docs/DISCORD_*.md
 docs/RAIDCORE.md
 docs/CODE_AUDIT.md
 docs/SNOWCROWS.md
+docs/RELEASE_NOTES_BETA.md
 
 # Python (if helpers scripts appear later)
 __pycache__/

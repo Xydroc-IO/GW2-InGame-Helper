@@ -30,7 +30,7 @@ GW2 In-Game Helper — where to find what.
 | [`description.html`](description.html) | HTML listing for web / Nexus description paste |
 | `RAIDCORE.md` *(gitignored)* | Local Nexus listing draft — short description + changelog |
 | `DISCORD.md` / `DISCORD_*.md` *(gitignored)* | Local Discord announcement drafts |
-| [`RELEASE_NOTES_BETA.md`](RELEASE_NOTES_BETA.md) | Superseded — Beta channel folded into **2.0.2.0** |
+| `RELEASE_NOTES_BETA.md` *(gitignored)* | Local — superseded Beta channel notes |
 
 ---
 
