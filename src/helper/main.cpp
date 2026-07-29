@@ -1,5 +1,5 @@
 /* GW2HelperBrowser.exe — windowless CEF helper using private CEF 150 under
-   addons/GW2-InGame-Helper-Beta/cef/libcef.dll. Paints BGRA frames into shared
+   addons/GW2-InGame-Helper/cef/libcef.dll. Paints BGRA frames into shared
    memory for the addon. CSS downlevel is gated off (native oklch / color-mix). */
 
 #include <windows.h>
@@ -1930,7 +1930,7 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	/* HTTP cache in %TEMP% only — never under Guild Wars 2/addons. */
 	wchar_t tmp[MAX_PATH]{};
 	GetTempPathW(MAX_PATH, tmp);
-	const std::wstring cache = std::wstring(tmp) + L"GW2-InGame-Helper-Beta-cef";
+	const std::wstring cache = std::wstring(tmp) + L"GW2-InGame-Helper-cef";
 	CreateDirectoryW(cache.c_str(), nullptr);
 	const std::string cacheUtf8 = WideToUtf8(cache);
 	MakeCefString(&settings.cache_path, cacheUtf8.c_str());

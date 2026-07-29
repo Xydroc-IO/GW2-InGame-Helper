@@ -1,15 +1,14 @@
-# Architecture — GW2 In-Game Helper (Beta)
+# Architecture — GW2 In-Game Helper
 
-**Current addon revision:** `2.0.1.1` · **IPC:** `HLI5` (v5) · **CEF:** private Stable **150** (`150.0.7871.129`)
+**Current addon revision:** `2.0.2.0` · **IPC:** `HLI5` (v5) · **CEF:** private Stable **150** (`150.0.7871.129`)
 
-Sibling of the stable `GW2-InGame-Helper` tree (which still uses game `bin64/cef` 103).
-This Beta channel never loads game CEF and never writes into `bin64/cef`.
+Never loads game CEF and never writes into `bin64/cef`.
 
 ---
 
 ## 1. One-line summary
 
-A **Raidcore Nexus** ImGui DLL opens an **out-of-process CEF off-screen (OSR)** browser that paints BGRA frames into **PID-scoped shared memory**. The DLL uploads those frames to a D3D11 texture (via Nexus `SwapChain`) and draws them with ImGui. Players ship **one DLL**; the helper EXE and homepage assets are embedded and extracted on first use. Chromium is a **private CEF 150** tree downloaded once into `addons/GW2-InGame-Helper-Beta/cef/`.
+A **Raidcore Nexus** ImGui DLL opens an **out-of-process CEF off-screen (OSR)** browser that paints BGRA frames into **PID-scoped shared memory**. The DLL uploads those frames to a D3D11 texture (via Nexus `SwapChain`) and draws them with ImGui. Players ship **one DLL**; the helper EXE and homepage assets are embedded and extracted on first use. Chromium is a **private CEF 150** tree downloaded once into `addons/GW2-InGame-Helper/cef/`.
 
 ---
 
@@ -17,7 +16,7 @@ A **Raidcore Nexus** ImGui DLL opens an **out-of-process CEF off-screen (OSR)** 
 
 ```text
 Guild Wars 2.exe
- └─ Nexus loads GW2-InGame-Helper-Beta.dll
+ └─ Nexus loads GW2-InGame-Helper.dll
       ├─ RT_Render → UI_Render → WikiBrowser::PresentFrame / Tick
       ├─ WndProc → keyboard/mouse routing (CEF vs ImGui vs game)
       └─ CreateProcess → GW2HelperBrowser.exe
@@ -26,14 +25,14 @@ Guild Wars 2.exe
 
 | Component | Role |
 |-----------|------|
-| `GW2-InGame-Helper-Beta.dll` | Nexus addon: ImGui UI, IPC host, D3D11 present, CEF download, settings |
+| `GW2-InGame-Helper.dll` | Nexus addon: ImGui UI, IPC host, D3D11 present, CEF download, settings |
 | `GW2HelperBrowser.exe` | CEF client: navigate, paint, find-in-page, BootJs |
-| `addons/GW2-InGame-Helper-Beta/cef/` | Private CEF 150 runtime (first-run download) |
+| `addons/GW2-InGame-Helper/cef/` | Private CEF 150 runtime (first-run download) |
 
 ### Embedding and extract
 
 1. **Build:** helper is compiled, copied to `build/helper_blob.exe`, linked into the DLL as a binary blob.
-2. **Runtime:** `ExtractHelper()` writes `addons/GW2-InGame-Helper-Beta/GW2HelperBrowser.exe` plus `.ver`.
+2. **Runtime:** `ExtractHelper()` writes `addons/GW2-InGame-Helper/GW2HelperBrowser.exe` plus `.ver`.
 3. **CEF:** `CefRuntime::EnsureInstalled()` (on the launch worker) downloads `cef-runtime-150-windows64.zip`, verifies SHA-256, extracts to `cef/`, writes `cef.ver`.
 4. **Launch:** `--cef-dir=<addon>/cef` and `--host-pid=<GW2 PID>`. No `bin64/cef` fallback.
 
@@ -47,21 +46,21 @@ Upload the zip to a GitHub Release and keep `src/CefRuntime.h` URL + SHA256 in s
 
 ### Job Object and host watch
 
-Same as stable: Job Object `KILL_ON_JOB_CLOSE`, host `SYNCHRONIZE`, `AF_DisableHotloading`.
+Same Job Object `KILL_ON_JOB_CLOSE`, host `SYNCHRONIZE`, `AF_DisableHotloading`.
 
 ### Multi-client
 
 IPC names remain PID-scoped (`WikiIpcFormatNames`).
 
-Cache: `%TEMP%\GW2-InGame-Helper-Beta-cef` (never under `addons/` or `bin64/cef`).
+Cache: `%TEMP%\GW2-InGame-Helper-cef` (never under `addons/` or `bin64/cef`).
 
 ---
 
 ## 3. Layout
 
 ```text
-<GW2>/addons/GW2-InGame-Helper-Beta.dll     # only file players copy
-<GW2>/addons/GW2-InGame-Helper-Beta/        # runtime data
+<GW2>/addons/GW2-InGame-Helper.dll     # only file players copy
+<GW2>/addons/GW2-InGame-Helper/        # runtime data
   GW2HelperBrowser.exe
   cef/                     # private CEF 150 (downloaded)
     libcef.dll

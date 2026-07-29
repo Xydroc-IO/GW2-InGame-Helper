@@ -1,4 +1,4 @@
-# Building GW2 In-Game Helper (Beta)
+# Building GW2 In-Game Helper
 
 ## Prerequisites
 
@@ -22,14 +22,14 @@ sudo apt install -y mingw-w64 make git zip curl
 ## Build
 
 ```bash
-cd GW2-InGame-Helper-Beta
+cd GW2-InGame-Helper
 make -j"$(nproc)"
 ```
 
 Output DLL:
 
 ```text
-build/bin/GW2-InGame-Helper-Beta.dll
+build/bin/GW2-InGame-Helper.dll
 ```
 
 `GW2HelperBrowser.exe` is built and embedded into the DLL automatically.
@@ -66,14 +66,14 @@ make clean
 | Target | Sources |
 |--------|---------|
 | `GW2HelperBrowser.exe` | `src/helper/*.cpp` against `deps/cef` **150** headers |
-| `GW2-InGame-Helper-Beta.dll` | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob |
+| `GW2-InGame-Helper.dll` | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob |
 
 Player install layout:
 
 ```text
-addons/GW2-InGame-Helper-Beta.dll   # only file players copy
-addons/GW2-InGame-Helper-Beta/      # runtime data + cef/ after first open
+addons/GW2-InGame-Helper.dll   # only file players copy
+addons/GW2-InGame-Helper/      # runtime data + cef/ after first open
 ```
 
 Runtime CEF is **not** embedded in the DLL. First helper open downloads it into
-`addons/GW2-InGame-Helper-Beta/cef/`. Do **not** use or write game `bin64/cef`.
+`addons/GW2-InGame-Helper/cef/`. Do **not** use or write game `bin64/cef`.

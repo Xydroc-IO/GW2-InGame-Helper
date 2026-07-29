@@ -376,7 +376,7 @@ namespace
 			return false;
 		}
 
-		HINTERNET session = WinHttpOpen(L"GW2-InGame-Helper-Beta/CEF",
+		HINTERNET session = WinHttpOpen(L"GW2-InGame-Helper/CEF",
 			WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME,
 			WINHTTP_NO_PROXY_BYPASS, 0);
 		if (!session)

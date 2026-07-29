@@ -2,7 +2,7 @@
 
 #include "nexus/Nexus.h"
 
-#define ADDON_NAME "GW2-InGame-Helper-Beta"
+#define ADDON_NAME "GW2-InGame-Helper"
 #define ADDON_SIG  0x48454C50u /* 'HELP' */
 
 namespace G

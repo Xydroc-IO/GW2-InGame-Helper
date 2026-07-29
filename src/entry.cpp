@@ -600,8 +600,8 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 0;
-	G::AddonDef.Version.Build    = 1;
-	G::AddonDef.Version.Revision = 1;
+	G::AddonDef.Version.Build    = 2;
+	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.";

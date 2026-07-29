@@ -1,14 +1,14 @@
-# Note for Snow Crows — GW2 In-Game Helper (Beta)
+# Note for Snow Crows — GW2 In-Game Helper
 
 **To:** Snow Crows staff / site owners  
 **From:** maintainer of [GW2 In-Game Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper) (Raidcore Nexus addon)  
-**Purpose:** Clear description of what the **Beta** addon is, what it does with snowcrows.com, and why it is not a risk to your site, brand, or revenue.
+**Purpose:** Clear description of what the addon is, what it does with snowcrows.com, and why it is not a risk to your site, brand, or revenue.
 
 ---
 
 ## Short version
 
-GW2 In-Game Helper Beta is an **in-game web browser** for Guild Wars 2 players. When someone opens your site in it, they are loading **your live pages from your servers**, in a Chromium-based browser — the same way they would in Chrome or Firefox, just painted inside the game window.
+GW2 In-Game Helper is an **in-game web browser** for Guild Wars 2 players. When someone opens your site in it, they are loading **your live pages from your servers**, in a Chromium-based browser — the same way they would in Chrome or Firefox, just painted inside the game window.
 
 We do **not**:
 
@@ -29,12 +29,12 @@ If you prefer **zero** in-addon links to snowcrows.com, say so and they will be 
 
 | Item | Detail |
 |------|--------|
-| Product | Raidcore **Nexus** ImGui addon (`GW2-InGame-Helper-Beta.dll`) |
+| Product | Raidcore **Nexus** ImGui addon (`GW2-InGame-Helper.dll`) |
 | Job | Let players open useful GW2 community sites **while playing** |
-| Browser | Out-of-process **CEF Stable 150** (private runtime under `addons/GW2-InGame-Helper-Beta/cef/`) |
+| Browser | Out-of-process **CEF Stable 150** (private runtime under `addons/GW2-InGame-Helper/cef/`) |
 | Integration | Official Nexus APIs only (render, input, paths, swap chain) |
 | Source | Open / inspectable — MIT license |
-| Version context | Beta line ~**2.0.1.x** (sibling of stable game-CEF build) |
+| Version context | **2.0.2.0** (private CEF Stable 150) |
 
 Players install one DLL. The helper EXE extracts locally under the addon folder. Chromium is downloaded once into the addon `cef/` folder — we do **not** write into game `bin64/cef`. Live HTTPS to your origin is unchanged.
 
@@ -53,7 +53,7 @@ There is **no** Snow Crows-specific backend, scraper, or content cache inside th
 
 Since v2.0.0.20 we **allow** site ads, consent banners, and analytics hosts (including NitroPay-related loads). We do **not** run an ad blocker against your pages.
 
-**Honest caveat:** the in-game browser is CEF **off-screen rendering** (Chromium ~150 on Beta). That environment can still differ from a normal desktop Chrome session (Cloudflare challenges, some OAuth flows, and ad-network “viewability / guaranteed impression” rules). We do **not** claim we can meet NitroPay desktop guarantees. We also do **not** strip your tags to “fake” compliance — if a creative cannot complete in CEF, the honest path is the player using **Open Ext** (system browser).
+**Honest caveat:** the in-game browser is CEF **off-screen rendering** (Chromium ~150). That environment can still differ from a normal desktop Chrome session (Cloudflare challenges, some OAuth flows, and ad-network “viewability / guaranteed impression” rules). We do **not** claim we can meet NitroPay desktop guarantees. We also do **not** strip your tags to “fake” compliance — if a creative cannot complete in CEF, the honest path is the player using **Open Ext** (system browser).
 
 ### Login / Discord OAuth / Cloudflare
 
@@ -119,7 +119,7 @@ A short written preference (even one sentence) is enough for us to follow.
 
 ```text
 Guild Wars 2.exe
- └─ Nexus loads GW2-InGame-Helper-Beta.dll
+ └─ Nexus loads GW2-InGame-Helper.dll
       └─ CreateProcess → GW2HelperBrowser.exe
            └─ LoadLibrary(addons/.../cef/libcef.dll) — windowless OSR
                 └─ HTTPS navigation to whatever URL the player opened

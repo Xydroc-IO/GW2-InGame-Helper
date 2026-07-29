@@ -1,9 +1,10 @@
-# GW2 In-Game Helper v2.0.1.1
+# GW2 In-Game Helper v2.0.2.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
 In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.
-One DLL for Nexus — no memory reads.
+One DLL for Nexus — no memory reads. Chromium is **private CEF Stable 150**
+(first-run download into `addons/GW2-InGame-Helper/cef/`).
 
 Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · architecture [`ARCHITECTURE.md`](ARCHITECTURE.md)
 (local `CODE_AUDIT.md` is gitignored)
@@ -14,10 +15,35 @@ Copy **only** `GW2-InGame-Helper.dll` into `<Guild Wars 2>/addons/`.
 
 Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows / Wine / Proton).
 
+On first helper open the DLL downloads the CEF runtime (~170MB) once unless you
+pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)).
+
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper) ·
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
+### Upgrading from the Beta DLL
+
+1. Remove `GW2-InGame-Helper-Beta.dll` from `addons/` (same Nexus signature).
+2. Install `GW2-InGame-Helper.dll`.
+3. Data/CEF now live under `addons/GW2-InGame-Helper/` — optionally move
+   `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
+
 ---
+
+## What’s new in 2.0.2.0
+
+- **Runtime:** Private CEF **150.0.14** / Chromium **150.0.7871.129** under
+  `addons/GW2-InGame-Helper/cef/` (SHA-256 verify + extract). Never uses or writes
+  game `bin64/cef`
+- **Product:** Former Beta channel is now the shipping addon (`GW2-InGame-Helper.dll`)
+- **Sites:** Modern CSS/JS (Snow Crows); Discord **Continue to Discord** handoff;
+  in-page `<select>` for region/settings; header above NitroPay
+- **Input:** CEF 150 key events set `cef_key_event_t.size` (typing works); same Nexus
+  routing so page typing does not drive skills / WASD
+- **Reliability:** Crash-loop brake / process caps under Proton; Discord deep links
+  via game process; LNA relaxed for Discord localhost RPC
+- **Limits (honest):** MetaBattle Cloudflare / Google login often need **Open Ext**;
+  OSR ≠ desktop Chrome; no Cloudflare bypass
 
 ## What’s new in 2.0.1.1
 

@@ -1,12 +1,9 @@
-# Compliance & resilience notes (Beta)
+# Compliance & resilience notes
 
-GW2 In-Game Helper **Beta** is a **Raidcore Nexus** ImGui addon with an
+GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Stable product (`GW2-InGame-Helper`) remains on game `bin64/cef`. This Beta tree
-is an explicit opt-in channel.
-
-Current policy snapshot: **v2.0.1.1** — see [`ARCHITECTURE.md`](ARCHITECTURE.md).
+Current policy snapshot: **v2.0.2.0** — see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Allowed
 
@@ -14,7 +11,7 @@ Current policy snapshot: **v2.0.1.1** — see [`ARCHITECTURE.md`](ARCHITECTURE.m
 - Local IPC shared memory between the DLL and `GW2HelperBrowser.exe`
 - Official `api.guildwars2.com` reads from injected BootJs (credentials omitted; batched; 429 backoff) where pages use them
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
-- **Private CEF 150** under `addons/GW2-InGame-Helper-Beta/cef/` (first-run download + SHA-256 verify)
+- **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
 - Site ads / consent / analytics loads in CEF (do not re-strip without review)
 - Deep links to third-party sites as Browse hyperlinks
 
@@ -25,7 +22,6 @@ Current policy snapshot: **v2.0.1.1** — see [`ARCHITECTURE.md`](ARCHITECTURE.m
 - `SendInput` / keybd_event into Guild Wars 2 (1-to-many input / bots)
 - Combat automation or account-action automation via BootJs
 - **Writing into `bin64/cef`** (private tree stays under the addon data folder)
-- Shipping private Chromium as the **stable** product’s default path (stable stays on game CEF)
 - Re-adding Snow Crows catalog links without an explicit product decision
 
 ## Hot-reload

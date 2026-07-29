@@ -21,7 +21,7 @@ namespace
 		const std::string dir = AddonPaths::DataDirUtf8();
 		if (dir.empty())
 		{
-			std::snprintf(out, outLen, "GW2-InGame-Helper-Beta_settings.ini");
+			std::snprintf(out, outLen, "GW2-InGame-Helper_settings.ini");
 			return out;
 		}
 		std::snprintf(out, outLen, "%s\\settings.ini", dir.c_str());

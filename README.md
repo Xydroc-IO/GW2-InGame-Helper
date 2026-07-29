@@ -1,24 +1,20 @@
-# GW2 In-Game Helper (Beta)
+# GW2 In-Game Helper
 
 <p align="center">
-  <img src="docs/media/cover.png" alt="GW2 In-Game Helper Beta — private CEF 150" width="100%">
+  <img src="docs/media/cover.png" alt="GW2 In-Game Helper — private CEF 150" width="100%">
 </p>
 
-**Beta channel** of the Raidcore Nexus in-game browser. Same UI and sites as the
-stable addon, but Chromium comes from a **private CEF Stable 150** runtime
-downloaded on first open into `addons/GW2-InGame-Helper-Beta/cef/` — not from
-Guild Wars 2 `bin64/cef`.
+Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
+CEF Stable 150** runtime downloaded on first open into
+`addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-This tree is a sibling of the stable project (`GW2-InGame-Helper`). Do not mix
-DLLs or data folders.
+**Version:** `2.0.2.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
-**Version:** `2.0.1.1-beta` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
-
-**Install:** copy `GW2-InGame-Helper-Beta.dll` into `<GW2>/addons/`.
+**Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
-Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper-Beta/`.
+Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 
-**Beta release notes:** [`docs/RELEASE_NOTES_BETA.md`](docs/RELEASE_NOTES_BETA.md)
+**Release notes:** [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 | Site | Category |
 |------|----------|
@@ -115,28 +111,25 @@ Replaces the older Wiki browser addons.
 Works on Windows and on Linux via Wine/Proton.
 
 > **Players copy one DLL** into `addons/`. Helper + homepage extract into
-> `addons/GW2-InGame-Helper-Beta/`. Private CEF 150 downloads once into
-> `addons/GW2-InGame-Helper-Beta/cef/` (see `src/CefRuntime.h`). Never writes
+> `addons/GW2-InGame-Helper/`. Private CEF 150 downloads once into
+> `addons/GW2-InGame-Helper/cef/` (see `src/CefRuntime.h`). Never writes
 > into `bin64/cef`.
 
 Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 architecture [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
 listing copy [`docs/description.html`](docs/description.html) ·
-**Beta notes** [`docs/RELEASE_NOTES_BETA.md`](docs/RELEASE_NOTES_BETA.md) ·
-stable history [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
+release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
 [`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md)
 
 Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
 
-## What’s new (Beta / private CEF 150)
+## What’s new in 2.0.2.0
 
-- **Runtime:** Private CEF Stable 150 under `addons/GW2-InGame-Helper-Beta/cef/` (first-run download or local zip) — never uses or writes `bin64/cef`
+- **Runtime:** Private CEF Stable 150 under `addons/GW2-InGame-Helper/cef/` (first-run download or local zip) — never uses or writes `bin64/cef`
 - **Sites:** Better modern CSS/JS (Snow Crows); Discord **Continue to Discord** handoff; in-page `<select>` for region/settings; header above NitroPay
 - **Limits:** MetaBattle Cloudflare / Google login often still need **Open Ext**
-- Full write-up: [`docs/RELEASE_NOTES_BETA.md`](docs/RELEASE_NOTES_BETA.md)
-
-Stable line history: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
+- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## Features
 
@@ -162,22 +155,22 @@ Stable line history: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
 
 - Guild Wars 2 (64-bit Windows client)
 - [Raidcore Nexus](https://raidcore.gg/gw2/nexus) installed and working
-- **Only** the release file `GW2-InGame-Helper-Beta.dll` (nothing else)
+- **Only** the release file `GW2-InGame-Helper.dll` (nothing else)
 
 ## Install (players)
 
 Players need **one file**. No separate helper `.exe`, CEF package, or WebView2.
 
 1. Close Guild Wars 2.
-2. Copy `GW2-InGame-Helper-Beta.dll` into your game’s `addons` folder:
+2. Copy `GW2-InGame-Helper.dll` into your game’s `addons` folder:
 
    ```text
-   <Guild Wars 2>/addons/GW2-InGame-Helper-Beta.dll
+   <Guild Wars 2>/addons/GW2-InGame-Helper.dll
    ```
 
-   Do **not** put the DLL inside `addons/GW2-InGame-Helper-Beta/`. That folder is created automatically for runtime data (helper exe, homepage HTML, settings).
+   Do **not** put the DLL inside `addons/GW2-InGame-Helper/`. That folder is created automatically for runtime data (helper exe, homepage HTML, settings).
 
-3. Start the game, open Nexus with `Ctrl+O`, and enable **GW2-InGame-Helper-Beta** if needed.
+3. Start the game, open Nexus with `Ctrl+O`, and enable **GW2-InGame-Helper** if needed.
 4. Restart if Nexus asks you to.
 
 The DLL embeds its browser helper. On first use it extracts `GW2HelperBrowser.exe`
@@ -229,12 +222,12 @@ Nexus auto-updates from GitHub Releases (`UP_GitHub` →
 [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper)).
 
 Manual download:
-[GW2-InGame-Helper-Beta.dll](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper-Beta.dll)
+[GW2-InGame-Helper.dll](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
 
 Manual update:
 
 1. Close Guild Wars 2.
-2. Replace `addons/GW2-InGame-Helper-Beta.dll` with the new build.
+2. Replace `addons/GW2-InGame-Helper.dll` with the new build.
 3. Start the game again.
 
 ## Build from source
@@ -243,7 +236,7 @@ Manual update:
 
 ```bash
 git clone --recurse-submodules <this-repo-url>
-cd GW2-InGame-Helper-Beta
+cd GW2-InGame-Helper
 # or, if already cloned:
 git submodule update --init --recursive
 ```
@@ -252,7 +245,7 @@ git submodule update --init --recursive
 |-----------|--------|
 | `deps/nexus` | [Raidcore Nexus API](https://github.com/RaidcoreGG/RCGG-lib-nexus-api) |
 | `deps/imgui` | [Raidcore imgui fork](https://github.com/RaidcoreGG/imgui) |
-| `deps/cef` | CEF headers only (runtime comes from the game) |
+| `deps/cef` | CEF 150 headers only (private runtime downloads on first open) |
 
 ### Linux (MinGW cross-compile)
 
@@ -266,7 +259,7 @@ make -j"$(nproc)"
 Output:
 
 ```text
-build/bin/GW2-InGame-Helper-Beta.dll
+build/bin/GW2-InGame-Helper.dll
 ```
 
 Install into a local GW2 tree (default Steam path on Linux):
@@ -337,7 +330,7 @@ Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map th
 **Addon does not appear**
 
 - Confirm Nexus opens with `Ctrl+O`.
-- Filename must be exactly `GW2-InGame-Helper-Beta.dll` under `<GW2>/addons`.
+- Filename must be exactly `GW2-InGame-Helper.dll` under `<GW2>/addons`.
 - Enable the addon in Nexus and restart.
 
 **Window does not open**
@@ -348,7 +341,7 @@ Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map th
 
 **Page stuck loading**
 
-- Confirm `addons/GW2-InGame-Helper-Beta/cef/libcef.dll` exists (opens helper once to download).
+- Confirm `addons/GW2-InGame-Helper/cef/libcef.dll` exists (opens helper once to download).
 - Allow `GW2HelperBrowser.exe` if antivirus blocks it.
 - Fully quit and restart the game.
 
@@ -400,13 +393,13 @@ Nexus loads the DLL → ImGui overlay → out-of-process CEF helper paints OSR f
 PID-scoped shared memory → DLL uploads via staging D3D11 texture → `ImGui::Image`.
 Browse rows are labeled hyperlinks into public sites (and built-in `about:` pages).
 
-1. `GW2-InGame-Helper-Beta.dll` — Nexus UI, site picker, QuickAccess, D3D11 present.
-2. Embedded `GW2HelperBrowser.exe` — loads `addons/GW2-InGame-Helper-Beta/cef/libcef.dll`.
+1. `GW2-InGame-Helper.dll` — Nexus UI, site picker, QuickAccess, D3D11 present.
+2. Embedded `GW2HelperBrowser.exe` — loads `addons/GW2-InGame-Helper/cef/libcef.dll`.
 3. CEF renders off-screen into shared memory (PID-scoped IPC v5).
 4. CSS is downleveled for Chromium 103 on selected hosts; **ads are allowed** (since 2.0.0.20).
 5. YouTube on guides becomes a Watch card / Open Ext (in-page play is not reliable on CEF 103 OSR).
 6. HTTP cache lives under `%TEMP%` (not under `addons`).
-7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper-Beta/`.
+7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
 8. Site list lives in `src/Sites.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets.cpp`.
 
 Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Full doc map:

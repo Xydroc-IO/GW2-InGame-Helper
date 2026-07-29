@@ -6,7 +6,7 @@
 #include <windows.h>
 
 /* Shared memory IPC between addon DLL and private CEF 150 helper process.
-   Runtime lives under addons/GW2-InGame-Helper-Beta/cef/ — not game bin64/cef.
+   Runtime lives under addons/GW2-InGame-Helper/cef/ — not game bin64/cef.
    Browser is windowless (OSR); frames are BGRA in a second mapping.
    Up to kWikiMaxTabs OSR browsers; only the active tab paints.
 
