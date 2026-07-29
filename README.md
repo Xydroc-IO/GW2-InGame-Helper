@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.0.2.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.2.1` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
@@ -122,6 +122,14 @@ release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 
 Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
 
+## What’s new in 2.0.2.1
+
+- **Input:** Game chat works with the helper open (including Space); keys follow the pointer
+- **Browse:** Site picker / popups no longer close when moving onto the menu
+- **Find:** Toolbar Enter finds on the current page; **Web** button does site/Google search
+- **Focus:** CEF text caret restored when typing in page fields
+- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
+
 ## What’s new in 2.0.2.0
 
 - **Runtime:** Private CEF Stable 150 under `addons/GW2-InGame-Helper/cef/` (first-run download or local zip) — never uses or writes `bin64/cef`
@@ -133,11 +141,11 @@ Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUD
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
-- **Compact toolbar** — Browse · nav cluster · Search · `...` menu (Find / Copy / Open Ext)
+- **Compact toolbar** — Browse · nav cluster · Find in page · Web · `...` menu (Find / Copy / Open Ext)
 - **GW2-themed** chrome (gold tabs + muted status); Browse picker with section headers (Tools, Guides, Discord, Cheat Sheets, …)
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
-- **Find in page** — Ctrl+F
+- **Find in page** — toolbar Enter or Ctrl+F; **Web** for site/Google search
 - **Favorites** — star + drag-reorder
 - **Keep browser warm** — optional hide without killing CEF (collapse also keeps the helper alive)
 - **Default landing site** — Options picker; used by the Home button and when no tabs are saved

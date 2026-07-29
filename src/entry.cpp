@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <cstdio>
+#include <cstring>
 
 #include "imgui/imgui.h"
 
@@ -204,6 +205,20 @@ void UI_ReleaseHeldGameKeys()
 	}
 }
 
+void UI_ResetKeyRouting()
+{
+	std::memset(sAteKeyDest, 0, sizeof(sAteKeyDest));
+	/* Nexus may deliver WndProc before ImGui is ready — never touch IO blindly. */
+	if (!ImGui::GetCurrentContext())
+		return;
+	ImGuiIO& io = ImGui::GetIO();
+	io.WantCaptureKeyboard = false;
+	io.WantTextInput = false;
+	ImGui::CaptureKeyboardFromApp(false);
+	for (int i = 0; i < IM_ARRAYSIZE(io.KeysDown); ++i)
+		io.KeysDown[i] = false;
+}
+
 static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	sGameHwnd = hwnd;
@@ -309,6 +324,65 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		return 1;
 	}
 
+	/* Helper closed: never eat keys for CEF/ImGui — stale sAteKeyDest used to
+	   keep stealing chat/WASD after close. Hotkey swallow already returned above. */
+	if (IsKeyMsg(msg) && !G::ShowWiki)
+	{
+		const UINT vk = static_cast<UINT>(wp);
+		const bool vkOk = vk < 256;
+		const bool down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN;
+		const bool up = msg == WM_KEYUP || msg == WM_SYSKEYUP;
+		if (ImGui::GetCurrentContext())
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			io.WantCaptureKeyboard = false;
+			io.WantTextInput = false;
+			ImGui::CaptureKeyboardFromApp(false);
+			if (vkOk && vk < IM_ARRAYSIZE(io.KeysDown))
+				io.KeysDown[vk] = false;
+		}
+		if (vkOk)
+		{
+			if (sAteKeyDest[vk] == kKeyBrowser || sAteKeyDest[vk] == kKeyImGui)
+				sAteKeyDest[vk] = kKeyNone;
+			if (down)
+				sAteKeyDest[vk] = kKeyGame;
+			if (up)
+				sAteKeyDest[vk] = kKeyNone;
+		}
+		return 1;
+	}
+
+	/* Helper open but not capturing (cursor on game/chat): same pass-through.
+	   Do not honor stale CEF/ImGui ownership — that uniquely broke Space in chat
+	   (ImGui Nav / active InputText kept eating VK_SPACE). */
+	if (IsKeyMsg(msg) && G::ShowWiki && !UI_BlocksGameKeyboard())
+	{
+		const UINT vk = static_cast<UINT>(wp);
+		const bool vkOk = vk < 256;
+		const bool down = msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN;
+		const bool up = msg == WM_KEYUP || msg == WM_SYSKEYUP;
+		if (ImGui::GetCurrentContext())
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			io.WantCaptureKeyboard = false;
+			io.WantTextInput = false;
+			ImGui::CaptureKeyboardFromApp(false);
+			if (vkOk && vk < IM_ARRAYSIZE(io.KeysDown))
+				io.KeysDown[vk] = false;
+		}
+		if (vkOk)
+		{
+			if (sAteKeyDest[vk] == kKeyBrowser || sAteKeyDest[vk] == kKeyImGui)
+				sAteKeyDest[vk] = kKeyNone;
+			if (down)
+				sAteKeyDest[vk] = kKeyGame;
+			if (up)
+				sAteKeyDest[vk] = kKeyNone;
+		}
+		return 1;
+	}
+
 	const bool blockKeys = UI_BlocksGameKeyboard();
 	/* Keys we ate on KEYDOWN must also eat KEYUP even if focus flipped mid-press.
 	   kKeyGame marks holds that went to GW2 — on helper hover we flush KEYUPs via
@@ -330,9 +404,12 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		};
 
 		auto passKeyToGame = [&]() -> UINT {
-			ImGuiIO& io = ImGui::GetIO();
-			io.WantCaptureKeyboard = false;
-			ImGui::CaptureKeyboardFromApp(false);
+			if (ImGui::GetCurrentContext())
+			{
+				ImGuiIO& io = ImGui::GetIO();
+				io.WantCaptureKeyboard = false;
+				ImGui::CaptureKeyboardFromApp(false);
+			}
 			if (down && vkOk)
 				sAteKeyDest[vk] = kKeyGame;
 			if (up && vkOk)
@@ -601,7 +678,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 0;
 	G::AddonDef.Version.Build    = 2;
-	G::AddonDef.Version.Revision = 0;
+	G::AddonDef.Version.Revision = 1;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.";

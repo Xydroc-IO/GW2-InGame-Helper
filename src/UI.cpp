@@ -126,11 +126,11 @@ namespace
 
 	void BlurBrowser()
 	{
-		if (!gBrowserFocused && !gOverBrowserPage)
+		if (!gBrowserFocused)
 			return;
 		gBrowserFocused = false;
-		gOverBrowserPage = false;
-		gBlockGameKeyboard = false;
+		/* Do not clear gOverBrowserPage here — the render loop owns hover state.
+		   Clearing it stole CEF focus while keys still reached the page (no caret). */
 		WikiBrowser::FeedFocus(false);
 	}
 
@@ -138,6 +138,12 @@ namespace
 	{
 		if (gBrowserFocused)
 			return;
+		gBrowserFocused = true;
+		WikiBrowser::FeedFocus(true);
+	}
+
+	void FocusBrowserForce()
+	{
 		gBrowserFocused = true;
 		WikiBrowser::FeedFocus(true);
 	}
@@ -179,6 +185,7 @@ namespace
 	static bool sSyncCategory = true;
 	static bool sFocusFilter = false;
 	static bool sShowFind = false;
+	static bool sFocusFind = false;
 	static bool sRequestNewTabPicker = false;
 	static char sFindQuery[128] = {};
 	static bool sFindMatchCase = false;
@@ -2422,8 +2429,22 @@ namespace
 			if (avail > 280.f) avail = 280.f;
 			ImGui::SetNextItemWidth(avail);
 		}
-		if (ImGui::InputTextWithHint("##site_query", "Search...", G::LastQuery, sizeof(G::LastQuery),
+		if (ImGui::InputTextWithHint("##site_query", "Find in page...", G::LastQuery, sizeof(G::LastQuery),
 			ImGuiInputTextFlags_EnterReturnsTrue))
+		{
+			if (G::LastQuery[0])
+			{
+				/* Enter = find on the current page (not Google). */
+				sShowFind = true;
+				std::snprintf(sFindQuery, sizeof(sFindQuery), "%s", G::LastQuery);
+				WikiBrowser::Find(sFindQuery, true, sFindMatchCase, false);
+				Settings::SetDirty();
+			}
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Find text on this page. Enter = next match.\nUse Web for Google / site search.");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Web"))
 		{
 			if (G::LastQuery[0])
 			{
@@ -2432,16 +2453,7 @@ namespace
 			}
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Search this site (Wiki / Google). Enter to go.");
-		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Go"))
-		{
-			if (G::LastQuery[0])
-			{
-				WikiBrowser::Search(G::LastQuery);
-				Settings::SetDirty();
-			}
-		}
+			ImGui::SetTooltip("Search the active site (or Google).");
 
 		ImGui::SameLine(0.f, 8.f);
 		DrawMoreMenu();
@@ -2497,10 +2509,12 @@ bool UI_BlocksGameKeyboard()
 	return gBlockGameKeyboard;
 }
 
-/* True while keystrokes should go to the CEF page (not ImGui chrome). */
+/* True while keystrokes should go to the CEF page (not ImGui filter/search/find). */
 bool UI_BrowserKeyboardActive()
 {
-	return G::ShowWiki && (gBrowserFocused || gOverBrowserPage);
+	/* Pointer must be on the OSR page — sticky gBrowserFocused alone stole
+	   Browse/Find typing and game chat after leaving the page. */
+	return G::ShowWiki && gOverBrowserPage;
 }
 
 void UI_ParseBrowseOpen(const char* val)
@@ -2562,7 +2576,9 @@ void UI_ReleaseGameInput()
 {
 	BlurBrowser();
 	gBlockGameMouse = false;
+	gBlockGameKeyboard = false;
 	gPendingDefocus = true;
+	UI_ResetKeyRouting();
 }
 
 void UI_Render()
@@ -2590,10 +2606,16 @@ void UI_Render()
 	static bool sWasOpen = false;
 	if (!G::ShowWiki)
 	{
+		ImGuiIO& io = ImGui::GetIO();
+		io.WantTextInput = false;
+		io.WantCaptureKeyboard = false;
+		ImGui::CaptureKeyboardFromApp(false);
+
 		if (sWasOpen)
 		{
 			BrowserTabs::PrepareSave();
 			Settings::SetDirty();
+			UI_ReleaseGameInput();
 			sWasOpen = false;
 		}
 		BlurBrowser();
@@ -2629,7 +2651,8 @@ void UI_Render()
 	ImGui::SetNextWindowBgAlpha(G::Opacity);
 
 	bool open = G::ShowWiki;
-	if (!ImGui::Begin("In-Game Helper##GW2InGameHelper", &open))
+	if (!ImGui::Begin("In-Game Helper##GW2InGameHelper", &open,
+		ImGuiWindowFlags_NoNavInputs))
 	{
 		/* Collapsed title bar — keep the CEF helper alive (SetVisible(false)
 		   used to TerminateProcess and hitch on every expand). Still block
@@ -2642,14 +2665,12 @@ void UI_Render()
 		const bool mouseOver =
 			ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 		gBlockGameMouse = mouseOver;
-		gBlockGameKeyboard = mouseOver || ImGui::GetIO().WantTextInput;
+		/* Collapsed bar: only eat keys while the pointer is on it. */
+		gBlockGameKeyboard = mouseOver;
 		if (mouseOver)
 		{
 			ImGui::GetIO().WantCaptureMouse = true;
 			ImGui::CaptureMouseFromApp(true);
-		}
-		if (gBlockGameKeyboard)
-		{
 			ImGui::GetIO().WantCaptureKeyboard = true;
 			ImGui::CaptureKeyboardFromApp(true);
 		}
@@ -2664,7 +2685,7 @@ void UI_Render()
 		G::ShowWiki = false;
 		Settings::SetDirty();
 		WikiBrowser::SetVisible(false);
-		BlurBrowser();
+		UI_ReleaseGameInput();
 	}
 
 	ImGui::SetWindowFontScale(G::FontScale);
@@ -2703,7 +2724,10 @@ void UI_Render()
 		const bool ctrlTab = !typing && ctrl && !alt && keyTab;
 
 		if (ctrlF && !sCtrlFWasDown)
+		{
 			sShowFind = true;
+			sFocusFind = true;
+		}
 		if (ctrlT && !sCtrlTWasDown)
 		{
 			sRequestNewTabPicker = true;
@@ -2746,6 +2770,11 @@ void UI_Render()
 		ImGui::TextColored(kGoldDim, "Find");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(220.f);
+		if (sFocusFind)
+		{
+			ImGui::SetKeyboardFocusHere();
+			sFocusFind = false;
+		}
 		const bool findEnter = ImGui::InputTextWithHint("##find_q", "Find in page...", sFindQuery, sizeof(sFindQuery),
 			ImGuiInputTextFlags_EnterReturnsTrue);
 		ImGui::SameLine();
@@ -2849,7 +2878,8 @@ void UI_Render()
 			auto click = [&](ImGuiMouseButton btn, int cefBtn) {
 				if (ImGui::IsMouseClicked(btn))
 				{
-					FocusBrowser();
+					/* Re-assert focus on click so the text caret appears (OSR). */
+					FocusBrowserForce();
 					WikiBrowser::FeedMouseClick(cx, cy, cefBtn, false,
 						ImGui::IsMouseDoubleClicked(btn) ? 2 : 1, mods);
 				}
@@ -2912,22 +2942,57 @@ void UI_Render()
 
 	const bool mouseOverWiki = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+	/* Browse / More / tab menus are separate ImGui windows — main-window hover
+	   is false while using them. Treat those popups as part of the helper UI. */
+	const bool helperPopupOpen =
+		ImGui::IsPopupOpen("##site_browse") ||
+		ImGui::IsPopupOpen("##site_browse_newtab") ||
+		ImGui::IsPopupOpen("##default_site_browse") ||
+		ImGui::IsPopupOpen("##toolbar_more") ||
+		ImGui::IsPopupOpen("##tab_ctx");
+	const bool mouseOverHelperUi = mouseOverWiki ||
+		(helperPopupOpen && ImGui::IsWindowHovered(
+			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+			ImGuiHoveredFlags_AnyWindow));
 
 	gOverBrowserPage = overPage;
-	gBlockGameMouse = G::ShowWiki && (overPage || mouseOverWiki);
-	/* Block game keys while using the helper. Nexus UiInput only eats KEYDOWN when
-	   WantTextInput — force that flag while the CEF page owns the keyboard so wiki
-	   search typing cannot reach GW2 even if a key slips past our WndProc. */
-	const bool wikiFocused = ImGui::IsWindowFocused(
-		ImGuiFocusedFlags_RootAndChildWindows);
-	const bool pageKeys = gBrowserFocused || gOverBrowserPage;
-	gBlockGameKeyboard = G::ShowWiki &&
-		(pageKeys || io.WantTextInput || gBlockGameMouse || wikiFocused);
+	gBlockGameMouse = G::ShowWiki && mouseOverHelperUi;
 
-	if (pageKeys)
+	/* Snapshot ImGui's own text-input flag BEFORE we adjust capture for CEF.
+	   Never force WantTextInput=false — that broke Browse/Find typing. */
+	const bool imguiTyping = io.WantTextInput;
+
+	/* Keys follow the pointer while the helper is open:
+	   - over helper chrome/page/popups → addon (ImGui or CEF)
+	   - over the game (chat, world) → GW2
+	   Blur CEF when the cursor leaves so page focus cannot stick. */
+	static bool sWasPointerOnHelper = false;
+	if (!mouseOverHelperUi)
 	{
-		/* Belt-and-suspenders: Nexus CUiInput returns 0 on KEYDOWN iff WantTextInput. */
+		BlurBrowser();
+		/* Clear active text fields for chat Space — do NOT SetWindowFocus(nullptr)
+		   here (that closed Browse popups every time the cursor left the main window). */
+		io.WantTextInput = false;
+		io.WantCaptureKeyboard = false;
+		ImGui::CaptureKeyboardFromApp(false);
+		if (sWasPointerOnHelper)
+			UI_ResetKeyRouting();
+		/* Avoid ImGui::SetWindowFocus(nullptr) here — it closed Browse popups. */	}
+	else if (!overPage && ImGui::IsAnyItemActive())
+		BlurBrowser(); /* Find/filter/etc. active — release CEF caret/focus */
+	sWasPointerOnHelper = mouseOverHelperUi;
+
+	gBlockGameKeyboard = G::ShowWiki && mouseOverHelperUi;
+
+	if (overPage)
+	{
+		/* CEF page under the cursor — Nexus also gates on WantTextInput. */
 		io.WantTextInput = true;
+		io.WantCaptureKeyboard = true;
+		ImGui::CaptureKeyboardFromApp(true);
+	}
+	else if (mouseOverHelperUi && imguiTyping)
+	{
 		io.WantCaptureKeyboard = true;
 		ImGui::CaptureKeyboardFromApp(true);
 	}
@@ -2968,7 +3033,11 @@ void UI_Options()
 	ImGui::TextUnformatted("GW2 In-Game Helper");
 	ImGui::Separator();
 	if (ImGui::Checkbox("Show helper window", &G::ShowWiki))
+	{
+		if (!G::ShowWiki)
+			UI_ReleaseGameInput();
 		Settings::SetDirty();
+	}
 
 	size_t count = 0;
 	Sites::All(&count);

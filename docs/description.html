@@ -69,7 +69,7 @@
       </div>
 
       <div class="meta">
-        <strong>Version</strong> 2.0.1.1 ·
+        <strong>Version</strong> 2.0.2.1 ·
         <strong>Signature</strong> 0x48454C50 ·
         <strong>Author</strong> xydroc ·
         <strong>License</strong> MIT ·
@@ -84,12 +84,14 @@
       </p>
       <p>
         Players install a <strong>single DLL</strong>. No memory reads; official Nexus APIs only.
+        Chromium is a <strong>private CEF 150</strong> runtime (downloaded once into the addon folder).
       </p>
 
       <div class="note">
         <strong>Install:</strong> copy <code>GW2-InGame-Helper.dll</code> to
         <code>&lt;GW2&gt;/addons/</code> only. Runtime files extract into
-        <code>&lt;GW2&gt;/addons/GW2-InGame-Helper/</code>.
+        <code>&lt;GW2&gt;/addons/GW2-InGame-Helper/</code>
+        (including private <code>cef/</code> on first open).
         Open with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>
         or the QuickAccess icon.
       </div>
@@ -105,9 +107,9 @@
         plus Tools (incl. GW2.app), Search, Official, and Farming.
       </div>
       <ul>
-        <li><strong>In-game browser</strong> — full CEF pages inside Guild Wars 2 (uses the game’s <code>bin64/cef</code>)</li>
+        <li><strong>In-game browser</strong> — full CEF pages inside Guild Wars 2 (private CEF 150 under <code>addons/.../cef/</code>)</li>
         <li><strong>Browse panel</strong> — search + categories; collapsible sections; clipped large Wiki lists</li>
-        <li><strong>Compact toolbar</strong> — Browse · Back / Forward / Home / Reload · Search ·
+        <li><strong>Compact toolbar</strong> — Browse · Back / Forward / Home / Reload · Find in page · Web ·
           <code>...</code> menu (Find / Copy URL / Open Ext)</li>
         <li><strong>GW2-themed chrome</strong> — gold / bronze panels, gold tabs, muted status line</li>
         <li><strong>Tabs</strong> — up to 8 live pages; pin; reopen closed; live titles from the page; persisted across sessions</li>
@@ -116,7 +118,7 @@
           <kbd>Ctrl</kbd>+<kbd>W</kbd> close ·
           <kbd>Ctrl</kbd>+<kbd>Tab</kbd> cycle ·
           <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> reopen</li>
-        <li><strong>Find in page</strong> — <kbd>Ctrl</kbd>+<kbd>F</kbd></li>
+        <li><strong>Find in page</strong> — toolbar Enter or <kbd>Ctrl</kbd>+<kbd>F</kbd></li>
         <li><strong>Favorites</strong> — star sites; drag-reorder; pinned under Favorites in Browse</li>
         <li><strong>Keep browser warm</strong> — optional hide without killing CEF (title-bar collapse also keeps the helper alive)</li>
         <li><strong>Default landing site</strong> — Options picker; used by Home and when no tabs are saved</li>
@@ -151,6 +153,18 @@
         <li>Click outside the window (on the game) to return movement / skills to Guild Wars 2.</li>
       </ol>
 
+      <h2>What’s new in 2.0.2.1</h2>
+      <ul>
+        <li><strong>Input:</strong> Chat works with the helper open (including Space); keys follow the pointer.</li>
+        <li><strong>Browse:</strong> Site picker no longer closes when moving onto the menu.</li>
+        <li><strong>Find:</strong> Toolbar Enter finds on the page; Web button does site/Google search.</li>
+        <li><strong>Focus:</strong> Text caret shows again when typing in page fields.</li>
+      </ul>
+      <h2>What’s new in 2.0.2.0</h2>
+      <ul>
+        <li><strong>Runtime:</strong> Private CEF 150 (first-run download) — no longer uses game <code>bin64/cef</code>.</li>
+        <li><strong>Catalog:</strong> No Snow Crows Browse links.</li>
+      </ul>
       <h2>What’s new in 2.0.1.1</h2>
       <ul>
         <li><strong>Input:</strong> Wiki page search typing no longer leaks to GW2; WASD / RMB camera look no longer fight the overlay (stuck run or walk dying on cursor reappear).</li>

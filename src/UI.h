@@ -19,6 +19,8 @@ void UI_ReleaseGameInput();
 /* Send KEYUP to GW2 for held movement keys when left-clicking into the helper
    (avoids stuck autorun). Not used on hover — that broke RMB camera look. */
 void UI_ReleaseHeldGameKeys();
+/* Clear browser/ImGui key ownership + ImGui capture so GW2 chat works after close. */
+void UI_ResetKeyRouting();
 
 /* Persist Browse collapsing-header open state (settings.ini). */
 void UI_ParseBrowseOpen(const char* val);

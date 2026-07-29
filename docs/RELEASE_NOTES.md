@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.0
+# GW2 In-Game Helper v2.0.2.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,16 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.1
+
+- **Input:** With the helper open, GW2 chat works when the cursor is on the game
+  (including **Space**). Keys are only stolen while the pointer is over the helper
+- **Close:** Stale CEF/ImGui key ownership is cleared on hide so chat/WASD work after close
+- **Browse:** Site-picker / toolbar popups no longer dismiss when the cursor moves onto them
+- **Find:** Toolbar field **Enter** runs find-in-page; **Web** runs site/Google search
+- **Focus:** CEF editable caret shows again when clicking/typing in page fields
+- **Stamps:** Helper `2038` · homepage `2013`
 
 ## What’s new in 2.0.2.0
 

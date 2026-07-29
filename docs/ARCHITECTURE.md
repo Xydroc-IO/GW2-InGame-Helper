@@ -1,6 +1,6 @@
 # Architecture — GW2 In-Game Helper
 
-**Current addon revision:** `2.0.2.0` · **IPC:** `HLI5` (v5) · **CEF:** private Stable **150** (`150.0.7871.129`)
+**Current addon revision:** `2.0.2.1` · **IPC:** `HLI5` (v5) · **CEF:** private Stable **150** (`150.0.7871.129`)
 
 Never loads game CEF and never writes into `bin64/cef`.
 
