@@ -24250,16 +24250,20 @@ bool Sites::SetActiveById(const char* id)
 std::string Sites::SearchUrl(const std::string& query)
 {
 	const SiteDef& site = Active();
+	/* DuckDuckGo tolerates the embedded OSR browser; Google serves
+	   /sorry/index "unusual traffic" captchas that cannot be solved in OSR
+	   (worse for Windows users whose %TEMP% cookies get cleaned). Google stays
+	   available as an explicit Browse choice. */
 	if (IsHelpSite(site))
 	{
 		if (query.empty())
 			return "about:helper-home";
-		return std::string("https://www.google.com/search?q=") + WikiBrowser::UrlEncode(query);
+		return std::string("https://duckduckgo.com/?q=") + WikiBrowser::UrlEncode(query);
 	}
 	if (query.empty())
 		return site.homeUrl ? site.homeUrl : "";
 	if (!site.searchUrlPrefix)
-		return std::string("https://www.google.com/search?q=") + WikiBrowser::UrlEncode(query);
+		return std::string("https://duckduckgo.com/?q=") + WikiBrowser::UrlEncode(query);
 
 	std::string url = site.searchUrlPrefix;
 	url += WikiBrowser::UrlEncode(query);

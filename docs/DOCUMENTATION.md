@@ -12,8 +12,9 @@ GW2 In-Game Helper — where to find what.
 | Doc | Audience | Contents |
 |-----|----------|----------|
 | [`../README.md`](../README.md) | Everyone | Install, features, site list, troubleshooting, build pointers |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Contributors | Process model, IPC, present/input, CEF, Browse, stamps |
-| `CODE_AUDIT.md` *(gitignored)* | Local audit notes — findings, risks, regression checklist |
+| `ARCHITECTURE.md` *(gitignored)* | Local | Process model, IPC, present/input, CEF, stamps |
+| `WHITEPAPER.md` *(gitignored)* | Local | Academic-style technical whitepaper (design, IPC, security, ads, Proton) |
+| `CODE_AUDIT.md` *(gitignored)* | Local | Audit notes — findings, risks, regression checklist |
 | [`COMPLIANCE.md`](COMPLIANCE.md) | Contributors | Allowed / forbidden Nexus and TOS boundaries |
 | [`CEF_RUNTIME.md`](CEF_RUNTIME.md) | Contributors | Private CEF 150 first-run download, zip, SHA |
 | `SNOWCROWS.md` *(gitignored)* | Local | Brief for Snow Crows (not published) |
@@ -66,7 +67,7 @@ Bump **only when asked**. Keep these aligned:
 2. `src/WikiBrowser.cpp` — `kHelperStamp`
 3. `src/HomePage.cpp` — `kHomePageVersion`
 4. `README.md`, `RELEASE_NOTES.md`, `description.html`; local (gitignored) `RAIDCORE.md`, `DISCORD.md`, new `DISCORD_*.md`
-5. Refresh `ARCHITECTURE.md` headers if behavior changed; update local `CODE_AUDIT.md` if you keep one
+5. Refresh local `ARCHITECTURE.md` / `CODE_AUDIT.md` if you keep them (gitignored)
 6. `make && make install` (or release package)
 
 ---

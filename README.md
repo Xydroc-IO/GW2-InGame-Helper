@@ -114,18 +114,19 @@ Works on Windows and on Linux via Wine/Proton.
 > into `bin64/cef`.
 
 Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
-architecture [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
 listing copy [`docs/description.html`](docs/description.html) ·
 release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
 [`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md)
 
-Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
+Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
 
 ## What’s new in 2.0.2.2
 
 - **Ads:** Click trackers with long URLs no longer truncate (blank landing pages)
-- **Ads:** Ad iframe `target=_blank` clicks open in the system browser so partners get a real click
+- **Ads:** Every ad click leaves the addon — trackers, ad-iframe links, and any
+  new-window link to a third-party domain open in the system browser so partners
+  get a real click; same-site new-window links still open in-tab
 - Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.1
@@ -361,7 +362,6 @@ Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map th
 
 - Fully restart GW2 after updating (helper stamp must re-extract).
 - Note the muted diagnostic line under the wait text (CEF never painted vs GPU Map fail) and report it if it persists.
-- See architecture present-path notes in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 **Sign-in fails (Google / Discord / GW2.app)**
 
@@ -410,12 +410,11 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
 3. CEF renders off-screen into shared memory (PID-scoped IPC v5).
 4. CSS is downleveled for Chromium 103 on selected hosts; **ads are allowed** (since 2.0.0.20).
 5. YouTube on guides becomes a Watch card / Open Ext (in-page play is not reliable on CEF 103 OSR).
-6. HTTP cache lives under `%TEMP%` (not under `addons`).
+6. Chromium profile / cache lives under `%LOCALAPPDATA%\GW2-InGame-Helper\cef-cache` (not under `addons`).
 7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
 8. Site list lives in `src/Sites.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets.cpp`.
 
-Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Full doc map:
-[`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Local audit notes (gitignored): `docs/CODE_AUDIT.md`.
+Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Local notes (gitignored): `docs/ARCHITECTURE.md`, `docs/CODE_AUDIT.md`.
 
 ## License
 

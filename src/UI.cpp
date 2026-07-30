@@ -2442,7 +2442,7 @@ namespace
 			}
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Find text on this page. Enter = next match.\nUse Web for Google / site search.");
+			ImGui::SetTooltip("Find text on this page. Enter = next match.\nUse Web for DuckDuckGo / site search.");
 		ImGui::SameLine(0.f, 4.f);
 		if (ImGui::Button("Web"))
 		{
@@ -2453,7 +2453,7 @@ namespace
 			}
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Search the active site (or Google).");
+			ImGui::SetTooltip("Search the active site (or DuckDuckGo).");
 
 		ImGui::SameLine(0.f, 8.f);
 		DrawMoreMenu();

@@ -6,7 +6,7 @@ In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.
 One DLL for Nexus — no memory reads. Chromium is **private CEF Stable 150**
 (first-run download into `addons/GW2-InGame-Helper/cef/`).
 
-Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · architecture [`ARCHITECTURE.md`](ARCHITECTURE.md)
+Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · CEF setup [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 (local `CODE_AUDIT.md` is gitignored)
 
 ## Install
@@ -34,8 +34,12 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 - **Ads:** Open-Ext URL buffer enlarged (2 KB → 8 KB) so long DoubleClick /
   NitroPay click trackers are not truncated mid-query (that produced a blank page)
-- **Ads:** Ad iframe `target=_blank` / popup clicks open in the system browser
-  instead of being canceled; main-frame link clicks still navigate in-tab
+- **Ads:** Every ad click route now leaves the addon — click-tracker navigations,
+  links from known ad iframes, top-level jumps onto an ad network, and any
+  new-window link aimed at a third-party domain open in the system browser, so
+  the advertiser records the click
+- **Browsing:** New-window links that stay on the current site (and links on the
+  bundled homepage / cheat sheets) still navigate in-tab
 - **Safety:** Refuse external open when a URL still exceeds the buffer (status tip)
   rather than ShellExecute of a half URL
 - **Stamps:** Helper `2039` · homepage `2014`
