@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.2
+# GW2 In-Game Helper v2.0.2.3
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.3
+
+- **Search:** Default Web / help-box search uses **DuckDuckGo** instead of Google
+  (Google stays available under Browse → Search). Avoids the `/sorry` “unusual
+  traffic” captcha wall that Windows users often cannot solve in OSR
+- **Profile:** Chromium cache moved from `%TEMP%` to
+  `%LOCALAPPDATA%\GW2-InGame-Helper\cef-cache` so Storage Sense / Disk Cleanup
+  cannot wipe cookies every session (a major Windows-vs-Proton difference)
+- **Sign-in:** Google account, consent, and `/sorry` / reCAPTCHA URLs open in
+  the system browser via Open Ext instead of being cancelled with no action
+  (the dead “Sign in” button)
+- **Ads:** Click-id detection (`gclid`, `gad_source`, …) and ad-referrer /
+  cross-site popup routing continue to send revenue-bearing clicks external
+- **Stamps:** Helper `2043` · homepage `2014`
 
 ## What’s new in 2.0.2.2
 
