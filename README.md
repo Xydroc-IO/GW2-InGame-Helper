@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.0.2.3` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.2.4` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
@@ -39,14 +39,17 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | Upgrades (Superior Runes, Relics, Superior Sigils) | Wiki |
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
 | [Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
+| [SC Raid Builds](https://snowcrows.com/builds/raids) | Builds |
+| SC Raid Elementalist / Mesmer / Necromancer / Engineer / Ranger / Thief / Guardian / Revenant / Warrior | Builds |
 | [MB Raid Builds](https://metabattle.com/wiki/Raid_Builds) | Builds |
 | MB Raid Elementalist / Mesmer / Necromancer / Engineer / Ranger / Thief / Guardian / Revenant / Warrior | Builds |
+| [SC AccessiBuilds](https://snowcrows.com/builds/accessibuilds) | Builds |
 | [MetaBattle](https://metabattle.com/wiki/MetaBattle_Wiki) | Builds |
-| [MetaBattle OW](https://metabattle.com/wiki/Open_World) | Builds |
+| [MetaBattle OW](https://metabattle.com/wiki/Open_World) · [SC Open World](https://snowcrows.com/builds/open-world) | Builds |
 | [Accessibility Wars](https://aw2.help/) | Builds |
 | [Gw2Skills Editor](https://en.gw2skills.net/editor/) | Builds |
-| [MetaBattle PvP](https://metabattle.com/wiki/PvP_Builds) | Builds |
-| [MetaBattle WvW](https://metabattle.com/wiki/WvW) | Builds |
+| [MetaBattle PvP](https://metabattle.com/wiki/PvP_Builds) · [SC PvP](https://snowcrows.com/builds/pvp) | Builds |
+| [MetaBattle WvW](https://metabattle.com/wiki/WvW) · [SC WvW](https://snowcrows.com/builds/wvw) | Builds |
 | [gw2efficiency](https://gw2efficiency.com/) | Tools |
 | [Legendary Tracker](https://gw2efficiency.com/account/legendaries) | Tools |
 | [Blish HUD](https://blishhud.com/) | Tools |
@@ -83,7 +86,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | Portals / Pulls (built-in) | Cheat Sheets |
 | Homestead (built-in) | Cheat Sheets |
 | WvW Consumables (built-in) | Cheat Sheets |
-| [Guildjen](https://guildjen.com/) | Guides |
+| [Guildjen](https://guildjen.com/) · [Snowcrows Guides](https://snowcrows.com/guides) | Guides |
 | [Living World](https://guildjen.com/gw2-living-world-guides/) | Guides |
 | Progress (new-player roadmap, leveling, gold, Gem Store, Wizard’s Vault) | Guides |
 | Mounts (Griffon, Skyscale, Roller Beetle, Siege Turtle) | Guides |
@@ -91,7 +94,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [PvP Guides Hub](https://metabattle.com/wiki/PvP_Guides) + Guildjen PvP beginner/hub | Guides |
 | [WvW Guides Hub](https://metabattle.com/wiki/WvW_Guides) + Guildjen WvW beginner | Guides |
 | Guildjen Fractals (hub, beginner, all maps) + [Mukluk](https://mukluklabs.com/gw2-fractal-guides) | Guides |
-| Guildjen Raid Wings (hub, intro, Wings 1–8) + MetaBattle Raid Boss (W1–W7) + Mount Balrior W8 — under Guides → Raids | Guides |
+| Guildjen Raid Wings (hub, intro, Wings 1–8) + Snow Crows Raid Boss (W1–W7) + MetaBattle Raid Boss (W1–W7) + Mount Balrior W8 — under Guides → Raids | Guides |
 | MetaBattle Strikes + Guildjen Harvest Temple | Guides |
 | [Rifts & Convergences](https://guildjen.com/rift-hunting-and-convergences-guide/) | Guides |
 | Guildjen Achievements (LW / HoT / PoF / EoD / SotO / JW / VoE / Festivals / Side Stories) | Guides |
@@ -102,7 +105,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
 | [TLDR Dungeons](https://gw2tldr.com/dungeons) | Guides |
 | [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
-| Official · Community · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
+| Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
 
 Add more sites in `src/Sites.cpp`. Hardstuck and Discretize are intentionally omitted (outdated).
 Replaces the older Wiki browser addons.
@@ -120,6 +123,14 @@ release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md)
 
 Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
+
+## What’s new in 2.0.2.4
+
+- **Catalog:** Snow Crows Browse links restored (raid builds, AccessiBuilds, OW/PvP/WvW,
+  guides hub, W1–W7 raid bosses, Discord) alongside MetaBattle
+- **Twitch:** In-page Twitch embeds become a Watch card / Open Ext — official CEF builds
+  omit H.264/AAC (Error #4000); same pattern as YouTube
+- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.3
 
@@ -419,6 +430,7 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
 3. CEF renders off-screen into shared memory (PID-scoped IPC v5).
 4. CSS is downleveled for Chromium 103 on selected hosts; **ads are allowed** (since 2.0.0.20).
 5. YouTube on guides becomes a Watch card / Open Ext (in-page play is not reliable on CEF 103 OSR).
+   Twitch does the same — official CEF builds omit the H.264 / AAC codecs its player needs (Error #4000).
 6. Chromium profile / cache lives under `%LOCALAPPDATA%\GW2-InGame-Helper\cef-cache` (not under `addons`).
 7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
 8. Site list lives in `src/Sites.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets.cpp`.

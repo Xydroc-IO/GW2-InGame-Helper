@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.0.2.3** — process/IPC notes live in local `ARCHITECTURE.md` (gitignored) if you keep one; public overview is [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.0.2.4** — process/IPC notes live in local `ARCHITECTURE.md` (gitignored) if you keep one; public overview is [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 ## Allowed
 
@@ -22,7 +22,6 @@ Current policy snapshot: **v2.0.2.3** — process/IPC notes live in local `ARCHI
 - `SendInput` / keybd_event into Guild Wars 2 (1-to-many input / bots)
 - Combat automation or account-action automation via BootJs
 - **Writing into `bin64/cef`** (private tree stays under the addon data folder)
-- Re-adding Snow Crows catalog links without an explicit product decision
 
 ## Hot-reload
 
@@ -36,6 +35,17 @@ Smoke-test with **ArcDPS** and/or **ReShade** alongside Nexus after engine chang
 
 Embedded CEF often cannot complete Google / Discord / site OAuth. Prefer **Open Ext**.
 Newer CEF helps modern CSS/JS; it does not magically fix Discord OAuth or OSR ad viewability.
+
+## Video codecs
+
+Official CEF binaries (including the Spotify CDN builds `pack-cef-runtime.sh` uses) are built
+without proprietary codecs, so **H.264 / AAC playback is unavailable**. Twitch reports this as
+`Error #4000`; MP4 sources fail the same way. YouTube and Twitch are routed to **Open Ext** with
+a Watch card instead.
+
+Enabling them requires building Chromium from source with
+`proprietary_codecs=true ffmpeg_branding=Chrome` **and** securing codec licensing before
+redistribution — treat that as a product/legal decision, not a build flag.
 
 ## Windows Defender
 

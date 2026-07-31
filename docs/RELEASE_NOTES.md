@@ -1,8 +1,8 @@
-# GW2 In-Game Helper v2.0.2.3
+# GW2 In-Game Helper v2.0.2.4
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
-In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.
+In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.
 One DLL for Nexus — no memory reads. Chromium is **private CEF Stable 150**
 (first-run download into `addons/GW2-InGame-Helper/cef/`).
 
@@ -29,6 +29,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.4
+
+- **Catalog:** Snow Crows Browse links restored (47 entries) — raid profession builds,
+  AccessiBuilds, Open World / PvP / WvW, guides hub, W1–W7 per-encounter guides,
+  Discord — kept **alongside** MetaBattle (not a replacement)
+- **Twitch:** Embeds become a Watch card / Open Ext. Official CEF binaries omit
+  proprietary H.264 / AAC codecs, so Twitch reports Error #4000 in-page; same
+  approach as YouTube Watch cards
+- **Companion:** Android APK catalog refreshed to **2,709** sites (`GW2-Helper-1.0.1`)
+- **Stamps:** Helper `2044` · homepage `2014`
 
 ## What’s new in 2.0.2.3
 

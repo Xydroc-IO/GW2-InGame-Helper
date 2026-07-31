@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.0.2.3 · Total entries: **2,662**
+**Revision:** 2.0.2.4 · Total entries: **2,709**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
@@ -131,6 +131,16 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 
 ### Raids
 
+- **SC Raid Builds** — [https://snowcrows.com/builds/raids](https://snowcrows.com/builds/raids)
+- **SC Raid Elementalist** — [https://snowcrows.com/builds/raids/elementalist](https://snowcrows.com/builds/raids/elementalist)
+- **SC Raid Mesmer** — [https://snowcrows.com/builds/raids/mesmer](https://snowcrows.com/builds/raids/mesmer)
+- **SC Raid Necromancer** — [https://snowcrows.com/builds/raids/necromancer](https://snowcrows.com/builds/raids/necromancer)
+- **SC Raid Engineer** — [https://snowcrows.com/builds/raids/engineer](https://snowcrows.com/builds/raids/engineer)
+- **SC Raid Ranger** — [https://snowcrows.com/builds/raids/ranger](https://snowcrows.com/builds/raids/ranger)
+- **SC Raid Thief** — [https://snowcrows.com/builds/raids/thief](https://snowcrows.com/builds/raids/thief)
+- **SC Raid Guardian** — [https://snowcrows.com/builds/raids/guardian](https://snowcrows.com/builds/raids/guardian)
+- **SC Raid Revenant** — [https://snowcrows.com/builds/raids/revenant](https://snowcrows.com/builds/raids/revenant)
+- **SC Raid Warrior** — [https://snowcrows.com/builds/raids/warrior](https://snowcrows.com/builds/raids/warrior)
 - **MB Raid Builds** — [https://metabattle.com/wiki/Raid_Builds](https://metabattle.com/wiki/Raid_Builds)
 - **MB Raid Elementalist** — [https://metabattle.com/wiki/Elementalist](https://metabattle.com/wiki/Elementalist)
 - **MB Raid Mesmer** — [https://metabattle.com/wiki/Mesmer](https://metabattle.com/wiki/Mesmer)
@@ -144,6 +154,7 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 
 ### AccessiBuilds
 
+- **SC AccessiBuilds** — [https://snowcrows.com/builds/accessibuilds](https://snowcrows.com/builds/accessibuilds)
 - **Accessibility Wars** — [https://aw2.help/](https://aw2.help/)
 
 ### Other
@@ -152,14 +163,17 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 
 - **MetaBattle** — [https://metabattle.com/wiki/MetaBattle_Wiki](https://metabattle.com/wiki/MetaBattle_Wiki)
 - **MetaBattle OW** — [https://metabattle.com/wiki/Open_World](https://metabattle.com/wiki/Open_World)
+- **SC Open World** — [https://snowcrows.com/builds/open-world](https://snowcrows.com/builds/open-world)
 
 ### PvP
 
 - **MetaBattle PvP** — [https://metabattle.com/wiki/PvP_Builds](https://metabattle.com/wiki/PvP_Builds)
+- **SC PvP** — [https://snowcrows.com/builds/pvp](https://snowcrows.com/builds/pvp)
 
 ### WvW
 
 - **MetaBattle WvW** — [https://metabattle.com/wiki/WvW](https://metabattle.com/wiki/WvW)
+- **SC WvW** — [https://snowcrows.com/builds/wvw](https://snowcrows.com/builds/wvw)
 
 ### Editor
 
@@ -344,6 +358,11 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 - **Wing 8 Mount Balrior** — [https://guildjen.com/mount-balrior-wing-8-guide/](https://guildjen.com/mount-balrior-wing-8-guide/)
 
 #### Raid Boss
+- **SC Raids Hub** — [https://snowcrows.com/guides/raids](https://snowcrows.com/guides/raids)
+- **Intro to Squads** — [https://snowcrows.com/guides/getting-started/introduction-to-squads](https://snowcrows.com/guides/getting-started/introduction-to-squads)
+- **Squad Roles** — [https://snowcrows.com/guides/getting-started/understanding-squad-roles](https://snowcrows.com/guides/getting-started/understanding-squad-roles)
+- **Joining Squads** — [https://snowcrows.com/guides/getting-started/joining-squads](https://snowcrows.com/guides/getting-started/joining-squads)
+- **Snow Crows W1–W7** — per-encounter guides under `snowcrows.com/guides/raids/…` (Vale Guardian through Qadim the Peerless)
 - **MB Raids Hub** — [https://metabattle.com/wiki/PvE_Guides](https://metabattle.com/wiki/PvE_Guides)
 - **Intro to Raiding** — [https://metabattle.com/wiki/Guide:Introduction_to_Raiding](https://metabattle.com/wiki/Guide:Introduction_to_Raiding)
 - **Wing 1 Spirit Vale** — [https://metabattle.com/wiki/Guide:Raid_Wing_1_-_Spirit_Vale](https://metabattle.com/wiki/Guide:Raid_Wing_1_-_Spirit_Vale)
@@ -576,6 +595,7 @@ TP-priced guides from [GW2 Crafts](https://gw2crafts.net/) (Normal / Fast / 400-
 - **TLDR Dungeons** — [https://gw2tldr.com/dungeons](https://gw2tldr.com/dungeons)
 
 ### Other
+- **Snowcrows Guides** — [https://snowcrows.com/guides](https://snowcrows.com/guides)
 - **PvE Guides Hub** — [https://metabattle.com/wiki/PvE_Guides](https://metabattle.com/wiki/PvE_Guides)
 
 ## Farming
@@ -594,6 +614,7 @@ TP-priced guides from [GW2 Crafts](https://gw2crafts.net/) (Normal / Fast / 400-
 
 ### Builds / Sites
 
+- **Snowcrows** — [https://discord.com/invite/qTs63YH](https://discord.com/invite/qTs63YH)
 - **MetaBattle** — [https://discord.com/invite/0jdZWe6xdIy46Yp5](https://discord.com/invite/0jdZWe6xdIy46Yp5)
 - **Guildjen** — [https://discord.com/invite/8NZNRvC](https://discord.com/invite/8NZNRvC)
 - **Mukluk Labs** — [https://discord.com/invite/h5qS6Pk](https://discord.com/invite/h5qS6Pk)

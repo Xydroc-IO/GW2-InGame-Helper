@@ -678,10 +678,10 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 0;
 	G::AddonDef.Version.Build    = 2;
-	G::AddonDef.Version.Revision = 3;
+	G::AddonDef.Version.Revision = 4;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
-		"In-game browser for Guild Wars 2 — Wiki, MetaBattle, Guildjen, and more.";
+		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
 	G::AddonDef.Flags            = AF_DisableHotloading; /* CEF helper — no Nexus hot-reload */

@@ -321,6 +321,7 @@ function boot(){
     setTimeout(tipCloudflareChallenge, 4000);
   }catch(e){}
   replaceYoutubeEmbeds();
+  replaceTwitchEmbeds();
   injectGeminiReadability();
   wireCheatSheetChecks();
 }
@@ -337,16 +338,22 @@ function youtubeWatchUrl(src){
     return '';
   }catch(e){ return ''; }
 }
-function makeYoutubeCard(watch){
+function makeWatchCard(flag,title,note,linkText,url){
   var box=document.createElement('div');
-  box.setAttribute('data-gw2-yt','1');
+  box.setAttribute(flag,'1');
   box.style.cssText='margin:12px 0;padding:14px 16px;border:1px solid #c9a227;'+
     'border-radius:6px;background:#1a1c24;color:#e8e6e3;font:14px/1.45 Segoe UI,sans-serif;';
   box.innerHTML=
-    '<div style="font-weight:600;margin-bottom:6px;color:#e0c35a;">YouTube video</div>'+
-    '<div style="opacity:.85;margin-bottom:10px;">In-game playback refreshes this page. Open it in your system browser instead.</div>'+
-    '<a href="'+String(watch).replace(/"/g,'&quot;')+'" style="color:#7eb6ff;font-weight:600;">Watch on YouTube</a>';
+    '<div style="font-weight:600;margin-bottom:6px;color:#e0c35a;">'+title+'</div>'+
+    '<div style="opacity:.85;margin-bottom:10px;">'+note+'</div>'+
+    '<a href="'+String(url).replace(/"/g,'&quot;')+'" style="color:#7eb6ff;font-weight:600;">'+
+    linkText+'</a>';
   return box;
+}
+function makeYoutubeCard(watch){
+  return makeWatchCard('data-gw2-yt','YouTube video',
+    'In-game playback refreshes this page. Open it in your system browser instead.',
+    'Watch on YouTube', watch);
 }
 function replaceYoutubeEmbeds(){
   try{
@@ -396,6 +403,64 @@ function replaceYoutubeEmbeds(){
     }
     sweep();
     if (!likelyYt) return;
+    var ticks=0;
+    var iv=setInterval(function(){
+      sweep();
+      if (++ticks>=20) clearInterval(iv);
+    }, 250);
+    try{
+      var mo=new MutationObserver(function(){ scheduleWork(sweep); });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+  }catch(e){}
+}
+/* Twitch needs H.264 / AAC, which official CEF builds omit — its player stops
+   at "Error #4000". Swap embeds for a card that opens the system browser. */
+function twitchWatchUrl(src){
+  try{
+    if (!src || !/twitch\.tv/.test(src)) return '';
+    var m=src.match(/[?&]channel=([A-Za-z0-9_]{2,})/);
+    if (m) return 'https://www.twitch.tv/'+m[1];
+    m=src.match(/[?&]video=v?(\d{4,})/);
+    if (m) return 'https://www.twitch.tv/videos/'+m[1];
+    m=src.match(/[?&]clip=([A-Za-z0-9_-]{4,})/);
+    if (m) return 'https://clips.twitch.tv/'+m[1];
+    return src;
+  }catch(e){ return ''; }
+}
+function makeTwitchCard(watch){
+  return makeWatchCard('data-gw2-ttv','Twitch stream',
+    'The in-game browser ships without the codecs Twitch needs (Error #4000). '+
+    'Open it in your system browser instead.',
+    'Watch on Twitch', watch);
+}
+function replaceTwitchEmbeds(){
+  try{
+    var likelyTtv=document.documentElement &&
+      /twitch\.tv/i.test(document.documentElement.innerHTML.slice(0,120000));
+    if (!likelyTtv) return;
+    function sweep(){
+      var nodes=document.querySelectorAll(
+        'iframe[src*="player.twitch.tv"],iframe[src*="clips.twitch.tv"],'+
+        'iframe[data-src*="player.twitch.tv"],iframe[data-src*="clips.twitch.tv"],'+
+        'iframe[data-src-cmplz*="twitch.tv"],iframe[data-service="twitch"]');
+      for (var i=0;i<nodes.length;i++){
+        var el=nodes[i];
+        if (!el || !el.parentNode) continue;
+        if (el.getAttribute('data-gw2-ttv')==='1') continue;
+        if (isInsideAdOrConsent(el)) continue;
+        var raw=el.getAttribute('data-src-cmplz')||el.getAttribute('data-src')||
+          el.getAttribute('src')||'';
+        var watch=twitchWatchUrl(raw);
+        if (!watch && el.getAttribute('data-service')==='twitch')
+          watch='https://www.twitch.tv/';
+        if (!watch) continue;
+        try{
+          el.parentNode.replaceChild(makeTwitchCard(watch), el);
+        }catch(e){}
+      }
+    }
+    sweep();
     var ticks=0;
     var iv=setInterval(function(){
       sweep();

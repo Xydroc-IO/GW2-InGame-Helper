@@ -868,6 +868,16 @@ namespace
 			url.find("youtube-nocookie.com") != std::string::npos;
 	}
 
+	/* Official CEF binaries ship without the proprietary codecs (H.264 / AAC)
+	   Twitch streams with, so its player always ends at "Error #4000 — resource
+	   format not supported". Enabling them means building Chromium from source
+	   and licensing the codecs, so route Twitch to the system browser instead. */
+	bool IsTwitchHostUrl(const std::string& url)
+	{
+		return url.find("twitch.tv") != std::string::npos ||
+			url.find("ttvnw.net") != std::string::npos;
+	}
+
 	bool IsGuildjenUrl(const std::string& url)
 	{
 		return url.find("guildjen.com") != std::string::npos;
@@ -990,7 +1000,7 @@ namespace
 	{
 		if (url.rfind("http://", 0) != 0 && url.rfind("https://", 0) != 0)
 			return false;
-		if (IsMediaOrCdnUrl(url) || IsYoutubeHostUrl(url))
+		if (IsMediaOrCdnUrl(url) || IsYoutubeHostUrl(url) || IsTwitchHostUrl(url))
 			return false;
 		return true;
 	}
@@ -1052,6 +1062,16 @@ namespace
 		{
 			if (user_gesture)
 				OpenExternalUrl(url);
+			return 1;
+		}
+
+		if (IsTwitchHostUrl(url))
+		{
+			if (user_gesture)
+			{
+				OpenExternalUrl(url);
+				SetStatus("Twitch needs codecs CEF omits — opened in your browser");
+			}
 			return 1;
 		}
 
@@ -1181,6 +1201,17 @@ namespace
 			/* "Watch on YouTube" cards use a normal <a href> — open externally. */
 			if (user_gesture)
 				OpenExternalUrl(url);
+			return 1;
+		}
+
+		/* Same for the "Watch on Twitch" card — playback can never work here. */
+		if (!IsTwitchHostUrl(cur) && IsTwitchHostUrl(url))
+		{
+			if (user_gesture)
+			{
+				OpenExternalUrl(url);
+				SetStatus("Twitch needs codecs CEF omits — opened in your browser");
+			}
 			return 1;
 		}
 
