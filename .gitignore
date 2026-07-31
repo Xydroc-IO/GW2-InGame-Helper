@@ -52,12 +52,18 @@ Desktop.ini
 *.swo
 *.bak
 *.tmp
+*.kate-swp
+.WHITE*.kate-swp
+docs/.*.kate-swp
 
 # Local / runtime clutter
 *.log
 settings.ini
 helper-home.html
 __cmake_systeminformation/
+
+# Android companion (local-only; not published with the Nexus addon)
+Companion-App/
 
 # Local listing / announcement drafts (keep on disk; do not publish in git)
 docs/DISCORD.md
