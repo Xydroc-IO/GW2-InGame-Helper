@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.4
+# GW2 In-Game Helper v2.0.2.5
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.5
+
+- **Nexus:** Library / addon search works again after loading this addon. The helper
+  was clearing shared ImGui `WantTextInput` / `KeysDown` while closed (and when the
+  cursor left the overlay), so typed letters fell through to GW2 hotkeys (e.g. `G`
+  opened Guild). Capture is no longer wiped for other ImGui windows
+- **ImGui IDs:** InputText, browse popups, options widgets, and related chrome use
+  unique `###gw2igh_…` / `##gw2igh_…` suffixes so they cannot collide with Nexus
+  widgets in the shared context; Options is wrapped in `PushID("GW2-InGame-Helper")`
+- **Hover:** Browse / More / tab popups no longer use `ImGuiHoveredFlags_AnyWindow`
+  (that treated Nexus UI as part of the helper and stole keyboard)
+- **Companion:** Options → **Show favorites QR…** encodes favorite site IDs as a
+  `gw2helper://sync/v1?favorites=…` deep link for the Android app’s QR import
+- **Stamps:** Helper `2044` · homepage `2014`
 
 ## What’s new in 2.0.2.4
 

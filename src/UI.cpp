@@ -4,6 +4,7 @@
 #include "Globals.h"
 #include "Settings.h"
 #include "Sites.h"
+#include "SyncQr.h"
 #include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
@@ -185,6 +186,17 @@ namespace
 	static bool sSyncCategory = true;
 	static bool sFocusFilter = false;
 	static bool sShowFind = false;
+	/* Set while the cursor is over one of our popups (Browse / More / tab menu).
+	   Avoids ImGuiHoveredFlags_AnyWindow, which also matched Nexus windows. */
+	static bool sHelperPopupHovered = false;
+
+	void NoteHelperPopupHover()
+	{
+		if (ImGui::IsWindowHovered(
+			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+			ImGuiHoveredFlags_ChildWindows))
+			sHelperPopupHovered = true;
+	}
 	static bool sFocusFind = false;
 	static bool sRequestNewTabPicker = false;
 	static char sFindQuery[128] = {};
@@ -1004,7 +1016,7 @@ namespace
 		const float h = smallBtn ? ImGui::GetFrameHeight() * 0.85f : ImGui::GetFrameHeight();
 		const ImVec2 size(h, h);
 		const ImVec2 p0 = ImGui::GetCursorScreenPos();
-		const bool pressed = ImGui::InvisibleButton("##star", size);
+		const bool pressed = ImGui::InvisibleButton("##gw2igh_star", size);
 		const ImVec2 p1 = ImVec2(p0.x + size.x, p0.y + size.y);
 		ImDrawList* dl = ImGui::GetWindowDrawList();
 		const ImVec2 center((p0.x + p1.x) * 0.5f, (p0.y + p1.y) * 0.5f);
@@ -1180,7 +1192,8 @@ namespace
 			ImGui::SetKeyboardFocusHere();
 			sFocusFilter = false;
 		}
-		ImGui::InputTextWithHint("##site_filter", "Filter sites...", sFilter, sizeof(sFilter));
+		/* ### keeps a unique ID in the shared Nexus ImGui context without a visible label. */
+		ImGui::InputTextWithHint("###gw2igh_site_filter", "Filter sites...", sFilter, sizeof(sFilter));
 
 		const bool filtering = sFilter[0] != '\0';
 		const bool showFavorites = (!filtering && !pickDefaultSite && sCategoryIndex == 0);
@@ -1195,7 +1208,7 @@ namespace
 		const float listH = (listHArg > 0.f) ? listHArg : (pickDefaultSite ? 300.f : 320.f);
 		const float leftW = (leftWArg > 0.f) ? leftWArg : 172.f;
 
-		ImGui::BeginChild("##browse_cats", ImVec2(leftW, listH), true);
+		ImGui::BeginChild("##gw2igh_browse_cats", ImVec2(leftW, listH), true);
 		ImGui::PushStyleColor(ImGuiCol_Text, kGold);
 		ImGui::TextUnformatted("Categories");
 		ImGui::PopStyleColor();
@@ -1232,7 +1245,7 @@ namespace
 
 		ImGui::SameLine();
 
-		ImGui::BeginChild("##browse_sites", ImVec2(0.f, listH), true);
+		ImGui::BeginChild("##gw2igh_browse_sites", ImVec2(0.f, listH), true);
 		ImGui::PushStyleColor(ImGuiCol_Text, kGold);
 		if (filtering)
 			ImGui::TextUnformatted("Matching sites");
@@ -2122,7 +2135,7 @@ namespace
 		   mis-hit (last tab's x clipped / click landed on the previous x). */
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7.f, 4.f));
-		ImGui::BeginChild("##tab_bar", ImVec2(0.f, ImGui::GetFrameHeightWithSpacing() + 4.f), false,
+		ImGui::BeginChild("##gw2igh_tab_bar", ImVec2(0.f, ImGui::GetFrameHeightWithSpacing() + 4.f), false,
 			ImGuiWindowFlags_HorizontalScrollbar);
 
 		const float closeZone = ImGui::CalcTextSize("  x").x + ImGui::GetStyle().FramePadding.x;
@@ -2177,12 +2190,13 @@ namespace
 					BrowserTabs::Activate(i);
 			}
 
-			if (ImGui::BeginPopupContextItem("##tab_ctx"))
+			if (ImGui::BeginPopupContextItem("##gw2igh_tab_ctx"))
 			{
 				if (ImGui::MenuItem(tab.pinned ? "Unpin" : "Pin"))
 					BrowserTabs::TogglePin(i);
 				if (ImGui::MenuItem("Close", nullptr, false, canClose))
 					pendingClose = i;
+				NoteHelperPopupHover();
 				ImGui::EndPopup();
 			}
 
@@ -2207,14 +2221,14 @@ namespace
 		const bool canAdd = (n < BrowserTabs::kMaxTabs);
 		if (canAdd)
 		{
-			const bool plusClicked = ImGui::Button("+##new_tab");
+			const bool plusClicked = ImGui::Button("+##gw2igh_new_tab");
 			sNewTabBrowseAnchor = CaptureAnchorBelowItem();
 			if (plusClicked || sRequestNewTabPicker)
 			{
 				sRequestNewTabPicker = false;
 				sSyncCategory = true;
 				sFocusFilter = true;
-				ImGui::OpenPopup("##site_browse_newtab");
+				ImGui::OpenPopup("##gw2igh_site_browse_newtab");
 			}
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Open site in a new tab (Ctrl+T)");
@@ -2223,7 +2237,7 @@ namespace
 		{
 			sRequestNewTabPicker = false;
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.4f);
-			ImGui::Button("+##new_tab");
+			ImGui::Button("+##gw2igh_new_tab");
 			ImGui::PopStyleVar();
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Tab limit reached (8)");
@@ -2234,7 +2248,7 @@ namespace
 			const bool canRe = BrowserTabs::CanReopenClosed();
 			if (canRe)
 			{
-				if (ImGui::SmallButton("^##reopen"))
+				if (ImGui::SmallButton("^##gw2igh_reopen"))
 					BrowserTabs::ReopenClosed();
 				if (ImGui::IsItemHovered())
 					ImGui::SetTooltip("Reopen closed tab (Ctrl+Shift+T)");
@@ -2243,12 +2257,13 @@ namespace
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(true, false);
 		PrepareBrowsePopup(sNewTabBrowseAnchor, browseLay);
-		if (ImGui::BeginPopup("##site_browse_newtab", kBrowsePopupFlags))
+		if (ImGui::BeginPopup("##gw2igh_site_browse_newtab", kBrowsePopupFlags))
 		{
 			bool closePanel = false;
 			DrawBrowsePanelContents(true, &closePanel, false, true, browseLay.listH, browseLay.leftW);
 			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
 				ImGui::CloseCurrentPopup();
+			NoteHelperPopupHover();
 			ImGui::EndPopup();
 		}
 
@@ -2359,12 +2374,12 @@ namespace
 
 	void DrawMoreMenu()
 	{
-		if (ImGui::Button("...##more"))
-			ImGui::OpenPopup("##toolbar_more");
+		if (ImGui::Button("...##gw2igh_more"))
+			ImGui::OpenPopup("##gw2igh_toolbar_more");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("More actions");
 
-		if (ImGui::BeginPopup("##toolbar_more"))
+		if (ImGui::BeginPopup("##gw2igh_toolbar_more"))
 		{
 			if (ImGui::MenuItem(sShowFind ? "Hide find" : "Find in page", "Ctrl+F"))
 				sShowFind = !sShowFind;
@@ -2389,6 +2404,7 @@ namespace
 				if (ImGui::MenuItem("Reopen closed tab", "Ctrl+Shift+T", false, canRe))
 					BrowserTabs::ReopenClosed();
 			}
+			NoteHelperPopupHover();
 			ImGui::EndPopup();
 		}
 	}
@@ -2397,11 +2413,11 @@ namespace
 	{
 		const SiteDef& active = Sites::Active();
 
-		if (ImGui::Button("Browse"))
+		if (ImGui::Button("Browse###gw2igh_browse"))
 		{
 			sSyncCategory = true;
 			sFocusFilter = true;
-			ImGui::OpenPopup("##site_browse");
+			ImGui::OpenPopup("##gw2igh_site_browse");
 		}
 		sBrowseAnchor = CaptureAnchorBelowItem();
 		if (ImGui::IsItemHovered())
@@ -2419,22 +2435,22 @@ namespace
 		/* Compact nav cluster */
 		ImGui::SameLine(0.f, 12.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.f, 6.f));
-		if (SoftButton("<", BrowserTabs::CanGoBack()))
+		if (SoftButton("<###gw2igh_back", BrowserTabs::CanGoBack()))
 			BrowserTabs::GoBack();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Back");
 		ImGui::SameLine();
-		if (SoftButton(">", BrowserTabs::CanGoForward()))
+		if (SoftButton(">###gw2igh_fwd", BrowserTabs::CanGoForward()))
 			BrowserTabs::GoForward();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Forward");
 		ImGui::SameLine();
-		if (ImGui::Button("Home"))
+		if (ImGui::Button("Home###gw2igh_home"))
 			BrowserTabs::GoHome();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Default landing site");
 		ImGui::SameLine();
-		if (ImGui::Button("Reload"))
+		if (ImGui::Button("Reload###gw2igh_reload"))
 			BrowserTabs::Reload();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Reload");
@@ -2447,7 +2463,7 @@ namespace
 			if (avail > 280.f) avail = 280.f;
 			ImGui::SetNextItemWidth(avail);
 		}
-		if (ImGui::InputTextWithHint("##site_query", "Find in page...", G::LastQuery, sizeof(G::LastQuery),
+		if (ImGui::InputTextWithHint("###gw2igh_site_query", "Find in page...", G::LastQuery, sizeof(G::LastQuery),
 			ImGuiInputTextFlags_EnterReturnsTrue))
 		{
 			if (G::LastQuery[0])
@@ -2462,7 +2478,7 @@ namespace
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Find text on this page. Enter = next match.\nUse Web for DuckDuckGo / site search.");
 		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Web"))
+		if (ImGui::Button("Web###gw2igh_web"))
 		{
 			if (G::LastQuery[0])
 			{
@@ -2479,12 +2495,13 @@ namespace
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(false, false);
 		PrepareBrowsePopup(sBrowseAnchor, browseLay);
-		if (ImGui::BeginPopup("##site_browse", kBrowsePopupFlags))
+		if (ImGui::BeginPopup("##gw2igh_site_browse", kBrowsePopupFlags))
 		{
 			bool closePanel = false;
 			DrawBrowsePanelContents(true, &closePanel, false, false, browseLay.listH, browseLay.leftW);
 			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
 				ImGui::CloseCurrentPopup();
+			NoteHelperPopupHover();
 			ImGui::EndPopup();
 		}
 	}
@@ -2492,11 +2509,11 @@ namespace
 
 	void DrawDefaultSiteBrowse()
 	{
-		if (ImGui::Button("Choose default site..."))
+		if (ImGui::Button("Choose default site...###gw2igh_choose_default"))
 		{
 			sSyncCategory = true;
 			sFocusFilter = true;
-			ImGui::OpenPopup("##default_site_browse");
+			ImGui::OpenPopup("##gw2igh_default_site_browse");
 		}
 		sDefaultSiteBrowseAnchor = CaptureAnchorBelowItem();
 
@@ -2511,12 +2528,13 @@ namespace
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(true, true);
 		PrepareBrowsePopup(sDefaultSiteBrowseAnchor, browseLay);
-		if (ImGui::BeginPopup("##default_site_browse", kBrowsePopupFlags))
+		if (ImGui::BeginPopup("##gw2igh_default_site_browse", kBrowsePopupFlags))
 		{
 			bool closePanel = false;
 			DrawBrowsePanelContents(false, &closePanel, true, false, browseLay.listH, browseLay.leftW);
 			if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
 				ImGui::CloseCurrentPopup();
+			NoteHelperPopupHover();
 			ImGui::EndPopup();
 		}
 	}
@@ -2614,6 +2632,7 @@ void UI_Render()
 	gBlockGameMouse = false;
 	gOverBrowserPage = false;
 	gWikiRectValid = false;
+	sHelperPopupHovered = false;
 
 	if (gPendingDefocus)
 	{
@@ -2624,10 +2643,9 @@ void UI_Render()
 	static bool sWasOpen = false;
 	if (!G::ShowWiki)
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.WantTextInput = false;
-		io.WantCaptureKeyboard = false;
-		ImGui::CaptureKeyboardFromApp(false);
+		/* Do NOT clear WantTextInput / WantCaptureKeyboard here — those flags are
+		   shared with Nexus. Wiping them every frame breaks the library search field
+		   (keys fall through to GW2 hotkeys, e.g. G = guild). */
 
 		if (sWasOpen)
 		{
@@ -2793,26 +2811,26 @@ void UI_Render()
 			ImGui::SetKeyboardFocusHere();
 			sFocusFind = false;
 		}
-		const bool findEnter = ImGui::InputTextWithHint("##find_q", "Find in page...", sFindQuery, sizeof(sFindQuery),
+		const bool findEnter = ImGui::InputTextWithHint("###gw2igh_find_q", "Find in page...", sFindQuery, sizeof(sFindQuery),
 			ImGuiInputTextFlags_EnterReturnsTrue);
 		ImGui::SameLine();
-		ImGui::Checkbox("Aa", &sFindMatchCase);
+		ImGui::Checkbox("Aa###gw2igh_find_case", &sFindMatchCase);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Match case");
 		ImGui::SameLine();
-		if (ImGui::Button("Next") || findEnter)
+		if (ImGui::Button("Next###gw2igh_find_next") || findEnter)
 		{
 			if (sFindQuery[0])
 				WikiBrowser::Find(sFindQuery, true, sFindMatchCase, true);
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Prev"))
+		if (ImGui::Button("Prev###gw2igh_find_prev"))
 		{
 			if (sFindQuery[0])
 				WikiBrowser::Find(sFindQuery, false, sFindMatchCase, true);
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Clear"))
+		if (ImGui::Button("Clear###gw2igh_find_clear"))
 		{
 			WikiBrowser::StopFind(true);
 			sFindQuery[0] = 0;
@@ -2839,7 +2857,7 @@ void UI_Render()
 	ImGui::Separator();
 
 	const ImVec2 avail = ImGui::GetContentRegionAvail();
-	ImGui::BeginChild("##wiki_osr_slot", avail, false,
+	ImGui::BeginChild("##gw2igh_wiki_osr_slot", avail, false,
 		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
 		ImGuiWindowFlags_NoNavInputs);
 
@@ -2867,7 +2885,7 @@ void UI_Render()
 		}
 
 		ImGui::SetCursorScreenPos(cursor);
-		ImGui::InvisibleButton("##wiki_hit", imageSize,
+		ImGui::InvisibleButton("##gw2igh_wiki_hit", imageSize,
 			ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight |
 			ImGuiButtonFlags_MouseButtonMiddle);
 
@@ -2960,24 +2978,17 @@ void UI_Render()
 
 	const bool mouseOverWiki = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	/* Browse / More / tab menus are separate ImGui windows — main-window hover
-	   is false while using them. Treat those popups as part of the helper UI. */
-	const bool helperPopupOpen =
-		ImGui::IsPopupOpen("##site_browse") ||
-		ImGui::IsPopupOpen("##site_browse_newtab") ||
-		ImGui::IsPopupOpen("##default_site_browse") ||
-		ImGui::IsPopupOpen("##toolbar_more") ||
-		ImGui::IsPopupOpen("##tab_ctx");
-	const bool mouseOverHelperUi = mouseOverWiki ||
-		(helperPopupOpen && ImGui::IsWindowHovered(
-			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
-			ImGuiHoveredFlags_AnyWindow));
+	/* Browse / More / tab menus are separate ImGui windows — use sHelperPopupHovered
+	   (set while drawing those popups). Do not use AnyWindow: that matched Nexus UI
+	   and stole keyboard from the library search field. */
+	const bool mouseOverHelperUi = mouseOverWiki || sHelperPopupHovered;
 
 	gOverBrowserPage = overPage;
 	gBlockGameMouse = G::ShowWiki && mouseOverHelperUi;
 
 	/* Snapshot ImGui's own text-input flag BEFORE we adjust capture for CEF.
-	   Never force WantTextInput=false — that broke Browse/Find typing. */
+	   Never force WantTextInput=false — that broke Browse/Find typing and also
+	   wiped Nexus library search (shared ImGui context). */
 	const bool imguiTyping = io.WantTextInput;
 
 	/* Keys follow the pointer while the helper is open:
@@ -2988,10 +2999,8 @@ void UI_Render()
 	if (!mouseOverHelperUi)
 	{
 		BlurBrowser();
-		/* Clear active text fields for chat Space — do NOT SetWindowFocus(nullptr)
-		   here (that closed Browse popups every time the cursor left the main window). */
-		io.WantTextInput = false;
-		io.WantCaptureKeyboard = false;
+		/* Only drop OUR CaptureKeyboardFromApp claim — leave WantTextInput alone
+		   so Nexus / other addons keep receiving typed characters. */
 		ImGui::CaptureKeyboardFromApp(false);
 		if (sWasPointerOnHelper)
 			UI_ResetKeyRouting();
@@ -3048,9 +3057,11 @@ void UI_Render()
 
 void UI_Options()
 {
+	/* Options panel is a shared Nexus window — namespace our widgets. */
+	ImGui::PushID("GW2-InGame-Helper");
 	ImGui::TextUnformatted("GW2 In-Game Helper");
 	ImGui::Separator();
-	if (ImGui::Checkbox("Show helper window", &G::ShowWiki))
+	if (ImGui::Checkbox("Show helper window###gw2igh_show", &G::ShowWiki))
 	{
 		if (!G::ShowWiki)
 			UI_ReleaseGameInput();
@@ -3066,11 +3077,11 @@ void UI_Options()
 		ImGui::TextColored(kMuted, "Home button uses this. Also used when no tabs are saved yet.");
 	}
 
-	if (ImGui::SliderFloat("Opacity", &G::Opacity, 0.15f, 1.f, "%.2f"))
+	if (ImGui::SliderFloat("Opacity###gw2igh_opacity", &G::Opacity, 0.15f, 1.f, "%.2f"))
 		Settings::SetDirty();
-	if (ImGui::SliderFloat("Font scale", &G::FontScale, 0.75f, 2.f, "%.2f"))
+	if (ImGui::SliderFloat("Font scale###gw2igh_font", &G::FontScale, 0.75f, 2.f, "%.2f"))
 		Settings::SetDirty();
-	if (ImGui::Checkbox("Keep browser warm when closed", &G::KeepHelperWarm))
+	if (ImGui::Checkbox("Keep browser warm when closed###gw2igh_warm", &G::KeepHelperWarm))
 		Settings::SetDirty();
 	ImGui::TextColored(kMuted, "Faster reopen; uses more RAM while the helper is hidden.");
 
@@ -3081,5 +3092,7 @@ void UI_Options()
 	ImGui::TextWrapped(
 		"Hotkeys: Ctrl+Shift+H open/close | Ctrl+T new tab | Ctrl+W close | "
 		"Ctrl+Tab cycle | Ctrl+Shift+T reopen | Ctrl+F find");
+	SyncQr::DrawOptionsSection();
 	Settings::Save(false);
+	ImGui::PopID();
 }

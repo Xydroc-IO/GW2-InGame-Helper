@@ -5,7 +5,7 @@ LD       = x86_64-w64-mingw32-ld
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
 CXXFLAGS += -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS
 CXXFLAGS += -DCEF_API_VERSION=15000
-CXXFLAGS += -Isrc -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz
+CXXFLAGS += -Isrc -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
 LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
@@ -35,6 +35,8 @@ DLL_SRC = \
 	src/WikiBrowser.cpp \
 	src/CefRuntime.cpp \
 	src/UI.cpp \
+	src/SyncQr.cpp \
+	deps/qrcodegen/qrcodegen.c \
 	deps/imgui/imgui.cpp \
 	deps/imgui/imgui_draw.cpp \
 	deps/imgui/imgui_tables.cpp \

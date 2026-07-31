@@ -65,6 +65,11 @@ __cmake_systeminformation/
 # Android companion (local-only; not published with the Nexus addon)
 Companion-App/
 
+# Android / Java signing material (never commit private keys)
+*.jks
+*.keystore
+keystore.properties
+
 # Local listing / announcement drafts (keep on disk; do not publish in git)
 docs/DISCORD.md
 docs/DISCORD_*.md

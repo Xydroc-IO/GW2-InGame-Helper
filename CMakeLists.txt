@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(GW2-InGame-Helper-Beta VERSION 1.0.0 LANGUAGES CXX)
+project(GW2-InGame-Helper-Beta VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -37,6 +37,8 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/WikiBrowser.cpp
   src/CefRuntime.cpp
   src/UI.cpp
+  src/SyncQr.cpp
+  deps/qrcodegen/qrcodegen.c
   deps/imgui/imgui.cpp
   deps/imgui/imgui_draw.cpp
   deps/imgui/imgui_tables.cpp
@@ -48,6 +50,7 @@ target_include_directories(GW2-InGame-Helper-Beta PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/imgui
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/cef
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/miniz
+  ${CMAKE_CURRENT_SOURCE_DIR}/deps/qrcodegen
 )
 target_compile_definitions(GW2-InGame-Helper-Beta PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 if(MINGW)
