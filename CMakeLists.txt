@@ -39,6 +39,7 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/TpWatchPad.cpp
   src/LookupPad.cpp
   src/WalletPad.cpp
+  src/VaultPad.cpp
   src/HelperQuickAccess.cpp
   src/WikiBrowser.cpp
   src/CefRuntime.cpp

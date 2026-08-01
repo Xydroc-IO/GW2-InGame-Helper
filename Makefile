@@ -37,6 +37,7 @@ DLL_SRC = \
 	src/TpWatchPad.cpp \
 	src/LookupPad.cpp \
 	src/WalletPad.cpp \
+	src/VaultPad.cpp \
 	src/HelperQuickAccess.cpp \
 	src/WikiBrowser.cpp \
 	src/CefRuntime.cpp \

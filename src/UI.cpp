@@ -7,6 +7,7 @@
 #include "TpWatchPad.h"
 #include "LookupPad.h"
 #include "WalletPad.h"
+#include "VaultPad.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "SyncQr.h"
@@ -280,7 +281,16 @@ namespace
 			return nullptr;
 
 		if (std::strcmp(category, "Help") == 0)
-			return "Getting Started";
+		{
+			if (std::strcmp(id, "home") == 0 || std::strcmp(id, "dak393_new_player") == 0)
+				return "Getting Started";
+			if (std::strcmp(id, "gw2official") == 0 || std::strcmp(id, "gw2news") == 0 ||
+				std::strcmp(id, "gw2forums") == 0)
+				return "ArenaNet";
+			if (std::strcmp(id, "raidcore") == 0)
+				return "Nexus";
+			return "Other";
+		}
 
 		if (std::strcmp(category, "Search") == 0)
 		{
@@ -401,6 +411,8 @@ namespace
 			if (std::strcmp(id, "gw2tldr") == 0 || std::strcmp(id, "gw2tldr_raids") == 0 ||
 				std::strcmp(id, "gw2tldr_fractals") == 0 || std::strcmp(id, "gw2tldr_dungeons") == 0)
 				return "TLDR";
+			if (std::strcmp(id, "fastfarming") == 0)
+				return "Farming";
 			return "Other";
 		}
 
@@ -455,9 +467,6 @@ namespace
 			return "Other";
 		}
 
-		if (std::strcmp(category, "Farming") == 0)
-			return "Community";
-
 		if (std::strcmp(category, "Wiki") == 0)
 		{
 			if (std::strcmp(id, "wiki") == 0)
@@ -506,16 +515,6 @@ namespace
 			return "Other";
 		}
 
-		if (std::strcmp(category, "Official") == 0)
-		{
-			if (std::strcmp(id, "gw2official") == 0 || std::strcmp(id, "gw2news") == 0 ||
-				std::strcmp(id, "gw2forums") == 0)
-				return "ArenaNet";
-			if (std::strcmp(id, "raidcore") == 0)
-				return "Nexus";
-			return "Other";
-		}
-
 		return nullptr; /* no sections for this category */
 	}
 
@@ -525,7 +524,7 @@ namespace
 			return nullptr;
 		if (std::strcmp(category, "Help") == 0)
 		{
-			static const char* kSec[] = { "Getting Started" };
+			static const char* kSec[] = { "Getting Started", "ArenaNet", "Nexus", "Other" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
@@ -562,7 +561,7 @@ namespace
 			static const char* kSec[] = {
 				"Living World", "Progress", "Mounts", "Fractals", "Raids",
 				"Strikes", "Rifts", "PvP", "WvW", "Achievements",
-				"Jumping Puzzles", "Crafting", "TLDR", "Other"
+				"Jumping Puzzles", "Crafting", "TLDR", "Farming", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
@@ -583,12 +582,6 @@ namespace
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
-		if (std::strcmp(category, "Farming") == 0)
-		{
-			static const char* kSec[] = { "Community" };
-			*outCount = sizeof(kSec) / sizeof(kSec[0]);
-			return kSec;
-		}
 		if (std::strcmp(category, "Wiki") == 0)
 		{
 			static const char* kSec[] = {
@@ -596,12 +589,6 @@ namespace
 				"Cosmetic Infusions", "Lifestyle", "Crafting", "Food", "Ascended Food",
 				"Utility", "Minis", "Upgrades", "Wizards Vault", "Other"
 			};
-			*outCount = sizeof(kSec) / sizeof(kSec[0]);
-			return kSec;
-		}
-		if (std::strcmp(category, "Official") == 0)
-		{
-			static const char* kSec[] = { "ArenaNet", "Nexus", "Other" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
@@ -2606,7 +2593,7 @@ namespace
 				TpWatchPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("TP Watchlist — add items (chat codes) and see buy/sell prices");
+			ImGui::SetTooltip("Trading Post — delivery, watchlist, sell alerts (read-only)");
 		ImGui::SameLine(0.f, 4.f);
 		if (ImGui::Button("Item###gw2igh_lookup"))
 		{
@@ -2633,6 +2620,19 @@ namespace
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Wallet & materials snapshot (API key)");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Vault###gw2igh_vault"))
+		{
+			if (G::ShowVault)
+			{
+				G::ShowVault = false;
+				Settings::SetDirty();
+			}
+			else
+				VaultPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Dailies & Wizard’s Vault (same data as Browse → Live)");
 		ImGui::SameLine(0.f, 8.f);
 		DrawMoreMenu();
 		DrawStatusChip();
@@ -2808,7 +2808,8 @@ void UI_Render()
 		const bool tpHover = TpWatchPad::Render();
 		const bool lookupHover = LookupPad::Render();
 		const bool walletHover = WalletPad::Render();
-		if (notesHover || tpHover || lookupHover || walletHover)
+		const bool vaultHover = VaultPad::Render();
+		if (notesHover || tpHover || lookupHover || walletHover || vaultHover)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			gBlockGameMouse = true;
@@ -2886,7 +2887,8 @@ void UI_Render()
 		const bool tpHover = TpWatchPad::Render();
 		const bool lookupHover = LookupPad::Render();
 		const bool walletHover = WalletPad::Render();
-		if (notesHover || tpHover || lookupHover || walletHover)
+		const bool vaultHover = VaultPad::Render();
+		if (notesHover || tpHover || lookupHover || walletHover || vaultHover)
 		{
 			gBlockGameMouse = true;
 			gBlockGameKeyboard = true;
@@ -3239,7 +3241,8 @@ void UI_Render()
 	const bool tpHover = TpWatchPad::Render();
 	const bool lookupHover = LookupPad::Render();
 	const bool walletHover = WalletPad::Render();
-	if (notesHover || tpHover || lookupHover || walletHover)
+	const bool vaultHover = VaultPad::Render();
+	if (notesHover || tpHover || lookupHover || walletHover || vaultHover)
 	{
 		/* Pointer on a pad — block GW2 only; do not force WantCapture* so
 		   Nexus / other ImGui addons keep working when the cursor leaves. */
@@ -3293,6 +3296,13 @@ void UI_Options()
 		Settings::SetDirty();
 	}
 	ImGui::TextColored(kMuted, "Gold, mats, bank, shared, and per-toon bags — searchable. Free-floating.");
+	if (ImGui::Checkbox("Show Dailies & Vault###gw2igh_showvault", &G::ShowVault))
+	{
+		if (G::ShowVault)
+			VaultPad::OpenAndRefresh();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted, "Season + live Vault objectives. Same API as Browse → Live.");
 
 	size_t count = 0;
 	Sites::All(&count);
@@ -3316,7 +3326,8 @@ void UI_Options()
 	ImGui::TextUnformatted("GW2 API key (Live panels)");
 	ImGui::TextColored(kMuted,
 		"Read-only key from account.arena.net. Scopes: account + progression (Vault); "
-		"wallet (Wallet pad); inventories + unlocks + characters (mats / Legendaries). "
+		"wallet (Wallet pad); inventories + unlocks + characters (mats / Legendaries); "
+		"tradingpost (TP delivery box). "
 		"Stored only in this addon’s settings.ini — never shared or sent in QR.");
 	ImGui::SetNextItemWidth(-1.f);
 	if (ImGui::InputTextWithHint("###gw2igh_apikey", "Paste API key here…", G::Gw2ApiKey, sizeof(G::Gw2ApiKey),
@@ -3340,10 +3351,11 @@ void UI_Options()
 		ShellExecuteA(nullptr, "open", "https://account.arena.net/applications", nullptr, nullptr, SW_SHOWNORMAL);
 
 	ImGui::Spacing();
-	ImGui::TextUnformatted("TP watchlist (yours)");
+	ImGui::TextUnformatted("TP panel (yours)");
 	ImGui::TextColored(kMuted,
-		"Paste a GW2 item chat code [&…] (Shift+click in game) or a numeric ID. "
-		"Use the toolbar TP button. No API key.");
+		"Watchlist: paste a chat code [&…] (Shift+click in game) or numeric ID — no key. "
+		"Sell alerts (sell ≤ target) are set in the TP pad. "
+		"Delivery box needs an API key with tradingpost. Toolbar TP button.");
 	auto appendTpId = [&](int id) {
 		if (id <= 0) return;
 		std::vector<int> ids;

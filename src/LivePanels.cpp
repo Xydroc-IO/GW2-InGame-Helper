@@ -1652,6 +1652,9 @@ namespace
 			"Numeric IDs also work.</span></li>";
 		body += "<li><span class=\"t\">Prices</span><span class=\"s\">"
 			"Buy / sell / spread refresh in that window (read-only official API, ~2s).</span></li>";
+		body += "<li><span class=\"t\">Delivery box</span><span class=\"s\">"
+			"Same window shows coins/items waiting to claim via <code>/v2/commerce/delivery</code> "
+			"(API key with <strong>tradingpost</strong>). Reminder only — claim in-game.</span></li>";
 		body += "</ul>";
 		body += "<p style=\"margin-top:12px\"><a class=\"link\" href=\"https://www.gw2bltc.com/\">GW2BLTC</a>"
 			" · <a class=\"link\" href=\"https://wiki.guildwars2.com/\">Wiki</a></p>";

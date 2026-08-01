@@ -24,7 +24,7 @@ namespace
 	 * Intentionally omitted (outdated / superseded / low quality): Hardstuck, Discretize, Lucky Noobs.
 	 */
 	SiteDef gSites[] = {
-		/* —— Help (default landing) —— */
+		/* —— Help (getting started + official links) —— */
 		{
 			"home",
 			"Help",
@@ -40,6 +40,42 @@ namespace
 			"New Player Guide",
 			"Dak393 — New player Guide (wiki hub)",
 			"https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2official",
+			"Help",
+			"Guild Wars 2",
+			"Guild Wars 2",
+			"https://www.guildwars2.com/",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2news",
+			"Help",
+			"GW2 News",
+			"Guild Wars 2 — News",
+			"https://www.guildwars2.com/en/news/",
+			nullptr,
+			nullptr,
+		},
+		{
+			"raidcore",
+			"Help",
+			"Raidcore",
+			"Raidcore — Guild Wars 2",
+			"https://raidcore.gg/gw2",
+			nullptr,
+			nullptr,
+		},
+		{
+			"gw2forums",
+			"Help",
+			"Forums",
+			"Guild Wars 2 Forums",
+			"https://en-forum.guildwars2.com/",
 			nullptr,
 			nullptr,
 		},
@@ -107,44 +143,6 @@ namespace
 			"Legendaries & Characters",
 			"Live — Legendaries & Characters",
 			"about:live-progress",
-			nullptr,
-			nullptr,
-		},
-
-		/* —— Official —— */
-		{
-			"gw2official",
-			"Official",
-			"Guild Wars 2",
-			"Guild Wars 2",
-			"https://www.guildwars2.com/",
-			nullptr,
-			nullptr,
-		},
-		{
-			"gw2news",
-			"Official",
-			"GW2 News",
-			"Guild Wars 2 — News",
-			"https://www.guildwars2.com/en/news/",
-			nullptr,
-			nullptr,
-		},
-		{
-			"raidcore",
-			"Official",
-			"Raidcore",
-			"Raidcore — Guild Wars 2",
-			"https://raidcore.gg/gw2",
-			nullptr,
-			nullptr,
-		},
-		{
-			"gw2forums",
-			"Official",
-			"Forums",
-			"Guild Wars 2 Forums",
-			"https://en-forum.guildwars2.com/",
 			nullptr,
 			nullptr,
 		},
@@ -24436,10 +24434,10 @@ namespace
 			nullptr,
 		},
 
-		/* —— Farming —— */
+		/* —— Farming (under Guides) —— */
 		{
 			"fastfarming",
-			"Farming",
+			"Guides",
 			"Fast Farming",
 			"Fast Farming Community",
 			"https://fast.farming-community.eu/",

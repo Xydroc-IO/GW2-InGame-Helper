@@ -9,6 +9,7 @@
 #include "LookupPad.h"
 #include "NotesPad.h"
 #include "TpWatchPad.h"
+#include "VaultPad.h"
 #include "WalletPad.h"
 #include "Settings.h"
 #include "Sites.h"
@@ -27,6 +28,7 @@ namespace G
 	bool  ShowTpWatch  = false;
 	bool  ShowLookup   = false;
 	bool  ShowWallet   = false;
+	bool  ShowVault    = false;
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
 	float WindowWidth  = 1100.f;
@@ -41,6 +43,7 @@ namespace G
 	char  DefaultSiteId[64] = "home";
 	char  Gw2ApiKey[128] = "";
 	char  TpWatchIds[1024] = "";
+	char  TpWatchAlerts[2048] = "";
 }
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
@@ -621,6 +624,7 @@ static void AddonLoad(AddonAPI_t* api)
 	G::ShowTpWatch = false;
 	G::ShowLookup = false;
 	G::ShowWallet = false;
+	G::ShowVault = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
 	WikiBrowser::Init();

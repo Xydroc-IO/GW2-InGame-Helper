@@ -10,10 +10,12 @@
 #include "imgui/imgui.h"
 
 #include <atomic>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <windows.h>
@@ -30,17 +32,41 @@ namespace
 		std::string name;
 		long long buy = 0;
 		long long sell = 0;
+		long long alertSell = 0; /* 0 = off; fire when sell > 0 && sell <= alertSell */
+		bool alertHit = false;
+	};
+
+	struct DeliveryItem
+	{
+		int id = 0;
+		int count = 0;
+		std::string name;
+	};
+
+	struct DeliverySnap
+	{
+		bool noKey = false;
+		bool scopeFail = false;
+		bool ok = false;
+		long long coins = 0;
+		std::vector<DeliveryItem> items;
+		std::string status;
 	};
 
 	std::mutex gMu;
 	std::vector<Row> gRows;
+	DeliverySnap gDelivery;
 	std::atomic<bool> gBusy{false};
 	std::atomic<bool> gResultReady{false};
 	std::vector<Row> gPending;
+	DeliverySnap gPendingDelivery;
 	HANDLE gThread = nullptr;
 	char gAddBuf[160] = {};
 	std::string gStatus;
 	bool gRequestFocus = false;
+	/* Stable InputText buffer while editing one row's alert. */
+	int gAlertEditId = 0;
+	char gAlertEditBuf[64] = {};
 
 	std::string FormatCoins(long long copper)
 	{
@@ -56,6 +82,80 @@ namespace
 		else
 			std::snprintf(buf, sizeof(buf), "%lldc", c);
 		return buf;
+	}
+
+	/* Compact for the alert field: "5g", "50s", "12c", or "1g 50s". */
+	void FormatAlertEdit(long long copper, char* out, size_t outLen)
+	{
+		if (!out || outLen == 0) return;
+		out[0] = 0;
+		if (copper <= 0) return;
+		const long long g = copper / 10000;
+		const long long s = (copper % 10000) / 100;
+		const long long c = copper % 100;
+		if (g > 0 && s == 0 && c == 0)
+			std::snprintf(out, outLen, "%lldg", g);
+		else if (g > 0 && c == 0)
+			std::snprintf(out, outLen, "%lldg %llds", g, s);
+		else if (g > 0)
+			std::snprintf(out, outLen, "%lldg %llds %lldc", g, s, c);
+		else if (s > 0 && c == 0)
+			std::snprintf(out, outLen, "%llds", s);
+		else if (s > 0)
+			std::snprintf(out, outLen, "%llds %lldc", s, c);
+		else
+			std::snprintf(out, outLen, "%lldc", c);
+	}
+
+	/* "5g", "50s", "1g 20s", "12345" (copper). Empty / junk → 0. */
+	long long ParseCoinsInput(const char* text)
+	{
+		if (!text) return 0;
+		long long total = 0;
+		bool anyUnit = false;
+		const char* p = text;
+		while (*p)
+		{
+			while (*p == ' ' || *p == '\t' || *p == ',' || *p == '+') ++p;
+			if (!*p) break;
+			long long v = 0;
+			bool digits = false;
+			while (*p >= '0' && *p <= '9')
+			{
+				digits = true;
+				v = v * 10 + (*p - '0');
+				++p;
+			}
+			if (!digits) break;
+			char u = *p;
+			if (u >= 'A' && u <= 'Z') u = static_cast<char>(u - 'A' + 'a');
+			if (u == 'g')
+			{
+				anyUnit = true;
+				total += v * 10000;
+				++p;
+			}
+			else if (u == 's')
+			{
+				anyUnit = true;
+				total += v * 100;
+				++p;
+			}
+			else if (u == 'c')
+			{
+				anyUnit = true;
+				total += v;
+				++p;
+			}
+			else
+			{
+				/* Bare number: copper if alone, otherwise stop. */
+				if (!anyUnit && total == 0)
+					return v;
+				break;
+			}
+		}
+		return total > 0 ? total : 0;
 	}
 
 	void ParseIds(const char* csv, std::vector<int>& out)
@@ -85,6 +185,107 @@ namespace
 		}
 	}
 
+	void ParseAlerts(const char* csv, std::vector<std::pair<int, long long>>& out)
+	{
+		out.clear();
+		if (!csv) return;
+		const char* p = csv;
+		while (*p && out.size() < static_cast<size_t>(kMaxItems))
+		{
+			while (*p == ' ' || *p == ',' || *p == ';' || *p == '\t') ++p;
+			if (!*p) break;
+			int id = 0;
+			bool anyId = false;
+			while (*p >= '0' && *p <= '9')
+			{
+				anyId = true;
+				id = id * 10 + (*p - '0');
+				++p;
+			}
+			long long thresh = 0;
+			if (anyId && *p == ':')
+			{
+				++p;
+				bool anyT = false;
+				while (*p >= '0' && *p <= '9')
+				{
+					anyT = true;
+					thresh = thresh * 10 + (*p - '0');
+					++p;
+				}
+				if (!anyT) thresh = 0;
+			}
+			if (anyId && id > 0 && thresh > 0)
+			{
+				bool dup = false;
+				for (auto& e : out)
+				{
+					if (e.first == id)
+					{
+						e.second = thresh;
+						dup = true;
+						break;
+					}
+				}
+				if (!dup) out.emplace_back(id, thresh);
+			}
+			while (*p && *p != ',' && *p != ';') ++p;
+		}
+	}
+
+	void SaveAlerts(const std::vector<std::pair<int, long long>>& alerts)
+	{
+		std::string s;
+		for (size_t i = 0; i < alerts.size(); ++i)
+		{
+			if (alerts[i].second <= 0) continue;
+			if (!s.empty()) s += ',';
+			s += std::to_string(alerts[i].first);
+			s += ':';
+			s += std::to_string(alerts[i].second);
+		}
+		if (s.size() >= sizeof(G::TpWatchAlerts))
+			s.resize(sizeof(G::TpWatchAlerts) - 1);
+		std::snprintf(G::TpWatchAlerts, sizeof(G::TpWatchAlerts), "%s", s.c_str());
+		Settings::SetDirty();
+	}
+
+	void SetAlertForId(int id, long long thresh)
+	{
+		if (id <= 0) return;
+		std::vector<std::pair<int, long long>> alerts;
+		ParseAlerts(G::TpWatchAlerts, alerts);
+		bool found = false;
+		for (size_t i = 0; i < alerts.size(); ++i)
+		{
+			if (alerts[i].first != id) continue;
+			found = true;
+			if (thresh <= 0)
+				alerts.erase(alerts.begin() + static_cast<std::ptrdiff_t>(i));
+			else
+				alerts[i].second = thresh;
+			break;
+		}
+		if (!found && thresh > 0)
+			alerts.emplace_back(id, thresh);
+		SaveAlerts(alerts);
+	}
+
+	void PruneAlertsToIds(const std::vector<int>& ids)
+	{
+		std::vector<std::pair<int, long long>> alerts;
+		ParseAlerts(G::TpWatchAlerts, alerts);
+		std::vector<std::pair<int, long long>> next;
+		for (const auto& e : alerts)
+		{
+			bool keep = false;
+			for (int id : ids) if (id == e.first) { keep = true; break; }
+			if (keep) next.push_back(e);
+		}
+		if (next.size() != alerts.size())
+			SaveAlerts(next);
+	}
+
 	void SaveIds(const std::vector<int>& ids)
 	{
 		std::string s;
@@ -96,7 +297,25 @@ namespace
 		if (s.size() >= sizeof(G::TpWatchIds))
 			s.resize(sizeof(G::TpWatchIds) - 1);
 		std::snprintf(G::TpWatchIds, sizeof(G::TpWatchIds), "%s", s.c_str());
+		PruneAlertsToIds(ids);
 		Settings::SetDirty();
+	}
+
+	/* Attach thresholds + hit flags; returns number of hits. */
+	int ApplyAlerts(std::vector<Row>& rows)
+	{
+		std::vector<std::pair<int, long long>> alerts;
+		ParseAlerts(G::TpWatchAlerts, alerts);
+		int hits = 0;
+		for (Row& r : rows)
+		{
+			r.alertSell = 0;
+			for (const auto& e : alerts)
+				if (e.first == r.id) { r.alertSell = e.second; break; }
+			r.alertHit = (r.alertSell > 0 && r.sell > 0 && r.sell <= r.alertSell);
+			if (r.alertHit) ++hits;
+		}
+		return hits;
 	}
 
 	int ParseItemInput(const char* text)
@@ -232,6 +451,30 @@ namespace
 		return q;
 	}
 
+	void ResolveItemNames(const std::vector<int>& ids,
+		std::vector<std::pair<int, std::string>>& outNames)
+	{
+		outNames.clear();
+		if (ids.empty()) return;
+		std::string path = "/v2/items?ids=";
+		path += IdsQuery(ids);
+		auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpTimeoutMs);
+		if (!r.ok) return;
+		size_t p = 0;
+		while (p < r.body.size())
+		{
+			size_t brace = r.body.find('{', p);
+			if (brace == std::string::npos) break;
+			size_t end = JsonObjectEnd(r.body, brace);
+			if (end == std::string::npos) break;
+			long long id = JsonIntAfterKey(r.body, "id", brace);
+			std::string name = JsonStringAfterKey(r.body, "name", brace);
+			if (id > 0 && !name.empty())
+				outNames.emplace_back(static_cast<int>(id), std::move(name));
+			p = end + 1;
+		}
+	}
+
 	void FetchInto(std::vector<Row>& rows)
 	{
 		if (rows.empty()) return;
@@ -240,27 +483,12 @@ namespace
 		for (const Row& r : rows) ids.push_back(r.id);
 
 		{
-			std::string path = "/v2/items?ids=";
-			path += IdsQuery(ids);
-			auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpTimeoutMs);
-			if (r.ok)
+			std::vector<std::pair<int, std::string>> names;
+			ResolveItemNames(ids, names);
+			for (const auto& nv : names)
 			{
-				size_t p = 0;
-				while (p < r.body.size())
-				{
-					size_t brace = r.body.find('{', p);
-					if (brace == std::string::npos) break;
-					size_t end = JsonObjectEnd(r.body, brace);
-					if (end == std::string::npos) break;
-					long long id = JsonIntAfterKey(r.body, "id", brace);
-					std::string name = JsonStringAfterKey(r.body, "name", brace);
-					if (id > 0 && !name.empty())
-					{
-						for (Row& row : rows)
-							if (row.id == static_cast<int>(id)) { row.name = name; break; }
-					}
-					p = end + 1;
-				}
+				for (Row& row : rows)
+					if (row.id == nv.first) { row.name = nv.second; break; }
 			}
 		}
 		{
@@ -302,6 +530,83 @@ namespace
 		}
 	}
 
+	void FetchDelivery(DeliverySnap& d)
+	{
+		d = DeliverySnap{};
+		if (!G::Gw2ApiKey[0])
+		{
+			d.noKey = true;
+			d.status = "Add API key with tradingpost for delivery.";
+			return;
+		}
+
+		auto r = Gw2Http::Api("/v2/commerce/delivery", G::Gw2ApiKey, kHttpTimeoutMs);
+		if (!r.ok)
+		{
+			if (r.status == 401 || r.status == 403)
+			{
+				d.scopeFail = true;
+				d.status = "Need tradingpost scope on API key.";
+			}
+			else
+				d.status = "Delivery unavailable.";
+			return;
+		}
+
+		d.ok = true;
+		const long long coins = JsonIntAfterKey(r.body, "coins", 0);
+		d.coins = coins > 0 ? coins : 0;
+
+		size_t itemsKey = r.body.find("\"items\"");
+		if (itemsKey != std::string::npos)
+		{
+			size_t arr = r.body.find('[', itemsKey);
+			size_t arrEnd = (arr != std::string::npos) ? r.body.find(']', arr) : std::string::npos;
+			if (arr != std::string::npos && arrEnd != std::string::npos)
+			{
+				size_t p = arr;
+				while (p < arrEnd && d.items.size() < static_cast<size_t>(kMaxItems))
+				{
+					size_t brace = r.body.find('{', p);
+					if (brace == std::string::npos || brace >= arrEnd) break;
+					size_t end = JsonObjectEnd(r.body, brace);
+					if (end == std::string::npos || end > arrEnd) break;
+					long long id = JsonIntAfterKey(r.body, "id", brace);
+					long long count = JsonIntAfterKey(r.body, "count", brace);
+					if (id > 0 && count > 0)
+					{
+						DeliveryItem it;
+						it.id = static_cast<int>(id);
+						it.count = static_cast<int>(count);
+						d.items.push_back(std::move(it));
+					}
+					p = end + 1;
+				}
+			}
+		}
+
+		if (!d.items.empty())
+		{
+			std::vector<int> ids;
+			ids.reserve(d.items.size());
+			for (const DeliveryItem& it : d.items) ids.push_back(it.id);
+			std::vector<std::pair<int, std::string>> names;
+			ResolveItemNames(ids, names);
+			for (const auto& nv : names)
+			{
+				for (DeliveryItem& it : d.items)
+					if (it.id == nv.first) { it.name = nv.second; break; }
+			}
+		}
+
+		if (d.coins == 0 && d.items.empty())
+			d.status = "Nothing waiting to claim.";
+		else if (d.items.empty())
+			d.status = "Coins only — claim in-game at the Trading Post.";
+		else
+			d.status = "Claim in-game at the Trading Post.";
+	}
+
 	DWORD WINAPI FetchProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
@@ -316,9 +621,12 @@ namespace
 			rows.push_back(std::move(r));
 		}
 		FetchInto(rows);
+		DeliverySnap delivery;
+		FetchDelivery(delivery);
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			gPending = std::move(rows);
+			gPendingDelivery = std::move(delivery);
 			gResultReady = true;
 			gBusy = false;
 		}
@@ -335,12 +643,12 @@ namespace
 			CloseHandle(gThread);
 			gThread = nullptr;
 		}
-		gStatus = "Fetching prices…";
+		gStatus = "Refreshing…";
 		gThread = CreateThread(nullptr, 0, FetchProc, nullptr, 0, nullptr);
 		if (!gThread)
 		{
 			gBusy = false;
-			gStatus = "Could not start price fetch.";
+			gStatus = "Could not start refresh.";
 		}
 	}
 
@@ -365,6 +673,7 @@ namespace
 			}
 			next.push_back(std::move(r));
 		}
+		ApplyAlerts(next);
 		gRows = std::move(next);
 	}
 }
@@ -373,8 +682,12 @@ void TpWatchPad::Load() {}
 
 void TpWatchPad::OpenAndRefresh()
 {
+	const bool wasOpen = G::ShowTpWatch;
 	G::ShowTpWatch = true;
-	gRequestFocus = true;
+	/* Only auto-dock / focus when the pad was closed. Lookup → Add to TP
+	   must not yank an already-placed TP window back beside the helper. */
+	if (!wasOpen)
+		gRequestFocus = true;
 	Settings::SetDirty();
 	SyncRowsFromSettings();
 	StartFetch();
@@ -389,8 +702,21 @@ void TpWatchPad::Tick()
 		return;
 	gRows = std::move(gPending);
 	gPending.clear();
+	gDelivery = std::move(gPendingDelivery);
+	gPendingDelivery = DeliverySnap{};
 	gResultReady = false;
-	gStatus = gRows.empty() ? "Watchlist empty." : "Prices updated.";
+	const int hits = ApplyAlerts(gRows);
+	if (hits > 0)
+	{
+		char buf[96];
+		std::snprintf(buf, sizeof(buf),
+			"%d sell alert%s hit — sell at or under target.",
+			hits, hits == 1 ? "" : "s");
+		gStatus = buf;
+		gRequestFocus = true;
+	}
+	else
+		gStatus = gRows.empty() ? "Watchlist empty." : "Prices updated.";
 	if (gThread)
 	{
 		WaitForSingleObject(gThread, 0);
@@ -409,9 +735,11 @@ bool TpWatchPad::Render()
 	}
 
 	std::vector<Row> rows;
+	DeliverySnap delivery;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
 		rows = gRows;
+		delivery = gDelivery;
 	}
 
 	const ImGuiIO& io = ImGui::GetIO();
@@ -419,7 +747,8 @@ bool TpWatchPad::Render()
 	/* Few items: auto-size to content (no clipping, no empty void).
 	   Many items: fixed-ish window + scrolling list. */
 	constexpr size_t kAutoFitMax = 8;
-	const bool autoFit = rows.size() <= kAutoFitMax;
+	const size_t contentCount = rows.size() + delivery.items.size();
+	const bool autoFit = contentCount <= kAutoFitMax;
 
 	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 0.f), ImVec2(520.f, maxWinH));
 	if (!autoFit)
@@ -434,7 +763,7 @@ bool TpWatchPad::Render()
 
 	ImGuiWindowFlags winFlags = autoFit ? ImGuiWindowFlags_AlwaysAutoResize : 0;
 	bool open = G::ShowTpWatch;
-	if (!ImGui::Begin("TP Watchlist##GW2InGameHelperTpWatch", &open, winFlags))
+	if (!ImGui::Begin("Trading Post##GW2InGameHelperTpWatch", &open, winFlags))
 	{
 		PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 		const bool hovered = ImGui::IsWindowHovered(
@@ -456,11 +785,110 @@ bool TpWatchPad::Render()
 	}
 	PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 
-	ImGui::TextUnformatted("Trading Post watchlist");
+	ImGui::TextUnformatted("Trading Post");
+	ImGui::PushTextWrapPos(0.f);
+	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+		"Read-only — never buys, sells, or claims. "
+		"Delivery needs API key (tradingpost); watchlist prices are public.");
+	ImGui::PopTextWrapPos();
+
+	if (ImGui::Button("Refresh###gw2igh_tp_pad_ref"))
+		StartFetch();
+	ImGui::SameLine();
+	if (gBusy)
+		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading…");
+	else if (!gStatus.empty())
+	{
+		const bool alertMsg = gStatus.find("alert") != std::string::npos;
+		ImGui::TextColored(
+			alertMsg ? ImVec4(0.95f, 0.82f, 0.35f, 1.f) : ImVec4(0.55f, 0.75f, 0.55f, 1.f),
+			"%s", gStatus.c_str());
+	}
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Delivery box");
+	ImGui::PushTextWrapPos(0.f);
+	if (delivery.noKey || delivery.scopeFail)
+	{
+		ImGui::TextColored(ImVec4(0.70f, 0.55f, 0.40f, 1.f), "%s",
+			delivery.status.empty()
+				? "Add API key with tradingpost for delivery."
+				: delivery.status.c_str());
+	}
+	else if (delivery.ok)
+	{
+		ImGui::TextColored(ImVec4(0.85f, 0.78f, 0.45f, 1.f),
+			"Coins waiting: %s", FormatCoins(delivery.coins).c_str());
+		if (delivery.items.empty())
+		{
+			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+				"%s", delivery.status.c_str());
+		}
+		else
+		{
+			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+				"%s", delivery.status.c_str());
+			for (size_t i = 0; i < delivery.items.size(); ++i)
+			{
+				const DeliveryItem& it = delivery.items[i];
+				ImGui::PushID(static_cast<int>(it.id) + 100000);
+				const char* name = it.name.empty() ? "…" : it.name.c_str();
+				char line[256];
+				std::snprintf(line, sizeof(line), "%dx  %s", it.count, name);
+				ImGui::TextUnformatted(line);
+				ImGui::SameLine();
+				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "#%d", it.id);
+				ImGui::SameLine();
+				if (ImGui::SmallButton("Watch"))
+				{
+					std::vector<int> ids;
+					ParseIds(G::TpWatchIds, ids);
+					bool dup = false;
+					for (int x : ids) if (x == it.id) { dup = true; break; }
+					if (dup)
+						gStatus = "Already on your watchlist.";
+					else if (static_cast<int>(ids.size()) >= kMaxItems)
+						gStatus = "Watchlist full (120).";
+					else
+					{
+						ids.push_back(it.id);
+						SaveIds(ids);
+						SyncRowsFromSettings();
+						StartFetch();
+						gStatus = "Added to watchlist.";
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::SmallButton("BLTC"))
+				{
+					char url[128];
+					std::snprintf(url, sizeof(url), "https://www.gw2bltc.com/en/item/%d", it.id);
+					G::ShowWiki = true;
+					Settings::SetDirty();
+					if (BrowserTabs::OpenNewUrl("gw2bltc", url) < 0)
+						WikiBrowser::Navigate(url);
+				}
+				ImGui::PopID();
+			}
+		}
+	}
+	else if (!delivery.status.empty())
+	{
+		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "%s", delivery.status.c_str());
+	}
+	else
+	{
+		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+			"Refresh to load delivery (needs tradingpost scope).");
+	}
+	ImGui::PopTextWrapPos();
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Watchlist");
 	ImGui::PushTextWrapPos(0.f);
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
 		"Paste a chat code (Shift+click in game) or item ID. "
-		"Read-only prices — never buys or sells.");
+		"Optional sell alert: fire when sell ≤ your target (checked on Refresh).");
 	ImGui::PopTextWrapPos();
 
 	auto tryAdd = [&]() {
@@ -504,14 +932,6 @@ bool TpWatchPad::Render()
 	if (ImGui::Button("Add###gw2igh_tp_pad_addbtn", ImVec2(addBtnW, 0.f)))
 		tryAdd();
 
-	if (ImGui::Button("Refresh prices###gw2igh_tp_pad_ref"))
-		StartFetch();
-	ImGui::SameLine();
-	if (gBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading…");
-	else if (!gStatus.empty())
-		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", gStatus.c_str());
-
 	ImGui::Separator();
 
 	auto drawRows = [&]() {
@@ -525,9 +945,13 @@ bool TpWatchPad::Render()
 		}
 		for (size_t i = 0; i < rows.size(); ++i)
 		{
-			const Row& r = rows[i];
+			Row& r = rows[i];
 			ImGui::PushID(static_cast<int>(r.id));
 			const char* name = r.name.empty() ? "…" : r.name.c_str();
+			const bool hit = r.alertHit;
+
+			if (hit)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.82f, 0.35f, 1.f));
 
 			/* Name + actions on one row so buttons never sit below a clipped edge. */
 			const ImGuiStyle& st = ImGui::GetStyle();
@@ -539,7 +963,14 @@ bool TpWatchPad::Render()
 
 			ImGui::BeginGroup();
 			ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + nameW);
-			ImGui::TextUnformatted(name);
+			if (hit)
+			{
+				char hitName[256];
+				std::snprintf(hitName, sizeof(hitName), "◆ %s", name);
+				ImGui::TextUnformatted(hitName);
+			}
+			else
+				ImGui::TextUnformatted(name);
 			ImGui::PopTextWrapPos();
 			ImGui::EndGroup();
 			ImGui::SameLine(0.f, st.ItemSpacing.x);
@@ -550,6 +981,8 @@ bool TpWatchPad::Render()
 				std::vector<int> next;
 				for (int x : ids) if (x != r.id) next.push_back(x);
 				SaveIds(next);
+				if (gAlertEditId == r.id)
+					gAlertEditId = 0;
 				SyncRowsFromSettings();
 				StartFetch();
 				gStatus = "Removed.";
@@ -589,7 +1022,66 @@ bool TpWatchPad::Render()
 					FormatCoins(r.buy).c_str(), FormatCoins(r.sell).c_str());
 				ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f), "%s", priceLine);
 			}
+
+			if (hit)
+			{
+				ImGui::TextColored(ImVec4(0.95f, 0.82f, 0.35f, 1.f),
+					"Alert — sell %s ≤ %s",
+					FormatCoins(r.sell).c_str(), FormatCoins(r.alertSell).c_str());
+			}
+
+			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Sell alert ≤");
+			ImGui::SameLine();
+			const float clearW = ImGui::CalcTextSize("Clear").x + st.FramePadding.x * 2.f;
+			float alertW = ImGui::GetContentRegionAvail().x - clearW - st.ItemSpacing.x;
+			if (alertW < 90.f) alertW = 90.f;
+			ImGui::SetNextItemWidth(alertW);
+			if (gAlertEditId == r.id)
+			{
+				ImGui::InputTextWithHint("###gw2igh_tp_alert", "e.g. 5g / 50s / 12345",
+					gAlertEditBuf, sizeof(gAlertEditBuf));
+				if (ImGui::IsItemDeactivatedAfterEdit())
+				{
+					const long long thresh = ParseCoinsInput(gAlertEditBuf);
+					SetAlertForId(r.id, thresh);
+					gAlertEditId = 0;
+					{
+						std::lock_guard<std::mutex> lock(gMu);
+						ApplyAlerts(gRows);
+					}
+					ApplyAlerts(rows);
+					gStatus = thresh > 0 ? "Sell alert saved." : "Sell alert cleared.";
+				}
+			}
+			else
+			{
+				char shown[64];
+				FormatAlertEdit(r.alertSell, shown, sizeof(shown));
+				ImGui::InputTextWithHint("###gw2igh_tp_alert", "e.g. 5g / 50s / 12345",
+					shown, sizeof(shown));
+				if (ImGui::IsItemActivated())
+				{
+					gAlertEditId = r.id;
+					std::snprintf(gAlertEditBuf, sizeof(gAlertEditBuf), "%s", shown);
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Clear"))
+			{
+				SetAlertForId(r.id, 0);
+				if (gAlertEditId == r.id)
+					gAlertEditId = 0;
+				{
+					std::lock_guard<std::mutex> lock(gMu);
+					ApplyAlerts(gRows);
+				}
+				ApplyAlerts(rows);
+				gStatus = "Sell alert cleared.";
+			}
 			ImGui::PopTextWrapPos();
+
+			if (hit)
+				ImGui::PopStyleColor();
 
 			if (i + 1 < rows.size())
 				ImGui::Separator();

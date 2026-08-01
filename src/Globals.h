@@ -17,6 +17,7 @@ namespace G
 	extern bool  ShowTpWatch; /* ImGui TP watchlist (add/remove + prices) */
 	extern bool  ShowLookup; /* ImGui item lookup (chat code / ID / name) — free-floating */
 	extern bool  ShowWallet; /* ImGui wallet + mats snapshot — free-floating */
+	extern bool  ShowVault; /* ImGui Dailies & Vault — free-floating */
 	extern float Opacity;
 	extern float FontScale;
 	extern float WindowWidth;
@@ -31,4 +32,5 @@ namespace G
 	extern char  DefaultSiteId[64]; /* Home button + landing when no tabs restored */
 	extern char  Gw2ApiKey[128]; /* optional account API key — Live panels; local only */
 	extern char  TpWatchIds[1024]; /* comma-separated item ids — user TP watchlist */
+	extern char  TpWatchAlerts[2048]; /* id:copperThresh,… — sell ≤ alert; 0/absent = off */
 }
