@@ -145,6 +145,8 @@ Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/R
   `GetViewRect` stays the ImGui panel size — so pages see a normal monitor for
   `screen.width` / `screen.height` instead of the tiny overlay (helps ad impression
   fingerprinting; not a full desktop Chrome substitute)
+- **Snow Crows ads:** Ad iframes are clickable again (no more `pointer-events:none`);
+  header stays above NitroPay for Profile/Inbox
 - Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.7

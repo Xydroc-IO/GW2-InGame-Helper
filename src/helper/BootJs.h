@@ -478,6 +478,8 @@ function replaceTwitchEmbeds(){
    - Elevate ONLY <header> above NitroPay so Profile/Inbox stay clickable.
      Do NOT elevate every .sticky.top-0 — that also hits Traits section sticky
      bars and buries gw2armory trait/skill hover cards (inline zIndex ~999).
+   - Keep NitroPay / ad iframes at a low z-index under the header, but NEVER
+     pointer-events:none — that made every ad click a no-op (publisher CPC).
    - Force Tippy + armory fixed tooltips above the header.
    - Un-clip armory embeds (site uses overflow-clip which hides hover cards).
    - Polyfill native <select> (PET_POPUP unreliable under OSR). */
@@ -505,7 +507,7 @@ function injectSnowcrowsCompat(){
       '#nitro-footer-ad1,[id^="nitro-"],[id*="nitro-sidebar"],[id*="nitro-footer"],',
       'iframe[src*="nitropay"],iframe[src*="doubleclick"],iframe[src*="googlesyndication"],',
       'iframe[id*="google_ads"],iframe[src*="amazon-adsystem"],',
-      '[id^="sc-np-"],[id*="sc-np-"]{z-index:1!important;pointer-events:none!important;}'
+      '[id^="sc-np-"],[id*="sc-np-"]{z-index:1!important;}'
     ].join('');
     elevateArmoryTooltips();
     if (document.documentElement.getAttribute('data-gw2-armory-z')!=='1'){

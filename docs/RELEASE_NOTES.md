@@ -45,7 +45,11 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   JavaScript `screen.width` / `screen.height` no longer match the tiny panel —
   a common anti-bot / non-billable impression signal. Does **not** make OSR a full
   desktop browser substitute (viewability %, click trackers, etc. remain separate).
-- **Stamps:** Helper `2048` · homepage `2014`
+- **Snow Crows ads:** Stopped setting `pointer-events:none` on NitroPay / ad iframes
+  (that made every ad click a silent no-op). Ads stay at a low z-index under the
+  elevated header so Profile/Inbox remain clickable; clicks on the ad itself still
+  reach the creative and Open Ext / tracker handoff.
+- **Stamps:** Helper `2049` · homepage `2014`
 
 ## What’s new in 2.0.2.7
 
