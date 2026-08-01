@@ -49,7 +49,9 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   (that made every ad click a silent no-op). Ads stay at a low z-index under the
   elevated header so Profile/Inbox remain clickable; clicks on the ad itself still
   reach the creative and Open Ext / tracker handoff.
-- **Stamps:** Helper `2049` · homepage `2014`
+- **Publisher ID:** User-Agent ends with product token `GW2-InGame-Helper` so sites
+  can allow or deny this client cleanly — see [`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)
+- **Stamps:** Helper `2050` · homepage `2014`
 
 ## What’s new in 2.0.2.7
 

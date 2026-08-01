@@ -147,6 +147,8 @@ Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/R
   fingerprinting; not a full desktop Chrome substitute)
 - **Snow Crows ads:** Ad iframes are clickable again (no more `pointer-events:none`);
   header stays above NitroPay for Profile/Inbox
+- **Publisher ID:** UA token `GW2-InGame-Helper` for site allow/deny —
+  [`docs/PUBLISHER_ACCESS.md`](docs/PUBLISHER_ACCESS.md)
 - Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.7

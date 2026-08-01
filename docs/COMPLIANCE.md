@@ -19,6 +19,8 @@ Current policy snapshot: **v2.0.2.8** — process/IPC notes live in local `ARCHI
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
 - Site ads / consent / analytics loads in CEF (do not re-strip without review)
 - Deep links to third-party sites as Browse hyperlinks
+- Stable User-Agent product token `GW2-InGame-Helper` so publishers can allow/deny
+  this client (instructions: [`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md))
 
 ## Forbidden
 
