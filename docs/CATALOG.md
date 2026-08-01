@@ -12,6 +12,16 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 - **How to use** — `about:helper-home`
 - **New Player Guide** — [https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide](https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide)
 
+### ArenaNet
+
+- **Guild Wars 2** — [https://www.guildwars2.com/](https://www.guildwars2.com/)
+- **GW2 News** — [https://www.guildwars2.com/en/news/](https://www.guildwars2.com/en/news/)
+- **Forums** — [https://en-forum.guildwars2.com/](https://en-forum.guildwars2.com/)
+
+### Nexus
+
+- **Raidcore** — [https://raidcore.gg/gw2](https://raidcore.gg/gw2)
+
 ## Search
 
 ### Web Search
@@ -51,18 +61,7 @@ Not Browse rows — open from the helper toolbar / Nexus Options. Session-only v
 - **TP Watchlist** — chat codes / item IDs → buy/sell prices; docks with Notes
 - **Item Lookup** — chat code / ID / name → rarity, prices, wiki & BLTC; free-floating
 - **Wallet & Stash** — searchable wallet, materials, bank, shared, per-toon bags (API key: account, wallet, inventories, characters); free-floating
-
-## Official
-
-### ArenaNet
-
-- **Guild Wars 2** — [https://www.guildwars2.com/](https://www.guildwars2.com/)
-- **GW2 News** — [https://www.guildwars2.com/en/news/](https://www.guildwars2.com/en/news/)
-- **Forums** — [https://en-forum.guildwars2.com/](https://en-forum.guildwars2.com/)
-
-### Nexus
-
-- **Raidcore** — [https://raidcore.gg/gw2](https://raidcore.gg/gw2)
+- **Vault** — Dailies & Wizard’s Vault (season + daily/weekly/special; UTC reset countdowns); free-floating; same read-only API as Browse → Live
 
 ## Wiki
 
@@ -638,9 +637,7 @@ TP-priced guides from [GW2 Crafts](https://gw2crafts.net/) (Normal / Fast / 400-
 - **Snowcrows Guides** — [https://snowcrows.com/guides](https://snowcrows.com/guides)
 - **PvE Guides Hub** — [https://metabattle.com/wiki/PvE_Guides](https://metabattle.com/wiki/PvE_Guides)
 
-## Farming
-
-### Community
+### Farming
 
 - **Fast Farming** — [https://fast.farming-community.eu/](https://fast.farming-community.eu/)
 

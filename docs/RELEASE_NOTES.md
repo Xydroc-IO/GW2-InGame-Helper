@@ -38,8 +38,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   shared inventory, and per-character bags. Parallel account fetch, then character bags;
   disk name cache (`stash-names.cache`). Needs API scopes **account**, **wallet**,
   **inventories**, **characters**. Default window size matches Notes (~420×560)
+- **Vault pad:** Toolbar **Vault** — free-floating Dailies & Wizard’s Vault (same API as
+  Browse → Live); season + daily/weekly/special objectives with UTC reset countdowns
+- **TP Watchlist:** Optional sell-price alerts; Add to TP from Item Lookup no longer
+  re-docks an already-open TP window
+- **Browse:** Official sites folded into **Help**; Fast Farming under **Guides** (no
+  separate Official / Farming categories)
+- **OSR `<select>`:** In-page dropdown polyfill on all sites — native PET_POPUP under
+  CEF OSR was crashing the helper on Windows (looked like constant page refreshes).
+  Menu dismisses on page scroll; ghost mouse-up after popup hide is swallowed
 - **Favorites QR:** Larger quiet zone so companion QR scan is more reliable
-- **Stamps:** Helper `2046` · homepage `2014`
+- **Stamps:** Helper `2047` · homepage `2014`
 
 ## What’s new in 2.0.2.6
 

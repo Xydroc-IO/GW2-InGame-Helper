@@ -480,7 +480,7 @@ namespace
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2046";
+		static constexpr const char* kHelperStamp = "2047";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;
@@ -1233,6 +1233,8 @@ namespace
 		/* Dead handle still held — clear it and count a quick death before relaunch. */
 		if (gProcess)
 		{
+			DWORD exitCode = 0;
+			GetExitCodeProcess(gProcess, &exitCode);
 			NoteHelperDied();
 			CloseHandle(gProcess);
 			gProcess = nullptr;
@@ -1241,11 +1243,25 @@ namespace
 				return;
 			/* Back off after a crash — do not respawn every frame. */
 			if (GetTickCount() - gLastStartAttemptMs < 5000u)
+			{
+				char buf[160];
+				std::snprintf(buf, sizeof(buf),
+					"Browser helper exited (code=%lu) — waiting to relaunch",
+					static_cast<unsigned long>(exitCode));
+				SetLocalStatus(buf);
 				return;
+			}
+			{
+				char buf[160];
+				std::snprintf(buf, sizeof(buf),
+					"Browser helper exited (code=%lu) — relaunching",
+					static_cast<unsigned long>(exitCode));
+				SetLocalStatus(buf);
+			}
 		}
 		if (gLaunchRequested.exchange(true))
 			return;
-		SetLocalStatus("Launching…");
+		/* StartHelper logs "Launching browser…" — avoid a second Launching line. */
 	}
 
 	DWORD WINAPI LaunchHelperWorker(LPVOID)

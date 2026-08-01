@@ -112,6 +112,10 @@ namespace
 	/* One-shot: ask CEF for the first PET_POPUP after show — never invalidate
 	   from every OnPaint (that lock-loops the helper under Proton). */
 	bool gPopupInvalidateOnce = false;
+	/* After PET_POPUP hides, the trailing mouse-up often lands on the page under
+	   the former list (no popup offset) and triggers a link/form "refresh". */
+	bool gSwallowPopupMouseUp = false;
+	cef_rect_t gPopupSwallowRect{};
 
 	cef_browser_t* ActiveBrowser()
 	{
@@ -1714,9 +1718,16 @@ namespace
 	{
 		if (!IsActiveBrowser(browser))
 			return;
+		const bool wasShown = gPopupShow;
 		gPopupShow = show != 0;
 		if (!gPopupShow)
 		{
+			/* Arm one-shot swallow for the ghost mouse-up after option pick. */
+			if (wasShown && gPopupRect.width > 0 && gPopupRect.height > 0)
+			{
+				gSwallowPopupMouseUp = true;
+				gPopupSwallowRect = gPopupRect;
+			}
 			gPopupInvalidateOnce = false;
 			gPopupCache.clear();
 			gPopupCacheW = 0;
@@ -1726,6 +1737,7 @@ namespace
 				PublishCompositedFrame(0, 0, gViewCacheW, gViewCacheH);
 			return;
 		}
+		gSwallowPopupMouseUp = false;
 		/* Request the first popup paint once — do not invalidate every frame. */
 		gPopupInvalidateOnce = true;
 	}
@@ -2059,6 +2071,16 @@ namespace
 
 	void SendMouseClick(int x, int y, int button, int up, int clicks, uint32_t mods)
 	{
+		/* Drop the trailing mouse-up that lands where PET_POPUP just was — it
+		   hits the page underneath and looks like a dropdown-caused refresh. */
+		if (up && gSwallowPopupMouseUp)
+		{
+			gSwallowPopupMouseUp = false;
+			if (x >= gPopupSwallowRect.x && y >= gPopupSwallowRect.y &&
+				x < gPopupSwallowRect.x + gPopupSwallowRect.width &&
+				y < gPopupSwallowRect.y + gPopupSwallowRect.height)
+				return;
+		}
 		cef_browser_host_t* host = Host();
 		if (!host)
 			return;

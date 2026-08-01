@@ -12,7 +12,7 @@ Current policy snapshot: **v2.0.2.7** — process/IPC notes live in local `ARCHI
 - Official `api.guildwars2.com` reads from injected BootJs (credentials omitted; batched; 429 backoff) where pages use them
 - DLL WinHTTP reads to `api.guildwars2.com`, `guildwars2.com` news feed, and wiki MediaWiki API for **Live** Browse panels and ImGui pads (read-only; optional account API key stored only in local `settings.ini`)
 - Local Notes pad (`notes.json` under the addon folder) with clipboard copy helpers — no game injection
-- Item Lookup pad (public `/v2/items` + wiki search) and Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories) — read-only; item name cache in `stash-names.cache`
+- Item Lookup pad (public `/v2/items` + wiki search), Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories), and Vault pad (Wizard’s Vault / dailies — same Live panel API) — read-only; item name cache in `stash-names.cache`
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
 - Site ads / consent / analytics loads in CEF (do not re-strip without review)

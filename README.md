@@ -20,6 +20,10 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 |------|----------|
 | How to use (built-in) | Help |
 | [New Player Guide](https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide) | Help |
+| [Guild Wars 2](https://www.guildwars2.com/) | Help |
+| [GW2 News](https://www.guildwars2.com/en/news/) | Help |
+| [Raidcore](https://raidcore.gg/gw2) | Help |
+| [Forums](https://en-forum.guildwars2.com/) | Help |
 | [Google](https://www.google.com/) | Search |
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
@@ -29,11 +33,8 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | TP Watchlist (toolbar **TP**) | ImGui |
 | Item Lookup (toolbar **Item**) | ImGui |
 | Wallet & Stash (toolbar **Wallet**) | ImGui |
+| Vault (toolbar **Vault**) | ImGui |
 | Legendaries & Characters (built-in Live) | Live |
-| [Guild Wars 2](https://www.guildwars2.com/) | Official |
-| [GW2 News](https://www.guildwars2.com/en/news/) | Official |
-| [Raidcore](https://raidcore.gg/gw2) | Official |
-| [Forums](https://en-forum.guildwars2.com/) | Official |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
@@ -112,7 +113,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [TLDR Raids](https://gw2tldr.com/raids) | Guides |
 | [TLDR Fractals](https://gw2tldr.com/fractals) | Guides |
 | [TLDR Dungeons](https://gw2tldr.com/dungeons) | Guides |
-| [Fast Farming Community](https://fast.farming-community.eu/) | Farming |
+| [Fast Farming Community](https://fast.farming-community.eu/) | Guides |
 | Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
 
 Add more sites in `src/Sites.cpp`. Hardstuck and Discretize are intentionally omitted (outdated).
@@ -139,6 +140,11 @@ Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/R
 - **Wallet & Stash:** Toolbar **Wallet** — searchable wallet, materials, bank, shared, and
   per-toon bags (API scopes: account, wallet, inventories, characters); parallel fetch +
   name cache; Notes-sized default window
+- **Vault:** Toolbar **Vault** — free-floating Dailies & Wizard’s Vault with UTC reset
+  countdowns (same read-only API as Browse → Live)
+- **Browse:** Official links under Help; Fast Farming under Guides
+- **Dropdowns:** In-page `<select>` polyfill — fixes Windows helper crash/relaunch when
+  using site dropdowns (e.g. gw2efficiency crafting calculator)
 - **Favorites QR:** Larger quiet zone on the in-game QR for more reliable phone scanning
 - Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 

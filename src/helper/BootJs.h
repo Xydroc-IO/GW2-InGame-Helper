@@ -312,6 +312,8 @@ function boot(){
       });
     }catch(e){}
   }
+  /* All hosts: replace native <select> — PET_POPUP ghost clicks refresh pages. */
+  polyfillNativeSelects();
   unlockGuildjenMedia();
   tipGoogleLogin();
   tipGw2AppLogin();
@@ -533,6 +535,10 @@ function closeGw2SelectMenu(){
     if (m) m.remove();
   }catch(e){}
 }
+/* CEF OSR cannot host native <select> widgets reliably (PET_POPUP). After a
+   native option pick, a ghost mouse-up often lands on the page under the list
+   and triggers a form submit / link navigation that looks like a "page refresh".
+   Same helper binary on Windows and Wine/Linux — polyfill everywhere. */
 function openGw2SelectMenu(sel){
   try{
     closeGw2SelectMenu();
@@ -541,6 +547,7 @@ function openGw2SelectMenu(sel){
     var menu=document.createElement('div');
     menu.id='gw2-select-menu';
     menu.setAttribute('role','listbox');
+    menu.setAttribute('data-gw2-for-select','1');
     menu.style.cssText=[
       'position:fixed','z-index:2147483646',
       'left:'+Math.max(8,rect.left)+'px',
@@ -555,25 +562,33 @@ function openGw2SelectMenu(sel){
     for (var i=0;i<sel.options.length;i++){
       (function(opt, idx){
         if (opt.disabled) return;
-        var row=document.createElement('button');
-        row.type='button';
+        /* div — never <button> (default type=submit refreshes forms). */
+        var row=document.createElement('div');
         row.setAttribute('role','option');
+        row.setAttribute('tabindex','-1');
         row.textContent=opt.textContent||opt.value||('Option '+(idx+1));
         row.style.cssText=[
           'display:block','width:100%','text-align:left','border:0',
           'background:'+(opt.selected?'#2f3542':'transparent'),
-          'color:inherit','padding:8px 12px','cursor:pointer'
+          'color:inherit','padding:8px 12px','cursor:pointer',
+          'box-sizing:border-box'
         ].join(';');
         row.onmouseenter=function(){ row.style.background='#2f3542'; };
         row.onmouseleave=function(){ row.style.background=opt.selected?'#2f3542':'transparent'; };
-        row.onclick=function(ev){
-          ev.preventDefault();
-          ev.stopPropagation();
-          sel.selectedIndex=idx;
+        row.onmousedown=function(ev){
           try{
-            sel.dispatchEvent(new Event('input',{bubbles:true}));
-            sel.dispatchEvent(new Event('change',{bubbles:true}));
-          }catch(e2){}
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+          }catch(e0){}
+          var prev=sel.value;
+          sel.selectedIndex=idx;
+          if (String(sel.value)!==String(prev)){
+            try{
+              sel.dispatchEvent(new Event('input',{bubbles:true}));
+              sel.dispatchEvent(new Event('change',{bubbles:true}));
+            }catch(e2){}
+          }
           closeGw2SelectMenu();
         };
         menu.appendChild(row);
@@ -591,27 +606,56 @@ function openGw2SelectMenu(sel){
 }
 function polyfillNativeSelects(){
   try{
-    if (!isSnowcrows) return;
     if (document.documentElement.getAttribute('data-gw2-select-poly')!=='1'){
       document.documentElement.setAttribute('data-gw2-select-poly','1');
+      function inOurMenu(t){
+        return !!(t && t.closest && t.closest('#gw2-select-menu'));
+      }
+      function closestSelect(t){
+        return (t && t.closest) ? t.closest('select') : null;
+      }
+      /* fixed coords are viewport-locked — dismiss on page scroll like native. */
+      function dismissOnPageScroll(ev){
+        try{
+          var m=document.getElementById('gw2-select-menu');
+          if (!m) return;
+          var t=ev && ev.target;
+          if (t===m || (m.contains && t && m.contains(t))) return;
+          closeGw2SelectMenu();
+        }catch(e){}
+      }
       document.addEventListener('mousedown', function(ev){
         try{
           var t=ev.target;
-          if (!t) return;
-          if (t.closest && t.closest('#gw2-select-menu')) return;
-          var sel=t.closest ? t.closest('select') : null;
+          if (inOurMenu(t)) return;
+          var sel=closestSelect(t);
           if (sel){
             ev.preventDefault();
             ev.stopPropagation();
+            if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
             openGw2SelectMenu(sel);
             return;
           }
           closeGw2SelectMenu();
         }catch(e){}
       }, true);
+      /* Block the follow-up click so the native widget never opens / submits. */
+      document.addEventListener('click', function(ev){
+        try{
+          var t=ev.target;
+          if (inOurMenu(t)) return;
+          if (closestSelect(t)){
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+          }
+        }catch(e){}
+      }, true);
       document.addEventListener('keydown', function(ev){
         if (ev.key==='Escape') closeGw2SelectMenu();
       }, true);
+      window.addEventListener('scroll', dismissOnPageScroll, true);
+      window.addEventListener('resize', function(){ closeGw2SelectMenu(); }, true);
     }
   }catch(e){}
 }
