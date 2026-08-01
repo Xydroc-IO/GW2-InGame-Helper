@@ -8,6 +8,10 @@
 #include "LookupPad.h"
 #include "WalletPad.h"
 #include "VaultPad.h"
+#include "EventsPad.h"
+#include "TekkitGuidesPad.h"
+#include "CompassOverlay.h"
+#include "WorldOverlay.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "SyncQr.h"
@@ -2483,6 +2487,27 @@ namespace
 				if (ImGui::MenuItem("Reopen closed tab", "Ctrl+Shift+T", false, canRe))
 					BrowserTabs::ReopenClosed();
 			}
+			ImGui::Separator();
+			if (ImGui::MenuItem(G::ShowEvents ? "Hide Events panel" : "Show Events panel"))
+			{
+				if (G::ShowEvents)
+				{
+					G::ShowEvents = false;
+					Settings::SetDirty();
+				}
+				else
+					EventsPad::OpenAndRefresh();
+			}
+			if (ImGui::MenuItem(G::ShowTekkitGuides ? "Hide Tekkit's Guides" : "Show Tekkit's Guides"))
+			{
+				if (G::ShowTekkitGuides)
+				{
+					G::ShowTekkitGuides = false;
+					Settings::SetDirty();
+				}
+				else
+					TekkitGuidesPad::Open();
+			}
 			NoteHelperPopupHover();
 			ImGui::EndPopup();
 		}
@@ -2537,9 +2562,9 @@ namespace
 
 		ImGui::SameLine(0.f, 12.f);
 		{
-			float avail = ImGui::GetContentRegionAvail().x - 90.f;
+			float avail = ImGui::GetContentRegionAvail().x - 120.f;
 			if (avail < 140.f) avail = 140.f;
-			if (avail > 280.f) avail = 280.f;
+			if (avail > 420.f) avail = 420.f;
 			ImGui::SetNextItemWidth(avail);
 		}
 		if (ImGui::InputTextWithHint("###gw2igh_site_query", "Find in page...", G::LastQuery, sizeof(G::LastQuery),
@@ -2569,6 +2594,10 @@ namespace
 			ImGui::SetTooltip("Search the active site (or DuckDuckGo).");
 
 		ImGui::SameLine(0.f, 8.f);
+		DrawMoreMenu();
+		DrawStatusChip();
+
+		/* Panel toggles on their own row — never clipped by Browse/search width. */
 		if (ImGui::Button("Notes###gw2igh_notes"))
 		{
 			if (G::ShowNotes)
@@ -2594,6 +2623,32 @@ namespace
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Trading Post — delivery, watchlist, sell alerts (read-only)");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Events###gw2igh_events"))
+		{
+			if (G::ShowEvents)
+			{
+				G::ShowEvents = false;
+				Settings::SetDirty();
+			}
+			else
+				EventsPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("World events — UTC timers + track list");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Tekkit###gw2igh_tekkit"))
+		{
+			if (G::ShowTekkitGuides)
+			{
+				G::ShowTekkitGuides = false;
+				Settings::SetDirty();
+			}
+			else
+				TekkitGuidesPad::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Tekkit's Guides — compass trails + category toggles (© Tekkit)");
 		ImGui::SameLine(0.f, 4.f);
 		if (ImGui::Button("Item###gw2igh_lookup"))
 		{
@@ -2633,9 +2688,6 @@ namespace
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Dailies & Wizard’s Vault (same data as Browse → Live)");
-		ImGui::SameLine(0.f, 8.f);
-		DrawMoreMenu();
-		DrawStatusChip();
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(false, false);
 		PrepareBrowsePopup(sBrowseAnchor, browseLay);
@@ -2766,6 +2818,9 @@ void UI_Render()
 	/* Always poll first — must run while the helper is closed too. */
 	HelperHotkeys_Poll();
 	WikiBrowser::Tick();
+	/* Tekkit overlays — always, even with the browser closed. */
+	CompassOverlay::Render();
+	WorldOverlay::Render();
 	/* URL-index warm: heavier when closed; light drip while open so Browse stays snappy. */
 	if (!G::ShowWiki)
 		Sites::TickWarmUrlKeys(96);
@@ -2809,7 +2864,9 @@ void UI_Render()
 		const bool lookupHover = LookupPad::Render();
 		const bool walletHover = WalletPad::Render();
 		const bool vaultHover = VaultPad::Render();
-		if (notesHover || tpHover || lookupHover || walletHover || vaultHover)
+		const bool eventsHover = EventsPad::Render();
+		const bool tekkitHover = TekkitGuidesPad::Render();
+		if (notesHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || tekkitHover)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			gBlockGameMouse = true;
@@ -2888,7 +2945,9 @@ void UI_Render()
 		const bool lookupHover = LookupPad::Render();
 		const bool walletHover = WalletPad::Render();
 		const bool vaultHover = VaultPad::Render();
-		if (notesHover || tpHover || lookupHover || walletHover || vaultHover)
+		const bool eventsHover = EventsPad::Render();
+		const bool tekkitHover = TekkitGuidesPad::Render();
+		if (notesHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || tekkitHover)
 		{
 			gBlockGameMouse = true;
 			gBlockGameKeyboard = true;
@@ -3242,7 +3301,9 @@ void UI_Render()
 	const bool lookupHover = LookupPad::Render();
 	const bool walletHover = WalletPad::Render();
 	const bool vaultHover = VaultPad::Render();
-	if (notesHover || tpHover || lookupHover || walletHover || vaultHover)
+	const bool eventsHover = EventsPad::Render();
+	const bool tekkitHover = TekkitGuidesPad::Render();
+	if (notesHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || tekkitHover)
 	{
 		/* Pointer on a pad — block GW2 only; do not force WantCapture* so
 		   Nexus / other ImGui addons keep working when the cursor leaves. */
@@ -3303,6 +3364,27 @@ void UI_Options()
 		Settings::SetDirty();
 	}
 	ImGui::TextColored(kMuted, "Season + live Vault objectives. Same API as Browse → Live.");
+	if (ImGui::Checkbox("Show World Events###gw2igh_showevents", &G::ShowEvents))
+	{
+		if (G::ShowEvents)
+			EventsPad::OpenAndRefresh();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted, "Full UTC catalog (bosses + metas). Track list + claim marks (progression).");
+	if (ImGui::Checkbox("Show Tekkit's Guides###gw2igh_showtekkit", &G::ShowTekkitGuides))
+	{
+		if (G::ShowTekkitGuides)
+			TekkitGuidesPad::Open();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted,
+		"Tekkit pack categories (persisted). Compass overlay uses read-only MumbleLink.");
+	if (ImGui::Checkbox("Enable Tekkit trail system###gw2igh_tekkitmaster", &G::ShowTekkitTrails))
+		Settings::SetDirty();
+	if (ImGui::Checkbox("Draw over in-game compass###gw2igh_compass", &G::ShowCompassOverlay))
+		Settings::SetDirty();
+	if (ImGui::Checkbox("In-world GPS trails###gw2igh_worldgps", &G::ShowWorldTrails))
+		Settings::SetDirty();
 
 	size_t count = 0;
 	Sites::All(&count);
@@ -3327,7 +3409,7 @@ void UI_Options()
 	ImGui::TextColored(kMuted,
 		"Read-only key from account.arena.net. Scopes: account + progression (Vault); "
 		"wallet (Wallet pad); inventories + unlocks + characters (mats / Legendaries); "
-		"tradingpost (TP delivery box). "
+		"tradingpost (TP delivery box); progression (Vault + event claim marks). "
 		"Stored only in this addon’s settings.ini — never shared or sent in QR.");
 	ImGui::SetNextItemWidth(-1.f);
 	if (ImGui::InputTextWithHint("###gw2igh_apikey", "Paste API key here…", G::Gw2ApiKey, sizeof(G::Gw2ApiKey),

@@ -9,6 +9,9 @@
 #include "LookupPad.h"
 #include "NotesPad.h"
 #include "TpWatchPad.h"
+#include "EventsPad.h"
+#include "TekkitGuidesPad.h"
+#include "TekkitTrails.h"
 #include "VaultPad.h"
 #include "WalletPad.h"
 #include "Settings.h"
@@ -19,8 +22,10 @@
 namespace G
 {
 	AddonDefinition_t AddonDef{};
-	AddonAPI_t*       API  = nullptr;
-	HMODULE           Self = nullptr;
+	AddonAPI_t*       API       = nullptr;
+	NexusLinkData_t*  NexusLink = nullptr;
+	MumbleLinkedMem*  Mumble    = nullptr;
+	HMODULE           Self      = nullptr;
 
 	bool  ShowWiki     = false;
 	bool  ShowOptions  = true;
@@ -29,6 +34,15 @@ namespace G
 	bool  ShowLookup   = false;
 	bool  ShowWallet   = false;
 	bool  ShowVault    = false;
+	bool  ShowEvents   = false;
+	bool  ShowTekkitGuides = false;
+	bool  ShowTekkitTrails = true;
+	bool  ShowCompassOverlay = true;
+	bool  ShowWorldTrails = true;
+	bool  HideWhenMapOpen = true;
+	bool  HideOutOfGameplay = true;
+	float WorldTrailMaxDist = 120.f;
+	float WorldTrailWidth = 1.f;
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
 	float WindowWidth  = 1100.f;
@@ -44,6 +58,8 @@ namespace G
 	char  Gw2ApiKey[128] = "";
 	char  TpWatchIds[1024] = "";
 	char  TpWatchAlerts[2048] = "";
+	char  EventTrackIds[4096] = "";
+	char  TekkitEnabled[8192] = "";
 }
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
@@ -617,14 +633,24 @@ static void AddonLoad(AddonAPI_t* api)
 		reinterpret_cast<void* (*)(size_t, void*)>(api->ImguiMalloc),
 		reinterpret_cast<void (*)(void*, void*)>(api->ImguiFree));
 
+	G::NexusLink = static_cast<NexusLinkData_t*>(api->DataLink_Get(DL_NEXUS_LINK));
+	G::Mumble = static_cast<MumbleLinkedMem*>(api->DataLink_Get(DL_MUMBLE_LINK));
+
 	Settings::Load();
 	NotesPad::Load();
+	TekkitTrails::Init();
+	/* Restore category toggles after Init (Init no longer wipes them, but first
+	   load applies settings here so order stays Load → Init → apply). */
+	if (G::TekkitEnabled[0])
+		TekkitTrails::ParseEnabledPaths(G::TekkitEnabled);
 	G::ShowWiki = false;
 	G::ShowNotes = false;
 	G::ShowTpWatch = false;
 	G::ShowLookup = false;
 	G::ShowWallet = false;
 	G::ShowVault = false;
+	G::ShowEvents = false;
+	G::ShowTekkitGuides = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
 	WikiBrowser::Init();
@@ -639,7 +665,7 @@ static void AddonLoad(AddonAPI_t* api)
 	HelperQuickAccess::Init();
 
 	api->Log(LOGL_INFO, ADDON_NAME,
-		"Loaded — Ctrl+Shift+H/K toggle (item lookup removed).");
+		"Loaded — Ctrl+Shift+H/K toggle; Tekkit guides via MumbleLink.");
 }
 
 static void AddonUnload()
@@ -656,12 +682,15 @@ static void AddonUnload()
 
 	HelperQuickAccess::Shutdown();
 	WikiBrowser::Shutdown();
+	TekkitTrails::Shutdown();
 
 	NotesPad::Save(true);
 	Settings::SetDirty();
 	Settings::Save(true);
 
 	G::API = nullptr;
+	G::NexusLink = nullptr;
+	G::Mumble = nullptr;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)

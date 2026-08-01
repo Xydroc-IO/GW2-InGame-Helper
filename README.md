@@ -34,6 +34,8 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | Item Lookup (toolbar **Item**) | ImGui |
 | Wallet & Stash (toolbar **Wallet**) | ImGui |
 | Vault (toolbar **Vault**) | ImGui |
+| World Events (toolbar **Events**) | ImGui |
+| Tekkit's Guides (toolbar **Tekkit**) | ImGui + MumbleLink |
 | Legendaries & Characters (built-in Live) | Live |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
@@ -447,7 +449,6 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 
 - Read or write Guild Wars 2 process memory
 - Use MinHook / Detours / IAT hooks or patch game code
-- Use Nexus `MinHook_*`, `DataLink_*`, or MumbleLink
 - Automate combat, inventory, trading, or economy
 - Bot, macro unattended play, or spoof packets
 - Modify `Gw2-64.exe` or ArenaNet game DLLs
@@ -455,11 +456,13 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 ### Does
 
 - Use official Nexus APIs (ImGui, render callbacks, keybinds, WndProc, paths, logging, D3D11 texture)
+- Use **read-only MumbleLink** (via Nexus DataLink) for Tekkit compass / world trail display overlays
 - Open public websites in a separate helper process
 - Load the game’s CEF runtime **read-only** into that helper
 - Share pixels/input via local shared-memory IPC
 - Block keyboard from the game while the page has focus **or** while typing in ImGui (Browse / Search / Find)
 - Block mouse from the game while the pointer is over the overlay
+- Display Tekkit’s All-In-One marker pack (© Tekkit's Workshop, used with permission)
 
 ## How it works
 

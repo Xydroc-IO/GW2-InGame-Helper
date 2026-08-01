@@ -40,6 +40,12 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/LookupPad.cpp
   src/WalletPad.cpp
   src/VaultPad.cpp
+  src/EventsPad.cpp
+  src/EventsData.cpp
+  src/TekkitGuidesPad.cpp
+  src/TekkitTrails.cpp
+  src/CompassOverlay.cpp
+  src/WorldOverlay.cpp
   src/HelperQuickAccess.cpp
   src/WikiBrowser.cpp
   src/CefRuntime.cpp
@@ -50,6 +56,10 @@ add_library(GW2-InGame-Helper-Beta SHARED
   deps/imgui/imgui_draw.cpp
   deps/imgui/imgui_tables.cpp
   deps/imgui/imgui_widgets.cpp
+  deps/miniz/miniz.c
+  deps/miniz/miniz_tdef.c
+  deps/miniz/miniz_tinfl.c
+  deps/miniz/miniz_zip.c
 )
 target_include_directories(GW2-InGame-Helper-Beta PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src

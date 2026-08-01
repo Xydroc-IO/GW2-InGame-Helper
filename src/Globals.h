@@ -1,14 +1,67 @@
 #pragma once
 
+#include <cstdint>
+
 #include "nexus/Nexus.h"
 
 #define ADDON_NAME "GW2-InGame-Helper"
 #define ADDON_SIG  0x48454C50u /* 'HELP' */
 
+struct MumbleContext
+{
+	unsigned char serverAddress[28];
+	uint32_t mapId;
+	uint32_t mapType;
+	uint32_t shardId;
+	uint32_t instance;
+	uint32_t buildId;
+	uint32_t uiState;
+	uint16_t compassWidth;
+	uint16_t compassHeight;
+	float    compassRotation;
+	float    playerX;
+	float    playerY;
+	float    mapCenterX;
+	float    mapCenterY;
+	float    mapScale;
+	uint32_t processId;
+	uint8_t  mountIndex;
+};
+
+struct MumbleLinkedMem
+{
+	uint32_t uiVersion;
+	uint32_t uiTick;
+	float    fAvatarPosition[3];
+	float    fAvatarFront[3];
+	float    fAvatarTop[3];
+	wchar_t  name[256];
+	float    fCameraPosition[3];
+	float    fCameraFront[3];
+	float    fCameraTop[3];
+	wchar_t  identity[256];
+	uint32_t context_len;
+	unsigned char context[256];
+	wchar_t  description[2048];
+};
+
+enum class UiStateBits : uint32_t
+{
+	MapOpen            = 1u << 0,
+	CompassTopRight    = 1u << 1,
+	CompassRotation    = 1u << 2,
+	GameFocus          = 1u << 3,
+	Competitive        = 1u << 4,
+	TextboxFocus       = 1u << 5,
+	InCombat           = 1u << 6,
+};
+
 namespace G
 {
 	extern AddonDefinition_t AddonDef;
 	extern AddonAPI_t*       API;
+	extern NexusLinkData_t*  NexusLink;
+	extern MumbleLinkedMem*  Mumble;
 	extern HMODULE           Self;
 
 	extern bool  ShowWiki; /* overlay window visible (name kept for settings compat) */
@@ -18,6 +71,15 @@ namespace G
 	extern bool  ShowLookup; /* ImGui item lookup (chat code / ID / name) — free-floating */
 	extern bool  ShowWallet; /* ImGui wallet + mats snapshot — free-floating */
 	extern bool  ShowVault; /* ImGui Dailies & Vault — free-floating */
+	extern bool  ShowEvents; /* ImGui world-boss timers + track list — free-floating */
+	extern bool  ShowTekkitGuides; /* ImGui Tekkit category / credit panel */
+	extern bool  ShowTekkitTrails; /* master: load packs + draw overlays */
+	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
+	extern bool  ShowWorldTrails; /* in-world GPS breadcrumbs */
+	extern bool  HideWhenMapOpen; /* hide compass/world overlays while map open */
+	extern bool  HideOutOfGameplay;
+	extern float WorldTrailMaxDist; /* meters from player */
+	extern float WorldTrailWidth;
 	extern float Opacity;
 	extern float FontScale;
 	extern float WindowWidth;
@@ -33,4 +95,6 @@ namespace G
 	extern char  Gw2ApiKey[128]; /* optional account API key — Live panels; local only */
 	extern char  TpWatchIds[1024]; /* comma-separated item ids — user TP watchlist */
 	extern char  TpWatchAlerts[2048]; /* id:copperThresh,… — sell ≤ alert; 0/absent = off */
+	extern char  EventTrackIds[4096]; /* comma-separated event ids — user track list */
+	extern char  TekkitEnabled[8192]; /* '|' separated Tekkit category paths — persisted */
 }

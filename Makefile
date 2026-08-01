@@ -38,6 +38,12 @@ DLL_SRC = \
 	src/LookupPad.cpp \
 	src/WalletPad.cpp \
 	src/VaultPad.cpp \
+	src/EventsPad.cpp \
+	src/EventsData.cpp \
+	src/TekkitGuidesPad.cpp \
+	src/TekkitTrails.cpp \
+	src/CompassOverlay.cpp \
+	src/WorldOverlay.cpp \
 	src/HelperQuickAccess.cpp \
 	src/WikiBrowser.cpp \
 	src/CefRuntime.cpp \
@@ -116,8 +122,16 @@ build/%.o: %.c
 	x86_64-w64-mingw32-gcc -std=c11 -O2 -Wall -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz -c -o $@ $<
 
 install: $(DLL_OUT)
-	@mkdir -p "$(INSTALL_DIR)"
+	@mkdir -p "$(INSTALL_DIR)" "$(INSTALL_DIR)/pathing"
 	/bin/cp -f "$(DLL_OUT)" "$(INSTALL_DLL)"
+	/bin/cp -f pathing/README.md "$(INSTALL_DIR)/pathing/README.md"
+	@if [ ! -f "$(INSTALL_DIR)/pathing/Tekkit's All-In-One.taco" ]; then \
+		if [ -f "pathing/Tekkit's All-In-One.taco" ]; then \
+			/bin/cp -f "pathing/Tekkit's All-In-One.taco" "$(INSTALL_DIR)/pathing/"; \
+		elif [ -f "../gw2-minimap-resizer/pathing/Tekkit's All-In-One.taco" ]; then \
+			/bin/cp -f "../gw2-minimap-resizer/pathing/Tekkit's All-In-One.taco" "$(INSTALL_DIR)/pathing/"; \
+		fi; \
+	fi
 	/bin/rm -f "$(INSTALL_DIR)/GW2-InGame-Helper.dll" \
 		"$(INSTALL_DIR)/GW2HelperBrowser.exe" \
 		"$(GW2_ADDONS)/GW2HelperBrowser.exe" \
@@ -129,7 +143,9 @@ install: $(DLL_OUT)
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
+	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"
 	@ls -lh "$(INSTALL_DLL)"
+	@ls -lh "$(INSTALL_DIR)/pathing/" 2>/dev/null || true
 
 install-reset: $(DLL_OUT)
 	@$(MAKE) install

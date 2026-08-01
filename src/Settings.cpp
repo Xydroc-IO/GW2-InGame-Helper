@@ -4,6 +4,7 @@
 #include "BrowserTabs.h"
 #include "Globals.h"
 #include "Sites.h"
+#include "TekkitTrails.h"
 #include "UI.h"
 
 #include <cstdio>
@@ -77,6 +78,17 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowLookup") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowWallet") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowVault") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowEvents") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowTekkitTrails") == 0) G::ShowTekkitTrails = AsBool(val);
+		else if (std::strcmp(key, "ShowCompassOverlay") == 0) G::ShowCompassOverlay = AsBool(val);
+		else if (std::strcmp(key, "ShowWorldTrails") == 0) G::ShowWorldTrails = AsBool(val);
+		else if (std::strcmp(key, "HideWhenMapOpen") == 0) G::HideWhenMapOpen = AsBool(val);
+		else if (std::strcmp(key, "HideOutOfGameplay") == 0) G::HideOutOfGameplay = AsBool(val);
+		else if (std::strcmp(key, "WorldTrailMaxDist") == 0)
+			G::WorldTrailMaxDist = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WorldTrailWidth") == 0)
+			G::WorldTrailWidth = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "Opacity") == 0) G::Opacity = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "FontScale") == 0) G::FontScale = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WindowWidth") == 0)
@@ -113,6 +125,10 @@ void Settings::Load()
 			std::snprintf(G::TpWatchIds, sizeof(G::TpWatchIds), "%s", val);
 		else if (std::strcmp(key, "TpWatchAlerts") == 0)
 			std::snprintf(G::TpWatchAlerts, sizeof(G::TpWatchAlerts), "%s", val);
+		else if (std::strcmp(key, "EventTrackIds") == 0)
+			std::snprintf(G::EventTrackIds, sizeof(G::EventTrackIds), "%s", val);
+		else if (std::strcmp(key, "TekkitEnabled") == 0)
+			std::snprintf(G::TekkitEnabled, sizeof(G::TekkitEnabled), "%s", val);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -142,6 +158,12 @@ void Settings::Load()
 	}
 	Sites::PruneFavorites();
 	BrowserTabs::FinalizeLoad();
+
+	if (G::WorldTrailMaxDist < 40.f) G::WorldTrailMaxDist = 40.f;
+	if (G::WorldTrailMaxDist > 200.f) G::WorldTrailMaxDist = 200.f;
+	if (G::WorldTrailWidth < 0.5f) G::WorldTrailWidth = 0.5f;
+	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
+	/* Category paths restored in AddonLoad after TekkitTrails::Init(). */
 
 	gDirty = false;
 }
@@ -177,6 +199,17 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowLookup=0\n");
 	std::fprintf(f, "ShowWallet=0\n");
 	std::fprintf(f, "ShowVault=0\n");
+	std::fprintf(f, "ShowEvents=0\n");
+	std::fprintf(f, "ShowTekkitGuides=0\n");
+	std::fprintf(f, "ShowTekkitTrails=%d\n", G::ShowTekkitTrails ? 1 : 0);
+	std::fprintf(f, "ShowCompassOverlay=%d\n", G::ShowCompassOverlay ? 1 : 0);
+	std::fprintf(f, "ShowWorldTrails=%d\n", G::ShowWorldTrails ? 1 : 0);
+	std::fprintf(f, "HideWhenMapOpen=%d\n", G::HideWhenMapOpen ? 1 : 0);
+	std::fprintf(f, "HideOutOfGameplay=%d\n", G::HideOutOfGameplay ? 1 : 0);
+	std::fprintf(f, "WorldTrailMaxDist=%.1f\n", G::WorldTrailMaxDist);
+	std::fprintf(f, "WorldTrailWidth=%.2f\n", G::WorldTrailWidth);
+	TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
+	std::fprintf(f, "TekkitEnabled=%s\n", G::TekkitEnabled);
 	std::fprintf(f, "Opacity=%.4f\n", G::Opacity);
 	std::fprintf(f, "FontScale=%.4f\n", G::FontScale);
 	std::fprintf(f, "WindowWidth=%.1f\n", G::WindowWidth);
@@ -190,6 +223,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "Gw2ApiKey=%s\n", G::Gw2ApiKey);
 	std::fprintf(f, "TpWatchIds=%s\n", G::TpWatchIds);
 	std::fprintf(f, "TpWatchAlerts=%s\n", G::TpWatchAlerts);
+	std::fprintf(f, "EventTrackIds=%s\n", G::EventTrackIds);
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);
