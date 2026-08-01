@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.8
+# GW2 In-Game Helper v2.0.2.9
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.9
+
+- **Publisher User-Agent:** CEF helper appends `GW2-InGame-Helper` to the Chrome User-Agent
+  so sites can allow/deny this client (Nginx / Cloudflare match) without guessing. Chrome
+  tokens stay intact; ads/impressions unchanged unless a publisher opts out. See
+  [`COMPLIANCE.md`](COMPLIANCE.md).
+- **Stamps:** Helper `2049` · homepage `2014`
 
 ## What’s new in 2.0.2.8
 

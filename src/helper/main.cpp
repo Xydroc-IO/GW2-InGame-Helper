@@ -2502,10 +2502,13 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 	const std::string cacheUtf8 = WideToUtf8(cache);
 	MakeCefString(&settings.cache_path, cacheUtf8.c_str());
 	MakeCefString(&settings.root_cache_path, cacheUtf8.c_str());
-	/* Match private CEF Stable 150 — do not spoof an older Chrome major. */
+	/* Match private CEF Stable 150 — do not spoof an older Chrome major.
+	   Append product token so publishers can allow/deny this client via UA
+	   (e.g. Nginx/Cloudflare match on GW2-InGame-Helper) without breaking
+	   normal Chrome capability checks. */
 	MakeCefString(&settings.user_agent,
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-		"Chrome/150.0.7871.129 Safari/537.36");
+		"Chrome/150.0.7871.129 Safari/537.36 GW2-InGame-Helper");
 
 	if (!g_initialize(&mainArgs, &settings, &gApp, nullptr))
 	{

@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.0.2.8` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.2.9` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
@@ -134,6 +134,13 @@ release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md)
 
 Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
+
+## What’s new in 2.0.2.9
+
+- **Publisher User-Agent:** Helper identifies as `GW2-InGame-Helper` in the Chrome
+  User-Agent so sites can allow or block this client cleanly (see
+  [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md))
+- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.8
 
@@ -466,7 +473,8 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 - Use official Nexus APIs (ImGui, render callbacks, keybinds, WndProc, paths, logging, D3D11 texture)
 - Use **read-only MumbleLink** (via Nexus DataLink) for Tekkit compass / world trail display overlays
 - Open public websites in a separate helper process
-- Load the game’s CEF runtime **read-only** into that helper
+- Identify itself in the browser User-Agent as `GW2-InGame-Helper` so publishers can allow or deny access
+- Load a private CEF 150 runtime into that helper (never writes `bin64/cef`)
 - Share pixels/input via local shared-memory IPC
 - Block keyboard from the game while the page has focus **or** while typing in ImGui (Browse / Search / Find)
 - Block mouse from the game while the pointer is over the overlay
