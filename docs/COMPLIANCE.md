@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.0.2.9** — process/IPC notes live in local `ARCHITECTURE.md` (gitignored) if you keep one; public overview is [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.0.2.8** — process/IPC notes live in local `ARCHITECTURE.md` (gitignored) if you keep one; public overview is [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 ## Allowed
 
@@ -19,18 +19,6 @@ Current policy snapshot: **v2.0.2.9** — process/IPC notes live in local `ARCHI
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
 - Site ads / consent / analytics loads in CEF (do not re-strip without review)
 - Deep links to third-party sites as Browse hyperlinks
-
-## Publisher identification (User-Agent)
-
-The CEF helper appends a product token to the standard Chrome User-Agent:
-
-```text
-… Chrome/150.0.7871.129 Safari/537.36 GW2-InGame-Helper
-```
-
-Publishers can match on `GW2-InGame-Helper` (Nginx / Cloudflare / WAF) to allow, block, or serve a
-stripped page. The Chrome tokens stay intact so normal browser capability checks still pass.
-Ads and impressions are unchanged unless a site chooses to treat this client differently.
 
 ## Forbidden
 
