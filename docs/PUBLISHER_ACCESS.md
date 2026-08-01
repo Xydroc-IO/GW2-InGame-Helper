@@ -196,14 +196,6 @@ If logs show Chrome 150 **without** the token, the player is on an older helper 
 
 ---
 
-## Contact
-
-- Project: https://github.com/Xydroc-IO/GW2-InGame-Helper  
-- Author: xydroc (see repo)  
-- If you need a different stable token, a dedicated `Sec-CH-UA` brand, or an allowlist partnership, open a GitHub issue or email via the release contact — we will keep the identifier stable once published so your rules do not rot.
-
----
-
 ## Short blurb you can paste to partners
 
 > GW2 In-Game Helper is a Nexus overlay browser for Guild Wars 2 (embedded Chromium).
