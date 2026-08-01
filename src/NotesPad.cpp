@@ -20,6 +20,9 @@ namespace
 	constexpr int kTitleLen = 64;
 	constexpr int kBodyLen = 512;
 	constexpr float kNotesPadW = 420.f;
+	constexpr float kNotesPadH = 560.f;
+	/* Title + kind + multiline body + Delete/Copy — keep visible without resize. */
+	constexpr float kEditorReserve = 230.f;
 
 	bool gRequestDock = false;
 
@@ -253,6 +256,8 @@ void NotesPad::Load()
 	{
 		SeedDefaults();
 		gDirty = true;
+		if (!gSnips.empty())
+			gSelected = 0;
 		return;
 	}
 
@@ -316,6 +321,8 @@ void NotesPad::Load()
 
 	if (gSnips.empty())
 		SeedDefaults();
+	if (!gSnips.empty())
+		gSelected = 0;
 	gDirty = false;
 }
 
@@ -368,7 +375,10 @@ bool NotesPad::Render()
 	if (!gLoaded)
 		Load();
 
-	ImGui::SetNextWindowSize(ImVec2(kNotesPadW, 480.f), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 460.f), ImVec2(720.f, 1200.f));
+	/* Appearing (every open this session) — old imgui.ini sizes were too short
+	   and hid the body text box until the user resized. */
+	ImGui::SetNextWindowSize(ImVec2(kNotesPadW, kNotesPadH), ImGuiCond_Appearing);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	if (gRequestDock)
 	{
@@ -422,7 +432,11 @@ bool NotesPad::Render()
 		CopyText(gSnips[static_cast<size_t>(gSelected)].body);
 	}
 
-	ImGui::BeginChild("###gw2igh_notes_list", ImVec2(0.f, 140.f), true);
+	/* List shrinks first if the window is tight — editor stays on-screen. */
+	float listH = ImGui::GetContentRegionAvail().y - kEditorReserve;
+	if (listH < 72.f)
+		listH = 72.f;
+	ImGui::BeginChild("###gw2igh_notes_list", ImVec2(0.f, listH), true);
 	for (int i = 0; i < static_cast<int>(gSnips.size()); ++i)
 	{
 		Snippet& s = gSnips[static_cast<size_t>(i)];
@@ -444,15 +458,17 @@ bool NotesPad::Render()
 		Snippet& s = gSnips[static_cast<size_t>(gSelected)];
 		ImGui::Separator();
 		ImGui::SetNextItemWidth(-1.f);
-		if (ImGui::InputText("###gw2igh_notes_title", s.title, sizeof(s.title)))
+		if (ImGui::InputTextWithHint("###gw2igh_notes_title", "Title", s.title, sizeof(s.title)))
 			MarkDirty();
 		const char* kinds[] = { "Waypoint", "Chat", "Build", "LFG", "Note" };
 		ImGui::SetNextItemWidth(160.f);
 		if (ImGui::Combo("###gw2igh_notes_kind", &s.kind, kinds, Kind_Count))
 			MarkDirty();
 		ImGui::SetNextItemWidth(-1.f);
+		const float availBody = ImGui::GetContentRegionAvail().y - 36.f;
+		const float bodyH = (availBody > 100.f) ? availBody : 100.f;
 		if (ImGui::InputTextMultiline("###gw2igh_notes_body", s.body, sizeof(s.body),
-				ImVec2(-1.f, 120.f)))
+				ImVec2(-1.f, bodyH)))
 			MarkDirty();
 		if (ImGui::Button("Delete###gw2igh_notes_del"))
 		{
@@ -464,6 +480,12 @@ bool NotesPad::Render()
 		ImGui::SameLine();
 		if (ImGui::Button("Copy body###gw2igh_notes_copy2"))
 			CopyText(s.body);
+	}
+	else
+	{
+		ImGui::Spacing();
+		ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+			"Select a snippet or Add one to edit the text box below the list.");
 	}
 
 	const bool hovered = ImGui::IsWindowHovered(
