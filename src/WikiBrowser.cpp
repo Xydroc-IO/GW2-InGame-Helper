@@ -1,10 +1,12 @@
 #include "WikiBrowser.h"
 
 #include "AddonPaths.h"
+#include "BrowserTabs.h"
 #include "CefRuntime.h"
 #include "Globals.h"
 #include "CheatSheets.h"
 #include "HomePage.h"
+#include "LivePanels.h"
 #include "RaidFood.h"
 #include "Settings.h"
 #include "Sites.h"
@@ -94,6 +96,7 @@ namespace
 	DWORD gLastPaintKickMs = 0;
 	char gPaintWaitReason[192]{};
 	uint32_t gLastOpenExtSeq = 0;
+	uint32_t gLastOpenTabSeq = 0;
 
 	/* Local status mirror for StatusCStr (avoids std::string every frame). */
 	char gStatusCache[256] = "Closed — press Ctrl+Shift+H to open";
@@ -284,6 +287,23 @@ namespace
 			L"\\mount-unlock.ver",
 			L"\\daily-weekly.html",
 			L"\\daily-weekly.ver",
+			L"\\live-dailies.html",
+			L"\\live-dailies.ver",
+			L"\\live-dailies.ok",
+			L"\\live-news.html",
+			L"\\live-news.ver",
+			L"\\live-news.ok",
+			L"\\live-fashion.html",
+			L"\\live-fashion.ver",
+			L"\\live-fashion.ok",
+			L"\\live-tp.html",
+			L"\\live-tp.ver",
+			L"\\live-tp.ok",
+			L"\\live-tp-cmd.txt",
+			L"\\live-progress.html",
+			L"\\live-progress.ver",
+			L"\\live-progress.ok",
+			L"\\live-colors.json",
 			L"\\currency-sinks.html",
 			L"\\currency-sinks.ver",
 			L"\\ascended-start.html",
@@ -440,6 +460,9 @@ namespace
 		gIpc->open_ext_seq = 0;
 		gIpc->open_ext_url[0] = 0;
 		gLastOpenExtSeq = 0;
+		gIpc->open_tab_seq = 0;
+		gIpc->open_tab_url[0] = 0;
+		gLastOpenTabSeq = 0;
 		gUrlCache[0] = 0;
 		gUrlCacheSeq = 0xFFFFFFFFu;
 		gTitleCache[0] = 0;
@@ -457,7 +480,7 @@ namespace
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2044";
+		static constexpr const char* kHelperStamp = "2045";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;
@@ -742,6 +765,34 @@ namespace
 			else
 				SetLocalStatus("Opened in system browser (Open Ext)");
 		}
+	}
+
+	/* Live character → gw2efficiency: open inside the addon as a new tab. */
+	void DrainOpenTabRequests()
+	{
+		if (!gIpc)
+			return;
+		const uint32_t seq = gIpc->open_tab_seq;
+		if (seq == gLastOpenTabSeq)
+			return;
+		gLastOpenTabSeq = seq;
+		char url[sizeof(gIpc->open_tab_url)];
+		std::snprintf(url, sizeof(url), "%s", gIpc->open_tab_url);
+		if (!url[0] ||
+			(std::strncmp(url, "http://", 7) != 0 && std::strncmp(url, "https://", 8) != 0))
+			return;
+
+		const char* siteId = "gw2efficiency";
+		if (std::strstr(url, "gw2efficiency.com") == nullptr)
+			siteId = Sites::ActiveId();
+		if (BrowserTabs::OpenNewUrl(siteId, url) < 0)
+		{
+			/* Tab bar full — fall back to current tab rather than dropping the click. */
+			WikiBrowser::Navigate(url);
+			SetLocalStatus("Tab limit reached — opened in this tab");
+		}
+		else
+			SetLocalStatus("Opened in a new tab");
 	}
 
 	/* Complete a pending QUIT across frames — never Sleep/Terminate mid-SetVisible. */
@@ -1093,6 +1144,17 @@ namespace
 			if (CheatSheets::FindByAbout(url.c_str()))
 				SetLocalStatus("Failed to write cheat sheet HTML");
 		}
+		{
+			const std::string fileUrl = LivePanels::ResolveAboutUrl(AddonDir(), url);
+			if (!fileUrl.empty())
+				return fileUrl;
+			if (LivePanels::IsLiveAbout(url.c_str()))
+			{
+				SetLocalStatus("Failed to write Live panel HTML");
+				/* Never hand CEF a raw about:live-* — Chromium shows a white “blocked” page. */
+				return {};
+			}
+		}
 		return url;
 	}
 
@@ -1287,11 +1349,14 @@ void WikiBrowser::Tick()
 	TickQuitPending();
 	TickLaunchPending();
 	DrainOpenExtRequests();
+	DrainOpenTabRequests();
+	LivePanels::Tick();
 }
 
 void WikiBrowser::Shutdown()
 {
 	gWantVisible.store(false);
+	LivePanels::Shutdown();
 	/* Stop new launches, then join the worker BEFORE freeing shared state.
 	   Unloading the DLL under a live worker hung the game on exit. */
 	gShuttingDown.store(true);

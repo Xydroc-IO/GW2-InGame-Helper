@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.0.2.5` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.2.6` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
@@ -23,6 +23,11 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [Google](https://www.google.com/) | Search |
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
+| Dailies & Vault (built-in Live) | Live |
+| News Digest (built-in Live) | Live |
+| Fashion Wishlist (built-in Live) | Live |
+| TP Watchlist (toolbar **TP**) | ImGui |
+| Legendaries & Characters (built-in Live) | Live |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
 | [GW2 News](https://www.guildwars2.com/en/news/) | Official |
 | [Raidcore](https://raidcore.gg/gw2) | Official |
@@ -39,6 +44,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | Upgrades (Superior Runes, Relics, Superior Sigils) | Wiki |
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
 | [Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
+| [Special Events](https://wiki.guildwars2.com/wiki/Special_Event) · [World Boss Rush](https://wiki.guildwars2.com/wiki/World_Boss_Rush) · [Fractal Rush](https://wiki.guildwars2.com/wiki/Fractal_Rush) · [WvW Rush](https://wiki.guildwars2.com/wiki/World_vs._World_Rush) · [Dungeon Rush](https://wiki.guildwars2.com/wiki/Dungeon_Rush) · [PvP Rush](https://wiki.guildwars2.com/wiki/Player_vs._Player_Rush) | Wiki |
 | [SC Raid Builds](https://snowcrows.com/builds/raids) | Builds |
 | SC Raid Elementalist / Mesmer / Necromancer / Engineer / Ranger / Thief / Guardian / Revenant / Warrior | Builds |
 | [MB Raid Builds](https://metabattle.com/wiki/Raid_Builds) | Builds |
@@ -123,6 +129,16 @@ release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md)
 
 Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
+
+## What’s new in 2.0.2.6
+
+- **Live:** Browse → Live panels (dailies/Vault, news, fashion, legendaries & characters) with
+  parallel API fetches + disk caches; optional GW2 API key in Options
+- **TP / Notes:** Toolbar **TP** and **Notes** ImGui pads dock beside the helper (stack below
+  each other); start closed each session; movable after open
+- **Snow Crows:** Profile/Inbox stay clickable above ads; gw2armory trait/skill hover cards
+  no longer bury under sticky chrome
+- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.5
 

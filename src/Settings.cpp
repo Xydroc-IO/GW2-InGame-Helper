@@ -71,6 +71,9 @@ void Settings::Load()
 
 		if (std::strcmp(key, "ShowWiki") == 0) G::ShowWiki = AsBool(val);
 		else if (std::strcmp(key, "ShowOptions") == 0) G::ShowOptions = AsBool(val);
+		/* ShowNotes / ShowTpWatch are session-only — never restore open pads. */
+		else if (std::strcmp(key, "ShowNotes") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowTpWatch") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "Opacity") == 0) G::Opacity = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "FontScale") == 0) G::FontScale = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WindowWidth") == 0)
@@ -101,6 +104,10 @@ void Settings::Load()
 			std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "%s", val);
 		else if (std::strcmp(key, "KeepHelperWarm") == 0)
 			G::KeepHelperWarm = AsBool(val);
+		else if (std::strcmp(key, "Gw2ApiKey") == 0)
+			std::snprintf(G::Gw2ApiKey, sizeof(G::Gw2ApiKey), "%s", val);
+		else if (std::strcmp(key, "TpWatchIds") == 0)
+			std::snprintf(G::TpWatchIds, sizeof(G::TpWatchIds), "%s", val);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -160,6 +167,8 @@ void Settings::Save(bool force)
 
 	std::fprintf(f, "ShowWiki=%d\n", G::ShowWiki ? 1 : 0);
 	std::fprintf(f, "ShowOptions=%d\n", G::ShowOptions ? 1 : 0);
+	std::fprintf(f, "ShowNotes=0\n");
+	std::fprintf(f, "ShowTpWatch=0\n");
 	std::fprintf(f, "Opacity=%.4f\n", G::Opacity);
 	std::fprintf(f, "FontScale=%.4f\n", G::FontScale);
 	std::fprintf(f, "WindowWidth=%.1f\n", G::WindowWidth);
@@ -170,6 +179,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ActiveSiteId=%s\n", G::ActiveSiteId);
 	std::fprintf(f, "DefaultSiteId=%s\n", G::DefaultSiteId);
 	std::fprintf(f, "KeepHelperWarm=%d\n", G::KeepHelperWarm ? 1 : 0);
+	std::fprintf(f, "Gw2ApiKey=%s\n", G::Gw2ApiKey);
+	std::fprintf(f, "TpWatchIds=%s\n", G::TpWatchIds);
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);

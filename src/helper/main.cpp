@@ -319,12 +319,69 @@ namespace
 		return std::string("file:///") + utf8;
 	}
 
+	/* Queue TP watchlist mutate for the DLL (LivePanels::Tick applies + regenerates). */
+	void QueueTpWatchCmd(const char* op, int id)
+	{
+		if (!op || id <= 0)
+			return;
+		const std::wstring dir = HelperDir();
+		if (dir.empty())
+			return;
+		const std::wstring path = dir + L"\\live-tp-cmd.txt";
+		char line[64];
+		std::snprintf(line, sizeof(line), "%s %d\n", op, id);
+		HANDLE h = CreateFileW(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr,
+			OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (h == INVALID_HANDLE_VALUE)
+			return;
+		DWORD written = 0;
+		WriteFile(h, line, static_cast<DWORD>(std::strlen(line)), &written, nullptr);
+		CloseHandle(h);
+		/* Drop ready stamp so DLL rebuilds the list after applying the cmd. */
+		DeleteFileW((dir + L"\\live-tp.ok").c_str());
+		DeleteFileW((dir + L"\\live-tp.ver").c_str());
+	}
+
+	int ParseQueryInt(const std::string& query, const char* key)
+	{
+		std::string pat = key;
+		pat += '=';
+		size_t p = query.find(pat);
+		if (p == std::string::npos)
+			return 0;
+		p += pat.size();
+		int id = 0;
+		while (p < query.size() && query[p] >= '0' && query[p] <= '9')
+		{
+			id = id * 10 + (query[p] - '0');
+			++p;
+		}
+		return id;
+	}
+
 	/* Addon normally rewrites these before IPC; keep a local fallback so
 	   about:helper-home / about:raid-food / cheat sheets never hit CEF blank. */
 	std::string ResolveBuiltinUrl(const char* url)
 	{
 		if (!url || !url[0])
 			return {};
+		/* In-page TP watchlist add/remove — DLL picks up live-tp-cmd.txt next frame. */
+		if (std::strncmp(url, "about:live-tp-add-", 18) == 0)
+		{
+			int id = 0;
+			for (const char* p = url + 18; *p >= '0' && *p <= '9'; ++p)
+				id = id * 10 + (*p - '0');
+			QueueTpWatchCmd("add", id);
+			url = "about:live-tp";
+		}
+		else if (std::strncmp(url, "about:live-tp-remove-", 21) == 0)
+		{
+			int id = 0;
+			for (const char* p = url + 21; *p >= '0' && *p <= '9'; ++p)
+				id = id * 10 + (*p - '0');
+			QueueTpWatchCmd("remove", id);
+			url = "about:live-tp";
+		}
 		const wchar_t* fileNameW = nullptr;
 		if (std::strcmp(url, "about:helper-home") == 0)
 			fileNameW = L"helper-home.html";
@@ -364,6 +421,16 @@ namespace
 			fileNameW = L"mount-unlock.html";
 		else if (std::strcmp(url, "about:daily-weekly") == 0)
 			fileNameW = L"daily-weekly.html";
+		else if (std::strcmp(url, "about:live-dailies") == 0)
+			fileNameW = L"live-dailies.html";
+		else if (std::strcmp(url, "about:live-news") == 0)
+			fileNameW = L"live-news.html";
+		else if (std::strcmp(url, "about:live-fashion") == 0)
+			fileNameW = L"live-fashion.html";
+		else if (std::strcmp(url, "about:live-tp") == 0)
+			fileNameW = L"live-tp.html";
+		else if (std::strcmp(url, "about:live-progress") == 0)
+			fileNameW = L"live-progress.html";
 		else if (std::strcmp(url, "about:currency-sinks") == 0)
 			fileNameW = L"currency-sinks.html";
 		else if (std::strcmp(url, "about:ascended-start") == 0)
@@ -384,6 +451,42 @@ namespace
 		if (GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
 			return url;
 		return WidePathToFileUrl(path);
+	}
+
+	/* Handle TP add/remove from about: or file://?gw2igh-tp-add=N before CEF sees them. */
+	bool ConsumeTpActionUrl(const std::string& url, std::string* outNavigate)
+	{
+		if (!outNavigate)
+			return false;
+		outNavigate->clear();
+
+		if (url.rfind("about:live-tp-add-", 0) == 0 ||
+			url.rfind("about:live-tp-remove-", 0) == 0)
+		{
+			*outNavigate = ResolveBuiltinUrl(url.c_str());
+			return !outNavigate->empty();
+		}
+
+		/* file:///.../live-tp.html?gw2igh-tp-add=19721 */
+		if (url.find("live-tp.html") == std::string::npos)
+			return false;
+		size_t q = url.find('?');
+		if (q == std::string::npos)
+			return false;
+		std::string query = url.substr(q + 1);
+		const size_t hash = query.find('#');
+		if (hash != std::string::npos)
+			query.resize(hash);
+		const int addId = ParseQueryInt(query, "gw2igh-tp-add");
+		const int remId = ParseQueryInt(query, "gw2igh-tp-remove");
+		if (addId <= 0 && remId <= 0)
+			return false;
+		if (addId > 0)
+			QueueTpWatchCmd("add", addId);
+		if (remId > 0)
+			QueueTpWatchCmd("remove", remId);
+		*outNavigate = url.substr(0, q);
+		return true;
 	}
 
 	void NavigateSlot(int slot, const char* url)
@@ -831,6 +934,83 @@ namespace
 		ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 
+	/* Ask the DLL to open a URL in a new helper tab (keeps the current Live page). */
+	void QueueOpenInAddonTab(const std::string& url)
+	{
+		if (url.rfind("https://", 0) != 0 && url.rfind("http://", 0) != 0)
+			return;
+		if (!gIpc)
+			return;
+		if (url.size() >= sizeof(gIpc->open_tab_url))
+		{
+			SetStatus("Link too long for a new tab");
+			return;
+		}
+		NavLog("  -> ADDON-TAB %s", url.c_str());
+		std::snprintf(gIpc->open_tab_url, sizeof(gIpc->open_tab_url), "%s", url.c_str());
+		MemoryBarrier();
+		++gIpc->open_tab_seq;
+		SetStatus("Opening in a new tab…");
+	}
+
+	std::string UrlDecodeQueryValue(const std::string& in)
+	{
+		std::string out;
+		out.reserve(in.size());
+		for (size_t i = 0; i < in.size(); ++i)
+		{
+			if (in[i] == '+' )
+			{
+				out.push_back(' ');
+				continue;
+			}
+			if (in[i] == '%' && i + 2 < in.size())
+			{
+				auto hex = [](char c) -> int {
+					if (c >= '0' && c <= '9') return c - '0';
+					if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+					if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+					return -1;
+				};
+				const int hi = hex(in[i + 1]);
+				const int lo = hex(in[i + 2]);
+				if (hi >= 0 && lo >= 0)
+				{
+					out.push_back(static_cast<char>((hi << 4) | lo));
+					i += 2;
+					continue;
+				}
+			}
+			out.push_back(in[i]);
+		}
+		return out;
+	}
+
+	/* Character → gw2efficiency: file://…?gw2igh-newtab=https%3A%2F%2F…
+	   (about: is blocked from file:// pages — same lesson as TP watchlist). */
+	bool ConsumeHelperNewTabUrl(const std::string& url)
+	{
+		static const char kAbout[] = "about:helper-newtab:";
+		if (url.rfind(kAbout, 0) == 0)
+		{
+			QueueOpenInAddonTab(url.substr(sizeof(kAbout) - 1));
+			return true;
+		}
+
+		const size_t mark = url.find("gw2igh-newtab=");
+		if (mark == std::string::npos)
+			return false;
+		std::string enc = url.substr(mark + 14);
+		const size_t cut = enc.find_first_of("&#");
+		if (cut != std::string::npos)
+			enc.resize(cut);
+		const std::string target = UrlDecodeQueryValue(enc);
+		if (target.rfind("https://", 0) != 0 && target.rfind("http://", 0) != 0)
+			return false;
+		QueueOpenInAddonTab(target);
+		return true;
+	}
+
 	/* Media / CDN / account URLs must never become the main-frame document —
 	   promoting them after an embed Play looks like the guide refreshed. */
 	bool IsMediaOrCdnUrl(const std::string& url)
@@ -1172,6 +1352,31 @@ namespace
 		if (!isMain)
 			return 0; /* allow iframe / media subloads */
 
+		/* TP watchlist add/remove + any about: builtin — never let Chromium load
+		   raw about:live-* (blocked white page). Rewrite to file:// first. */
+		{
+			if (ConsumeHelperNewTabUrl(url))
+				return 1;
+			std::string navTo;
+			if (ConsumeTpActionUrl(url, &navTo))
+			{
+				if (!navTo.empty())
+					NavigateTo(navTo.c_str());
+				return 1;
+			}
+			if (url.rfind("about:", 0) == 0 && url != "about:blank")
+			{
+				const std::string resolved = ResolveBuiltinUrl(url.c_str());
+				if (!resolved.empty() && resolved != url)
+				{
+					NavigateTo(resolved.c_str());
+					return 1;
+				}
+				/* Never let Chromium show its white “blocked about:” page. */
+				return 1;
+			}
+		}
+
 		/* Google sign-in / consent / captcha — cannot complete in OSR. Open the
 		   real browser (login) or bounce the user out of a /sorry captcha wall.
 		   /sorry often arrives as a redirect (no user_gesture), so route it too. */
@@ -1303,7 +1508,16 @@ namespace
 			browser->go_back(browser);
 			return;
 		}
-		/* History may still hold unresolved about: builtins — map to file://. */
+		/* History / in-page leftovers — map about: and TP query actions. */
+		{
+			std::string navTo;
+			if (ConsumeTpActionUrl(u, &navTo))
+			{
+				if (!navTo.empty())
+					NavigateTo(navTo.c_str());
+				return;
+			}
+		}
 		if (u.rfind("about:", 0) == 0 && u != "about:blank")
 		{
 			const std::string resolved = ResolveBuiltinUrl(u.c_str());

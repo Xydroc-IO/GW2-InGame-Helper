@@ -472,24 +472,59 @@ function replaceTwitchEmbeds(){
     }catch(e){}
   }catch(e){}
 }
-/* Snow Crows CEF-OSR: (1) keep header above NitroPay so Profile/Inbox stay
-   clickable (2) replace native <select> popups — OSR cannot show PET_POPUP
-   reliably without locking CEF. Do NOT touch Alpine [x-show] site-wide. */
+/* Snow Crows CEF-OSR:
+   - Elevate ONLY <header> above NitroPay so Profile/Inbox stay clickable.
+     Do NOT elevate every .sticky.top-0 — that also hits Traits section sticky
+     bars and buries gw2armory trait/skill hover cards (inline zIndex ~999).
+   - Force Tippy + armory fixed tooltips above the header.
+   - Un-clip armory embeds (site uses overflow-clip which hides hover cards).
+   - Polyfill native <select> (PET_POPUP unreliable under OSR). */
 function injectSnowcrowsCompat(){
   try{
     if (!isSnowcrows) return;
-    if (document.getElementById('gw2-sc-compat')) return;
-    var st=document.createElement('style');
-    st.id='gw2-sc-compat';
+    var st=document.getElementById('gw2-sc-compat');
+    if (!st){
+      st=document.createElement('style');
+      st.id='gw2-sc-compat';
+      (document.head||document.documentElement).appendChild(st);
+    }
     st.textContent=[
-      'header, header.sticky, .sticky.top-0{z-index:2147483000!important;position:relative;}',
+      'header, header.sticky{z-index:2147483000!important;position:relative;}',
       'header .nav-containment, header nav, header [x-data]{z-index:2147483000!important;}',
+      /* Tippy (site chrome) */
+      '[data-tippy-root],.tippy-box,.tippy-content{z-index:2147483640!important;}',
+      /* gw2armory embeds — hashed gw2a--* classes, fixed tooltip shells */
+      '[class^="gw2a--"][style*="position: fixed"],',
+      '[class*=" gw2a--"][style*="position: fixed"],',
+      '[class^="gw2a--"][style*="position:fixed"],',
+      '[class*=" gw2a--"][style*="position:fixed"]{z-index:2147483640!important;}',
+      '[data-armory-embed],.overflow-clip[data-armory-embed]{overflow:visible!important;}',
       '#nitro-sidebar-1,#nitro-sidebar-2,#nitro-sidebar-3,#nitro-sidebar-4,',
       '#nitro-footer-ad1,[id^="nitro-"],[id*="nitro-sidebar"],[id*="nitro-footer"],',
       'iframe[src*="nitropay"],iframe[src*="doubleclick"],iframe[src*="googlesyndication"],',
-      'iframe[id*="google_ads"],iframe[src*="amazon-adsystem"]{z-index:1!important;}'
+      'iframe[id*="google_ads"],iframe[src*="amazon-adsystem"],',
+      '[id^="sc-np-"],[id*="sc-np-"]{z-index:1!important;pointer-events:none!important;}'
     ].join('');
-    (document.head||document.documentElement).appendChild(st);
+    elevateArmoryTooltips();
+    if (document.documentElement.getAttribute('data-gw2-armory-z')!=='1'){
+      document.documentElement.setAttribute('data-gw2-armory-z','1');
+      try{
+        var mo=new MutationObserver(function(){ scheduleWork(elevateArmoryTooltips); });
+        mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+      }catch(e2){}
+    }
+  }catch(e){}
+}
+function elevateArmoryTooltips(){
+  try{
+    var nodes=document.querySelectorAll('[class*="gw2a--"]');
+    for (var i=0;i<nodes.length;i++){
+      var el=nodes[i];
+      if (!el || !el.style) continue;
+      if (el.style.position==='fixed' || (el.getAttribute('style')||'').indexOf('fixed')>=0){
+        el.style.setProperty('z-index','2147483640','important');
+      }
+    }
   }catch(e){}
 }
 function closeGw2SelectMenu(){

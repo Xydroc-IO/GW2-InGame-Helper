@@ -150,5 +150,9 @@ struct WikiIpcState
 	   Ad click trackers (doubleclick /pcs/click?xai=…) routinely exceed 2 KB. */
 	uint32_t open_ext_seq;
 	char     open_ext_url[8192];
+
+	/* Helper → DLL: open URL in a new in-addon browser tab (not system browser). */
+	uint32_t open_tab_seq;
+	char     open_tab_url[2048];
 };
 #pragma pack(pop)

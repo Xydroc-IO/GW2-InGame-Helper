@@ -33,6 +33,10 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/HomePage.cpp
   src/RaidFood.cpp
   src/CheatSheets.cpp
+  src/Gw2Http.cpp
+  src/LivePanels.cpp
+  src/NotesPad.cpp
+  src/TpWatchPad.cpp
   src/HelperQuickAccess.cpp
   src/WikiBrowser.cpp
   src/CefRuntime.cpp

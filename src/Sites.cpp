@@ -73,6 +73,44 @@ namespace
 			nullptr,
 		},
 
+		/* —— Live (API / digest panels — DLL-generated about: pages) —— */
+		{
+			"live_dailies",
+			"Live",
+			"Dailies & Vault",
+			"Live — Dailies & Wizard’s Vault",
+			"about:live-dailies",
+			nullptr,
+			nullptr,
+		},
+		{
+			"live_news",
+			"Live",
+			"News Digest",
+			"Live — News & Patch Digest",
+			"about:live-news",
+			nullptr,
+			nullptr,
+		},
+		{
+			"live_fashion",
+			"Live",
+			"Fashion Wishlist",
+			"Live — Fashion Wishlist",
+			"about:live-fashion",
+			nullptr,
+			nullptr,
+		},
+		{
+			"live_progress",
+			"Live",
+			"Legendaries & Characters",
+			"Live — Legendaries & Characters",
+			"about:live-progress",
+			nullptr,
+			nullptr,
+		},
+
 		/* —— Official —— */
 		{
 			"gw2official",
@@ -154,6 +192,62 @@ namespace
 			"Easy Objectives",
 			"Guild Wars 2 Wiki — Wizard's Vault Easy Objectives",
 			"https://wiki.guildwars2.com/wiki/Wizard%27s_Vault/Easy_objectives",
+			nullptr,
+			nullptr,
+		},
+
+		/* Special Events (recurring rush / bonus weeks) */
+		{
+			"wiki_special_events",
+			"Wiki",
+			"Special Events",
+			"GW2 Wiki — Special Event",
+			"https://wiki.guildwars2.com/wiki/Special_Event",
+			nullptr,
+			nullptr,
+		},
+		{
+			"wiki_rush_world_boss",
+			"Wiki",
+			"World Boss Rush",
+			"GW2 Wiki — World Boss Rush",
+			"https://wiki.guildwars2.com/wiki/World_Boss_Rush",
+			nullptr,
+			nullptr,
+		},
+		{
+			"wiki_rush_fractal",
+			"Wiki",
+			"Fractal Rush",
+			"GW2 Wiki — Fractal Rush",
+			"https://wiki.guildwars2.com/wiki/Fractal_Rush",
+			nullptr,
+			nullptr,
+		},
+		{
+			"wiki_rush_wvw",
+			"Wiki",
+			"WvW Rush",
+			"GW2 Wiki — World vs. World Rush",
+			"https://wiki.guildwars2.com/wiki/World_vs._World_Rush",
+			nullptr,
+			nullptr,
+		},
+		{
+			"wiki_rush_dungeon",
+			"Wiki",
+			"Dungeon Rush",
+			"GW2 Wiki — Dungeon Rush",
+			"https://wiki.guildwars2.com/wiki/Dungeon_Rush",
+			nullptr,
+			nullptr,
+		},
+		{
+			"wiki_rush_pvp",
+			"Wiki",
+			"PvP Rush",
+			"GW2 Wiki — Player vs. Player Rush",
+			"https://wiki.guildwars2.com/wiki/Player_vs._Player_Rush",
 			nullptr,
 			nullptr,
 		},
@@ -24936,6 +25030,16 @@ int Sites::BestMatchForUrl(const std::string& url)
 		hit = fileHit("mount-unlock", "mounts");
 		if (hit >= 0) return hit;
 		hit = fileHit("daily-weekly", "dailyweekly");
+		if (hit >= 0) return hit;
+		hit = fileHit("live-dailies", "live_dailies");
+		if (hit >= 0) return hit;
+		hit = fileHit("live-news", "live_news");
+		if (hit >= 0) return hit;
+		hit = fileHit("live-fashion", "live_fashion");
+		if (hit >= 0) return hit;
+		hit = fileHit("live-tp", "live_tp");
+		if (hit >= 0) return hit;
+		hit = fileHit("live-progress", "live_progress");
 		if (hit >= 0) return hit;
 		hit = fileHit("currency-sinks", "currencysinks");
 		if (hit >= 0) return hit;

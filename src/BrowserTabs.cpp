@@ -1,6 +1,8 @@
 #include "BrowserTabs.h"
 
+#include "AddonPaths.h"
 #include "Globals.h"
+#include "LivePanels.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "WikiBrowser.h"
@@ -637,5 +639,44 @@ void BrowserTabs::GoHome()
 
 void BrowserTabs::Reload()
 {
+	EnsureDefault();
+	const std::string& url = gTabs[gActive].tab.url;
+	/* Live panels: rebuild HTML from API then navigate to file:// (CEF reload alone
+	   would keep a stale/shell page, and about:live-* is blocked by Chromium). */
+	if (LivePanels::IsLiveUrl(url.c_str()) || LivePanels::IsLiveAbout(url.c_str()) ||
+		LivePanels::IsLiveAbout(Sites::ResolveUrl(Sites::Active()).c_str()))
+	{
+		LivePanels::InvalidateCaches(AddonPaths::DataDir());
+		const char* about = nullptr;
+		if (LivePanels::IsLiveAbout(url.c_str()))
+			about = url.c_str();
+		else if (url.find("live-dailies") != std::string::npos ||
+			std::strcmp(gTabs[gActive].tab.siteId, "live_dailies") == 0)
+			about = "about:live-dailies";
+		else if (url.find("live-news") != std::string::npos ||
+			std::strcmp(gTabs[gActive].tab.siteId, "live_news") == 0)
+			about = "about:live-news";
+		else if (url.find("live-fashion") != std::string::npos ||
+			std::strcmp(gTabs[gActive].tab.siteId, "live_fashion") == 0)
+			about = "about:live-fashion";
+		else if (url.find("live-tp") != std::string::npos ||
+			std::strcmp(gTabs[gActive].tab.siteId, "live_tp") == 0)
+			about = "about:live-tp";
+		else if (url.find("live-progress") != std::string::npos ||
+			std::strcmp(gTabs[gActive].tab.siteId, "live_progress") == 0)
+			about = "about:live-progress";
+		else
+		{
+			const std::string resolved = Sites::ResolveUrl(Sites::Active());
+			if (LivePanels::IsLiveAbout(resolved.c_str()))
+				about = resolved.c_str();
+		}
+		if (about)
+		{
+			gTabs[gActive].tab.url = about;
+			WikiBrowser::Navigate(about);
+			return;
+		}
+	}
 	WikiBrowser::Reload();
 }

@@ -6,6 +6,8 @@
 
 #include "Globals.h"
 #include "HelperQuickAccess.h"
+#include "NotesPad.h"
+#include "TpWatchPad.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "UI.h"
@@ -19,6 +21,8 @@ namespace G
 
 	bool  ShowWiki     = false;
 	bool  ShowOptions  = true;
+	bool  ShowNotes    = false;
+	bool  ShowTpWatch  = false;
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
 	float WindowWidth  = 1100.f;
@@ -31,6 +35,8 @@ namespace G
 	char  LastQuery[128] = "";
 	char  ActiveSiteId[64] = "home";
 	char  DefaultSiteId[64] = "home";
+	char  Gw2ApiKey[128] = "";
+	char  TpWatchIds[1024] = "";
 }
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
@@ -322,10 +328,9 @@ static UINT OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		return 1;
 	}
 
-	/* Helper closed: never eat keys for CEF/ImGui — stale sAteKeyDest used to
-	   keep stealing chat/WASD after close. Hotkey swallow already returned above.
-	   Do not clear WantTextInput / KeysDown — shared ImGui context (Nexus search). */
-	if (IsKeyMsg(msg) && !G::ShowWiki)
+	/* Helper closed: pass keys to the game — unless Notes/TP (or similar) is
+	   hovered and capturing. Never clear WantTextInput / KeysDown (shared ImGui). */
+	if (IsKeyMsg(msg) && !G::ShowWiki && !UI_BlocksGameKeyboard())
 	{
 		const UINT vk = static_cast<UINT>(wp);
 		const bool vkOk = vk < 256;
@@ -606,7 +611,10 @@ static void AddonLoad(AddonAPI_t* api)
 		reinterpret_cast<void (*)(void*, void*)>(api->ImguiFree));
 
 	Settings::Load();
+	NotesPad::Load();
 	G::ShowWiki = false;
+	G::ShowNotes = false;
+	G::ShowTpWatch = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
 	WikiBrowser::Init();
@@ -639,6 +647,7 @@ static void AddonUnload()
 	HelperQuickAccess::Shutdown();
 	WikiBrowser::Shutdown();
 
+	NotesPad::Save(true);
 	Settings::SetDirty();
 	Settings::Save(true);
 
@@ -660,7 +669,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 0;
 	G::AddonDef.Version.Build    = 2;
-	G::AddonDef.Version.Revision = 5;
+	G::AddonDef.Version.Revision = 6;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";

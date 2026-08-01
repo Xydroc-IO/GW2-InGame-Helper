@@ -13,6 +13,8 @@ namespace G
 
 	extern bool  ShowWiki; /* overlay window visible (name kept for settings compat) */
 	extern bool  ShowOptions;
+	extern bool  ShowNotes; /* ImGui Notes + clipboard helpers window */
+	extern bool  ShowTpWatch; /* ImGui TP watchlist (add/remove + prices) */
 	extern float Opacity;
 	extern float FontScale;
 	extern float WindowWidth;
@@ -25,4 +27,6 @@ namespace G
 	extern char  LastQuery[128];
 	extern char  ActiveSiteId[64];
 	extern char  DefaultSiteId[64]; /* Home button + landing when no tabs restored */
+	extern char  Gw2ApiKey[128]; /* optional account API key — Live panels; local only */
+	extern char  TpWatchIds[1024]; /* comma-separated item ids — user TP watchlist */
 }

@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.0.2.5 · Total entries: **2,709**
+**Revision:** 2.0.2.6 · Total entries: **2,720**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
@@ -23,6 +23,26 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 
 - **Gemini** — [https://gemini.google.com/app](https://gemini.google.com/app) (Google login / Pro often needs **Open Ext**; Google blocks embedded CEF sign-in)
 
+## Live
+
+DLL-generated panels (official API / RSS / wiki). Optional API key in Nexus Options for personal Wizard’s Vault / legendary progress. Reload the tab to refresh (≈5 min cache).
+
+### Vault
+
+- **Dailies & Vault** — `about:live-dailies`
+
+### News
+
+- **News Digest** — `about:live-news`
+
+### Fashion
+
+- **Fashion Wishlist** — `about:live-fashion`
+
+### Progress
+
+- **Legendaries & Characters** — `about:live-progress`
+
 ## Official
 
 ### ArenaNet
@@ -44,6 +64,17 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 ### News
 
 - **Game Updates** — [https://wiki.guildwars2.com/wiki/Game_updates](https://wiki.guildwars2.com/wiki/Game_updates)
+
+### Special Events
+
+Recurring rush / bonus weeks from the [Special Event](https://wiki.guildwars2.com/wiki/Special_Event) calendar:
+
+- **Special Events** (hub) — [https://wiki.guildwars2.com/wiki/Special_Event](https://wiki.guildwars2.com/wiki/Special_Event)
+- **World Boss Rush** — [https://wiki.guildwars2.com/wiki/World_Boss_Rush](https://wiki.guildwars2.com/wiki/World_Boss_Rush)
+- **Fractal Rush** — [https://wiki.guildwars2.com/wiki/Fractal_Rush](https://wiki.guildwars2.com/wiki/Fractal_Rush)
+- **WvW Rush** — [https://wiki.guildwars2.com/wiki/World_vs._World_Rush](https://wiki.guildwars2.com/wiki/World_vs._World_Rush)
+- **Dungeon Rush** — [https://wiki.guildwars2.com/wiki/Dungeon_Rush](https://wiki.guildwars2.com/wiki/Dungeon_Rush)
+- **PvP Rush** — [https://wiki.guildwars2.com/wiki/Player_vs._Player_Rush](https://wiki.guildwars2.com/wiki/Player_vs._Player_Rush)
 
 ### Collections
 

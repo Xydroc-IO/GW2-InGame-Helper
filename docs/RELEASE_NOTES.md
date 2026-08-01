@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.5
+# GW2 In-Game Helper v2.0.2.6
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,22 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.6
+
+- **Live panels:** Browse → Live — Dailies & Wizard’s Vault (optional API key), news/patch
+  digest, fashion wishlist, legendaries & characters. Built as offline HTML from read-only
+  official API / RSS / wiki; still one DLL
+- **API speed:** Parallel WinHTTP GETs (per-thread sessions), short-TTL account caches, and
+  longer public caches so Live pages are not a long serial chain of requests
+- **TP Watchlist:** Toolbar **TP** opens an ImGui pad (chat codes / item IDs, prices, BLTC in
+  a new addon tab). CEF `about:live-tp` is tip-only
+- **Notes:** Toolbar **Notes** ImGui clipboard helpers (waypoints, chat codes, builds, LFG)
+- **Pad docking:** Notes/TP open beside the helper; if one is already open the other stacks
+  below it. Both start closed each session and stay freely movable
+- **Snow Crows:** Header stays above NitroPay (Profile/Inbox clickable); gw2armory trait/
+  skill hover cards elevated and armory `overflow-clip` relaxed so tips are visible
+- **Stamps:** Helper `2045` · homepage `2014`
 
 ## What’s new in 2.0.2.5
 

@@ -2,10 +2,14 @@
 
 #include "BrowserTabs.h"
 #include "Globals.h"
+#include "LivePanels.h"
+#include "NotesPad.h"
+#include "TpWatchPad.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "SyncQr.h"
 #include "WikiBrowser.h"
+#include "AddonPaths.h"
 
 #include "imgui/imgui.h"
 
@@ -26,6 +30,71 @@ namespace
 		if (v < lo) return lo;
 		if (v > hi) return hi;
 		return v;
+	}
+
+	/* Saved multi-monitor coords can leave the helper off-screen after a
+	   display change — looks like "addon won't open". Pull it back on-screen. */
+	bool gForceHelperOnScreen = false;
+
+	bool HelperGeomOffscreen(float dispW, float dispH)
+	{
+		if (dispW < 100.f || dispH < 100.f)
+			return false;
+		const float title = 48.f;
+		if (G::WindowPosX > dispW - title)
+			return true;
+		if (G::WindowPosY > dispH - title)
+			return true;
+		if (G::WindowPosX + G::WindowWidth < title)
+			return true;
+		if (G::WindowPosY + title < 0.f)
+			return true;
+		return false;
+	}
+
+	void ClampHelperGeomToDisplay()
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		const float dw = io.DisplaySize.x;
+		const float dh = io.DisplaySize.y;
+		if (dw < 100.f || dh < 100.f)
+			return;
+
+		const float maxW = Clampf(dw * 0.92f, 320.f, dw);
+		const float maxH = Clampf(dh * 0.92f, 240.f, dh);
+		bool changed = false;
+		if (G::WindowWidth > maxW + 0.5f || G::WindowWidth < 320.f)
+		{
+			G::WindowWidth = Clampf(G::WindowWidth, 320.f, maxW);
+			changed = true;
+		}
+		if (G::WindowHeight > maxH + 0.5f || G::WindowHeight < 240.f)
+		{
+			G::WindowHeight = Clampf(G::WindowHeight, 240.f, maxH);
+			changed = true;
+		}
+
+		if (HelperGeomOffscreen(dw, dh) || gForceHelperOnScreen)
+		{
+			G::WindowPosX = Clampf(dw * 0.08f, 24.f, dw - 120.f);
+			G::WindowPosY = Clampf(dh * 0.10f, 24.f, dh - 120.f);
+			G::HasSavedPos = true;
+			gForceHelperOnScreen = true;
+			changed = true;
+		}
+		else
+		{
+			const float nx = Clampf(G::WindowPosX, 0.f, dw - 48.f);
+			const float ny = Clampf(G::WindowPosY, 0.f, dh - 48.f);
+			if (std::fabs(nx - G::WindowPosX) > 0.5f || std::fabs(ny - G::WindowPosY) > 0.5f)
+			{
+				G::WindowPosX = nx;
+				G::WindowPosY = ny;
+				changed = true;
+			}
+		}
+		if (changed)
+			Settings::SetDirty();
 	}
 
 	bool gBrowserFocused = false;
@@ -216,6 +285,18 @@ namespace
 			if (std::strcmp(id, "gemini") == 0)
 				return "AI";
 			return "Web Search";
+		}
+		if (std::strcmp(category, "Live") == 0)
+		{
+			if (std::strcmp(id, "live_dailies") == 0)
+				return "Vault";
+			if (std::strcmp(id, "live_news") == 0)
+				return "News";
+			if (std::strcmp(id, "live_fashion") == 0)
+				return "Fashion";
+			if (std::strcmp(id, "live_progress") == 0)
+				return "Progress";
+			return "Other";
 		}
 		if (std::strcmp(category, "Cheat Sheets") == 0)
 		{
@@ -417,6 +498,9 @@ namespace
 				return "Ascended Food";
 			if (std::strcmp(id, "wiki_vault_easy") == 0)
 				return "Wizards Vault";
+			if (std::strcmp(id, "wiki_special_events") == 0 ||
+				std::strncmp(id, "wiki_rush_", 10) == 0)
+				return "Special Events";
 			return "Other";
 		}
 
@@ -446,6 +530,12 @@ namespace
 		if (std::strcmp(category, "Search") == 0)
 		{
 			static const char* kSec[] = { "Web Search", "AI" };
+			*outCount = sizeof(kSec) / sizeof(kSec[0]);
+			return kSec;
+		}
+		if (std::strcmp(category, "Live") == 0)
+		{
+			static const char* kSec[] = { "Vault", "News", "Fashion", "Economy", "Progress", "Other" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
@@ -500,7 +590,7 @@ namespace
 		if (std::strcmp(category, "Wiki") == 0)
 		{
 			static const char* kSec[] = {
-				"Main", "News", "Collections", "Legendary Armory",
+				"Main", "News", "Special Events", "Collections", "Legendary Armory",
 				"Cosmetic Infusions", "Lifestyle", "Crafting", "Food", "Ascended Food",
 				"Utility", "Minis", "Upgrades", "Wizards Vault", "Other"
 			};
@@ -2490,6 +2580,32 @@ namespace
 			ImGui::SetTooltip("Search the active site (or DuckDuckGo).");
 
 		ImGui::SameLine(0.f, 8.f);
+		if (ImGui::Button("Notes###gw2igh_notes"))
+		{
+			if (G::ShowNotes)
+			{
+				G::ShowNotes = false;
+				Settings::SetDirty();
+			}
+			else
+				NotesPad::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Notes & clipboard helpers (waypoints, LFG, build codes)");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("TP###gw2igh_tp"))
+		{
+			if (G::ShowTpWatch)
+			{
+				G::ShowTpWatch = false;
+				Settings::SetDirty();
+			}
+			else
+				TpWatchPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("TP Watchlist — add items (chat codes) and see buy/sell prices");
+		ImGui::SameLine(0.f, 8.f);
 		DrawMoreMenu();
 		DrawStatusChip();
 
@@ -2656,12 +2772,29 @@ void UI_Render()
 		}
 		BlurBrowser();
 		WikiBrowser::SetVisible(false);
+
+		/* Notes / TP can stay open while the helper browser is closed.
+		   Only block GW2 while the pointer is over those windows — do not
+		   force Capture*FromApp(false) every frame (breaks Nexus / open). */
+		const bool notesHover = NotesPad::Render();
+		const bool tpHover = TpWatchPad::Render();
+		if (notesHover || tpHover)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			gBlockGameMouse = true;
+			gBlockGameKeyboard = true;
+			ImGui::CaptureMouseFromApp(true);
+			if (io.WantTextInput)
+				ImGui::CaptureKeyboardFromApp(true);
+		}
+		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
 	}
 
 	if (!sWasOpen)
 	{
+		gForceHelperOnScreen = true; /* always verify visible on each open */
 		BrowserTabs::NavigateActive();
 		sWasOpen = true;
 	}
@@ -2678,9 +2811,14 @@ void UI_Render()
 			Settings::SetDirty();
 		}
 	}
-	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), ImGuiCond_FirstUseEver);
-	if (G::HasSavedPos)
-		ImGui::SetNextWindowPos(ImVec2(G::WindowPosX, G::WindowPosY), ImGuiCond_FirstUseEver);
+	ClampHelperGeomToDisplay();
+	const ImGuiCond geomCond = gForceHelperOnScreen ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), geomCond);
+	ImGui::SetNextWindowPos(ImVec2(G::WindowPosX, G::WindowPosY), geomCond);
+	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	if (gForceHelperOnScreen)
+		ImGui::SetNextWindowFocus();
+	gForceHelperOnScreen = false;
 
 	PushWikiTheme();
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, G::Opacity);
@@ -2713,6 +2851,18 @@ void UI_Render()
 		ImGui::End();
 		ImGui::PopStyleVar();
 		PopWikiTheme();
+		/* Still draw Notes/TP while the main window is collapsed. */
+		const bool notesHover = NotesPad::Render();
+		const bool tpHover = TpWatchPad::Render();
+		if (notesHover || tpHover)
+		{
+			gBlockGameMouse = true;
+			gBlockGameKeyboard = true;
+			ImGui::CaptureMouseFromApp(true);
+			if (ImGui::GetIO().WantTextInput)
+				ImGui::CaptureKeyboardFromApp(true);
+		}
+		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
 	}
@@ -3052,6 +3202,20 @@ void UI_Render()
 	ImGui::End();
 	ImGui::PopStyleVar();
 	PopWikiTheme();
+
+	const bool notesHover = NotesPad::Render();
+	const bool tpHover = TpWatchPad::Render();
+	if (notesHover || tpHover)
+	{
+		/* Pointer on Notes/TP — block GW2 only; do not force WantCapture* so
+		   Nexus / other ImGui addons keep working when the cursor leaves. */
+		gBlockGameMouse = true;
+		gBlockGameKeyboard = true;
+		ImGui::CaptureMouseFromApp(true);
+		if (io.WantTextInput)
+			ImGui::CaptureKeyboardFromApp(true);
+	}
+	NotesPad::Save(false);
 	Settings::Save(false);
 }
 
@@ -3067,6 +3231,20 @@ void UI_Options()
 			UI_ReleaseGameInput();
 		Settings::SetDirty();
 	}
+	if (ImGui::Checkbox("Show Notes window###gw2igh_shownotes", &G::ShowNotes))
+	{
+		if (G::ShowNotes)
+			NotesPad::Open();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted, "Waypoints, chat codes, builds, LFG snippets — Copy to clipboard.");
+	if (ImGui::Checkbox("Show TP Watchlist###gw2igh_showtp", &G::ShowTpWatch))
+	{
+		if (G::ShowTpWatch)
+			TpWatchPad::OpenAndRefresh();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted, "Add any item via chat code or ID — buy/sell prices (read-only).");
 
 	size_t count = 0;
 	Sites::All(&count);
@@ -3084,6 +3262,133 @@ void UI_Options()
 	if (ImGui::Checkbox("Keep browser warm when closed###gw2igh_warm", &G::KeepHelperWarm))
 		Settings::SetDirty();
 	ImGui::TextColored(kMuted, "Faster reopen; uses more RAM while the helper is hidden.");
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::TextUnformatted("GW2 API key (Live panels)");
+	ImGui::TextColored(kMuted,
+		"Read-only key from account.arena.net. Scopes: account + progression (Vault); "
+		"also inventories + unlocks + characters (Legendaries & Characters). "
+		"Stored only in this addon’s settings.ini — never shared or sent in QR.");
+	ImGui::SetNextItemWidth(-1.f);
+	if (ImGui::InputTextWithHint("###gw2igh_apikey", "Paste API key here…", G::Gw2ApiKey, sizeof(G::Gw2ApiKey),
+			ImGuiInputTextFlags_Password | ImGuiInputTextFlags_AutoSelectAll))
+	{
+		Settings::SetDirty();
+		LivePanels::InvalidateCaches(AddonPaths::DataDir());
+	}
+	if (G::Gw2ApiKey[0])
+		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "Key saved — Reload Live tabs to refresh.");
+	else
+		ImGui::TextColored(kMuted, "No key — Vault/Progress show public data until you add one.");
+	if (ImGui::Button("Clear API key###gw2igh_apikey_clear"))
+	{
+		G::Gw2ApiKey[0] = 0;
+		Settings::SetDirty();
+		LivePanels::InvalidateCaches(AddonPaths::DataDir());
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Create key on account.arena.net###gw2igh_apikey_web"))
+		ShellExecuteA(nullptr, "open", "https://account.arena.net/applications", nullptr, nullptr, SW_SHOWNORMAL);
+
+	ImGui::Spacing();
+	ImGui::TextUnformatted("TP watchlist (yours)");
+	ImGui::TextColored(kMuted,
+		"Paste a GW2 item chat code [&…] (Shift+click in game) or a numeric ID. "
+		"Use the toolbar TP button. No API key.");
+	auto appendTpId = [&](int id) {
+		if (id <= 0) return;
+		std::vector<int> ids;
+		const char* p = G::TpWatchIds;
+		while (*p)
+		{
+			while (*p == ' ' || *p == ',') ++p;
+			if (!*p) break;
+			int v = 0;
+			bool any = false;
+			while (*p >= '0' && *p <= '9') { any = true; v = v * 10 + (*p - '0'); ++p; }
+			if (any && v > 0)
+			{
+				bool dup = false;
+				for (int x : ids) if (x == v) { dup = true; break; }
+				if (!dup) ids.push_back(v);
+			}
+			while (*p && *p != ',' && !(*p >= '0' && *p <= '9')) ++p;
+		}
+		bool dup = false;
+		for (int x : ids) if (x == id) { dup = true; break; }
+		if (!dup && ids.size() < 120)
+			ids.push_back(id);
+		std::string csv;
+		for (size_t i = 0; i < ids.size(); ++i)
+		{
+			if (i) csv += ',';
+			csv += std::to_string(ids[i]);
+		}
+		std::snprintf(G::TpWatchIds, sizeof(G::TpWatchIds), "%s", csv.c_str());
+		Settings::SetDirty();
+		LivePanels::InvalidateTpCache(AddonPaths::DataDir());
+	};
+	/* Decode [&base64] item chat links (type 0x02). */
+	auto parseItemInput = [](const char* text) -> int {
+		if (!text || !text[0]) return 0;
+		const char* a = std::strstr(text, "[&");
+		if (a)
+		{
+			a += 2;
+			const char* b = std::strchr(a, ']');
+			if (b && b > a)
+			{
+				static const char kB64[] =
+					"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+				int buf = 0, bits = 0;
+				unsigned char out[16]{};
+				size_t n = 0;
+				for (const char* p = a; p < b && n < sizeof(out); ++p)
+				{
+					if (*p == '=' || *p == ' ') break;
+					const char* q = std::strchr(kB64, *p);
+					if (!q) continue;
+					buf = (buf << 6) | static_cast<int>(q - kB64);
+					bits += 6;
+					if (bits >= 8)
+					{
+						bits -= 8;
+						out[n++] = static_cast<unsigned char>((buf >> bits) & 0xFF);
+					}
+				}
+				if (n >= 5 && out[0] == 0x02)
+				{
+					const int id = out[2] | (out[3] << 8) | (out[4] << 16);
+					if (id > 0) return id;
+				}
+			}
+		}
+		int id = 0;
+		for (const char* p = text; *p; ++p)
+		{
+			if (*p >= '0' && *p <= '9')
+				id = id * 10 + (*p - '0');
+			else if (id > 0)
+				break;
+		}
+		return id;
+	};
+	static char sTpAddId[128] = {};
+	ImGui::SetNextItemWidth(-80.f);
+	ImGui::InputTextWithHint("###gw2igh_tp_add", "[&AgEAAAA=] or item ID", sTpAddId, sizeof(sTpAddId));
+	ImGui::SameLine();
+	if (ImGui::Button("Add###gw2igh_tp_add_btn") && sTpAddId[0])
+	{
+		appendTpId(parseItemInput(sTpAddId));
+		sTpAddId[0] = 0;
+	}
+	ImGui::SetNextItemWidth(-1.f);
+	if (ImGui::InputTextWithHint("###gw2igh_tpwatch", "Saved IDs: 19721,24295,…", G::TpWatchIds, sizeof(G::TpWatchIds)))
+	{
+		Settings::SetDirty();
+		LivePanels::InvalidateTpCache(AddonPaths::DataDir());
+	}
 
 	ImGui::Spacing();
 	ImGui::TextWrapped(
