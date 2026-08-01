@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.8
+# GW2 In-Game Helper v2.0.2.9
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -30,6 +30,13 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
+## What’s new in 2.0.2.9
+
+- **Publisher ID:** User-Agent ends with product token `GW2-InGame-Helper` so sites
+  can allow or deny this client cleanly — see [`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)
+  (Cloudflare / nginx / Apache / page-JS examples)
+- **Stamps:** Helper `2051` · homepage `2014`
+
 ## What’s new in 2.0.2.8
 
 - **World Events:** Toolbar **Events** — UTC timers for bosses / metas / other world
@@ -49,9 +56,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   (that made every ad click a silent no-op). Ads stay at a low z-index under the
   elevated header so Profile/Inbox remain clickable; clicks on the ad itself still
   reach the creative and Open Ext / tracker handoff.
-- **Publisher ID:** User-Agent ends with product token `GW2-InGame-Helper` so sites
-  can allow or deny this client cleanly — see [`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)
-- **Stamps:** Helper `2050` · homepage `2014`
+- **Stamps:** Helper `2049` · homepage `2014`
 
 ## What’s new in 2.0.2.7
 
