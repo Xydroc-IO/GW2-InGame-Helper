@@ -71,9 +71,11 @@ void Settings::Load()
 
 		if (std::strcmp(key, "ShowWiki") == 0) G::ShowWiki = AsBool(val);
 		else if (std::strcmp(key, "ShowOptions") == 0) G::ShowOptions = AsBool(val);
-		/* ShowNotes / ShowTpWatch are session-only — never restore open pads. */
+		/* Pad open flags are session-only — never restore open pads. */
 		else if (std::strcmp(key, "ShowNotes") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowTpWatch") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowLookup") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowWallet") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "Opacity") == 0) G::Opacity = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "FontScale") == 0) G::FontScale = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WindowWidth") == 0)
@@ -169,6 +171,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowOptions=%d\n", G::ShowOptions ? 1 : 0);
 	std::fprintf(f, "ShowNotes=0\n");
 	std::fprintf(f, "ShowTpWatch=0\n");
+	std::fprintf(f, "ShowLookup=0\n");
+	std::fprintf(f, "ShowWallet=0\n");
 	std::fprintf(f, "Opacity=%.4f\n", G::Opacity);
 	std::fprintf(f, "FontScale=%.4f\n", G::FontScale);
 	std::fprintf(f, "WindowWidth=%.1f\n", G::WindowWidth);

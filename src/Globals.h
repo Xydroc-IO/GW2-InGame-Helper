@@ -15,6 +15,8 @@ namespace G
 	extern bool  ShowOptions;
 	extern bool  ShowNotes; /* ImGui Notes + clipboard helpers window */
 	extern bool  ShowTpWatch; /* ImGui TP watchlist (add/remove + prices) */
+	extern bool  ShowLookup; /* ImGui item lookup (chat code / ID / name) — free-floating */
+	extern bool  ShowWallet; /* ImGui wallet + mats snapshot — free-floating */
 	extern float Opacity;
 	extern float FontScale;
 	extern float WindowWidth;

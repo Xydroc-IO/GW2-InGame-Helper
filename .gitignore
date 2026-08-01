@@ -64,6 +64,7 @@ __cmake_systeminformation/
 
 # Addon runtime data (API key, notes, Live caches) — never commit if copied into the tree
 notes.json
+stash-names.cache
 live-*.json
 live-*.html
 live-*.ok

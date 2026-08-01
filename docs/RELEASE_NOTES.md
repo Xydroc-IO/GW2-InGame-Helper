@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.6
+# GW2 In-Game Helper v2.0.2.7
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.7
+
+- **Item Lookup:** Toolbar **Item** — paste a chat code, item ID, or name; official API
+  returns name/rarity/TP prices with Wiki / BLTC / Add to TP. Free-floating (not docked)
+- **Wallet & Stash:** Toolbar **Wallet** — searchable currencies, material storage, bank,
+  shared inventory, and per-character bags. Parallel account fetch, then character bags;
+  disk name cache (`stash-names.cache`). Needs API scopes **account**, **wallet**,
+  **inventories**, **characters**. Default window size matches Notes (~420×560)
+- **Favorites QR:** Larger quiet zone so companion QR scan is more reliable
+- **Stamps:** Helper `2046` · homepage `2014`
 
 ## What’s new in 2.0.2.6
 

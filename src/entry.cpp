@@ -6,8 +6,10 @@
 
 #include "Globals.h"
 #include "HelperQuickAccess.h"
+#include "LookupPad.h"
 #include "NotesPad.h"
 #include "TpWatchPad.h"
+#include "WalletPad.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "UI.h"
@@ -23,6 +25,8 @@ namespace G
 	bool  ShowOptions  = true;
 	bool  ShowNotes    = false;
 	bool  ShowTpWatch  = false;
+	bool  ShowLookup   = false;
+	bool  ShowWallet   = false;
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
 	float WindowWidth  = 1100.f;
@@ -615,6 +619,8 @@ static void AddonLoad(AddonAPI_t* api)
 	G::ShowWiki = false;
 	G::ShowNotes = false;
 	G::ShowTpWatch = false;
+	G::ShowLookup = false;
+	G::ShowWallet = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
 	WikiBrowser::Init();
@@ -669,7 +675,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 0;
 	G::AddonDef.Version.Build    = 2;
-	G::AddonDef.Version.Revision = 6;
+	G::AddonDef.Version.Revision = 7;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";

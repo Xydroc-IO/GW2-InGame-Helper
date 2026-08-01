@@ -95,9 +95,13 @@ namespace SyncQr
 		{
 			if (!sEncodeOk || sQrSize <= 0)
 				return;
+			/* Quiet zone (light border) is required for phone cameras / ML Kit.
+			   Without it on a dark ImGui window, scanners often never fire. */
+			constexpr int kQuiet = 4;
+			const int modules = sQrSize + kQuiet * 2;
 			const ImVec2 origin = ImGui::GetCursorScreenPos();
-			const float cell = maxSide / static_cast<float>(sQrSize);
-			const float side = cell * static_cast<float>(sQrSize);
+			const float cell = maxSide / static_cast<float>(modules);
+			const float side = cell * static_cast<float>(modules);
 			ImDrawList* dl = ImGui::GetWindowDrawList();
 			dl->AddRectFilled(origin, ImVec2(origin.x + side, origin.y + side), IM_COL32(255, 255, 255, 255));
 			for (int y = 0; y < sQrSize; ++y)
@@ -106,8 +110,8 @@ namespace SyncQr
 				{
 					if (!qrcodegen_getModule(sQr, x, y))
 						continue;
-					const float x0 = origin.x + cell * static_cast<float>(x);
-					const float y0 = origin.y + cell * static_cast<float>(y);
+					const float x0 = origin.x + cell * static_cast<float>(x + kQuiet);
+					const float y0 = origin.y + cell * static_cast<float>(y + kQuiet);
 					dl->AddRectFilled(
 						ImVec2(x0, y0),
 						ImVec2(x0 + cell + 0.5f, y0 + cell + 0.5f),
@@ -177,7 +181,7 @@ namespace SyncQr
 				ImGui::Text("Favorites: %d", sFavCount);
 				ImGui::TextWrapped("In the Android app: Settings → Scan favorites QR.");
 				ImGui::Spacing();
-				const float qrSide = 260.f;
+				const float qrSide = 300.f;
 				const float pad = (ImGui::GetContentRegionAvail().x - qrSide) * 0.5f;
 				if (pad > 0.f)
 					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + pad);

@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.0.2.6` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.2.7` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
@@ -27,6 +27,8 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | News Digest (built-in Live) | Live |
 | Fashion Wishlist (built-in Live) | Live |
 | TP Watchlist (toolbar **TP**) | ImGui |
+| Item Lookup (toolbar **Item**) | ImGui |
+| Wallet & Stash (toolbar **Wallet**) | ImGui |
 | Legendaries & Characters (built-in Live) | Live |
 | [Guild Wars 2](https://www.guildwars2.com/) | Official |
 | [GW2 News](https://www.guildwars2.com/en/news/) | Official |
@@ -130,6 +132,16 @@ release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 
 Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
 
+## What’s new in 2.0.2.7
+
+- **Item Lookup:** Toolbar **Item** — chat code / ID / name → official API (rarity, prices)
+  plus wiki & BLTC; free-floating (not docked with Notes/TP)
+- **Wallet & Stash:** Toolbar **Wallet** — searchable wallet, materials, bank, shared, and
+  per-toon bags (API scopes: account, wallet, inventories, characters); parallel fetch +
+  name cache; Notes-sized default window
+- **Favorites QR:** Larger quiet zone on the in-game QR for more reliable phone scanning
+- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
+
 ## What’s new in 2.0.2.6
 
 - **Live:** Browse → Live panels (dailies/Vault, news, fashion, legendaries & characters) with
@@ -190,11 +202,12 @@ Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/R
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
-- **Compact toolbar** — Browse · nav cluster · Find in page · Web · `...` menu (Find / Copy / Open Ext)
+- **Compact toolbar** — Browse · nav · Find · Web · Notes · TP · Item · Wallet · `...` menu
 - **GW2-themed** chrome (gold tabs + muted status); Browse picker with section headers (Tools, Guides, Discord, Cheat Sheets, …)
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
 - **Find in page** — toolbar Enter or Ctrl+F; **Web** for site/DuckDuckGo search
+- **Notes / TP** — dock beside the helper (stack if both open); **Item** / **Wallet** free-floating
 - **Favorites** — star + drag-reorder
 - **Keep browser warm** — optional hide without killing CEF (collapse also keeps the helper alive)
 - **Default landing site** — Options picker; used by the Home button and when no tabs are saved

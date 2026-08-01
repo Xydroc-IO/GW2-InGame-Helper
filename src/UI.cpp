@@ -5,6 +5,8 @@
 #include "LivePanels.h"
 #include "NotesPad.h"
 #include "TpWatchPad.h"
+#include "LookupPad.h"
+#include "WalletPad.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "SyncQr.h"
@@ -2605,6 +2607,32 @@ namespace
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("TP Watchlist — add items (chat codes) and see buy/sell prices");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Item###gw2igh_lookup"))
+		{
+			if (G::ShowLookup)
+			{
+				G::ShowLookup = false;
+				Settings::SetDirty();
+			}
+			else
+				LookupPad::OpenAndLookup();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Item lookup — chat code, ID, or name → wiki / BLTC");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Wallet###gw2igh_wallet"))
+		{
+			if (G::ShowWallet)
+			{
+				G::ShowWallet = false;
+				Settings::SetDirty();
+			}
+			else
+				WalletPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Wallet & materials snapshot (API key)");
 		ImGui::SameLine(0.f, 8.f);
 		DrawMoreMenu();
 		DrawStatusChip();
@@ -2773,12 +2801,14 @@ void UI_Render()
 		BlurBrowser();
 		WikiBrowser::SetVisible(false);
 
-		/* Notes / TP can stay open while the helper browser is closed.
+		/* Notes / TP / Lookup / Wallet can stay open while the helper browser is closed.
 		   Only block GW2 while the pointer is over those windows — do not
 		   force Capture*FromApp(false) every frame (breaks Nexus / open). */
 		const bool notesHover = NotesPad::Render();
 		const bool tpHover = TpWatchPad::Render();
-		if (notesHover || tpHover)
+		const bool lookupHover = LookupPad::Render();
+		const bool walletHover = WalletPad::Render();
+		if (notesHover || tpHover || lookupHover || walletHover)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			gBlockGameMouse = true;
@@ -2851,10 +2881,12 @@ void UI_Render()
 		ImGui::End();
 		ImGui::PopStyleVar();
 		PopWikiTheme();
-		/* Still draw Notes/TP while the main window is collapsed. */
+		/* Still draw pads while the main window is collapsed. */
 		const bool notesHover = NotesPad::Render();
 		const bool tpHover = TpWatchPad::Render();
-		if (notesHover || tpHover)
+		const bool lookupHover = LookupPad::Render();
+		const bool walletHover = WalletPad::Render();
+		if (notesHover || tpHover || lookupHover || walletHover)
 		{
 			gBlockGameMouse = true;
 			gBlockGameKeyboard = true;
@@ -3205,9 +3237,11 @@ void UI_Render()
 
 	const bool notesHover = NotesPad::Render();
 	const bool tpHover = TpWatchPad::Render();
-	if (notesHover || tpHover)
+	const bool lookupHover = LookupPad::Render();
+	const bool walletHover = WalletPad::Render();
+	if (notesHover || tpHover || lookupHover || walletHover)
 	{
-		/* Pointer on Notes/TP — block GW2 only; do not force WantCapture* so
+		/* Pointer on a pad — block GW2 only; do not force WantCapture* so
 		   Nexus / other ImGui addons keep working when the cursor leaves. */
 		gBlockGameMouse = true;
 		gBlockGameKeyboard = true;
@@ -3245,6 +3279,20 @@ void UI_Options()
 		Settings::SetDirty();
 	}
 	ImGui::TextColored(kMuted, "Add any item via chat code or ID — buy/sell prices (read-only).");
+	if (ImGui::Checkbox("Show Item Lookup###gw2igh_showlookup", &G::ShowLookup))
+	{
+		if (G::ShowLookup)
+			LookupPad::OpenAndLookup();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted, "Chat code / ID / name — rarity, TP prices, wiki & BLTC links.");
+	if (ImGui::Checkbox("Show Wallet & Mats###gw2igh_showwallet", &G::ShowWallet))
+	{
+		if (G::ShowWallet)
+			WalletPad::OpenAndRefresh();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted, "Gold, mats, bank, shared, and per-toon bags — searchable. Free-floating.");
 
 	size_t count = 0;
 	Sites::All(&count);
@@ -3268,7 +3316,7 @@ void UI_Options()
 	ImGui::TextUnformatted("GW2 API key (Live panels)");
 	ImGui::TextColored(kMuted,
 		"Read-only key from account.arena.net. Scopes: account + progression (Vault); "
-		"also inventories + unlocks + characters (Legendaries & Characters). "
+		"wallet (Wallet pad); inventories + unlocks + characters (mats / Legendaries). "
 		"Stored only in this addon’s settings.ini — never shared or sent in QR.");
 	ImGui::SetNextItemWidth(-1.f);
 	if (ImGui::InputTextWithHint("###gw2igh_apikey", "Paste API key here…", G::Gw2ApiKey, sizeof(G::Gw2ApiKey),

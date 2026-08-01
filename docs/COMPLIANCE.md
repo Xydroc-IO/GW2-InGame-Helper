@@ -3,15 +3,16 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.0.2.6** — process/IPC notes live in local `ARCHITECTURE.md` (gitignored) if you keep one; public overview is [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.0.2.7** — process/IPC notes live in local `ARCHITECTURE.md` (gitignored) if you keep one; public overview is [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 ## Allowed
 
 - Nexus APIs only for host integration (`RT_Render`, WndProc, keybinds, QuickAccess, paths, swap chain)
 - Local IPC shared memory between the DLL and `GW2HelperBrowser.exe`
 - Official `api.guildwars2.com` reads from injected BootJs (credentials omitted; batched; 429 backoff) where pages use them
-- DLL WinHTTP reads to `api.guildwars2.com`, `guildwars2.com` news feed, and wiki MediaWiki API for **Live** Browse panels (read-only; optional account API key stored only in local `settings.ini`)
+- DLL WinHTTP reads to `api.guildwars2.com`, `guildwars2.com` news feed, and wiki MediaWiki API for **Live** Browse panels and ImGui pads (read-only; optional account API key stored only in local `settings.ini`)
 - Local Notes pad (`notes.json` under the addon folder) with clipboard copy helpers — no game injection
+- Item Lookup pad (public `/v2/items` + wiki search) and Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories) — read-only; item name cache in `stash-names.cache`
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
 - Site ads / consent / analytics loads in CEF (do not re-strip without review)

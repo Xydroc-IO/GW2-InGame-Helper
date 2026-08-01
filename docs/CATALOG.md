@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.0.2.6 · Total entries: **2,720**
+**Revision:** 2.0.2.7 · Total entries: **2,720**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
@@ -42,6 +42,15 @@ DLL-generated panels (official API / RSS / wiki). Optional API key in Nexus Opti
 ### Progress
 
 - **Legendaries & Characters** — `about:live-progress`
+
+## ImGui pads (toolbar)
+
+Not Browse rows — open from the helper toolbar / Nexus Options. Session-only visibility (start closed).
+
+- **Notes** — clipboard helpers (waypoints, chat codes, builds, LFG); docks beside helper with TP
+- **TP Watchlist** — chat codes / item IDs → buy/sell prices; docks with Notes
+- **Item Lookup** — chat code / ID / name → rarity, prices, wiki & BLTC; free-floating
+- **Wallet & Stash** — searchable wallet, materials, bank, shared, per-toon bags (API key: account, wallet, inventories, characters); free-floating
 
 ## Official
 
