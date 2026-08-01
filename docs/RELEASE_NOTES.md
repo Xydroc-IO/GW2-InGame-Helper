@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.7
+# GW2 In-Game Helper v2.0.2.8
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.8
+
+- **OSR screen metrics:** `GetScreenInfo` now fills `rect` / `available_rect` from the
+  real primary monitor and Windows work area (`GetSystemMetrics` /
+  `SPI_GETWORKAREA`). `GetViewRect` remains the ImGui overlay size. Keeps
+  `device_scale_factor` at `1.0` so IPC mouse and OSR paint stay in view pixels.
+  JavaScript `screen.width` / `screen.height` no longer match the tiny panel —
+  a common anti-bot / non-billable impression signal. Does **not** make OSR a full
+  desktop browser substitute (viewability %, click trackers, etc. remain separate).
+- **Stamps:** Helper `2048` · homepage `2014`
 
 ## What’s new in 2.0.2.7
 

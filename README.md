@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.0.2.7` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.0.2.8` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
@@ -134,6 +134,14 @@ release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md)
 
 Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
+
+## What’s new in 2.0.2.8
+
+- **OSR screen metrics:** `GetScreenInfo` reports the real desktop / work area while
+  `GetViewRect` stays the ImGui panel size — so pages see a normal monitor for
+  `screen.width` / `screen.height` instead of the tiny overlay (helps ad impression
+  fingerprinting; not a full desktop Chrome substitute)
+- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.7
 

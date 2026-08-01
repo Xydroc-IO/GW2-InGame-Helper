@@ -1552,22 +1552,49 @@ namespace
 		rect->height = h;
 	}
 
+	/* Desktop monitor + work area for OSR screen metrics. Keep separate from
+	   GetViewRect (ImGui panel size) so JS screen.width/height look like a real
+	   display — matching view size is a common anti-bot / non-billable signal.
+	   device_scale_factor stays 1.0: IPC mouse + OnPaint are already view pixels. */
+	void FillDesktopScreenRects(cef_rect_t* monitor, cef_rect_t* work)
+	{
+		int screenW = GetSystemMetrics(SM_CXSCREEN);
+		int screenH = GetSystemMetrics(SM_CYSCREEN);
+		if (screenW < 800) screenW = 800;
+		if (screenH < 600) screenH = 600;
+
+		monitor->x = 0;
+		monitor->y = 0;
+		monitor->width = screenW;
+		monitor->height = screenH;
+		*work = *monitor;
+
+		RECT wa{};
+		if (SystemParametersInfoW(SPI_GETWORKAREA, 0, &wa, 0))
+		{
+			const int ww = wa.right - wa.left;
+			const int wh = wa.bottom - wa.top;
+			if (ww >= 640 && wh >= 480)
+			{
+				work->x = wa.left;
+				work->y = wa.top;
+				work->width = ww;
+				work->height = wh;
+			}
+		}
+	}
+
 	int CEF_CALLBACK GetScreenInfo(cef_render_handler_t*, cef_browser_t*, cef_screen_info_t* info)
 	{
 		if (!info)
 			return 0;
 		info->size = sizeof(*info);
-		int w = 800, h = 600;
-		ViewSize(&w, &h);
+		/* Do not use ViewSize here — that is the browser viewport only. */
 		info->device_scale_factor = 1.0f;
 		info->depth = 32;
 		info->depth_per_component = 8;
 		info->is_monochrome = 0;
-		info->rect.x = 0;
-		info->rect.y = 0;
-		info->rect.width = w;
-		info->rect.height = h;
-		info->available_rect = info->rect;
+		FillDesktopScreenRects(&info->rect, &info->available_rect);
 		return 1;
 	}
 
