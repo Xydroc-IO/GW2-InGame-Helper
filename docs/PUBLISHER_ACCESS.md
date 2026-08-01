@@ -4,8 +4,6 @@ This note is for site operators (Snow Crows, Guildjen, MetaBattle, etc.) who wan
 **allow**, **deny**, or **treat differently** traffic from the Guild Wars 2 addon
 [GW2 In-Game Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper).
 
-You can share this file as-is.
-
 ---
 
 ## What the addon is
