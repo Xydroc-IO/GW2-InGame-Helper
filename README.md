@@ -137,6 +137,10 @@ Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/R
 
 ## What’s new in 2.0.2.8
 
+- **World Events:** Toolbar **Events** — UTC world/boss/meta timers with optional API
+  claim marks
+- **Tekkit's Guides:** Toolbar **Tekkit** — local `.taco` pathing with read-only
+  MumbleLink compass + world trail overlays (display only)
 - **OSR screen metrics:** `GetScreenInfo` reports the real desktop / work area while
   `GetViewRect` stays the ImGui panel size — so pages see a normal monitor for
   `screen.width` / `screen.height` instead of the tiny overlay (helps ad impression

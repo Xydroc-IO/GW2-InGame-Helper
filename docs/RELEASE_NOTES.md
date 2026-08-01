@@ -32,6 +32,12 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ## What’s new in 2.0.2.8
 
+- **World Events:** Toolbar **Events** — UTC timers for bosses / metas / other world
+  schedules; optional API claim marks; searchable sections (invasions / festivals /
+  fractals stay collapsed until opened or tracked)
+- **Tekkit's Guides:** Toolbar **Tekkit** — load Tekkit’s All-In-One `.taco` from
+  `addons/GW2-InGame-Helper/pathing/` (© Tekkit's Workshop, used with permission);
+  read-only MumbleLink compass trails + in-world GPS overlays (display only, no automation)
 - **OSR screen metrics:** `GetScreenInfo` now fills `rect` / `available_rect` from the
   real primary monitor and Windows work area (`GetSystemMetrics` /
   `SPI_GETWORKAREA`). `GetViewRect` remains the ImGui overlay size. Keeps
