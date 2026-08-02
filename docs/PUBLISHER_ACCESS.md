@@ -193,12 +193,3 @@ If logs show Chrome 150 **without** the token, the player is on an older helper 
 [GitHub Releases](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases), or contact the maintainer below.
 
 ---
-
-## Short blurb you can paste to partners
-
-> GW2 In-Game Helper is a Nexus overlay browser for Guild Wars 2 (embedded Chromium).
-> Builds identify with User-Agent product token **`GW2-InGame-Helper`**.
-> To block the in-game client, deny requests whose User-Agent contains that string
-> (Cloudflare / nginx / Apache examples:
-> https://github.com/Xydroc-IO/GW2-InGame-Helper/blob/master/docs/PUBLISHER_ACCESS.md ).
-> Players can still use Open Ext / a normal browser. We do not strip publisher ads by default.
