@@ -124,7 +124,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [Fast Farming Community](https://fast.farming-community.eu/) | Guides |
 | Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
 
-Add more sites in `data/sites.json` (`make gen-sites validate-sites`). Hardstuck and Discretize are intentionally omitted (outdated).
+Add more sites in `data/sites.json` (`make validate-sites`). Hardstuck and Discretize are intentionally omitted (outdated).
 Replaces the older Wiki browser addons.
 Works on Windows and on Linux via Wine/Proton.
 
@@ -301,14 +301,16 @@ cmake --build build -j"$(nproc)"
 
 ## Adding another site
 
-Edit `data/sites.json` (keep categories contiguous), then:
+Edit `data/sites.json` (keep categories contiguous; schema **v2**), then:
 
 ```bash
-make gen-sites
 make validate-sites
+make
 ```
 
-Commit both `data/sites.json` and generated `src/Sites.gen.cpp`.
+Commit `data/sites.json`. The DLL embeds and extracts it to
+`addons/GW2-InGame-Helper-Beta/sites.json` — you can edit that runtime file
+and restart GW2 without rebuilding. Optional `browsePath` nests the row in Browse.
 
 Example entry shape:
 
@@ -320,12 +322,12 @@ Example entry shape:
   "title": "Example",
   "homeUrl": "https://example.invalid/",
   "searchUrlPrefix": null,
-  "searchUrlSuffix": null
+  "searchUrlSuffix": null,
+  "browsePath": ["Raids"]
 }
 ```
 
-For Browse section headers (sub-groups within a category), map the new `id` in `BrowseSection()` /
-`BrowseSectionsForCategory()` in `src/UI_Browse.cpp`.
+For nested Browse headers, set `browsePath` (and keep `browseSections` for the category ordered).
 
 For search bars, set `searchUrlPrefix` / `searchUrlSuffix` so a query becomes `prefix + urlencode(query) + suffix`.
 
@@ -418,7 +420,7 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
    Twitch does the same — official CEF builds omit the H.264 / AAC codecs its player needs (Error #4000).
 6. Chromium profile / cache lives under `%LOCALAPPDATA%\GW2-InGame-Helper\cef-cache` (not under `addons`).
 7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
-8. Site list lives in `data/sites.json` → `Sites.gen.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets*_Data.cpp`.
+8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); built-in sheets in `RaidFood.cpp` / `CheatSheets*_Data.cpp`.
 
 Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 Architecture / design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).

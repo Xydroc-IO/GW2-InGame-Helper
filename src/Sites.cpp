@@ -1,4 +1,5 @@
 #include "Sites.h"
+#include "SitesInternal.h"
 
 #include "Settings.h"
 #include "WikiBrowser.h"
@@ -11,10 +12,8 @@
 #include <unordered_map>
 #include <vector>
 
-/* Catalog table lives in Sites.gen.cpp (from data/sites.json).
-   Edit data/sites.json then: make gen-sites && make validate-sites */
-extern SiteDef gSites[];
-extern const int kSiteCount;
+using SitesDetail::gSites;
+using SitesDetail::gSiteCount;
 
 namespace
 {
@@ -24,6 +23,11 @@ namespace
 	const char* gCategories[kMaxCategories] = {};
 	int gCategoryCounts[kMaxCategories] = {};
 	int gCategoryCount = -1;
+
+	void ResetCategoryCache()
+	{
+		gCategoryCount = -1;
+	}
 
 	constexpr int kMaxFavorites = 48;
 	char gFavoriteIds[kMaxFavorites][64] = {};
@@ -35,9 +39,11 @@ namespace
 		if (gCategoryCount >= 0)
 			return;
 		gCategoryCount = 0;
+		if (!gSites || gSiteCount <= 0)
+			return;
 		const char* last = nullptr;
 		int lastIdx = -1;
-		for (int i = 0; i < kSiteCount && gCategoryCount < kMaxCategories; ++i)
+		for (int i = 0; i < gSiteCount && gCategoryCount < kMaxCategories; ++i)
 		{
 			const char* cat = gSites[i].category ? gSites[i].category : "";
 			if (!last || std::strcmp(last, cat) != 0)
@@ -83,13 +89,18 @@ namespace
 const SiteDef* Sites::All(size_t* outCount)
 {
 	if (outCount)
-		*outCount = static_cast<size_t>(kSiteCount);
+		*outCount = static_cast<size_t>(gSiteCount > 0 ? gSiteCount : 0);
 	return gSites;
 }
 
 const SiteDef& Sites::Active()
 {
-	if (gActive < 0 || gActive >= kSiteCount)
+	if (!gSites || gSiteCount <= 0)
+	{
+		static SiteDef empty{};
+		return empty;
+	}
+	if (gActive < 0 || gActive >= gSiteCount)
 		gActive = 0;
 	return gSites[gActive];
 }
@@ -138,7 +149,7 @@ bool Sites::MatchesFilter(const SiteDef& site, const char* query)
 
 bool Sites::SetActiveIndex(int index)
 {
-	if (index < 0 || index >= kSiteCount || index == gActive)
+	if (!gSites || index < 0 || index >= gSiteCount || index == gActive)
 		return false;
 	gActive = index;
 	return true;
@@ -146,11 +157,11 @@ bool Sites::SetActiveIndex(int index)
 
 bool Sites::SetActiveById(const char* id)
 {
-	if (!id || !id[0])
+	if (!id || !id[0] || !gSites)
 		return false;
-	for (int i = 0; i < kSiteCount; ++i)
+	for (int i = 0; i < gSiteCount; ++i)
 	{
-		if (std::strcmp(gSites[i].id, id) == 0)
+		if (gSites[i].id && std::strcmp(gSites[i].id, id) == 0)
 		{
 			if (i == gActive)
 				return true;
@@ -209,9 +220,9 @@ std::string Sites::ResolveUrl(const SiteDef& site)
 
 int Sites::IndexOfId(const char* id)
 {
-	if (!id || !id[0])
+	if (!id || !id[0] || !gSites)
 		return -1;
-	for (int i = 0; i < kSiteCount; ++i)
+	for (int i = 0; i < gSiteCount; ++i)
 	{
 		if (gSites[i].id && std::strcmp(gSites[i].id, id) == 0)
 			return i;
@@ -266,6 +277,15 @@ namespace
 	bool gUrlKeysStarted = false;
 	int  gUrlKeysBuildIndex = 0;
 
+	void ResetUrlKeys()
+	{
+		gUrlKeysReady = false;
+		gUrlKeysStarted = false;
+		gUrlKeysBuildIndex = 0;
+		gUrlKeysByHost.clear();
+		gExactBuiltin.clear();
+	}
+
 	void FinalizeUrlKeys()
 	{
 		for (auto& kv : gUrlKeysByHost)
@@ -282,7 +302,7 @@ namespace
 	{
 		if (gUrlKeysStarted || gUrlKeysReady)
 			return;
-		if (kSiteCount > kMaxUrlKeys)
+		if (gSiteCount > kMaxUrlKeys)
 			return; /* catalog too large — leave URL index cold */
 		gUrlKeysByHost.clear();
 		gUrlKeysByHost.reserve(512);
@@ -297,10 +317,12 @@ namespace
 		if (gUrlKeysReady)
 			return;
 		StartUrlKeysBuild();
+		if (!gSites || gSiteCount <= 0)
+			return;
 		if (chunk < 1)
 			chunk = 1;
-		const int end = (gUrlKeysBuildIndex + chunk < kSiteCount)
-			? (gUrlKeysBuildIndex + chunk) : kSiteCount;
+		const int end = (gUrlKeysBuildIndex + chunk < gSiteCount)
+			? (gUrlKeysBuildIndex + chunk) : gSiteCount;
 		for (int i = gUrlKeysBuildIndex; i < end; ++i)
 		{
 			SiteUrlKey& k = gUrlKeys[i];
@@ -325,7 +347,7 @@ namespace
 				gUrlKeysByHost[k.host].push_back(i);
 		}
 		gUrlKeysBuildIndex = end;
-		if (gUrlKeysBuildIndex >= kSiteCount)
+		if (gUrlKeysBuildIndex >= gSiteCount)
 			FinalizeUrlKeys();
 	}
 
@@ -634,4 +656,26 @@ bool Sites::MoveFavorite(int fromSlot, int toSlot)
 	++gFavoriteGeneration;
 	Settings::SetDirty();
 	return true;
+}
+
+namespace
+{
+	void OnCatalogReloaded()
+	{
+		gActive = 0;
+		ResetCategoryCache();
+		ResetUrlKeys();
+	}
+}
+
+void Sites::Init()
+{
+	SitesDetail::LoadCatalog();
+	OnCatalogReloaded();
+}
+
+void Sites::Shutdown()
+{
+	SitesDetail::ClearCatalog();
+	OnCatalogReloaded();
 }

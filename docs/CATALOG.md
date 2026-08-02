@@ -2,8 +2,9 @@
 
 **Revision:** 2.1.0.2 · Total entries: **2,718**
 
-Source of truth: `data/sites.json` (generated into `src/Sites.gen.cpp`; runtime in `src/Sites.cpp`).
-Browse section headers: `src/UI_Browse.cpp`.
+Source of truth: `data/sites.json` (schema v2 with `browsePath` / `browseSections`).
+At runtime the DLL extracts it to `addons/<addon-name>/sites.json` (`Sites::Init` / `SitesLoad.cpp`).
+Browse UI walks `browsePath` in `src/UI_Browse.cpp` — no C++ hierarchy tables.
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 
 ## Help

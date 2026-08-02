@@ -4,11 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-echo "==> CI: validate-sites"
+echo "==> CI: validate-sites (schema v2)"
 make validate-sites
-
-echo "==> CI: check-sites (Sites.gen.cpp matches data/sites.json)"
-make check-sites
 
 echo "==> CI: CSS downlevel unit test"
 python3 tools/test_css_downlevel.py

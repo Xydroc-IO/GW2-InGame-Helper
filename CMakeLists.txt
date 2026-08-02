@@ -31,7 +31,7 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/Settings.cpp
   src/AddonPaths.cpp
   src/Sites.cpp
-	src/Sites.gen.cpp
+  src/SitesLoad.cpp
   src/BrowserTabs.cpp
   src/HomePage.cpp
   src/RaidFood.cpp

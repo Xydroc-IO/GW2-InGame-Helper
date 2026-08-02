@@ -84,27 +84,27 @@ git config core.hooksPath .githooks
 | Target | Sources |
 |--------|---------|
 | `GW2HelperBrowser.exe` | `src/helper/*.cpp` against `deps/cef` **150** headers |
-| Host DLL | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob (+ `Sites.gen.cpp`) |
+| Host DLL | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob + embedded `sites.json` |
 
-### Browse catalog (data → C++)
+### Browse catalog (runtime JSON)
 
 ```bash
-# edit data/sites.json, then:
-make gen-sites
+# edit data/sites.json (schema v2), then:
 make validate-sites
-make check-sites
+make   # embeds catalog into the DLL
 ```
 
-Canonical catalog is `data/sites.json`. Do not hand-edit `src/Sites.gen.cpp`.
+Canonical catalog is `data/sites.json`. At runtime it is extracted to
+`addons/<addon-name>/sites.json` (edit there for no-rebuild tweaks; restart GW2).
 
 Player install layout:
 
 ```text
-addons/GW2-InGame-Helper.dll   # only file players copy (shipping)
-addons/GW2-InGame-Helper/      # runtime data + cef/ after first open
+addons/GW2-InGame-Helper-Beta.dll   # only file players copy (Beta)
+addons/GW2-InGame-Helper-Beta/      # runtime data + sites.json + cef/ after first open
 ```
 
-On the Beta branch, install names use `GW2-InGame-Helper-Beta` (see [`../CONTRIBUTING.md`](../CONTRIBUTING.md)).
+See [`../CONTRIBUTING.md`](../CONTRIBUTING.md) for shipping vs Beta channels.
 
 Runtime CEF is **not** embedded in the DLL. First helper open downloads it into
 the addon data folder. Do **not** use or write game `bin64/cef`.

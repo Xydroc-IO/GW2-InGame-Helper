@@ -45,9 +45,21 @@ namespace
 		return v;
 	}
 
-	/* Saved multi-monitor coords can leave the helper off-screen after a
-	   display change — looks like "addon won't open". Pull it back on-screen. */
-	bool gForceHelperOnScreen = false;
+	/* Frame/input state for UI_Render + WndProc helpers. Single instance;
+	   Nexus render/input path only — not shared with worker threads. */
+	struct UiContext
+	{
+		bool forceHelperOnScreen = false;
+		bool browserFocused = false;
+		bool overBrowserPage = false; /* pointer over OSR page — keys belong to CEF */
+		bool blockGameKeyboard = false;
+		bool blockGameMouse = false;
+		bool wikiRectValid = false;
+		ImVec2 wikiMin{};
+		ImVec2 wikiMax{};
+		bool pendingDefocus = false;
+	};
+	UiContext gUi;
 
 	bool HelperGeomOffscreen(float dispW, float dispH)
 	{
@@ -87,12 +99,12 @@ namespace
 			changed = true;
 		}
 
-		if (HelperGeomOffscreen(dw, dh) || gForceHelperOnScreen)
+		if (HelperGeomOffscreen(dw, dh) || gUi.forceHelperOnScreen)
 		{
 			G::WindowPosX = Clampf(dw * 0.08f, 24.f, dw - 120.f);
 			G::WindowPosY = Clampf(dh * 0.10f, 24.f, dh - 120.f);
 			G::HasSavedPos = true;
-			gForceHelperOnScreen = true;
+			gUi.forceHelperOnScreen = true;
 			changed = true;
 		}
 		else
@@ -109,15 +121,6 @@ namespace
 		if (changed)
 			Settings::SetDirty();
 	}
-
-	bool gBrowserFocused = false;
-	bool gOverBrowserPage = false; /* pointer over OSR page — keys belong to CEF */
-	bool gBlockGameKeyboard = false;
-	bool gBlockGameMouse = false;
-	bool gWikiRectValid = false;
-	ImVec2 gWikiMin{};
-	ImVec2 gWikiMax{};
-	bool gPendingDefocus = false;
 
 	const ImVec4& kGold = HelperTheme::Gold;
 	const ImVec4& kGoldBright = HelperTheme::GoldBright;
@@ -155,25 +158,25 @@ namespace
 
 	void BlurBrowser()
 	{
-		if (!gBrowserFocused)
+		if (!gUi.browserFocused)
 			return;
-		gBrowserFocused = false;
-		/* Do not clear gOverBrowserPage here — the render loop owns hover state.
+		gUi.browserFocused = false;
+		/* Do not clear gUi.overBrowserPage here — the render loop owns hover state.
 		   Clearing it stole CEF focus while keys still reached the page (no caret). */
 		WikiBrowser::FeedFocus(false);
 	}
 
 	void FocusBrowser()
 	{
-		if (gBrowserFocused)
+		if (gUi.browserFocused)
 			return;
-		gBrowserFocused = true;
+		gUi.browserFocused = true;
 		WikiBrowser::FeedFocus(true);
 	}
 
 	void FocusBrowserForce()
 	{
-		gBrowserFocused = true;
+		gUi.browserFocused = true;
 		WikiBrowser::FeedFocus(true);
 	}
 
@@ -285,8 +288,8 @@ namespace
 
 		if (padsHover || sHelperPopupHovered || sComboLatch || overCombo)
 		{
-			gBlockGameMouse = true;
-			gBlockGameKeyboard = true;
+			gUi.blockGameMouse = true;
+			gUi.blockGameKeyboard = true;
 			ImGui::CaptureMouseFromApp(true);
 			if (ImGui::GetIO().WantTextInput)
 				ImGui::CaptureKeyboardFromApp(true);
@@ -748,38 +751,38 @@ void UI_NoteHelperPopupHover()
 
 bool UI_BlocksGameKeyboard()
 {
-	return gBlockGameKeyboard;
+	return gUi.blockGameKeyboard;
 }
 
 /* True while keystrokes should go to the CEF page (not ImGui filter/search/find). */
 bool UI_BrowserKeyboardActive()
 {
-	/* Pointer must be on the OSR page — sticky gBrowserFocused alone stole
+	/* Pointer must be on the OSR page — sticky gUi.browserFocused alone stole
 	   Browse/Find typing and game chat after leaving the page. */
-	return G::ShowWiki && gOverBrowserPage;
+	return G::ShowWiki && gUi.overBrowserPage;
 }
 
 
 bool UI_BlocksGameMouse()
 {
-	return gBlockGameMouse;
+	return gUi.blockGameMouse;
 }
 
 bool UI_IsPointerOverWiki(int clientX, int clientY)
 {
-	if (!G::ShowWiki || !gWikiRectValid)
+	if (!G::ShowWiki || !gUi.wikiRectValid)
 		return false;
 	const float x = static_cast<float>(clientX);
 	const float y = static_cast<float>(clientY);
-	return x >= gWikiMin.x && y >= gWikiMin.y && x < gWikiMax.x && y < gWikiMax.y;
+	return x >= gUi.wikiMin.x && y >= gUi.wikiMin.y && x < gUi.wikiMax.x && y < gUi.wikiMax.y;
 }
 
 void UI_ReleaseGameInput()
 {
 	BlurBrowser();
-	gBlockGameMouse = false;
-	gBlockGameKeyboard = false;
-	gPendingDefocus = true;
+	gUi.blockGameMouse = false;
+	gUi.blockGameKeyboard = false;
+	gUi.pendingDefocus = true;
 	UI_ResetKeyRouting();
 }
 
@@ -797,15 +800,15 @@ void UI_Render()
 	else if (!Sites::UrlKeysReady())
 		Sites::TickWarmUrlKeys(16);
 
-	gBlockGameKeyboard = false;
-	gBlockGameMouse = false;
-	gOverBrowserPage = false;
-	gWikiRectValid = false;
+	gUi.blockGameKeyboard = false;
+	gUi.blockGameMouse = false;
+	gUi.overBrowserPage = false;
+	gUi.wikiRectValid = false;
 	sHelperPopupHovered = false;
 
-	if (gPendingDefocus)
+	if (gUi.pendingDefocus)
 	{
-		gPendingDefocus = false;
+		gUi.pendingDefocus = false;
 		ImGui::SetWindowFocus(nullptr);
 	}
 
@@ -847,7 +850,7 @@ void UI_Render()
 
 	if (!sWasOpen)
 	{
-		gForceHelperOnScreen = true; /* always verify visible on each open */
+		gUi.forceHelperOnScreen = true; /* always verify visible on each open */
 		BrowserTabs::NavigateActive();
 		sWasOpen = true;
 	}
@@ -865,13 +868,13 @@ void UI_Render()
 		}
 	}
 	ClampHelperGeomToDisplay();
-	const ImGuiCond geomCond = gForceHelperOnScreen ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+	const ImGuiCond geomCond = gUi.forceHelperOnScreen ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
 	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), geomCond);
 	ImGui::SetNextWindowPos(ImVec2(G::WindowPosX, G::WindowPosY), geomCond);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gForceHelperOnScreen)
+	if (gUi.forceHelperOnScreen)
 		ImGui::SetNextWindowFocus();
-	gForceHelperOnScreen = false;
+	gUi.forceHelperOnScreen = false;
 
 	PushWikiTheme();
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, G::Opacity);
@@ -885,16 +888,16 @@ void UI_Render()
 		   but keep the process alive so expand does not hitch. */
 		const ImVec2 pos = ImGui::GetWindowPos();
 		const ImVec2 winSize = ImGui::GetWindowSize();
-		gWikiMin = pos;
-		gWikiMax = ImVec2(pos.x + winSize.x, pos.y + winSize.y);
-		gWikiRectValid = true;
+		gUi.wikiMin = pos;
+		gUi.wikiMax = ImVec2(pos.x + winSize.x, pos.y + winSize.y);
+		gUi.wikiRectValid = true;
 		BlurBrowser();
 		WikiBrowser::SetVisible(false, /*keepProcessAlive=*/true);
 		const bool mouseOver =
 			ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		gBlockGameMouse = mouseOver;
+		gUi.blockGameMouse = mouseOver;
 		/* Collapsed bar: only eat keys while the pointer is on it. */
-		gBlockGameKeyboard = mouseOver;
+		gUi.blockGameKeyboard = mouseOver;
 		if (mouseOver)
 		{
 			ImGui::GetIO().WantCaptureMouse = true;
@@ -1201,9 +1204,9 @@ void UI_Render()
 
 	const ImVec2 pos = ImGui::GetWindowPos();
 	const ImVec2 winSize = ImGui::GetWindowSize();
-	gWikiMin = pos;
-	gWikiMax = ImVec2(pos.x + winSize.x, pos.y + winSize.y);
-	gWikiRectValid = true;
+	gUi.wikiMin = pos;
+	gUi.wikiMax = ImVec2(pos.x + winSize.x, pos.y + winSize.y);
+	gUi.wikiRectValid = true;
 
 	const bool mouseOverWiki = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
@@ -1212,8 +1215,8 @@ void UI_Render()
 	   and stole keyboard from the library search field. */
 	const bool mouseOverHelperUi = mouseOverWiki || sHelperPopupHovered;
 
-	gOverBrowserPage = overPage;
-	gBlockGameMouse = G::ShowWiki && mouseOverHelperUi;
+	gUi.overBrowserPage = overPage;
+	gUi.blockGameMouse = G::ShowWiki && mouseOverHelperUi;
 
 	/* Snapshot ImGui's own text-input flag BEFORE we adjust capture for CEF.
 	   Never force WantTextInput=false — that broke Browse/Find typing and also
@@ -1238,7 +1241,7 @@ void UI_Render()
 		BlurBrowser(); /* Find/filter/etc. active — release CEF caret/focus */
 	sWasPointerOnHelper = mouseOverHelperUi;
 
-	gBlockGameKeyboard = G::ShowWiki && mouseOverHelperUi;
+	gUi.blockGameKeyboard = G::ShowWiki && mouseOverHelperUi;
 
 	if (overPage)
 	{
@@ -1253,13 +1256,13 @@ void UI_Render()
 		ImGui::CaptureKeyboardFromApp(true);
 	}
 
-	if (gBlockGameMouse)
+	if (gUi.blockGameMouse)
 	{
 		io.WantCaptureMouse = true;
 		/* Sticky for next NewFrame — Nexus UiInput gates game clicks on this flag. */
 		ImGui::CaptureMouseFromApp(true);
 	}
-	if (gBlockGameKeyboard)
+	if (gUi.blockGameKeyboard)
 	{
 		io.WantCaptureKeyboard = true;
 		ImGui::CaptureKeyboardFromApp(true);

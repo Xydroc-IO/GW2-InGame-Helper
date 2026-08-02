@@ -22,13 +22,15 @@ HOME_LOGO_SRC  = build/home_logo.png
 HOME_COVER_SRC = build/home_cover.jpg
 HOME_LOGO_OBJ  = build/home_logo.o
 HOME_COVER_OBJ = build/home_cover.o
+SITES_JSON_SRC = build/sites.json
+SITES_JSON_OBJ = build/sites_json.o
 
 DLL_SRC = \
 	src/entry.cpp \
 	src/Settings.cpp \
 	src/AddonPaths.cpp \
 	src/Sites.cpp \
-	src/Sites.gen.cpp \
+	src/SitesLoad.cpp \
 	src/BrowserTabs.cpp \
 	src/HomePage.cpp \
 	src/RaidFood.cpp \
@@ -89,23 +91,18 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper-Beta
 
-.PHONY: all clean install install-reset validate-sites gen-sites check-sites test-css test-parse test-ipc ci pack-cef
+.PHONY: all clean install install-reset validate-sites enrich-sites test-css test-parse test-ipc ci pack-cef
 
 all: $(DLL_OUT)
 
 SITES_JSON   = data/sites.json
-SITES_GEN    = src/Sites.gen.cpp
-
-gen-sites: $(SITES_GEN)
-
-$(SITES_GEN): $(SITES_JSON) tools/gen_sites_cpp.py
-	python3 tools/gen_sites_cpp.py $(SITES_JSON) $(SITES_GEN)
 
 validate-sites:
 	python3 tools/validate_sites.py $(SITES_JSON)
 
-check-sites: $(SITES_GEN)
-	python3 tools/gen_sites_cpp.py $(SITES_JSON) $(SITES_GEN) --check
+# Re-stamp browsePath / browseSections from hierarchy rules (dev tool).
+enrich-sites:
+	python3 tools/enrich_sites_browse.py $(SITES_JSON)
 	python3 tools/validate_sites.py $(SITES_JSON)
 
 test-css:
@@ -168,10 +165,18 @@ $(HOME_COVER_OBJ): $(HOME_COVER_SRC)
 	cd build && $(LD) -r -b binary -o home_cover.o home_cover.jpg
 	@echo "Embedded home cover $@"
 
-$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ)
+$(SITES_JSON_SRC): $(SITES_JSON)
 	@mkdir -p $(dir $@)
-	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(LIBS_DLL)
-	@echo "Built $@ (CEF helper + homepage assets embedded)"
+	/bin/cp -f $< $@
+
+$(SITES_JSON_OBJ): $(SITES_JSON_SRC)
+	$(LD) -r -b binary -o $@ $(SITES_JSON_SRC)
+	@echo "Embedded sites catalog $@"
+
+$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ)
+	@mkdir -p $(dir $@)
+	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LIBS_DLL)
+	@echo "Built $@ (CEF helper + homepage + sites.json embedded)"
 
 build/%.o: %.cpp
 	@mkdir -p $(dir $@)

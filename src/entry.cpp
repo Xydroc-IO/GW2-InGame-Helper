@@ -729,6 +729,7 @@ static void AddonLoad(AddonAPI_t* api)
 	G::ShowTekkitGuides = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
+	Sites::Init();
 	WikiBrowser::Init();
 
 	api->GUI_Register(RT_Render, UI_Render);
@@ -767,6 +768,7 @@ static void AddonUnload()
 
 	HelperQuickAccess::Shutdown();
 	WikiBrowser::Shutdown();
+	Sites::Shutdown();
 	TekkitTrails::Shutdown();
 
 	NotesPad::Save(true);

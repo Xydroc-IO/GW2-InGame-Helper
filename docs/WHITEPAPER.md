@@ -455,7 +455,7 @@ Critics correctly note IPC rigidity, CPU upload cost, and sandbox gaps. Those ar
 | `src/helper/main.cpp` + `HelperNavPolicy` / `HelperOsrRender` | CEF client, nav/ad policy, OSR |
 | `src/WikiIpc.h` | Shared contract |
 | `src/CefRuntime.*` | Download / verify / extract |
-| `data/sites.json` → `Sites.gen.cpp` + `Sites.cpp` | Catalog + runtime |
+| `data/sites.json` → runtime `sites.json` + `Sites.cpp` / `SitesLoad.cpp` | Catalog |
 | `LogManager*` / `Tekkit*` / `LivePanels*` | Feature modules (split TUs) |
 | `src/helper/BootJs.h` | Injected page logic |
 | `scripts/pack-cef-runtime.sh` | Rehost stock CEF |

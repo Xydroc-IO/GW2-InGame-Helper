@@ -23,7 +23,7 @@ Do **not** enable both DLLs under Nexus at once (identical signature `HELP`). Pr
 | Zone | Casual edits | Extra rules |
 |------|--------------|-------------|
 | Pads (`*Pad.cpp`, `*Data.cpp`) | Yes | Prefer in-window chips/radios over ImGui popup combos |
-| Catalog (`data/sites.json`) | Yes | `make gen-sites validate-sites` required |
+| Catalog (`data/sites.json`) | Yes | `make validate-sites` required; schema v2 + `browsePath` |
 | LivePanels / CheatSheets HTML builders | Careful | No secrets in HTML; bump panel/sheet versions when caching |
 | `WikiBrowser` / `WikiIpc` / `helper/*` | **Restricted** | Follow [`docs/KERNEL.md`](docs/KERNEL.md); stamp bump + coordinated DLL+helper; pair review |
 | `entry.cpp` WndProc / mouse capture | **Restricted** | Autorun / focus regressions — test in GW2 |
@@ -52,12 +52,13 @@ git config core.hooksPath .githooks
 
 Full Guild Wars 2 **restart** is required after DLL updates (`AF_DisableHotloading`).
 
-Catalog workflow:
+Catalog workflow (Beta — runtime JSON):
 
-1. Edit `data/sites.json` (contiguous categories; unique ids).
-2. `make gen-sites validate-sites`.
-3. Commit **both** `data/sites.json` and `src/Sites.gen.cpp`.
-4. Map Browse subsection headers in `src/UI_Browse.cpp` when adding sectioned categories.
+1. Edit `data/sites.json` (schema v2; contiguous categories; unique ids).
+2. Set optional `browsePath` (e.g. `["Raids", "Raid Boss", "W9 …"]`) and keep `browseSections` ordered lists in sync.
+3. `make validate-sites`.
+4. Commit `data/sites.json`. Rebuild embeds it; installs extract to `addons/GW2-InGame-Helper-Beta/sites.json`.
+5. For a local no-rebuild tweak: edit the extracted file under the addon data folder, then fully restart GW2.
 
 Parse fixtures (update when changing EI/dps.report JSON or `.trl` layout):
 
@@ -70,9 +71,9 @@ make test-parse
 
 ## 4. Pull-request checklist
 
-- [ ] Ran `make ci` (or at least `validate-sites` / `check-sites` for catalog edits).
+- [ ] Ran `make ci` (or at least `validate-sites` for catalog edits).
 - [ ] Branch is intentional (`master` vs Beta).
-- [ ] Touched Sites? Ran `make validate-sites` / `check-sites`.
+- [ ] Touched Sites? Ran `make validate-sites`.
 - [ ] Touched helper or IPC? Bumped `kHelperStamp` (and home stamp if needed); both sides of `WikiIpc.h` agree.
 - [ ] Touched input / WndProc / pad hover capture? Tested in-client (keys, mouse, autorun).
 - [ ] No game memory, Present hooks, or writes into `bin64/cef` ([`COMPLIANCE.md`](docs/COMPLIANCE.md)).

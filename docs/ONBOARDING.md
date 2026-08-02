@@ -22,11 +22,11 @@ This guide assumes the **`GW2-InGame-Helper-Beta`** branch (experimental / takeo
 
 ## Day 2 — Catalog and pads
 
-1. Read `data/sites.json` schema + `make gen-sites` / `validate-sites`.
-2. Trace one pad: e.g. `NotesPad` or `WalletPad` → `UI.cpp` toolbar button → settings flag in `Globals.h` / `Settings.cpp`.
-3. Make a trivial safe change (tooltip string); rebuild; verify in-game.
+1. Read `data/sites.json` (schema **v2**: `browsePath`, `browseSections`) + `make validate-sites`.
+2. Runtime catalog lives in `addons/GW2-InGame-Helper-Beta/sites.json` (extracted from the DLL). Edit that file and fully restart GW2 to change Browse without rebuilding; keep `data/sites.json` in git as the source of truth for releases.
+3. Trace one pad: e.g. `NotesPad` or `WalletPad` → `UI.cpp` toolbar button → settings flag in `Globals.h` / `Settings.cpp`.
 
-**Done when:** you can add a Browse entry and find where a pad is toggled.
+**Done when:** you can add a Browse entry via JSON and find where a pad is toggled.
 
 ---
 

@@ -47,17 +47,17 @@ GW2 In-Game Helper — where to find what.
 | Doc | Purpose |
 |-----|---------|
 | [`CATALOG.md`](CATALOG.md) | Browse outline by category / section |
-| `data/sites.json` | **Canonical** registry (codegen → `src/Sites.gen.cpp`) |
+| `data/sites.json` | **Canonical** registry (schema v2; embedded → runtime `addons/…/sites.json`) |
 
-After editing sites or Browse section maps:
+After editing the catalog:
 
 ```bash
-make gen-sites
 make validate-sites
-make check-sites
+# optional: re-derive browsePath from legacy rules
+make enrich-sites
 ```
 
-Browse subsection headers live in `src/UI_Browse.cpp` (`BrowseSection` / `BrowseSectionsForCategory`).
+Browse hierarchy is data-driven (`browsePath` / `browseSections`). Runtime file: `addons/<addon>/sites.json`.
 
 ---
 

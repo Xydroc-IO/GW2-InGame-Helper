@@ -171,10 +171,10 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 
 | Path | Responsibility |
 |------|----------------|
-| `data/sites.json` | **Canonical** Browse registry |
-| `src/Sites.gen.cpp` | Generated `gSites[]` (`make gen-sites`) |
-| `src/Sites.cpp` | Runtime: active site, favorites, URL match |
-| `tools/gen_sites_cpp.py` / `validate_sites.py` | Codegen + integrity checks |
+| `data/sites.json` | **Canonical** Browse registry (schema v2) |
+| `src/SitesLoad.cpp` | Extract/parse runtime `addons/…/sites.json` |
+| `src/Sites.cpp` | Active site, favorites, URL match |
+| `tools/validate_sites.py` / `enrich_sites_browse.py` | Integrity + hierarchy enrichment |
 
 ### Feature modules (pads / data)
 

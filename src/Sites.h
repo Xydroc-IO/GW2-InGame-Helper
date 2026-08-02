@@ -3,13 +3,10 @@
 #include <cstddef>
 #include <string>
 
-/* One entry per site the helper can open. Canonical catalog: data/sites.json
-   → src/Sites.gen.cpp (make gen-sites). Keep sites grouped by category
-   (same category string, contiguous order).
-   Map Browse sub-section headers in UI.cpp / UI_Browse.cpp
-   (BrowseSection / BrowseSectionsForCategory).
-   Legendary Armory ids use wiki_l* prefixes; ordinary upgrades use wiki_relic_/wiki_rune_/wiki_sigil_.
-   Run: make validate-sites after edits. */
+/* One entry per site the helper can open.
+   Canonical catalog: data/sites.json (git) → extracted at runtime to
+   addons/<ADDON_NAME>/sites.json (schema v2 + browsePath / browseSections).
+   Keep sites grouped by category (contiguous). Run: make validate-sites. */
 struct SiteDef
 {
 	const char* id;              /* stable settings key, e.g. "wiki" */
@@ -19,10 +16,18 @@ struct SiteDef
 	const char* homeUrl;         /* Home button + initial load */
 	const char* searchUrlPrefix; /* nullptr = Search just opens home */
 	const char* searchUrlSuffix; /* appended after UrlEncode(query) */
+	/* Browse hierarchy under category (may be empty). Owned by Sites catalog. */
+	const char* const* browsePath;
+	int browsePathCount;
 };
 
 namespace Sites
 {
+	/* Extract default catalog if needed, then parse DataDir/sites.json.
+	   Soft-fails to a minimal in-memory home entry. */
+	void Init();
+	void Shutdown();
+
 	const SiteDef* All(size_t* outCount);
 	const SiteDef& Active();
 	int            ActiveIndex();
@@ -30,6 +35,9 @@ namespace Sites
 
 	/* Unique category names in registry order. Pointers into SiteDef::category. */
 	const char* const* Categories(size_t* outCount);
+
+	/* Ordered Browse section titles for a category (from browseSections). */
+	const char* const* BrowseSections(const char* category, size_t* outCount);
 
 	/* How many sites belong to category (exact string match). */
 	int CountInCategory(const char* category);
