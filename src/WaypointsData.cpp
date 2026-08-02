@@ -19,7 +19,7 @@
 
 namespace
 {
-	constexpr const char* kCacheVer = "3";
+	constexpr const char* kCacheVer = "4";
 	constexpr DWORD kCacheTtlMs = 7u * 24u * 60u * 60u * 1000u;
 	constexpr int kFloorTimeoutMs = 60000;
 
@@ -30,6 +30,7 @@ namespace
 	std::atomic<bool> gBusy{false};
 	std::atomic<bool> gReady{false};
 	std::atomic<bool> gPendingReady{false};
+	std::atomic<bool> gSkipCache{false};
 	std::vector<WaypointsData::Poi> gPendingPois;
 	std::vector<WaypointsData::MapRow> gPendingMaps;
 	std::string gPendingStatus;
@@ -385,7 +386,8 @@ namespace
 
 			if (mapId > 0 && !mapName.empty())
 			{
-				size_t pp = poisObj;
+				/* Skip the container '{' so we iterate each nested POI object. */
+				size_t pp = poisObj + 1;
 				while (pp < poisEnd)
 				{
 					size_t brace = body.find('{', pp);
@@ -418,8 +420,9 @@ namespace
 		std::vector<WaypointsData::Poi> pois;
 		std::vector<WaypointsData::MapRow> maps;
 		std::string status;
+		const bool skipCache = gSkipCache.exchange(false);
 
-		if (LoadCache(pois, maps))
+		if (!skipCache && LoadCache(pois, maps))
 		{
 			status = "Loaded " + std::to_string(pois.size()) + " POIs (cache).";
 		}
@@ -488,6 +491,12 @@ void WaypointsData::EnsureLoaded(bool force)
 		WaitForSingleObject(gThread, 0);
 		CloseHandle(gThread);
 		gThread = nullptr;
+	}
+	if (force)
+	{
+		gSkipCache = true;
+		gReady = false;
+		DeleteFileW(CachePath().c_str());
 	}
 	{
 		std::lock_guard<std::mutex> lock(gMu);
