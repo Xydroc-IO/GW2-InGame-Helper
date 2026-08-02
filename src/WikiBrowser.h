@@ -12,7 +12,10 @@ namespace WikiBrowser
 	/* Poll graceful helper quit + deferred work — call every RT_Render. */
 	void Tick();
 
-	void SetVisible(bool visible);
+	/* keepProcessAlive: mark CEF was_hidden without quitting the helper
+	   (collapsed / tiny / off-screen). Full close still uses keepProcessAlive=false
+	   so KeepHelperWarm controls whether the process exits. */
+	void SetVisible(bool visible, bool keepProcessAlive = false);
 	void SetBounds(float screenX, float screenY, float width, float height);
 
 	void Navigate(const std::string& url);

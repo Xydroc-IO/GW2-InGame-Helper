@@ -1414,7 +1414,7 @@ void WikiBrowser::Shutdown()
 	}
 }
 
-void WikiBrowser::SetVisible(bool visible)
+void WikiBrowser::SetVisible(bool visible, bool keepProcessAlive)
 {
 	if (!visible)
 	{
@@ -1423,15 +1423,20 @@ void WikiBrowser::SetVisible(bool visible)
 		/* Already hidden — do not PostCmd/Wake every RT_Render (KeepHelperWarm spam). */
 		if (!was)
 		{
-			if (!G::KeepHelperWarm && HelperAlive() && !gQuitPending.load())
+			if (!keepProcessAlive && !G::KeepHelperWarm && HelperAlive() && !gQuitPending.load())
 				RequestStopHelper();
 			return;
 		}
 		if (HelperAlive())
 			PostCmd(WIKI_CMD_SET_VISIBLE, "0");
-		if (G::KeepHelperWarm && HelperAlive() && !gQuitPending.load())
-			SetLocalStatus("Ready");
-		else if (!G::KeepHelperWarm)
+		/* Collapse / tiny / off-screen: was_hidden only — killing CEF here caused
+		   hitch-on-expand and was the old reason collapse skipped SetVisible. */
+		if (keepProcessAlive || G::KeepHelperWarm)
+		{
+			if (HelperAlive() && !gQuitPending.load())
+				SetLocalStatus(keepProcessAlive ? "Paused (not viewable)" : "Ready");
+		}
+		else
 			RequestStopHelper();
 		return;
 	}

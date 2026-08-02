@@ -2916,14 +2916,15 @@ void UI_Render()
 	if (!ImGui::Begin("In-Game Helper##GW2InGameHelper", &open,
 		ImGuiWindowFlags_NoNavInputs))
 	{
-		/* Collapsed title bar — keep the CEF helper alive (SetVisible(false)
-		   used to TerminateProcess and hitch on every expand). Still block
-		   clicks on the bar so they don't fire skills through it. */
+		/* Collapsed title bar — CEF must be was_hidden (0% viewability otherwise)
+		   but keep the process alive so expand does not hitch. */
 		const ImVec2 pos = ImGui::GetWindowPos();
 		const ImVec2 winSize = ImGui::GetWindowSize();
 		gWikiMin = pos;
 		gWikiMax = ImVec2(pos.x + winSize.x, pos.y + winSize.y);
 		gWikiRectValid = true;
+		BlurBrowser();
+		WikiBrowser::SetVisible(false, /*keepProcessAlive=*/true);
 		const bool mouseOver =
 			ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 		gBlockGameMouse = mouseOver;
@@ -3105,14 +3106,31 @@ void UI_Render()
 		ImGuiWindowFlags_NoNavInputs);
 
 	const ImVec2 imageSize = ImGui::GetContentRegionAvail();
-	if (G::ShowWiki && imageSize.x > 40.f && imageSize.y > 40.f)
+	const ImVec2 slotPos = ImGui::GetCursorScreenPos();
+	const ImGuiIO& dio = ImGui::GetIO();
+	const float dispW = dio.DisplaySize.x;
+	const float dispH = dio.DisplaySize.y;
+	/* Any overlap with the game display — fully off-screen is not viewable. */
+	const bool slotOnScreen =
+		dispW < 1.f || dispH < 1.f ||
+		(slotPos.x + imageSize.x > 0.f && slotPos.y + imageSize.y > 0.f &&
+			slotPos.x < dispW && slotPos.y < dispH);
+	const bool pageViewable =
+		G::ShowWiki && open && slotOnScreen &&
+		imageSize.x > 40.f && imageSize.y > 40.f &&
+		G::Opacity >= 0.20f;
+	if (pageViewable)
 	{
 		WikiBrowser::SetVisible(true);
 		WikiBrowser::SetBounds(0.f, 0.f, imageSize.x, imageSize.y);
 		WikiBrowser::PresentFrame();
 	}
 	else
-		WikiBrowser::SetVisible(false);
+	{
+		/* Keep process — window may still be open (tiny / off-screen / low opacity). */
+		BlurBrowser();
+		WikiBrowser::SetVisible(false, /*keepProcessAlive=*/true);
+	}
 
 	ImGuiIO& io = ImGui::GetIO();
 	bool overPage = false;
