@@ -258,26 +258,13 @@ namespace
 		*outY = y;
 	}
 
-	/* NitroPay (gw2efficiency etc.) gates slots with matchMedia min-width up to
-	   1840px / 1920px. OSR innerWidth is the ImGui panel, so a normal helper
-	   window never unlocks desktop rails. Render those hosts at a desktop-sized
-	   CEF view and scale into the panel (MapToCef already maps clicks). */
+	/* gw2efficiency NitroPay gates slots with matchMedia min-width up to 1840px.
+	   OSR innerWidth is the ImGui panel, so a normal helper window never unlocks
+	   desktop rails. Only this host needs a desktop-sized CEF view (scaled into
+	   the panel). Do not apply to Snow Crows / others — their ads already show. */
 	bool HostWantsDesktopAdViewport(const char* url)
 	{
-		if (!url || !url[0])
-			return false;
-		static const char* kHosts[] = {
-			"gw2efficiency.com",
-			"snowcrows.com",
-			"metabattle.com",
-			"guildjen.com",
-		};
-		for (const char* host : kHosts)
-		{
-			if (std::strstr(url, host))
-				return true;
-		}
-		return false;
+		return url && url[0] && std::strstr(url, "gw2efficiency.com") != nullptr;
 	}
 
 	void DesktopAdCefSize(float /*panelW*/, float panelH, float* outW, float* outH)

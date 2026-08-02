@@ -137,8 +137,8 @@ Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/R
 
 ## What’s new in 2.0.2.11
 
-- **Desktop ad viewport:** gw2efficiency / Snow Crows / MetaBattle / Guildjen render
-  at desktop CEF size so NitroPay desktop slots load; scaled to the helper panel
+- **gw2efficiency ads:** Desktop-sized CEF layout so NitroPay desktop slots load;
+  scaled to the helper panel (other sites unchanged)
 - Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.10
