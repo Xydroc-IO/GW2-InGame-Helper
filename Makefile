@@ -13,7 +13,8 @@ LDFLAGS_EXE  = -static -static-libgcc -static-libstdc++ -mwindows -municode -mcr
 LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt
 LIBS_EXE = -lgdi32 -lole32 -luuid -lshell32 -lwinhttp
 
-HELPER_SRC = src/helper/main.cpp src/helper/CssCompat.cpp src/helper/CssProxy.cpp
+HELPER_SRC = src/helper/main.cpp src/helper/HelperNavPolicy.cpp src/helper/HelperOsrRender.cpp \
+	src/helper/CssCompat.cpp src/helper/CssProxy.cpp
 HELPER_OUT = build/bin/GW2HelperBrowser.exe
 HELPER_BLOB_SRC = build/helper_blob.exe
 HELPER_BLOB_OBJ = build/helper_blob.o
@@ -61,6 +62,9 @@ DLL_SRC = \
 	src/WorldOverlay.cpp \
 	src/HelperQuickAccess.cpp \
 	src/WikiBrowser.cpp \
+	src/WikiBrowserHelper.cpp \
+	src/WikiBrowserIpc.cpp \
+	src/WikiBrowserPresent.cpp \
 	src/CefRuntime.cpp \
 	src/UI.cpp \
 	src/UI_Browse.cpp \
@@ -85,7 +89,7 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper-Beta
 
-.PHONY: all clean install install-reset validate-sites gen-sites check-sites test-css test-parse ci pack-cef
+.PHONY: all clean install install-reset validate-sites gen-sites check-sites test-css test-parse test-ipc ci pack-cef
 
 all: $(DLL_OUT)
 
@@ -109,14 +113,22 @@ test-css:
 
 # Host (Linux) parse golden tests — no Wine / GW2 required.
 TEST_PARSE_BIN = build/test_logmanager_parse
+TEST_IPC_BIN = build/test_wiki_ipc
 
 test-parse: $(TEST_PARSE_BIN)
 	./$(TEST_PARSE_BIN) tools/fixtures/ei_players_sample.json tools/fixtures/dpsreport_players_sample.json
 	python3 tools/test_trl_parse.py
 
+test-ipc: $(TEST_IPC_BIN)
+	./$(TEST_IPC_BIN)
+
 $(TEST_PARSE_BIN): tools/test_logmanager_parse.cpp src/LogManagerParse.cpp src/LogManagerParse.h
 	@mkdir -p build
 	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -o $@ tools/test_logmanager_parse.cpp src/LogManagerParse.cpp
+
+$(TEST_IPC_BIN): tools/test_wiki_ipc.cpp src/WikiIpc.h
+	@mkdir -p build
+	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -o $@ tools/test_wiki_ipc.cpp
 
 # Local continuous integration. Also used by .githooks/pre-push and GitHub Actions.
 ci:
@@ -125,7 +137,8 @@ ci:
 pack-cef:
 	bash scripts/pack-cef-runtime.sh
 
-$(HELPER_OUT): $(HELPER_SRC) src/WikiIpc.h src/helper/CssCompat.h src/helper/CssProxy.h src/helper/BootJs.h
+$(HELPER_OUT): $(HELPER_SRC) src/WikiIpc.h src/helper/HelperInternal.h \
+	src/helper/CssCompat.h src/helper/CssProxy.h src/helper/BootJs.h
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS_EXE) $(LDFLAGS_EXE) -o $@ $(HELPER_SRC) $(LIBS_EXE)
 	@echo "Built $@"

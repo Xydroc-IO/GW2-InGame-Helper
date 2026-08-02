@@ -125,7 +125,7 @@ Schema changes require bumping magic / coordinating DLL + helper; helper stamp f
 
 ## 6. CEF helper policy
 
-Stock `libcef.dll`; customization is **client-only** (`src/helper/main.cpp`, BootJs, CssCompat/CssProxy).
+Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, CssCompat/CssProxy).
 
 **Command-line (current):** software OSR (`disable-gpu*`, `disable-d3d11`, `in-process-gpu`), `no-sandbox`, process caps, Discord localhost RPC feature disables, file access for bundled HTML.
 
@@ -142,13 +142,22 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/main.cpp`, Boo
 
 ### Kernel (high blast radius — paired review)
 
+See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
+
 | Path | Responsibility |
 |------|----------------|
 | `src/entry.cpp` | Nexus load/unload, WndProc, version |
-| `src/WikiBrowser.cpp` | IPC host, extract/launch, present, Open Ext |
-| `src/WikiIpc.h` | Shared memory contract |
-| `src/helper/main.cpp` | CEF app, OSR, nav policy |
-| `src/helper/BootJs.h` / `CssCompat.*` / `CssProxy.*` | Injected JS / CSS downlevel |
+| `src/WikiBrowser.cpp` | Lifecycle, navigate/tabs/input, status |
+| `src/WikiBrowserHelper.cpp` | Extract, launch, IPC maps, Open Ext/Tab drains |
+| `src/WikiBrowserIpc.cpp` | Cmd/input rings, `about:` URL resolve |
+| `src/WikiBrowserPresent.cpp` | D3D11 present / frame getters |
+| `src/WikiBrowserShared.h` | Shared DLL host state |
+| `src/WikiIpc.h` | Shared memory contract (`HLI5`) |
+| `src/helper/main.cpp` | CEF boot, tabs, IPC drain, resource handlers |
+| `src/helper/HelperNavPolicy.cpp` | Nav / ad / Open Ext policy |
+| `src/helper/HelperOsrRender.cpp` | OSR paint + popup composite |
+| `src/helper/HelperInternal.h` | Shared helper state |
+| `src/helper/BootJs.h` / `CssCompat.*` / `CssProxy.*` | Injected JS / CSS filters |
 
 ### UI chrome
 

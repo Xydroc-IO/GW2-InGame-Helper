@@ -48,14 +48,14 @@ Run parse fixture tests: `make test-parse`.
 
 ## Day 4 — Restricted kernel (read-only)
 
-Read only; do not change yet:
+Read only; do not change yet without [`KERNEL.md`](KERNEL.md):
 
-- `WikiIpc.h` — packed IPC contract (`HLI5`)
-- `WikiBrowser.cpp` — extract, launch, present, Open Ext
-- `helper/main.cpp` — CEF OSR, nav/ad policy
+- `WikiIpc.h` — packed IPC contract (`HLI5`); `make test-ipc`
+- `WikiBrowser*.cpp` — extract/launch (`Helper`), present (`Present`), IPC rings (`Ipc`)
+- `helper/HelperNavPolicy.cpp` / `HelperOsrRender.cpp` / `main.cpp` — policy, OSR, boot
 - `entry.cpp` — WndProc / input ownership
 
-**Done when:** you can explain why Present hooks and game memory are forbidden, and why stamp bumps matter.
+**Done when:** you can name which TU owns present vs nav policy vs launch, and why stamp bumps matter.
 
 ---
 

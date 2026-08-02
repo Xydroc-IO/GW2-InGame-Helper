@@ -16,6 +16,9 @@ python3 tools/test_css_downlevel.py
 echo "==> CI: parse golden fixtures (LogManager + .trl)"
 make test-parse
 
+echo "==> CI: WikiIpc layout smoke"
+make test-ipc
+
 echo "==> CI: MinGW smoke build (DLL + embedded helper)"
 make -j"$(nproc)" all
 

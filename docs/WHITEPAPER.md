@@ -394,7 +394,7 @@ Memory safety tooling (ASan/TSan) cannot fully validate this stack: the DLL load
 5. **Stricter ad attribution:** prefer completing network click navigations before cancel/replace with landing-only Open Ext.
 6. Schema evolution aids (explicit IPC version negotiation beyond magic).
 7. **CI:** GitHub Actions on public pushes/PRs (`make ci` equivalent); local `make ci` / `.githooks/pre-push` for the same gate offline.
-8. **Further decomposition** of `WikiBrowser.cpp` and `helper/main.cpp` once fixture harnesses exist for present/IPC races.
+8. **Further decomposition** of remaining `helper/main.cpp` boot/IPC (nav + OSR already split on Beta).
 
 ### 15.1 Maintainability trajectory (2.1.x)
 
@@ -451,12 +451,12 @@ Critics correctly note IPC rigidity, CPU upload cost, and sandbox gaps. Those ar
 |------|------|
 | `src/entry.cpp` | Nexus entry, version, WndProc |
 | `src/UI.cpp` / `UI_Browse.cpp` / `UI_Options.cpp` | ImGui chrome, Browse, options |
-| `src/WikiBrowser.cpp` | IPC host, launch, present, Open Ext |
+| `src/WikiBrowser*.cpp` | Host: lifecycle / Helper launch / Ipc / Present |
+| `src/helper/main.cpp` + `HelperNavPolicy` / `HelperOsrRender` | CEF client, nav/ad policy, OSR |
 | `src/WikiIpc.h` | Shared contract |
 | `src/CefRuntime.*` | Download / verify / extract |
 | `data/sites.json` → `Sites.gen.cpp` + `Sites.cpp` | Catalog + runtime |
 | `LogManager*` / `Tekkit*` / `LivePanels*` | Feature modules (split TUs) |
-| `src/helper/main.cpp` | CEF client, nav/ad policy, OSR |
 | `src/helper/BootJs.h` | Injected page logic |
 | `scripts/pack-cef-runtime.sh` | Rehost stock CEF |
 

@@ -7,6 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(GW2HelperBrowser WIN32
   src/helper/main.cpp
+  src/helper/HelperNavPolicy.cpp
+  src/helper/HelperOsrRender.cpp
   src/helper/CssCompat.cpp
   src/helper/CssProxy.cpp
 )
@@ -63,6 +65,9 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/WorldOverlay.cpp
   src/HelperQuickAccess.cpp
   src/WikiBrowser.cpp
+  src/WikiBrowserHelper.cpp
+  src/WikiBrowserIpc.cpp
+  src/WikiBrowserPresent.cpp
   src/CefRuntime.cpp
   src/UI.cpp
   src/UI_Browse.cpp

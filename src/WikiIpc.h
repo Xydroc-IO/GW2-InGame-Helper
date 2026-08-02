@@ -3,7 +3,11 @@
 #include <cstdint>
 #include <cstdio>
 
+#ifdef _WIN32
 #include <windows.h>
+#else
+using DWORD = uint32_t;
+#endif
 
 /* Shared memory IPC between addon DLL and private CEF 150 helper process.
    Runtime lives under addons/GW2-InGame-Helper/cef/ — not game bin64/cef.

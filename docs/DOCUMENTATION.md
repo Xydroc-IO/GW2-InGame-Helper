@@ -15,6 +15,7 @@ GW2 In-Game Helper — where to find what.
 | [`../README.md`](../README.md) | Everyone | Install, features, site list, troubleshooting, build pointers |
 | [`../CONTRIBUTING.md`](../CONTRIBUTING.md) | Contributors | Ownership zones, build/validate, PR checklist |
 | [`ONBOARDING.md`](ONBOARDING.md) | New maintainers | First-week takeover checklist (Beta) |
+| [`KERNEL.md`](KERNEL.md) | Kernel editors | WikiBrowser / helper ownership, stamps, playbooks |
 | [`../SECURITY.md`](../SECURITY.md) | Everyone | Vulnerability reporting + key handling |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Contributors | Process model, IPC, present/input, CEF, source map |
 | [`WHITEPAPER.md`](WHITEPAPER.md) | Researchers / advanced contributors | Design rationale, trade-offs, security, Proton, limitations |
@@ -75,7 +76,7 @@ Browse subsection headers live in `src/UI_Browse.cpp` (`BrowseSection` / `Browse
 Bump **only when asked**. Keep these aligned:
 
 1. `src/entry.cpp` — `G::AddonDef.Version` (Major / Minor / Build / Revision)
-2. `src/WikiBrowser.cpp` — `kHelperStamp`
+2. `src/WikiBrowserHelper.cpp` — `kHelperStamp`
 3. `src/HomePage.cpp` — `kHomePageVersion`
 4. `README.md`, `RELEASE_NOTES.md`, `description.html`; local (gitignored) `RAIDCORE.md`, `DISCORD.md`
 5. Refresh `ARCHITECTURE.md` / `WHITEPAPER.md` appendices if constants changed
