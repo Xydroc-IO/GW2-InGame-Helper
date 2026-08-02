@@ -186,7 +186,8 @@ splitter between the list and the right pane to resize (saved).
 **Group by encounter** is **on by default** (Filters pane): collapsible sections
 per boss with count / kills / best kill / last time; newest encounters first.
 Uncheck for a flat chronological-style list. Window size and position are
-remembered; first-open size scales from your display.
+remembered; first-open size targets **1080p** (~1280×700, capped inside the game
+client). Wider displays can grow; tables scroll horizontally if the pane is tight.
 
 ---
 

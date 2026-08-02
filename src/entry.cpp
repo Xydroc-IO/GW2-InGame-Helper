@@ -66,9 +66,9 @@ namespace G
 	char  LogFolder[512] = "";
 	char  EliteInsightsPath[512] = "";
 	char  DpsReportToken[128] = "";
-	float LogManagerListFrac = 0.52f;
-	float LogManagerWinW = 1180.f;
-	float LogManagerWinH = 680.f;
+	float LogManagerListFrac = 0.47f;
+	float LogManagerWinW = 1280.f;
+	float LogManagerWinH = 700.f;
 	float LogManagerWinX = -1.f;
 	float LogManagerWinY = -1.f;
 	bool  LogManagerGroupByEncounter = true;

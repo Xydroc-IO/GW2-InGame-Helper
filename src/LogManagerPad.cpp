@@ -28,17 +28,16 @@
 
 namespace
 {
-	/* Default pad size used when display metrics are unavailable. */
-	constexpr float kPadW = 1180.f;
-	constexpr float kPadH = 680.f;
-	/* Target look (~screenshot): filters ~14% | list ~48% | detail ~38%, 4px gaps.
-	   Filter width scales with the window; list|detail split is user-draggable. */
-	constexpr float kFilterFrac = 0.145f;
-	constexpr float kFilterMinW = 148.f;
-	constexpr float kFilterMaxW = 208.f;
-	constexpr float kLogListFracDef = 0.52f; /* share of space after filters */
-	constexpr float kLogListMinW = 240.f;
-	constexpr float kRightPaneMinW = 280.f;
+	/* Default pad size — tuned to fit 1080p game clients with room for chrome. */
+	constexpr float kPadW = 1280.f;
+	constexpr float kPadH = 700.f;
+	/* Screenshot proportions ≈ filters 15% | list 40% | detail 45%. */
+	constexpr float kFilterFrac = 0.14f;
+	constexpr float kFilterMinW = 140.f;
+	constexpr float kFilterMaxW = 188.f;
+	constexpr float kLogListFracDef = 0.47f; /* of space after filters → ~40% overall */
+	constexpr float kLogListMinW = 260.f;
+	constexpr float kRightPaneMinW = 340.f; /* room for KillProof / boon tables */
 	constexpr float kSplitHitW = 6.f;
 	constexpr float kPaneGap = 4.f;
 	constexpr int kMaxPlayersPerLog = 64;
@@ -3150,8 +3149,8 @@ namespace
 			Settings::SetDirty();
 		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
 			G::LogManagerGroupByEncounter
-				? "Collapsible sections · newest encounter first"
-				: "Flat list · filter with Encounter…");
+				? "Grouped · newest first"
+				: "Flat list");
 		ImGui::Spacing();
 		if (ImGui::SmallButton("Clear filters###gw2igh_lm_clearf"))
 		{
@@ -3454,19 +3453,20 @@ namespace
 		}
 		else if (ImGui::BeginTable("###gw2igh_lm_squad", 10,
 				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
-					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+					ImGuiTableFlags_ScrollX | ImGuiTableFlags_Resizable |
+					ImGuiTableFlags_SizingStretchProp,
 				ImVec2(-FLT_MIN, -FLT_MIN)))
 		{
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.8f);
-			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 1.1f);
-			ImGui::TableSetupColumn("DPS", ImGuiTableColumnFlags_WidthStretch, 0.85f);
-			ImGui::TableSetupColumn("Pwr", ImGuiTableColumnFlags_WidthStretch, 0.7f);
-			ImGui::TableSetupColumn("Con", ImGuiTableColumnFlags_WidthStretch, 0.7f);
-			ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthStretch, 0.6f);
-			ImGui::TableSetupColumn("Alac", ImGuiTableColumnFlags_WidthStretch, 0.55f);
-			ImGui::TableSetupColumn("Might", ImGuiTableColumnFlags_WidthStretch, 0.6f);
-			ImGui::TableSetupColumn("Fury", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-			ImGui::TableSetupColumn("Prot", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.6f);
+			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+			ImGui::TableSetupColumn("DPS", ImGuiTableColumnFlags_WidthFixed, 56.f);
+			ImGui::TableSetupColumn("Pwr", ImGuiTableColumnFlags_WidthFixed, 48.f);
+			ImGui::TableSetupColumn("Con", ImGuiTableColumnFlags_WidthFixed, 48.f);
+			ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthFixed, 44.f);
+			ImGui::TableSetupColumn("Alac", ImGuiTableColumnFlags_WidthFixed, 40.f);
+			ImGui::TableSetupColumn("Might", ImGuiTableColumnFlags_WidthFixed, 44.f);
+			ImGui::TableSetupColumn("Fury", ImGuiTableColumnFlags_WidthFixed, 40.f);
+			ImGui::TableSetupColumn("Prot", ImGuiTableColumnFlags_WidthFixed, 40.f);
 			ImGui::TableSetupScrollFreeze(1, 1);
 			ImGui::TableHeadersRow();
 			auto pct = [](float v) {
@@ -3688,17 +3688,18 @@ namespace
 
 		if (ImGui::BeginTable("###gw2igh_lm_kptab", 8,
 				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
-					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+					ImGuiTableFlags_ScrollX | ImGuiTableFlags_Resizable |
+					ImGuiTableFlags_SizingStretchProp,
 				ImVec2(-FLT_MIN, -FLT_MIN)))
 		{
-			ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthStretch, 1.6f);
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.2f);
-			ImGui::TableSetupColumn("LI", ImGuiTableColumnFlags_WidthFixed, 52.f);
-			ImGui::TableSetupColumn("LD", ImGuiTableColumnFlags_WidthFixed, 52.f);
-			ImGui::TableSetupColumn("UFE", ImGuiTableColumnFlags_WidthFixed, 64.f);
-			ImGui::TableSetupColumn(kpCol, ImGuiTableColumnFlags_WidthFixed, 56.f);
-			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 1.0f);
-			ImGui::TableSetupColumn("G", ImGuiTableColumnFlags_WidthFixed, 28.f);
+			ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthStretch, 1.5f);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.1f);
+			ImGui::TableSetupColumn("LI", ImGuiTableColumnFlags_WidthFixed, 44.f);
+			ImGui::TableSetupColumn("LD", ImGuiTableColumnFlags_WidthFixed, 44.f);
+			ImGui::TableSetupColumn("UFE", ImGuiTableColumnFlags_WidthFixed, 52.f);
+			ImGui::TableSetupColumn(kpCol, ImGuiTableColumnFlags_WidthFixed, 48.f);
+			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 0.9f);
+			ImGui::TableSetupColumn("G", ImGuiTableColumnFlags_WidthFixed, 24.f);
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableHeadersRow();
 
@@ -3994,36 +3995,43 @@ bool LogManagerPad::Render()
 	{
 		float winW = G::LogManagerWinW;
 		float winH = G::LogManagerWinH;
-		/* First open (no saved pos): size from display so 1080p / 1440p / ultrawide stay usable. */
+		/* First open (no saved pos): size for 1080p first — leave margin for game UI. */
 		if (G::LogManagerWinX < 0.f || G::LogManagerWinY < 0.f)
 		{
-			winW = displayW * 0.72f;
-			if (winW < 980.f) winW = 980.f;
-			if (winW > 1480.f) winW = 1480.f;
-			if (winW > displayW - 24.f) winW = displayW - 24.f;
-			if (winW < 880.f) winW = (displayW > 900.f) ? 880.f : displayW * 0.95f;
+			winW = displayW * 0.67f;
+			if (winW < 1000.f) winW = 1000.f;
+			if (winW > 1360.f) winW = 1360.f; /* fits 1920×1080 with side chrome */
 
-			winH = displayH * 0.58f;
-			if (winH < 520.f) winH = 520.f;
-			if (winH > 860.f) winH = 860.f;
-			if (winH > displayH - 48.f) winH = displayH - 48.f;
-			if (winH < 420.f) winH = (displayH > 460.f) ? 420.f : displayH * 0.92f;
-
-			G::LogManagerWinW = winW;
-			G::LogManagerWinH = winH;
+			winH = displayH * 0.62f;
+			if (winH < 560.f) winH = 560.f;
+			if (winH > 780.f) winH = 780.f;
 		}
+		/* Always clamp to current display (resolution changes / ultrawide → 1080p). */
+		{
+			const float maxW = displayW > 80.f ? displayW - 40.f : winW;
+			const float maxH = displayH > 120.f ? displayH - 80.f : winH;
+			if (winW > maxW) winW = maxW;
+			if (winH > maxH) winH = maxH;
+			if (winW < 880.f && displayW > 920.f) winW = 880.f;
+			if (winH < 420.f && displayH > 480.f) winH = 420.f;
+			if (winW > displayW * 0.98f) winW = displayW * 0.98f;
+			if (winH > displayH * 0.95f) winH = displayH * 0.95f;
+		}
+		G::LogManagerWinW = winW;
+		G::LogManagerWinH = winH;
 		if (G::LogManagerWinX >= 0.f && G::LogManagerWinY >= 0.f)
 			ImGui::SetNextWindowPos(ImVec2(G::LogManagerWinX, G::LogManagerWinY), ImGuiCond_Always);
 		else
-			ImGui::SetNextWindowPos(ImVec2(80.f, 100.f), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowPos(ImVec2(40.f, 60.f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(winW, winH), ImGuiCond_Always);
 		gLogListFrac = G::LogManagerListFrac;
 		gPlaceOnce = false;
 	}
 
 	{
-		float minW = 880.f;
-		float minH = 420.f;
+		/* Usable on 1080p and smaller Proton windows; grow freely on 1440p+. */
+		float minW = 960.f;
+		float minH = 480.f;
 		if (minW > displayW * 0.92f) minW = displayW * 0.92f;
 		if (minH > displayH * 0.85f) minH = displayH * 0.85f;
 		ImGui::SetNextWindowSizeConstraints(
@@ -4067,15 +4075,15 @@ bool LogManagerPad::Render()
 	float filterW = bodyW * kFilterFrac;
 	if (filterW < kFilterMinW) filterW = kFilterMinW;
 	if (filterW > kFilterMaxW) filterW = kFilterMaxW;
-	/* Narrow windows: keep filters usable without starving the log list. */
-	if (bodyW < 960.f)
+	/* Narrow / 1080p: keep filters compact so list + KillProof keep room. */
+	if (bodyW < 1100.f)
 	{
-		filterW = bodyW * 0.16f;
+		filterW = bodyW * 0.15f;
 		if (filterW < 132.f) filterW = 132.f;
-		if (filterW > 176.f) filterW = 176.f;
+		if (filterW > 168.f) filterW = 168.f;
 	}
-	if (filterW > bodyW * 0.28f)
-		filterW = bodyW * 0.28f;
+	if (filterW > bodyW * 0.22f)
+		filterW = bodyW * 0.22f;
 
 	ImGui::BeginChild("###gw2igh_lm_filters", ImVec2(filterW, bodyH), true);
 	DrawFilterPane();
