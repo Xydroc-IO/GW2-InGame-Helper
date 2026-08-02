@@ -2565,6 +2565,7 @@ namespace
       </table>
       <p class="note" style="margin-top:12px">Detail shows squad <strong>DPS / Power / Condi</strong> and key boons
       (<strong>Quick / Alac / Might / Fury / Prot</strong>). Use <strong>Open report</strong> for the full HTML.</p>
+      <p class="note">Drag the splitter between the log list and the right pane to resize — width and window size are saved. Defaults scale from your display on first open.</p>
     </div>
   </section>
 
@@ -2708,7 +2709,7 @@ namespace
 	const PageSpec* Pages(size_t* outCount)
 	{
 		static const PageSpec kPages[] = {
-			{{"dpsloghelp", "about:dps-log-setup", "dps-log-setup", "1",
+			{{"dpsloghelp", "about:dps-log-setup", "dps-log-setup", "2",
 			  "DPS Log Setup Help", "DPS Log Setup — ArcDPS, Elite Insights & .NET"},
 			 HtmlDpsLogSetup},
 			{{"apikeyhelp", "about:api-key-setup", "api-key-setup", "1",

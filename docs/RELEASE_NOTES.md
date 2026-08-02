@@ -44,8 +44,9 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   (`addons/.../ei/`), parse to JSON, filters, players / guilds / fastest, dps.report
   upload + report-meta hydrate. Requires **.NET 8 Desktop Runtime** in the Windows /
   Proton prefix — see [`DPS_LOGS.md`](DPS_LOGS.md). Layout mirrors ArcDPS Log Manager
-  (filters | list | detail) with a persisted splitter / window size; Players / Guilds
-  show the **selected log** only.
+  (filters | list | detail): display-scaled default size, proportional filter column,
+  persisted list|detail splitter + window geometry; Players / Guilds show the
+  **selected log** only.
 - **Help setup pages:** Browse → Help → **DPS Log Setup Help** and **API Key Setup**
   (offline `about:` sheets; mirror [`DPS_LOGS.md`](DPS_LOGS.md) / [`API_KEY.md`](API_KEY.md)).
 - **Keybinds:** Panel toggles registered with Nexus — Account `Ctrl+Shift+A`,

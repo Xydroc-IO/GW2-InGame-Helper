@@ -28,13 +28,19 @@
 
 namespace
 {
-	constexpr float kPadW = 1100.f;
-	constexpr float kPadH = 660.f;
-	constexpr float kFilterPaneW = 176.f;
-	constexpr float kLogListFracDef = 0.42f; /* share of space after filters; user can drag */
-	constexpr float kLogListMinW = 220.f;
-	constexpr float kRightPaneMinW = 300.f;
+	/* Default pad size used when display metrics are unavailable. */
+	constexpr float kPadW = 1180.f;
+	constexpr float kPadH = 680.f;
+	/* Target look (~screenshot): filters ~14% | list ~48% | detail ~38%, 4px gaps.
+	   Filter width scales with the window; list|detail split is user-draggable. */
+	constexpr float kFilterFrac = 0.145f;
+	constexpr float kFilterMinW = 148.f;
+	constexpr float kFilterMaxW = 208.f;
+	constexpr float kLogListFracDef = 0.52f; /* share of space after filters */
+	constexpr float kLogListMinW = 240.f;
+	constexpr float kRightPaneMinW = 280.f;
 	constexpr float kSplitHitW = 6.f;
+	constexpr float kPaneGap = 4.f;
 	constexpr int kMaxPlayersPerLog = 64;
 	constexpr int kParseTimeoutMs = 180000;
 	constexpr int kUploadTimeoutMs = 120000;
@@ -3230,17 +3236,50 @@ bool LogManagerPad::Render()
 	EnsureDefaultPaths();
 	SyncDraw();
 
+	const ImVec2 display = ImGui::GetIO().DisplaySize;
+	const float displayW = display.x > 1.f ? display.x : kPadW;
+	const float displayH = display.y > 1.f ? display.y : kPadH;
+
 	if (gPlaceOnce)
 	{
+		float winW = G::LogManagerWinW;
+		float winH = G::LogManagerWinH;
+		/* First open (no saved pos): size from display so 1080p / 1440p / ultrawide stay usable. */
+		if (G::LogManagerWinX < 0.f || G::LogManagerWinY < 0.f)
+		{
+			winW = displayW * 0.72f;
+			if (winW < 980.f) winW = 980.f;
+			if (winW > 1480.f) winW = 1480.f;
+			if (winW > displayW - 24.f) winW = displayW - 24.f;
+			if (winW < 880.f) winW = (displayW > 900.f) ? 880.f : displayW * 0.95f;
+
+			winH = displayH * 0.58f;
+			if (winH < 520.f) winH = 520.f;
+			if (winH > 860.f) winH = 860.f;
+			if (winH > displayH - 48.f) winH = displayH - 48.f;
+			if (winH < 420.f) winH = (displayH > 460.f) ? 420.f : displayH * 0.92f;
+
+			G::LogManagerWinW = winW;
+			G::LogManagerWinH = winH;
+		}
 		if (G::LogManagerWinX >= 0.f && G::LogManagerWinY >= 0.f)
 			ImGui::SetNextWindowPos(ImVec2(G::LogManagerWinX, G::LogManagerWinY), ImGuiCond_Always);
 		else
 			ImGui::SetNextWindowPos(ImVec2(80.f, 100.f), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(G::LogManagerWinW, G::LogManagerWinH), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(winW, winH), ImGuiCond_Always);
 		gLogListFrac = G::LogManagerListFrac;
 		gPlaceOnce = false;
 	}
-	ImGui::SetNextWindowSizeConstraints(ImVec2(900.f, 420.f), ImVec2(1800.f, 1200.f));
+
+	{
+		float minW = 880.f;
+		float minH = 420.f;
+		if (minW > displayW * 0.92f) minW = displayW * 0.92f;
+		if (minH > displayH * 0.85f) minH = displayH * 0.85f;
+		ImGui::SetNextWindowSizeConstraints(
+			ImVec2(minW, minH),
+			ImVec2(displayW * 0.98f, displayH * 0.95f));
+	}
 	if (gFocus)
 	{
 		ImGui::SetNextWindowFocus();
@@ -3274,27 +3313,47 @@ bool LogManagerPad::Render()
 	ImGui::Separator();
 
 	const float bodyH = ImGui::GetContentRegionAvail().y;
-	const float gap = 6.f;
-	ImGui::BeginChild("###gw2igh_lm_filters", ImVec2(kFilterPaneW, bodyH), true);
+	const float bodyW = ImGui::GetContentRegionAvail().x;
+	float filterW = bodyW * kFilterFrac;
+	if (filterW < kFilterMinW) filterW = kFilterMinW;
+	if (filterW > kFilterMaxW) filterW = kFilterMaxW;
+	/* Narrow windows: keep filters usable without starving the log list. */
+	if (bodyW < 960.f)
+	{
+		filterW = bodyW * 0.16f;
+		if (filterW < 132.f) filterW = 132.f;
+		if (filterW > 176.f) filterW = 176.f;
+	}
+	if (filterW > bodyW * 0.28f)
+		filterW = bodyW * 0.28f;
+
+	ImGui::BeginChild("###gw2igh_lm_filters", ImVec2(filterW, bodyH), true);
 	DrawFilterPane();
 	ImGui::EndChild();
 
-	ImGui::SameLine(0.f, gap);
+	ImGui::SameLine(0.f, kPaneGap);
 	/* Log list | drag splitter | detail — fraction of remaining width; tables stretch inside. */
 	const float availX = ImGui::GetContentRegionAvail().x;
-	const float splitGap = 2.f;
-	const float usable = availX - kSplitHitW - splitGap * 2.f;
-	if (gLogListFrac < 0.15f)
-		gLogListFrac = 0.15f;
-	if (gLogListFrac > 0.75f)
-		gLogListFrac = 0.75f;
+	const float usable = availX - kSplitHitW - kPaneGap * 2.f;
+	float listMin = kLogListMinW;
+	float rightMin = kRightPaneMinW;
+	if (usable > 1.f && usable < listMin + rightMin)
+	{
+		const float scale = usable / (listMin + rightMin);
+		listMin *= scale;
+		rightMin *= scale;
+	}
+	if (gLogListFrac < 0.20f)
+		gLogListFrac = 0.20f;
+	if (gLogListFrac > 0.72f)
+		gLogListFrac = 0.72f;
 	float centerW = usable * gLogListFrac;
-	if (centerW < kLogListMinW)
-		centerW = kLogListMinW;
-	if (centerW > usable - kRightPaneMinW)
-		centerW = usable - kRightPaneMinW;
-	if (centerW < kLogListMinW)
-		centerW = kLogListMinW;
+	if (centerW < listMin)
+		centerW = listMin;
+	if (centerW > usable - rightMin)
+		centerW = usable - rightMin;
+	if (centerW < listMin)
+		centerW = listMin;
 	if (usable > 1.f)
 		gLogListFrac = centerW / usable;
 
@@ -3302,7 +3361,7 @@ bool LogManagerPad::Render()
 	DrawLogTable(filtered);
 	ImGui::EndChild();
 
-	ImGui::SameLine(0.f, splitGap);
+	ImGui::SameLine(0.f, kPaneGap);
 	{
 		const ImVec2 splitPos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("###gw2igh_lm_split", ImVec2(kSplitHitW, bodyH));
@@ -3313,10 +3372,10 @@ bool LogManagerPad::Render()
 		if (active && usable > 1.f)
 		{
 			centerW += ImGui::GetIO().MouseDelta.x;
-			if (centerW < kLogListMinW)
-				centerW = kLogListMinW;
-			if (centerW > usable - kRightPaneMinW)
-				centerW = usable - kRightPaneMinW;
+			if (centerW < listMin)
+				centerW = listMin;
+			if (centerW > usable - rightMin)
+				centerW = usable - rightMin;
 			gLogListFrac = centerW / usable;
 			if (std::fabs(G::LogManagerListFrac - gLogListFrac) > 0.002f)
 			{
@@ -3334,7 +3393,7 @@ bool LogManagerPad::Render()
 			ImGui::SetTooltip("Drag to resize panes — tables scale with width");
 	}
 
-	ImGui::SameLine(0.f, splitGap);
+	ImGui::SameLine(0.f, kPaneGap);
 	ImGui::BeginChild("###gw2igh_lm_side", ImVec2(0.f, bodyH), true);
 	if (ImGui::BeginTabBar("###gw2igh_lm_tabs"))
 	{

@@ -162,6 +162,10 @@ Detail tab shows squad **DPS / Power / Condi** and key boon uptimes
 (**Quick / Alac / Might / Fury / Prot**). Open the full HTML report with
 **Open report** when you need everything Elite Insights renders in a browser.
 
+**Layout:** Filters | log list | Detail/Players/… — drag the vertical splitter
+between the list and the right pane to resize (saved). Window size and position
+are remembered. Defaults scale from your display on first open.
+
 ---
 
 ## 6. Troubleshooting

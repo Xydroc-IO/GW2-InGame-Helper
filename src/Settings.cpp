@@ -181,10 +181,14 @@ void Settings::Load()
 	if (G::WorldTrailMaxDist > 200.f) G::WorldTrailMaxDist = 200.f;
 	if (G::WorldTrailWidth < 0.5f) G::WorldTrailWidth = 0.5f;
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
-	if (G::LogManagerListFrac < 0.15f) G::LogManagerListFrac = 0.15f;
-	if (G::LogManagerListFrac > 0.75f) G::LogManagerListFrac = 0.75f;
-	if (G::LogManagerWinW < 720.f) G::LogManagerWinW = 720.f;
-	if (G::LogManagerWinH < 400.f) G::LogManagerWinH = 400.f;
+	if (G::LogManagerListFrac < 0.20f) G::LogManagerListFrac = 0.20f;
+	if (G::LogManagerListFrac > 0.72f) G::LogManagerListFrac = 0.72f;
+	/* Old shipping default was 0.42 — bump once so existing installs match the
+	   filters | list | detail proportions without wiping custom drags. */
+	if (G::LogManagerListFrac > 0.415f && G::LogManagerListFrac < 0.425f)
+		G::LogManagerListFrac = 0.52f;
+	if (G::LogManagerWinW < 880.f) G::LogManagerWinW = 880.f;
+	if (G::LogManagerWinH < 420.f) G::LogManagerWinH = 420.f;
 	/* Category paths restored in AddonLoad after TekkitTrails::Init(). */
 
 	gDirty = false;
