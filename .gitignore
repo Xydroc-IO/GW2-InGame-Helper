@@ -60,16 +60,25 @@ docs/.*.kate-swp
 *.log
 settings.ini
 helper-home.html
+helper-home.ver
 __cmake_systeminformation/
 
-# Addon runtime data (API key, notes, Live caches) — never commit if copied into the tree
+# Addon runtime data (API key, notes, Live/DPS caches) — never commit if copied into the tree
 notes.json
 stash-names.cache
+waypoints-index.cache
+log-index.json
+ei-helper.conf
 live-*.json
 live-*.html
 live-*.ok
 live-*.ver
+ei-out/
+ei/
+cef/
+cef-runtime*.zip
 **/addons/GW2-InGame-Helper/**
+**/addons/GW2-InGame-Helper-Beta/**
 
 # Android companion (local-only; not published with the Nexus addon)
 Companion-App/
