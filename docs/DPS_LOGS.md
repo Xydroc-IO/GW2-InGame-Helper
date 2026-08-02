@@ -162,6 +162,11 @@ Detail tab shows squad **DPS / Power / Condi** and key boon uptimes
 (**Quick / Alac / Might / Fury / Prot**). Open the full HTML report with
 **Open report** when you need everything Elite Insights renders in a browser.
 
+**Players tab — KP:** Legendary Insights (**LI**), Legendary Divinations (**LD**), and
+an encounter token column (e.g. **Decima**) load from [killproof.me](https://killproof.me/)
+for accounts with a **public** profile. Click **Load KP** to refresh; click an account
+name to open their killproof.me page. Private / unregistered accounts show **—**.
+
 **Layout:** Filters | log list | Detail/Players/… — drag the vertical splitter
 between the list and the right pane to resize (saved). Window size and position
 are remembered. Defaults scale from your display on first open.

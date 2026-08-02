@@ -46,7 +46,8 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   Proton prefix — see [`DPS_LOGS.md`](DPS_LOGS.md). Layout mirrors ArcDPS Log Manager
   (filters | list | detail): display-scaled default size, proportional filter column,
   persisted list|detail splitter + window geometry; Players / Guilds show the
-  **selected log** only.
+  **selected log** only. Players tab loads **KP** (LI / LD / encounter tokens) from
+  killproof.me for public profiles.
 - **Help setup pages:** Browse → Help → **DPS Log Setup Help** and **API Key Setup**
   (offline `about:` sheets; mirror [`DPS_LOGS.md`](DPS_LOGS.md) / [`API_KEY.md`](API_KEY.md)).
 - **Keybinds:** Panel toggles registered with Nexus — Account `Ctrl+Shift+A`,

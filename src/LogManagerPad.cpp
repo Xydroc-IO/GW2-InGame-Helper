@@ -91,6 +91,31 @@ namespace
 		float regeneration = -1.f;
 		float swiftness = -1.f;
 		float vigor = -1.f;
+		/* killproof.me — -1 unknown / not loaded */
+		int kpLi = -1;
+		int kpLd = -1;
+		int kpUfe = -1;
+		int kpBoss = -1; /* encounter token amount when mapped */
+		std::string kpBossLabel;
+		std::string kpUrl;
+		int kpState = 0; /* 0 unknown, 1 loading, 2 ok, 3 missing, 4 error */
+	};
+
+	/* killproof.me item ids (killproofs[]). */
+	constexpr int kKpIdLi = 77302;
+	constexpr int kKpIdLd = 88485;
+	constexpr int kKpIdUfe = 94020;
+
+	struct KillProofCacheEntry
+	{
+		int li = -1;
+		int ld = -1;
+		int ufe = -1;
+		std::string proofUrl;
+		std::unordered_map<int, int> amounts; /* item id → qty */
+		DWORD fetchedAtMs = 0;
+		bool missing = false;
+		bool error = false;
 	};
 
 	struct LogEntry
@@ -171,6 +196,13 @@ namespace
 	HANDLE gUploadThread = nullptr;
 	HANDLE gHydrateThread = nullptr;
 	HANDLE gEiInstallThread = nullptr;
+	HANDLE gKillProofThread = nullptr;
+
+	std::atomic<bool> gKillProofBusy{false};
+	std::mutex gKpCacheMu;
+	std::unordered_map<std::string, KillProofCacheEntry> gKpCache; /* lowercased account */
+	std::vector<std::string> gKpQueue; /* accounts to fetch */
+	std::atomic<bool> gKpForce{false};
 
 	bool gFocus = false;
 	bool gPlaceOnce = false;
@@ -1044,6 +1076,365 @@ namespace
 		}
 	}
 
+	std::string ToLowerCopy(std::string s)
+	{
+		for (char& c : s)
+			c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+		return s;
+	}
+
+	std::string UrlEncodeAccount(const std::string& account)
+	{
+		std::string out;
+		out.reserve(account.size() * 3);
+		for (unsigned char c : account)
+		{
+			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+				(c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_' || c == '~')
+				out += static_cast<char>(c);
+			else
+			{
+				char hex[8];
+				std::snprintf(hex, sizeof(hex), "%%%02X", c);
+				out += hex;
+			}
+		}
+		return out;
+	}
+
+	/* Encounter name → token item id (from killproof.me tokens / killproofs). */
+	bool BossTokenForEncounter(const std::string& encounter, int& outId, const char*& outLabel)
+	{
+		outId = 0;
+		outLabel = nullptr;
+		if (encounter.empty())
+			return false;
+		const std::string low = ToLowerCopy(encounter);
+		struct Map
+		{
+			const char* needle;
+			int id;
+			const char* label;
+		};
+		static const Map kMap[] = {
+			{"vale guardian", 77705, "VG"},
+			{"gorseval", 77751, "Gors"},
+			{"sabetha", 77728, "Sab"},
+			{"slothasor", 77706, "Sloth"},
+			{"matthias", 77679, "Matt"},
+			{"keep construct", 78902, "KC"},
+			{"xera", 78942, "Xera"},
+			{"cairn", 80623, "Cairn"},
+			{"mursaat", 80542, "MO"},
+			{"samarog", 80269, "Sam"},
+			{"deimos", 80269, "Deimos"}, /* floor fragment often used; prefer Impaled if present */
+			{"soulless horror", 85993, "SH"},
+			{"desmina", 85993, "SH"},
+			{"river of souls", 85785, "River"},
+			{"statues", 85800, "Statues"},
+			{"dhuum", 85633, "Dhuum"},
+			{"conjured amalgamate", 88543, "CA"},
+			{"twin largos", 88860, "Largos"},
+			{"qadim the peerless", 91175, "QTP"},
+			{"qadim", 88645, "Qadim"},
+			{"cardinal adina", 91246, "Adina"},
+			{"cardinal sabir", 91270, "Sabir"},
+			{"godsquall decima", 103754, "Decima"},
+			{"decima", 103754, "Decima"},
+			{"greer", 104047, "Greer"},
+			{"ura", 103996, "Ura"},
+			{"dagda", 100068, "Dagda"},
+			{"cerus", 100858, "Cerus"},
+			{"mai trin", 95638, "Mai"},
+			{"ankka", 95982, "Ankka"},
+			{"minister li", 97451, "Li"},
+			{"void", 97132, "Void"},
+			{"assault knight", 99165, "AK"},
+			{"boneskinner", 93781, "Vial"},
+		};
+		for (const Map& m : kMap)
+		{
+			if (low.find(m.needle) != std::string::npos)
+			{
+				outId = m.id;
+				outLabel = m.label;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	int AmountNearId(const char* json, int itemId)
+	{
+		if (!json || itemId <= 0)
+			return -1;
+		char pat[48];
+		std::snprintf(pat, sizeof(pat), "\"id\":%d", itemId);
+		const char* hit = std::strstr(json, pat);
+		if (!hit)
+		{
+			std::snprintf(pat, sizeof(pat), "\"id\": %d", itemId);
+			hit = std::strstr(json, pat);
+		}
+		if (!hit)
+			return -1;
+		const char* obj = hit;
+		while (obj > json && *obj != '{')
+			--obj;
+		if (*obj != '{')
+			return -1;
+		const char* end = ObjectEnd(obj);
+		if (!end)
+			return -1;
+		std::string slice(obj, end);
+		long long amt = 0;
+		if (!JsonLongAfterKey(slice.c_str(), "amount", amt))
+			return -1;
+		if (amt < 0)
+			amt = 0;
+		if (amt > 2000000000ll)
+			amt = 2000000000ll;
+		return static_cast<int>(amt);
+	}
+
+	bool FetchKillProofProfile(const std::string& account, KillProofCacheEntry& out)
+	{
+		out = KillProofCacheEntry{};
+		out.fetchedAtMs = GetTickCount();
+		if (account.empty())
+		{
+			out.missing = true;
+			return false;
+		}
+		std::string url = "https://killproof.me/api/kp/";
+		url += UrlEncodeAccount(account);
+		url += "?lang=en";
+		const Gw2Http::Result r = Gw2Http::Get(url.c_str(), nullptr, 10000);
+		if (r.body.find("\"error\"") != std::string::npos &&
+			r.body.find("Account not found") != std::string::npos)
+		{
+			out.missing = true;
+			return false;
+		}
+		if (r.status == 404)
+		{
+			out.missing = true;
+			return false;
+		}
+		if (!r.ok || r.body.empty())
+		{
+			out.error = true;
+			return false;
+		}
+		JsonStringAfterKey(r.body.c_str(), "proof_url", out.proofUrl);
+		out.li = AmountNearId(r.body.c_str(), kKpIdLi);
+		out.ld = AmountNearId(r.body.c_str(), kKpIdLd);
+		out.ufe = AmountNearId(r.body.c_str(), kKpIdUfe);
+		/* Cache common token amounts from tokens[] + killproofs[]. */
+		static const int kExtraIds[] = {
+			77705, 77751, 77728, 77706, 77679, 78902, 78942, 80623, 80542, 80269,
+			85993, 85785, 85800, 85633, 88543, 88860, 88645, 91175, 91246, 91270,
+			103754, 104047, 103996, 100068, 100858, 95638, 95982, 97451, 97132,
+			99165, 93781, 78873, 80087
+		};
+		for (int id : kExtraIds)
+		{
+			const int amt = AmountNearId(r.body.c_str(), id);
+			if (amt >= 0)
+				out.amounts[id] = amt;
+		}
+		if (out.li < 0 && out.ld < 0 && out.ufe < 0 && out.amounts.empty() && out.proofUrl.empty())
+		{
+			/* Private / empty profile — treat as missing rather than inventing zeros. */
+			out.missing = true;
+			return false;
+		}
+		if (out.li < 0) out.li = 0;
+		if (out.ld < 0) out.ld = 0;
+		if (out.ufe < 0) out.ufe = 0;
+		return true;
+	}
+
+	void ApplyKillProofEntryToPlayer(PlayerInfo& p, const KillProofCacheEntry& e, const std::string& encounter)
+	{
+		if (e.missing)
+		{
+			p.kpState = 3;
+			p.kpLi = p.kpLd = p.kpUfe = p.kpBoss = -1;
+			p.kpBossLabel.clear();
+			p.kpUrl.clear();
+			return;
+		}
+		if (e.error)
+		{
+			p.kpState = 4;
+			return;
+		}
+		p.kpLi = e.li;
+		p.kpLd = e.ld;
+		p.kpUfe = e.ufe;
+		p.kpUrl = e.proofUrl;
+		p.kpState = 2;
+		int bossId = 0;
+		const char* bossLabel = nullptr;
+		if (BossTokenForEncounter(encounter, bossId, bossLabel))
+		{
+			p.kpBossLabel = bossLabel ? bossLabel : "";
+			auto it = e.amounts.find(bossId);
+			if (it != e.amounts.end())
+				p.kpBoss = it->second;
+			else
+				p.kpBoss = 0;
+		}
+		else
+		{
+			p.kpBoss = -1;
+			p.kpBossLabel.clear();
+		}
+	}
+
+	void ApplyKillProofCacheToPlayersLocked(std::vector<PlayerInfo>& players, const std::string& encounter)
+	{
+		/* Caller must hold gKpCacheMu. */
+		for (PlayerInfo& p : players)
+		{
+			if (p.account.empty())
+				continue;
+			const std::string key = ToLowerCopy(p.account);
+			auto it = gKpCache.find(key);
+			if (it == gKpCache.end())
+				continue;
+			ApplyKillProofEntryToPlayer(p, it->second, encounter);
+		}
+	}
+
+	void ApplyKillProofCacheToAllLogsLocked()
+	{
+		/* Caller must hold gMu and gKpCacheMu. */
+		for (LogEntry& e : gLogs)
+			ApplyKillProofCacheToPlayersLocked(e.players, e.encounter);
+	}
+
+	void QueueKillProofAccountsLocked(const std::vector<PlayerInfo>& players, bool force)
+	{
+		/* Caller must hold gKpCacheMu. */
+		const DWORD now = GetTickCount();
+		constexpr DWORD kTtlMs = 60u * 60u * 1000u;
+		for (const PlayerInfo& p : players)
+		{
+			if (p.account.empty())
+				continue;
+			const std::string key = ToLowerCopy(p.account);
+			if (!force)
+			{
+				auto it = gKpCache.find(key);
+				if (it != gKpCache.end() && !it->second.error &&
+					(now - it->second.fetchedAtMs) < kTtlMs)
+					continue;
+			}
+			bool queued = false;
+			for (const std::string& q : gKpQueue)
+			{
+				if (ToLowerCopy(q) == key)
+				{
+					queued = true;
+					break;
+				}
+			}
+			if (!queued)
+				gKpQueue.push_back(p.account);
+		}
+		if (force)
+			gKpForce.store(true);
+	}
+
+	DWORD WINAPI KillProofWorker(LPVOID);
+	void BeginKillProofFetch(bool force);
+
+	void BeginKillProofFetch(bool force)
+	{
+		if (force)
+			gKpForce.store(true);
+		if (gKillProofBusy.exchange(true))
+			return;
+		if (gKillProofThread)
+		{
+			CloseHandle(gKillProofThread);
+			gKillProofThread = nullptr;
+		}
+		gKillProofThread = CreateThread(nullptr, 0, KillProofWorker, nullptr, 0, nullptr);
+		if (!gKillProofThread)
+			gKillProofBusy.store(false);
+	}
+
+	DWORD WINAPI KillProofWorker(LPVOID)
+	{
+		gKpForce.exchange(false);
+		std::vector<std::string> jobs;
+		{
+			std::lock_guard<std::mutex> lock(gKpCacheMu);
+			jobs.swap(gKpQueue);
+		}
+		if (jobs.empty())
+		{
+			gKillProofBusy.store(false);
+			return 0;
+		}
+		int done = 0;
+		for (const std::string& account : jobs)
+		{
+			if (gCancel.load())
+				break;
+			std::snprintf(gStatus, sizeof(gStatus), "Loading KP %d / %d…",
+				done + 1, static_cast<int>(jobs.size()));
+			KillProofCacheEntry entry;
+			FetchKillProofProfile(account, entry);
+			{
+				/* Lock order: gMu then gKpCacheMu (matches UI). */
+				std::lock_guard<std::mutex> lockLogs(gMu);
+				std::lock_guard<std::mutex> lockKp(gKpCacheMu);
+				gKpCache[ToLowerCopy(account)] = entry;
+				ApplyKillProofCacheToAllLogsLocked();
+				gGen.fetch_add(1);
+			}
+			++done;
+			Sleep(80);
+		}
+		std::snprintf(gStatus, sizeof(gStatus), "KP loaded for %d account(s).", done);
+		gKillProofBusy.store(false);
+		return 0;
+	}
+
+	/* Queue KP for this log. Caller holds gMu. Starts worker after releasing preferred. */
+	bool EnsureKillProofForLog(LogEntry& e, bool force)
+	{
+		std::lock_guard<std::mutex> lockKp(gKpCacheMu);
+		ApplyKillProofCacheToPlayersLocked(e.players, e.encounter);
+		bool needFetch = force;
+		if (!needFetch)
+		{
+			for (const PlayerInfo& p : e.players)
+			{
+				if (!p.account.empty() && p.kpState == 0)
+				{
+					needFetch = true;
+					break;
+				}
+			}
+		}
+		if (!needFetch)
+			return false;
+		for (PlayerInfo& p : e.players)
+		{
+			if (p.account.empty())
+				continue;
+			if (force || p.kpState == 0)
+				p.kpState = 1;
+		}
+		QueueKillProofAccountsLocked(e.players, force);
+		return true;
+	}
+
 	void ApplyEiJsonToEntry(LogEntry& e, const std::string& json)
 	{
 		std::string name;
@@ -1106,6 +1497,17 @@ namespace
 
 		ParsePlayersFromJson(json.c_str(), e.players);
 		ResolveGuildTagsForPlayers(e.players);
+		{
+			std::lock_guard<std::mutex> lockKp(gKpCacheMu);
+			ApplyKillProofCacheToPlayersLocked(e.players, e.encounter);
+			QueueKillProofAccountsLocked(e.players, false);
+			for (PlayerInfo& p : e.players)
+			{
+				if (!p.account.empty() && p.kpState == 0)
+					p.kpState = 1;
+			}
+		}
+		BeginKillProofFetch(false);
 		long long squad = 0;
 		for (const auto& p : e.players)
 			squad += p.dps;
@@ -2981,6 +3383,33 @@ namespace
 		ImGui::TextUnformatted(sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
 		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
 			"%d players in this run", static_cast<int>(sel->players.size()));
+		ImGui::SameLine();
+		if (gKillProofBusy.load())
+		{
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading KP…");
+		}
+		else if (ImGui::SmallButton("Load KP###gw2igh_lm_loadkp"))
+		{
+			bool start = false;
+			{
+				std::lock_guard<std::mutex> lock(gMu);
+				for (LogEntry& e : gLogs)
+				{
+					if (e.pathUtf8 == sel->pathUtf8)
+					{
+						start = EnsureKillProofForLog(e, true);
+						gGen.fetch_add(1);
+						break;
+					}
+				}
+			}
+			if (start)
+				BeginKillProofFetch(true);
+		}
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+			ImGui::SetTooltip(
+				"Fetch Legendary Insights / Divinations / encounter tokens from killproof.me\n"
+				"(public profiles only; private or unregistered accounts show as —).");
 
 		if (sel->players.empty())
 		{
@@ -2989,24 +3418,86 @@ namespace
 			return;
 		}
 
-		if (ImGui::BeginTable("###gw2igh_lm_paggs", 6,
+		{
+			bool need = false;
+			for (const PlayerInfo& p : sel->players)
+			{
+				if (!p.account.empty() && p.kpState == 0)
+				{
+					need = true;
+					break;
+				}
+			}
+			if (need && !gKillProofBusy.load())
+			{
+				bool start = false;
+				{
+					std::lock_guard<std::mutex> lock(gMu);
+					for (LogEntry& e : gLogs)
+					{
+						if (e.pathUtf8 == sel->pathUtf8)
+						{
+							start = EnsureKillProofForLog(e, false);
+							gGen.fetch_add(1);
+							break;
+						}
+					}
+				}
+				if (start)
+					BeginKillProofFetch(false);
+			}
+		}
+
+		const char* kpCol = "KP";
+		int bossId = 0;
+		const char* bossLabel = nullptr;
+		if (BossTokenForEncounter(sel->encounter, bossId, bossLabel) && bossLabel)
+			kpCol = bossLabel;
+
+		if (ImGui::BeginTable("###gw2igh_lm_paggs", 9,
 				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
-					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp |
+					ImGuiTableFlags_Sortable,
 				ImVec2(-FLT_MIN, -FLT_MIN)))
 		{
 			ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthStretch, 1.4f);
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.2f);
 			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 1.0f);
 			ImGui::TableSetupColumn("DPS", ImGuiTableColumnFlags_WidthStretch, 0.7f);
+			ImGui::TableSetupColumn("LI", ImGuiTableColumnFlags_WidthStretch, 0.45f);
+			ImGui::TableSetupColumn("LD", ImGuiTableColumnFlags_WidthStretch, 0.45f);
+			ImGui::TableSetupColumn(kpCol, ImGuiTableColumnFlags_WidthStretch, 0.5f);
 			ImGui::TableSetupColumn("Guild", ImGuiTableColumnFlags_WidthStretch, 0.8f);
 			ImGui::TableSetupColumn("G", ImGuiTableColumnFlags_WidthStretch, 0.35f);
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableHeadersRow();
+			auto kpCell = [](int v, int state) {
+				if (state == 1)
+				{
+					ImGui::TextColored(ImVec4(0.70f, 0.68f, 0.45f, 1.f), "…");
+					return;
+				}
+				if (state == 3 || state == 4 || v < 0)
+				{
+					ImGui::TextUnformatted("—");
+					return;
+				}
+				ImGui::Text("%d", v);
+			};
 			for (const PlayerInfo& p : sel->players)
 			{
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(p.account.empty() ? "-" : p.account.c_str());
+				if (!p.kpUrl.empty() && !p.account.empty())
+				{
+					if (ImGui::Selectable(p.account.c_str(), false,
+							ImGuiSelectableFlags_None))
+						ShellExecuteA(nullptr, "open", p.kpUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+					if (ImGui::IsItemHovered())
+						ImGui::SetTooltip("Open killproof.me profile");
+				}
+				else
+					ImGui::TextUnformatted(p.account.empty() ? "-" : p.account.c_str());
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted(p.name.empty() ? "-" : p.name.c_str());
 				ImGui::TableNextColumn();
@@ -3016,6 +3507,15 @@ namespace
 					ImGui::Text("%d", p.dps);
 				else
 					ImGui::TextUnformatted("-");
+				ImGui::TableNextColumn();
+				kpCell(p.kpLi, p.kpState);
+				ImGui::TableNextColumn();
+				kpCell(p.kpLd, p.kpState);
+				ImGui::TableNextColumn();
+				if (bossId > 0)
+					kpCell(p.kpBoss, p.kpState);
+				else
+					ImGui::TextUnformatted("—");
 				ImGui::TableNextColumn();
 				const std::string g = GuildLabelFor(p);
 				ImGui::TextUnformatted(g.empty() ? "-" : g.c_str());
