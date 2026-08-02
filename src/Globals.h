@@ -102,4 +102,9 @@ namespace G
 	extern char  LogFolder[512]; /* ArcDPS cbtlogs folder */
 	extern char  EliteInsightsPath[512]; /* GuildWars2EliteInsights-CLI.exe */
 	extern char  DpsReportToken[128]; /* optional dps.report user token */
+	extern float LogManagerListFrac; /* log list vs detail splitter (0.15–0.75) */
+	extern float LogManagerWinW;
+	extern float LogManagerWinH;
+	extern float LogManagerWinX; /* <0 = unset */
+	extern float LogManagerWinY;
 }

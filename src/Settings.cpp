@@ -137,6 +137,16 @@ void Settings::Load()
 			std::snprintf(G::EliteInsightsPath, sizeof(G::EliteInsightsPath), "%s", val);
 		else if (std::strcmp(key, "DpsReportToken") == 0)
 			std::snprintf(G::DpsReportToken, sizeof(G::DpsReportToken), "%s", val);
+		else if (std::strcmp(key, "LogManagerListFrac") == 0)
+			G::LogManagerListFrac = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "LogManagerWinW") == 0)
+			G::LogManagerWinW = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "LogManagerWinH") == 0)
+			G::LogManagerWinH = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "LogManagerWinX") == 0)
+			G::LogManagerWinX = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "LogManagerWinY") == 0)
+			G::LogManagerWinY = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -171,6 +181,10 @@ void Settings::Load()
 	if (G::WorldTrailMaxDist > 200.f) G::WorldTrailMaxDist = 200.f;
 	if (G::WorldTrailWidth < 0.5f) G::WorldTrailWidth = 0.5f;
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
+	if (G::LogManagerListFrac < 0.15f) G::LogManagerListFrac = 0.15f;
+	if (G::LogManagerListFrac > 0.75f) G::LogManagerListFrac = 0.75f;
+	if (G::LogManagerWinW < 720.f) G::LogManagerWinW = 720.f;
+	if (G::LogManagerWinH < 400.f) G::LogManagerWinH = 400.f;
 	/* Category paths restored in AddonLoad after TekkitTrails::Init(). */
 
 	gDirty = false;
@@ -237,6 +251,11 @@ void Settings::Save(bool force)
 	std::fprintf(f, "LogFolder=%s\n", G::LogFolder);
 	std::fprintf(f, "EliteInsightsPath=%s\n", G::EliteInsightsPath);
 	std::fprintf(f, "DpsReportToken=%s\n", G::DpsReportToken);
+	std::fprintf(f, "LogManagerListFrac=%.4f\n", G::LogManagerListFrac);
+	std::fprintf(f, "LogManagerWinW=%.1f\n", G::LogManagerWinW);
+	std::fprintf(f, "LogManagerWinH=%.1f\n", G::LogManagerWinH);
+	std::fprintf(f, "LogManagerWinX=%.1f\n", G::LogManagerWinX);
+	std::fprintf(f, "LogManagerWinY=%.1f\n", G::LogManagerWinY);
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);

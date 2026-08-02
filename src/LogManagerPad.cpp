@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "EiRuntime.h"
 #include "Globals.h"
+#include "Gw2Http.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -10,6 +11,8 @@
 #include <algorithm>
 #include <atomic>
 #include <cctype>
+#include <cfloat>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -25,8 +28,13 @@
 
 namespace
 {
-	constexpr float kPadW = 780.f;
-	constexpr float kPadH = 620.f;
+	constexpr float kPadW = 1100.f;
+	constexpr float kPadH = 660.f;
+	constexpr float kFilterPaneW = 176.f;
+	constexpr float kLogListFracDef = 0.42f; /* share of space after filters; user can drag */
+	constexpr float kLogListMinW = 220.f;
+	constexpr float kRightPaneMinW = 300.f;
+	constexpr float kSplitHitW = 6.f;
 	constexpr int kMaxPlayersPerLog = 64;
 	constexpr int kParseTimeoutMs = 180000;
 	constexpr int kUploadTimeoutMs = 120000;
@@ -144,6 +152,7 @@ namespace
 	std::atomic<bool> gParseBusy{false};
 	std::atomic<bool> gUploadBusy{false};
 	std::atomic<bool> gHydrateBusy{false};
+	std::atomic<bool> gHydrateForce{false};
 	std::atomic<bool> gEiInstallBusy{false};
 	std::atomic<bool> gCancel{false};
 	std::atomic<int> gParseDone{0};
@@ -167,6 +176,8 @@ namespace
 	int gModeFilter = static_cast<int>(ModeFilter::All);
 	int gDaysCombo = 0; /* index into kDaysMap */
 	int gSelected = -1;
+	bool gFocusSetupTab = false;
+	float gLogListFrac = kLogListFracDef; /* synced from G::LogManagerListFrac */
 
 	std::vector<std::string> gUploadQueue; /* pathUtf8 */
 
@@ -721,14 +732,19 @@ namespace
 			if (JsonLongAfterKey(dps0.c_str(), "condiDps", v) || JsonLongAfterKey(dps0.c_str(), "CondiDps", v))
 				pi.condiDps = static_cast<int>(v);
 		}
-		pi.might = BuffUptimePercent(playerObj, kBuffMight);
-		pi.fury = BuffUptimePercent(playerObj, kBuffFury);
-		pi.quickness = BuffUptimePercent(playerObj, kBuffQuickness);
-		pi.alacrity = BuffUptimePercent(playerObj, kBuffAlacrity);
-		pi.protection = BuffUptimePercent(playerObj, kBuffProtection);
-		pi.regeneration = BuffUptimePercent(playerObj, kBuffRegen);
-		pi.swiftness = BuffUptimePercent(playerObj, kBuffSwiftness);
-		pi.vigor = BuffUptimePercent(playerObj, kBuffVigor);
+		/* Only overwrite when nested buffUptimes exist — flat cache values must survive. */
+		auto setBuff = [](float& dst, float v) {
+			if (v >= 0.f)
+				dst = v;
+		};
+		setBuff(pi.might, BuffUptimePercent(playerObj, kBuffMight));
+		setBuff(pi.fury, BuffUptimePercent(playerObj, kBuffFury));
+		setBuff(pi.quickness, BuffUptimePercent(playerObj, kBuffQuickness));
+		setBuff(pi.alacrity, BuffUptimePercent(playerObj, kBuffAlacrity));
+		setBuff(pi.protection, BuffUptimePercent(playerObj, kBuffProtection));
+		setBuff(pi.regeneration, BuffUptimePercent(playerObj, kBuffRegen));
+		setBuff(pi.swiftness, BuffUptimePercent(playerObj, kBuffSwiftness));
+		setBuff(pi.vigor, BuffUptimePercent(playerObj, kBuffVigor));
 	}
 
 	bool PlayersHaveDps(const std::vector<PlayerInfo>& players)
@@ -739,6 +755,120 @@ namespace
 				return true;
 		}
 		return false;
+	}
+
+	bool PlayersHaveBoons(const std::vector<PlayerInfo>& players)
+	{
+		for (const auto& p : players)
+		{
+			if (p.quickness >= 0.f || p.alacrity >= 0.f || p.might >= 0.f ||
+				p.fury >= 0.f || p.protection >= 0.f || p.regeneration >= 0.f ||
+				p.swiftness >= 0.f || p.vigor >= 0.f)
+				return true;
+		}
+		return false;
+	}
+
+	bool PlayersNeedCombatStats(const std::vector<PlayerInfo>& players)
+	{
+		return !PlayersHaveDps(players) || !PlayersHaveBoons(players);
+	}
+
+	const char* ProfessionNameFromId(long long id)
+	{
+		switch (id)
+		{
+		case 1: return "Guardian";
+		case 2: return "Warrior";
+		case 3: return "Engineer";
+		case 4: return "Ranger";
+		case 5: return "Thief";
+		case 6: return "Elementalist";
+		case 7: return "Mesmer";
+		case 8: return "Necromancer";
+		case 9: return "Revenant";
+		default: return nullptr;
+		}
+	}
+
+	const char* EliteSpecNameFromId(long long id)
+	{
+		switch (id)
+		{
+		case 5: return "Druid";
+		case 7: return "Daredevil";
+		case 18: return "Berserker";
+		case 27: return "Dragonhunter";
+		case 34: return "Reaper";
+		case 40: return "Chronomancer";
+		case 43: return "Scrapper";
+		case 48: return "Tempest";
+		case 52: return "Herald";
+		case 55: return "Soulbeast";
+		case 56: return "Weaver";
+		case 57: return "Holosmith";
+		case 58: return "Deadeye";
+		case 59: return "Mirage";
+		case 60: return "Scourge";
+		case 61: return "Spellbreaker";
+		case 62: return "Firebrand";
+		case 63: return "Renegade";
+		case 64: return "Harbinger";
+		case 65: return "Willbender";
+		case 66: return "Virtuoso";
+		case 67: return "Catalyst";
+		case 68: return "Bladesworn";
+		case 69: return "Vindicator";
+		case 70: return "Mechanist";
+		case 71: return "Specter";
+		case 72: return "Untamed";
+		case 73: return "Troubadour";
+		case 74: return "Paragon";
+		case 75: return "Amalgam";
+		case 76: return "Ritualist";
+		case 77: return "Antiquary";
+		case 78: return "Galeshot";
+		case 79: return "Conduit";
+		case 80: return "Evoker";
+		case 81: return "Luminary";
+		default: return nullptr;
+		}
+	}
+
+	std::string FormatProfessionElite(long long prof, long long elite)
+	{
+		const char* eliteName = elite > 0 ? EliteSpecNameFromId(elite) : nullptr;
+		if (eliteName)
+			return eliteName;
+		const char* profName = ProfessionNameFromId(prof);
+		if (profName)
+			return profName;
+		if (prof <= 0 && elite <= 0)
+			return {};
+		char buf[48];
+		if (elite > 0)
+			std::snprintf(buf, sizeof(buf), "%lld / elite %lld", prof, elite);
+		else
+			std::snprintf(buf, sizeof(buf), "%lld", prof);
+		return buf;
+	}
+
+	void FillPlayerFromDpsReportObj(const char* obj, const std::string& fallbackName, PlayerInfo& pi)
+	{
+		pi = PlayerInfo{};
+		pi.name = fallbackName;
+		if (obj)
+		{
+			JsonStringAfterKey(obj, "character_name", pi.name);
+			JsonStringAfterKey(obj, "display_name", pi.account);
+			long long prof = 0, elite = 0;
+			JsonLongAfterKey(obj, "profession", prof);
+			JsonLongAfterKey(obj, "elite_spec", elite);
+			pi.profession = FormatProfessionElite(prof, elite);
+		}
+		pi.guildTag = ExtractGuildTag(pi.name);
+		if (pi.guildTag.empty())
+			pi.guildTag = ExtractGuildTag(pi.account);
 	}
 
 	const char* FindPlayersArray(const char* json)
@@ -825,10 +955,20 @@ namespace
 			JsonStringAfterKey(obj.c_str(), "guildID", pi.guildId);
 			if (pi.guildId.empty())
 				JsonStringAfterKey(obj.c_str(), "GuildID", pi.guildId);
+			if (pi.guildId.empty())
+				JsonStringAfterKey(obj.c_str(), "guildId", pi.guildId);
+			/* EI uses nil UUID when the player has no guild — treat as empty. */
+			if (pi.guildId == "00000000-0000-0000-0000-000000000000")
+				pi.guildId.clear();
+			if (pi.guildTag.empty())
+				JsonStringAfterKey(obj.c_str(), "guildTag", pi.guildTag);
 			long long grp = 0;
 			if (JsonLongAfterKey(obj.c_str(), "group", grp) || JsonLongAfterKey(obj.c_str(), "Group", grp))
 				pi.group = static_cast<int>(grp);
-			pi.guildTag = ExtractGuildTag(pi.name);
+			if (pi.guildTag.empty())
+				pi.guildTag = ExtractGuildTag(pi.name);
+			if (pi.guildTag.empty())
+				pi.guildTag = ExtractGuildTag(pi.account);
 			/* Flat cached fields first, then EI nested dpsAll / buffUptimes. */
 			long long flat = 0;
 			if (JsonLongAfterKey(obj.c_str(), "dps", flat))
@@ -863,6 +1003,39 @@ namespace
 				return a.dps > b.dps;
 			return a.name < b.name;
 		});
+	}
+
+	/* Resolve EI guildUUID → official API tag (worker thread only). */
+	void ResolveGuildTagsForPlayers(std::vector<PlayerInfo>& players)
+	{
+		static std::mutex sCacheMu;
+		static std::unordered_map<std::string, std::string> sTagById;
+
+		for (PlayerInfo& p : players)
+		{
+			if (p.guildId.empty() || !p.guildTag.empty())
+				continue;
+			{
+				std::lock_guard<std::mutex> lock(sCacheMu);
+				auto it = sTagById.find(p.guildId);
+				if (it != sTagById.end())
+				{
+					p.guildTag = it->second;
+					continue;
+				}
+			}
+			std::string path = "/v2/guild/";
+			path += p.guildId;
+			const Gw2Http::Result r = Gw2Http::Api(path.c_str(), nullptr, 6000);
+			if (!r.ok || r.body.empty())
+				continue;
+			std::string tag;
+			if (!JsonStringAfterKey(r.body.c_str(), "tag", tag) || tag.empty())
+				continue;
+			p.guildTag = tag;
+			std::lock_guard<std::mutex> lock(sCacheMu);
+			sTagById[p.guildId] = tag;
+		}
 	}
 
 	void ApplyEiJsonToEntry(LogEntry& e, const std::string& json)
@@ -926,6 +1099,7 @@ namespace
 		}
 
 		ParsePlayersFromJson(json.c_str(), e.players);
+		ResolveGuildTagsForPlayers(e.players);
 		long long squad = 0;
 		for (const auto& p : e.players)
 			squad += p.dps;
@@ -1161,7 +1335,7 @@ namespace
 		FindClose(h);
 	}
 
-	void BeginHydrateFromReports();
+	void BeginHydrateFromReports(bool force = true);
 
 	DWORD WINAPI ScanWorker(LPVOID)
 	{
@@ -1196,6 +1370,7 @@ namespace
 				e.dpsReportUrl = c.dpsReportUrl;
 				e.jsonPathUtf8 = c.jsonPathUtf8;
 				e.players = c.players;
+				e.compDps = c.compDps;
 				e.parseError = c.parseError;
 			}
 		}
@@ -1218,15 +1393,17 @@ namespace
 			std::lock_guard<std::mutex> lock(gMu);
 			for (const auto& e : gLogs)
 			{
-				if (!e.dpsReportUrl.empty() &&
-					(e.encounter.empty() || e.result < 0 || e.durationMs <= 0))
+				if (e.dpsReportUrl.empty())
+					continue;
+				if (e.encounter.empty() || e.result < 0 || e.durationMs <= 0 ||
+					e.players.empty() || PlayersNeedCombatStats(e.players))
 					++needMeta;
 			}
 		}
 		std::snprintf(gStatus, sizeof(gStatus), "Found %d logs.", static_cast<int>(gLogs.size()));
 		gScanBusy.store(false);
 		if (needMeta > 0)
-			BeginHydrateFromReports();
+			BeginHydrateFromReports(false);
 		return 0;
 	}
 
@@ -1590,7 +1767,7 @@ namespace
 		for (unsigned char c : s)
 		{
 			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
-				c == '-' || c == '_' || c == '.' || c == '~' || c == '/' || c == ':')
+				c == '-' || c == '_' || c == '.' || c == '~')
 				o.push_back(static_cast<char>(c));
 			else
 			{
@@ -1600,6 +1777,25 @@ namespace
 			}
 		}
 		return o;
+	}
+
+	/* dps.report accepts id or URL — query param works most reliably as the bare id. */
+	std::string PermalinkQueryValue(const std::string& permalink)
+	{
+		std::string s = permalink;
+		while (!s.empty() && (s.back() == ' ' || s.back() == '\n' || s.back() == '\r'))
+			s.pop_back();
+		const auto slash = s.find_last_of('/');
+		if (slash != std::string::npos && slash + 1 < s.size())
+		{
+			std::string id = s.substr(slash + 1);
+			const auto q = id.find_first_of("?#");
+			if (q != std::string::npos)
+				id.resize(q);
+			if (!id.empty())
+				return id;
+		}
+		return s;
 	}
 
 	void ParseDpsReportPlayers(const char* json, std::vector<PlayerInfo>& out)
@@ -1615,10 +1811,33 @@ namespace
 			return;
 		++p;
 		p = SkipWs(p);
-		/* Array form (rare) */
+		/* Array form — dps.report objects (not EI player shape). */
 		if (*p == '[')
 		{
-			ParsePlayersFromJson(json, out);
+			++p;
+			while (*p && out.size() < static_cast<size_t>(kMaxPlayersPerLog))
+			{
+				p = SkipWs(p);
+				if (*p == ']')
+					break;
+				if (*p != '{')
+				{
+					++p;
+					continue;
+				}
+				const char* end = ObjectEnd(p);
+				if (!end)
+					break;
+				std::string obj(p, end);
+				PlayerInfo pi;
+				FillPlayerFromDpsReportObj(obj.c_str(), {}, pi);
+				if (!pi.name.empty() || !pi.account.empty())
+					out.push_back(std::move(pi));
+				p = end;
+				p = SkipWs(p);
+				if (*p == ',')
+					++p;
+			}
 			return;
 		}
 		/* Object form: "Char Name": { "display_name": "...", ... } */
@@ -1662,25 +1881,7 @@ namespace
 				break;
 			std::string obj(p, end);
 			PlayerInfo pi;
-			pi.name = charName;
-			JsonStringAfterKey(obj.c_str(), "character_name", pi.name);
-			JsonStringAfterKey(obj.c_str(), "display_name", pi.account);
-			long long prof = 0, elite = 0;
-			if (JsonLongAfterKey(obj.c_str(), "profession", prof))
-			{
-				char buf[16];
-				std::snprintf(buf, sizeof(buf), "%lld", prof);
-				pi.profession = buf;
-			}
-			if (JsonLongAfterKey(obj.c_str(), "elite_spec", elite) && elite > 0)
-			{
-				char buf[32];
-				std::snprintf(buf, sizeof(buf), "elite %lld", elite);
-				if (!pi.profession.empty())
-					pi.profession += " / ";
-				pi.profession += buf;
-			}
-			pi.guildTag = ExtractGuildTag(pi.name);
+			FillPlayerFromDpsReportObj(obj.c_str(), charName, pi);
 			if (!pi.name.empty() || !pi.account.empty())
 				out.push_back(std::move(pi));
 			p = end;
@@ -1723,8 +1924,17 @@ namespace
 			e.result = success ? 1 : 0;
 
 		bool isCm = false;
-		if (JsonBoolAfterKey(src, "isCm", isCm) || JsonBoolAfterKey(src, "isCM", isCm))
-			e.mode = isCm ? "CM" : "";
+		bool isLcm = false;
+		JsonBoolAfterKey(src, "isCm", isCm);
+		if (!isCm)
+			JsonBoolAfterKey(src, "isCM", isCm);
+		JsonBoolAfterKey(src, "isLegendaryCm", isLcm);
+		if (!isLcm)
+			JsonBoolAfterKey(src, "isLCM", isLcm);
+		if (isLcm)
+			e.mode = "LCM";
+		else if (isCm)
+			e.mode = "CM";
 
 		long long durSec = 0;
 		if (JsonLongAfterKey(src, "duration", durSec) && durSec > 0)
@@ -1738,8 +1948,12 @@ namespace
 		if (JsonLongAfterKey(resp.c_str(), "encounterTime", encTime) && encTime > 0)
 			e.encounterTime = static_cast<time_t>(encTime);
 
-		if (e.players.empty() || !PlayersHaveDps(e.players))
-			ParseDpsReportPlayers(resp.c_str(), e.players);
+		/* Metadata has names only — never replace a squad that already has DPS/boons. */
+		if (e.players.empty() || PlayersNeedCombatStats(e.players))
+		{
+			if (e.players.empty() || !PlayersHaveDps(e.players))
+				ParseDpsReportPlayers(resp.c_str(), e.players);
+		}
 		if (!e.encounter.empty() || e.result >= 0 || e.durationMs > 0)
 		{
 			e.parseError.clear();
@@ -1757,7 +1971,7 @@ namespace
 			return false;
 		}
 		std::string path = "/getJson?permalink=";
-		path += UrlEncode(permalink);
+		path += UrlEncode(PermalinkQueryValue(permalink));
 		/* EI JSON can be large — allow a longer read. */
 		const std::wstring host = Utf8ToWide("dps.report");
 		const std::wstring pathW = Utf8ToWide(path.c_str());
@@ -1882,7 +2096,7 @@ namespace
 			return false;
 		}
 		std::string path = "/getUploadMetadata?permalink=";
-		path += UrlEncode(permalink);
+		path += UrlEncode(PermalinkQueryValue(permalink));
 		if (!HttpGetSimple("dps.report", path.c_str(), resp, err))
 			return false;
 		if (resp.find("\"permalink\"") == std::string::npos &&
@@ -2090,6 +2304,7 @@ namespace
 
 	DWORD WINAPI HydrateWorker(LPVOID)
 	{
+		const bool force = gHydrateForce.exchange(false);
 		std::vector<std::pair<std::string, std::string>> jobs; /* path, permalink */
 		{
 			std::lock_guard<std::mutex> lock(gMu);
@@ -2097,15 +2312,20 @@ namespace
 			{
 				if (e.dpsReportUrl.empty())
 					continue;
-				const bool needBasics =
-					e.encounter.empty() || e.result < 0 || e.durationMs <= 0 || e.players.empty();
-				const bool needStats = !PlayersHaveDps(e.players);
-				if (!needBasics && !needStats)
-					continue;
+				if (!force)
+				{
+					const bool needBasics =
+						e.encounter.empty() || e.result < 0 || e.durationMs <= 0 || e.players.empty();
+					const bool needStats = PlayersNeedCombatStats(e.players);
+					if (!needBasics && !needStats)
+						continue;
+				}
 				jobs.emplace_back(e.pathUtf8, e.dpsReportUrl);
 			}
 		}
 		int done = 0;
+		int jsonOk = 0;
+		int jsonFail = 0;
 		for (const auto& job : jobs)
 		{
 			if (gCancel.load())
@@ -2126,7 +2346,7 @@ namespace
 				gGen.fetch_add(1);
 			}
 
-			/* Full EI JSON from dps.report — DPS + boon uptimes. */
+			/* Full EI JSON from dps.report — DPS + boon uptimes + guild IDs. */
 			std::string eiJson;
 			if (FetchEiJsonFromReport(job.second, eiJson, err))
 			{
@@ -2141,6 +2361,23 @@ namespace
 					break;
 				}
 				gGen.fetch_add(1);
+				++jsonOk;
+			}
+			else
+			{
+				++jsonFail;
+				if (!err.empty())
+				{
+					std::lock_guard<std::mutex> lock(gMu);
+					for (auto& e : gLogs)
+					{
+						if (e.pathUtf8 != job.first)
+							continue;
+						if (e.parseError.empty())
+							e.parseError = err;
+						break;
+					}
+				}
 			}
 			++done;
 		}
@@ -2149,18 +2386,26 @@ namespace
 			SaveCacheLocked();
 			gGen.fetch_add(1);
 		}
+		if (jobs.empty())
+			std::snprintf(gStatus, sizeof(gStatus), "No reports to load (upload first).");
+		else if (jsonFail > 0)
+			std::snprintf(gStatus, sizeof(gStatus),
+				"Loaded %d report(s); %d getJson ok, %d failed.", done, jsonOk, jsonFail);
+		else
 		std::snprintf(gStatus, sizeof(gStatus),
-			"Loaded DPS/boon stats for %d report(s).", done);
+			"Loaded DPS/boons/guilds for %d report(s).", jsonOk);
 		gHydrateBusy.store(false);
 		return 0;
 	}
 
-	void BeginHydrateFromReports()
+	void BeginHydrateFromReports(bool force)
 	{
 		if (gHydrateBusy.exchange(true))
 			return;
+		gHydrateForce.store(force);
 		gCancel.store(false);
-		std::snprintf(gStatus, sizeof(gStatus), "Loading metadata from dps.report…");
+		std::snprintf(gStatus, sizeof(gStatus),
+			force ? "Refreshing DPS/boons from dps.report…" : "Loading metadata from dps.report…");
 		if (gHydrateThread)
 		{
 			CloseHandle(gHydrateThread);
@@ -2168,7 +2413,10 @@ namespace
 		}
 		gHydrateThread = CreateThread(nullptr, 0, HydrateWorker, nullptr, 0, nullptr);
 		if (!gHydrateThread)
+		{
 			gHydrateBusy.store(false);
+			gHydrateForce.store(false);
+		}
 	}
 
 	void BeginUpload(const std::vector<std::string>& paths)
@@ -2334,6 +2582,632 @@ namespace
 			dir.resize(slash);
 		ShellExecuteW(nullptr, L"explore", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
+
+	void CollectFiltered(std::vector<const LogEntry*>& filtered)
+	{
+		filtered.clear();
+		filtered.reserve(gDraw.size());
+		if (gDaysCombo < 0 || gDaysCombo > 4)
+			gDaysCombo = 0;
+		const int daysCut = kDaysMap[gDaysCombo];
+		const time_t now = std::time(nullptr);
+		const time_t cut = daysCut > 0 ? now - static_cast<time_t>(daysCut) * 86400 : 0;
+		for (const LogEntry& e : gDraw)
+		{
+			if (gSearch[0] && !ContainsI(e.fileName, gSearch) && !ContainsI(e.encounter, gSearch) &&
+				!ContainsI(e.pathUtf8, gSearch))
+				continue;
+			if (gEncounterFilter[0] && !ContainsI(e.encounter, gEncounterFilter))
+				continue;
+			const auto rf = static_cast<ResultFilter>(gResultFilter);
+			if (rf == ResultFilter::Success && e.result != 1)
+				continue;
+			if (rf == ResultFilter::Failure && e.result != 0)
+				continue;
+			if (rf == ResultFilter::Unknown && e.result != -1)
+				continue;
+			const auto mf = static_cast<ModeFilter>(gModeFilter);
+			if (mf == ModeFilter::Normal && !e.mode.empty())
+				continue;
+			if (mf == ModeFilter::CM && e.mode != "CM")
+				continue;
+			if (mf == ModeFilter::LCM && e.mode != "LCM")
+				continue;
+			if (cut > 0)
+			{
+				const time_t t = e.encounterTime > 0 ? e.encounterTime : FileTimeToUnix(e.mtime);
+				if (t < cut)
+					continue;
+			}
+			filtered.push_back(&e);
+		}
+	}
+
+	void DrawBusyOrStatus()
+	{
+		if (gEiInstallBusy.load())
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
+				gEiStatus[0] ? gEiStatus : "Installing Elite Insights…");
+		else if (gScanBusy.load())
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Scanning…");
+		else if (gParseBusy.load())
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Parsing %d / %d…",
+				gParseDone.load(), gParseTotal.load());
+		else if (gUploadBusy.load())
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Uploading %d / %d…",
+				gUploadDone.load(), gUploadTotal.load());
+		else if (gHydrateBusy.load())
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
+				gStatus[0] ? gStatus : "Loading report metadata…");
+		else if (gStatus[0])
+			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", gStatus);
+	}
+
+	void DrawToolbar(const std::vector<const LogEntry*>& filtered, bool hasDotNet)
+	{
+		if (ImGui::Button("Rescan###gw2igh_lm_scan"))
+			BeginScan();
+		ImGui::SameLine(0.f, 4.f);
+
+		const bool canParse = hasDotNet && !gParseBusy.load() && !gScanBusy.load() &&
+			!gEiInstallBusy.load() && G::EliteInsightsPath[0] && PathExistsUtf8(G::EliteInsightsPath);
+		if (canParse)
+		{
+			if (ImGui::Button("Parse pending###gw2igh_lm_parse"))
+				BeginParsePending();
+		}
+		else
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+			ImGui::Button("Parse pending###gw2igh_lm_parse");
+			ImGui::PopStyleVar();
+		}
+		ImGui::SameLine(0.f, 4.f);
+
+		if (ImGui::Button("Upload filtered###gw2igh_lm_upall"))
+		{
+			std::vector<std::string> paths;
+			paths.reserve(filtered.size());
+			for (const LogEntry* e : filtered)
+				paths.push_back(e->pathUtf8);
+			BeginUpload(paths);
+		}
+		ImGui::SameLine(0.f, 4.f);
+
+		if (gHydrateBusy.load())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+			ImGui::Button("Load DPS/boons###gw2igh_lm_hydrate");
+			ImGui::PopStyleVar();
+		}
+		else if (ImGui::Button("Load DPS/boons###gw2igh_lm_hydrate"))
+			BeginHydrateFromReports();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Fill encounter, DPS, and boon uptimes from dps.report (getJson). No re-upload.");
+		ImGui::SameLine(0.f, 4.f);
+
+		if (ImGui::Button("Open folder###gw2igh_lm_openfolder"))
+		{
+			const std::wstring w = Utf8ToWide(G::LogFolder);
+			if (!w.empty())
+				ShellExecuteW(nullptr, L"explore", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		}
+
+		if (!hasDotNet)
+		{
+			ImGui::SameLine(0.f, 8.f);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.55f, 0.35f, 0.12f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.65f, 0.42f, 0.15f, 1.f));
+			if (ImGui::Button("Needs .NET 8###gw2igh_lm_neednet"))
+				gFocusSetupTab = true;
+			ImGui::PopStyleColor(2);
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Elite Insights needs .NET 8 Desktop Runtime — open Setup.");
+		}
+
+		ImGui::SameLine(0.f, 10.f);
+		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "%d shown / %d",
+			static_cast<int>(filtered.size()), static_cast<int>(gDraw.size()));
+		ImGui::SameLine(0.f, 10.f);
+		DrawBusyOrStatus();
+	}
+
+	void DrawFilterPane()
+	{
+		ImGui::TextUnformatted("Filters");
+		ImGui::Separator();
+		ImGui::SetNextItemWidth(-1.f);
+		ImGui::InputTextWithHint("###gw2igh_lm_search", "Search…", gSearch, sizeof(gSearch));
+		ImGui::SetNextItemWidth(-1.f);
+		ImGui::InputTextWithHint("###gw2igh_lm_enc", "Encounter…", gEncounterFilter, sizeof(gEncounterFilter));
+		ImGui::Spacing();
+		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Result");
+		ImGui::SetNextItemWidth(-1.f);
+		ImGui::Combo("###gw2igh_lm_res", &gResultFilter, "All\0Kills\0Fails\0Unknown\0");
+		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Mode");
+		ImGui::SetNextItemWidth(-1.f);
+		ImGui::Combo("###gw2igh_lm_mode", &gModeFilter, "All\0Normal\0CM\0LCM\0");
+		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Time");
+		ImGui::SetNextItemWidth(-1.f);
+		ImGui::Combo("###gw2igh_lm_days", &gDaysCombo,
+			"All time\0Last 1 day\0Last 3 days\0Last 7 days\0Last 30 days\0");
+		ImGui::Spacing();
+		if (ImGui::SmallButton("Clear filters###gw2igh_lm_clearf"))
+		{
+			gSearch[0] = 0;
+			gEncounterFilter[0] = 0;
+			gResultFilter = static_cast<int>(ResultFilter::All);
+			gModeFilter = static_cast<int>(ModeFilter::All);
+			gDaysCombo = 0;
+		}
+	}
+
+	void DrawLogTable(const std::vector<const LogEntry*>& filtered)
+	{
+		const ImVec2 tableSize(-FLT_MIN, -FLT_MIN);
+		if (ImGui::BeginTable("###gw2igh_lm_table", 7,
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+				tableSize))
+		{
+			ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthStretch, 0.22f);
+			ImGui::TableSetupColumn("Encounter", ImGuiTableColumnFlags_WidthStretch, 0.36f);
+			ImGui::TableSetupColumn("Result", ImGuiTableColumnFlags_WidthStretch, 0.10f);
+			ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthStretch, 0.08f);
+			ImGui::TableSetupColumn("Dur", ImGuiTableColumnFlags_WidthStretch, 0.10f);
+			ImGui::TableSetupColumn("Squad", ImGuiTableColumnFlags_WidthStretch, 0.10f);
+			ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthStretch, 0.04f);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			for (int i = 0; i < static_cast<int>(filtered.size()); ++i)
+			{
+				const LogEntry* e = filtered[static_cast<size_t>(i)];
+				ImGui::PushID(e->pathUtf8.c_str());
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				const bool sel = (gSelected >= 0 && gSelected < static_cast<int>(gDraw.size()) &&
+					gDraw[static_cast<size_t>(gSelected)].pathUtf8 == e->pathUtf8);
+				char label[48];
+				std::snprintf(label, sizeof(label), "%s", FmtTime(e->encounterTime).c_str());
+				if (ImGui::Selectable(label, sel, ImGuiSelectableFlags_SpanAllColumns))
+				{
+					for (int j = 0; j < static_cast<int>(gDraw.size()); ++j)
+					{
+						if (gDraw[static_cast<size_t>(j)].pathUtf8 == e->pathUtf8)
+						{
+							gSelected = j;
+							break;
+						}
+					}
+				}
+				ImGui::TableNextColumn();
+				if (!e->encounter.empty())
+					ImGui::TextUnformatted(e->encounter.c_str());
+				else
+					ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f), "%s", e->fileName.c_str());
+				ImGui::TableNextColumn();
+				if (e->result == 1)
+					ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.50f, 1.f), "Kill");
+				else if (e->result == 0)
+					ImGui::TextColored(ImVec4(0.90f, 0.45f, 0.40f, 1.f), "Fail");
+				else if (e->state == ParseState::Pending)
+					ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.40f, 1.f), "…");
+				else
+					ImGui::TextUnformatted(ResultLabel(e->result));
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(e->mode.empty() ? "-" : e->mode.c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(FmtDuration(e->durationMs).c_str());
+				ImGui::TableNextColumn();
+				if (e->compDps > 0)
+					ImGui::Text("%d", e->compDps);
+				else
+					ImGui::TextUnformatted("-");
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", static_cast<int>(e->players.size()));
+				ImGui::PopID();
+			}
+			ImGui::EndTable();
+		}
+	}
+
+	void DrawDetailTab()
+	{
+		const LogEntry* sel = nullptr;
+		if (gSelected >= 0 && gSelected < static_cast<int>(gDraw.size()))
+			sel = &gDraw[static_cast<size_t>(gSelected)];
+
+		if (!sel)
+		{
+			ImGui::TextWrapped("Select a log from the list.");
+			return;
+		}
+
+		ImGui::TextWrapped("%s", sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
+		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "%s", sel->fileName.c_str());
+		ImGui::Text("Result: %s  Mode: %s  Duration: %s",
+			ResultLabel(sel->result),
+			sel->mode.empty() ? "Normal" : sel->mode.c_str(),
+			FmtDuration(sel->durationMs).c_str());
+		ImGui::Text("Time: %s", FmtTime(sel->encounterTime).c_str());
+		if (sel->compDps > 0)
+			ImGui::Text("Squad DPS: %d", sel->compDps);
+		if (!sel->parseError.empty())
+			ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.40f, 1.f), "%s", sel->parseError.c_str());
+
+		if (ImGui::Button("Parse###gw2igh_lm_parsesel"))
+			BeginParseSelected(sel->pathUtf8);
+		ImGui::SameLine();
+		if (ImGui::Button("Upload###gw2igh_lm_upsel"))
+			BeginUpload({sel->pathUtf8});
+		ImGui::SameLine();
+		if (ImGui::Button("Folder###gw2igh_lm_folder"))
+			OpenFolderFor(sel->pathW);
+
+		if (!sel->dpsReportUrl.empty())
+		{
+			ImGui::TextWrapped("%s", sel->dpsReportUrl.c_str());
+			if (ImGui::SmallButton("Open report###gw2igh_lm_openrep"))
+				ShellExecuteA(nullptr, "open", sel->dpsReportUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Copy link###gw2igh_lm_copylink"))
+				CopyText(sel->dpsReportUrl.c_str());
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Load DPS/boons###gw2igh_lm_loadstats") && !gHydrateBusy.load())
+				BeginHydrateFromReports();
+		}
+
+		ImGui::Separator();
+		ImGui::TextUnformatted("Squad (DPS + boon uptimes %)");
+		if (sel->players.empty())
+			ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f),
+				"No player data — Parse, Upload, or Load DPS/boons.");
+		else if (!PlayersHaveDps(sel->players) && !PlayersHaveBoons(sel->players))
+		{
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+				"Names loaded — click Load DPS/boons (or Parse with EI).");
+			if (ImGui::BeginTable("###gw2igh_lm_squad_basic", 4,
+					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+			{
+				ImGui::TableSetupColumn("Name");
+				ImGui::TableSetupColumn("Account");
+				ImGui::TableSetupColumn("Prof");
+				ImGui::TableSetupColumn("G");
+				ImGui::TableHeadersRow();
+				for (const PlayerInfo& p : sel->players)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(p.name.c_str());
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(p.account.c_str());
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(p.profession.c_str());
+					ImGui::TableNextColumn();
+					ImGui::Text("%d", p.group);
+				}
+				ImGui::EndTable();
+			}
+		}
+		else if (ImGui::BeginTable("###gw2igh_lm_squad", 10,
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+				ImVec2(-FLT_MIN, -FLT_MIN)))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.8f);
+			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 1.1f);
+			ImGui::TableSetupColumn("DPS", ImGuiTableColumnFlags_WidthStretch, 0.85f);
+			ImGui::TableSetupColumn("Pwr", ImGuiTableColumnFlags_WidthStretch, 0.7f);
+			ImGui::TableSetupColumn("Con", ImGuiTableColumnFlags_WidthStretch, 0.7f);
+			ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+			ImGui::TableSetupColumn("Alac", ImGuiTableColumnFlags_WidthStretch, 0.55f);
+			ImGui::TableSetupColumn("Might", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+			ImGui::TableSetupColumn("Fury", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+			ImGui::TableSetupColumn("Prot", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+			ImGui::TableSetupScrollFreeze(1, 1);
+			ImGui::TableHeadersRow();
+			auto pct = [](float v) {
+				if (v < 0.f)
+					return std::string("-");
+				char b[16];
+				std::snprintf(b, sizeof(b), "%.0f", static_cast<double>(v));
+				return std::string(b);
+			};
+			for (const PlayerInfo& p : sel->players)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(p.name.c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(p.profession.c_str());
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", p.dps);
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", p.powerDps);
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", p.condiDps);
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(pct(p.quickness).c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(pct(p.alacrity).c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(pct(p.might).c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(pct(p.fury).c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(pct(p.protection).c_str());
+			}
+			ImGui::EndTable();
+		}
+	}
+
+	const LogEntry* SelectedDrawEntry()
+	{
+		if (gSelected < 0 || gSelected >= static_cast<int>(gDraw.size()))
+			return nullptr;
+		return &gDraw[static_cast<size_t>(gSelected)];
+	}
+
+	std::string GuildLabelFor(const PlayerInfo& p)
+	{
+		if (!p.guildTag.empty())
+			return p.guildTag;
+		if (!p.guildId.empty())
+		{
+			if (p.guildId.size() > 8)
+				return p.guildId.substr(0, 8) + "…";
+			return p.guildId;
+		}
+		return {};
+	}
+
+	void DrawPlayersTab(const std::vector<const LogEntry*>& /*filtered*/)
+	{
+		const LogEntry* sel = SelectedDrawEntry();
+		if (!sel)
+		{
+			ImGui::TextWrapped("Select a log to see its squad players.");
+			return;
+		}
+
+		ImGui::TextUnformatted(sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
+		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+			"%d players in this run", static_cast<int>(sel->players.size()));
+
+		if (sel->players.empty())
+		{
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+				"No player data — Parse or Load DPS/boons for this log.");
+			return;
+		}
+
+		if (ImGui::BeginTable("###gw2igh_lm_paggs", 6,
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+				ImVec2(-FLT_MIN, -FLT_MIN)))
+		{
+			ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthStretch, 1.4f);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.2f);
+			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+			ImGui::TableSetupColumn("DPS", ImGuiTableColumnFlags_WidthStretch, 0.7f);
+			ImGui::TableSetupColumn("Guild", ImGuiTableColumnFlags_WidthStretch, 0.8f);
+			ImGui::TableSetupColumn("G", ImGuiTableColumnFlags_WidthStretch, 0.35f);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+			for (const PlayerInfo& p : sel->players)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(p.account.empty() ? "-" : p.account.c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(p.name.empty() ? "-" : p.name.c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(p.profession.empty() ? "-" : p.profession.c_str());
+				ImGui::TableNextColumn();
+				if (p.dps > 0)
+					ImGui::Text("%d", p.dps);
+				else
+					ImGui::TextUnformatted("-");
+				ImGui::TableNextColumn();
+				const std::string g = GuildLabelFor(p);
+				ImGui::TextUnformatted(g.empty() ? "-" : g.c_str());
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", p.group);
+			}
+			ImGui::EndTable();
+		}
+	}
+
+	void DrawGuildsTab(const std::vector<const LogEntry*>& /*filtered*/)
+	{
+		const LogEntry* sel = SelectedDrawEntry();
+		if (!sel)
+		{
+			ImGui::TextWrapped("Select a log to see guilds in that run.");
+			return;
+		}
+
+		ImGui::TextUnformatted(sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
+
+		struct Acc
+		{
+			std::string label;
+			int players = 0;
+			int dpsSum = 0;
+		};
+		std::unordered_map<std::string, Acc> map;
+		for (const PlayerInfo& p : sel->players)
+		{
+			std::string key = p.guildTag;
+			std::string label = p.guildTag;
+			if (key.empty() && !p.guildId.empty())
+			{
+				key = p.guildId;
+				label = p.guildId.size() > 8 ? p.guildId.substr(0, 8) + "…" : p.guildId;
+			}
+			if (key.empty())
+				continue;
+			Acc& a = map[key];
+			a.label = label;
+			a.players += 1;
+			a.dpsSum += p.dps > 0 ? p.dps : 0;
+		}
+
+		std::vector<std::pair<std::string, Acc>> rows;
+		rows.reserve(map.size());
+		for (auto& kv : map)
+			rows.emplace_back(kv.first, std::move(kv.second));
+		std::sort(rows.begin(), rows.end(), [](const auto& a, const auto& b) {
+			if (a.second.players != b.second.players)
+				return a.second.players > b.second.players;
+			return a.second.label < b.second.label;
+		});
+
+		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+			"%d guilds in this run", static_cast<int>(rows.size()));
+
+		if (rows.empty())
+		{
+			ImGui::TextWrapped(
+				"No guilds on this squad after load. Click Load DPS/boons to refresh; "
+				"players without a guild show as empty.");
+			return;
+		}
+
+		if (ImGui::BeginTable("###gw2igh_lm_gaggs", 3,
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+				ImVec2(-FLT_MIN, -FLT_MIN)))
+		{
+			ImGui::TableSetupColumn("Guild", ImGuiTableColumnFlags_WidthStretch, 2.0f);
+			ImGui::TableSetupColumn("Players", ImGuiTableColumnFlags_WidthStretch, 0.7f);
+			ImGui::TableSetupColumn("DPS sum", ImGuiTableColumnFlags_WidthStretch, 0.9f);
+			ImGui::TableHeadersRow();
+			for (const auto& row : rows)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(row.second.label.c_str());
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", row.second.players);
+				ImGui::TableNextColumn();
+				if (row.second.dpsSum > 0)
+					ImGui::Text("%d", row.second.dpsSum);
+				else
+					ImGui::TextUnformatted("-");
+			}
+			ImGui::EndTable();
+		}
+	}
+
+	void DrawFastestTab(const std::vector<const LogEntry*>& filtered)
+	{
+		std::vector<FastestKill> kills;
+		BuildFastest(filtered, kills);
+		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+			"Best kill time per encounter (filtered)");
+		if (ImGui::BeginTable("###gw2igh_lm_fast", 3,
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Encounter");
+			ImGui::TableSetupColumn("Time");
+			ImGui::TableSetupColumn("File");
+			ImGui::TableHeadersRow();
+			for (const FastestKill& k : kills)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(k.encounter.c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(FmtDuration(k.durationMs).c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(k.fileName.c_str());
+			}
+			ImGui::EndTable();
+		}
+	}
+
+	void DrawSetupTab(bool hasDotNet)
+	{
+		ImGui::TextWrapped(
+			"Browse ArcDPS logs. Elite Insights auto-updates from GitHub latest (MIT, baaron4).");
+		ImGui::Separator();
+
+		if (!hasDotNet)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.72f, 0.35f, 1.f));
+			ImGui::TextWrapped(
+				".NET 8 Desktop Runtime not detected — Elite Insights cannot parse until it is installed.");
+			ImGui::PopStyleColor();
+			if (EiRuntime::IsWine())
+			{
+				ImGui::TextColored(ImVec4(0.75f, 0.70f, 0.45f, 1.f), "%s",
+					"Proton/Wine: install into this game's Windows prefix — Linux distro packages will not work.");
+			}
+			if (ImGui::Button("Install .NET 8 Runtime###gw2igh_lm_dotnet_install"))
+				EiRuntime::OpenDotNet8Installer();
+			ImGui::SameLine();
+			if (ImGui::Button("Recheck .NET###gw2igh_lm_dotnet_recheck"))
+			{
+				EiRuntime::InvalidateDotNet8Cache();
+				std::snprintf(gStatus, sizeof(gStatus),
+					EiRuntime::HasDotNet8Runtime()
+						? ".NET 8 runtime found."
+						: ".NET 8 still not detected.");
+			}
+			ImGui::Separator();
+		}
+		else
+			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), ".NET 8 Desktop Runtime detected.");
+
+		ImGui::TextUnformatted("Log folder");
+		ImGui::SetNextItemWidth(-1.f);
+		if (ImGui::InputTextWithHint("###gw2igh_lm_folder", "arcdps.cbtlogs path",
+				G::LogFolder, sizeof(G::LogFolder)))
+			Settings::SetDirty();
+
+		ImGui::TextUnformatted("Elite Insights CLI");
+		ImGui::SetNextItemWidth(-1.f);
+		if (ImGui::InputTextWithHint("###gw2igh_lm_ei",
+				"Auto-filled after install, or custom path",
+				G::EliteInsightsPath, sizeof(G::EliteInsightsPath)))
+			Settings::SetDirty();
+
+		ImGui::TextUnformatted("dps.report token (optional)");
+		ImGui::SetNextItemWidth(-1.f);
+		if (ImGui::InputTextWithHint("###gw2igh_lm_token", "User token",
+				G::DpsReportToken, sizeof(G::DpsReportToken),
+				ImGuiInputTextFlags_Password))
+			Settings::SetDirty();
+
+		ImGui::Spacing();
+		if (gEiInstallBusy.load())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+			ImGui::Button("Install / Update EI###gw2igh_lm_eiinst");
+			ImGui::PopStyleVar();
+		}
+		else if (ImGui::Button("Install / Update EI###gw2igh_lm_eiinst"))
+			BeginEiEnsure(true);
+		ImGui::SameLine();
+		if (ImGui::Button("EI releases###gw2igh_lm_eihelp"))
+			ShellExecuteA(nullptr, "open",
+				"https://github.com/baaron4/GW2-Elite-Insights-Parser/releases",
+				nullptr, nullptr, SW_SHOWNORMAL);
+		ImGui::SameLine();
+		if (ImGui::Button("Open log folder###gw2igh_lm_setup_folder"))
+		{
+			const std::wstring w = Utf8ToWide(G::LogFolder);
+			if (!w.empty())
+				ShellExecuteW(nullptr, L"explore", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		}
+
+		if (gEiInstallBusy.load())
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
+				gEiStatus[0] ? gEiStatus : "Installing Elite Insights…");
+	}
 }
 
 void LogManagerPad::OpenAndRefresh()
@@ -2341,6 +3215,7 @@ void LogManagerPad::OpenAndRefresh()
 	G::ShowLogManager = true;
 	gFocus = true;
 	gPlaceOnce = true;
+	gLogListFrac = G::LogManagerListFrac;
 	EnsureDefaultPaths();
 	Settings::SetDirty();
 	BeginEiEnsure(false);
@@ -2357,11 +3232,15 @@ bool LogManagerPad::Render()
 
 	if (gPlaceOnce)
 	{
-		ImGui::SetNextWindowPos(ImVec2(80.f, 100.f), ImGuiCond_FirstUseEver);
+		if (G::LogManagerWinX >= 0.f && G::LogManagerWinY >= 0.f)
+			ImGui::SetNextWindowPos(ImVec2(G::LogManagerWinX, G::LogManagerWinY), ImGuiCond_Always);
+		else
+			ImGui::SetNextWindowPos(ImVec2(80.f, 100.f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(G::LogManagerWinW, G::LogManagerWinH), ImGuiCond_Always);
+		gLogListFrac = G::LogManagerListFrac;
 		gPlaceOnce = false;
 	}
-	ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(560.f, 420.f), ImVec2(1600.f, 1200.f));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(900.f, 420.f), ImVec2(1800.f, 1200.f));
 	if (gFocus)
 	{
 		ImGui::SetNextWindowFocus();
@@ -2387,470 +3266,132 @@ bool LogManagerPad::Render()
 		return false;
 	}
 
-	ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-		"Browse ArcDPS logs. Auto-updates Elite Insights from GitHub latest (MIT, baaron4).");
-
 	const bool hasDotNet = EiRuntime::HasDotNet8Runtime();
-	if (!hasDotNet)
-	{
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.72f, 0.35f, 1.f));
-		ImGui::TextWrapped(
-			".NET 8 Desktop Runtime not detected — Elite Insights cannot parse until it is installed.");
-		ImGui::PopStyleColor();
-		if (EiRuntime::IsWine())
-		{
-			ImGui::TextColored(ImVec4(0.75f, 0.70f, 0.45f, 1.f), "%s",
-				"Proton/Wine: install into this game's Windows prefix — Linux distro packages will not work.");
-		}
-		if (ImGui::Button("Install .NET 8 Runtime###gw2igh_lm_dotnet_install"))
-			EiRuntime::OpenDotNet8Installer();
-		ImGui::SameLine();
-		if (ImGui::Button("Recheck .NET###gw2igh_lm_dotnet_recheck"))
-		{
-			EiRuntime::InvalidateDotNet8Cache();
-			std::snprintf(gStatus, sizeof(gStatus),
-				EiRuntime::HasDotNet8Runtime()
-					? ".NET 8 runtime found."
-					: ".NET 8 still not detected.");
-		}
-		ImGui::Separator();
-	}
+	std::vector<const LogEntry*> filtered;
+	CollectFiltered(filtered);
 
-	/* Settings row */
-	ImGui::SetNextItemWidth(-1.f);
-	if (ImGui::InputTextWithHint("###gw2igh_lm_folder", "Log folder (arcdps.cbtlogs)",
-			G::LogFolder, sizeof(G::LogFolder)))
-		Settings::SetDirty();
-	ImGui::SetNextItemWidth(-1.f);
-	if (ImGui::InputTextWithHint("###gw2igh_lm_ei",
-			"Elite Insights CLI (auto-filled after install, or custom path)",
-			G::EliteInsightsPath, sizeof(G::EliteInsightsPath)))
-		Settings::SetDirty();
-	ImGui::SetNextItemWidth(-1.f);
-	if (ImGui::InputTextWithHint("###gw2igh_lm_token", "dps.report user token (optional)",
-			G::DpsReportToken, sizeof(G::DpsReportToken),
-			ImGuiInputTextFlags_Password))
-		Settings::SetDirty();
-
-	if (ImGui::Button("Rescan###gw2igh_lm_scan"))
-		BeginScan();
-	ImGui::SameLine();
-	const bool canParse = hasDotNet && !gParseBusy.load() && !gScanBusy.load() &&
-		!gEiInstallBusy.load() && G::EliteInsightsPath[0] && PathExistsUtf8(G::EliteInsightsPath);
-	if (canParse)
-	{
-		if (ImGui::Button("Parse pending###gw2igh_lm_parse"))
-			BeginParsePending();
-	}
-	else
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-		ImGui::Button("Parse pending###gw2igh_lm_parse");
-		ImGui::PopStyleVar();
-	}
-	ImGui::SameLine();
-	if (gEiInstallBusy.load())
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-		ImGui::Button("Install EI###gw2igh_lm_eiinst");
-		ImGui::PopStyleVar();
-	}
-	else if (ImGui::Button("Install / Update EI###gw2igh_lm_eiinst"))
-		BeginEiEnsure(true);
-	ImGui::SameLine();
-	if (ImGui::Button("Open log folder###gw2igh_lm_openfolder"))
-	{
-		const std::wstring w = Utf8ToWide(G::LogFolder);
-		if (!w.empty())
-			ShellExecuteW(nullptr, L"explore", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-	}
-	ImGui::SameLine();
-	if (ImGui::SmallButton("EI site###gw2igh_lm_eihelp"))
-		ShellExecuteA(nullptr, "open",
-			"https://github.com/baaron4/GW2-Elite-Insights-Parser/releases",
-			nullptr, nullptr, SW_SHOWNORMAL);
-
-	if (gEiInstallBusy.load())
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
-			gEiStatus[0] ? gEiStatus : "Installing Elite Insights…");
-	else if (gScanBusy.load())
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Scanning…");
-	else if (gParseBusy.load())
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Parsing %d / %d…",
-			gParseDone.load(), gParseTotal.load());
-	else if (gUploadBusy.load())
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Uploading %d / %d…",
-			gUploadDone.load(), gUploadTotal.load());
-	else if (gHydrateBusy.load())
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
-			gStatus[0] ? gStatus : "Loading report metadata…");
-	else if (gStatus[0])
-		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", gStatus);
-
+	DrawToolbar(filtered, hasDotNet);
 	ImGui::Separator();
 
-	/* Filters */
-	ImGui::SetNextItemWidth(180.f);
-	ImGui::InputTextWithHint("###gw2igh_lm_search", "Search…", gSearch, sizeof(gSearch));
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(160.f);
-	ImGui::InputTextWithHint("###gw2igh_lm_enc", "Encounter…", gEncounterFilter, sizeof(gEncounterFilter));
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(100.f);
-	ImGui::Combo("###gw2igh_lm_res", &gResultFilter, "All results\0Kills\0Fails\0Unknown\0");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(90.f);
-	ImGui::Combo("###gw2igh_lm_mode", &gModeFilter, "All modes\0Normal\0CM\0LCM\0");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(110.f);
-	ImGui::Combo("###gw2igh_lm_days", &gDaysCombo,
-		"All time\0Last 1 day\0Last 3 days\0Last 7 days\0Last 30 days\0");
-	if (gDaysCombo < 0 || gDaysCombo > 4)
-		gDaysCombo = 0;
-	const int daysCut = kDaysMap[gDaysCombo];
-
-	std::vector<const LogEntry*> filtered;
-	filtered.reserve(gDraw.size());
-	const time_t now = std::time(nullptr);
-	const time_t cut = daysCut > 0 ? now - static_cast<time_t>(daysCut) * 86400 : 0;
-	for (const LogEntry& e : gDraw)
-	{
-		/* temporarily override days check using daysCut */
-		if (gSearch[0] && !ContainsI(e.fileName, gSearch) && !ContainsI(e.encounter, gSearch) &&
-			!ContainsI(e.pathUtf8, gSearch))
-			continue;
-		if (gEncounterFilter[0] && !ContainsI(e.encounter, gEncounterFilter))
-			continue;
-		const auto rf = static_cast<ResultFilter>(gResultFilter);
-		if (rf == ResultFilter::Success && e.result != 1)
-			continue;
-		if (rf == ResultFilter::Failure && e.result != 0)
-			continue;
-		if (rf == ResultFilter::Unknown && e.result != -1)
-			continue;
-		const auto mf = static_cast<ModeFilter>(gModeFilter);
-		if (mf == ModeFilter::Normal && !e.mode.empty())
-			continue;
-		if (mf == ModeFilter::CM && e.mode != "CM")
-			continue;
-		if (mf == ModeFilter::LCM && e.mode != "LCM")
-			continue;
-		if (cut > 0)
-		{
-			const time_t t = e.encounterTime > 0 ? e.encounterTime : FileTimeToUnix(e.mtime);
-			if (t < cut)
-				continue;
-		}
-		filtered.push_back(&e);
-	}
-
-	/* Batch upload filtered parsed logs */
-	if (ImGui::Button("Upload filtered###gw2igh_lm_upall"))
-	{
-		std::vector<std::string> paths;
-		for (const LogEntry* e : filtered)
-			paths.push_back(e->pathUtf8);
-		BeginUpload(paths);
-	}
-	ImGui::SameLine();
-	if (gHydrateBusy.load())
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-		ImGui::Button("Load report meta###gw2igh_lm_hydrate");
-		ImGui::PopStyleVar();
-	}
-	else if (ImGui::Button("Load report meta###gw2igh_lm_hydrate"))
-		BeginHydrateFromReports();
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip(
-			"Fill encounter, DPS, and boon uptimes from dps.report (getJson). No re-upload.");
-	ImGui::SameLine();
-	ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "%d shown / %d indexed",
-		static_cast<int>(filtered.size()), static_cast<int>(gDraw.size()));
-
-	const float split = ImGui::GetContentRegionAvail().x * 0.58f;
-	ImGui::BeginChild("###gw2igh_lm_list", ImVec2(split, 0.f), true);
-
-	if (ImGui::BeginTable("###gw2igh_lm_table", 6,
-			ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
-				ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp))
-	{
-		ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 110.f);
-		ImGui::TableSetupColumn("Encounter", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Result", ImGuiTableColumnFlags_WidthFixed, 44.f);
-		ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthFixed, 40.f);
-		ImGui::TableSetupColumn("Dur", ImGuiTableColumnFlags_WidthFixed, 50.f);
-		ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed, 28.f);
-		ImGui::TableSetupScrollFreeze(0, 1);
-		ImGui::TableHeadersRow();
-
-		for (int i = 0; i < static_cast<int>(filtered.size()); ++i)
-		{
-			const LogEntry* e = filtered[static_cast<size_t>(i)];
-			ImGui::PushID(e->pathUtf8.c_str());
-			ImGui::TableNextRow();
-			ImGui::TableNextColumn();
-			const bool sel = (gSelected >= 0 && gSelected < static_cast<int>(gDraw.size()) &&
-				gDraw[static_cast<size_t>(gSelected)].pathUtf8 == e->pathUtf8);
-			char label[48];
-			std::snprintf(label, sizeof(label), "%s", FmtTime(e->encounterTime).c_str());
-			if (ImGui::Selectable(label, sel, ImGuiSelectableFlags_SpanAllColumns))
-			{
-				for (int j = 0; j < static_cast<int>(gDraw.size()); ++j)
-				{
-					if (gDraw[static_cast<size_t>(j)].pathUtf8 == e->pathUtf8)
-					{
-						gSelected = j;
-						break;
-					}
-				}
-			}
-			ImGui::TableNextColumn();
-			if (!e->encounter.empty())
-				ImGui::TextUnformatted(e->encounter.c_str());
-			else
-				ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f), "%s", e->fileName.c_str());
-			ImGui::TableNextColumn();
-			if (e->result == 1)
-				ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.50f, 1.f), "Kill");
-			else if (e->result == 0)
-				ImGui::TextColored(ImVec4(0.90f, 0.45f, 0.40f, 1.f), "Fail");
-			else if (e->state == ParseState::Pending)
-				ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.40f, 1.f), "…");
-			else
-				ImGui::TextUnformatted(ResultLabel(e->result));
-			ImGui::TableNextColumn();
-			ImGui::TextUnformatted(e->mode.empty() ? "-" : e->mode.c_str());
-			ImGui::TableNextColumn();
-			ImGui::TextUnformatted(FmtDuration(e->durationMs).c_str());
-			ImGui::TableNextColumn();
-			ImGui::Text("%d", static_cast<int>(e->players.size()));
-			ImGui::PopID();
-		}
-		ImGui::EndTable();
-	}
+	const float bodyH = ImGui::GetContentRegionAvail().y;
+	const float gap = 6.f;
+	ImGui::BeginChild("###gw2igh_lm_filters", ImVec2(kFilterPaneW, bodyH), true);
+	DrawFilterPane();
 	ImGui::EndChild();
 
-	ImGui::SameLine();
-	ImGui::BeginChild("###gw2igh_lm_side", ImVec2(0.f, 0.f), true);
+	ImGui::SameLine(0.f, gap);
+	/* Log list | drag splitter | detail — fraction of remaining width; tables stretch inside. */
+	const float availX = ImGui::GetContentRegionAvail().x;
+	const float splitGap = 2.f;
+	const float usable = availX - kSplitHitW - splitGap * 2.f;
+	if (gLogListFrac < 0.15f)
+		gLogListFrac = 0.15f;
+	if (gLogListFrac > 0.75f)
+		gLogListFrac = 0.75f;
+	float centerW = usable * gLogListFrac;
+	if (centerW < kLogListMinW)
+		centerW = kLogListMinW;
+	if (centerW > usable - kRightPaneMinW)
+		centerW = usable - kRightPaneMinW;
+	if (centerW < kLogListMinW)
+		centerW = kLogListMinW;
+	if (usable > 1.f)
+		gLogListFrac = centerW / usable;
 
+	ImGui::BeginChild("###gw2igh_lm_list", ImVec2(centerW, bodyH), true);
+	DrawLogTable(filtered);
+	ImGui::EndChild();
+
+	ImGui::SameLine(0.f, splitGap);
+	{
+		const ImVec2 splitPos = ImGui::GetCursorScreenPos();
+		ImGui::InvisibleButton("###gw2igh_lm_split", ImVec2(kSplitHitW, bodyH));
+		const bool hovered = ImGui::IsItemHovered();
+		const bool active = ImGui::IsItemActive();
+		if (hovered || active)
+			ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+		if (active && usable > 1.f)
+		{
+			centerW += ImGui::GetIO().MouseDelta.x;
+			if (centerW < kLogListMinW)
+				centerW = kLogListMinW;
+			if (centerW > usable - kRightPaneMinW)
+				centerW = usable - kRightPaneMinW;
+			gLogListFrac = centerW / usable;
+			if (std::fabs(G::LogManagerListFrac - gLogListFrac) > 0.002f)
+			{
+				G::LogManagerListFrac = gLogListFrac;
+				Settings::SetDirty();
+			}
+		}
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		const float midX = splitPos.x + kSplitHitW * 0.5f;
+		const ImU32 col = ImGui::GetColorU32(active ? ImGuiCol_SeparatorActive
+			: (hovered ? ImGuiCol_SeparatorHovered : ImGuiCol_Separator));
+		dl->AddLine(ImVec2(midX, splitPos.y + 4.f),
+			ImVec2(midX, splitPos.y + bodyH - 4.f), col, active ? 2.f : 1.f);
+		if (hovered)
+			ImGui::SetTooltip("Drag to resize panes — tables scale with width");
+	}
+
+	ImGui::SameLine(0.f, splitGap);
+	ImGui::BeginChild("###gw2igh_lm_side", ImVec2(0.f, bodyH), true);
 	if (ImGui::BeginTabBar("###gw2igh_lm_tabs"))
 	{
 		if (ImGui::BeginTabItem("Detail"))
 		{
-			const LogEntry* sel = nullptr;
-			if (gSelected >= 0 && gSelected < static_cast<int>(gDraw.size()))
-				sel = &gDraw[static_cast<size_t>(gSelected)];
-
-			if (!sel)
-				ImGui::TextWrapped("Select a log from the list.");
-			else
-			{
-				ImGui::TextWrapped("%s", sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
-				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "%s", sel->fileName.c_str());
-				ImGui::Text("Result: %s  Mode: %s  Duration: %s",
-					ResultLabel(sel->result),
-					sel->mode.empty() ? "Normal" : sel->mode.c_str(),
-					FmtDuration(sel->durationMs).c_str());
-				ImGui::Text("Time: %s", FmtTime(sel->encounterTime).c_str());
-				if (sel->compDps > 0)
-					ImGui::Text("Squad DPS: %d", sel->compDps);
-				if (!sel->parseError.empty())
-					ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.40f, 1.f), "%s", sel->parseError.c_str());
-
-				if (ImGui::Button("Parse###gw2igh_lm_parsesel"))
-					BeginParseSelected(sel->pathUtf8);
-				ImGui::SameLine();
-				if (ImGui::Button("Upload###gw2igh_lm_upsel"))
-					BeginUpload({sel->pathUtf8});
-				ImGui::SameLine();
-				if (ImGui::Button("Folder###gw2igh_lm_folder"))
-					OpenFolderFor(sel->pathW);
-
-				if (!sel->dpsReportUrl.empty())
-				{
-					ImGui::TextWrapped("%s", sel->dpsReportUrl.c_str());
-					if (ImGui::SmallButton("Open report###gw2igh_lm_openrep"))
-						ShellExecuteA(nullptr, "open", sel->dpsReportUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-					ImGui::SameLine();
-					if (ImGui::SmallButton("Copy link###gw2igh_lm_copylink"))
-						CopyText(sel->dpsReportUrl.c_str());
-					ImGui::SameLine();
-					if (ImGui::SmallButton("Load DPS/boons###gw2igh_lm_loadstats") && !gHydrateBusy.load())
-						BeginHydrateFromReports();
-				}
-
-				ImGui::Separator();
-				ImGui::TextUnformatted("Squad (DPS + boon uptimes %)");
-				if (sel->players.empty())
-					ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f),
-						"No player data — Parse, Upload, or Load report meta.");
-				else if (!PlayersHaveDps(sel->players))
-				{
-					ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
-						"Names loaded — click Load report meta for DPS/boons (or Parse with EI).");
-					if (ImGui::BeginTable("###gw2igh_lm_squad_basic", 4,
-							ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
-					{
-						ImGui::TableSetupColumn("Name");
-						ImGui::TableSetupColumn("Account");
-						ImGui::TableSetupColumn("Prof");
-						ImGui::TableSetupColumn("G");
-						ImGui::TableHeadersRow();
-						for (const PlayerInfo& p : sel->players)
-						{
-							ImGui::TableNextRow();
-							ImGui::TableNextColumn();
-							ImGui::TextUnformatted(p.name.c_str());
-							ImGui::TableNextColumn();
-							ImGui::TextUnformatted(p.account.c_str());
-							ImGui::TableNextColumn();
-							ImGui::TextUnformatted(p.profession.c_str());
-							ImGui::TableNextColumn();
-							ImGui::Text("%d", p.group);
-						}
-						ImGui::EndTable();
-					}
-				}
-				else if (ImGui::BeginTable("###gw2igh_lm_squad", 10,
-						ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
-							ImGuiTableFlags_SizingStretchProp))
-				{
-					ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-					ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthFixed, 72.f);
-					ImGui::TableSetupColumn("DPS", ImGuiTableColumnFlags_WidthFixed, 52.f);
-					ImGui::TableSetupColumn("Pwr", ImGuiTableColumnFlags_WidthFixed, 48.f);
-					ImGui::TableSetupColumn("Con", ImGuiTableColumnFlags_WidthFixed, 48.f);
-					ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthFixed, 40.f);
-					ImGui::TableSetupColumn("Alac", ImGuiTableColumnFlags_WidthFixed, 36.f);
-					ImGui::TableSetupColumn("Might", ImGuiTableColumnFlags_WidthFixed, 40.f);
-					ImGui::TableSetupColumn("Fury", ImGuiTableColumnFlags_WidthFixed, 36.f);
-					ImGui::TableSetupColumn("Prot", ImGuiTableColumnFlags_WidthFixed, 36.f);
-					ImGui::TableHeadersRow();
-					auto pct = [](float v) {
-						if (v < 0.f)
-							return std::string("-");
-						char b[16];
-						std::snprintf(b, sizeof(b), "%.0f", static_cast<double>(v));
-						return std::string(b);
-					};
-					for (const PlayerInfo& p : sel->players)
-					{
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(p.name.c_str());
-						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(p.profession.c_str());
-						ImGui::TableNextColumn();
-						ImGui::Text("%d", p.dps);
-						ImGui::TableNextColumn();
-						ImGui::Text("%d", p.powerDps);
-						ImGui::TableNextColumn();
-						ImGui::Text("%d", p.condiDps);
-						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(pct(p.quickness).c_str());
-						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(pct(p.alacrity).c_str());
-						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(pct(p.might).c_str());
-						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(pct(p.fury).c_str());
-						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(pct(p.protection).c_str());
-					}
-					ImGui::EndTable();
-				}
-			}
+			DrawDetailTab();
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Players"))
 		{
-			std::vector<PlayerAgg> aggs;
-			BuildPlayerAggs(filtered, aggs);
-			ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
-				"%d players in filtered logs", static_cast<int>(aggs.size()));
-			if (ImGui::BeginTable("###gw2igh_lm_paggs", 4,
-					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
-			{
-				ImGui::TableSetupColumn("Account");
-				ImGui::TableSetupColumn("Name");
-				ImGui::TableSetupColumn("Logs");
-				ImGui::TableSetupColumn("Kills");
-				ImGui::TableHeadersRow();
-				for (const PlayerAgg& a : aggs)
-				{
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					ImGui::TextUnformatted(a.account.c_str());
-					ImGui::TableNextColumn();
-					ImGui::TextUnformatted(a.displayName.c_str());
-					ImGui::TableNextColumn();
-					ImGui::Text("%d", a.logs);
-					ImGui::TableNextColumn();
-					ImGui::Text("%d", a.success);
-				}
-				ImGui::EndTable();
-			}
+			DrawPlayersTab(filtered);
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Guilds"))
 		{
-			std::vector<GuildAgg> aggs;
-			BuildGuildAggs(filtered, aggs);
-			ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
-				"%d guilds (from tags / guild ids)", static_cast<int>(aggs.size()));
-			if (ImGui::BeginTable("###gw2igh_lm_gaggs", 3,
-					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
-			{
-				ImGui::TableSetupColumn("Guild");
-				ImGui::TableSetupColumn("Logs");
-				ImGui::TableSetupColumn("Players");
-				ImGui::TableHeadersRow();
-				for (const GuildAgg& a : aggs)
-				{
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					ImGui::TextUnformatted(a.label.c_str());
-					ImGui::TableNextColumn();
-					ImGui::Text("%d", a.logs);
-					ImGui::TableNextColumn();
-					ImGui::Text("%d", a.players);
-				}
-				ImGui::EndTable();
-			}
+			DrawGuildsTab(filtered);
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Fastest"))
 		{
-			std::vector<FastestKill> kills;
-			BuildFastest(filtered, kills);
-			ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
-				"Best kill time per encounter (filtered)");
-			if (ImGui::BeginTable("###gw2igh_lm_fast", 3,
-					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
-			{
-				ImGui::TableSetupColumn("Encounter");
-				ImGui::TableSetupColumn("Time");
-				ImGui::TableSetupColumn("File");
-				ImGui::TableHeadersRow();
-				for (const FastestKill& k : kills)
-				{
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					ImGui::TextUnformatted(k.encounter.c_str());
-					ImGui::TableNextColumn();
-					ImGui::TextUnformatted(FmtDuration(k.durationMs).c_str());
-					ImGui::TableNextColumn();
-					ImGui::TextUnformatted(k.fileName.c_str());
-				}
-				ImGui::EndTable();
-			}
+			DrawFastestTab(filtered);
 			ImGui::EndTabItem();
+		}
+		{
+			ImGuiTabItemFlags setupFlags = 0;
+			if (gFocusSetupTab)
+			{
+				setupFlags = ImGuiTabItemFlags_SetSelected;
+				gFocusSetupTab = false;
+			}
+			if (ImGui::BeginTabItem("Setup", nullptr, setupFlags))
+			{
+				DrawSetupTab(hasDotNet);
+				ImGui::EndTabItem();
+			}
 		}
 		ImGui::EndTabBar();
 	}
-
 	ImGui::EndChild();
+
+	{
+		const ImVec2 pos = ImGui::GetWindowPos();
+		const ImVec2 sz = ImGui::GetWindowSize();
+		const bool moved =
+			std::fabs(pos.x - G::LogManagerWinX) > 0.5f ||
+			std::fabs(pos.y - G::LogManagerWinY) > 0.5f ||
+			std::fabs(sz.x - G::LogManagerWinW) > 0.5f ||
+			std::fabs(sz.y - G::LogManagerWinH) > 0.5f;
+		if (moved)
+		{
+			G::LogManagerWinX = pos.x;
+			G::LogManagerWinY = pos.y;
+			G::LogManagerWinW = sz.x;
+			G::LogManagerWinH = sz.y;
+			Settings::SetDirty();
+		}
+	}
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |

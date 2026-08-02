@@ -9,6 +9,6 @@ namespace NotesPad
 	/* Show + dock beside the helper (user can still drag afterward). */
 	void Open();
 
-	/* Draw the Notes window when G::ShowNotes. Returns true if pointer is over it. */
+	/* Draw the Notes & Waypoints window when G::ShowNotes. Returns true if pointer is over it. */
 	bool Render();
 }
