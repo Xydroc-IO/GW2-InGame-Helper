@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.1.0.2
+# GW2 In-Game Helper v2.1.0.3
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -30,6 +30,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.1.0.3
+
+- **Maintainability:** Modularize god files — Sites, UI Browse/Options, LogManager,
+  LivePanels, Tekkit, WikiBrowser, and helper nav/OSR into focused translation units;
+  CI (`make ci`), onboarding, architecture / whitepaper / kernel docs.
+- **Browse catalog:** Runtime schema-v2 `sites.json` (embedded + extracted) replaces
+  generated `Sites.gen.cpp`; edit `addons/GW2-InGame-Helper/sites.json` and restart
+  for no-rebuild tweaks.
+- **UI input state:** File-local `UiContext` owns helper focus / game-input routing flags.
+- **Stamps:** Helper `2103` · homepage `2103` · sites `s2103`
 
 ## What’s new in 2.1.0.2
 

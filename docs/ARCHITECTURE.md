@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.1.0.2` |
+| Addon revision (shipping) | `2.1.0.3` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home stamps | `2102` / `2102` |
+| Helper / home stamps | `2103` / `2103` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
@@ -216,5 +216,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.1.0.2 / modular Beta tree |
+| Last architecture sync | 2.1.0.3 / modular tree + runtime sites.json |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps |

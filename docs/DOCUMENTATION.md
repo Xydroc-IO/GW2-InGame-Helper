@@ -2,7 +2,7 @@
 
 GW2 In-Game Helper — where to find what.
 
-- **Shipping revision:** **2.1.0.2** (`GW2-InGame-Helper.dll`, private CEF 150) —
+- **Shipping revision:** **2.1.0.3** (`GW2-InGame-Helper.dll`, private CEF 150) —
   see [`RELEASE_NOTES.md`](RELEASE_NOTES.md)
 - **Contributor entry:** [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 
@@ -34,7 +34,7 @@ GW2 In-Game Helper — where to find what.
 
 | Doc | Purpose |
 |-----|---------|
-| [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | Full changelog (current: **2.1.0.2**) |
+| [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | Full changelog (current: **2.1.0.3**) |
 | [`RELEASE_NOTES_CEF_RUNTIME.md`](RELEASE_NOTES_CEF_RUNTIME.md) | GitHub body for tag `cef-runtime-150` (zip asset) |
 | [`description.html`](description.html) | HTML listing for web / Nexus description paste |
 | `RAIDCORE.md` *(gitignored)* | Local Nexus listing draft |
