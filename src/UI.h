@@ -26,5 +26,8 @@ void UI_ResetKeyRouting();
 void UI_ParseBrowseOpen(const char* val);
 void UI_WriteBrowseOpen(FILE* f);
 
+/* Mark helper popup hover for game-input capture (Browse / More / tab menus). */
+void UI_NoteHelperPopupHover();
+
 /* Frame poll for Ctrl+Shift hotkeys — defined in entry.cpp, runs even when closed. */
 void HelperHotkeys_Poll();

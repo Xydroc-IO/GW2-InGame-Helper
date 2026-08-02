@@ -3,13 +3,13 @@
 #include <cstddef>
 #include <string>
 
-/* One entry per site the helper can open. Add new sites in Sites.cpp
-   (large static table — prefer editing via tools/validate_sites.py checks;
-   a generated JSON→C++ path is the long-term maintainability goal).
-   Keep sites grouped by category (same category string, contiguous order).
-   Map Browse sub-section headers in UI.cpp (BrowseSection / BrowseSectionsForCategory).
+/* One entry per site the helper can open. Canonical catalog: data/sites.json
+   → src/Sites.gen.cpp (make gen-sites). Keep sites grouped by category
+   (same category string, contiguous order).
+   Map Browse sub-section headers in UI.cpp / UI_Browse.cpp
+   (BrowseSection / BrowseSectionsForCategory).
    Legendary Armory ids use wiki_l* prefixes; ordinary upgrades use wiki_relic_/wiki_rune_/wiki_sigil_.
-   Run: python3 tools/validate_sites.py  (or make validate-sites) after edits. */
+   Run: make validate-sites after edits. */
 struct SiteDef
 {
 	const char* id;              /* stable settings key, e.g. "wiki" */

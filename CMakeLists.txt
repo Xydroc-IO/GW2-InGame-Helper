@@ -29,12 +29,15 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/Settings.cpp
   src/AddonPaths.cpp
   src/Sites.cpp
+	src/Sites.gen.cpp
   src/BrowserTabs.cpp
   src/HomePage.cpp
   src/RaidFood.cpp
   src/CheatSheets.cpp
+  src/CheatSheets_Data.cpp
   src/Gw2Http.cpp
   src/LivePanels.cpp
+  src/LivePanels_Html.cpp
   src/NotesPad.cpp
   src/WaypointsData.cpp
   src/TpWatchPad.cpp
@@ -47,15 +50,19 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/EventsPad.cpp
   src/EventsData.cpp
   src/LogManagerPad.cpp
+  src/LogManagerParse.cpp
   src/EiRuntime.cpp
   src/TekkitGuidesPad.cpp
   src/TekkitTrails.cpp
+  src/TekkitParse.cpp
   src/CompassOverlay.cpp
   src/WorldOverlay.cpp
   src/HelperQuickAccess.cpp
   src/WikiBrowser.cpp
   src/CefRuntime.cpp
   src/UI.cpp
+  src/UI_Browse.cpp
+  src/UI_Options.cpp
   src/SyncQr.cpp
   deps/qrcodegen/qrcodegen.c
   deps/imgui/imgui.cpp

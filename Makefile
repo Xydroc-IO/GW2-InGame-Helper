@@ -27,12 +27,15 @@ DLL_SRC = \
 	src/Settings.cpp \
 	src/AddonPaths.cpp \
 	src/Sites.cpp \
+	src/Sites.gen.cpp \
 	src/BrowserTabs.cpp \
 	src/HomePage.cpp \
 	src/RaidFood.cpp \
 	src/CheatSheets.cpp \
+	src/CheatSheets_Data.cpp \
 	src/Gw2Http.cpp \
 	src/LivePanels.cpp \
+	src/LivePanels_Html.cpp \
 	src/NotesPad.cpp \
 	src/WaypointsData.cpp \
 	src/TpWatchPad.cpp \
@@ -45,15 +48,19 @@ DLL_SRC = \
 	src/EventsPad.cpp \
 	src/EventsData.cpp \
 	src/LogManagerPad.cpp \
+	src/LogManagerParse.cpp \
 	src/EiRuntime.cpp \
 	src/TekkitGuidesPad.cpp \
 	src/TekkitTrails.cpp \
+	src/TekkitParse.cpp \
 	src/CompassOverlay.cpp \
 	src/WorldOverlay.cpp \
 	src/HelperQuickAccess.cpp \
 	src/WikiBrowser.cpp \
 	src/CefRuntime.cpp \
 	src/UI.cpp \
+	src/UI_Browse.cpp \
+	src/UI_Options.cpp \
 	src/SyncQr.cpp \
 	deps/qrcodegen/qrcodegen.c \
 	deps/imgui/imgui.cpp \
@@ -74,12 +81,24 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper-Beta
 
-.PHONY: all clean install install-reset validate-sites pack-cef
+.PHONY: all clean install install-reset validate-sites gen-sites check-sites pack-cef
 
 all: $(DLL_OUT)
 
+SITES_JSON   = data/sites.json
+SITES_GEN    = src/Sites.gen.cpp
+
+gen-sites: $(SITES_GEN)
+
+$(SITES_GEN): $(SITES_JSON) tools/gen_sites_cpp.py
+	python3 tools/gen_sites_cpp.py $(SITES_JSON) $(SITES_GEN)
+
 validate-sites:
-	python3 tools/validate_sites.py
+	python3 tools/validate_sites.py $(SITES_JSON)
+
+check-sites: $(SITES_GEN)
+	python3 tools/gen_sites_cpp.py $(SITES_JSON) $(SITES_GEN) --check
+	python3 tools/validate_sites.py $(SITES_JSON)
 
 pack-cef:
 	bash scripts/pack-cef-runtime.sh
