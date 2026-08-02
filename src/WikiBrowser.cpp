@@ -1419,7 +1419,10 @@ void WikiBrowser::SetVisible(bool visible, bool keepProcessAlive)
 	if (!visible)
 	{
 		const bool was = gWantVisible.exchange(false);
-		gPendingNavigate.clear();
+		/* Full close drops a queued URL. Occlusion (collapse/tiny/off-screen) must
+		   not — a resize flicker would cancel an in-flight Navigate. */
+		if (!keepProcessAlive)
+			gPendingNavigate.clear();
 		/* Already hidden — do not PostCmd/Wake every RT_Render (KeepHelperWarm spam). */
 		if (!was)
 		{

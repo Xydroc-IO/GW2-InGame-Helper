@@ -137,8 +137,8 @@ Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/R
 
 ## What’s new in 2.0.2.10
 
-- **Viewability:** Hide CEF (`was_hidden`) when collapsed, tiny, off-screen, or very
-  low opacity — fewer 0%-viewable ad impressions; process stays warm for quick expand
+- **Viewability:** Hide CEF (`was_hidden`) when collapsed, tiny, or off-screen —
+  fewer 0%-viewable ad impressions; process stays warm for quick expand
 - Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## What’s new in 2.0.2.9

@@ -33,10 +33,11 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 ## What’s new in 2.0.2.10
 
 - **Viewability:** CEF is marked `was_hidden` when the helper is collapsed, the page
-  slot is tiny, fully off-screen, or opacity is below 20% — so ads are less likely
-  to record 0%-viewable impressions while the player cannot see the panel. The helper
-  process stays alive in those cases (no hitch on expand); a full close still follows
-  **Keep browser warm**.
+  slot is tiny, or fully off-screen — so ads are less likely to record 0%-viewable
+  impressions while the player cannot see the panel. Process stays alive (no hitch
+  on expand); size uses hysteresis so resize does not flap visibility; pending
+  navigations are not cleared on occlusion. Opacity is not a hide gate (low opacity
+  must still render). Full close still follows **Keep browser warm**.
 - **Stamps:** Helper `2051` · homepage `2014`
 
 ## What’s new in 2.0.2.9

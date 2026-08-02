@@ -3115,10 +3115,16 @@ void UI_Render()
 		dispW < 1.f || dispH < 1.f ||
 		(slotPos.x + imageSize.x > 0.f && slotPos.y + imageSize.y > 0.f &&
 			slotPos.x < dispW && slotPos.y < dispH);
+	/* Hysteresis on size so drag-resize does not flap was_hidden (that can
+	   interrupt ad / page timers). Opacity is NOT a gate — users still read
+	   at low opacity; freezing CEF there would break content. */
+	static bool sSlotLargeEnough = true;
+	if (sSlotLargeEnough)
+		sSlotLargeEnough = imageSize.x >= 36.f && imageSize.y >= 36.f;
+	else
+		sSlotLargeEnough = imageSize.x >= 48.f && imageSize.y >= 48.f;
 	const bool pageViewable =
-		G::ShowWiki && open && slotOnScreen &&
-		imageSize.x > 40.f && imageSize.y > 40.f &&
-		G::Opacity >= 0.20f;
+		G::ShowWiki && open && slotOnScreen && sSlotLargeEnough;
 	if (pageViewable)
 	{
 		WikiBrowser::SetVisible(true);
@@ -3127,7 +3133,7 @@ void UI_Render()
 	}
 	else
 	{
-		/* Keep process — window may still be open (tiny / off-screen / low opacity). */
+		/* Keep process — window may still be open (tiny / off-screen). */
 		BlurBrowser();
 		WikiBrowser::SetVisible(false, /*keepProcessAlive=*/true);
 	}
