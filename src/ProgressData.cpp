@@ -580,9 +580,12 @@ void ProgressData::RenderContents()
 	ImGui::InputTextWithHint("###gw2igh_prog_filter", "Filter legendaries…",
 		gFilter, sizeof(gFilter));
 
-	const char* modes[] = { "All", "Missing", "Unlocked" };
-	ImGui::SetNextItemWidth(-1.f);
-	ImGui::Combo("###gw2igh_prog_mode", &gShowMode, modes, 3);
+	ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Show");
+	ImGui::RadioButton("All###gw2igh_prog_m0", &gShowMode, 0);
+	ImGui::SameLine();
+	ImGui::RadioButton("Missing###gw2igh_prog_m1", &gShowMode, 1);
+	ImGui::SameLine();
+	ImGui::RadioButton("Unlocked###gw2igh_prog_m2", &gShowMode, 2);
 
 	ImGui::Separator();
 

@@ -3137,15 +3137,28 @@ namespace
 		ImGui::InputTextWithHint("###gw2igh_lm_enc", "Encounter…", gEncounterFilter, sizeof(gEncounterFilter));
 		ImGui::Spacing();
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Result");
-		ImGui::SetNextItemWidth(-1.f);
-		ImGui::Combo("###gw2igh_lm_res", &gResultFilter, "All\0Kills\0Fails\0Unknown\0");
+		ImGui::RadioButton("All###gw2igh_lm_res0", &gResultFilter, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("Kills###gw2igh_lm_res1", &gResultFilter, 1);
+		ImGui::SameLine();
+		ImGui::RadioButton("Fails###gw2igh_lm_res2", &gResultFilter, 2);
+		ImGui::RadioButton("Unknown###gw2igh_lm_res3", &gResultFilter, 3);
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Mode");
-		ImGui::SetNextItemWidth(-1.f);
-		ImGui::Combo("###gw2igh_lm_mode", &gModeFilter, "All\0Normal\0CM\0LCM\0");
+		ImGui::RadioButton("All###gw2igh_lm_mode0", &gModeFilter, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("Normal###gw2igh_lm_mode1", &gModeFilter, 1);
+		ImGui::SameLine();
+		ImGui::RadioButton("CM###gw2igh_lm_mode2", &gModeFilter, 2);
+		ImGui::SameLine();
+		ImGui::RadioButton("LCM###gw2igh_lm_mode3", &gModeFilter, 3);
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Time");
-		ImGui::SetNextItemWidth(-1.f);
-		ImGui::Combo("###gw2igh_lm_days", &gDaysCombo,
-			"All time\0Last 1 day\0Last 3 days\0Last 7 days\0Last 30 days\0");
+		ImGui::RadioButton("All###gw2igh_lm_day0", &gDaysCombo, 0);
+		ImGui::RadioButton("1 day###gw2igh_lm_day1", &gDaysCombo, 1);
+		ImGui::SameLine();
+		ImGui::RadioButton("3 days###gw2igh_lm_day2", &gDaysCombo, 2);
+		ImGui::RadioButton("7 days###gw2igh_lm_day3", &gDaysCombo, 3);
+		ImGui::SameLine();
+		ImGui::RadioButton("30 days###gw2igh_lm_day4", &gDaysCombo, 4);
 		ImGui::Spacing();
 		if (ImGui::Checkbox("Group by encounter###gw2igh_lm_groupby", &G::LogManagerGroupByEncounter))
 		{

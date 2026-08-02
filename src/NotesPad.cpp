@@ -441,9 +441,16 @@ namespace
 			if (ImGui::InputTextWithHint("###gw2igh_notes_title", "Title", s.title, sizeof(s.title)))
 				MarkDirty();
 			const char* kinds[] = { "Waypoint", "Chat", "Build", "LFG", "Note" };
-			ImGui::SetNextItemWidth(160.f);
-			if (ImGui::Combo("###gw2igh_notes_kind", &s.kind, kinds, Kind_Count))
-				MarkDirty();
+			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Kind");
+			for (int ki = 0; ki < Kind_Count; ++ki)
+			{
+				if (ki > 0)
+					ImGui::SameLine();
+				char id[48];
+				std::snprintf(id, sizeof(id), "%s###gw2igh_notes_kind%d", kinds[ki], ki);
+				if (ImGui::RadioButton(id, &s.kind, ki))
+					MarkDirty();
+			}
 			ImGui::SetNextItemWidth(-1.f);
 			const float availBody = ImGui::GetContentRegionAvail().y - 36.f;
 			const float bodyH = (availBody > 100.f) ? availBody : 100.f;

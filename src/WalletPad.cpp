@@ -902,23 +902,35 @@ void WalletPad::RenderContents()
 	ImGui::InputTextWithHint("###gw2igh_wallet_filter", "Filter: ecto, Alice, bank…",
 		gFilter, sizeof(gFilter));
 
-	/* BeginCombo — ImGui::Combo was resetting selection in this layout. */
-	ImGui::SetNextItemWidth(-1.f);
-	const char* preview = (gLocFilter >= 0 && gLocFilter < 6)
-		? kLocLabels[gLocFilter]
-		: kLocLabels[0];
-	if (ImGui::BeginCombo("###gw2igh_wallet_loc", preview))
+	/* In-window chips — BeginCombo/popup lists lose clicks under Nexus (separate
+	   ImGui window outside the pad hit-box). */
+	ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Location");
+	ImGui::PushID("###gw2igh_wallet_loc");
+	const float chipGap = ImGui::GetStyle().ItemSpacing.x;
+	float chipRowX = 0.f;
+	const float chipMax = ImGui::GetContentRegionAvail().x;
+	for (int i = 0; i < 6; ++i)
 	{
-		for (int i = 0; i < 6; ++i)
+		const bool on = (gLocFilter == i);
+		const ImVec2 labelSize = ImGui::CalcTextSize(kLocLabels[i]);
+		const float chipW = labelSize.x + ImGui::GetStyle().FramePadding.x * 2.f;
+		if (i > 0 && chipRowX + chipGap + chipW > chipMax)
 		{
-			const bool selected = (gLocFilter == i);
-			if (ImGui::Selectable(kLocLabels[i], selected))
-				gLocFilter = i;
-			if (selected)
-				ImGui::SetItemDefaultFocus();
+			chipRowX = 0.f;
 		}
-		ImGui::EndCombo();
+		else if (i > 0)
+		{
+			ImGui::SameLine(0.f, chipGap);
+		}
+		if (on)
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.36f, 0.28f, 0.12f, 1.f));
+		if (ImGui::SmallButton(kLocLabels[i]))
+			gLocFilter = i;
+		if (on)
+			ImGui::PopStyleColor();
+		chipRowX = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x - ImGui::GetStyle().WindowPadding.x;
 	}
+	ImGui::PopID();
 
 	ImGui::Separator();
 
