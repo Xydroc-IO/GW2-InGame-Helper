@@ -1,5 +1,5 @@
-# Cross-compile GW2-InGame-Helper.dll (+ embedded CEF helper) for Windows / Wine
-# Private CEF 150 runtime downloads into addons/GW2-InGame-Helper/cef/ on first use.
+# Cross-compile GW2-InGame-Helper-Beta.dll (+ embedded CEF helper) for Windows / Wine
+# Private CEF 150 runtime downloads into addons/GW2-InGame-Helper-Beta/cef/ on first use.
 CXX      = x86_64-w64-mingw32-g++
 LD       = x86_64-w64-mingw32-ld
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
@@ -67,12 +67,12 @@ DLL_SRC = \
 
 DLL_OBJ = $(patsubst %.cpp,build/%.o,$(filter %.cpp,$(DLL_SRC))) \
 	$(patsubst %.c,build/%.o,$(filter %.c,$(DLL_SRC)))
-DLL_OUT = build/bin/GW2-InGame-Helper.dll
+DLL_OUT = build/bin/GW2-InGame-Helper-Beta.dll
 
 GW2_ROOT   ?= $(HOME)/.local/share/Steam/steamapps/common/Guild Wars 2
 GW2_ADDONS ?= $(GW2_ROOT)/addons
-INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
-INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
+INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll
+INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper-Beta
 
 .PHONY: all clean install install-reset validate-sites pack-cef
 
@@ -138,7 +138,7 @@ install: $(DLL_OUT)
 			/bin/cp -f "../gw2-minimap-resizer/pathing/Tekkit's All-In-One.taco" "$(INSTALL_DIR)/pathing/"; \
 		fi; \
 	fi
-	/bin/rm -f "$(INSTALL_DIR)/GW2-InGame-Helper.dll" \
+	/bin/rm -f "$(INSTALL_DIR)/GW2-InGame-Helper-Beta.dll" \
 		"$(INSTALL_DIR)/GW2HelperBrowser.exe" \
 		"$(GW2_ADDONS)/GW2HelperBrowser.exe" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"

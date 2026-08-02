@@ -2487,7 +2487,7 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 		if (n > 0 && n < MAX_PATH)
 		{
 			cacheRoot = local;
-			cacheRoot += L"\\GW2-InGame-Helper";
+			cacheRoot += L"\\GW2-InGame-Helper-Beta";
 			CreateDirectoryW(cacheRoot.c_str(), nullptr);
 		}
 		else
