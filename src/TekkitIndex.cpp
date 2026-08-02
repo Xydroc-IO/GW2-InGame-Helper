@@ -105,7 +105,7 @@ void DiscoverPackDirs(std::vector<std::wstring>& dirs)
 	/* Our bundled pack lives here — no other addons required. */
 	auto addOurs = [&](const std::wstring& addons)
 	{
-		add(addons + L"\\GW2-InGame-Helper-Beta\\pathing");
+		add(addons + L"\\GW2-InGame-Helper\\pathing");
 		add(addons + L"\\GW2-InGame-Helper\\pathing"); /* shipping pack if present */
 		/* Reuse pack if already installed for Minimap Resizer. */
 		add(addons + L"\\GW2-MinimapResizer\\pathing");
@@ -125,7 +125,7 @@ void DiscoverPackDirs(std::vector<std::wstring>& dirs)
 		addFallbacks(root + L"\\addons");
 	};
 
-	/* Prefer our DLL path (…/addons/GW2-InGame-Helper-Beta[/].dll) — reliable under Wine. */
+	/* Prefer our DLL path (…/addons/GW2-InGame-Helper[/].dll) — reliable under Wine. */
 	if (G::Self)
 	{
 		wchar_t img[MAX_PATH]{};
@@ -140,7 +140,7 @@ void DiscoverPackDirs(std::vector<std::wstring>& dirs)
 			if (slash != std::wstring::npos)
 			{
 				const std::wstring leaf = p.substr(slash + 1);
-				if (_wcsicmp(leaf.c_str(), L"GW2-InGame-Helper-Beta") == 0 ||
+				if (_wcsicmp(leaf.c_str(), L"GW2-InGame-Helper") == 0 ||
 					_wcsicmp(leaf.c_str(), L"GW2-InGame-Helper") == 0)
 				{
 					add(p + L"\\pathing");

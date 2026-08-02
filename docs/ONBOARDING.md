@@ -1,10 +1,10 @@
-# Onboarding — first week (Beta / takeover)
+# Onboarding — first week
 
 **Goal:** a new maintainer can build, validate, ship a pad-level change, and know what **not** to touch without a second opinion.
 
 Companion: [`../CONTRIBUTING.md`](../CONTRIBUTING.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`COMPLIANCE.md`](COMPLIANCE.md) · [`BUILD.md`](BUILD.md).
 
-This guide assumes the **`GW2-InGame-Helper-Beta`** branch (experimental / takeover-friendly modular tree). Do **not** load Beta and shipping DLLs together (same Nexus signature).
+This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper.dll`). An experimental **`GW2-InGame-Helper-Beta`** branch may exist with a separate `ADDON_NAME` / data folder — do **not** load both DLLs together (same Nexus signature).
 
 ---
 
@@ -12,7 +12,7 @@ This guide assumes the **`GW2-InGame-Helper-Beta`** branch (experimental / takeo
 
 1. Clone with submodules; install MinGW (`docs/BUILD.md`).
 2. `make ci` — must pass (sites, CSS, parse fixtures, MinGW smoke).
-3. `make install` (Beta DLL → `addons/GW2-InGame-Helper-Beta.dll`).
+3. `make install` (shipping DLL → `addons/GW2-InGame-Helper.dll`).
 4. Fully restart Guild Wars 2; open helper (`Ctrl+Shift+H` default).
 5. Skim [`ARCHITECTURE.md`](ARCHITECTURE.md) §§1–5 and [`COMPLIANCE.md`](COMPLIANCE.md) Allowed/Forbidden.
 
@@ -23,7 +23,7 @@ This guide assumes the **`GW2-InGame-Helper-Beta`** branch (experimental / takeo
 ## Day 2 — Catalog and pads
 
 1. Read `data/sites.json` (schema **v2**: `browsePath`, `browseSections`) + `make validate-sites`.
-2. Runtime catalog lives in `addons/GW2-InGame-Helper-Beta/sites.json` (extracted from the DLL). Edit that file and fully restart GW2 to change Browse without rebuilding; keep `data/sites.json` in git as the source of truth for releases.
+2. Runtime catalog lives in `addons/GW2-InGame-Helper/sites.json` (extracted from the DLL). Edit that file and fully restart GW2 to change Browse without rebuilding; keep `data/sites.json` in git as the source of truth for releases.
 3. Trace one pad: e.g. `NotesPad` or `WalletPad` → `UI.cpp` toolbar button → settings flag in `Globals.h` / `Settings.cpp`.
 
 **Done when:** you can add a Browse entry via JSON and find where a pad is toggled.

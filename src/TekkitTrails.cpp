@@ -985,7 +985,7 @@ std::string TekkitTrails::PathingFolderHint()
 			return p + "\\pathing";
 		}
 	}
-	return "addons\\GW2-InGame-Helper-Beta\\pathing";
+	return "addons\\GW2-InGame-Helper\\pathing";
 }
 
 void TekkitTrails::ReloadPacks()

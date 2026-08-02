@@ -12,7 +12,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
-The **Beta** channel (`GW2-InGame-Helper-Beta` branch) shares this architecture; it differs only in `ADDON_NAME`, install DLL/folder names, and data-directory branding. Never loads game CEF and never writes into `bin64/cef`.
+Shipping install names are `GW2-InGame-Helper` (DLL + data folder). An optional **Beta** branch (`GW2-InGame-Helper-Beta`) may share this architecture with a distinct `ADDON_NAME` for side-by-side testing. Never loads game CEF and never writes into `bin64/cef`.
 
 **Companion documents:** [`WHITEPAPER.md`](WHITEPAPER.md) (design rationale), [`COMPLIANCE.md`](COMPLIANCE.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`BUILD.md`](BUILD.md), [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
 
@@ -28,7 +28,7 @@ A **Raidcore Nexus** ImGui DLL opens an **out-of-process CEF off-screen (OSR)** 
 
 ```text
 Guild Wars 2.exe
- └─ Nexus loads GW2-InGame-Helper.dll   (or GW2-InGame-Helper-Beta.dll)
+ └─ Nexus loads GW2-InGame-Helper.dll
       ├─ RT_Render → UI_Render → WikiBrowser::PresentFrame / Tick
       ├─ WndProc → keyboard/mouse routing (CEF vs ImGui vs game)
       └─ CreateProcess → GW2HelperBrowser.exe
@@ -86,8 +86,8 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
   ei/                      # Elite Insights CLI (optional)
 ```
 
-Beta substitutes `GW2-InGame-Helper-Beta` for the DLL basename and data folder.  
 See [`BUILD.md`](BUILD.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`COMPLIANCE.md`](COMPLIANCE.md).
+The Beta branch (when present) substitutes `GW2-InGame-Helper-Beta` for the DLL basename and data folder.
 
 ---
 

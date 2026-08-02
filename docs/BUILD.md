@@ -97,14 +97,14 @@ make   # embeds catalog into the DLL
 Canonical catalog is `data/sites.json`. At runtime it is extracted to
 `addons/<addon-name>/sites.json` (edit there for no-rebuild tweaks; restart GW2).
 
-Player install layout:
+Player install layout (shipping):
 
 ```text
-addons/GW2-InGame-Helper-Beta.dll   # only file players copy (Beta)
-addons/GW2-InGame-Helper-Beta/      # runtime data + sites.json + cef/ after first open
+addons/GW2-InGame-Helper.dll   # only file players copy
+addons/GW2-InGame-Helper/      # runtime data + sites.json + cef/ after first open
 ```
 
-See [`../CONTRIBUTING.md`](../CONTRIBUTING.md) for shipping vs Beta channels.
+The experimental `GW2-InGame-Helper-Beta` branch uses a parallel DLL/folder name; see [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 Runtime CEF is **not** embedded in the DLL. First helper open downloads it into
 the addon data folder. Do **not** use or write game `bin64/cef`.

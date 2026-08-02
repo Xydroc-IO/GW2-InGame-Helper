@@ -52,12 +52,12 @@ git config core.hooksPath .githooks
 
 Full Guild Wars 2 **restart** is required after DLL updates (`AF_DisableHotloading`).
 
-Catalog workflow (Beta — runtime JSON):
+Catalog workflow (runtime JSON):
 
 1. Edit `data/sites.json` (schema v2; contiguous categories; unique ids).
 2. Set optional `browsePath` (e.g. `["Raids", "Raid Boss", "W9 …"]`) and keep `browseSections` ordered lists in sync.
 3. `make validate-sites`.
-4. Commit `data/sites.json`. Rebuild embeds it; installs extract to `addons/GW2-InGame-Helper-Beta/sites.json`.
+4. Commit `data/sites.json`. Rebuild embeds it; installs extract to `addons/GW2-InGame-Helper/sites.json`.
 5. For a local no-rebuild tweak: edit the extracted file under the addon data folder, then fully restart GW2.
 
 Parse fixtures (update when changing EI/dps.report JSON or `.trl` layout):

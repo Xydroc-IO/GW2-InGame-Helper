@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a trimmed CEF Stable 150 Windows x64 runtime zip for GW2-InGame-Helper-Beta.
+# Build a trimmed CEF Stable 150 Windows x64 runtime zip for GW2-InGame-Helper.
 # Downloads the official minimal binary from cef-builds.spotifycdn.com, flattens
 # Release/ + Resources/ into one folder, zips it, and prints SHA256 for CefRuntime.h.
 set -euo pipefail

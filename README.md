@@ -309,7 +309,7 @@ make
 ```
 
 Commit `data/sites.json`. The DLL embeds and extracts it to
-`addons/GW2-InGame-Helper-Beta/sites.json` — you can edit that runtime file
+`addons/GW2-InGame-Helper/sites.json` — you can edit that runtime file
 and restart GW2 without rebuilding. Optional `browsePath` nests the row in Browse.
 
 Example entry shape:
