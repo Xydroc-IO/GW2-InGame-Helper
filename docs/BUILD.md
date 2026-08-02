@@ -66,14 +66,29 @@ make clean
 | Target | Sources |
 |--------|---------|
 | `GW2HelperBrowser.exe` | `src/helper/*.cpp` against `deps/cef` **150** headers |
-| `GW2-InGame-Helper.dll` | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob |
+| Host DLL | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob (+ `Sites.gen.cpp`) |
+
+### Browse catalog (data → C++)
+
+```bash
+# edit data/sites.json, then:
+make gen-sites
+make validate-sites
+make check-sites
+```
+
+Canonical catalog is `data/sites.json`. Do not hand-edit `src/Sites.gen.cpp`.
 
 Player install layout:
 
 ```text
-addons/GW2-InGame-Helper.dll   # only file players copy
+addons/GW2-InGame-Helper.dll   # only file players copy (shipping)
 addons/GW2-InGame-Helper/      # runtime data + cef/ after first open
 ```
 
+On the Beta branch, install names use `GW2-InGame-Helper-Beta` (see [`../CONTRIBUTING.md`](../CONTRIBUTING.md)).
+
 Runtime CEF is **not** embedded in the DLL. First helper open downloads it into
-`addons/GW2-InGame-Helper/cef/`. Do **not** use or write game `bin64/cef`.
+the addon data folder. Do **not** use or write game `bin64/cef`.
+
+Further reading: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`WHITEPAPER.md`](WHITEPAPER.md).

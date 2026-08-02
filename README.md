@@ -10,6 +10,9 @@ CEF Stable 150** runtime downloaded on first open into
 
 **Version:** `2.1.0.2` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
+**Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md)
+
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
 Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
@@ -120,7 +123,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [Fast Farming Community](https://fast.farming-community.eu/) | Guides |
 | Official · Community · Snowcrows · MetaBattle · Guildjen · Mukluk · Accessibility Wars · Skein Gang · Fractal Training · Raid Academy · GW2 University · Crossroads Inn · Raid Training EU · Welcome to PvP · WvW NA/EU Alliance · Fast Farming · Raidcore · Overflow Trading · GW2 Central Hub | Discord |
 
-Add more sites in `src/Sites.cpp`. Hardstuck and Discretize are intentionally omitted (outdated).
+Add more sites in `data/sites.json` (`make gen-sites validate-sites`). Hardstuck and Discretize are intentionally omitted (outdated).
 Replaces the older Wiki browser addons.
 Works on Windows and on Linux via Wine/Proton.
 
@@ -137,7 +140,8 @@ release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 DPS Logs / .NET / Proton: [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) ·
 API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 
-Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
+Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
+Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
 
 ## Features
 
@@ -296,30 +300,31 @@ cmake --build build -j"$(nproc)"
 
 ## Adding another site
 
-Edit `src/Sites.cpp` and append a `SiteDef`:
-
-```cpp
-{
-    "hardstuck",                         // unique id (saved in settings)
-    "Builds",                            // category (group header in picker)
-    "Hardstuck",                         // dropdown label
-    "Hardstuck",                         // window/title hint
-    "https://hardstuck.gg/",             // Home URL
-    nullptr,                             // optional search URL prefix
-    nullptr,                             // optional search URL suffix
-},
-```
-
-Keep sites with the same category contiguous so the picker groups them. Rebuild and reinstall.
-
-For Browse section headers (sub-groups within a category), map the new `id` in `BrowseSection()` /
-`BrowseSectionsForCategory()` in `src/UI.cpp`.
-
-Validate the registry after edits:
+Edit `data/sites.json` (keep categories contiguous), then:
 
 ```bash
-python3 tools/validate_sites.py
+make gen-sites
+make validate-sites
 ```
+
+Commit both `data/sites.json` and generated `src/Sites.gen.cpp`.
+
+Example entry shape:
+
+```json
+{
+  "id": "example",
+  "category": "Builds",
+  "label": "Example",
+  "title": "Example",
+  "homeUrl": "https://example.invalid/",
+  "searchUrlPrefix": null,
+  "searchUrlSuffix": null
+}
+```
+
+For Browse section headers (sub-groups within a category), map the new `id` in `BrowseSection()` /
+`BrowseSectionsForCategory()` in `src/UI_Browse.cpp`.
 
 For search bars, set `searchUrlPrefix` / `searchUrlSuffix` so a query becomes `prefix + urlencode(query) + suffix`.
 
@@ -330,7 +335,7 @@ Offline **Cheat Sheets** use `about:` URLs (e.g. `about:raid-food`, `about:ubers
 | Page | Sources |
 |------|---------|
 | Raid Food | `src/RaidFood.cpp` |
-| Other sheets (incl. Uber's All-In-One) | `src/CheatSheets.cpp` |
+| Other sheets (incl. Uber's All-In-One) | `src/CheatSheets.cpp` / `CheatSheets_Data.cpp` |
 
 **Uber's All-In-One** (`about:ubers-aio`) — waypoint / landmark chat codes (hubs, Wizard’s Vault, Chak Egg, Obsidian, Provisioner). Click a code to copy, paste in game chat, click the link to travel. Waypoint list curated by **uberduber.1249**.
 
@@ -412,9 +417,11 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
    Twitch does the same — official CEF builds omit the H.264 / AAC codecs its player needs (Error #4000).
 6. Chromium profile / cache lives under `%LOCALAPPDATA%\GW2-InGame-Helper\cef-cache` (not under `addons`).
 7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
-8. Site list lives in `src/Sites.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets.cpp`.
+8. Site list lives in `data/sites.json` → `Sites.gen.cpp`; built-in sheets in `RaidFood.cpp` / `CheatSheets*_Data.cpp`.
 
-Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Local notes (gitignored): `docs/ARCHITECTURE.md`, `docs/CODE_AUDIT.md`.
+Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Architecture / design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
+Local drafts (gitignored): `docs/CODE_AUDIT.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`.
 
 ## License
 

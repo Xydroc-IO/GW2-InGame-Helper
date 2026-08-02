@@ -2,7 +2,8 @@
 
 **Revision:** 2.1.0.2 · Total entries: **2,718**
 
-Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
+Source of truth: `data/sites.json` (generated into `src/Sites.gen.cpp`; runtime in `src/Sites.cpp`).
+Browse section headers: `src/UI_Browse.cpp`.
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 
 ## Help
