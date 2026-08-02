@@ -35,6 +35,7 @@ DLL_SRC = \
 	src/CheatSheets_Data.cpp \
 	src/Gw2Http.cpp \
 	src/LivePanels.cpp \
+	src/LivePanelsBuild.cpp \
 	src/LivePanels_Html.cpp \
 	src/NotesPad.cpp \
 	src/WaypointsData.cpp \
@@ -49,9 +50,12 @@ DLL_SRC = \
 	src/EventsData.cpp \
 	src/LogManagerPad.cpp \
 	src/LogManagerParse.cpp \
+	src/LogManagerUpload.cpp \
+	src/LogManagerEi.cpp \
 	src/EiRuntime.cpp \
 	src/TekkitGuidesPad.cpp \
 	src/TekkitTrails.cpp \
+	src/TekkitIndex.cpp \
 	src/TekkitParse.cpp \
 	src/CompassOverlay.cpp \
 	src/WorldOverlay.cpp \
