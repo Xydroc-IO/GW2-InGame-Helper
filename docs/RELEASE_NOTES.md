@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.1.0.1
+# GW2 In-Game Helper v2.1.0.2
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -30,6 +30,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.1.0.2
+
+- **DPS Logs filters:** Mode radios wrap to two rows so **CM** / **LCM** labels are not
+  clipped in the narrow filter pane.
+- **Progress Wiki:** Legendary armory **Wiki** opens by item **name** (wiki does not
+  resolve numeric API ids). Same fix on the Live progress page (panel ver 19).
+- **Stamps:** Helper `2102` · homepage `2102`
 
 ## What’s new in 2.1.0.1
 

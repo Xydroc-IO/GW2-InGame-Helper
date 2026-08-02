@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.1.0.1 · Total entries: **2,718**
+**Revision:** 2.1.0.2 · Total entries: **2,718**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
