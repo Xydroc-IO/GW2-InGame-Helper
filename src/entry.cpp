@@ -4,6 +4,7 @@
 
 #include "imgui/imgui.h"
 
+#include "AccountPad.h"
 #include "Globals.h"
 #include "HelperQuickAccess.h"
 #include "LookupPad.h"
@@ -34,7 +35,9 @@ namespace G
 	bool  ShowLookup   = false;
 	bool  ShowWallet   = false;
 	bool  ShowVault    = false;
+	bool  ShowAccount  = false;
 	bool  ShowEvents   = false;
+	bool  ShowLogManager = false;
 	bool  ShowTekkitGuides = false;
 	bool  ShowTekkitTrails = true;
 	bool  ShowCompassOverlay = true;
@@ -60,12 +63,20 @@ namespace G
 	char  TpWatchAlerts[2048] = "";
 	char  EventTrackIds[4096] = "";
 	char  TekkitEnabled[8192] = "";
+	char  LogFolder[512] = "";
+	char  EliteInsightsPath[512] = "";
+	char  DpsReportToken[128] = "";
 }
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
+static constexpr const char* KB_ACCOUNT = "KB_HELPER_ACCOUNT";
+static constexpr const char* KB_TEKKIT = "KB_HELPER_TEKKIT";
+static constexpr const char* KB_EVENTS = "KB_HELPER_EVENTS";
+static constexpr const char* KB_NOTES = "KB_HELPER_NOTES";
 static constexpr const char* KB_ITEM_LEGACY = "KB_HELPER_ITEM"; /* removed — deregister only */
 
 static DWORD gLastToggleMs = 0;
+static DWORD gLastPanelBindMs = 0;
 static bool  gPollToggleHeld = false;
 static bool  gSwallowHotkeyKeys = false;
 
@@ -132,6 +143,63 @@ static void OnToggle(const char*, bool release)
 	Settings::SetDirty();
 	if (G::API && G::API->Log)
 		G::API->Log(LOGL_INFO, ADDON_NAME, G::ShowWiki ? "Helper opened" : "Helper closed");
+}
+
+static bool PanelBindDebounce()
+{
+	const DWORD now = GetTickCount();
+	if (now - gLastPanelBindMs < 250)
+		return false;
+	gLastPanelBindMs = now;
+	return true;
+}
+
+static void OnToggleAccount(const char*, bool release)
+{
+	if (release || !PanelBindDebounce()) return;
+	if (G::ShowAccount)
+	{
+		G::ShowAccount = false;
+		Settings::SetDirty();
+	}
+	else
+		AccountPad::OpenAndRefresh();
+}
+
+static void OnToggleTekkit(const char*, bool release)
+{
+	if (release || !PanelBindDebounce()) return;
+	if (G::ShowTekkitGuides)
+	{
+		G::ShowTekkitGuides = false;
+		Settings::SetDirty();
+	}
+	else
+		TekkitGuidesPad::Open();
+}
+
+static void OnToggleEvents(const char*, bool release)
+{
+	if (release || !PanelBindDebounce()) return;
+	if (G::ShowEvents)
+	{
+		G::ShowEvents = false;
+		Settings::SetDirty();
+	}
+	else
+		EventsPad::OpenAndRefresh();
+}
+
+static void OnToggleNotes(const char*, bool release)
+{
+	if (release || !PanelBindDebounce()) return;
+	if (G::ShowNotes)
+	{
+		G::ShowNotes = false;
+		Settings::SetDirty();
+	}
+	else
+		NotesPad::Open();
 }
 
 void HelperHotkeys_Poll()
@@ -649,7 +717,9 @@ static void AddonLoad(AddonAPI_t* api)
 	G::ShowLookup = false;
 	G::ShowWallet = false;
 	G::ShowVault = false;
+	G::ShowAccount = false;
 	G::ShowEvents = false;
+	G::ShowLogManager = false;
 	G::ShowTekkitGuides = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
@@ -661,11 +731,16 @@ static void AddonLoad(AddonAPI_t* api)
 	/* Drop legacy item-lookup bind so old Ctrl+Shift+I/U no longer fires. */
 	api->InputBinds_Deregister(KB_ITEM_LEGACY);
 	api->InputBinds_RegisterWithString(KB_TOGGLE, OnToggle, "CTRL+SHIFT+H");
+	/* Panel pads — rebind in Nexus Options → Keybinds. */
+	api->InputBinds_RegisterWithString(KB_ACCOUNT, OnToggleAccount, "CTRL+SHIFT+A");
+	api->InputBinds_RegisterWithString(KB_TEKKIT, OnToggleTekkit, "CTRL+SHIFT+G");
+	api->InputBinds_RegisterWithString(KB_EVENTS, OnToggleEvents, "CTRL+SHIFT+E");
+	api->InputBinds_RegisterWithString(KB_NOTES, OnToggleNotes, "CTRL+SHIFT+N");
 	api->WndProc_Register(OnWndProc);
 	HelperQuickAccess::Init();
 
 	api->Log(LOGL_INFO, ADDON_NAME,
-		"Loaded — Ctrl+Shift+H/K toggle; Tekkit guides via MumbleLink.");
+		"Loaded — Ctrl+Shift+H/K helper; A/G/E/N panels (rebind in Nexus).");
 }
 
 static void AddonUnload()
@@ -677,6 +752,10 @@ static void AddonUnload()
 	G::API->GUI_Deregister(UI_Render);
 	G::API->GUI_Deregister(UI_Options);
 	G::API->InputBinds_Deregister(KB_TOGGLE);
+	G::API->InputBinds_Deregister(KB_ACCOUNT);
+	G::API->InputBinds_Deregister(KB_TEKKIT);
+	G::API->InputBinds_Deregister(KB_EVENTS);
+	G::API->InputBinds_Deregister(KB_NOTES);
 	G::API->InputBinds_Deregister(KB_ITEM_LEGACY);
 	G::API->WndProc_Deregister(OnWndProc);
 
@@ -706,9 +785,9 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.APIVersion       = NEXUS_API_VERSION;
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 2;
-	G::AddonDef.Version.Minor    = 0;
-	G::AddonDef.Version.Build    = 2;
-	G::AddonDef.Version.Revision = 11;
+	G::AddonDef.Version.Minor    = 1;
+	G::AddonDef.Version.Build    = 0;
+	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";

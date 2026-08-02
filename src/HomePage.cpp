@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "2014";
+	static constexpr const char* kHomePageVersion = "2100";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -430,12 +430,16 @@ const char* HomePage::Html()
         <div class="body">
           <ul>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>) — open / close this helper</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> — Account pad</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> — Tekkit's Guides</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — World Events</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> — Notes</li>
             <li><kbd>Ctrl</kbd>+<kbd>T</kbd> — new tab picker · <kbd>Ctrl</kbd>+<kbd>W</kbd> — close tab · <kbd>Ctrl</kbd>+<kbd>Tab</kbd> — cycle tabs</li>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> — reopen last closed tab</li>
             <li><kbd>Ctrl</kbd>+<kbd>F</kbd> — find in page</li>
             <li>Or click the helper icon in the Nexus QuickAccess bar</li>
           </ul>
-          <p class="muted">Rebind the open/close toggle in Nexus (<kbd>Ctrl</kbd>+<kbd>O</kbd>) under <strong>KB_HELPER_TOGGLE</strong>.</p>
+          <p class="muted">Rebind in Nexus Options → Keybinds (<strong>KB_HELPER_*</strong>).</p>
         </div>
       </section>
 

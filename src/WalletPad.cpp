@@ -852,12 +852,8 @@ namespace
 	}
 }
 
-void WalletPad::OpenAndRefresh()
+void WalletPad::RefreshData()
 {
-	G::ShowWallet = true;
-	gFocus = true;
-	gPlaceOnce = true;
-	Settings::SetDirty();
 	LoadNames();
 	/* Show whatever we already have immediately; refresh only if stale/empty. */
 	bool need = true;
@@ -871,66 +867,21 @@ void WalletPad::OpenAndRefresh()
 		}
 	}
 	StartFetch(need); /* force only when nothing fresh to show */
-	if (!need)
-	{
-		/* Optional silent background refresh when half-expired — skip for snappy UX. */
-	}
 }
 
-bool WalletPad::Render()
+void WalletPad::OpenAndRefresh()
+{
+	G::ShowWallet = true;
+	gFocus = true;
+	gPlaceOnce = true;
+	Settings::SetDirty();
+	RefreshData();
+}
+
+void WalletPad::RenderContents()
 {
 	SyncDrawCopy();
-	if (!G::ShowWallet)
-		return false;
-
 	const Snapshot& snap = gDraw;
-
-	constexpr float kPadW = 420.f;
-	constexpr float kPadH = 560.f;
-
-	const ImGuiIO& io = ImGui::GetIO();
-	const float maxH = (io.DisplaySize.y > 100.f)
-		? std::min(io.DisplaySize.y * 0.90f, 900.f)
-		: 720.f;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(560.f, maxH));
-	/* Same ballpark as Notes — fits laptop / 1080p without eating the screen. */
-	if (gPlaceOnce)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
-	else
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gPlaceOnce)
-	{
-		const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.52f : 160.f;
-		const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.14f : 80.f;
-		ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Appearing);
-		ImGui::SetNextWindowFocus();
-		gPlaceOnce = false;
-	}
-	if (gFocus)
-	{
-		ImGui::SetNextWindowFocus();
-		gFocus = false;
-	}
-
-	bool open = G::ShowWallet;
-	if (!ImGui::Begin("Wallet & Stash##GW2InGameHelperWallet", &open))
-	{
-		const bool hovered = ImGui::IsWindowHovered(
-			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
-		if (!open)
-		{
-			G::ShowWallet = false;
-			Settings::SetDirty();
-		}
-		return hovered;
-	}
-	if (!open)
-	{
-		G::ShowWallet = false;
-		Settings::SetDirty();
-	}
 
 	ImGui::TextUnformatted("Wallet & stash search");
 	ImGui::PushTextWrapPos(0.f);
@@ -1026,6 +977,61 @@ bool WalletPad::Render()
 		}
 		ImGui::EndChild();
 	}
+}
+
+bool WalletPad::Render()
+{
+	if (!G::ShowWallet)
+		return false;
+
+	constexpr float kPadW = 420.f;
+	constexpr float kPadH = 560.f;
+
+	const ImGuiIO& io = ImGui::GetIO();
+	const float maxH = (io.DisplaySize.y > 100.f)
+		? std::min(io.DisplaySize.y * 0.90f, 900.f)
+		: 720.f;
+	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(560.f, maxH));
+	/* Same ballpark as Notes — fits laptop / 1080p without eating the screen. */
+	if (gPlaceOnce)
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	else
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	if (gPlaceOnce)
+	{
+		const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.52f : 160.f;
+		const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.14f : 80.f;
+		ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Appearing);
+		ImGui::SetNextWindowFocus();
+		gPlaceOnce = false;
+	}
+	if (gFocus)
+	{
+		ImGui::SetNextWindowFocus();
+		gFocus = false;
+	}
+
+	bool open = G::ShowWallet;
+	if (!ImGui::Begin("Wallet & Stash##GW2InGameHelperWallet", &open))
+	{
+		const bool hovered = ImGui::IsWindowHovered(
+			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+		ImGui::End();
+		if (!open)
+		{
+			G::ShowWallet = false;
+			Settings::SetDirty();
+		}
+		return hovered;
+	}
+	if (!open)
+	{
+		G::ShowWallet = false;
+		Settings::SetDirty();
+	}
+
+	RenderContents();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

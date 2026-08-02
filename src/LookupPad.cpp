@@ -490,53 +490,13 @@ void LookupPad::OpenAndLookup()
 	Settings::SetDirty();
 }
 
-bool LookupPad::Render()
+void LookupPad::RenderContents()
 {
 	Tick();
-	if (!G::ShowLookup)
-		return false;
-
 	Hit hit;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
 		hit = gHit;
-	}
-
-	const ImGuiIO& io = ImGui::GetIO();
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 0.f), ImVec2(520.f, io.DisplaySize.y * 0.85f));
-	ImGui::SetNextWindowSize(ImVec2(400.f, 0.f), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gPlaceOnce)
-	{
-		const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.42f : 120.f;
-		const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.18f : 100.f;
-		ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Appearing);
-		ImGui::SetNextWindowFocus();
-		gPlaceOnce = false;
-	}
-	if (gFocus)
-	{
-		ImGui::SetNextWindowFocus();
-		gFocus = false;
-	}
-
-	bool open = G::ShowLookup;
-	if (!ImGui::Begin("Item Lookup##GW2InGameHelperLookup", &open, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		const bool hovered = ImGui::IsWindowHovered(
-			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
-		if (!open)
-		{
-			G::ShowLookup = false;
-			Settings::SetDirty();
-		}
-		return hovered;
-	}
-	if (!open)
-	{
-		G::ShowLookup = false;
-		Settings::SetDirty();
 	}
 
 	ImGui::TextUnformatted("Item lookup");
@@ -656,6 +616,52 @@ bool LookupPad::Render()
 			ImGui::PopID();
 		}
 	}
+
+}
+
+bool LookupPad::Render()
+{
+	if (!G::ShowLookup)
+		return false;
+
+	const ImGuiIO& io = ImGui::GetIO();
+	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 0.f), ImVec2(520.f, io.DisplaySize.y * 0.85f));
+	ImGui::SetNextWindowSize(ImVec2(400.f, 0.f), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	if (gPlaceOnce)
+	{
+		const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.42f : 120.f;
+		const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.18f : 100.f;
+		ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Appearing);
+		ImGui::SetNextWindowFocus();
+		gPlaceOnce = false;
+	}
+	if (gFocus)
+	{
+		ImGui::SetNextWindowFocus();
+		gFocus = false;
+	}
+
+	bool open = G::ShowLookup;
+	if (!ImGui::Begin("Item Lookup##GW2InGameHelperLookup", &open, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		const bool hovered = ImGui::IsWindowHovered(
+			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+		ImGui::End();
+		if (!open)
+		{
+			G::ShowLookup = false;
+			Settings::SetDirty();
+		}
+		return hovered;
+	}
+	if (!open)
+	{
+		G::ShowLookup = false;
+		Settings::SetDirty();
+	}
+
+	RenderContents();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

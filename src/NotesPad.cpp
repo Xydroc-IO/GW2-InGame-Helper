@@ -4,6 +4,7 @@
 #include "Globals.h"
 #include "PadDock.h"
 #include "Settings.h"
+#include "WaypointsData.h"
 
 #include "imgui/imgui.h"
 
@@ -19,12 +20,20 @@ namespace
 	constexpr int kMaxSnippets = 48;
 	constexpr int kTitleLen = 64;
 	constexpr int kBodyLen = 512;
-	constexpr float kNotesPadW = 420.f;
-	constexpr float kNotesPadH = 560.f;
+	constexpr float kNotesPadW = 440.f;
+	constexpr float kNotesPadH = 600.f;
 	/* Title + kind + multiline body + Delete/Copy — keep visible without resize. */
 	constexpr float kEditorReserve = 230.f;
 
 	bool gRequestDock = false;
+	int gPadTab = 0; /* 0 snippets, 1 waypoints */
+	int gWpMode = 0; /* 0 search, 1 by map, 2 this map */
+	char gWpQuery[128] = {};
+	char gWpMapFilter[128] = {};
+	int gWpMapId = 0;
+	std::string gWpMapName;
+	bool gWpWaypointsOnly = true;
+	char gWpCopied[96] = {};
 
 	enum Kind : int
 	{
@@ -244,6 +253,220 @@ namespace
 	{
 		gDirty = true;
 	}
+
+	void DrawWaypointsTab()
+	{
+		WaypointsData::EnsureLoaded(false);
+		WaypointsData::Tick();
+
+		ImGui::PushTextWrapPos(0.f);
+		ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+			"Official API waypoints & POIs — Copy puts the chat code on your clipboard.");
+		ImGui::PopTextWrapPos();
+
+		if (WaypointsData::Busy())
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s", WaypointsData::Status());
+		else if (!WaypointsData::Ready())
+		{
+			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "%s", WaypointsData::Status());
+			if (ImGui::Button("Load waypoints###gw2igh_wp_load"))
+				WaypointsData::EnsureLoaded(true);
+			return;
+		}
+		else
+			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", WaypointsData::Status());
+
+		ImGui::Checkbox("Waypoints only###gw2igh_wp_wponly", &gWpWaypointsOnly);
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Reload###gw2igh_wp_reload"))
+			WaypointsData::EnsureLoaded(true);
+
+		if (ImGui::RadioButton("Search###gw2igh_wp_m0", gWpMode == 0)) gWpMode = 0;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("By map###gw2igh_wp_m1", gWpMode == 1)) gWpMode = 1;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("This map###gw2igh_wp_m2", gWpMode == 2)) gWpMode = 2;
+
+		std::vector<WaypointsData::Poi> hits;
+		std::vector<WaypointsData::MapRow> maps;
+
+		if (gWpMode == 0)
+		{
+			ImGui::SetNextItemWidth(-1.f);
+			ImGui::InputTextWithHint("###gw2igh_wp_q", "Waypoint or map name…",
+				gWpQuery, sizeof(gWpQuery));
+			if (gWpQuery[0])
+				WaypointsData::Search(gWpQuery, gWpWaypointsOnly, hits, 100);
+			else
+				ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+					"Type a name — e.g. fort trinity, lion's arch.");
+		}
+		else if (gWpMode == 1)
+		{
+			ImGui::SetNextItemWidth(-1.f);
+			ImGui::InputTextWithHint("###gw2igh_wp_mf", "Filter maps…",
+				gWpMapFilter, sizeof(gWpMapFilter));
+			WaypointsData::ListMaps(gWpMapFilter, maps, 60);
+			const float mapListH = 120.f;
+			ImGui::BeginChild("###gw2igh_wp_maps", ImVec2(0.f, mapListH), true);
+			for (const WaypointsData::MapRow& m : maps)
+			{
+				ImGui::PushID(m.id);
+				char label[160];
+				std::snprintf(label, sizeof(label), "%s  (%d wp)",
+					m.name.c_str(), m.waypointCount);
+				if (ImGui::Selectable(label, gWpMapId == m.id))
+				{
+					gWpMapId = m.id;
+					gWpMapName = m.name;
+				}
+				ImGui::PopID();
+			}
+			ImGui::EndChild();
+			if (gWpMapId > 0)
+			{
+				ImGui::TextColored(ImVec4(0.85f, 0.80f, 0.95f, 1.f), "%s",
+					gWpMapName.empty() ? "Map" : gWpMapName.c_str());
+				WaypointsData::ListForMap(gWpMapId, gWpWaypointsOnly, hits);
+			}
+		}
+		else
+		{
+			const int cur = WaypointsData::CurrentMapId();
+			if (cur <= 0)
+			{
+				ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+					"Waiting for MumbleLink / enter the world.");
+			}
+			else
+			{
+				gWpMapId = cur;
+				WaypointsData::ListForMap(cur, gWpWaypointsOnly, hits);
+				const char* mapLabel = hits.empty() ? "This map" : hits[0].mapName.c_str();
+				ImGui::TextColored(ImVec4(0.85f, 0.80f, 0.95f, 1.f),
+					"%s  (#%d)", mapLabel, cur);
+				if (hits.empty())
+					ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+						"No waypoints indexed for this map id.");
+			}
+		}
+
+		if (gWpCopied[0])
+		{
+			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f),
+				"Copied %s", gWpCopied);
+		}
+
+		const float listH = ImGui::GetContentRegionAvail().y;
+		ImGui::BeginChild("###gw2igh_wp_list", ImVec2(0.f, listH > 80.f ? listH : 80.f), true);
+		for (size_t i = 0; i < hits.size(); ++i)
+		{
+			const WaypointsData::Poi& p = hits[i];
+			ImGui::PushID(static_cast<int>(p.id));
+			ImGui::TextUnformatted(p.name.c_str());
+			if (gWpMode == 0)
+			{
+				ImGui::SameLine();
+				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "· %s", p.mapName.c_str());
+			}
+			if (!gWpWaypointsOnly && p.type != "waypoint")
+			{
+				ImGui::SameLine();
+				ImGui::TextColored(ImVec4(0.60f, 0.55f, 0.45f, 1.f), "[%s]", p.type.c_str());
+			}
+			ImGui::SameLine();
+			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "%s", p.chatLink.c_str());
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Copy"))
+			{
+				CopyText(p.chatLink.c_str());
+				std::snprintf(gWpCopied, sizeof(gWpCopied), "%s", p.chatLink.c_str());
+			}
+			ImGui::PopID();
+		}
+		if (hits.empty() && ((gWpMode == 0 && gWpQuery[0]) ||
+				(gWpMode == 1 && gWpMapId > 0) ||
+				(gWpMode == 2 && gWpMapId > 0)))
+		{
+			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "No matches.");
+		}
+		ImGui::EndChild();
+	}
+
+	void DrawSnippetsTab()
+	{
+		if (ImGui::Button("Add snippet###gw2igh_notes_add") &&
+			static_cast<int>(gSnips.size()) < kMaxSnippets)
+		{
+			Snippet s{};
+			std::snprintf(s.title, sizeof(s.title), "New note");
+			s.kind = Kind_Note;
+			gSnips.push_back(s);
+			gSelected = static_cast<int>(gSnips.size()) - 1;
+			MarkDirty();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Copy selected###gw2igh_notes_copy") &&
+			gSelected >= 0 && gSelected < static_cast<int>(gSnips.size()))
+		{
+			CopyText(gSnips[static_cast<size_t>(gSelected)].body);
+		}
+
+		float listH = ImGui::GetContentRegionAvail().y - kEditorReserve;
+		if (listH < 72.f)
+			listH = 72.f;
+		ImGui::BeginChild("###gw2igh_notes_list", ImVec2(0.f, listH), true);
+		for (int i = 0; i < static_cast<int>(gSnips.size()); ++i)
+		{
+			Snippet& s = gSnips[static_cast<size_t>(i)];
+			ImGui::PushID(i);
+			char label[96];
+			std::snprintf(label, sizeof(label), "[%s] %s", KindLabel(s.kind),
+				s.title[0] ? s.title : "(untitled)");
+			if (ImGui::Selectable(label, gSelected == i))
+				gSelected = i;
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Copy"))
+				CopyText(s.body);
+			ImGui::PopID();
+		}
+		ImGui::EndChild();
+
+		if (gSelected >= 0 && gSelected < static_cast<int>(gSnips.size()))
+		{
+			Snippet& s = gSnips[static_cast<size_t>(gSelected)];
+			ImGui::Separator();
+			ImGui::SetNextItemWidth(-1.f);
+			if (ImGui::InputTextWithHint("###gw2igh_notes_title", "Title", s.title, sizeof(s.title)))
+				MarkDirty();
+			const char* kinds[] = { "Waypoint", "Chat", "Build", "LFG", "Note" };
+			ImGui::SetNextItemWidth(160.f);
+			if (ImGui::Combo("###gw2igh_notes_kind", &s.kind, kinds, Kind_Count))
+				MarkDirty();
+			ImGui::SetNextItemWidth(-1.f);
+			const float availBody = ImGui::GetContentRegionAvail().y - 36.f;
+			const float bodyH = (availBody > 100.f) ? availBody : 100.f;
+			if (ImGui::InputTextMultiline("###gw2igh_notes_body", s.body, sizeof(s.body),
+					ImVec2(-1.f, bodyH)))
+				MarkDirty();
+			if (ImGui::Button("Delete###gw2igh_notes_del"))
+			{
+				gSnips.erase(gSnips.begin() + gSelected);
+				if (gSelected >= static_cast<int>(gSnips.size()))
+					gSelected = static_cast<int>(gSnips.size()) - 1;
+				MarkDirty();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Copy body###gw2igh_notes_copy2"))
+				CopyText(s.body);
+		}
+		else
+		{
+			ImGui::Spacing();
+			ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+				"Select a snippet or Add one to edit the text box below the list.");
+		}
+	}
 }
 
 void NotesPad::Load()
@@ -387,7 +610,7 @@ bool NotesPad::Render()
 		gRequestDock = false;
 	}
 	bool open = G::ShowNotes;
-	if (!ImGui::Begin("Notes##GW2InGameHelperNotes", &open))
+	if (!ImGui::Begin("Notes & Waypoints##GW2InGameHelperNotes", &open))
 	{
 		PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 		const bool hovered = ImGui::IsWindowHovered(
@@ -410,82 +633,26 @@ bool NotesPad::Render()
 	}
 	PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 
-	ImGui::TextUnformatted("Clipboard helpers");
+	ImGui::TextUnformatted("Notes & Waypoints");
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Local only — Copy pastes into chat yourself. No game injection.");
+		"Local clipboard helpers + official map waypoints. No game injection.");
 	ImGui::Separator();
 
-	if (ImGui::Button("Add snippet###gw2igh_notes_add") &&
-		static_cast<int>(gSnips.size()) < kMaxSnippets)
+	if (ImGui::BeginTabBar("###gw2igh_notes_tabs"))
 	{
-		Snippet s{};
-		std::snprintf(s.title, sizeof(s.title), "New note");
-		s.kind = Kind_Note;
-		gSnips.push_back(s);
-		gSelected = static_cast<int>(gSnips.size()) - 1;
-		MarkDirty();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Copy selected###gw2igh_notes_copy") &&
-		gSelected >= 0 && gSelected < static_cast<int>(gSnips.size()))
-	{
-		CopyText(gSnips[static_cast<size_t>(gSelected)].body);
-	}
-
-	/* List shrinks first if the window is tight — editor stays on-screen. */
-	float listH = ImGui::GetContentRegionAvail().y - kEditorReserve;
-	if (listH < 72.f)
-		listH = 72.f;
-	ImGui::BeginChild("###gw2igh_notes_list", ImVec2(0.f, listH), true);
-	for (int i = 0; i < static_cast<int>(gSnips.size()); ++i)
-	{
-		Snippet& s = gSnips[static_cast<size_t>(i)];
-		ImGui::PushID(i);
-		char label[96];
-		std::snprintf(label, sizeof(label), "[%s] %s", KindLabel(s.kind),
-			s.title[0] ? s.title : "(untitled)");
-		if (ImGui::Selectable(label, gSelected == i))
-			gSelected = i;
-		ImGui::SameLine();
-		if (ImGui::SmallButton("Copy"))
-			CopyText(s.body);
-		ImGui::PopID();
-	}
-	ImGui::EndChild();
-
-	if (gSelected >= 0 && gSelected < static_cast<int>(gSnips.size()))
-	{
-		Snippet& s = gSnips[static_cast<size_t>(gSelected)];
-		ImGui::Separator();
-		ImGui::SetNextItemWidth(-1.f);
-		if (ImGui::InputTextWithHint("###gw2igh_notes_title", "Title", s.title, sizeof(s.title)))
-			MarkDirty();
-		const char* kinds[] = { "Waypoint", "Chat", "Build", "LFG", "Note" };
-		ImGui::SetNextItemWidth(160.f);
-		if (ImGui::Combo("###gw2igh_notes_kind", &s.kind, kinds, Kind_Count))
-			MarkDirty();
-		ImGui::SetNextItemWidth(-1.f);
-		const float availBody = ImGui::GetContentRegionAvail().y - 36.f;
-		const float bodyH = (availBody > 100.f) ? availBody : 100.f;
-		if (ImGui::InputTextMultiline("###gw2igh_notes_body", s.body, sizeof(s.body),
-				ImVec2(-1.f, bodyH)))
-			MarkDirty();
-		if (ImGui::Button("Delete###gw2igh_notes_del"))
+		if (ImGui::BeginTabItem("Snippets###gw2igh_notes_tab_snip"))
 		{
-			gSnips.erase(gSnips.begin() + gSelected);
-			if (gSelected >= static_cast<int>(gSnips.size()))
-				gSelected = static_cast<int>(gSnips.size()) - 1;
-			MarkDirty();
+			gPadTab = 0;
+			DrawSnippetsTab();
+			ImGui::EndTabItem();
 		}
-		ImGui::SameLine();
-		if (ImGui::Button("Copy body###gw2igh_notes_copy2"))
-			CopyText(s.body);
-	}
-	else
-	{
-		ImGui::Spacing();
-		ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-			"Select a snippet or Add one to edit the text box below the list.");
+		if (ImGui::BeginTabItem("Waypoints###gw2igh_notes_tab_wp"))
+		{
+			gPadTab = 1;
+			DrawWaypointsTab();
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabBar();
 	}
 
 	const bool hovered = ImGui::IsWindowHovered(

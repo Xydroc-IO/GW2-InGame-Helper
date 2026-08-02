@@ -1863,7 +1863,7 @@ namespace
 		{
 			body += "<div class=\"keybox ok\"><h3>Account legendary armory</h3>"
 				"<p>Unlocked counts from your API key — read-only. "
-				"Deep links open gw2efficiency / wiki for the rest.</p></div>";
+				"Prefer Account → Progress in the helper for the ImGui tracker.</p></div>";
 		}
 		else if (hasKey && accountDenied)
 		{
@@ -1930,8 +1930,7 @@ namespace
 			body += " unlocked in armory.</p>";
 		}
 		body += "<p style=\"margin-top:12px\">"
-			"<a class=\"link\" href=\"https://gw2efficiency.com/account/legendaries\">gw2efficiency — Legendaries</a>"
-			" · <a class=\"link\" href=\"https://wiki.guildwars2.com/wiki/Legendary_Armory\">Wiki — Legendary Armory</a>"
+			"<a class=\"link\" href=\"https://wiki.guildwars2.com/wiki/Legendary_Armory\">Wiki — Legendary Armory</a>"
 			"</p></div></section>\n";
 
 		/* Characters — roster + one bulk details call (not N sequential). */
@@ -2034,9 +2033,7 @@ namespace
 						if (cr.level >= 0) body += " · ";
 						body += HtmlEscape(cr.profession);
 					}
-					body += " · <a class=\"link\" href=\"?gw2igh-newtab="
-						"https%3A%2F%2Fgw2efficiency.com%2Faccount%2Foverview\">gw2efficiency</a>"
-						"</span></li>";
+					body += "</span></li>";
 				}
 				body += "</ul>";
 				if (names.size() > detailN)
@@ -2069,15 +2066,16 @@ namespace
 			body += "<p class=\"note\">Add an API key with the <strong>characters</strong> scope to list your roster here.</p>";
 		}
 		body += "<p style=\"margin-top:12px\">"
-			"<a class=\"link\" href=\"https://gw2efficiency.com/\">gw2efficiency</a>"
-			" · <a class=\"link\" href=\"https://account.arena.net/applications\">Manage API keys</a>"
+			"<a class=\"link\" href=\"https://account.arena.net/applications\">Manage API keys</a>"
+			" · Prefer <strong>Account → Progress</strong> in the helper toolbar."
 			"</p></div></section>\n";
 
 		return BuildPage(
 			"Live — Legendaries &amp; Characters",
 			"GW2 In-Game Helper · Live",
 			"Legendaries &amp; Characters",
-			"Armory progress and character roster — API fills + deep links, no game memory.",
+			"Armory progress and character roster — official API, no game memory. "
+			"Primary UI is Account → Progress.",
 			"<a href=\"#armory\">Armory</a>\n<a href=\"#chars\">Characters</a>",
 			body);
 	}

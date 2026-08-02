@@ -34,12 +34,18 @@ DLL_SRC = \
 	src/Gw2Http.cpp \
 	src/LivePanels.cpp \
 	src/NotesPad.cpp \
+	src/WaypointsData.cpp \
 	src/TpWatchPad.cpp \
 	src/LookupPad.cpp \
 	src/WalletPad.cpp \
 	src/VaultPad.cpp \
+	src/AccountPad.cpp \
+	src/ProgressData.cpp \
+	src/CraftingData.cpp \
 	src/EventsPad.cpp \
 	src/EventsData.cpp \
+	src/LogManagerPad.cpp \
+	src/EiRuntime.cpp \
 	src/TekkitGuidesPad.cpp \
 	src/TekkitTrails.cpp \
 	src/CompassOverlay.cpp \
@@ -137,8 +143,11 @@ install: $(DLL_OUT)
 		"$(GW2_ADDONS)/GW2HelperBrowser.exe" \
 		"$(GW2_ROOT)/bin64/cef/GW2HelperBrowser.exe"
 	# Clear cached offline pages so version bumps rewrite on next open.
+	# Wipe *.ver too — leaving helper-home.ver with no .html made CEF open
+	# a restored file:///…/helper-home.html → ERR_FILE_NOT_FOUND.
 	# Keep settings.ini and private cef/ runtime — never wipe the CEF tree.
-	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/GW2HelperBrowser.exe.ver" \
+	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/"*.ver "$(INSTALL_DIR)/"*.ok \
+		"$(INSTALL_DIR)/GW2HelperBrowser.exe.ver" \
 		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg"
 	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"
 	@echo "Installed DLL -> $(INSTALL_DLL)"

@@ -109,16 +109,8 @@ namespace
 			nullptr,
 		},
 
-		/* —— Live (API / digest panels — DLL-generated about: pages) —— */
-		{
-			"live_dailies",
-			"Live",
-			"Dailies & Vault",
-			"Live — Dailies & Wizard’s Vault",
-			"about:live-dailies",
-			nullptr,
-			nullptr,
-		},
+		/* —— Live (API / digest panels — DLL-generated about: pages) ——
+		   Dailies & Vault live in Account → Vault (ImGui), not Browse. */
 		{
 			"live_news",
 			"Live",
@@ -137,15 +129,7 @@ namespace
 			nullptr,
 			nullptr,
 		},
-		{
-			"live_progress",
-			"Live",
-			"Legendaries & Characters",
-			"Live — Legendaries & Characters",
-			"about:live-progress",
-			nullptr,
-			nullptr,
-		},
+		/* Legendaries & characters live in Account → Progress (ImGui). */
 
 		/* —— Wiki —— */
 		{
@@ -184,16 +168,6 @@ namespace
 			nullptr,
 			nullptr,
 		},
-		{
-			"wiki_vault_easy",
-			"Wiki",
-			"Easy Objectives",
-			"Guild Wars 2 Wiki — Wizard's Vault Easy Objectives",
-			"https://wiki.guildwars2.com/wiki/Wizard%27s_Vault/Easy_objectives",
-			nullptr,
-			nullptr,
-		},
-
 		/* Special Events (recurring rush / bonus weeks) */
 		{
 			"wiki_special_events",
@@ -25029,16 +25003,13 @@ int Sites::BestMatchForUrl(const std::string& url)
 		if (hit >= 0) return hit;
 		hit = fileHit("daily-weekly", "dailyweekly");
 		if (hit >= 0) return hit;
-		hit = fileHit("live-dailies", "live_dailies");
-		if (hit >= 0) return hit;
 		hit = fileHit("live-news", "live_news");
 		if (hit >= 0) return hit;
 		hit = fileHit("live-fashion", "live_fashion");
 		if (hit >= 0) return hit;
 		hit = fileHit("live-tp", "live_tp");
 		if (hit >= 0) return hit;
-		hit = fileHit("live-progress", "live_progress");
-		if (hit >= 0) return hit;
+		/* live-progress.html → Account → Progress (no Browse site id). */
 		hit = fileHit("currency-sinks", "currencysinks");
 		if (hit >= 0) return hit;
 		hit = fileHit("ascended-start", "ascendedstart");

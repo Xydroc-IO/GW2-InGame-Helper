@@ -6,6 +6,10 @@
 namespace WalletPad
 {
 	void OpenAndRefresh();
+	void RefreshData(); /* fetch without opening the floating window */
+
+	/* Body only — for AccountPad tabs (no own ImGui::Begin). */
+	void RenderContents();
 
 	/* Draw when G::ShowWallet. Returns true if pointer is over the window. */
 	bool Render();

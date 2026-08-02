@@ -480,7 +480,7 @@ namespace
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2051";
+		static constexpr const char* kHelperStamp = "2100";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;
@@ -1117,20 +1117,57 @@ namespace
 		WakeHelper();
 	}
 
+	/* Saved tabs persist file:///…/helper-home.html?v=… — after make install
+	   wipes *.html those URLs 404 unless we map them back to about: + rewrite. */
+	std::string NormalizeBuiltinNavigateUrl(const std::string& url)
+	{
+		if (url.empty() || url.rfind("about:", 0) == 0)
+			return url;
+		auto hasStem = [&](const char* stemHtml) {
+			return url.find(stemHtml) != std::string::npos;
+		};
+		if (hasStem("helper-home.html"))
+			return "about:helper-home";
+		if (hasStem("raid-food.html"))
+			return "about:raid-food";
+		size_t n = 0;
+		if (const CheatSheets::Sheet* sheets = CheatSheets::All(&n))
+		{
+			for (size_t i = 0; i < n; ++i)
+			{
+				const std::string needle = std::string(sheets[i].fileStem) + ".html";
+				if (url.find(needle) != std::string::npos)
+					return sheets[i].about;
+			}
+		}
+		if (hasStem("live-dailies.html"))
+			return "about:live-dailies";
+		if (hasStem("live-news.html"))
+			return "about:live-news";
+		if (hasStem("live-fashion.html"))
+			return "about:live-fashion";
+		if (hasStem("live-tp.html"))
+			return "about:live-tp";
+		if (hasStem("live-progress.html"))
+			return "about:live-progress";
+		return url;
+	}
+
 	/* Map built-in about: URLs to file:/// before CEF sees them (CreateTab
 	   used to pass about:raid-food raw → blank white page). */
 	std::string ResolveNavigateUrl(const std::string& url)
 	{
 		if (url.empty())
 			return {};
-		if (url == "about:helper-home")
+		const std::string nav = NormalizeBuiltinNavigateUrl(url);
+		if (nav == "about:helper-home")
 		{
 			const std::string fileUrl = HomePage::EnsureFileUrl(AddonDir());
 			if (fileUrl.empty())
 				SetLocalStatus("Failed to write helper-home.html");
 			return fileUrl;
 		}
-		if (url == "about:raid-food")
+		if (nav == "about:raid-food")
 		{
 			const std::string fileUrl = RaidFood::EnsureFileUrl(AddonDir());
 			if (fileUrl.empty())
@@ -1138,24 +1175,24 @@ namespace
 			return fileUrl;
 		}
 		{
-			const std::string fileUrl = CheatSheets::ResolveAboutUrl(AddonDir(), url);
+			const std::string fileUrl = CheatSheets::ResolveAboutUrl(AddonDir(), nav);
 			if (!fileUrl.empty())
 				return fileUrl;
-			if (CheatSheets::FindByAbout(url.c_str()))
+			if (CheatSheets::FindByAbout(nav.c_str()))
 				SetLocalStatus("Failed to write cheat sheet HTML");
 		}
 		{
-			const std::string fileUrl = LivePanels::ResolveAboutUrl(AddonDir(), url);
+			const std::string fileUrl = LivePanels::ResolveAboutUrl(AddonDir(), nav);
 			if (!fileUrl.empty())
 				return fileUrl;
-			if (LivePanels::IsLiveAbout(url.c_str()))
+			if (LivePanels::IsLiveAbout(nav.c_str()))
 			{
 				SetLocalStatus("Failed to write Live panel HTML");
 				/* Never hand CEF a raw about:live-* — Chromium shows a white “blocked” page. */
 				return {};
 			}
 		}
-		return url;
+		return nav;
 	}
 
 	/* Single IPC command slot — queue navigates until the helper is ready, then

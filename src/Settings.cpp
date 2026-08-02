@@ -78,7 +78,9 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowLookup") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowWallet") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowVault") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowAccount") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowEvents") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowLogManager") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowTekkitTrails") == 0) G::ShowTekkitTrails = AsBool(val);
 		else if (std::strcmp(key, "ShowCompassOverlay") == 0) G::ShowCompassOverlay = AsBool(val);
@@ -129,6 +131,12 @@ void Settings::Load()
 			std::snprintf(G::EventTrackIds, sizeof(G::EventTrackIds), "%s", val);
 		else if (std::strcmp(key, "TekkitEnabled") == 0)
 			std::snprintf(G::TekkitEnabled, sizeof(G::TekkitEnabled), "%s", val);
+		else if (std::strcmp(key, "LogFolder") == 0)
+			std::snprintf(G::LogFolder, sizeof(G::LogFolder), "%s", val);
+		else if (std::strcmp(key, "EliteInsightsPath") == 0)
+			std::snprintf(G::EliteInsightsPath, sizeof(G::EliteInsightsPath), "%s", val);
+		else if (std::strcmp(key, "DpsReportToken") == 0)
+			std::snprintf(G::DpsReportToken, sizeof(G::DpsReportToken), "%s", val);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -199,7 +207,9 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowLookup=0\n");
 	std::fprintf(f, "ShowWallet=0\n");
 	std::fprintf(f, "ShowVault=0\n");
+	std::fprintf(f, "ShowAccount=0\n");
 	std::fprintf(f, "ShowEvents=0\n");
+	std::fprintf(f, "ShowLogManager=0\n");
 	std::fprintf(f, "ShowTekkitGuides=0\n");
 	std::fprintf(f, "ShowTekkitTrails=%d\n", G::ShowTekkitTrails ? 1 : 0);
 	std::fprintf(f, "ShowCompassOverlay=%d\n", G::ShowCompassOverlay ? 1 : 0);
@@ -224,6 +234,9 @@ void Settings::Save(bool force)
 	std::fprintf(f, "TpWatchIds=%s\n", G::TpWatchIds);
 	std::fprintf(f, "TpWatchAlerts=%s\n", G::TpWatchAlerts);
 	std::fprintf(f, "EventTrackIds=%s\n", G::EventTrackIds);
+	std::fprintf(f, "LogFolder=%s\n", G::LogFolder);
+	std::fprintf(f, "EliteInsightsPath=%s\n", G::EliteInsightsPath);
+	std::fprintf(f, "DpsReportToken=%s\n", G::DpsReportToken);
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);

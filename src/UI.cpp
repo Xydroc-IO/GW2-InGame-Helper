@@ -8,7 +8,9 @@
 #include "LookupPad.h"
 #include "WalletPad.h"
 #include "VaultPad.h"
+#include "AccountPad.h"
 #include "EventsPad.h"
+#include "LogManagerPad.h"
 #include "TekkitGuidesPad.h"
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
@@ -326,14 +328,10 @@ namespace
 		}
 		if (std::strcmp(category, "Live") == 0)
 		{
-			if (std::strcmp(id, "live_dailies") == 0)
-				return "Vault";
 			if (std::strcmp(id, "live_news") == 0)
 				return "News";
 			if (std::strcmp(id, "live_fashion") == 0)
 				return "Fashion";
-			if (std::strcmp(id, "live_progress") == 0)
-				return "Progress";
 			return "Other";
 		}
 		if (std::strcmp(category, "Cheat Sheets") == 0)
@@ -533,8 +531,6 @@ namespace
 			if (std::strcmp(id, "wiki_afood_hub") == 0 || std::strcmp(id, "wiki_afood_gourmet") == 0 ||
 				std::strncmp(id, "wiki_afood_", 11) == 0)
 				return "Ascended Food";
-			if (std::strcmp(id, "wiki_vault_easy") == 0)
-				return "Wizards Vault";
 			if (std::strcmp(id, "wiki_special_events") == 0 ||
 				std::strncmp(id, "wiki_rush_", 10) == 0)
 				return "Special Events";
@@ -562,7 +558,7 @@ namespace
 		}
 		if (std::strcmp(category, "Live") == 0)
 		{
-			static const char* kSec[] = { "Vault", "News", "Fashion", "Economy", "Progress", "Other" };
+			static const char* kSec[] = { "News", "Fashion", "Other" };
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
 		}
@@ -613,7 +609,7 @@ namespace
 			static const char* kSec[] = {
 				"Main", "News", "Special Events", "Collections", "Legendary Armory",
 				"Cosmetic Infusions", "Lifestyle", "Crafting", "Food", "Ascended Food",
-				"Utility", "Minis", "Upgrades", "Wizards Vault", "Other"
+				"Utility", "Minis", "Upgrades", "Other"
 			};
 			*outCount = sizeof(kSec) / sizeof(kSec[0]);
 			return kSec;
@@ -2520,6 +2516,16 @@ namespace
 				else
 					EventsPad::OpenAndRefresh();
 			}
+			if (ImGui::MenuItem(G::ShowLogManager ? "Hide DPS Logs" : "Show DPS Logs"))
+			{
+				if (G::ShowLogManager)
+				{
+					G::ShowLogManager = false;
+					Settings::SetDirty();
+				}
+				else
+					LogManagerPad::OpenAndRefresh();
+			}
 			if (ImGui::MenuItem(G::ShowTekkitGuides ? "Hide Tekkit's Guides" : "Show Tekkit's Guides"))
 			{
 				if (G::ShowTekkitGuides)
@@ -2539,27 +2545,7 @@ namespace
 	{
 		const SiteDef& active = Sites::Active();
 
-		if (ImGui::Button("Browse###gw2igh_browse"))
-		{
-			sSyncCategory = true;
-			sFocusFilter = true;
-			ImGui::OpenPopup("##gw2igh_site_browse");
-		}
-		sBrowseAnchor = CaptureAnchorBelowItem();
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("%s - %s",
-				active.category ? active.category : "",
-				active.label ? active.label : "");
-
-		ImGui::SameLine(0.f, 4.f);
-		{
-			const bool fav = Sites::IsFavorite(Sites::ActiveId());
-			if (FavoriteToggleButton("toolbar", fav, false))
-				Sites::ToggleFavorite(Sites::ActiveId());
-		}
-
 		/* Compact nav cluster */
-		ImGui::SameLine(0.f, 12.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.f, 6.f));
 		if (SoftButton("<###gw2igh_back", BrowserTabs::CanGoBack()))
 			BrowserTabs::GoBack();
@@ -2619,32 +2605,51 @@ namespace
 		DrawMoreMenu();
 		DrawStatusChip();
 
-		/* Panel toggles on their own row — never clipped by Browse/search width. */
-		if (ImGui::Button("Notes###gw2igh_notes"))
+		/* Row 1: Browse + favorite */
+		if (ImGui::Button("Browse###gw2igh_browse"))
 		{
-			if (G::ShowNotes)
-			{
-				G::ShowNotes = false;
-				Settings::SetDirty();
-			}
-			else
-				NotesPad::Open();
+			sSyncCategory = true;
+			sFocusFilter = true;
+			ImGui::OpenPopup("##gw2igh_site_browse");
 		}
+		sBrowseAnchor = CaptureAnchorBelowItem();
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Notes & clipboard helpers (waypoints, LFG, build codes)");
+			ImGui::SetTooltip("%s - %s",
+				active.category ? active.category : "",
+				active.label ? active.label : "");
 		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("TP###gw2igh_tp"))
 		{
-			if (G::ShowTpWatch)
+			const bool fav = Sites::IsFavorite(Sites::ActiveId());
+			if (FavoriteToggleButton("toolbar", fav, false))
+				Sites::ToggleFavorite(Sites::ActiveId());
+		}
+
+		/* Row 2: pads — keep short labels so Logs/Notes aren't clipped off-screen. */
+		if (ImGui::Button("Account###gw2igh_account"))
+		{
+			if (G::ShowAccount)
 			{
-				G::ShowTpWatch = false;
+				G::ShowAccount = false;
 				Settings::SetDirty();
 			}
 			else
-				TpWatchPad::OpenAndRefresh();
+				AccountPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Trading Post — delivery, watchlist, sell alerts (read-only)");
+			ImGui::SetTooltip("Account — stash, vault, TP, item lookup (tabbed)");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Tekkit's Guides###gw2igh_tekkit"))
+		{
+			if (G::ShowTekkitGuides)
+			{
+				G::ShowTekkitGuides = false;
+				Settings::SetDirty();
+			}
+			else
+				TekkitGuidesPad::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Tekkit's Guides — compass trails + category toggles (© Tekkit)");
 		ImGui::SameLine(0.f, 4.f);
 		if (ImGui::Button("Events###gw2igh_events"))
 		{
@@ -2659,57 +2664,31 @@ namespace
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("World events — UTC timers + track list");
 		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Tekkit###gw2igh_tekkit"))
+		if (ImGui::Button("DPS Logs###gw2igh_logs"))
 		{
-			if (G::ShowTekkitGuides)
+			if (G::ShowLogManager)
 			{
-				G::ShowTekkitGuides = false;
+				G::ShowLogManager = false;
 				Settings::SetDirty();
 			}
 			else
-				TekkitGuidesPad::Open();
+				LogManagerPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Tekkit's Guides — compass trails + category toggles (© Tekkit)");
+			ImGui::SetTooltip("DPS Logs — browse ArcDPS EVTC via Elite Insights");
 		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Item###gw2igh_lookup"))
+		if (ImGui::Button("Notes###gw2igh_notes"))
 		{
-			if (G::ShowLookup)
+			if (G::ShowNotes)
 			{
-				G::ShowLookup = false;
+				G::ShowNotes = false;
 				Settings::SetDirty();
 			}
 			else
-				LookupPad::OpenAndLookup();
+				NotesPad::Open();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Item lookup — chat code, ID, or name → wiki / BLTC");
-		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Wallet###gw2igh_wallet"))
-		{
-			if (G::ShowWallet)
-			{
-				G::ShowWallet = false;
-				Settings::SetDirty();
-			}
-			else
-				WalletPad::OpenAndRefresh();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Wallet & materials snapshot (API key)");
-		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Vault###gw2igh_vault"))
-		{
-			if (G::ShowVault)
-			{
-				G::ShowVault = false;
-				Settings::SetDirty();
-			}
-			else
-				VaultPad::OpenAndRefresh();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Dailies & Wizard’s Vault (same data as Browse → Live)");
+			ImGui::SetTooltip("Notes snippets + Waypoints search (copy chat codes)");
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(false, false);
 		PrepareBrowsePopup(sBrowseAnchor, browseLay);
@@ -2882,13 +2861,15 @@ void UI_Render()
 		   Only block GW2 while the pointer is over those windows — do not
 		   force Capture*FromApp(false) every frame (breaks Nexus / open). */
 		const bool notesHover = NotesPad::Render();
+		const bool accountHover = AccountPad::Render();
 		const bool tpHover = TpWatchPad::Render();
 		const bool lookupHover = LookupPad::Render();
 		const bool walletHover = WalletPad::Render();
 		const bool vaultHover = VaultPad::Render();
 		const bool eventsHover = EventsPad::Render();
+		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = TekkitGuidesPad::Render();
-		if (notesHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || tekkitHover)
+		if (notesHover || accountHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || logsHover || tekkitHover)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			gBlockGameMouse = true;
@@ -2964,13 +2945,15 @@ void UI_Render()
 		PopWikiTheme();
 		/* Still draw pads while the main window is collapsed. */
 		const bool notesHover = NotesPad::Render();
+		const bool accountHover = AccountPad::Render();
 		const bool tpHover = TpWatchPad::Render();
 		const bool lookupHover = LookupPad::Render();
 		const bool walletHover = WalletPad::Render();
 		const bool vaultHover = VaultPad::Render();
 		const bool eventsHover = EventsPad::Render();
+		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = TekkitGuidesPad::Render();
-		if (notesHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || tekkitHover)
+		if (notesHover || accountHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || logsHover || tekkitHover)
 		{
 			gBlockGameMouse = true;
 			gBlockGameKeyboard = true;
@@ -3347,13 +3330,15 @@ void UI_Render()
 	PopWikiTheme();
 
 	const bool notesHover = NotesPad::Render();
+	const bool accountHover = AccountPad::Render();
 	const bool tpHover = TpWatchPad::Render();
 	const bool lookupHover = LookupPad::Render();
 	const bool walletHover = WalletPad::Render();
 	const bool vaultHover = VaultPad::Render();
 	const bool eventsHover = EventsPad::Render();
+	const bool logsHover = LogManagerPad::Render();
 	const bool tekkitHover = TekkitGuidesPad::Render();
-	if (notesHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || tekkitHover)
+	if (notesHover || accountHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || logsHover || tekkitHover)
 	{
 		/* Pointer on a pad — block GW2 only; do not force WantCapture* so
 		   Nexus / other ImGui addons keep working when the cursor leaves. */
@@ -3385,7 +3370,16 @@ void UI_Options()
 			NotesPad::Open();
 		Settings::SetDirty();
 	}
-	ImGui::TextColored(kMuted, "Waypoints, chat codes, builds, LFG snippets — Copy to clipboard.");
+	ImGui::TextColored(kMuted,
+		"Snippets + Waypoints search (copy chat codes). Keybind: KB_HELPER_NOTES (CTRL+SHIFT+N).");
+	if (ImGui::Checkbox("Show Account pad###gw2igh_showaccount", &G::ShowAccount))
+	{
+		if (G::ShowAccount)
+			AccountPad::OpenAndRefresh();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted,
+		"Stash, vault, TP, crafting, progress. Keybind: KB_HELPER_ACCOUNT (CTRL+SHIFT+A).");
 	if (ImGui::Checkbox("Show TP Watchlist###gw2igh_showtp", &G::ShowTpWatch))
 	{
 		if (G::ShowTpWatch)
@@ -3413,14 +3407,23 @@ void UI_Options()
 			VaultPad::OpenAndRefresh();
 		Settings::SetDirty();
 	}
-	ImGui::TextColored(kMuted, "Season + live Vault objectives. Same API as Browse → Live.");
+	ImGui::TextColored(kMuted, "Season + live Vault objectives (Account → Vault). Keybind: KB_HELPER_ACCOUNT / CTRL+SHIFT+A.");
 	if (ImGui::Checkbox("Show World Events###gw2igh_showevents", &G::ShowEvents))
 	{
 		if (G::ShowEvents)
 			EventsPad::OpenAndRefresh();
 		Settings::SetDirty();
 	}
-	ImGui::TextColored(kMuted, "Full UTC catalog (bosses + metas). Track list + claim marks (progression).");
+	ImGui::TextColored(kMuted,
+		"UTC bosses + metas. Keybind: KB_HELPER_EVENTS (CTRL+SHIFT+E).");
+	if (ImGui::Checkbox("Show DPS Logs###gw2igh_showlogs", &G::ShowLogManager))
+	{
+		if (G::ShowLogManager)
+			LogManagerPad::OpenAndRefresh();
+		Settings::SetDirty();
+	}
+	ImGui::TextColored(kMuted,
+		"ArcDPS EVTC browser. Auto-installs Elite Insights. Optional dps.report token.");
 	if (ImGui::Checkbox("Show Tekkit's Guides###gw2igh_showtekkit", &G::ShowTekkitGuides))
 	{
 		if (G::ShowTekkitGuides)
@@ -3428,7 +3431,7 @@ void UI_Options()
 		Settings::SetDirty();
 	}
 	ImGui::TextColored(kMuted,
-		"Tekkit pack categories (persisted). Compass overlay uses read-only MumbleLink.");
+		"Tekkit categories + compass. Keybind: KB_HELPER_TEKKIT (CTRL+SHIFT+G).");
 	if (ImGui::Checkbox("Enable Tekkit trail system###gw2igh_tekkitmaster", &G::ShowTekkitTrails))
 		Settings::SetDirty();
 	if (ImGui::Checkbox("Draw over in-game compass###gw2igh_compass", &G::ShowCompassOverlay))
@@ -3587,8 +3590,10 @@ void UI_Options()
 		"Browse / ... menu for Find / Copy / Open Ext. Right-click tabs to pin. "
 		"Window size and position are saved automatically.");
 	ImGui::TextWrapped(
-		"Hotkeys: Ctrl+Shift+H open/close | Ctrl+T new tab | Ctrl+W close | "
-		"Ctrl+Tab cycle | Ctrl+Shift+T reopen | Ctrl+F find");
+		"Hotkeys (rebind in Nexus → Keybinds): Ctrl+Shift+H helper | "
+		"Ctrl+Shift+A Account | Ctrl+Shift+G Tekkit's Guides | "
+		"Ctrl+Shift+E Events | Ctrl+Shift+N Notes. "
+		"In helper: Ctrl+T new tab | Ctrl+W close | Ctrl+Tab cycle | Ctrl+F find.");
 	SyncQr::DrawOptionsSection();
 	Settings::Save(false);
 	ImGui::PopID();

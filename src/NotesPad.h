@@ -1,6 +1,6 @@
 #pragma once
 
-/* Local ImGui notes + clipboard helpers (waypoints, chat codes, builds, LFG). */
+/* Local ImGui notes + clipboard helpers, plus waypoint / POI search (chat codes). */
 namespace NotesPad
 {
 	void Load();

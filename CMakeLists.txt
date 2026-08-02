@@ -36,12 +36,18 @@ add_library(GW2-InGame-Helper-Beta SHARED
   src/Gw2Http.cpp
   src/LivePanels.cpp
   src/NotesPad.cpp
+  src/WaypointsData.cpp
   src/TpWatchPad.cpp
   src/LookupPad.cpp
   src/WalletPad.cpp
   src/VaultPad.cpp
+  src/AccountPad.cpp
+  src/ProgressData.cpp
+  src/CraftingData.cpp
   src/EventsPad.cpp
   src/EventsData.cpp
+  src/LogManagerPad.cpp
+  src/EiRuntime.cpp
   src/TekkitGuidesPad.cpp
   src/TekkitTrails.cpp
   src/CompassOverlay.cpp

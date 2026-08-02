@@ -8,6 +8,11 @@ namespace TpWatchPad
 	void Load(); /* no-op; ids/alerts live in settings.ini */
 	void Tick(); /* apply finished price + delivery fetches */
 
+	void RefreshData(); /* sync watchlist + fetch without opening the window */
+
+	/* Body only — for AccountPad tabs. forceScroll=true uses a scrolling list. */
+	void RenderContents(bool forceScroll = false);
+
 	/* Draw when G::ShowTpWatch. Returns true if pointer is over the window. */
 	bool Render();
 

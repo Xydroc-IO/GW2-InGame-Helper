@@ -1,11 +1,9 @@
 #include "VaultPad.h"
 
 #include "AddonPaths.h"
-#include "BrowserTabs.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "Settings.h"
-#include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
 
@@ -592,14 +590,6 @@ namespace
 		gDrawnGen = gGen.load();
 	}
 
-	void OpenUrl(const char* url)
-	{
-		G::ShowWiki = true;
-		Settings::SetDirty();
-		if (BrowserTabs::OpenNewUrl("vault", url) < 0)
-			WikiBrowser::Navigate(url);
-	}
-
 	void DrawObjList(const char* label, const std::vector<Obj>& list)
 	{
 		if (!ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth))
@@ -660,12 +650,8 @@ namespace
 	}
 }
 
-void VaultPad::OpenAndRefresh()
+void VaultPad::RefreshData()
 {
-	G::ShowVault = true;
-	gFocus = true;
-	gPlaceOnce = true;
-	Settings::SetDirty();
 	bool need = true;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
@@ -676,67 +662,28 @@ void VaultPad::OpenAndRefresh()
 	StartFetch(need);
 }
 
-bool VaultPad::Render()
+void VaultPad::OpenAndRefresh()
+{
+	G::ShowVault = true;
+	gFocus = true;
+	gPlaceOnce = true;
+	Settings::SetDirty();
+	RefreshData();
+}
+
+void VaultPad::RenderContents()
 {
 	SyncDraw();
-	if (!G::ShowVault)
-		return false;
-
 	const Snapshot& snap = gDraw;
-	const ImGuiIO& io = ImGui::GetIO();
-	const float maxH = (io.DisplaySize.y > 100.f)
-		? (std::min)(io.DisplaySize.y * 0.90f, 900.f)
-		: 720.f;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(560.f, maxH));
-	if (gPlaceOnce)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
-	else
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gPlaceOnce)
-	{
-		const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.38f : 100.f;
-		const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.12f : 80.f;
-		ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Appearing);
-		ImGui::SetNextWindowFocus();
-		gPlaceOnce = false;
-	}
-	if (gFocus)
-	{
-		ImGui::SetNextWindowFocus();
-		gFocus = false;
-	}
-
-	bool open = G::ShowVault;
-	if (!ImGui::Begin("Dailies & Vault##GW2InGameHelperVault", &open))
-	{
-		const bool hovered = ImGui::IsWindowHovered(
-			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
-		if (!open)
-		{
-			G::ShowVault = false;
-			Settings::SetDirty();
-		}
-		return hovered;
-	}
-	if (!open)
-	{
-		G::ShowVault = false;
-		Settings::SetDirty();
-	}
 
 	ImGui::TextUnformatted("Dailies & Wizard’s Vault");
 	ImGui::PushTextWrapPos(0.f);
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Same data as Browse → Live. Scopes: account + progression.");
+		"Official API — account + progression scopes. (Account → Vault tab.)");
 	ImGui::PopTextWrapPos();
 
 	if (ImGui::Button("Refresh###gw2igh_vault_ref"))
 		StartFetch(true);
-	ImGui::SameLine();
-	if (ImGui::SmallButton("Full page###gw2igh_vault_full"))
-		OpenUrl("about:live-dailies");
 	if (gBusy)
 	{
 		ImGui::PushTextWrapPos(0.f);
@@ -786,6 +733,57 @@ bool VaultPad::Render()
 	}
 
 	ImGui::EndChild();
+}
+
+bool VaultPad::Render()
+{
+	if (!G::ShowVault)
+		return false;
+
+	const ImGuiIO& io = ImGui::GetIO();
+	const float maxH = (io.DisplaySize.y > 100.f)
+		? (std::min)(io.DisplaySize.y * 0.90f, 900.f)
+		: 720.f;
+	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(560.f, maxH));
+	if (gPlaceOnce)
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	else
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	if (gPlaceOnce)
+	{
+		const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.38f : 100.f;
+		const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.12f : 80.f;
+		ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Appearing);
+		ImGui::SetNextWindowFocus();
+		gPlaceOnce = false;
+	}
+	if (gFocus)
+	{
+		ImGui::SetNextWindowFocus();
+		gFocus = false;
+	}
+
+	bool open = G::ShowVault;
+	if (!ImGui::Begin("Dailies & Vault##GW2InGameHelperVault", &open))
+	{
+		const bool hovered = ImGui::IsWindowHovered(
+			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+		ImGui::End();
+		if (!open)
+		{
+			G::ShowVault = false;
+			Settings::SetDirty();
+		}
+		return hovered;
+	}
+	if (!open)
+	{
+		G::ShowVault = false;
+		Settings::SetDirty();
+	}
+
+	RenderContents();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

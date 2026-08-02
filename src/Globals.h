@@ -71,7 +71,9 @@ namespace G
 	extern bool  ShowLookup; /* ImGui item lookup (chat code / ID / name) — free-floating */
 	extern bool  ShowWallet; /* ImGui wallet + mats snapshot — free-floating */
 	extern bool  ShowVault; /* ImGui Dailies & Vault — free-floating */
+	extern bool  ShowAccount; /* ImGui Account pad (tabbed stash/vault/TP/item) */
 	extern bool  ShowEvents; /* ImGui world-boss timers + track list — free-floating */
+	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
 	extern bool  ShowTekkitGuides; /* ImGui Tekkit category / credit panel */
 	extern bool  ShowTekkitTrails; /* master: load packs + draw overlays */
 	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
@@ -97,4 +99,7 @@ namespace G
 	extern char  TpWatchAlerts[2048]; /* id:copperThresh,… — sell ≤ alert; 0/absent = off */
 	extern char  EventTrackIds[4096]; /* comma-separated event ids — user track list */
 	extern char  TekkitEnabled[8192]; /* '|' separated Tekkit category paths — persisted */
+	extern char  LogFolder[512]; /* ArcDPS cbtlogs folder */
+	extern char  EliteInsightsPath[512]; /* GuildWars2EliteInsights-CLI.exe */
+	extern char  DpsReportToken[128]; /* optional dps.report user token */
 }

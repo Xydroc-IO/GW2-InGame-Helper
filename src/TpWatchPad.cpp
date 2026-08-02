@@ -10,6 +10,7 @@
 #include "imgui/imgui.h"
 
 #include <atomic>
+#include <cctype>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -61,8 +62,23 @@ namespace
 	std::vector<Row> gPending;
 	DeliverySnap gPendingDelivery;
 	HANDLE gThread = nullptr;
+	HANDLE gAddThread = nullptr;
 	char gAddBuf[160] = {};
+	char gAddThreadQuery[160] = {};
 	std::string gStatus;
+	struct NameHit
+	{
+		int id = 0;
+		std::string name;
+		long long buy = 0;
+		long long sell = 0;
+		bool hasPrices = false;
+	};
+	std::vector<NameHit> gNameHits; /* search results — user picks Track */
+	std::atomic<bool> gAddBusy{false};
+	std::atomic<bool> gAddReady{false};
+	std::string gPendingAddStatus;
+	std::vector<NameHit> gPendingNameHits;
 	bool gRequestFocus = false;
 	/* Stable InputText buffer while editing one row's alert. */
 	int gAlertEditId = 0;
@@ -353,15 +369,261 @@ namespace
 				}
 			}
 		}
+		/* Pure numeric ID only — names must go through wiki resolve. */
 		int id = 0;
+		bool onlyDigits = true;
 		for (const char* p = text; *p; ++p)
 		{
+			if (*p == ' ' || *p == '\t') continue;
 			if (*p >= '0' && *p <= '9')
 				id = id * 10 + (*p - '0');
-			else if (id > 0)
-				break;
+			else { onlyDigits = false; break; }
 		}
-		return id;
+		return (onlyDigits && id > 0) ? id : 0;
+	}
+
+	std::string UrlEncode(const char* s)
+	{
+		std::string o;
+		static const char* hex = "0123456789ABCDEF";
+		for (const unsigned char* p = reinterpret_cast<const unsigned char*>(s); *p; ++p)
+		{
+			unsigned char c = *p;
+			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+				(c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.' || c == '~')
+				o.push_back(static_cast<char>(c));
+			else if (c == ' ')
+				o.push_back('+');
+			else
+			{
+				o.push_back('%');
+				o.push_back(hex[c >> 4]);
+				o.push_back(hex[c & 15]);
+			}
+		}
+		return o;
+	}
+
+	std::string ToLowerCopy(std::string s)
+	{
+		for (char& c : s)
+			c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+		return s;
+	}
+
+	/* Common shorthand → wiki title (ecto etc.). */
+	std::string ExpandNameAlias(const char* q)
+	{
+		const std::string low = ToLowerCopy(q ? q : "");
+		std::string t;
+		for (char c : low)
+			if (c != ' ' && c != '\t') t.push_back(c);
+		if (t == "ecto" || t == "ectos" || t == "ectoplasm" ||
+			t == "globofecto" || t == "globofectoplasm")
+			return "Glob of Ectoplasm";
+		return q ? std::string(q) : std::string{};
+	}
+
+	int ExtractWikiItemId(const std::string& wikitext)
+	{
+		size_t p = 0;
+		while (p < wikitext.size())
+		{
+			size_t bar = wikitext.find('|', p);
+			if (bar == std::string::npos) break;
+			size_t k = bar + 1;
+			while (k < wikitext.size() && (wikitext[k] == ' ' || wikitext[k] == '\t')) ++k;
+			if (k + 2 < wikitext.size() &&
+				(wikitext[k] == 'i' || wikitext[k] == 'I') &&
+				(wikitext[k + 1] == 'd' || wikitext[k + 1] == 'D') &&
+				(wikitext[k + 2] == ' ' || wikitext[k + 2] == '=' || wikitext[k + 2] == '\t'))
+			{
+				while (k < wikitext.size() && wikitext[k] != '=') ++k;
+				if (k < wikitext.size() && wikitext[k] == '=')
+				{
+					++k;
+					while (k < wikitext.size() && (wikitext[k] == ' ' || wikitext[k] == '\t')) ++k;
+					int id = 0;
+					while (k < wikitext.size() && wikitext[k] >= '0' && wikitext[k] <= '9')
+					{
+						id = id * 10 + (wikitext[k] - '0');
+						++k;
+					}
+					if (id > 0) return id;
+				}
+			}
+			p = bar + 1;
+		}
+		return 0;
+	}
+
+	bool ItemExists(int id)
+	{
+		if (id <= 0) return false;
+		char path[64];
+		std::snprintf(path, sizeof(path), "/v2/items/%d", id);
+		auto r = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
+		return r.ok && !r.body.empty() && r.body[0] == '{';
+	}
+
+	std::string JsonStringAfterKey(const std::string& json, const char* key, size_t from);
+
+	int ResolveWikiTitleToItemId(const char* title)
+	{
+		if (!title || !title[0]) return 0;
+		std::string parseUrl =
+			"https://wiki.guildwars2.com/api.php?action=parse&prop=wikitext&format=json"
+			"&formatversion=2&page=";
+		parseUrl += UrlEncode(title);
+		auto pr = Gw2Http::Get(parseUrl.c_str(), nullptr, kHttpTimeoutMs);
+		if (!pr.ok) return 0;
+		std::string wt = JsonStringAfterKey(pr.body, "wikitext", 0);
+		if (wt.empty())
+		{
+			size_t wk = pr.body.find("\"wikitext\"");
+			if (wk != std::string::npos)
+				wt = JsonStringAfterKey(pr.body, "wikitext", wk);
+		}
+		const int id = ExtractWikiItemId(wt);
+		return ItemExists(id) ? id : 0;
+	}
+
+	void SyncRowsFromSettings();
+	void StartFetch();
+	void FillNameHitPrices(std::vector<NameHit>& hits);
+
+	bool CommitWatchId(int id, std::string* statusOut)
+	{
+		if (id <= 0)
+		{
+			if (statusOut) *statusOut = "Could not resolve that item.";
+			return false;
+		}
+		std::vector<int> ids;
+		ParseIds(G::TpWatchIds, ids);
+		for (int x : ids)
+		{
+			if (x == id)
+			{
+				if (statusOut) *statusOut = "Already on your watchlist.";
+				return false;
+			}
+		}
+		if (static_cast<int>(ids.size()) >= kMaxItems)
+		{
+			if (statusOut) *statusOut = "Watchlist full (120).";
+			return false;
+		}
+		ids.push_back(id);
+		SaveIds(ids);
+		SyncRowsFromSettings();
+		StartFetch();
+		if (statusOut) *statusOut = "Added. Fetching price…";
+		return true;
+	}
+
+	DWORD WINAPI AddNameProc(void*)
+	{
+		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+		const std::string query = ExpandNameAlias(gAddThreadQuery);
+		std::string status;
+		std::vector<NameHit> hits;
+		std::vector<std::string> titles;
+
+		std::string url =
+			"https://wiki.guildwars2.com/api.php?action=query&list=search&srnamespace=0"
+			"&srlimit=8&format=json&formatversion=2&srsearch=";
+		url += UrlEncode(query.c_str());
+		auto wr = Gw2Http::Get(url.c_str(), nullptr, kHttpTimeoutMs);
+		if (!wr.ok)
+		{
+			status = "Wiki search failed — try a chat code or ID.";
+		}
+		else
+		{
+			size_t p = 0;
+			while (titles.size() < 8 && p < wr.body.size())
+			{
+				size_t t = wr.body.find("\"title\"", p);
+				if (t == std::string::npos) break;
+				std::string title = JsonStringAfterKey(wr.body, "title", t);
+				p = t + 7;
+				if (title.empty()) continue;
+				bool dup = false;
+				for (const auto& h : titles)
+					if (h == title) { dup = true; break; }
+				if (!dup) titles.push_back(std::move(title));
+			}
+			if (titles.empty())
+			{
+				status = "No name match — try a chat code or item ID.";
+			}
+			else
+			{
+				const std::string qLow = ToLowerCopy(query);
+				/* Exact title first, then the rest — never auto-track. */
+				std::vector<std::string> ordered;
+				for (const std::string& title : titles)
+					if (ToLowerCopy(title) == qLow)
+						ordered.push_back(title);
+				for (const std::string& title : titles)
+				{
+					bool already = false;
+					for (const auto& o : ordered)
+						if (o == title) { already = true; break; }
+					if (!already) ordered.push_back(title);
+				}
+				for (const std::string& title : ordered)
+				{
+					if (hits.size() >= 6) break;
+					const int id = ResolveWikiTitleToItemId(title.c_str());
+					if (id <= 0) continue;
+					bool idDup = false;
+					for (const NameHit& h : hits)
+						if (h.id == id) { idDup = true; break; }
+					if (idDup) continue;
+					NameHit hit;
+					hit.id = id;
+					hit.name = title;
+					hits.push_back(std::move(hit));
+				}
+				if (!hits.empty())
+					FillNameHitPrices(hits);
+				status = hits.empty()
+					? "Wiki hits — none resolved to an item ID."
+					: "Choose Track on an item below.";
+			}
+		}
+
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			gPendingAddStatus = status;
+			gPendingNameHits = std::move(hits);
+			gAddReady = true;
+			gAddBusy = false;
+		}
+		return 0;
+	}
+
+	void StartNameResolve()
+	{
+		if (!gAddBuf[0] || gAddBusy.exchange(true))
+			return;
+		if (gAddThread)
+		{
+			WaitForSingleObject(gAddThread, 0);
+			CloseHandle(gAddThread);
+			gAddThread = nullptr;
+		}
+		std::snprintf(gAddThreadQuery, sizeof(gAddThreadQuery), "%s", gAddBuf);
+		gNameHits.clear();
+		gStatus = "Searching name…";
+		gAddThread = CreateThread(nullptr, 0, AddNameProc, nullptr, 0, nullptr);
+		if (!gAddThread)
+		{
+			gAddBusy = false;
+			gStatus = "Could not start name search.";
+		}
 	}
 
 	size_t JsonObjectEnd(const std::string& json, size_t openBrace)
@@ -471,6 +733,55 @@ namespace
 			std::string name = JsonStringAfterKey(r.body, "name", brace);
 			if (id > 0 && !name.empty())
 				outNames.emplace_back(static_cast<int>(id), std::move(name));
+			p = end + 1;
+		}
+	}
+
+	void FillNameHitPrices(std::vector<NameHit>& hits)
+	{
+		if (hits.empty()) return;
+		std::vector<int> ids;
+		ids.reserve(hits.size());
+		for (const NameHit& h : hits) ids.push_back(h.id);
+
+		std::vector<std::pair<int, std::string>> names;
+		ResolveItemNames(ids, names);
+		for (const auto& nv : names)
+		{
+			for (NameHit& h : hits)
+				if (h.id == nv.first) { h.name = nv.second; break; }
+		}
+
+		std::string path = "/v2/commerce/prices?ids=";
+		path += IdsQuery(ids);
+		auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpTimeoutMs);
+		if (!r.ok) return;
+		size_t p = 0;
+		while (p < r.body.size())
+		{
+			size_t brace = r.body.find('{', p);
+			if (brace == std::string::npos) break;
+			size_t end = JsonObjectEnd(r.body, brace);
+			if (end == std::string::npos) break;
+			long long id = JsonIntAfterKey(r.body, "id", brace);
+			size_t buys = r.body.find("\"buys\"", brace);
+			size_t sells = r.body.find("\"sells\"", brace);
+			long long buy = -1, sell = -1;
+			if (buys != std::string::npos && buys < end)
+				buy = JsonIntAfterKey(r.body, "unit_price", buys);
+			if (sells != std::string::npos && sells < end)
+				sell = JsonIntAfterKey(r.body, "unit_price", sells);
+			if (id > 0)
+			{
+				for (NameHit& h : hits)
+				{
+					if (h.id != static_cast<int>(id)) continue;
+					if (buy >= 0) h.buy = buy;
+					if (sell >= 0) h.sell = sell;
+					h.hasPrices = (buy >= 0 || sell >= 0);
+					break;
+				}
+			}
 			p = end + 1;
 		}
 	}
@@ -680,6 +991,12 @@ namespace
 
 void TpWatchPad::Load() {}
 
+void TpWatchPad::RefreshData()
+{
+	SyncRowsFromSettings();
+	StartFetch();
+}
+
 void TpWatchPad::OpenAndRefresh()
 {
 	const bool wasOpen = G::ShowTpWatch;
@@ -689,12 +1006,37 @@ void TpWatchPad::OpenAndRefresh()
 	if (!wasOpen)
 		gRequestFocus = true;
 	Settings::SetDirty();
-	SyncRowsFromSettings();
-	StartFetch();
+	RefreshData();
 }
 
 void TpWatchPad::Tick()
 {
+	if (gAddReady)
+	{
+		std::string addStatus;
+		std::vector<NameHit> hits;
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			if (gAddReady)
+			{
+				addStatus = std::move(gPendingAddStatus);
+				hits = std::move(gPendingNameHits);
+				gPendingAddStatus.clear();
+				gPendingNameHits.clear();
+				gAddReady = false;
+			}
+			if (gAddThread)
+			{
+				WaitForSingleObject(gAddThread, 0);
+				CloseHandle(gAddThread);
+				gAddThread = nullptr;
+			}
+		}
+		gNameHits = std::move(hits);
+		if (!addStatus.empty())
+			gStatus = addStatus;
+	}
+
 	if (!gResultReady)
 		return;
 	std::lock_guard<std::mutex> lock(gMu);
@@ -725,14 +1067,9 @@ void TpWatchPad::Tick()
 	}
 }
 
-bool TpWatchPad::Render()
+void TpWatchPad::RenderContents(bool forceScroll)
 {
 	TpWatchPad::Tick();
-	if (!G::ShowTpWatch)
-	{
-		PadDock::ClearTp();
-		return false;
-	}
 
 	std::vector<Row> rows;
 	DeliverySnap delivery;
@@ -742,48 +1079,11 @@ bool TpWatchPad::Render()
 		delivery = gDelivery;
 	}
 
-	const ImGuiIO& io = ImGui::GetIO();
-	const float maxWinH = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.85f : 720.f;
 	/* Few items: auto-size to content (no clipping, no empty void).
-	   Many items: fixed-ish window + scrolling list. */
+	   Many items / Account embed: scrolling list. */
 	constexpr size_t kAutoFitMax = 8;
 	const size_t contentCount = rows.size() + delivery.items.size();
-	const bool autoFit = contentCount <= kAutoFitMax;
-
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 0.f), ImVec2(520.f, maxWinH));
-	if (!autoFit)
-		ImGui::SetNextWindowSize(ImVec2(440.f, maxWinH * 0.72f), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gRequestFocus)
-	{
-		ImGui::SetNextWindowPos(PadDock::ForTp(kTpPadW), ImGuiCond_Always);
-		ImGui::SetNextWindowFocus();
-		gRequestFocus = false;
-	}
-
-	ImGuiWindowFlags winFlags = autoFit ? ImGuiWindowFlags_AlwaysAutoResize : 0;
-	bool open = G::ShowTpWatch;
-	if (!ImGui::Begin("Trading Post##GW2InGameHelperTpWatch", &open, winFlags))
-	{
-		PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
-		const bool hovered = ImGui::IsWindowHovered(
-			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
-		if (!open)
-		{
-			G::ShowTpWatch = false;
-			PadDock::ClearTp();
-			Settings::SetDirty();
-		}
-		return hovered;
-	}
-	if (!open)
-	{
-		G::ShowTpWatch = false;
-		PadDock::ClearTp();
-		Settings::SetDirty();
-	}
-	PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
+	const bool autoFit = !forceScroll && contentCount <= kAutoFitMax;
 
 	ImGui::TextUnformatted("Trading Post");
 	ImGui::PushTextWrapPos(0.f);
@@ -887,50 +1187,76 @@ bool TpWatchPad::Render()
 	ImGui::TextUnformatted("Watchlist");
 	ImGui::PushTextWrapPos(0.f);
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Paste a chat code (Shift+click in game) or item ID. "
+		"Chat code / ID adds immediately. Names search first — pick Track to watchlist. "
 		"Optional sell alert: fire when sell ≤ your target (checked on Refresh).");
 	ImGui::PopTextWrapPos();
 
-	auto tryAdd = [&]() {
-		if (!gAddBuf[0]) return;
+	auto trySubmit = [&]() {
+		if (!gAddBuf[0] || gAddBusy) return;
 		const int id = ParseItemInput(gAddBuf);
-		if (id <= 0)
+		if (id > 0)
 		{
-			gStatus = "Could not read that chat code / ID.";
+			std::string st;
+			if (CommitWatchId(id, &st))
+				gAddBuf[0] = 0;
+			gStatus = st;
+			gNameHits.clear();
 			return;
 		}
-		std::vector<int> ids;
-		ParseIds(G::TpWatchIds, ids);
-		for (int x : ids)
-		{
-			if (x == id)
-			{
-				gStatus = "Already on your watchlist.";
-				return;
-			}
-		}
-		if (static_cast<int>(ids.size()) >= kMaxItems)
-		{
-			gStatus = "Watchlist full (120).";
-			return;
-		}
-		ids.push_back(id);
-		SaveIds(ids);
-		gAddBuf[0] = 0;
-		SyncRowsFromSettings();
-		StartFetch();
-		gStatus = "Added. Fetching price…";
+		StartNameResolve();
 	};
 
-	const float addBtnW = ImGui::CalcTextSize("Add").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
+	const bool nameMode = gAddBuf[0] && ParseItemInput(gAddBuf) <= 0;
+	const char* submitLabel = nameMode ? "Search" : "Add";
+	const float addBtnW = ImGui::CalcTextSize("Search").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
 	const float addFieldW = ImGui::GetContentRegionAvail().x - addBtnW - ImGui::GetStyle().ItemSpacing.x;
 	ImGui::SetNextItemWidth(addFieldW > 120.f ? addFieldW : 120.f);
-	if (ImGui::InputTextWithHint("###gw2igh_tp_pad_add", "[&AgEAAAA=] or item ID",
+	if (ImGui::InputTextWithHint("###gw2igh_tp_pad_add", "[&…] / ID / name (ecto)",
 			gAddBuf, sizeof(gAddBuf), ImGuiInputTextFlags_EnterReturnsTrue))
-		tryAdd();
+		trySubmit();
 	ImGui::SameLine();
-	if (ImGui::Button("Add###gw2igh_tp_pad_addbtn", ImVec2(addBtnW, 0.f)))
-		tryAdd();
+	char submitId[48];
+	std::snprintf(submitId, sizeof(submitId), "%s###gw2igh_tp_pad_addbtn", submitLabel);
+	if (ImGui::Button(submitId, ImVec2(addBtnW, 0.f)))
+		trySubmit();
+	if (gAddBusy)
+		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Searching…");
+	else if (!gNameHits.empty())
+	{
+		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+			"Results — TP buy / sell (instant), then Track:");
+		for (size_t i = 0; i < gNameHits.size(); ++i)
+		{
+			const NameHit& h = gNameHits[i];
+			ImGui::PushID(static_cast<int>(h.id) + 9000);
+			ImGui::TextUnformatted(h.name.empty() ? "…" : h.name.c_str());
+			ImGui::SameLine();
+			ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "#%d", h.id);
+			ImGui::SameLine();
+			if (h.hasPrices)
+			{
+				ImGui::TextColored(ImVec4(0.75f, 0.78f, 0.82f, 1.f),
+					"buy %s  sell %s",
+					FormatCoins(h.buy).c_str(), FormatCoins(h.sell).c_str());
+			}
+			else
+			{
+				ImGui::TextColored(ImVec4(0.70f, 0.55f, 0.40f, 1.f), "no TP");
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Track"))
+			{
+				std::string st;
+				if (CommitWatchId(h.id, &st))
+				{
+					gAddBuf[0] = 0;
+					gNameHits.clear();
+				}
+				gStatus = st;
+			}
+			ImGui::PopID();
+		}
+	}
 
 	ImGui::Separator();
 
@@ -939,7 +1265,7 @@ bool TpWatchPad::Render()
 		{
 			ImGui::PushTextWrapPos(0.f);
 			ImGui::TextWrapped(
-				"No items yet. Shift+click an item in chat, paste the [&…] code above, then Add.");
+				"No items yet. Search a name and Track, or paste a chat code / ID.");
 			ImGui::PopTextWrapPos();
 			return;
 		}
@@ -1109,6 +1435,64 @@ bool TpWatchPad::Render()
 			"%d item%s", static_cast<int>(rows.size()),
 			rows.size() == 1 ? "" : "s");
 	}
+}
+
+bool TpWatchPad::Render()
+{
+	TpWatchPad::Tick();
+	if (!G::ShowTpWatch)
+	{
+		PadDock::ClearTp();
+		return false;
+	}
+
+	size_t contentCount = 0;
+	{
+		std::lock_guard<std::mutex> lock(gMu);
+		contentCount = gRows.size() + gDelivery.items.size();
+	}
+
+	const ImGuiIO& io = ImGui::GetIO();
+	const float maxWinH = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.85f : 720.f;
+	constexpr size_t kAutoFitMax = 8;
+	const bool autoFit = contentCount <= kAutoFitMax;
+
+	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 0.f), ImVec2(520.f, maxWinH));
+	if (!autoFit)
+		ImGui::SetNextWindowSize(ImVec2(440.f, maxWinH * 0.72f), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	if (gRequestFocus)
+	{
+		ImGui::SetNextWindowPos(PadDock::ForTp(kTpPadW), ImGuiCond_Always);
+		ImGui::SetNextWindowFocus();
+		gRequestFocus = false;
+	}
+
+	ImGuiWindowFlags winFlags = autoFit ? ImGuiWindowFlags_AlwaysAutoResize : 0;
+	bool open = G::ShowTpWatch;
+	if (!ImGui::Begin("Trading Post##GW2InGameHelperTpWatch", &open, winFlags))
+	{
+		PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
+		const bool hovered = ImGui::IsWindowHovered(
+			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+		ImGui::End();
+		if (!open)
+		{
+			G::ShowTpWatch = false;
+			PadDock::ClearTp();
+			Settings::SetDirty();
+		}
+		return hovered;
+	}
+	if (!open)
+	{
+		G::ShowTpWatch = false;
+		PadDock::ClearTp();
+		Settings::SetDirty();
+	}
+	PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
+
+	RenderContents(false);
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
