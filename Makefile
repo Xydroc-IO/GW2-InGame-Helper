@@ -85,7 +85,7 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper-Beta
 
-.PHONY: all clean install install-reset validate-sites gen-sites check-sites test-css ci pack-cef
+.PHONY: all clean install install-reset validate-sites gen-sites check-sites test-css test-parse ci pack-cef
 
 all: $(DLL_OUT)
 
@@ -107,7 +107,18 @@ check-sites: $(SITES_GEN)
 test-css:
 	python3 tools/test_css_downlevel.py
 
-# Local continuous integration (no GitHub Actions). Also used by .githooks/pre-push.
+# Host (Linux) parse golden tests — no Wine / GW2 required.
+TEST_PARSE_BIN = build/test_logmanager_parse
+
+test-parse: $(TEST_PARSE_BIN)
+	./$(TEST_PARSE_BIN) tools/fixtures/ei_players_sample.json tools/fixtures/dpsreport_players_sample.json
+	python3 tools/test_trl_parse.py
+
+$(TEST_PARSE_BIN): tools/test_logmanager_parse.cpp src/LogManagerParse.cpp src/LogManagerParse.h
+	@mkdir -p build
+	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -o $@ tools/test_logmanager_parse.cpp src/LogManagerParse.cpp
+
+# Local continuous integration. Also used by .githooks/pre-push and GitHub Actions.
 ci:
 	@bash tools/ci.sh
 

@@ -11,6 +11,7 @@ CEF Stable 150** runtime downloaded on first open into
 **Version:** `2.1.0.2` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
+[`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md)
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.

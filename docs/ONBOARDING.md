@@ -1,0 +1,80 @@
+# Onboarding — first week (Beta / takeover)
+
+**Goal:** a new maintainer can build, validate, ship a pad-level change, and know what **not** to touch without a second opinion.
+
+Companion: [`../CONTRIBUTING.md`](../CONTRIBUTING.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`COMPLIANCE.md`](COMPLIANCE.md) · [`BUILD.md`](BUILD.md).
+
+This guide assumes the **`GW2-InGame-Helper-Beta`** branch (experimental / takeover-friendly modular tree). Do **not** load Beta and shipping DLLs together (same Nexus signature).
+
+---
+
+## Day 1 — Build and smoke
+
+1. Clone with submodules; install MinGW (`docs/BUILD.md`).
+2. `make ci` — must pass (sites, CSS, parse fixtures, MinGW smoke).
+3. `make install` (Beta DLL → `addons/GW2-InGame-Helper-Beta.dll`).
+4. Fully restart Guild Wars 2; open helper (`Ctrl+Shift+H` default).
+5. Skim [`ARCHITECTURE.md`](ARCHITECTURE.md) §§1–5 and [`COMPLIANCE.md`](COMPLIANCE.md) Allowed/Forbidden.
+
+**Done when:** DLL loads, Browse opens a wiki page, `make ci` is green.
+
+---
+
+## Day 2 — Catalog and pads
+
+1. Read `data/sites.json` schema + `make gen-sites` / `validate-sites`.
+2. Trace one pad: e.g. `NotesPad` or `WalletPad` → `UI.cpp` toolbar button → settings flag in `Globals.h` / `Settings.cpp`.
+3. Make a trivial safe change (tooltip string); rebuild; verify in-game.
+
+**Done when:** you can add a Browse entry and find where a pad is toggled.
+
+---
+
+## Day 3 — Feature modules map
+
+| Area | Start here |
+|------|------------|
+| Browse UI | `UI_Browse.cpp` |
+| DPS Logs | `LogManagerPad.cpp` → `LogManagerParse` / `Upload` / `Ei` |
+| Tekkit | `TekkitTrails.cpp` → `TekkitParse` / `TekkitIndex` |
+| Live digests | `LivePanels.cpp` → `LivePanelsBuild` |
+| Account API pads | `AccountPad.cpp`, `ProgressData.cpp`, `CraftingData.cpp` |
+
+Run parse fixture tests: `make test-parse`.
+
+**Done when:** you know which TU owns parse vs UI for Logs and Tekkit.
+
+---
+
+## Day 4 — Restricted kernel (read-only)
+
+Read only; do not change yet:
+
+- `WikiIpc.h` — packed IPC contract (`HLI5`)
+- `WikiBrowser.cpp` — extract, launch, present, Open Ext
+- `helper/main.cpp` — CEF OSR, nav/ad policy
+- `entry.cpp` — WndProc / input ownership
+
+**Done when:** you can explain why Present hooks and game memory are forbidden, and why stamp bumps matter.
+
+---
+
+## Day 5 — Release hygiene
+
+1. Version stamp checklist in [`DOCUMENTATION.md`](DOCUMENTATION.md).
+2. Practice a dry-run: what files change for a patch release (no bump unless asked).
+3. Confirm GitHub Actions `CI` workflow matches `make ci`.
+
+**Done when:** you can list the files that must stay aligned on a ship.
+
+---
+
+## Escalation
+
+| Change type | Action |
+|-------------|--------|
+| Pad / Sites / docs | Normal PR; `make ci` |
+| Parse formats (EI JSON, `.trl`) | Update golden fixtures in `tools/fixtures/` |
+| IPC / helper / present / WndProc | Stop — design note + paired review |
+
+If something is unclear, prefer updating these docs in the same PR over tribal knowledge.

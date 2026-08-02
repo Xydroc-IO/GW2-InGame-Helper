@@ -14,6 +14,8 @@ GW2 In-Game Helper — where to find what.
 |-----|----------|----------|
 | [`../README.md`](../README.md) | Everyone | Install, features, site list, troubleshooting, build pointers |
 | [`../CONTRIBUTING.md`](../CONTRIBUTING.md) | Contributors | Ownership zones, build/validate, PR checklist |
+| [`ONBOARDING.md`](ONBOARDING.md) | New maintainers | First-week takeover checklist (Beta) |
+| [`../SECURITY.md`](../SECURITY.md) | Everyone | Vulnerability reporting + key handling |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Contributors | Process model, IPC, present/input, CEF, source map |
 | [`WHITEPAPER.md`](WHITEPAPER.md) | Researchers / advanced contributors | Design rationale, trade-offs, security, Proton, limitations |
 | [`COMPLIANCE.md`](COMPLIANCE.md) | Contributors | Allowed / forbidden Nexus and TOS boundaries |

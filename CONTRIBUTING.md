@@ -35,12 +35,11 @@ Do **not** enable both DLLs under Nexus at once (identical signature `HELP`). Pr
 
 ```bash
 git submodule update --init --recursive
-make -j"$(nproc)"
-make validate-sites
-make check-sites          # gen output must match JSON
-make test-css             # CssCompat color-mix downlevel
-make ci                   # full local gate (sites + CSS + MinGW smoke build)
+make ci                   # sites + CSS + parse fixtures + MinGW smoke
 ```
+
+**First week:** follow [`docs/ONBOARDING.md`](docs/ONBOARDING.md).  
+**Security reports:** [`SECURITY.md`](SECURITY.md).
 
 This project uses **GitHub Actions** on public PRs/pushes (`CI` workflow) plus an
 identical local gate:
@@ -59,6 +58,13 @@ Catalog workflow:
 2. `make gen-sites validate-sites`.
 3. Commit **both** `data/sites.json` and `src/Sites.gen.cpp`.
 4. Map Browse subsection headers in `src/UI_Browse.cpp` when adding sectioned categories.
+
+Parse fixtures (update when changing EI/dps.report JSON or `.trl` layout):
+
+```bash
+make test-parse
+# fixtures: tools/fixtures/*.json · tools/test_trl_parse.py
+```
 
 ---
 

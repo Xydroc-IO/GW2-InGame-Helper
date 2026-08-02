@@ -1,0 +1,19 @@
+{
+  "players": [
+    {
+      "name": "Alice [ABC]",
+      "account": "Alice.1234",
+      "profession": "Elementalist",
+      "guildID": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "dps": 12000,
+      "group": 1
+    },
+    {
+      "name": "Bob",
+      "account": "Bob.5678",
+      "profession": "Guardian",
+      "dps": 9000,
+      "group": 2
+    }
+  ]
+}

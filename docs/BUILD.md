@@ -63,7 +63,7 @@ make clean
 
 ### Continuous integration
 
-**GitHub Actions** (public repo — free on standard runners) runs the same gate on
+**GitHub Actions** (public repo — free on standard runners) runs `make ci` on
 push/PR to `master` and `GW2-InGame-Helper-Beta` (`.github/workflows/ci.yml`).
 
 Locally:
@@ -72,7 +72,7 @@ Locally:
 make ci
 ```
 
-Runs `validate-sites`, `check-sites`, CSS downlevel tests, and a full MinGW smoke build.
+Runs sites validate/check, CSS tests, **parse golden fixtures**, and a MinGW smoke build.
 Optional push gate (once per clone):
 
 ```bash
