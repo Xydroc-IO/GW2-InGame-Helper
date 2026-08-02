@@ -286,14 +286,37 @@ namespace
 		}
 	}
 
-	void OpenWikiItem(int id)
+	/* MediaWiki title path — same rules as LookupPad (spaces → _, ' → %27). */
+	std::string WikiTitleToPath(const std::string& title)
 	{
-		char url[160];
-		std::snprintf(url, sizeof(url),
-			"https://wiki.guildwars2.com/wiki/Special:Search/%d", id);
+		std::string o;
+		o.reserve(title.size() + 8);
+		for (char c : title)
+		{
+			if (c == ' ') o.push_back('_');
+			else if (c == '\'') o += "%27";
+			else o.push_back(c);
+		}
+		return o;
+	}
+
+	void OpenWikiItem(int id, const std::string& name)
+	{
+		/* Wiki Special:Search does not resolve GW2 item IDs — use the API name. */
+		std::string url;
+		if (!name.empty())
+		{
+			url = "https://wiki.guildwars2.com/wiki/";
+			url += WikiTitleToPath(name);
+		}
+		else
+		{
+			url = "https://wiki.guildwars2.com/wiki/Special:Search?search=";
+			url += WikiBrowser::UrlEncode(std::to_string(id));
+		}
 		G::ShowWiki = true;
 		Settings::SetDirty();
-		if (BrowserTabs::OpenNewUrl("wiki", url) < 0)
+		if (BrowserTabs::OpenNewUrl("wiki", url.c_str()) < 0)
 			WikiBrowser::Navigate(url);
 	}
 
@@ -631,7 +654,7 @@ void ProgressData::RenderContents()
 			}
 			ImGui::SameLine();
 			if (ImGui::SmallButton("Wiki"))
-				OpenWikiItem(r.id);
+				OpenWikiItem(r.id, r.name);
 			ImGui::PopID();
 		}
 		if (shown == 0)

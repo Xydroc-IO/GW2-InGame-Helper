@@ -19,7 +19,7 @@
 
 namespace
 {
-	constexpr const char* kPanelVer = "18";
+	constexpr const char* kPanelVer = "19";
 	constexpr DWORD kHtmlTtlSec = 10u * 60u;       /* avoid rebuild storms */
 	constexpr DWORD kTpHtmlTtlSec = 60u;
 	constexpr DWORD kColorsTtlSec = 7u * 24u * 60u * 60u;
@@ -1904,8 +1904,26 @@ namespace
 				body += std::to_string(maxCounts[i]);
 				body += "</span>";
 			}
-			body += " — <a class=\"link\" href=\"https://wiki.guildwars2.com/wiki/Special:Search/";
-			body += std::to_string(armoryIds[i]);
+			body += " — <a class=\"link\" href=\"";
+			{
+				std::string href;
+				if (!name.empty())
+				{
+					href = "https://wiki.guildwars2.com/wiki/";
+					for (char c : name)
+					{
+						if (c == ' ') href.push_back('_');
+						else if (c == '\'') href += "%27";
+						else href.push_back(c);
+					}
+				}
+				else
+				{
+					href = "https://wiki.guildwars2.com/wiki/Special:Search?search=";
+					href += std::to_string(armoryIds[i]);
+				}
+				body += HtmlEscape(href);
+			}
 			body += "\">wiki</a></span></label></li>";
 			++listed;
 		}
