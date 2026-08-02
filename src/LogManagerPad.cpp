@@ -3144,10 +3144,10 @@ namespace
 		ImGui::RadioButton("Fails###gw2igh_lm_res2", &gResultFilter, 2);
 		ImGui::RadioButton("Unknown###gw2igh_lm_res3", &gResultFilter, 3);
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Mode");
+		/* Two rows — filter pane is ~150–188px; one row clips CM/LCM labels. */
 		ImGui::RadioButton("All###gw2igh_lm_mode0", &gModeFilter, 0);
 		ImGui::SameLine();
 		ImGui::RadioButton("Normal###gw2igh_lm_mode1", &gModeFilter, 1);
-		ImGui::SameLine();
 		ImGui::RadioButton("CM###gw2igh_lm_mode2", &gModeFilter, 2);
 		ImGui::SameLine();
 		ImGui::RadioButton("LCM###gw2igh_lm_mode3", &gModeFilter, 3);
