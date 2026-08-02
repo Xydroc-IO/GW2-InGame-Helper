@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Fractal CM / T4 List</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Fractals Reference</p>
+<h1>Fractal CM / T4 List</h1>
+<p class="tagline">Challenge mote scales, agony glance, and daily notes — pairs with Fractal Consumables.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#cm">Challenge Modes</a>
+<a href="#ar">Agony</a>
+<a href="#daily">Dailies</a>
+<a href="#tips">Tips</a>
+</nav>
+  <section class="block" id="cm">
+    <div class="head">
+      <h2>Challenge Modes</h2>
+      <p>Scales 95–100 — activate Harbinger of Woe / challenge mote after unlocking. All CMs need <strong>150 AR</strong>.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Scale</th><th>Fractal</th><th>AR</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-scale">95</span></td><td>Kinfall CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">96</span></td><td>Nightmare CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">97</span></td><td>Shattered Observatory CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">98</span></td><td>Sunqua Peak CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">99</span></td><td>Silent Surf CM</td><td><strong>150</strong></td></tr>
+          <tr><td><span class="badge badge-scale">100</span></td><td>Lonely Tower CM</td><td><strong>150</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>AR:</strong> CMs are T4 scales — you need the T4 minimum of <strong>150 Agony Resistance</strong> (community often aims for <strong>+162</strong>). <strong>LFG:</strong> “96 CM” means Nightmare challenge mote. Bring Mist Offensive + food — see Fractal Consumables.</p>
+    </div>
+  </section>
+
+  <section class="block" id="ar">
+    <div class="head">
+      <h2>Survivability — Agony Resistance</h2>
+      <p>AR prevents instant death from the Agony damage-over-time effect.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Tier</th><th>Scales</th><th>Minimum AR</th><th>Community / recommended</th></tr></thead>
+        <tbody>
+          <tr><td>T1</td><td>1–25</td><td>0 (Agony starts at scale 20)</td><td>—</td></tr>
+          <tr><td>T2</td><td>26–50</td><td><strong>+18</strong> (required for scale 26)</td><td><strong>+61</strong> to clear the tier comfortably (scale 50)</td></tr>
+          <tr><td>T3</td><td>51–75</td><td><strong>+75</strong></td><td><strong>+82</strong></td></tr>
+          <tr><td>T4</td><td>76–100</td><td><strong>+150</strong> (game cap)</td><td><strong>+162</strong> (fill all infusion slots)</td></tr>
+          <tr><td>CM</td><td>95–100 mote</td><td><strong>+150</strong></td><td>Same as T4 minimum</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>T2:</strong> Agony begins at scale 20 — resistance is required before T2. Minimum <strong>+18</strong> for scale 26; <strong>+61</strong> recommended to clear the tier comfortably.</p>
+    </div>
+  </section>
+
+  <section class="block" id="daily">
+    <div class="head"><h2>Daily / Recommended</h2><p>Rotates every day — check Mistlock / fractal UI.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Daily T4</h3><p>Three T4 scales (not always CMs).</p></div>
+        <div class="callout"><h3>Recommended</h3><p>One per tier — easier AR / reward path.</p></div>
+        <div class="callout"><h3>CM farming</h3><p>LFG often clears 96–100 CM for essences / KP.</p></div>
+        <div class="callout"><h3>Instabilities</h3><p>Change daily — don’t memorize them here.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="tips">
+    <div class="head"><h2>Quick Tips</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Unlock each CM via that fractal’s achievement track before the Harbinger appears.</li>
+        <li><strong>T4 / CM:</strong> min <strong>+150 AR</strong>; community target <strong>+162</strong> to fill infusion slots.</li>
+        <li>Party of 5 — same consumable logic as raids (Raid Food / Raid Utilities / Fractal Consumables).</li>
+        <li>Fight notes → Mukluk / TLDR Fractals in Guides.</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Raid Utilities — Oils, Stones &amp; Crystals</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Consumable Reference</p>
+<h1>Raid Utilities</h1>
+<p class="tagline">Enhancement (utility) picks by role — oils, sharpening stones, focusing crystals, and enrichment.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#enhancement">Enhancement</a>
+<a href="#enrichment">Enrichment</a>
+<a href="#notes">Notes</a>
+</nav>
+  <section class="block" id="enhancement">
+    <div class="head">
+      <h2>Enhancement by Role</h2>
+      <p>Slot in the utility / enhancement consumable bar (30 min). Pair with feast food from Raid Food.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Role</th><th>Common pick</th><th>What it gives</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="role"><span class="tag tag-power">Power</span></td>
+            <td>Superior Sharpening Stone</td>
+            <td>Power + Ferocity</td>
+          </tr>
+          <tr>
+            <td class="role"><span class="tag tag-condi">Condition</span></td>
+            <td>Toxic Focusing Crystal</td>
+            <td>Condition Damage + Expertise</td>
+          </tr>
+          <tr>
+            <td class="role"><span class="tag tag-heal">Heal</span></td>
+            <td>Bountiful Maintenance Oil</td>
+            <td>Healing Power + Concentration</td>
+          </tr>
+          <tr>
+            <td class="role"><span class="tag tag-sup">Boon DPS / Support</span></td>
+            <td>Enhanced Lucent Oil <span class="muted">or</span> Furious Tuning Crystal</td>
+            <td>Concentration-focused (Lucent) or Power/Precision/Ferocity (Furious) — match the build</td>
+          </tr>
+          <tr>
+            <td class="role"><span class="tag tag-tank">Tank</span></td>
+            <td>Hardened Sharpening Stone <span class="muted">or</span> Bountiful Maintenance Oil</td>
+            <td>Toughness + Power, or Healing/Concentration if the tank heals</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Also fine:</strong> Master Tuning Crystal (condi), Peppermint Oil (heal/support seasonal),
+      Potent variants when you have them. Feasts already cover nourishment — don’t double-stack the same food type.</p>
+    </div>
+  </section>
+
+  <section class="block" id="enrichment">
+    <div class="head">
+      <h2>Enrichment (Ascended Jewelry)</h2>
+      <p>One enrichment per ascended accessory / ring / amulet (account-bound upgrades).</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Role</th><th>Typical enrichment</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="role"><span class="tag tag-power">Power</span></td>
+            <td>Mighty / Precise / Malign (+attribute) — often Power or Precision; some use Ferocity</td>
+          </tr>
+          <tr>
+            <td class="role"><span class="tag tag-condi">Condition</span></td>
+            <td>Malign / Raven / Expertise-leaning picks matching the build’s condition attribute</td>
+          </tr>
+          <tr>
+            <td class="role"><span class="tag tag-heal">Heal / Quick / Alac</span></td>
+            <td>Concentration enrichments (or Healing Power if the build is heal-stacked)</td>
+          </tr>
+          <tr>
+            <td class="role"><span class="tag tag-tank">Tank</span></td>
+            <td>Toughness or Concentration depending on whether you need more toughness or boon duration</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Agony:</strong> Fractal / CM players often prefer +5 Agony Resistance enrichments on jewelry.
+      Raids do not require AR — prioritize attributes for raid-only characters.</p>
+    </div>
+  </section>
+
+  <section class="block" id="notes">
+    <div class="head">
+      <h2>Quick Notes</h2>
+      <p>Stacking and shopping reminders.</p>
+    </div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Food + utility</strong> — both should be up; feast nourishment + enhancement utility.</li>
+        <li><strong>Shared feasts</strong> — one cook can cover the squad; utilities are personal.</li>
+        <li><strong>WvW / open world</strong> — different oils/stones exist; this sheet is raid/strike oriented.</li>
+        <li><strong>Build overrides</strong> — always follow your build page if it names a specific utility.</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>API Key Setup</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">GW2 In-Game Helper · Setup</p>
+<h1>API Key Setup</h1>
+<p class="tagline">Create a read-only ArenaNet API key and paste it into the addon so Wallet, Vault, Account, and TP delivery can load your data.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#create">Create a key</a>
+<a href="#scopes">Required scopes</a>
+<a href="#addon">Add to the addon</a>
+<a href="#features">What uses the key</a>
+<a href="#privacy">Privacy</a>
+</nav>
+  <section class="block" id="create">
+    <div class="head"><h2>Create a Key on account.arena.net</h2><p>Official ArenaNet applications page — free, read-only.</p></div>
+    <div class="body">
+      <ol>
+        <li>Open
+          <a href="https://account.arena.net/applications">account.arena.net/applications</a>
+          and sign in with your Guild Wars 2 account.</li>
+        <li>Click <strong>New Key</strong> (or create a new application / API key).</li>
+        <li>Give it a clear name, e.g. <strong>In-Game Helper</strong>.</li>
+        <li>Enable the scopes listed below (tick every box in that list for full addon features).</li>
+        <li>Create / save the key, then <strong>copy</strong> the long key string.</li>
+      </ol>
+      <p class="note">Treat the key like a password. Anyone with it can read the account data those scopes allow.
+      You can revoke or recreate keys anytime on the same page.</p>
+    </div>
+  </section>
+
+  <section class="block" id="scopes">
+    <div class="head"><h2>Required Scopes</h2><p>Enable these on the key for GW2-InGame-Helper.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Scope</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td class="role">account</td><td>Base account identity — needed for almost every personal API call</td></tr>
+          <tr><td class="role">wallet</td><td>Wallet pad (currencies)</td></tr>
+          <tr><td class="role">inventories</td><td>Bank, material storage, shared inventory, bags / stash views</td></tr>
+          <tr><td class="role">characters</td><td>Character roster and per-toon bags</td></tr>
+          <tr><td class="role">progression</td><td>Wizard’s Vault / Dailies live progress; world-event claim marks</td></tr>
+          <tr><td class="role">unlocks</td><td>Legendary Armory unlocks (Account → Progress)</td></tr>
+          <tr><td class="role">tradingpost</td><td>Trading Post delivery box (items waiting to claim)</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:12px"><strong>Recommended:</strong> enable all of the scopes above on one key.
+      Item lookup and public TP prices work without a key; personal Vault, wallet, mats, unlocks, and delivery need these scopes.</p>
+    </div>
+  </section>
+
+  <section class="block" id="addon">
+    <div class="head"><h2>Add the Key to the Addon</h2><p></p></div>
+    <div class="body">
+      <ol>
+        <li>Open <strong>Nexus Options</strong> → find <strong>GW2-InGame-Helper</strong> (or open the helper Options panel).</li>
+        <li>Find <strong>GW2 API key (Live panels)</strong>.</li>
+        <li>Paste the key into the field (it is masked like a password).</li>
+        <li>The key is saved to this addon’s <code>settings.ini</code>. Reload Live / Account tabs if they were already open.</li>
+      </ol>
+      <p>Shortcuts from Options:</p>
+      <ul class="list">
+        <li><strong>Create key on account.arena.net</strong> — opens the applications page in your browser</li>
+        <li><strong>Clear API key</strong> — removes the saved key from the addon</li>
+      </ul>
+      <p class="note">You can also see key status from the <strong>Account</strong> pad when personal data fails to load (missing key or missing scopes).</p>
+    </div>
+  </section>
+
+  <section class="block" id="features">
+    <div class="head"><h2>What Uses the Key</h2><p></p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Wallet</h3><p>Currencies — needs <strong>account</strong> + <strong>wallet</strong> (+ inventories / characters for stash &amp; bags).</p></div>
+        <div class="callout"><h3>Vault / Dailies</h3><p>Live Wizard’s Vault — <strong>account</strong> + <strong>progression</strong>.</p></div>
+        <div class="callout"><h3>Account / Progress</h3><p>Mats, legendaries, roster — <strong>inventories</strong>, <strong>unlocks</strong>, <strong>characters</strong>.</p></div>
+        <div class="callout"><h3>TP delivery</h3><p>Delivery box — <strong>tradingpost</strong>. Watchlist prices are public (no key).</p></div>
+      </div>
+      <p class="note" style="margin-top:12px">If a panel says it needs a scope, edit the key on arena.net (or create a new one with the missing ticks) and paste it again.</p>
+    </div>
+  </section>
+
+  <section class="block" id="privacy">
+    <div class="head"><h2>Privacy</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li>The key is stored <strong>only</strong> in this addon’s <code>settings.ini</code>.</li>
+        <li>It is never shared, never put in QR codes, and never uploaded with combat logs.</li>
+        <li>Use a <strong>read-only</strong> key with only the scopes you need — do not share screenshots that show the full key string.</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>
