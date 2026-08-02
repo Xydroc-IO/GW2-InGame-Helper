@@ -147,6 +147,8 @@ void Settings::Load()
 			G::LogManagerWinX = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "LogManagerWinY") == 0)
 			G::LogManagerWinY = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "LogManagerGroupByEncounter") == 0)
+			G::LogManagerGroupByEncounter = std::atoi(val) != 0;
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -260,6 +262,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "LogManagerWinH=%.1f\n", G::LogManagerWinH);
 	std::fprintf(f, "LogManagerWinX=%.1f\n", G::LogManagerWinX);
 	std::fprintf(f, "LogManagerWinY=%.1f\n", G::LogManagerWinY);
+	std::fprintf(f, "LogManagerGroupByEncounter=%d\n", G::LogManagerGroupByEncounter ? 1 : 0);
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);

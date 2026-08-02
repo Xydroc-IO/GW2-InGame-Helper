@@ -107,4 +107,5 @@ namespace G
 	extern float LogManagerWinH;
 	extern float LogManagerWinX; /* <0 = unset */
 	extern float LogManagerWinY;
+	extern bool  LogManagerGroupByEncounter; /* collapsible encounter sections in log list */
 }

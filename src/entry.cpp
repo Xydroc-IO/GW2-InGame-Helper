@@ -71,6 +71,7 @@ namespace G
 	float LogManagerWinH = 680.f;
 	float LogManagerWinX = -1.f;
 	float LogManagerWinY = -1.f;
+	bool  LogManagerGroupByEncounter = true;
 }
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";

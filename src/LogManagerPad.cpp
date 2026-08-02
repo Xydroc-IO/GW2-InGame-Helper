@@ -987,6 +987,11 @@ namespace
 			JsonStringAfterKey(obj.c_str(), "account", pi.account);
 			if (pi.account.empty())
 				JsonStringAfterKey(obj.c_str(), "Account", pi.account);
+			/* Trim whitespace — EI sometimes pads account names. */
+			while (!pi.account.empty() && (pi.account.front() == ' ' || pi.account.front() == '\t'))
+				pi.account.erase(pi.account.begin());
+			while (!pi.account.empty() && (pi.account.back() == ' ' || pi.account.back() == '\t'))
+				pi.account.pop_back();
 			JsonStringAfterKey(obj.c_str(), "profession", pi.profession);
 			if (pi.profession.empty())
 				JsonStringAfterKey(obj.c_str(), "Profession", pi.profession);
@@ -1370,38 +1375,45 @@ namespace
 	DWORD WINAPI KillProofWorker(LPVOID)
 	{
 		gKpForce.exchange(false);
-		std::vector<std::string> jobs;
+		int done = 0;
+		for (;;)
+		{
+			std::vector<std::string> jobs;
+			{
+				std::lock_guard<std::mutex> lock(gKpCacheMu);
+				jobs.swap(gKpQueue);
+			}
+			if (jobs.empty())
+				break;
+			for (const std::string& account : jobs)
+			{
+				if (gCancel.load())
+					break;
+				std::snprintf(gStatus, sizeof(gStatus), "Loading KP %d… (%s)",
+					done + 1, account.c_str());
+				KillProofCacheEntry entry;
+				FetchKillProofProfile(account, entry);
+				{
+					std::lock_guard<std::mutex> lockLogs(gMu);
+					std::lock_guard<std::mutex> lockKp(gKpCacheMu);
+					gKpCache[ToLowerCopy(account)] = entry;
+					ApplyKillProofCacheToAllLogsLocked();
+					gGen.fetch_add(1);
+				}
+				++done;
+				Sleep(80);
+			}
+		}
+		if (done > 0)
+			std::snprintf(gStatus, sizeof(gStatus), "KP loaded for %d account(s).", done);
+		gKillProofBusy.store(false);
+		bool more = false;
 		{
 			std::lock_guard<std::mutex> lock(gKpCacheMu);
-			jobs.swap(gKpQueue);
+			more = !gKpQueue.empty();
 		}
-		if (jobs.empty())
-		{
-			gKillProofBusy.store(false);
-			return 0;
-		}
-		int done = 0;
-		for (const std::string& account : jobs)
-		{
-			if (gCancel.load())
-				break;
-			std::snprintf(gStatus, sizeof(gStatus), "Loading KP %d / %d…",
-				done + 1, static_cast<int>(jobs.size()));
-			KillProofCacheEntry entry;
-			FetchKillProofProfile(account, entry);
-			{
-				/* Lock order: gMu then gKpCacheMu (matches UI). */
-				std::lock_guard<std::mutex> lockLogs(gMu);
-				std::lock_guard<std::mutex> lockKp(gKpCacheMu);
-				gKpCache[ToLowerCopy(account)] = entry;
-				ApplyKillProofCacheToAllLogsLocked();
-				gGen.fetch_add(1);
-			}
-			++done;
-			Sleep(80);
-		}
-		std::snprintf(gStatus, sizeof(gStatus), "KP loaded for %d account(s).", done);
-		gKillProofBusy.store(false);
+		if (more)
+			BeginKillProofFetch(false);
 		return 0;
 	}
 
@@ -1500,14 +1512,7 @@ namespace
 		{
 			std::lock_guard<std::mutex> lockKp(gKpCacheMu);
 			ApplyKillProofCacheToPlayersLocked(e.players, e.encounter);
-			QueueKillProofAccountsLocked(e.players, false);
-			for (PlayerInfo& p : e.players)
-			{
-				if (!p.account.empty() && p.kpState == 0)
-					p.kpState = 1;
-			}
 		}
-		BeginKillProofFetch(false);
 		long long squad = 0;
 		for (const auto& p : e.players)
 			squad += p.dps;
@@ -3141,6 +3146,13 @@ namespace
 		ImGui::Combo("###gw2igh_lm_days", &gDaysCombo,
 			"All time\0Last 1 day\0Last 3 days\0Last 7 days\0Last 30 days\0");
 		ImGui::Spacing();
+		if (ImGui::Checkbox("Group by encounter###gw2igh_lm_groupby", &G::LogManagerGroupByEncounter))
+			Settings::SetDirty();
+		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+			G::LogManagerGroupByEncounter
+				? "Collapsible sections · newest encounter first"
+				: "Flat list · filter with Encounter…");
+		ImGui::Spacing();
 		if (ImGui::SmallButton("Clear filters###gw2igh_lm_clearf"))
 		{
 			gSearch[0] = 0;
@@ -3151,8 +3163,195 @@ namespace
 		}
 	}
 
+	void SelectLogByPath(const std::string& pathUtf8)
+	{
+		for (int j = 0; j < static_cast<int>(gDraw.size()); ++j)
+		{
+			if (gDraw[static_cast<size_t>(j)].pathUtf8 == pathUtf8)
+			{
+				gSelected = j;
+				break;
+			}
+		}
+	}
+
+	void DrawLogEntryRow(const LogEntry* e, bool showEncounter)
+	{
+		if (!e)
+			return;
+		ImGui::PushID(e->pathUtf8.c_str());
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		const bool sel = (gSelected >= 0 && gSelected < static_cast<int>(gDraw.size()) &&
+			gDraw[static_cast<size_t>(gSelected)].pathUtf8 == e->pathUtf8);
+		char label[48];
+		std::snprintf(label, sizeof(label), "%s", FmtTime(e->encounterTime).c_str());
+		if (ImGui::Selectable(label, sel, ImGuiSelectableFlags_SpanAllColumns))
+			SelectLogByPath(e->pathUtf8);
+		if (showEncounter)
+		{
+			ImGui::TableNextColumn();
+			if (!e->encounter.empty())
+				ImGui::TextUnformatted(e->encounter.c_str());
+			else
+				ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f), "%s", e->fileName.c_str());
+		}
+		ImGui::TableNextColumn();
+		if (e->result == 1)
+			ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.50f, 1.f), "Kill");
+		else if (e->result == 0)
+			ImGui::TextColored(ImVec4(0.90f, 0.45f, 0.40f, 1.f), "Fail");
+		else if (e->state == ParseState::Pending)
+			ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.40f, 1.f), "…");
+		else
+			ImGui::TextUnformatted(ResultLabel(e->result));
+		ImGui::TableNextColumn();
+		ImGui::TextUnformatted(e->mode.empty() ? "-" : e->mode.c_str());
+		ImGui::TableNextColumn();
+		ImGui::TextUnformatted(FmtDuration(e->durationMs).c_str());
+		ImGui::TableNextColumn();
+		if (e->compDps > 0)
+			ImGui::Text("%d", e->compDps);
+		else
+			ImGui::TextUnformatted("-");
+		ImGui::TableNextColumn();
+		ImGui::Text("%d", static_cast<int>(e->players.size()));
+		ImGui::PopID();
+	}
+
+	time_t LogSortTime(const LogEntry* e)
+	{
+		if (!e)
+			return 0;
+		if (e->encounterTime > 0)
+			return e->encounterTime;
+		return FileTimeToUnix(e->mtime);
+	}
+
+	void DrawLogTableGrouped(const std::vector<const LogEntry*>& filtered)
+	{
+		struct EncGroup
+		{
+			std::string key;
+			std::string label;
+			std::vector<const LogEntry*> logs;
+			time_t lastTime = 0;
+			long long bestKillMs = 0;
+			int kills = 0;
+		};
+
+		std::unordered_map<std::string, EncGroup> map;
+		map.reserve(filtered.size());
+		for (const LogEntry* e : filtered)
+		{
+			if (!e)
+				continue;
+			std::string key = e->encounter;
+			std::string label = e->encounter;
+			if (key.empty())
+			{
+				key = "\x01unknown";
+				label = "Unknown encounter";
+			}
+			EncGroup& g = map[key];
+			if (g.key.empty())
+			{
+				g.key = key;
+				g.label = label;
+			}
+			g.logs.push_back(e);
+			const time_t t = LogSortTime(e);
+			if (t > g.lastTime)
+				g.lastTime = t;
+			if (e->result == 1)
+			{
+				g.kills += 1;
+				if (e->durationMs > 0 && (g.bestKillMs <= 0 || e->durationMs < g.bestKillMs))
+					g.bestKillMs = e->durationMs;
+			}
+		}
+
+		std::vector<EncGroup*> groups;
+		groups.reserve(map.size());
+		for (auto& kv : map)
+			groups.push_back(&kv.second);
+		std::sort(groups.begin(), groups.end(), [](const EncGroup* a, const EncGroup* b) {
+			if (a->lastTime != b->lastTime)
+				return a->lastTime > b->lastTime;
+			return a->label < b->label;
+		});
+
+		ImGui::BeginChild("###gw2igh_lm_groupscroll", ImVec2(-FLT_MIN, -FLT_MIN), false);
+		for (EncGroup* g : groups)
+		{
+			std::sort(g->logs.begin(), g->logs.end(), [](const LogEntry* a, const LogEntry* b) {
+				return LogSortTime(a) > LogSortTime(b);
+			});
+
+			const size_t idHash = std::hash<std::string>{}(g->key);
+			char header[288];
+			if (g->bestKillMs > 0)
+			{
+				std::snprintf(header, sizeof(header),
+					"%s  (%d)  ·  %d kill%s  ·  best %s  ·  last %s###gw2igh_enc_%zu",
+					g->label.c_str(),
+					static_cast<int>(g->logs.size()),
+					g->kills, g->kills == 1 ? "" : "s",
+					FmtDuration(g->bestKillMs).c_str(),
+					FmtTime(g->lastTime).c_str(),
+					idHash);
+			}
+			else
+			{
+				std::snprintf(header, sizeof(header),
+					"%s  (%d)  ·  last %s###gw2igh_enc_%zu",
+					g->label.c_str(),
+					static_cast<int>(g->logs.size()),
+					FmtTime(g->lastTime).c_str(),
+					idHash);
+			}
+
+			ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.18f, 0.17f, 0.14f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.24f, 0.22f, 0.16f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.28f, 0.26f, 0.18f, 1.f));
+			const bool open = ImGui::CollapsingHeader(header, ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PopStyleColor(3);
+			if (!open)
+				continue;
+
+			if (ImGui::BeginTable("###gw2igh_lm_gtable", 6,
+					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+						ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp))
+			{
+				ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthStretch, 0.28f);
+				ImGui::TableSetupColumn("Result", ImGuiTableColumnFlags_WidthStretch, 0.12f);
+				ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthStretch, 0.10f);
+				ImGui::TableSetupColumn("Dur", ImGuiTableColumnFlags_WidthStretch, 0.14f);
+				ImGui::TableSetupColumn("Squad", ImGuiTableColumnFlags_WidthStretch, 0.14f);
+				ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthStretch, 0.06f);
+				ImGui::TableHeadersRow();
+				for (const LogEntry* e : g->logs)
+					DrawLogEntryRow(e, false);
+				ImGui::EndTable();
+			}
+		}
+		ImGui::EndChild();
+	}
+
 	void DrawLogTable(const std::vector<const LogEntry*>& filtered)
 	{
+		if (filtered.empty())
+		{
+			ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f), "No logs match filters.");
+			return;
+		}
+
+		if (G::LogManagerGroupByEncounter)
+		{
+			DrawLogTableGrouped(filtered);
+			return;
+		}
+
 		const ImVec2 tableSize(-FLT_MIN, -FLT_MIN);
 		if (ImGui::BeginTable("###gw2igh_lm_table", 7,
 				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
@@ -3169,54 +3368,8 @@ namespace
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableHeadersRow();
 
-			for (int i = 0; i < static_cast<int>(filtered.size()); ++i)
-			{
-				const LogEntry* e = filtered[static_cast<size_t>(i)];
-				ImGui::PushID(e->pathUtf8.c_str());
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-				const bool sel = (gSelected >= 0 && gSelected < static_cast<int>(gDraw.size()) &&
-					gDraw[static_cast<size_t>(gSelected)].pathUtf8 == e->pathUtf8);
-				char label[48];
-				std::snprintf(label, sizeof(label), "%s", FmtTime(e->encounterTime).c_str());
-				if (ImGui::Selectable(label, sel, ImGuiSelectableFlags_SpanAllColumns))
-				{
-					for (int j = 0; j < static_cast<int>(gDraw.size()); ++j)
-					{
-						if (gDraw[static_cast<size_t>(j)].pathUtf8 == e->pathUtf8)
-						{
-							gSelected = j;
-							break;
-						}
-					}
-				}
-				ImGui::TableNextColumn();
-				if (!e->encounter.empty())
-					ImGui::TextUnformatted(e->encounter.c_str());
-				else
-					ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f), "%s", e->fileName.c_str());
-				ImGui::TableNextColumn();
-				if (e->result == 1)
-					ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.50f, 1.f), "Kill");
-				else if (e->result == 0)
-					ImGui::TextColored(ImVec4(0.90f, 0.45f, 0.40f, 1.f), "Fail");
-				else if (e->state == ParseState::Pending)
-					ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.40f, 1.f), "…");
-				else
-					ImGui::TextUnformatted(ResultLabel(e->result));
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(e->mode.empty() ? "-" : e->mode.c_str());
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(FmtDuration(e->durationMs).c_str());
-				ImGui::TableNextColumn();
-				if (e->compDps > 0)
-					ImGui::Text("%d", e->compDps);
-				else
-					ImGui::TextUnformatted("-");
-				ImGui::TableNextColumn();
-				ImGui::Text("%d", static_cast<int>(e->players.size()));
-				ImGui::PopID();
-			}
+			for (const LogEntry* e : filtered)
+				DrawLogEntryRow(e, true);
 			ImGui::EndTable();
 		}
 	}
@@ -3371,6 +3524,27 @@ namespace
 		return {};
 	}
 
+	void KickKillProofForSelected(const LogEntry* sel, bool force)
+	{
+		if (!sel)
+			return;
+		bool start = false;
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			for (LogEntry& e : gLogs)
+			{
+				if (e.pathUtf8 == sel->pathUtf8)
+				{
+					start = EnsureKillProofForLog(e, force);
+					gGen.fetch_add(1);
+					break;
+				}
+			}
+		}
+		if (start || force)
+			BeginKillProofFetch(force);
+	}
+
 	void DrawPlayersTab(const std::vector<const LogEntry*>& /*filtered*/)
 	{
 		const LogEntry* sel = SelectedDrawEntry();
@@ -3383,33 +3557,6 @@ namespace
 		ImGui::TextUnformatted(sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
 		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
 			"%d players in this run", static_cast<int>(sel->players.size()));
-		ImGui::SameLine();
-		if (gKillProofBusy.load())
-		{
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading KP…");
-		}
-		else if (ImGui::SmallButton("Load KP###gw2igh_lm_loadkp"))
-		{
-			bool start = false;
-			{
-				std::lock_guard<std::mutex> lock(gMu);
-				for (LogEntry& e : gLogs)
-				{
-					if (e.pathUtf8 == sel->pathUtf8)
-					{
-						start = EnsureKillProofForLog(e, true);
-						gGen.fetch_add(1);
-						break;
-					}
-				}
-			}
-			if (start)
-				BeginKillProofFetch(true);
-		}
-		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-			ImGui::SetTooltip(
-				"Fetch Legendary Insights / Divinations / encounter tokens from killproof.me\n"
-				"(public profiles only; private or unregistered accounts show as —).");
 
 		if (sel->players.empty())
 		{
@@ -3418,86 +3565,24 @@ namespace
 			return;
 		}
 
-		{
-			bool need = false;
-			for (const PlayerInfo& p : sel->players)
-			{
-				if (!p.account.empty() && p.kpState == 0)
-				{
-					need = true;
-					break;
-				}
-			}
-			if (need && !gKillProofBusy.load())
-			{
-				bool start = false;
-				{
-					std::lock_guard<std::mutex> lock(gMu);
-					for (LogEntry& e : gLogs)
-					{
-						if (e.pathUtf8 == sel->pathUtf8)
-						{
-							start = EnsureKillProofForLog(e, false);
-							gGen.fetch_add(1);
-							break;
-						}
-					}
-				}
-				if (start)
-					BeginKillProofFetch(false);
-			}
-		}
-
-		const char* kpCol = "KP";
-		int bossId = 0;
-		const char* bossLabel = nullptr;
-		if (BossTokenForEncounter(sel->encounter, bossId, bossLabel) && bossLabel)
-			kpCol = bossLabel;
-
-		if (ImGui::BeginTable("###gw2igh_lm_paggs", 9,
+		if (ImGui::BeginTable("###gw2igh_lm_paggs", 6,
 				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
-					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp |
-					ImGuiTableFlags_Sortable,
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
 				ImVec2(-FLT_MIN, -FLT_MIN)))
 		{
 			ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthStretch, 1.4f);
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.2f);
 			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 1.0f);
 			ImGui::TableSetupColumn("DPS", ImGuiTableColumnFlags_WidthStretch, 0.7f);
-			ImGui::TableSetupColumn("LI", ImGuiTableColumnFlags_WidthStretch, 0.45f);
-			ImGui::TableSetupColumn("LD", ImGuiTableColumnFlags_WidthStretch, 0.45f);
-			ImGui::TableSetupColumn(kpCol, ImGuiTableColumnFlags_WidthStretch, 0.5f);
 			ImGui::TableSetupColumn("Guild", ImGuiTableColumnFlags_WidthStretch, 0.8f);
 			ImGui::TableSetupColumn("G", ImGuiTableColumnFlags_WidthStretch, 0.35f);
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableHeadersRow();
-			auto kpCell = [](int v, int state) {
-				if (state == 1)
-				{
-					ImGui::TextColored(ImVec4(0.70f, 0.68f, 0.45f, 1.f), "…");
-					return;
-				}
-				if (state == 3 || state == 4 || v < 0)
-				{
-					ImGui::TextUnformatted("—");
-					return;
-				}
-				ImGui::Text("%d", v);
-			};
 			for (const PlayerInfo& p : sel->players)
 			{
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-				if (!p.kpUrl.empty() && !p.account.empty())
-				{
-					if (ImGui::Selectable(p.account.c_str(), false,
-							ImGuiSelectableFlags_None))
-						ShellExecuteA(nullptr, "open", p.kpUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-					if (ImGui::IsItemHovered())
-						ImGui::SetTooltip("Open killproof.me profile");
-				}
-				else
-					ImGui::TextUnformatted(p.account.empty() ? "-" : p.account.c_str());
+				ImGui::TextUnformatted(p.account.empty() ? "-" : p.account.c_str());
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted(p.name.empty() ? "-" : p.name.c_str());
 				ImGui::TableNextColumn();
@@ -3508,17 +3593,182 @@ namespace
 				else
 					ImGui::TextUnformatted("-");
 				ImGui::TableNextColumn();
+				const std::string g = GuildLabelFor(p);
+				ImGui::TextUnformatted(g.empty() ? "-" : g.c_str());
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", p.group);
+			}
+			ImGui::EndTable();
+		}
+	}
+
+	void DrawKillProofTab()
+	{
+		const LogEntry* sel = SelectedDrawEntry();
+		if (!sel)
+		{
+			ImGui::TextWrapped("Select a log to look up KillProof for its squad.");
+			return;
+		}
+
+		ImGui::TextUnformatted(sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
+		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+			"Public killproof.me profiles for this run");
+
+		if (sel->players.empty())
+		{
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+				"No player data — Parse or Load DPS/boons first so account names exist.");
+			return;
+		}
+
+		int withAccount = 0, kpOk = 0, kpMissing = 0, kpPending = 0;
+		for (const PlayerInfo& p : sel->players)
+		{
+			if (p.account.empty())
+				continue;
+			++withAccount;
+			if (p.kpState == 2) ++kpOk;
+			else if (p.kpState == 3 || p.kpState == 4) ++kpMissing;
+			else ++kpPending;
+		}
+
+		if (gKillProofBusy.load())
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
+				gStatus[0] ? gStatus : "Loading killproof.me…");
+		else if (withAccount == 0)
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+				"No account names — Load DPS/boons for full EI JSON.");
+		else if (kpOk > 0 || kpMissing > 0)
+			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f),
+				"%d loaded · %d none/private · %d pending",
+				kpOk, kpMissing, kpPending);
+		else
+			ImGui::TextColored(ImVec4(0.75f, 0.70f, 0.45f, 1.f),
+				"Click Load to fetch LI / LD / tokens from killproof.me.");
+
+		const bool busy = gKillProofBusy.load();
+		if (busy)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+			ImGui::Button("Loading…###gw2igh_lm_loadkp");
+			ImGui::PopStyleVar();
+		}
+		else if (ImGui::Button("Load KillProof###gw2igh_lm_loadkp"))
+			KickKillProofForSelected(sel, true);
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+			ImGui::SetTooltip(
+				"Fetch Legendary Insights, Divinations, UFE, and encounter tokens.\n"
+				"Only public killproof.me profiles are available.");
+		ImGui::SameLine();
+		if (ImGui::SmallButton("killproof.me###gw2igh_lm_kpweb"))
+			ShellExecuteA(nullptr, "open", "https://killproof.me/", nullptr, nullptr, SW_SHOWNORMAL);
+
+		/* Auto-fill once when this tab is open and KP not loaded yet. */
+		if (!busy && withAccount > 0)
+		{
+			bool need = false;
+			for (const PlayerInfo& p : sel->players)
+			{
+				if (!p.account.empty() && p.kpState == 0)
+				{
+					need = true;
+					break;
+				}
+			}
+			if (need)
+				KickKillProofForSelected(sel, false);
+		}
+
+		const char* kpCol = "Token";
+		int bossId = 0;
+		const char* bossLabel = nullptr;
+		if (BossTokenForEncounter(sel->encounter, bossId, bossLabel) && bossLabel)
+			kpCol = bossLabel;
+
+		if (ImGui::BeginTable("###gw2igh_lm_kptab", 8,
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+				ImVec2(-FLT_MIN, -FLT_MIN)))
+		{
+			ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthStretch, 1.6f);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.2f);
+			ImGui::TableSetupColumn("LI", ImGuiTableColumnFlags_WidthFixed, 52.f);
+			ImGui::TableSetupColumn("LD", ImGuiTableColumnFlags_WidthFixed, 52.f);
+			ImGui::TableSetupColumn("UFE", ImGuiTableColumnFlags_WidthFixed, 64.f);
+			ImGui::TableSetupColumn(kpCol, ImGuiTableColumnFlags_WidthFixed, 56.f);
+			ImGui::TableSetupColumn("Prof", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+			ImGui::TableSetupColumn("G", ImGuiTableColumnFlags_WidthFixed, 28.f);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			auto kpCell = [](int v, int state) {
+				if (state == 1)
+				{
+					ImGui::TextColored(ImVec4(0.70f, 0.68f, 0.45f, 1.f), "…");
+					return;
+				}
+				if (state == 3)
+				{
+					ImGui::TextColored(ImVec4(0.45f, 0.45f, 0.48f, 1.f), "—");
+					if (ImGui::IsItemHovered())
+						ImGui::SetTooltip("No public killproof.me profile");
+					return;
+				}
+				if (state == 4)
+				{
+					ImGui::TextColored(ImVec4(0.90f, 0.50f, 0.40f, 1.f), "!");
+					if (ImGui::IsItemHovered())
+						ImGui::SetTooltip("killproof.me request failed — try Load again");
+					return;
+				}
+				if (state == 0 || v < 0)
+				{
+					ImGui::TextUnformatted("—");
+					return;
+				}
+				ImGui::Text("%d", v);
+			};
+
+			std::vector<const PlayerInfo*> rows;
+			rows.reserve(sel->players.size());
+			for (const PlayerInfo& p : sel->players)
+				rows.push_back(&p);
+			std::sort(rows.begin(), rows.end(), [](const PlayerInfo* a, const PlayerInfo* b) {
+				if (a->kpLi != b->kpLi)
+					return a->kpLi > b->kpLi;
+				return a->account < b->account;
+			});
+
+			for (const PlayerInfo* pp : rows)
+			{
+				const PlayerInfo& p = *pp;
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				if (!p.kpUrl.empty() && !p.account.empty())
+				{
+					if (ImGui::Selectable(p.account.c_str(), false, ImGuiSelectableFlags_None))
+						ShellExecuteA(nullptr, "open", p.kpUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+					if (ImGui::IsItemHovered())
+						ImGui::SetTooltip("Open killproof.me profile");
+				}
+				else
+					ImGui::TextUnformatted(p.account.empty() ? "-" : p.account.c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(p.name.empty() ? "-" : p.name.c_str());
+				ImGui::TableNextColumn();
 				kpCell(p.kpLi, p.kpState);
 				ImGui::TableNextColumn();
 				kpCell(p.kpLd, p.kpState);
+				ImGui::TableNextColumn();
+				kpCell(p.kpUfe, p.kpState);
 				ImGui::TableNextColumn();
 				if (bossId > 0)
 					kpCell(p.kpBoss, p.kpState);
 				else
 					ImGui::TextUnformatted("—");
 				ImGui::TableNextColumn();
-				const std::string g = GuildLabelFor(p);
-				ImGui::TextUnformatted(g.empty() ? "-" : g.c_str());
+				ImGui::TextUnformatted(p.profession.empty() ? "-" : p.profession.c_str());
 				ImGui::TableNextColumn();
 				ImGui::Text("%d", p.group);
 			}
@@ -3905,6 +4155,11 @@ bool LogManagerPad::Render()
 		if (ImGui::BeginTabItem("Players"))
 		{
 			DrawPlayersTab(filtered);
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("KillProof"))
+		{
+			DrawKillProofTab();
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Guilds"))
