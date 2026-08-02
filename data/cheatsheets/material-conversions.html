@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Material Conversions</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Economy Reference</p>
+<h1>Material Conversions</h1>
+<p class="tagline">Mystic forge staples and common sinks — structural glance, not TP prices.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#forge">Mystic Forge</a>
+<a href="#ecto">Ecto</a>
+<a href="#blood">Bloodstone</a>
+<a href="#sinks">Sinks</a>
+</nav>
+  <section class="block" id="forge">
+    <div class="head"><h2>Mystic Forge Staples</h2><p>Four-slot recipes players use constantly.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Output</th><th>Typical inputs</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Mystic Clover</strong></td><td>Mystic Coin · Ectoplasm · Philosopher’s Stone · Elonian Wine</td></tr>
+          <tr><td><strong>Gift of Condensed Magic / Might</strong></td><td>Stacks of T6 mats (blood, fang, claw, dust…)</td></tr>
+          <tr><td><strong>Tier promotion</strong></td><td>4× same-tier crafting mats → higher tier (chance)</td></tr>
+          <tr><td><strong>Ascended boxes</strong></td><td>Bloodstone Dust · Dragonite · Empyreal (+ catalyst)</td></tr>
+          <tr><td><strong>Legendary gifts</strong></td><td>Follow the specific legendary collection page</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="ecto">
+    <div class="head"><h2>Ectoplasm &amp; Salvage</h2><p></p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Globs of Ectoplasm</h3><p>Salvage rare+ gear — fuel clovers, gifts, and forge gambles.</p></div>
+        <div class="callout"><h3>Philosopher’s Stones</h3><p>Buy from mystic vendors with spirit shards / coins.</p></div>
+        <div class="callout"><h3>Junk</h3><p>Vendor junk — never forge it.</p></div>
+        <div class="callout"><h3>Prices</h3><p>Use BLTC / Trading Post — this sheet has no prices.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="blood">
+    <div class="head"><h2>Bloodstone · Empyreal · Dragonite</h2><p>Ascended crafting triad.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Used together for <strong>ascended gear</strong> and many legendary gifts.</li>
+        <li>Convert excess via mystic forge boxes when storage is full.</li>
+        <li>Map completion, fractals, raids, and dailies drip these constantly.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="sinks">
+    <div class="head"><h2>Useful Sinks</h2><p>When the bank hurts.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Trophy shipments</strong> — laurel / karma vendors for account-bound mats.</li>
+        <li><strong>Material storage</strong> — deposit before forging.</li>
+        <li><strong>Legendary collections</strong> — intentional sinks (see Legendary Paths).</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

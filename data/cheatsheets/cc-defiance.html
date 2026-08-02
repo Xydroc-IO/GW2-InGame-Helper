@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CC / Defiance — Breakbar by Profession</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Combat Reference</p>
+<h1>CC / Defiance</h1>
+<p class="tagline">Common hard and soft CC for breakbars — mid-fight glance sheet, not a full skill list.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#basics">Basics</a>
+<a href="#professions">Professions</a>
+<a href="#tips">Tips</a>
+</nav>
+  <section class="block" id="basics">
+    <div class="head">
+      <h2>Breakbar Basics</h2>
+      <p>Blue defiance bar = dump CC. Soft CC builds slowly; hard CC spikes.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Type</th><th>Examples</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="role">Hard CC</td>
+            <td>Stun · Knockdown · Knockback · Launch · Float · Sink · Daze (strong) · Pull</td>
+          </tr>
+          <tr>
+            <td class="role">Soft CC</td>
+            <td>Immobilize · Cripple · Chill · Fear · Taunt · Slow</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Save big CC</strong> for the bar. Don’t waste long cooldowns on empty bars.</p>
+    </div>
+  </section>
+
+  <section class="block" id="professions">
+    <div class="head">
+      <h2>Common Tools by Profession</h2>
+      <p>Typical raid/fractal skills people reach for — elite specs vary.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Profession</th><th>Go-to CC</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="role">Guardian</td><td>Hammer 3 / 4 · Shield · Banish · Binding Blade pull · Willbender leaps / sword</td></tr>
+          <tr><td class="role">Revenant</td><td>Hammer · Staff knockbacks · Legendary Demon / Centaur skills · Renegade citadel</td></tr>
+          <tr><td class="role">Warrior</td><td>Hammer · Headbutt · Rampage · Bull's Charge · Earthen Impact (Spellbreaker)</td></tr>
+          <tr><td class="role">Engineer</td><td>Electric Discharge · Tool kit · Mortar · Soft CC kits · Holosmith photon</td></tr>
+          <tr><td class="role">Ranger</td><td>Pet CC · Short bow · Thunderclap · Soulbeast merges · Untamed Unleash</td></tr>
+          <tr><td class="role">Thief</td><td>Basilisk Venom · Pistol whip · Impact strike · Shadowswarm (Specter)</td></tr>
+          <tr><td class="role">Elementalist</td><td>Lightning Flash / draughts · Earthquake · Frozen Ground · Catalyst jade spheres</td></tr>
+          <tr><td class="role">Mesmer</td><td>Illusionary Wave · Into the Void · Signet of Domination · Continuum Split setups · Mirage ambush</td></tr>
+          <tr><td class="role">Necromancer</td><td>Fear (various) · Spectral Grasp · Flesh Wurm · Harbinger elixirs · Harbinger shroud</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="tips">
+    <div class="head">
+      <h2>Squad Tips</h2>
+      <p>Coordination beats random CC.</p>
+    </div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Call the bar</strong> — “CC now” beats everyone holding or everyone dumping early.</li>
+        <li><strong>Stuns stack poorly on immunity</strong> — after a break, many bosses go defiance-immune briefly.</li>
+        <li><strong>Pulls / knocks</strong> — can ruin stack; know if the boss can be moved.</li>
+        <li><strong>Special action key</strong> — some encounters give encounter CC (use it).</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

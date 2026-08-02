@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Squad Template — 10-Man Roles</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Raid Squad Reference</p>
+<h1>Squad Template</h1>
+<p class="tagline">Typical 10-man slots — tank, heal, quick, alac, DPS. Pairs with Boon Checklist.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#classic">Classic</a>
+<a href="#modern">Modern</a>
+<a href="#strike">Strikes</a>
+<a href="#checklist">Checklist</a>
+</nav>
+  <section class="block" id="classic">
+    <div class="head"><h2>Classic 10-Man</h2><p>Common in statics and training squads.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Count</th><th>Role</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td><span class="tag tag-tank">Tank</span></td><td>Highest toughness · holds boss facing</td></tr>
+          <tr><td class="num">1–2</td><td><span class="tag tag-heal">Heal</span></td><td>Often heal-alac or heal-quick hybrid</td></tr>
+          <tr><td class="num">1</td><td><span class="tag tag-sup">Quickness</span></td><td>Pure quick DPS or heal-quick</td></tr>
+          <tr><td class="num">1</td><td><span class="tag tag-sup">Alacrity</span></td><td>Pure alac DPS or heal-alac</td></tr>
+          <tr><td class="num">5–7</td><td><span class="tag tag-power">DPS</span></td><td>Power and/or condi — fill remaining slots</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="modern">
+    <div class="head"><h2>Modern Layouts</h2><p>Name roles in squad before ready-check.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout">
+          <div class="tags"><span class="tag tag-heal">Heal Quic</span> <span class="tag tag-heal">Heal Alac</span></div>
+          <h3>Double heal-boon</h3>
+          <p>2 heal-boon supports · 8 DPS. Tank optional on easier strikes.</p>
+        </div>
+        <div class="callout">
+          <div class="tags"><span class="tag tag-tank">Tank</span> <span class="tag tag-heal">2× Heal</span></div>
+          <h3>Tank + heal boons</h3>
+          <p>1 tank · heal-quick · heal-alac · 7 DPS.</p>
+        </div>
+        <div class="callout">
+          <div class="tags"><span class="tag tag-power">Power</span> <span class="tag tag-condi">Condi</span></div>
+          <h3>Damage mix</h3>
+          <p>Match hitbox &amp; condi caps — ask the static.</p>
+        </div>
+        <div class="callout">
+          <div class="tags"><span class="tag tag-misc">Special</span></div>
+          <h3>Hand kite / push</h3>
+          <p>Extra role on specific bosses — replace one DPS.</p>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Boons:</strong> assign quick + alac explicitly — see Boon Checklist.</p>
+    </div>
+  </section>
+
+  <section class="block" id="strike">
+    <div class="head"><h2>Strikes &amp; Smaller Groups</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>5-man</strong> — heal or heal-boon + quick/alac coverage + DPS.</li>
+        <li><strong>10-man strikes</strong> — same roles as raids; many groups skip tank on easier bosses.</li>
+        <li><strong>CM strikes</strong> — full boon coverage + named mechanics roles.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="checklist">
+    <div class="head"><h2>Pre-Pull Checklist</h2><p>Call these in chat.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-tank">Tank</span> named (if needed) · toughness check</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-sup">Quick</span> + <span class="tag tag-sup">Alac</span> named</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-heal">Heal</span> coverage confirmed</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Food + utilities up (Raid Food / Raid Utilities)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Special roles (kite, push, reflect) assigned</span></label></li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

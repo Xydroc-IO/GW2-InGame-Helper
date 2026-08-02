@@ -338,7 +338,7 @@ Offline **Cheat Sheets** use `about:` URLs (e.g. `about:raid-food`, `about:ubers
 | Page | Sources |
 |------|---------|
 | Raid Food | `src/RaidFood.cpp` |
-| Other sheets (incl. Uber's All-In-One) | `src/CheatSheets.cpp` / `CheatSheets_Data.cpp` |
+| Other sheets (incl. Uber's All-In-One) | `data/cheatsheets/` (+ thin `src/CheatSheets.cpp` loader) |
 
 **Uber's All-In-One** (`about:ubers-aio`) — waypoint / landmark chat codes (hubs, Wizard’s Vault, Chak Egg, Obsidian, Provisioner). Click a code to copy, paste in game chat, click the link to travel. Waypoint list curated by **uberduber.1249**.
 
@@ -420,7 +420,7 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
    Twitch does the same — official CEF builds omit the H.264 / AAC codecs its player needs (Error #4000).
 6. Chromium profile / cache lives under `%LOCALAPPDATA%\GW2-InGame-Helper\cef-cache` (not under `addons`).
 7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
-8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); built-in sheets in `RaidFood.cpp` / `CheatSheets*_Data.cpp`.
+8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); offline sheets in `data/cheatsheets/` (and `RaidFood.cpp` for raid food).
 
 Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 Architecture / design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).

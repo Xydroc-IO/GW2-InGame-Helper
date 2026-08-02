@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mount Unlock Checklist</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Mounts Reference</p>
+<h1>Mount Unlock Checklist</h1>
+<p class="tagline">Griffon, Skyscale, and Siege Turtle — offline tick-lists. Full steps on MetaBattle.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#griffon">Griffon</a>
+<a href="#skyscale">Skyscale</a>
+<a href="#turtle">Siege Turtle</a>
+<a href="#others">Others</a>
+</nav>
+  <section class="block" id="griffon">
+    <div class="head"><h2>Griffon</h2><p>Path of Fire</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Own <strong>Path of Fire</strong></span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Train basic mounts required by the collection</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Complete the <strong>Open Skies</strong> / griffon collection</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Gather listed powders / materials</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Finish roost / forge step on the achievement</span></label></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Detail → Guides · Griffon Unlock (MetaBattle).</p>
+    </div>
+  </section>
+
+  <section class="block" id="skyscale">
+    <div class="head"><h2>Skyscale</h2><p>Living World + End of Dragons era</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Required Living World / IBS episodes owned</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Complete <strong>Skyscale Growing / Saving</strong> story steps</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Finish the <strong>Skyscale collection</strong></span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Pay / craft materials at each gate</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Optional: mastery tracks for holds / dashes</span></label></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Detail → Guides · Skyscale Unlock (MetaBattle).</p>
+    </div>
+  </section>
+
+  <section class="block" id="turtle">
+    <div class="head"><h2>Siege Turtle</h2><p>End of Dragons</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Own <strong>End of Dragons</strong></span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Progress Cantha story / turtle gates</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Complete <strong>Turtle Unlock</strong> collection</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Unlock passenger / siege skills via masteries</span></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="others">
+    <div class="head"><h2>Other Mounts</h2><p>Usually shorter unlocks.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Core PoF</h3><p>Raptor · Springer · Skimmer · Jackal — story / map unlocks.</p></div>
+        <div class="callout"><h3>Roller Beetle</h3><p>PoF racing collection.</p></div>
+        <div class="callout"><h3>Warclaw</h3><p>WvW reward track.</p></div>
+        <div class="callout"><h3>Skiff</h3><p>EoD fishing masteries (travel, not a mount).</p></div>
+      </div>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

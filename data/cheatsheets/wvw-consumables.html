@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>WvW Consumables</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · WvW Reference</p>
+<h1>WvW Consumables</h1>
+<p class="tagline">Siege, food, and utility glance for World vs World — not a build guide.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#siege">Siege</a>
+<a href="#food">Food &amp; Utility</a>
+<a href="#supply">Supply</a>
+<a href="#tips">Tips</a>
+</nav>
+  <section class="block" id="siege">
+    <div class="head"><h2>Siege</h2><p>Blueprint → deploy with supply.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Siege</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Flame Ram</strong></td><td>Gates / walls — primary breach tool</td></tr>
+          <tr><td><strong>Catapult</strong></td><td>Walls / gates at range · AoE pressure</td></tr>
+          <tr><td><strong>Trebuchet</strong></td><td>Long-range structure damage</td></tr>
+          <tr><td><strong>Ballista</strong></td><td>Anti-siege / single-target · wall defense</td></tr>
+          <tr><td><strong>Arrow Cart</strong></td><td>AoE anti-player · defend walls</td></tr>
+          <tr><td><strong>Siege Golem</strong></td><td>Heavy gate / wall pressure (expensive)</td></tr>
+          <tr><td><strong>Shield Generator</strong></td><td>Protect siege / players from ranged</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="food">
+    <div class="head"><h2>Food &amp; Utility</h2><p>Bring what your build expects — raid food often still applies.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Food</strong> — power / condi / tank food matching your role (see Raid Food).</li>
+        <li><strong>Utility</strong> — oils, tuning crystals, sharpening stones as for PvE (see Raid Utilities).</li>
+        <li><strong>WvW-specific</strong> — siege / supply consumables from vendors when stocked.</li>
+        <li><strong>Maintenance oil / crystals</strong> — same logic as open world / raids.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="supply">
+    <div class="head"><h2>Supply</h2><p>Carried resource for siege and repairs.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Carry supply</h3><p>Pick up from camps / dolyaks — don’t run empty to a fight.</p></div>
+        <div class="callout"><h3>Deploy</h3><p>Blueprints consume supply — call before dropping.</p></div>
+        <div class="callout"><h3>Repair</h3><p>Walls / gates / siege need supply to fix.</p></div>
+        <div class="callout"><h3>Dolyaks</h3><p>Escort / kill enemy dolyaks to swing camp income.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="tips">
+    <div class="head"><h2>Quick Tips</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Stock <strong>common blueprints</strong> on the character you tag with.</li>
+        <li><strong>Warclaw</strong> — WvW mount unlock via reward track (see Mount Unlock).</li>
+        <li>Builds / trait lines → MetaBattle WvW in Browse · WvW.</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

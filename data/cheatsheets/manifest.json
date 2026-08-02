@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "sheets": [
+    {
+      "id": "dpsloghelp",
+      "about": "about:dps-log-setup",
+      "file": "dps-log-setup.html",
+      "version": "3",
+      "browseLabel": "DPS Log Setup Help",
+      "browseTitle": "DPS Log Setup — ArcDPS, Elite Insights & .NET"
+    },
+    {
+      "id": "apikeyhelp",
+      "about": "about:api-key-setup",
+      "file": "api-key-setup.html",
+      "version": "1",
+      "browseLabel": "API Key Setup",
+      "browseTitle": "GW2 API Key Setup — Scopes & Options"
+    },
+    {
+      "id": "ubersaio",
+      "about": "about:ubers-aio",
+      "file": "ubers-all-in-one.html",
+      "version": "7",
+      "browseLabel": "Uber's All-In-One",
+      "browseTitle": "Uber's All-In-One — Waypoints"
+    },
+    {
+      "id": "raidutils",
+      "about": "about:raid-utilities",
+      "file": "raid-utilities.html",
+      "version": "3",
+      "browseLabel": "Raid Utilities",
+      "browseTitle": "Raid Utilities — Oils, Stones & Crystals"
+    },
+    {
+      "id": "fractalcons",
+      "about": "about:fractal-consumables",
+      "file": "fractal-consumables.html",
+      "version": "12",
+      "browseLabel": "Fractal Consumables",
+      "browseTitle": "Fractal Consumables — Potions & Agony"
+    },
+    {
+      "id": "fractalcm",
+      "about": "about:fractal-cm",
+      "file": "fractal-cm-list.html",
+      "version": "12",
+      "browseLabel": "Fractal CM / T4",
+      "browseTitle": "Fractal CM / T4 List"
+    },
+    {
+      "id": "sigilsrunes",
+      "about": "about:sigils-runes",
+      "file": "sigils-runes.html",
+      "version": "3",
+      "browseLabel": "Sigils & Runes",
+      "browseTitle": "Sigils & Runes — Common Role Picks"
+    },
+    {
+      "id": "relics",
+      "about": "about:relics",
+      "file": "relics-guide.html",
+      "version": "3",
+      "browseLabel": "Relics",
+      "browseTitle": "Relics — Picks by Role"
+    },
+    {
+      "id": "booncheck",
+      "about": "about:boon-checklist",
+      "file": "boon-checklist.html",
+      "version": "3",
+      "browseLabel": "Boon Checklist",
+      "browseTitle": "Boon Checklist — Squad Coverage"
+    },
+    {
+      "id": "squadtmpl",
+      "about": "about:squad-template",
+      "file": "squad-template.html",
+      "version": "4",
+      "browseLabel": "Squad Template",
+      "browseTitle": "Squad Template — 10-Man Roles"
+    },
+    {
+      "id": "stabcleanse",
+      "about": "about:stability-cleanse",
+      "file": "stability-cleanse.html",
+      "version": "4",
+      "browseLabel": "Stability / Cleanse",
+      "browseTitle": "Stability / Cleanse — Squad Utility"
+    },
+    {
+      "id": "ccdefiance",
+      "about": "about:cc-defiance",
+      "file": "cc-defiance.html",
+      "version": "3",
+      "browseLabel": "CC / Defiance",
+      "browseTitle": "CC / Defiance — Breakbar by Profession"
+    },
+    {
+      "id": "raidwings",
+      "about": "about:raid-wings",
+      "file": "raid-wings.html",
+      "version": "3",
+      "browseLabel": "Raid Wings",
+      "browseTitle": "Raid Wings Overview"
+    },
+    {
+      "id": "strikes",
+      "about": "about:strike-missions",
+      "file": "strike-missions.html",
+      "version": "4",
+      "browseLabel": "Strike Missions",
+      "browseTitle": "Strike Missions Overview"
+    },
+    {
+      "id": "matconv",
+      "about": "about:material-conversions",
+      "file": "material-conversions.html",
+      "version": "4",
+      "browseLabel": "Material Conversions",
+      "browseTitle": "Material Conversions"
+    },
+    {
+      "id": "legpaths",
+      "about": "about:legendary-paths",
+      "file": "legendary-paths.html",
+      "version": "4",
+      "browseLabel": "Legendary Paths",
+      "browseTitle": "Legendary Short Paths"
+    },
+    {
+      "id": "mounts",
+      "about": "about:mount-unlock",
+      "file": "mount-unlock.html",
+      "version": "4",
+      "browseLabel": "Mount Unlock",
+      "browseTitle": "Mount Unlock Checklist"
+    },
+    {
+      "id": "homegarden",
+      "about": "about:home-garden",
+      "file": "home-garden.html",
+      "version": "3",
+      "browseLabel": "Home Garden",
+      "browseTitle": "Home Garden — Cultivated Herbs"
+    },
+    {
+      "id": "dailyweekly",
+      "about": "about:daily-weekly",
+      "file": "daily-weekly.html",
+      "version": "3",
+      "browseLabel": "Daily / Weekly",
+      "browseTitle": "Daily / Weekly Checklist"
+    },
+    {
+      "id": "currencysinks",
+      "about": "about:currency-sinks",
+      "file": "currency-sinks.html",
+      "version": "3",
+      "browseLabel": "Currency Sinks",
+      "browseTitle": "Currency Sinks"
+    },
+    {
+      "id": "ascendedstart",
+      "about": "about:ascended-start",
+      "file": "ascended-start.html",
+      "version": "3",
+      "browseLabel": "Ascended Start",
+      "browseTitle": "Ascended Start — Gearing Path"
+    },
+    {
+      "id": "portalspulls",
+      "about": "about:portals-pulls",
+      "file": "portals-pulls.html",
+      "version": "3",
+      "browseLabel": "Portals / Pulls",
+      "browseTitle": "Portals / Pulls / Utility"
+    },
+    {
+      "id": "homestead",
+      "about": "about:homestead",
+      "file": "homestead-extras.html",
+      "version": "3",
+      "browseLabel": "Homestead",
+      "browseTitle": "Homestead Extras"
+    },
+    {
+      "id": "wvwcons",
+      "about": "about:wvw-consumables",
+      "file": "wvw-consumables.html",
+      "version": "3",
+      "browseLabel": "WvW Consumables",
+      "browseTitle": "WvW Consumables — Siege & Utility"
+    }
+  ]
+}

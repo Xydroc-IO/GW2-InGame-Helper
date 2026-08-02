@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Currency Sinks</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Economy Reference</p>
+<h1>Currency Sinks</h1>
+<p class="tagline">Where to dump laurels, unbound/volatile magic, spirit shards, mystic coins, and karma.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#laurels">Laurels</a>
+<a href="#magic">Magic</a>
+<a href="#shards">Shards &amp; Coins</a>
+<a href="#karma">Karma</a>
+</nav>
+  <section class="block" id="laurels">
+    <div class="head"><h2>Laurels</h2><p>Login / achievement currency.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Sink</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Ascended trinkets / boxes</strong></td><td>Laurel vendor — strong early ascended path</td></tr>
+          <tr><td><strong>Heavy Crafting Bag</strong> / mats</td><td>Account material storage fillers</td></tr>
+          <tr><td><strong>Utility / enrichments</strong></td><td>When you need specific account unlocks</td></tr>
+          <tr><td><strong>PvP / WvW laurel vendors</strong></td><td>Mode-specific if those are your goals</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="magic">
+    <div class="head"><h2>Unbound &amp; Volatile Magic</h2><p>Map / living world currencies.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Unbound Magic</h3><p>HoT / LW vendors — keys, converters, map items, skins.</p></div>
+        <div class="callout"><h3>Volatile Magic</h3><p>PoF / LW — converters, map gear, crafting catalysts.</p></div>
+        <div class="callout"><h3>Cap</h3><p>Spend before you hit the soft cap — converters are fine sinks.</p></div>
+        <div class="callout"><h3>Pairs with</h3><p>Material Conversions for forge / mat overflow.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="shards">
+    <div class="head"><h2>Spirit Shards &amp; Mystic Coins</h2><p>Legacy / forge fuels.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Currency</th><th>Common sinks</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Spirit Shards</strong></td><td>Philosopher’s Stones · mystic forge · skill tomes · converters</td></tr>
+          <tr><td><strong>Mystic Coins</strong></td><td>Mystic Clovers · legendary gifts · forge gambles</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Clover / gift recipes → Material Conversions · Legendary Paths.</p>
+    </div>
+  </section>
+
+  <section class="block" id="karma">
+    <div class="head"><h2>Karma</h2><p>Overflows fast — spend with intent.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Map vendors</strong> — gear, recipes, collection items for legendaries / titles.</li>
+        <li><strong>Cultural / city armor</strong> — cosmetics / collections.</li>
+        <li><strong>Laurel &amp; karma vendors</strong> — mixed account upgrades.</li>
+        <li><strong>Rations / utility</strong> — only if you actually use them.</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

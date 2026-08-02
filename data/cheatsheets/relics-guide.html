@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Relics — Picks by Role</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Relic Reference</p>
+<h1>Relics</h1>
+<p class="tagline">Short “what to socket” sheet by role and damage type. One relic per build.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#power">Power</a>
+<a href="#condition">Condition</a>
+<a href="#support">Support</a>
+<a href="#tank">Tank</a>
+</nav>
+  <section class="block" id="power">
+    <div class="head">
+      <h2>Power</h2>
+      <p>Crit / burst / on-tag relics common in raids and strikes.</p>
+    </div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Relic of Fireworks</strong> — classic on-crit damage; still a safe default for many power builds</li>
+        <li><strong>Relic of the Thief</strong> / <strong>Eir</strong> / <strong>Dragonhunter</strong> — profession or rotation-gated power options</li>
+        <li><strong>Relic of the Wizard's Tower</strong> / <strong>Leadership</strong> — when the build stacks might or specific triggers</li>
+        <li><strong>Relic of the Warrior</strong> — banner / power-support hybrids</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="condition">
+    <div class="head">
+      <h2>Condition</h2>
+      <p>Condition application and duration oriented relics.</p>
+    </div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Relic of the Fractal</strong> — strong general condi default for many builds</li>
+        <li><strong>Relic of Ahamkara</strong> / <strong>Peitha</strong> / <strong>Afflicted</strong> — condition-type specialists</li>
+        <li><strong>Relic of the Nightmare</strong> — torment / fear oriented kits</li>
+        <li><strong>Relic of the Astral Ward</strong> — when the build page calls for it</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="support">
+    <div class="head">
+      <h2>Heal / Quick / Alac</h2>
+      <p>Healing and boon uptime relics.</p>
+    </div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Relic of the Monk</strong> — heal support staple</li>
+        <li><strong>Relic of the Flock</strong> / <strong>Mercy</strong> / <strong>Karakosa</strong> — alternate heal procs</li>
+        <li><strong>Relic of Leadership</strong> / <strong>Speed</strong> / <strong>Chronomancer</strong> — boon DPS / quick / alac variants</li>
+        <li><strong>Relic of the Mirage</strong> — when playing mirage support lines</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="tank">
+    <div class="head">
+      <h2>Tank</h2>
+      <p>Survivability and group utility.</p>
+    </div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Relic of the Midnight King</strong> — common tank / toughness-oriented pick</li>
+        <li><strong>Relic of Durability</strong> — mitigation focused</li>
+        <li><strong>Heal-tank</strong> — often shares heal relics (Monk / Flock) instead</li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>One relic only.</strong> Follow your build’s named relic when it disagrees with this sheet — balance patches move the goalposts.</p>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

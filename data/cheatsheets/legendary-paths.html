@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Legendary Short Paths</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Legendaries Reference</p>
+<h1>Legendary Short Paths</h1>
+<p class="tagline">Checklists for gen weapons, armor, and backpacks — not full guides.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#gen1">Gen 1</a>
+<a href="#gen2">Gen 2–3</a>
+<a href="#armor">Armor</a>
+<a href="#back">Backpacks</a>
+</nav>
+  <section class="block" id="gen1">
+    <div class="head"><h2>Gen 1 Weapons</h2><p>Precursor + four gifts in the mystic forge.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Precursor</strong> — drop, craft, or buy</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Gift of Fortune</strong> — clovers · ecto · mystic coins · destiny gifts</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Gift of Mastery</strong> — world completion · shards · obsidians · battle / exploration gifts</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Gift of (Weapon)</strong> — themed gift from collection + mats</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Forge</strong> — precursor + Fortune + Mastery + Weapon gift</span></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="gen2">
+    <div class="head"><h2>Gen 2 &amp; Gen 3</h2><p>Collection-driven — track in Achievements.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Gen 2</h3><p>Long collection (metas, raids/fractals, crafting) → legendary.</p></div>
+        <div class="callout"><h3>Gen 3</h3><p>Expansion collections with gift crafts (EoD / SotO era).</p></div>
+        <div class="callout"><h3>Open the collection</h3><p>It lists every gate — pin it in the hero panel.</p></div>
+        <div class="callout"><h3>Trackers</h3><p>Efficiency / Treasures help; this sheet is only the shape.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="armor">
+    <div class="head"><h2>Legendary Armor</h2><p>Raid / PvP / WvW / fractal lines.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Line</th><th>Core idea</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Raid</strong></td><td>Raid tokens · Gift of Ascension · ascended pieces · forge</td></tr>
+          <tr><td><strong>PvP / WvW</strong></td><td>Reward tracks · legendary inscriptions / gifts · ascended set</td></tr>
+          <tr><td><strong>Fractal</strong></td><td>Mist / fractal currencies · ascended · gifts</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="back">
+    <div class="head"><h2>Legendary Backpacks</h2><p>Pick one path and finish it.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Ad Infinitum</strong> — fractal agony / pristine / collections</li>
+        <li><strong>Expansion backs</strong> — map collections + gifts (HoT / PoF / EoD…)</li>
+        <li><strong>Raid / strike backs</strong> — encounter currencies + collections</li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Exact counts live on the wiki collection — balance patches rarely change the checklist shape.</p>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

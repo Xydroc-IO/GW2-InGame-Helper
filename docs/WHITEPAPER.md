@@ -456,6 +456,7 @@ Critics correctly note IPC rigidity, CPU upload cost, and sandbox gaps. Those ar
 | `src/WikiIpc.h` | Shared contract |
 | `src/CefRuntime.*` | Download / verify / extract |
 | `data/sites.json` → runtime `sites.json` + `Sites.cpp` / `SitesLoad.cpp` | Catalog |
+| `data/cheatsheets/` → zip extract + `CheatSheets.cpp` | Offline about: sheets |
 | `LogManager*` / `Tekkit*` / `LivePanels*` | Feature modules (split TUs) |
 | `src/helper/BootJs.h` | Injected page logic |
 | `scripts/pack-cef-runtime.sh` | Rehost stock CEF |

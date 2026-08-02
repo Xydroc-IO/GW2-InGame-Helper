@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Portals / Pulls / Utility</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Squad Utility Reference</p>
+<h1>Portals / Pulls / Utility</h1>
+<p class="tagline">Squad QoL — portals, pulls, reflects. Pairs with Stability / Cleanse and CC / Defiance.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#portals">Portals</a>
+<a href="#pulls">Pulls</a>
+<a href="#reflect">Reflects</a>
+<a href="#misc">Misc</a>
+</nav>
+  <section class="block" id="portals">
+    <div class="head"><h2>Portals</h2><p>Move the squad through gates and skips.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Profession</th><th>Typical tools</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Mesmer</strong></td><td>Portal Entre / Exeunt — primary raid/fractal portal</td></tr>
+          <tr><td><strong>Thief</strong></td><td>Shadow Portal (utility) — shorter / situational</td></tr>
+          <tr><td><strong>Engineer</strong></td><td>Special action / kit portals on some builds</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Tip:</strong> One reliable mesmer portal covers most group content. Call portal before dropping it.</p>
+    </div>
+  </section>
+
+  <section class="block" id="pulls">
+    <div class="head"><h2>Pulls &amp; Stacks</h2><p>Group enemies or allies.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Necromancer</strong> — wells / spectral / scourge pulls (common trash clear).</li>
+        <li><strong>Elementalist</strong> — cyclone / magnetic / staff tools on some builds.</li>
+        <li><strong>Guardian / Revenant / Warrior</strong> — pulls on specific elite specs / utilities.</li>
+        <li><strong>Call the pull</strong> — wait for boons / tank before yanking.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="reflect">
+    <div class="head"><h2>Reflects &amp; Projectile hate</h2><p>Block or return projectiles on key fights.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Guardian</h3><p>Wall of Reflection · Shield of Absorption — classic reflect kit.</p></div>
+        <div class="callout"><h3>Mesmer</h3><p>Feedback · mirror skills — bubble / reflect windows.</p></div>
+        <div class="callout"><h3>Elementalist</h3><p>Arcane Shield / magnetic aura lines — situational.</p></div>
+        <div class="callout"><h3>Timing</h3><p>Reflect on call — wasted early is a wipe later.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="misc">
+    <div class="head"><h2>Other Squad Utility</h2><p>See also Stability / Cleanse · CC / Defiance · Boon Checklist.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Stability</strong> — for knockbacks / pulls into mechanics.</li>
+        <li><strong>Aegis / Blocks</strong> — tank and support absorb.</li>
+        <li><strong>Stealth / smoke</strong> — skips and revive covers (mesmer / thief / engi).</li>
+        <li><strong>Special action keys</strong> — fight-specific; learn per encounter guide.</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

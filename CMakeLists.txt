@@ -36,7 +36,6 @@ add_library(GW2-InGame-Helper SHARED
   src/HomePage.cpp
   src/RaidFood.cpp
   src/CheatSheets.cpp
-  src/CheatSheets_Data.cpp
   src/Gw2Http.cpp
   src/LivePanels.cpp
   src/LivePanelsBuild.cpp

@@ -84,7 +84,7 @@ git config core.hooksPath .githooks
 | Target | Sources |
 |--------|---------|
 | `GW2HelperBrowser.exe` | `src/helper/*.cpp` against `deps/cef` **150** headers |
-| Host DLL | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob + embedded `sites.json` |
+| Host DLL | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob + `sites.json` + cheatsheets zip |
 
 ### Browse catalog (runtime JSON)
 
@@ -96,6 +96,15 @@ make   # embeds catalog into the DLL
 
 Canonical catalog is `data/sites.json`. At runtime it is extracted to
 `addons/<addon-name>/sites.json` (edit there for no-rebuild tweaks; restart GW2).
+
+### Offline cheat sheets
+
+```bash
+# edit HTML/CSS under data/cheatsheets/, then:
+make   # packs + embeds build/cheatsheets.zip
+```
+
+Runtime extract: `addons/<addon-name>/cheatsheets/` (`manifest.json`, `shared.css`, `*.html`).
 
 Player install layout (shipping):
 

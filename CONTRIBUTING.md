@@ -24,7 +24,8 @@ Do **not** enable both DLLs under Nexus at once (identical signature `HELP`). Pr
 |------|--------------|-------------|
 | Pads (`*Pad.cpp`, `*Data.cpp`) | Yes | Prefer in-window chips/radios over ImGui popup combos |
 | Catalog (`data/sites.json`) | Yes | `make validate-sites` required; schema v2 + `browsePath` |
-| LivePanels / CheatSheets HTML builders | Careful | No secrets in HTML; bump panel/sheet versions when caching |
+| Cheat sheets (`data/cheatsheets/`) | Yes | Edit HTML/CSS + `manifest.json`; bump pack stamp `c2103` in `CheatSheets.cpp` when shipping extract changes |
+| LivePanels HTML builders | Careful | No secrets in HTML; bump panel version when caching |
 | `WikiBrowser` / `WikiIpc` / `helper/*` | **Restricted** | Follow [`docs/KERNEL.md`](docs/KERNEL.md); stamp bump + coordinated DLL+helper; pair review |
 | `entry.cpp` WndProc / mouse capture | **Restricted** | Autorun / focus regressions — test in GW2 |
 | Tekkit parsers / LogManager parse | Careful | Prefer golden fixtures when changing formats |

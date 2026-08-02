@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Ascended Start</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Gearing Reference</p>
+<h1>Ascended Start</h1>
+<p class="tagline">Armor, weapons, trinkets, and fractal AR path — from exotic to ready for T4/CM.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#priority">Priority</a>
+<a href="#armor">Armor &amp; Weapons</a>
+<a href="#trinkets">Trinkets</a>
+<a href="#ar">Fractal AR</a>
+</nav>
+  <section class="block" id="priority">
+    <div class="head"><h2>Priority Order</h2><p>Do the cheap impactful pieces first.</p></div>
+    <div class="body">
+      <ol class="list">
+        <li><strong>Trinkets</strong> — Laurel / fractal / LS vendors (fast stats).</li>
+        <li><strong>Weapons</strong> — craft, fractal, or raid drops for your main sets.</li>
+        <li><strong>Armor</strong> — craft, fractal, or strike/raid — full set last if needed.</li>
+        <li><strong>Infusions</strong> — agony for fractals (see AR); attribute infusions later.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block" id="armor">
+    <div class="head"><h2>Armor &amp; Weapons</h2><p>Common acquisition paths.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Crafting</strong></td><td>Ascended recipes · Bloodstone / Empyreal / Dragonite · time-gated</td></tr>
+          <tr><td><strong>Fractals</strong></td><td>Encapsulated / fractal vendors · good for AR gearing in parallel</td></tr>
+          <tr><td><strong>Raids / strikes</strong></td><td>Token vendors · weekly chests</td></tr>
+          <tr><td><strong>PvP / WvW</strong></td><td>Reward tracks · legendary armor lines later</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="trinkets">
+    <div class="head"><h2>Trinkets</h2><p>Usually the first ascended slots.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Laurels</strong> — rings / accessories / amulets from laurel vendors.</li>
+        <li><strong>Fractal</strong> — rings / accessories with agony infusion slots.</li>
+        <li><strong>Living World / expansion</strong> — map vendors and collections.</li>
+        <li><strong>Enrichment</strong> — +5 AR on jewelry helps early fractal goals.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="ar">
+    <div class="head"><h2>Fractal AR Gearing</h2><p>Pairs with Fractal Consumables AR table.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Goal</th><th>AR target</th></tr></thead>
+        <tbody>
+          <tr><td>Enter T2 (scale 26)</td><td><strong>+18</strong></td></tr>
+          <tr><td>Comfortable T2</td><td><strong>+61</strong></td></tr>
+          <tr><td>T3</td><td>Min <strong>+75</strong> · target <strong>+82</strong></td></tr>
+          <tr><td>T4 / CM</td><td>Min <strong>+150</strong> · community <strong>+162</strong></td></tr>
+        </tbody>
+      </table>
+      <ul class="list" style="margin-top:14px">
+        <li>Socket <strong>agony infusions</strong> into ascended/legendary gear (+5 / +7 / +9).</li>
+        <li>Recycle lower infusions via mystic forge / vendors as you upgrade.</li>
+        <li>Full details → Fractal Consumables · Fractal CM / T4.</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

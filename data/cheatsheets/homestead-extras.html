@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Homestead Extras</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Homestead Reference</p>
+<h1>Homestead Extras</h1>
+<p class="tagline">Beyond the garden — crafting stations, nodes, and account QoL. Garden herbs → Home Garden.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#stations">Stations</a>
+<a href="#nodes">Nodes</a>
+<a href="#qol">QoL</a>
+<a href="#garden">Garden</a>
+</nav>
+  <section class="block" id="stations">
+    <div class="head"><h2>Crafting Stations</h2><p>Homestead crafting without leaving home.</p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Place / unlock <strong>crafting stations</strong> you use (weaponsmith, tailor, cook, etc.).</li>
+        <li>Keep <strong>material storage</strong> deposited so crafts pull from account mats.</li>
+        <li>Mystic forge / trading post access depends on what you’ve unlocked — check homestead upgrades.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="nodes">
+    <div class="head"><h2>Gathering Nodes</h2><p>Home nodes for daily mats.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Ore / Wood / Plants</h3><p>Upgrade homestead nodes for better yields.</p></div>
+        <div class="callout"><h3>Home instance</h3><p>Classic home nodes still exist — homestead is the modern hub.</p></div>
+        <div class="callout"><h3>Gather daily</h3><p>Quick mat drip before raids / crafts.</p></div>
+        <div class="callout"><h3>Glyphs</h3><p>Gathering tools with glyphs still apply where valid.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="qol">
+    <div class="head"><h2>Account QoL</h2><p>Make the homestead a real hub.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Bank / material storage route you like</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Crafting stations for your disciplines</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Decor / waypoints you actually use</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt">Portal / exit habits for map hopping</span></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="garden">
+    <div class="head"><h2>Garden</h2><p>Cultivated herbs for food.</p></div>
+    <div class="body">
+      <p class="note" style="margin:0"><strong>Home Garden</strong> cheat sheet lists cultivated herb uses. Open that sheet for seasoning / food pairings.</p>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

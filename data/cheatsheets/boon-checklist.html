@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Boon Checklist — Squad Coverage</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Raid Squad Reference</p>
+<h1>Boon Checklist</h1>
+<p class="tagline">Who usually covers what — quick, alac, might, fury, and the rest. Roles overlap; assign explicitly in squad.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#priority">Priority</a>
+<a href="#sources">Sources</a>
+<a href="#situational">Situational</a>
+</nav>
+  <section class="block" id="priority">
+    <div class="head">
+      <h2>Priority Boons</h2>
+      <p>These should be covered every raid / strike pull.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Boon</th><th>Why</th><th>Typical coverage</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Quickness</strong></td>
+            <td>Cast / skill speed</td>
+            <td>Chronomancer · Catalyst · Harbinger · Willbender · Specter · others</td>
+          </tr>
+          <tr>
+            <td><strong>Alacrity</strong></td>
+            <td>Cooldown reduction</td>
+            <td>Chronomancer · Specter · Mechanist · Druid · Catalyst · others</td>
+          </tr>
+          <tr>
+            <td><strong>Might (25)</strong></td>
+            <td>Power &amp; condi damage</td>
+            <td>Firebrand · Warrior banners · many DPS kits · supports</td>
+          </tr>
+          <tr>
+            <td><strong>Fury</strong></td>
+            <td>Crit chance</td>
+            <td>Almost every squad — DPS + supports share this</td>
+          </tr>
+          <tr>
+            <td><strong>Protection</strong></td>
+            <td>Damage reduction</td>
+            <td>Firebrand · healers · tanks</td>
+          </tr>
+          <tr>
+            <td><strong>Regeneration</strong></td>
+            <td>Passive healing</td>
+            <td>Healers · some supports</td>
+          </tr>
+          <tr>
+            <td><strong>Resolution</strong></td>
+            <td>Condition damage taken ↓</td>
+            <td>Firebrand · guardians · healers</td>
+          </tr>
+          <tr>
+            <td><strong>Vigor</strong></td>
+            <td>Endurance regen</td>
+            <td>Supports / thieves / warriors — often incidental</td>
+          </tr>
+          <tr>
+            <td><strong>Swiftness</strong></td>
+            <td>Movement</td>
+            <td>Usually covered passively; pull if pulls are slow</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="sources">
+    <div class="head">
+      <h2>Squad Slot Checklist</h2>
+      <p>Use before ready-check — tick coverage, don’t assume.</p>
+    </div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-sup">Quick</span> named player / build</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-sup">Alac</span> named player / build</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-heal">Heal</span> (often doubles prot / regen / resolution)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-tank">Tank</span> (if fight needs one) — toughness check</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-power">Might</span> plan (FB / banners / kits)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><span class="tag tag-misc">Fury</span> — confirm someone actually brings it</span></label></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Double quick / double alac</strong> comps are normal. Hybrid boon-DPS can cover both — still say it in chat.</p>
+    </div>
+  </section>
+
+  <section class="block" id="situational">
+    <div class="head">
+      <h2>Situational</h2>
+      <p>Bring when the fight asks for them.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Boon</th><th>When</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Stability</strong></td><td>Knockback / fear / pull fights (e.g. many raid bosses, escort)</td></tr>
+          <tr><td><strong>Aegis</strong></td><td>Blocked hit mechanics</td></tr>
+          <tr><td><strong>Resistance</strong></td><td>Heavy condition phases</td></tr>
+          <tr><td><strong>Superspeed</strong></td><td>Not a boon, but Scrapper / accel often requested on skips</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

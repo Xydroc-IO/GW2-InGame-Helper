@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Daily / Weekly Checklist</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Activity Reference</p>
+<h1>Daily / Weekly Checklist</h1>
+<p class="tagline">Raids, strikes, fractals, Wizard’s Vault, and metas — tick what you care about today.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#daily">Daily</a>
+<a href="#weekly">Weekly</a>
+<a href="#vault">Wizard’s Vault</a>
+<a href="#metas">Metas</a>
+</nav>
+  <section class="block" id="daily">
+    <div class="head"><h2>Daily</h2><p>Reset with the daily reset (server time).</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Fractals</strong> — daily T4 · recommended · CMs you farm</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Strikes</strong> — IBS / EoD / SotO dailies (priority for essences / KP)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Raids</strong> — wing(s) your static / LFG clears today</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Wizard’s Vault</strong> — daily objectives (easy astral acclaim)</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>World bosses / metas</strong> — see Metas below if chasing events</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Living World / expansion dailies</strong> — map bonuses you still need</span></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="weekly">
+    <div class="head"><h2>Weekly</h2><p>Raid / strike / fractal weekly gates.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Raid wings</strong> — clear each wing once for weekly chests / liquid</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Strike missions</strong> — weekly strike chests / priorities</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Fractal CMs</strong> — weekly CM rewards / essence goals</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Wizard’s Vault</strong> — weekly objectives + specials</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>PvP / WvW</strong> — reward tracks / weekly if you play those modes</span></label></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">Wing / strike maps → Raid Wings · Strike Missions sheets. Fractal AR → Fractal Consumables / CM list.</p>
+    </div>
+  </section>
+
+  <section class="block" id="vault">
+    <div class="head"><h2>Wizard’s Vault</h2><p>Astral Acclaim shop — check objectives, spend before season end.</p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Dailies</h3><p>Quick acclaim — do the easy ones first.</p></div>
+        <div class="callout"><h3>Weeklies</h3><p>Bigger payout — plan around raids / fractals / PvP.</p></div>
+        <div class="callout"><h3>Specials</h3><p>Seasonal / limited — don’t leave acclaim unused.</p></div>
+        <div class="callout"><h3>Shop</h3><p>Legendary / enrichment / convenience — buy what you need.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="metas">
+    <div class="head"><h2>Metas &amp; World Bosses</h2><p>Timers change — use Tools · GW2Timer / Meta Timers for schedules.</p></div>
+    <div class="body">
+      <ul class="checks">
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Core metas</strong> — Teq · Triple Trouble · Shatterer · etc. when you need chests / mats</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>HoT / PoF / EoD / SotO metas</strong> — map completion / currency farms</span></label></li>
+        <li><label class="check"><input type="checkbox"/><span class="box" aria-hidden="true"></span><span class="txt"><strong>Champ trains</strong> — optional gold / gear path</span></label></li>
+      </ul>
+      <p class="note" style="margin-top:14px;margin-bottom:0">This sheet is a checklist, not a timer. Open GW2Timer from Browse · Tools for live schedules.</p>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

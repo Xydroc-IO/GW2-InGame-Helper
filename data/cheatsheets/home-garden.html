@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Home Garden — Cultivated Herbs</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Cooking Reference</p>
+<h1>Home Garden</h1>
+<p class="tagline">What to plant for raid feast seasonings — companion to the Raid Food sheet.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#seasonings">Seasonings</a>
+<a href="#planting">Planting</a>
+<a href="#other">Also useful</a>
+</nav>
+  <section class="block" id="seasonings">
+    <div class="head">
+      <h2>Cultivated Herbs → Feast Utility</h2>
+      <p>Matches the Universal Seasoning Guide on Raid Food.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Plant</th><th>Feast utility</th><th>Priority</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cultivated Cilantro</strong></td>
+            <td><span class="tag tag-power">Life Steal on Crit</span></td>
+            <td>High — most DPS feasts</td>
+          </tr>
+          <tr>
+            <td><strong>Cultivated Peppercorn</strong></td>
+            <td><span class="tag tag-tank">−10% Incoming Damage</span></td>
+            <td>High — tank / safe feasts</td>
+          </tr>
+          <tr>
+            <td><strong>Cultivated Mint</strong></td>
+            <td><span class="tag tag-heal">+10% Outgoing Healing</span></td>
+            <td>High — heal / support desserts &amp; plates</td>
+          </tr>
+          <tr>
+            <td><strong>Cultivated Clove</strong></td>
+            <td><span class="tag tag-condi">−20% Incoming Condition Duration</span></td>
+            <td>Medium — condi-heavy fights</td>
+          </tr>
+          <tr>
+            <td><strong>Cultivated Sesame</strong></td>
+            <td><span class="tag tag-heal">Health Regeneration</span></td>
+            <td>Medium — hybrid / openers</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Lime &amp; Divinity Fair Herbs</strong> still appear in recipes — garden herbs are the cultivated third ingredient that sets the utility.</p>
+    </div>
+  </section>
+
+  <section class="block" id="planting">
+    <div class="head">
+      <h2>Planting Tips</h2>
+      <p>Home instance garden / homestead garden nodes.</p>
+    </div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Stock Cilantro + Peppercorn first</strong> — cover the two most requested feast utilities.</li>
+        <li><strong>Mint</strong> — keep a row if you cook for healers / crème brûlée.</li>
+        <li><strong>Harvest daily</strong> — cultivated plants are account-bound ingredients; grow more than you think you need before raid night.</li>
+        <li><strong>Open Raid Food</strong> — full recipes &amp; bases live on that sheet.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="other">
+    <div class="head">
+      <h2>Also Useful in the Garden</h2>
+      <p>Not seasonings, but common feast ingredients.</p>
+    </div>
+    <div class="body">
+      <ul class="list">
+        <li><strong>Sawgill / mushrooms</strong> — some clove steak variants</li>
+        <li><strong>Butternut Squash</strong> — veggie flatbreads</li>
+        <li><strong>Allium / garlic nodes</strong> — coq au vin &amp; sauce bases (as available)</li>
+        <li><strong>Channel Bound / other gardens</strong> — same cultivated herbs if your instance layout differs</li>
+      </ul>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

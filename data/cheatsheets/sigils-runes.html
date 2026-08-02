@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sigils &amp; Runes — Common Role Picks</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Gear Reference</p>
+<h1>Sigils &amp; Runes</h1>
+<p class="tagline">Common raid / strike / fractal picks by role — not every option, just the usual defaults.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#power">Power</a>
+<a href="#condition">Condition</a>
+<a href="#support">Support</a>
+<a href="#tank">Tank</a>
+</nav>
+  <section class="block" id="power">
+    <div class="head">
+      <h2>Power Damage</h2>
+      <p>Direct damage weapons and armor.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Slot</th><th>Common picks</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="role">Runes</td>
+            <td>Scholar · Strength · Fireworks · Thief · Eagle · Ranger (build-dependent)</td>
+          </tr>
+          <tr>
+            <td class="role">Sigils</td>
+            <td><strong>Force</strong> + Accuracy / Air / Impact / Illusions (chrono) — match weapon swap &amp; fight length</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Rule of thumb:</strong> Force on the high-uptime weapon; Accuracy if you need crit cap; Air/Impact for burst windows.</p>
+    </div>
+  </section>
+
+  <section class="block" id="condition">
+    <div class="head">
+      <h2>Condition Damage</h2>
+      <p>Bleed / burn / torment / poison focused sets.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Slot</th><th>Common picks</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="role">Runes</td>
+            <td>Tormenting · Afflicted · Nightmare · Trapper · Krait · Undead</td>
+          </tr>
+          <tr>
+            <td class="role">Sigils</td>
+            <td><strong>Malice</strong> + Doom / Earth / Bursting / Torment / Geomancy — per condition type</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="support">
+    <div class="head">
+      <h2>Heal / Quick / Alac</h2>
+      <p>Boon duration and healing power sets.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Slot</th><th>Common picks</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="role">Runes</td>
+            <td>Monk · Water · Fireworks · Sanctuary · Altruism · Leadership (situational)</td>
+          </tr>
+          <tr>
+            <td class="role">Sigils</td>
+            <td><strong>Concentration</strong> + Water / Docile / Transference / Timing — heal vs pure boon DPS differs</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="tank">
+    <div class="head">
+      <h2>Tank / Toughness</h2>
+      <p>Banners / chronotank / heal tank variants.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead>
+          <tr><th>Slot</th><th>Common picks</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="role">Runes</td>
+            <td>Fireworks · Traveler · Dolyak · Monk (heal-tank)</td>
+          </tr>
+          <tr>
+            <td class="role">Sigils</td>
+            <td>Concentration + Absorption / Superiority / or DPS sigils if the tank still deals damage</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Always defer</strong> to MetaBattle / Guildjen / your static’s sheet — rune/sigil meta shifts with balance patches.</p>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

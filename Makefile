@@ -24,6 +24,8 @@ HOME_LOGO_OBJ  = build/home_logo.o
 HOME_COVER_OBJ = build/home_cover.o
 SITES_JSON_SRC = build/sites.json
 SITES_JSON_OBJ = build/sites_json.o
+CHEATSHEETS_ZIP_SRC = build/cheatsheets.zip
+CHEATSHEETS_ZIP_OBJ = build/cheatsheets_zip.o
 
 DLL_SRC = \
 	src/entry.cpp \
@@ -35,7 +37,6 @@ DLL_SRC = \
 	src/HomePage.cpp \
 	src/RaidFood.cpp \
 	src/CheatSheets.cpp \
-	src/CheatSheets_Data.cpp \
 	src/Gw2Http.cpp \
 	src/LivePanels.cpp \
 	src/LivePanelsBuild.cpp \
@@ -91,14 +92,20 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
 
-.PHONY: all clean install install-reset validate-sites enrich-sites test-css test-parse test-ipc ci pack-cef
+.PHONY: all clean install install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets test-css test-parse test-ipc ci pack-cef
 
 all: $(DLL_OUT)
 
 SITES_JSON   = data/sites.json
+CHEATSHEETS_DIR = data/cheatsheets
 
 validate-sites:
 	python3 tools/validate_sites.py $(SITES_JSON)
+
+export-cheatsheets:
+	python3 tools/export_cheatsheets.py
+
+pack-cheatsheets: $(CHEATSHEETS_ZIP_SRC)
 
 # Re-stamp browsePath / browseSections from hierarchy rules (dev tool).
 enrich-sites:
@@ -173,10 +180,17 @@ $(SITES_JSON_OBJ): $(SITES_JSON_SRC)
 	$(LD) -r -b binary -o $@ $(SITES_JSON_SRC)
 	@echo "Embedded sites catalog $@"
 
-$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ)
+$(CHEATSHEETS_ZIP_SRC): $(CHEATSHEETS_DIR)/manifest.json $(CHEATSHEETS_DIR)/shared.css $(wildcard $(CHEATSHEETS_DIR)/*.html)
+	python3 tools/pack_cheatsheets.py
+
+$(CHEATSHEETS_ZIP_OBJ): $(CHEATSHEETS_ZIP_SRC)
+	$(LD) -r -b binary -o $@ $(CHEATSHEETS_ZIP_SRC)
+	@echo "Embedded cheatsheets pack $@"
+
+$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(CHEATSHEETS_ZIP_OBJ)
 	@mkdir -p $(dir $@)
-	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LIBS_DLL)
-	@echo "Built $@ (CEF helper + homepage + sites.json embedded)"
+	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(LIBS_DLL)
+	@echo "Built $@ (CEF helper + homepage + sites.json + cheatsheets embedded)"
 
 build/%.o: %.cpp
 	@mkdir -p $(dir $@)
@@ -208,7 +222,7 @@ install: $(DLL_OUT)
 	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/"*.ver "$(INSTALL_DIR)/"*.ok \
 		"$(INSTALL_DIR)/GW2HelperBrowser.exe.ver" \
 		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg"
-	/bin/rm -rf "$(INSTALL_DIR)/cef-cache"
+	/bin/rm -rf "$(INSTALL_DIR)/cef-cache" "$(INSTALL_DIR)/cheatsheets"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Stability / Cleanse — Squad Utility</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Combat Reference</p>
+<h1>Stability / Cleanse</h1>
+<p class="tagline">Group stability and condition cleanse by profession — complements CC / Defiance.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#stability">Stability</a>
+<a href="#cleanse">Cleanse</a>
+<a href="#tips">Tips</a>
+</nav>
+  <section class="block" id="stability">
+    <div class="head">
+      <h2>Stability</h2>
+      <p>Prefer group stab for knockbacks, pulls, and fears. Call “stab now.”</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Profession</th><th>Typical tools</th></tr></thead>
+        <tbody>
+          <tr><td class="role">Guardian / Firebrand</td><td>“Stand Your Ground!” · Mantras / Tomes · Hallowed Ground</td></tr>
+          <tr><td class="role">Warrior</td><td>Balanced Stance · Banner of Defense</td></tr>
+          <tr><td class="role">Revenant</td><td>Rite of the Great Dwarf · centaur / renegade utilities</td></tr>
+          <tr><td class="role">Elementalist</td><td>Armor of Earth · aura / magnetic lines</td></tr>
+          <tr><td class="role">Engineer</td><td>Elixir S · kit utilities</td></tr>
+          <tr><td class="role">Mesmer</td><td>Continuum setups · wells (build-dependent)</td></tr>
+          <tr><td class="role">Others</td><td>Often personal only — don’t assume group stab</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Raid habit:</strong> Firebrand, chrono, or warrior usually holds the stab button for key mechanics.</p>
+    </div>
+  </section>
+
+  <section class="block" id="cleanse">
+    <div class="head">
+      <h2>Condition Cleanse</h2>
+      <p>Group cleanses for heavy condi phases.</p>
+    </div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Profession</th><th>Typical tools</th></tr></thead>
+        <tbody>
+          <tr><td class="role">Guardian / Firebrand</td><td>Tome of Resolve · Contemplation of Purity</td></tr>
+          <tr><td class="role">Elementalist / Tempest</td><td>Cleansing Fire · Signet of Water · Glyphs</td></tr>
+          <tr><td class="role">Engineer</td><td>Elixir C · Med Kit</td></tr>
+          <tr><td class="role">Necromancer / Scourge</td><td>Plague Signet · Consume Conditions · shades</td></tr>
+          <tr><td class="role">Ranger / Druid</td><td>Spirits · staff &amp; glyph cleanses</td></tr>
+          <tr><td class="role">Mesmer / Chrono</td><td>Well of Eternity · Mantra of Recovery · Null Field</td></tr>
+          <tr><td class="role">Revenant / Herald</td><td>Facet / legend utilities</td></tr>
+          <tr><td class="role">Thief / Specter</td><td>Shadow / shroud lines (often small group)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="tips">
+    <div class="head"><h2>Squad Tips</h2><p></p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Resistance ≠ cleanse</h3><p>Resistance lowers condi damage taken; it does not remove conditions.</p></div>
+        <div class="callout"><h3>Convert vs purge</h3><p>Some scourge / FB tools convert conditions instead of cleansing.</p></div>
+        <div class="callout"><h3>Stack first</h3><p>Stab/cleanse on a spread squad wastes the button.</p></div>
+        <div class="callout"><h3>Pair sheets</h3><p>Use with CC / Defiance and Boon Checklist.</p></div>
+      </div>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>

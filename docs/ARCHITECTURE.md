@@ -183,7 +183,7 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 | `LogManagerPad` / `Parse` / `Upload` / `Ei` | DPS Logs UI, EVTC/JSON parse, dps.report, EI CLI |
 | `TekkitTrails` / `Parse` / `Index` | Pathing runtime, taco/XML/.trl parse, pack index |
 | `LivePanels` / `Build` / `Html` | about: live digests — workers vs HTML builders |
-| `CheatSheets` / `CheatSheets_Data` | Offline about: sheets |
+| `CheatSheets` + `data/cheatsheets/` | Offline about: sheets (embedded zip → runtime extract) |
 | `AccountPad`, `WalletPad`, `VaultPad`, `NotesPad`, … | ImGui feature pads |
 | `CraftingData`, `ProgressData`, `WaypointsData`, `EventsData` | API / cache helpers |
 | `CefRuntime.*` | CEF zip download / verify / extract |

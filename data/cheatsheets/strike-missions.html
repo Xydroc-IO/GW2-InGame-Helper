@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Strike Missions Overview</title>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<p class="eyebrow">Guild Wars 2 · Raids / Strikes Reference</p>
+<h1>Strike Missions Overview</h1>
+<p class="tagline">Single-boss raid encounters by expansion — map → boss. No strategies.</p>
+</header>
+<nav class="toc" aria-label="Sections">
+<a href="#ibs">Icebrood</a>
+<a href="#eod">End of Dragons</a>
+<a href="#soto">SotO</a>
+<a href="#other">Other</a>
+</nav>
+  <section class="block">
+    <div class="head">
+      <h2>How to open</h2>
+      <p>These appear in the Raid Encounters UI alongside raid bosses.</p>
+    </div>
+    <div class="body">
+      <div class="howto">
+        <div class="step"><span class="n">IBS</span><p><strong>Eye of the North</strong> — Path of Fire required.</p></div>
+        <div class="step"><span class="n">EoD</span><p><strong>Arborstone</strong> — Cantha story unlocks CMs.</p></div>
+        <div class="step"><span class="n">SotO</span><p><strong>Wizard’s Tower</strong> — story gates apply.</p></div>
+      </div>
+      <p class="note" style="margin-top:14px;margin-bottom:0"><strong>Strategies:</strong> use TLDR / MetaBattle — this sheet is a map only.</p>
+    </div>
+  </section>
+
+  <section class="block" id="ibs">
+    <div class="head"><h2>Icebrood Saga</h2><p>Eye of the North</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th></th><th>Mission</th><th>Encounter(s)</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Shiverpeaks Pass</td><td>Icebrood Construct</td></tr>
+          <tr><td class="num">2</td><td>Voice of the Fallen and Claw of the Fallen</td><td>Voice · Claw</td></tr>
+          <tr><td class="num">3</td><td>Fraenir of Jormag</td><td>Fraenir of Jormag</td></tr>
+          <tr><td class="num">4</td><td>Boneskinner</td><td>Boneskinner</td></tr>
+          <tr><td class="num">5</td><td>Whisper of Jormag</td><td>Whisper of Jormag</td></tr>
+          <tr><td class="num">6</td><td>Forging Steel</td><td>Ancient Forgeman <span class="muted">(story unlock)</span></td></tr>
+          <tr><td class="num">7</td><td>Cold War</td><td>Minister of Morale</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="eod">
+    <div class="head"><h2>End of Dragons</h2><p>Arborstone · challenge modes available</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th></th><th>Mission</th><th>Encounter</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Aetherblade Hideout</td><td>Mai Trin</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td class="num">2</td><td>Xunlai Jade Junkyard</td><td>Ankka</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td class="num">3</td><td>Kaineng Overlook</td><td>Minister Li</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td class="num">4</td><td>Harvest Temple</td><td>The Dragonvoid</td><td><span class="badge badge-cm">CM</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="soto">
+    <div class="head"><h2>Secrets of the Obscure</h2><p>Wizard’s Tower</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th></th><th>Mission</th><th>Encounter</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Cosmic Observatory</td><td>Dagda</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td class="num">2</td><td>Temple of Febe</td><td>Cerus</td><td><span class="badge badge-cm">CM</span> <span class="muted">LM</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="other">
+    <div class="head"><h2>Other</h2><p>Living World / seasonal</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Mission</th><th>Access</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Old Lion’s Court</td><td>Lion’s Arch</td><td><span class="badge badge-cm">CM</span></td></tr>
+          <tr><td>Secret Lair of the Snowmen</td><td>Seasonal / special</td><td><span class="badge">—</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only — check current meta for your squad.</footer>
+</div>
+<script>
+(function(){
+  var boxes=document.querySelectorAll("ul.checks input[type=checkbox]");
+  if(!boxes.length) return;
+  var key="gw2helper.checks."+(document.title||location.pathname||"sheet");
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch(e){}
+  function save(){
+    var state={};
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) state[i]=1;
+    try{localStorage.setItem(key,JSON.stringify(state));}catch(e){}
+  }
+  function syncLabel(box){
+    var lab=box.closest ? box.closest("label") : box.parentNode;
+    if(!lab) return;
+    if(box.checked) lab.classList.add("done"); else lab.classList.remove("done");
+  }
+  for(var i=0;i<boxes.length;i++){
+    (function(box,idx){
+      box.checked=!!saved[idx];
+      syncLabel(box);
+      box.addEventListener("change", function(){ syncLabel(box); save(); });
+    })(boxes[i], i);
+  }
+})();
+</script>
+</body>
+</html>
