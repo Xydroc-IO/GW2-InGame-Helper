@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.0.2.11 · Total entries: **2,720**
+**Revision:** 2.1.0.0 · Total entries: **2,716**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
@@ -35,11 +35,9 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 
 ## Live
 
-DLL-generated panels (official API / RSS / wiki). Optional API key in Nexus Options for personal Wizard’s Vault / legendary progress. Reload the tab to refresh (≈5 min cache).
-
-### Vault
-
-- **Dailies & Vault** — `about:live-dailies`
+DLL-generated panels (official API / RSS / wiki). Optional API key in Nexus Options.
+Reload the tab to refresh (≈5 min cache). Wizard’s Vault dailies and legendary /
+character progress live in the **Account** ImGui pad (not Browse).
 
 ### News
 
@@ -49,19 +47,19 @@ DLL-generated panels (official API / RSS / wiki). Optional API key in Nexus Opti
 
 - **Fashion Wishlist** — `about:live-fashion`
 
-### Progress
-
-- **Legendaries & Characters** — `about:live-progress`
-
 ## ImGui pads (toolbar)
 
 Not Browse rows — open from the helper toolbar / Nexus Options. Session-only visibility (start closed).
 
-- **Notes** — clipboard helpers (waypoints, chat codes, builds, LFG); docks beside helper with TP
-- **TP Watchlist** — chat codes / item IDs → buy/sell prices; docks with Notes
-- **Item Lookup** — chat code / ID / name → rarity, prices, wiki & BLTC; free-floating
-- **Wallet & Stash** — searchable wallet, materials, bank, shared, per-toon bags (API key: account, wallet, inventories, characters); free-floating
-- **Vault** — Dailies & Wizard’s Vault (season + daily/weekly/special; UTC reset countdowns); free-floating; same read-only API as Browse → Live
+- **Account** — tabbed Overview / Stash / Vault / Trading / Item / Crafting / Progress (API key); keybind `KB_HELPER_ACCOUNT` (`Ctrl+Shift+A`)
+- **Notes** — snippets + official waypoint / POI search (copy chat codes); keybind `KB_HELPER_NOTES` (`Ctrl+Shift+N`)
+- **TP Watchlist** — chat codes / item IDs → buy/sell prices
+- **Item Lookup** — chat code / ID / name → rarity, prices, wiki & BLTC (also under Account → Item)
+- **Wallet & Stash** — searchable wallet, materials, bank, shared, per-toon bags (also under Account → Stash)
+- **Vault** — Dailies & Wizard’s Vault with UTC reset countdowns (also under Account → Vault)
+- **DPS Logs** — ArcDPS EVTC browser via Elite Insights + optional dps.report; see [`DPS_LOGS.md`](DPS_LOGS.md)
+- **World Events** — UTC boss / meta timers; keybind `KB_HELPER_EVENTS` (`Ctrl+Shift+E`)
+- **Tekkit's Guides** — local `.taco` pathing + MumbleLink overlays; keybind `KB_HELPER_TEKKIT` (`Ctrl+Shift+G`)
 
 ## Wiki
 
@@ -119,10 +117,6 @@ All cosmetic infusions from the [GW2 Wiki list](https://wiki.guildwars2.com/wiki
 - **Instanced:** [Celestial (Blue)](https://wiki.guildwars2.com/wiki/Celestial_Infusion_(Blue)), [Celestial (Red)](https://wiki.guildwars2.com/wiki/Celestial_Infusion_(Red)), [Abyssal](https://wiki.guildwars2.com/wiki/Abyssal_Infusion), [Mote of Darkness](https://wiki.guildwars2.com/wiki/Mote_of_Darkness), [Ghostly](https://wiki.guildwars2.com/wiki/Ghostly_Infusion), [Peerless](https://wiki.guildwars2.com/wiki/Peerless_Infusion), [Imperial Everbloom](https://wiki.guildwars2.com/wiki/Imperial_Everbloom), [Clockwork](https://wiki.guildwars2.com/wiki/Clockwork_Infusion), [Jotun](https://wiki.guildwars2.com/wiki/Jotun_Infusion), [Possession](https://wiki.guildwars2.com/wiki/Possession_Infusion), [Bloodstone](https://wiki.guildwars2.com/wiki/Bloodstone_Infusion), [Demonic](https://wiki.guildwars2.com/wiki/Demonic_Infusion), [Deldrimor Stoneskin](https://wiki.guildwars2.com/wiki/Deldrimor_Stoneskin_Infusion)
 - **Festival:** [Ember](https://wiki.guildwars2.com/wiki/Ember_Infusion), [Phospholuminescent](https://wiki.guildwars2.com/wiki/Phospholuminescent_Infusion), [Polysaturating Reverberating (Gray/Purple/Red)](https://wiki.guildwars2.com/wiki/Polysaturating_Reverberating_Infusion_(Gray)), [Polyluminescent Undulating (Black/Green/Orange/Teal)](https://wiki.guildwars2.com/wiki/Polyluminescent_Undulating_Infusion_(Black)), [Moto's Unstable Bauble (Red/Blue)](https://wiki.guildwars2.com/wiki/Moto%27s_Unstable_Bauble_Infusion:_Red), [Winter's Heart](https://wiki.guildwars2.com/wiki/Winter%27s_Heart_Infusion), [Snow Diamond](https://wiki.guildwars2.com/wiki/Snow_Diamond_Infusion), [Toy-Shell](https://wiki.guildwars2.com/wiki/Toy-Shell_Infusion), [Silent Symphony](https://wiki.guildwars2.com/wiki/Silent_Symphony)
 - **WvW:** [Mistwalker Infusion](https://wiki.guildwars2.com/wiki/Mistwalker_Infusion), [Heat Core Infusion](https://wiki.guildwars2.com/wiki/Heat_Core_Infusion)
-
-### Wizards Vault
-
-- **Easy Objectives** — [https://wiki.guildwars2.com/wiki/Wizard%27s_Vault/Easy_objectives](https://wiki.guildwars2.com/wiki/Wizard%27s_Vault/Easy_objectives)
 
 ### Lifestyle
 

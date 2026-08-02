@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.11
+# GW2 In-Game Helper v2.1.0.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -6,7 +6,8 @@ In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and
 One DLL for Nexus — no memory reads. Chromium is **private CEF Stable 150**
 (first-run download into `addons/GW2-InGame-Helper/cef/`).
 
-Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · CEF setup [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
+Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · CEF setup [`CEF_RUNTIME.md`](CEF_RUNTIME.md) ·
+DPS Logs [`DPS_LOGS.md`](DPS_LOGS.md)
 (local `CODE_AUDIT.md` is gitignored)
 
 ## Install
@@ -29,6 +30,31 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.1.0.0
+
+- **Account pad:** Toolbar **Account** — tabbed Overview / Stash / Vault / Trading /
+  Item / Crafting / Progress on the official API (original ImGui UI). Wizard’s Vault
+  dailies and legendary / character progress moved out of Browse → Live into this pad.
+- **Crafting / Progress:** Daily crafts, recipe tree + mat ownership / TP cost;
+  legendary armory + character roster under Account tabs.
+- **Notes → Waypoints:** Official API waypoint / POI search (by name, map, or current
+  Mumble map) with chat-code copy.
+- **DPS Logs:** ArcDPS EVTC / ZEVTC browser — Elite Insights CLI auto-install
+  (`addons/.../ei/`), parse to JSON, filters, players / guilds / fastest, dps.report
+  upload + report-meta hydrate. Requires **.NET 8 Desktop Runtime** in the Windows /
+  Proton prefix — see [`DPS_LOGS.md`](DPS_LOGS.md).
+- **Keybinds:** Panel toggles registered with Nexus — Account `Ctrl+Shift+A`,
+  Tekkit `Ctrl+Shift+G`, Events `Ctrl+Shift+E`, Notes `Ctrl+Shift+N` (rebind under
+  Nexus Options → Keybinds).
+- **Toolbar:** Pads on their own row under Browse so buttons are not clipped;
+  Account + DPS Logs wiring; Notes tooltip covers waypoints.
+- **Install fix:** `make install` clears `*.ver` / `*.ok` with extracted HTML so
+  stale homepage stamps cannot leave CEF on a missing `file:///…/helper-home.html`.
+  Saved tabs that still point at those file URLs remap to `about:` builtins.
+- **Browse:** Removed Live Dailies / Live Progress and Wiki Easy Objectives rows
+  (covered by Account). Catalog **2,716** entries.
+- **Stamps:** Helper `2100` · homepage `2100`
 
 ## What’s new in 2.0.2.11
 

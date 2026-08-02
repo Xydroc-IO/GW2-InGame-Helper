@@ -8,13 +8,13 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.0.2.11` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.1.0.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
 Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 
-**Release notes:** [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
+**Changelog:** [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) (version history lives there, not in this README).
 
 | Site | Category |
 |------|----------|
@@ -27,16 +27,17 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [Google](https://www.google.com/) | Search |
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
-| Dailies & Vault (built-in Live) | Live |
 | News Digest (built-in Live) | Live |
 | Fashion Wishlist (built-in Live) | Live |
+| Account (toolbar **Account** — stash, vault, TP, item, crafting, progress) | ImGui |
 | TP Watchlist (toolbar **TP**) | ImGui |
 | Item Lookup (toolbar **Item**) | ImGui |
 | Wallet & Stash (toolbar **Wallet**) | ImGui |
 | Vault (toolbar **Vault**) | ImGui |
+| DPS Logs (toolbar **DPS Logs**) | ImGui |
 | World Events (toolbar **Events**) | ImGui |
 | Tekkit's Guides (toolbar **Tekkit**) | ImGui + MumbleLink |
-| Legendaries & Characters (built-in Live) | Live |
+| Notes + Waypoints (toolbar **Notes**) | ImGui |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
@@ -48,7 +49,6 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | Utility (utility item hubs) | Wiki |
 | Upgrades (Superior Runes, Relics, Superior Sigils) | Wiki |
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
-| [Easy Objectives](https://wiki.guildwars2.com/wiki/Wizard's_Vault/Easy_objectives) | Wiki |
 | [Special Events](https://wiki.guildwars2.com/wiki/Special_Event) · [World Boss Rush](https://wiki.guildwars2.com/wiki/World_Boss_Rush) · [Fractal Rush](https://wiki.guildwars2.com/wiki/Fractal_Rush) · [WvW Rush](https://wiki.guildwars2.com/wiki/World_vs._World_Rush) · [Dungeon Rush](https://wiki.guildwars2.com/wiki/Dungeon_Rush) · [PvP Rush](https://wiki.guildwars2.com/wiki/Player_vs._Player_Rush) | Wiki |
 | [SC Raid Builds](https://snowcrows.com/builds/raids) | Builds |
 | SC Raid Elementalist / Mesmer / Necromancer / Engineer / Ranger / Thief / Guardian / Revenant / Warrior | Builds |
@@ -131,128 +131,27 @@ Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 listing copy [`docs/description.html`](docs/description.html) ·
 release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
-[`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md)
+[`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md) ·
+DPS Logs / .NET / Proton: [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md)
 
 Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
-
-## What’s new in 2.0.2.11
-
-- **gw2efficiency ads:** Desktop-sized CEF layout so NitroPay desktop slots load;
-  scaled to the helper panel (other sites unchanged)
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.10
-
-- **Viewability:** Hide CEF (`was_hidden`) when collapsed, tiny, or off-screen —
-  fewer 0%-viewable ad impressions; process stays warm for quick expand
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.9
-
-- **Publisher ID:** UA token `GW2-InGame-Helper` for site allow/deny —
-  [`docs/PUBLISHER_ACCESS.md`](docs/PUBLISHER_ACCESS.md)
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.8
-
-- **World Events:** Toolbar **Events** — UTC world/boss/meta timers with optional API
-  claim marks
-- **Tekkit's Guides:** Toolbar **Tekkit** — local `.taco` pathing with read-only
-  MumbleLink compass + world trail overlays (display only)
-- **OSR screen metrics:** `GetScreenInfo` reports the real desktop / work area while
-  `GetViewRect` stays the ImGui panel size — so pages see a normal monitor for
-  `screen.width` / `screen.height` instead of the tiny overlay (helps ad impression
-  fingerprinting; not a full desktop Chrome substitute)
-- **Snow Crows ads:** Ad iframes are clickable again (no more `pointer-events:none`);
-  header stays above NitroPay for Profile/Inbox
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.7
-
-- **Item Lookup:** Toolbar **Item** — chat code / ID / name → official API (rarity, prices)
-  plus wiki & BLTC; free-floating (not docked with Notes/TP)
-- **Wallet & Stash:** Toolbar **Wallet** — searchable wallet, materials, bank, shared, and
-  per-toon bags (API scopes: account, wallet, inventories, characters); parallel fetch +
-  name cache; Notes-sized default window
-- **Vault:** Toolbar **Vault** — free-floating Dailies & Wizard’s Vault with UTC reset
-  countdowns (same read-only API as Browse → Live)
-- **Browse:** Official links under Help; Fast Farming under Guides
-- **Dropdowns:** In-page `<select>` polyfill — fixes Windows helper crash/relaunch when
-  using site dropdowns (e.g. gw2efficiency crafting calculator)
-- **Favorites QR:** Larger quiet zone on the in-game QR for more reliable phone scanning
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.6
-
-- **Live:** Browse → Live panels (dailies/Vault, news, fashion, legendaries & characters) with
-  parallel API fetches + disk caches; optional GW2 API key in Options
-- **TP / Notes:** Toolbar **TP** and **Notes** ImGui pads dock beside the helper (stack below
-  each other); start closed each session; movable after open
-- **Snow Crows:** Profile/Inbox stay clickable above ads; gw2armory trait/skill hover cards
-  no longer bury under sticky chrome
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.5
-
-- **Nexus:** Library search works again with the addon loaded — stopped wiping shared
-  ImGui `WantTextInput` / key state, and uniquified widget IDs (`###gw2igh_…`)
-- **Companion:** Options → Show favorites QR syncs favorites to the Android app
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.4
-
-- **Catalog:** Snow Crows Browse links restored (raid builds, AccessiBuilds, OW/PvP/WvW,
-  guides hub, W1–W7 raid bosses, Discord) alongside MetaBattle
-- **Twitch:** In-page Twitch embeds become a Watch card / Open Ext — official CEF builds
-  omit H.264/AAC (Error #4000); same pattern as YouTube
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.3
-
-- **Search:** Default Web search uses DuckDuckGo (Google remains under Browse)
-- **Windows:** CEF profile persists under `%LOCALAPPDATA%` so temp cleaners cannot
-  wipe cookies and trigger Google `/sorry` captchas
-- **Sign-in:** Google account / consent / captcha pages open via Open Ext (no more
-  dead Sign in button that cancelled with no action)
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.2
-
-- **Ads:** Click trackers with long URLs no longer truncate (blank landing pages)
-- **Ads:** Every ad click leaves the addon — trackers, ad-iframe links, and any
-  new-window link to a third-party domain open in the system browser so partners
-  get a real click; same-site new-window links still open in-tab
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.1
-
-- **Input:** Game chat works with the helper open (including Space); keys follow the pointer
-- **Browse:** Site picker / popups no longer close when moving onto the menu
-- **Find:** Toolbar Enter finds on the current page; **Web** button does site/DuckDuckGo search
-- **Focus:** CEF text caret restored when typing in page fields
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
-
-## What’s new in 2.0.2.0
-
-- **Runtime:** Private CEF Stable 150 under `addons/GW2-InGame-Helper/cef/` (first-run download or local zip) — never uses or writes `bin64/cef`
-- **Sites:** Modern CSS/JS via CEF 150; Discord **Continue to Discord** handoff; in-page `<select>` polyfill
-- **Limits:** MetaBattle Cloudflare / Google login often still need **Open Ext**
-- Full write-up: [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md)
 
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
-- **Compact toolbar** — Browse · nav · Find · Web · Notes · TP · Item · Wallet · `...` menu
+- **Compact toolbar** — Browse · nav · Find · Web · pad row (Account · Notes · TP · … · DPS Logs) · `...` menu
+- **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
+- **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report ([setup](docs/DPS_LOGS.md))
 - **GW2-themed** chrome (gold tabs + muted status); Browse picker with section headers (Tools, Guides, Discord, Cheat Sheets, …)
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
 - **Find in page** — toolbar Enter or Ctrl+F; **Web** for site/DuckDuckGo search
-- **Notes / TP** — dock beside the helper (stack if both open); **Item** / **Wallet** free-floating
+- **Notes** — snippets + waypoint / POI search; **TP** / **Item** / **Wallet** / **Vault** pads
 - **Favorites** — star + drag-reorder
 - **Keep browser warm** — optional hide without killing CEF (collapse also keeps the helper alive)
 - **Default landing site** — Options picker; used by the Home button and when no tabs are saved
 - Nexus **QuickAccess** icon at the top of the screen
-- Hotkeys: `Ctrl+Shift+H` (or `K`) open / close · QuickAccess icon
+- Hotkeys: `Ctrl+Shift+H` (or `K`) helper · `A` Account · `G` Tekkit · `E` Events · `N` Notes (rebind in Nexus)
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
 - **Cheat Sheets** category — offline pages including **Daily / Weekly**, **Currency Sinks**, **Ascended Start**, **Portals / Pulls**, **Homestead**, **WvW Consumables**, plus Uber's, Food, Utilities, Fractals, Sigils, Relics, Boons, Squad, Stab/Cleanse, CC, Wings, Strikes, Mats, Legendaries, Mounts, Garden

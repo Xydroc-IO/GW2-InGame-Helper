@@ -2,7 +2,7 @@
 
 GW2 In-Game Helper — where to find what.
 
-- **Shipping revision:** **2.0.2.11** (`GW2-InGame-Helper.dll`, private CEF 150) —
+- **Shipping revision:** **2.1.0.0** (`GW2-InGame-Helper.dll`, private CEF 150) —
   see [`RELEASE_NOTES.md`](RELEASE_NOTES.md)
 
 ---
@@ -18,6 +18,7 @@ GW2 In-Game Helper — where to find what.
 | [`COMPLIANCE.md`](COMPLIANCE.md) | Contributors | Allowed / forbidden Nexus and TOS boundaries |
 | [`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md) | Site operators | How to allow/deny the addon via User-Agent (`GW2-InGame-Helper`) |
 | [`CEF_RUNTIME.md`](CEF_RUNTIME.md) | Contributors | Private CEF 150 first-run download, zip, SHA |
+| [`DPS_LOGS.md`](DPS_LOGS.md) | Players | DPS Logs pad — Elite Insights, .NET 8, Protontricks install |
 | `SNOWCROWS.md` *(gitignored)* | Local | Brief for Snow Crows (not published) |
 | [`BUILD.md`](BUILD.md) | Contributors | MinGW cross-compile, `make install`, cheat-sheet extract |
 
@@ -27,7 +28,7 @@ GW2 In-Game Helper — where to find what.
 
 | Doc | Purpose |
 |-----|---------|
-| [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | Full changelog (current: **2.0.2.11**) |
+| [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | Full changelog (current: **2.1.0.0**) |
 | [`RELEASE_NOTES_CEF_RUNTIME.md`](RELEASE_NOTES_CEF_RUNTIME.md) | GitHub body for tag `cef-runtime-150` (zip asset) |
 | [`description.html`](description.html) | HTML listing for web / Nexus description paste |
 | `RAIDCORE.md` *(gitignored)* | Local Nexus listing draft — short description + changelog |

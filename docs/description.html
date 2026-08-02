@@ -69,7 +69,7 @@
       </div>
 
       <div class="meta">
-        <strong>Version</strong> 2.0.2.11 ·
+        <strong>Version</strong> 2.1.0.0 ·
         <strong>Signature</strong> 0x48454C50 ·
         <strong>Author</strong> xydroc ·
         <strong>License</strong> MIT ·
@@ -80,7 +80,7 @@
       <p>
         <strong>GW2 In-Game Helper</strong> opens useful Guild Wars 2 websites and community
         Discord invites <em>inside the game</em> —
-        <strong>2,662</strong> Browse entries covering Wiki, builds, tools, guides, farming, and more.
+        <strong>2,716</strong> Browse entries covering Wiki, builds, tools, guides, farming, and more.
       </p>
       <p>
         Players install a <strong>single DLL</strong>. No memory reads; official Nexus APIs only.
@@ -98,19 +98,17 @@
 
       <h2>Features</h2>
       <div class="note">
-        <strong>Catalog size:</strong> <strong>2,662</strong> Browse entries —
-        <strong>2,271</strong> Wiki pages ·
-        <strong>294</strong> guides ·
-        <strong>23</strong> offline cheat sheets ·
-        <strong>16</strong> build hubs ·
-        <strong>19</strong> Discord invites ·
-        plus Tools (incl. GW2.app), Search, and Discord.
+        <strong>Catalog size:</strong> <strong>2,716</strong> Browse entries —
+        Wiki, guides, offline cheat sheets, build hubs, Discord invites,
+        plus Tools (incl. GW2.app), Search, and Live digests.
       </div>
       <ul>
         <li><strong>In-game browser</strong> — full CEF pages inside Guild Wars 2 (private CEF 150 under <code>addons/.../cef/</code>)</li>
         <li><strong>Browse panel</strong> — search + categories; collapsible sections; clipped large Wiki lists</li>
-        <li><strong>Compact toolbar</strong> — Browse · Back / Forward / Home / Reload · Find in page · Web ·
+        <li><strong>Compact toolbar</strong> — Browse · nav · Find · Web · Account / Notes / TP / DPS Logs pad row ·
           <code>...</code> menu (Find / Copy URL / Open Ext)</li>
+        <li><strong>Account</strong> — tabbed stash, vault, TP, item lookup, crafting, and legendary / character progress (official API)</li>
+        <li><strong>DPS Logs</strong> — ArcDPS EVTC browser via Elite Insights + optional dps.report (see <code>docs/DPS_LOGS.md</code>)</li>
         <li><strong>GW2-themed chrome</strong> — gold / bronze panels, gold tabs, muted status line</li>
         <li><strong>Tabs</strong> — up to 8 live pages; pin; reopen closed; live titles from the page; persisted across sessions</li>
         <li><strong>Tab hotkeys</strong> —
@@ -123,11 +121,12 @@
         <li><strong>Keep browser warm</strong> — optional hide without killing CEF (title-bar collapse also keeps the helper alive)</li>
         <li><strong>Default landing site</strong> — Options picker; used by Home and when no tabs are saved</li>
         <li><strong>QuickAccess</strong> — Nexus icon at the top of the screen</li>
-        <li><strong>Hotkey toggle</strong> — <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>); rebind via Nexus</li>
+        <li><strong>Hotkeys</strong> — <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> helper ·
+          <kbd>A</kbd> Account · <kbd>G</kbd> Tekkit · <kbd>E</kbd> Events · <kbd>N</kbd> Notes (rebind in Nexus)</li>
         <li><strong>Branded homepage</strong> — how-to guide with logo + cover on first open</li>
         <li><strong>Cheat Sheets</strong> — offline pages (Raid Food, utilities, fractals, boons, Uber’s waypoints, dailies, and more) with interactive checklists</li>
-        <li><strong>Live panels</strong> — Vault dailies, news digest, fashion wishlist, TP prices/craft costs, legendaries &amp; characters (read-only API; optional key in Options)</li>
-        <li><strong>Notes</strong> — local clipboard helpers for waypoints, chat codes, builds, and LFG snippets</li>
+        <li><strong>Live panels</strong> — news digest and fashion wishlist (Vault / Progress live under Account)</li>
+        <li><strong>Notes</strong> — snippets + official waypoint / POI search (copy chat codes)</li>
         <li><strong>Item Lookup</strong> — chat code / ID / name → rarity, prices, wiki &amp; BLTC</li>
         <li><strong>Wallet &amp; Stash</strong> — searchable wallet, materials, bank, and per-toon bags (API key)</li>
         <li><strong>Vault</strong> — free-floating Dailies &amp; Wizard’s Vault with UTC reset countdowns (API key optional)</li>
@@ -158,117 +157,13 @@
         <li>Click outside the window (on the game) to return movement / skills to Guild Wars 2.</li>
       </ol>
 
-      <h2>What’s new in 2.0.2.11</h2>
+      <h2>What’s new in 2.1.0.0</h2>
       <ul>
-        <li><strong>gw2efficiency ads:</strong> Desktop-sized CEF layout so NitroPay desktop slots load (scaled into the panel); other sites unchanged.</li>
-      </ul>
-      <h2>What’s new in 2.0.2.10</h2>
-      <ul>
-        <li><strong>Viewability:</strong> CEF is hidden when collapsed / tiny / off-screen so ads are less likely to record 0%-viewable impressions (opacity still renders).</li>
-      </ul>
-      <h2>What’s new in 2.0.2.9</h2>
-      <ul>
-        <li><strong>Publisher ID:</strong> User-Agent product token <code>GW2-InGame-Helper</code> so sites can allow or deny this client — see <code>docs/PUBLISHER_ACCESS.md</code>.</li>
-      </ul>
-      <h2>What’s new in 2.0.2.8</h2>
-      <ul>
-        <li><strong>World Events:</strong> Toolbar Events — UTC timers for bosses / metas; optional API claim marks.</li>
-        <li><strong>Tekkit's Guides:</strong> Toolbar Tekkit — local <code>.taco</code> pathing with read-only MumbleLink compass + world trail overlays.</li>
-        <li><strong>OSR screen metrics:</strong> Reports real desktop / work area for <code>screen.*</code> while the ImGui panel stays the viewport — improves ad impression fingerprinting without changing mouse/paint scaling.</li>
-        <li><strong>Snow Crows ads:</strong> Ad iframes are clickable again (removed <code>pointer-events:none</code>); header stays above NitroPay.</li>
-      </ul>
-      <h2>What’s new in 2.0.2.7</h2>
-      <ul>
-        <li><strong>Item Lookup:</strong> Toolbar Item — chat code / ID / name → API stats, wiki &amp; BLTC (free-floating).</li>
-        <li><strong>Wallet &amp; Stash:</strong> Searchable wallet, mats, bank, shared, per-toon bags; parallel fetch + name cache.</li>
-        <li><strong>Vault:</strong> Toolbar Vault — free-floating Dailies &amp; Wizard’s Vault with UTC reset countdowns.</li>
-        <li><strong>Browse:</strong> Official sites under Help; Fast Farming under Guides.</li>
-        <li><strong>Dropdowns:</strong> In-page &lt;select&gt; polyfill — stops Windows helper crash/relaunch on site dropdowns.</li>
-        <li><strong>Favorites QR:</strong> Larger quiet zone for more reliable phone scanning.</li>
-      </ul>
-      <h2>What’s new in 2.0.2.6</h2>
-      <ul>
-        <li><strong>Live:</strong> Dailies/Vault, news, fashion, legendaries &amp; characters — parallel API + caches; optional API key.</li>
-        <li><strong>TP / Notes:</strong> ImGui pads from the toolbar; dock beside the helper; start closed each session.</li>
-        <li><strong>Snow Crows:</strong> Profile/Inbox clickable; gw2armory trait hover cards visible above sticky chrome.</li>
-      </ul>
-      <h2>What’s new in 2.0.2.5</h2>
-      <ul>
-        <li><strong>Nexus:</strong> Library search works again — no longer wipe shared ImGui text-input state; unique <code>###gw2igh_…</code> widget IDs.</li>
-        <li><strong>Companion:</strong> Options → Show favorites QR syncs favorites to the Android app.</li>
-      </ul>
-      <h2>What’s new in 2.0.2.4</h2>
-      <ul>
-        <li><strong>Catalog:</strong> Snow Crows Browse links restored (builds, guides, Discord) alongside MetaBattle.</li>
-        <li><strong>Twitch:</strong> Embeds become a Watch card / Open Ext (CEF lacks H.264/AAC — Error #4000).</li>
-      </ul>
-      <h2>What’s new in 2.0.2.3</h2>
-      <ul>
-        <li><strong>Search:</strong> Default Web search uses DuckDuckGo (Google remains under Browse).</li>
-        <li><strong>Windows:</strong> CEF profile persists under LocalAppData so temp cleaners cannot wipe cookies and trigger Google captchas.</li>
-        <li><strong>Sign-in:</strong> Google account / consent / captcha pages open via Open Ext (no more dead Sign in button).</li>
-      </ul>
-      <h2>What’s new in 2.0.2.2</h2>
-      <ul>
-        <li><strong>Ads:</strong> Long click-tracker URLs no longer truncate (blank landing pages).</li>
-        <li><strong>Ads:</strong> Every ad click leaves the addon — trackers, ad-iframe links, and any new-window link to a third-party domain open in the system browser so partners get a real click. Same-site new-window links still open in-tab.</li>
-      </ul>
-      <h2>What’s new in 2.0.2.1</h2>
-      <ul>
-        <li><strong>Input:</strong> Chat works with the helper open (including Space); keys follow the pointer.</li>
-        <li><strong>Browse:</strong> Site picker no longer closes when moving onto the menu.</li>
-        <li><strong>Find:</strong> Toolbar Enter finds on the page; Web button does site/Google search.</li>
-        <li><strong>Focus:</strong> Text caret shows again when typing in page fields.</li>
-      </ul>
-      <h2>What’s new in 2.0.2.0</h2>
-      <ul>
-        <li><strong>Runtime:</strong> Private CEF 150 (first-run download) — no longer uses game <code>bin64/cef</code>.</li>
-        <li><strong>Catalog:</strong> No Snow Crows Browse links.</li>
-      </ul>
-      <h2>What’s new in 2.0.1.1</h2>
-      <ul>
-        <li><strong>Input:</strong> Wiki page search typing no longer leaks to GW2; WASD / RMB camera look no longer fight the overlay (stuck run or walk dying on cursor reappear).</li>
-      </ul>
-      <h2>What’s new in 2.0.1.0</h2>
-      <ul>
-        <li><strong>Release:</strong> Stable cut of the 2.0.0.x line — GW2.app under Tools, ads allowed, Snow Crows removed (MetaBattle / Accessibility Wars), Windows first-paint fix, YouTube Watch cards, architecture + code-audit docs.</li>
-      </ul>
-      <h2>What’s new in 2.0.0.21</h2>
-      <ul>
-        <li><strong>Browse:</strong> <strong>GW2.app</strong> deep links under Tools — lists, database, maps, Wizard’s Vault, trading post, and sign-in.</li>
-        <li><strong>Helper:</strong> CSS polish for gw2.app; Open Ext tip on login pages if OAuth fails in CEF.</li>
-      </ul>
-      <h2>What’s new in 2.0.0.20</h2>
-      <ul>
-        <li><strong>Catalog:</strong> Snow Crows removed at their request — MetaBattle raid builds and wing guides replace those entries; Accessibility Wars kept.</li>
-        <li><strong>Ads:</strong> Site ads are allowed (NitroPay / AdSense / analytics are no longer blocked).</li>
-        <li><strong>Present:</strong> Staging GPU upload + paint-wait diagnostics for Windows first-paint stalls.</li>
-      </ul>
-      <h2>What’s new in 2.0.0.19</h2>
-      <ul>
-        <li><strong>Fix:</strong> Native Windows could stick on “Waiting for first paint…” while status said Ready — first GPU upload now waits for the Map instead of skipping forever.</li>
-        <li><strong>Note:</strong> Windows Defender may ML-flag the unsigned DLL as <code>Wacatac.B!ml</code> (false positive). Allow the file, or submit it to Microsoft as a developer false positive.</li>
-      </ul>
-      <h2>What’s new in 2.0.0.18</h2>
-      <ul>
-        <li><strong>Embeds:</strong> Guildjen YouTube iframes are rewritten to <strong>Watch on YouTube</strong> cards before the page paints, and youtube/googlevideo loads are blocked — Play can no longer refresh the guide.</li>
-      </ul>
-      <h2>What’s new in 2.0.0.17</h2>
-      <ul>
-        <li><strong>Embeds:</strong> YouTube players on guides are replaced with a “Watch on YouTube” link that opens your system browser — in-page Play was still refreshing the tab.</li>
-      </ul>
-      <h2>What’s new in 2.0.0.16</h2>
-      <ul>
-        <li><strong>Embeds:</strong> Playing an embedded YouTube video on a guide no longer refreshes / replaces the page (CDN and watch-page top-level navigations are blocked).</li>
-      </ul>
-      <h2>What’s new in 2.0.0.15</h2>
-      <ul>
-        <li><strong>Input:</strong> Typing in Browse filter, Search, or Find no longer sends keys to Guild Wars 2 (fixes stuck autorun when typing <kbd>R</kbd>).</li>
-      </ul>
-      <h2>What’s new in 2.0.0.14</h2>
-      <ul>
-        <li><strong>Removed YouTube:</strong> Guild Wars 2’s CEF 103 off-screen renderer cannot play it reliably and the page constantly refreshed. Use your normal browser for YouTube.</li>
-        <li><strong>Stability:</strong> Restored the proven software-only CEF path for safer Wine / Proton rendering.</li>
+        <li><strong>Account:</strong> Tabbed stash / vault / TP / item / crafting / progress on the official API (Vault dailies &amp; legendaries moved out of Browse → Live).</li>
+        <li><strong>DPS Logs:</strong> ArcDPS EVTC browser via Elite Insights + dps.report — see <code>docs/DPS_LOGS.md</code> (.NET 8 / Protontricks).</li>
+        <li><strong>Notes:</strong> Official waypoint / POI search with chat-code copy.</li>
+        <li><strong>Keybinds:</strong> Account / Tekkit / Events / Notes panel toggles (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>/<kbd>G</kbd>/<kbd>E</kbd>/<kbd>N</kbd>).</li>
+        <li>Full changelog: <code>docs/RELEASE_NOTES.md</code>.</li>
       </ul>
       <p style="color: var(--muted); font-family: &quot;Segoe UI&quot;, Tahoma, sans-serif; font-size: 0.92rem;">
         Full history:
@@ -277,8 +172,8 @@
 
       <h2>Included sites</h2>
       <p style="color: var(--muted); font-family: &quot;Segoe UI&quot;, Tahoma, sans-serif; font-size: 0.92rem;">
-        <strong style="color: var(--gold-dim);">2,646</strong> pages and guides in Browse
-        (mostly Wiki + Guildjen / MetaBattle guides). Counts below are category totals.
+        <strong style="color: var(--gold-dim);">2,716</strong> pages and guides in Browse
+        (mostly Wiki + Guildjen / MetaBattle / Snow Crows guides). Counts below are category totals.
       </p>
       <table>
         <thead><tr><th>Category</th><th>Count</th><th>Sites</th></tr></thead>
@@ -286,7 +181,7 @@
           <tr><td>Favorites</td><td>—</td><td>Your starred sites</td></tr>
           <tr><td>Help</td><td>6</td><td>How to use, New Player Guide, Guild Wars 2, GW2 News, Raidcore, Forums</td></tr>
           <tr><td>Search</td><td>3</td><td>Google, DuckDuckGo, Gemini (AI)</td></tr>
-          <tr><td>Wiki</td><td>2,271</td><td>GW2 Wiki, Legendary Armory (Armor / Weapons / Accessory / Amulet / Rings / Back / Upgrades), Cosmetic Infusions, Lifestyle, Crafting, Food, Ascended Food, Utility, Minis, Upgrades (Runes/Relics/Sigils), Mounts, Easy Objectives</td></tr>
+          <tr><td>Wiki</td><td>—</td><td>GW2 Wiki, Legendary Armory (Armor / Weapons / Accessory / Amulet / Rings / Back / Upgrades), Cosmetic Infusions, Lifestyle, Crafting, Food, Ascended Food, Utility, Minis, Upgrades (Runes/Relics/Sigils), Mounts</td></tr>
           <tr><td>Builds</td><td>16</td><td>MetaBattle Raid Builds (all + per profession), Accessibility Wars, MetaBattle OW / PvP / WvW, Gw2Skills Editor</td></tr>
           <tr><td>Tools</td><td>29</td><td>gw2efficiency, Legendary Tracker, Blish HUD, timers, Crafts, Music Box, Peu, KillProof, Wingman, BLTC, Treasures, ArcDPS guide, <strong>GW2.app</strong> (hub / lists / DB / maps / vault / TP / sign-in)</td></tr>
           <tr><td>Cheat Sheets</td><td>23</td><td>Uber's All-In-One, Raid Food, Raid Utilities, Fractal Consumables, Fractal CM / T4, Sigils &amp; Runes, Relics, Boon Checklist, Squad Template, Stability / Cleanse, CC / Defiance, Raid Wings, Strike Missions, Material Conversions, Legendary Paths, Mount Unlock, Home Garden, Daily / Weekly, Currency Sinks, Ascended Start, Portals / Pulls, Homestead, WvW Consumables (built-in)</td></tr>

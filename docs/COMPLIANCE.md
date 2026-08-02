@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.0.2.11** — process/IPC notes live in local `ARCHITECTURE.md` (gitignored) if you keep one; public overview is [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.1.0.0** — process/IPC notes live in local `ARCHITECTURE.md` (gitignored) if you keep one; public overview is [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 ## Allowed
 
@@ -17,6 +17,7 @@ Current policy snapshot: **v2.0.2.11** — process/IPC notes live in local `ARCH
 - Tekkit’s All-In-One `.taco` pathing packs (© Tekkit's Workshop, used with permission) loaded locally for display
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
+- Optional **Elite Insights CLI** under `addons/GW2-InGame-Helper/ei/` (on-demand download of upstream `GW2EICLI.zip` + SHA-256 verify; MIT, baaron4; requires user-installed .NET 8)
 - Site ads / consent / analytics loads in CEF (do not re-strip without review)
 - Deep links to third-party sites as Browse hyperlinks
 - Stable User-Agent product token `GW2-InGame-Helper` so publishers can allow/deny
