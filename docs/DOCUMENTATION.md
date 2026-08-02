@@ -18,7 +18,7 @@ GW2 In-Game Helper — where to find what.
 | [`COMPLIANCE.md`](COMPLIANCE.md) | Contributors | Allowed / forbidden Nexus and TOS boundaries |
 | [`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md) | Site operators | How to allow/deny the addon via User-Agent (`GW2-InGame-Helper`) |
 | [`CEF_RUNTIME.md`](CEF_RUNTIME.md) | Contributors | Private CEF 150 first-run download, zip, SHA |
-| [`DPS_LOGS.md`](DPS_LOGS.md) | Players | DPS Logs pad — Elite Insights, .NET 8, Protontricks (also Browse → Help) |
+| [`DPS_LOGS.md`](DPS_LOGS.md) | Players | DPS Logs pad — Elite Insights, .NET 8, Protontricks, KillProof tab, group-by (also Browse → Help) |
 | [`API_KEY.md`](API_KEY.md) | Players | ArenaNet API key scopes + Nexus Options paste (also Browse → Help) |
 | `SNOWCROWS.md` *(gitignored)* | Local | Brief for Snow Crows (not published) |
 | [`BUILD.md`](BUILD.md) | Contributors | MinGW cross-compile, `make install`, cheat-sheet extract |

@@ -144,7 +144,7 @@ Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/R
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
 - **Compact toolbar** — Browse · nav · Find · Web · pad row (Account · Notes · TP · … · DPS Logs) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
-- **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report ([setup](docs/DPS_LOGS.md))
+- **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
 - **GW2-themed** chrome (gold tabs + muted status); Browse picker with section headers (Tools, Guides, Discord, Cheat Sheets, …)
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen

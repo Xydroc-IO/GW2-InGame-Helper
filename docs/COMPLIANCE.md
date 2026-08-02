@@ -12,6 +12,7 @@ Current policy snapshot: **v2.1.0.0** — process/IPC notes live in local `ARCHI
 - Local IPC shared memory between the DLL and `GW2HelperBrowser.exe`
 - Official `api.guildwars2.com` reads from injected BootJs (credentials omitted; batched; 429 backoff) where pages use them
 - DLL WinHTTP reads to `api.guildwars2.com`, `guildwars2.com` news feed, and wiki MediaWiki API for **Live** Browse panels and ImGui pads (read-only; optional account API key stored only in local `settings.ini`)
+- DLL WinHTTP reads to **killproof.me** (`/api/kp/…`) for the DPS Logs **KillProof** tab — public profiles only; no killproof.me login; results cached in-memory
 - Local Notes pad (`notes.json` under the addon folder) with clipboard copy helpers — no game injection
 - Item Lookup pad (public `/v2/items` + wiki search), Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories), and Vault pad (Wizard’s Vault / dailies — same Live panel API) — read-only; item name cache in `stash-names.cache`
 - Tekkit’s All-In-One `.taco` pathing packs (© Tekkit's Workshop, used with permission) loaded locally for display

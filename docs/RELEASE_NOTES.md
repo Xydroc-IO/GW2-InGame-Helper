@@ -45,9 +45,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   upload + report-meta hydrate. Requires **.NET 8 Desktop Runtime** in the Windows /
   Proton prefix — see [`DPS_LOGS.md`](DPS_LOGS.md). Layout mirrors ArcDPS Log Manager
   (filters | list | detail): display-scaled default size, proportional filter column,
-  persisted list|detail splitter + window geometry; Players / Guilds show the
-  **selected log** only. Players tab loads **KP** (LI / LD / encounter tokens) from
-  killproof.me for public profiles.
+  persisted list|detail splitter + window geometry; **Group by encounter** on by
+  default (collapsible boss sections). Players / Guilds / **KillProof** show the
+  **selected log** only. KillProof tab loads LI / LD / UFE + encounter tokens from
+  killproof.me (public profiles).
 - **Help setup pages:** Browse → Help → **DPS Log Setup Help** and **API Key Setup**
   (offline `about:` sheets; mirror [`DPS_LOGS.md`](DPS_LOGS.md) / [`API_KEY.md`](API_KEY.md)).
 - **Keybinds:** Panel toggles registered with Nexus — Account `Ctrl+Shift+A`,

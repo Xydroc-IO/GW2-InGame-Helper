@@ -162,14 +162,31 @@ Detail tab shows squad **DPS / Power / Condi** and key boon uptimes
 (**Quick / Alac / Might / Fury / Prot**). Open the full HTML report with
 **Open report** when you need everything Elite Insights renders in a browser.
 
-**Players tab — KP:** Legendary Insights (**LI**), Legendary Divinations (**LD**), and
-an encounter token column (e.g. **Decima**) load from [killproof.me](https://killproof.me/)
-for accounts with a **public** profile. Click **Load KP** to refresh; click an account
-name to open their killproof.me page. Private / unregistered accounts show **—**.
+### KillProof tab
 
-**Layout:** Filters | log list | Detail/Players/… — drag the vertical splitter
-between the list and the right pane to resize (saved). Window size and position
-are remembered. Defaults scale from your display on first open.
+Right-pane tab **KillProof** (alongside Detail / Players / Guilds / Fastest / Setup)
+loads public [killproof.me](https://killproof.me/) profiles for the **selected log’s
+squad**:
+
+| Column | Meaning |
+|--------|---------|
+| **LI** / **LD** / **UFE** | Account-wide Legendary Insights, Divinations, Unstable Fractal Essences |
+| Encounter token (e.g. **Xera**) | Token count for the **selected** encounter |
+| Rows | Players in that log only |
+
+Click **Load KillProof** to refresh (also auto-starts when you open the tab).
+Click an account name to open their killproof.me page. Private / unregistered
+profiles show **—**.
+
+### Layout
+
+Filters | log list | Detail / Players / **KillProof** / … — drag the vertical
+splitter between the list and the right pane to resize (saved).
+
+**Group by encounter** is **on by default** (Filters pane): collapsible sections
+per boss with count / kills / best kill / last time; newest encounters first.
+Uncheck for a flat chronological-style list. Window size and position are
+remembered; first-open size scales from your display.
 
 ---
 
@@ -194,6 +211,14 @@ are remembered. Defaults scale from your display on first open.
 - Uploads alone used to store only the link. Use **Load report meta** (or Rescan)
   to pull DPS/boons from dps.report, or **Parse pending** with EI + .NET.
 - Confirm the log folder path points at real `.zevtc` / `.evtc` files.
+
+### KillProof shows only dashes / “none/private”
+
+- Accounts need a **public** killproof.me profile (or the site returns not found).
+- Load full EI JSON first (**Load DPS/boons** / Parse) so account names exist.
+- Open the **KillProof** tab and click **Load KillProof**; check the status line
+  (`N loaded · M none/private`).
+- Network to `killproof.me` must work from the game environment (Wine/Proton included).
 
 ### Proton: Install .NET button opens a browser but “nothing installs”
 
