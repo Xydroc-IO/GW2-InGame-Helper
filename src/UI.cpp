@@ -16,6 +16,7 @@
 #include "Sites.h"
 #include "SyncQr.h"
 #include "WikiBrowser.h"
+#include "WikiIpc.h"
 #include "AddonPaths.h"
 
 #include "imgui/imgui.h"
@@ -255,6 +256,40 @@ namespace
 		if (y >= fh) y = fh - 1;
 		*outX = x;
 		*outY = y;
+	}
+
+	/* NitroPay (gw2efficiency etc.) gates slots with matchMedia min-width up to
+	   1840px / 1920px. OSR innerWidth is the ImGui panel, so a normal helper
+	   window never unlocks desktop rails. Render those hosts at a desktop-sized
+	   CEF view and scale into the panel (MapToCef already maps clicks). */
+	bool HostWantsDesktopAdViewport(const char* url)
+	{
+		if (!url || !url[0])
+			return false;
+		static const char* kHosts[] = {
+			"gw2efficiency.com",
+			"snowcrows.com",
+			"metabattle.com",
+			"guildjen.com",
+		};
+		for (const char* host : kHosts)
+		{
+			if (std::strstr(url, host))
+				return true;
+		}
+		return false;
+	}
+
+	void DesktopAdCefSize(float /*panelW*/, float panelH, float* outW, float* outH)
+	{
+		/* Full HD layout width so (min-width: 1840px) / footer / video queries pass. */
+		*outW = static_cast<float>(kWikiFrameMaxW);
+		float h = panelH;
+		if (h < 900.f)
+			h = 900.f;
+		if (h > static_cast<float>(kWikiFrameMaxH))
+			h = static_cast<float>(kWikiFrameMaxH);
+		*outH = h;
 	}
 
 	static char sFilter[64] = {};
@@ -3127,8 +3162,12 @@ void UI_Render()
 		G::ShowWiki && open && slotOnScreen && sSlotLargeEnough;
 	if (pageViewable)
 	{
+		float cefW = imageSize.x;
+		float cefH = imageSize.y;
+		if (HostWantsDesktopAdViewport(WikiBrowser::CurrentUrlCStr()))
+			DesktopAdCefSize(imageSize.x, imageSize.y, &cefW, &cefH);
 		WikiBrowser::SetVisible(true);
-		WikiBrowser::SetBounds(0.f, 0.f, imageSize.x, imageSize.y);
+		WikiBrowser::SetBounds(0.f, 0.f, cefW, cefH);
 		WikiBrowser::PresentFrame();
 	}
 	else

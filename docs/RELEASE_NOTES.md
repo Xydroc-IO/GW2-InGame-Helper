@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.0.2.10
+# GW2 In-Game Helper v2.0.2.11
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -29,6 +29,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.0.2.11
+
+- **Desktop ad viewport:** On gw2efficiency / Snow Crows / MetaBattle / Guildjen,
+  CEF lays out at a full desktop size (1920×≥900) so NitroPay `matchMedia` slots
+  (side rails, large footers, etc.) unlock like a normal browser. The panel scales
+  that view to fit; clicks stay mapped correctly.
+- **Stamps:** Helper `2051` · homepage `2014`
 
 ## What’s new in 2.0.2.10
 
