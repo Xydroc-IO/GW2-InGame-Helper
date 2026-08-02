@@ -38,9 +38,16 @@ git submodule update --init --recursive
 make -j"$(nproc)"
 make validate-sites
 make check-sites          # gen output must match JSON
-# optional CSS regression
-python3 tools/test_css_downlevel.py
-make install              # or Beta INSTALL_* when on Beta branch
+make test-css             # CssCompat color-mix downlevel
+make ci                   # full local gate (sites + CSS + MinGW smoke build)
+```
+
+This project does **not** use GitHub Actions. Quality gates are **local**:
+
+```bash
+make ci
+# optional — block pushes that fail CI:
+git config core.hooksPath .githooks
 ```
 
 Full Guild Wars 2 **restart** is required after DLL updates (`AF_DisableHotloading`).
@@ -56,6 +63,7 @@ Catalog workflow:
 
 ## 4. Pull-request checklist
 
+- [ ] Ran `make ci` (or at least `validate-sites` / `check-sites` for catalog edits).
 - [ ] Branch is intentional (`master` vs Beta).
 - [ ] Touched Sites? Ran `make validate-sites` / `check-sites`.
 - [ ] Touched helper or IPC? Bumped `kHelperStamp` (and home stamp if needed); both sides of `WikiIpc.h` agree.

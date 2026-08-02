@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Pre-push gate: run local CI before updating remotes.
+# Enable once per clone:
+#   git config core.hooksPath .githooks
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+echo "pre-push: running make ci (local; no GitHub Actions)…"
+make ci

@@ -61,6 +61,19 @@ Upload the zip to a GitHub Release, then set `kDownloadUrl` / `kSha256Hex` in
 make clean
 ```
 
+### Local CI (no GitHub Actions)
+
+```bash
+make ci
+```
+
+Runs `validate-sites`, `check-sites`, CSS downlevel tests, and a full MinGW smoke build.
+Optional push gate (once per clone):
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## What gets compiled
 
 | Target | Sources |

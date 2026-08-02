@@ -21,7 +21,7 @@ GW2 In-Game Helper — where to find what.
 | [`CEF_RUNTIME.md`](CEF_RUNTIME.md) | Contributors | Private CEF 150 first-run download, zip, SHA |
 | [`DPS_LOGS.md`](DPS_LOGS.md) | Players | DPS Logs pad — Elite Insights, .NET 8, Protontricks, KillProof tab, group-by (also Browse → Help) |
 | [`API_KEY.md`](API_KEY.md) | Players | ArenaNet API key scopes + Nexus Options paste (also Browse → Help) |
-| [`BUILD.md`](BUILD.md) | Contributors | MinGW cross-compile, `make install`, sites codegen, CEF pack |
+| [`BUILD.md`](BUILD.md) | Contributors | MinGW cross-compile, `make install`, sites codegen, **local `make ci`** |
 | `CODE_AUDIT.md` *(gitignored)* | Local | Working audit notes — findings, regression checklist |
 | `SNOWCROWS.md` *(gitignored)* | Local | Brief for Snow Crows (not published) |
 

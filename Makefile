@@ -85,7 +85,7 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper-Beta
 
-.PHONY: all clean install install-reset validate-sites gen-sites check-sites pack-cef
+.PHONY: all clean install install-reset validate-sites gen-sites check-sites test-css ci pack-cef
 
 all: $(DLL_OUT)
 
@@ -103,6 +103,13 @@ validate-sites:
 check-sites: $(SITES_GEN)
 	python3 tools/gen_sites_cpp.py $(SITES_JSON) $(SITES_GEN) --check
 	python3 tools/validate_sites.py $(SITES_JSON)
+
+test-css:
+	python3 tools/test_css_downlevel.py
+
+# Local continuous integration (no GitHub Actions). Also used by .githooks/pre-push.
+ci:
+	@bash tools/ci.sh
 
 pack-cef:
 	bash scripts/pack-cef-runtime.sh
