@@ -185,10 +185,11 @@ splitter between the list and the right pane to resize (saved).
 
 **Group by encounter** is **on by default** (Filters pane): collapsible sections
 per boss with count / kills / best kill / last time; newest encounters first.
-Uncheck for a flat chronological-style list. Window size and position are
-remembered; first-open size uses most of the game client (~92%×84%, e.g. ~1760×900
-on 1080p) so filters | list | Detail/KillProof match the intended layout. Tables
-scroll horizontally if a pane is still tight.
+Uncheck for a flat chronological-style list. Result / Mode / Time filters use
+**in-window radios** (not popup combos — Nexus often eats ImGui dropdown clicks).
+Window size and position are remembered; first-open size uses most of the game
+client (~92%×84%, e.g. ~1760×900 on 1080p) so filters | list | Detail/KillProof
+match the intended layout. Tables scroll horizontally if a pane is still tight.
 
 ---
 

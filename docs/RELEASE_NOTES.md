@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.1.0.0
+# GW2 In-Game Helper v2.1.0.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -30,6 +30,18 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.1.0.1
+
+- **Shared pad theme:** Account, Notes, Events, DPS Logs, Tekkit, Stash, Vault, TP,
+  and Item Lookup use the same gold/dark helper chrome as Browse.
+- **Waypoints fix:** Floor JSON parser now indexes **all** POIs per map (was ~1 each);
+  cache schema v4; **Reload** re-downloads instead of reusing a bad cache.
+- **Pad filters without popup combos:** Stash location chips; DPS Logs / Progress /
+  Notes kind use in-window radios — Nexus was eating ImGui dropdown popup clicks.
+- **DPS Logs layout:** Near-full client default size, wider middle list, group-by
+  sections expand on open; KillProof tab + group-by default from 2.1.0.0 retained.
+- **Stamps:** Helper `2101` · homepage `2101`
 
 ## What’s new in 2.1.0.0
 
