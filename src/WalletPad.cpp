@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "HelperTheme.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -1013,6 +1014,7 @@ bool WalletPad::Render()
 	}
 
 	bool open = G::ShowWallet;
+	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Wallet & Stash##GW2InGameHelperWallet", &open))
 	{
 		const bool hovered = ImGui::IsWindowHovered(

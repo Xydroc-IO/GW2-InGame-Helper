@@ -1,6 +1,7 @@
 #include "TekkitGuidesPad.h"
 
 #include "Globals.h"
+#include "HelperTheme.h"
 #include "PadDock.h"
 #include "Settings.h"
 #include "TekkitTrails.h"
@@ -52,6 +53,7 @@ bool TekkitGuidesPad::Render()
 	}
 
 	bool open = G::ShowTekkitGuides;
+	HelperTheme::ScopedWindow theme(G::Opacity);
 	/* NoNavInputs — gamepad/keyboard nav steals letters from the category filter. */
 	if (!ImGui::Begin("Tekkit's Guides##GW2InGameHelperTekkit", &open,
 		ImGuiWindowFlags_NoNavInputs))
@@ -75,8 +77,9 @@ bool TekkitGuidesPad::Render()
 		return false;
 	}
 
+	ImGui::TextColored(HelperTheme::Gold, "TEKKIT'S GUIDES");
 	ImGui::PushTextWrapPos(0.f);
-	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+	ImGui::TextColored(HelperTheme::Muted,
 		"Guides & trails © Tekkit's Workshop (All-In-One pack) — used with permission. "
 		"This panel only toggles display.");
 	ImGui::TextDisabled("https://www.tekkitsworkshop.net/");
@@ -88,12 +91,12 @@ bool TekkitGuidesPad::Render()
 
 	ImGui::Separator();
 	if (!G::Mumble || G::Mumble->uiTick == 0)
-		ImGui::TextColored(ImVec4(1.f, 0.55f, 0.35f, 1.f),
+		ImGui::TextColored(HelperTheme::Warn,
 			"MumbleLink: waiting (needed for compass / GPS)");
 	else
 	{
 		const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
-		ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.55f, 1.f), "MumbleLink: OK");
+		ImGui::TextColored(HelperTheme::Ok, "MumbleLink: OK");
 		if (ctx && ctx->mapId)
 		{
 			ImGui::SameLine();

@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "HelperTheme.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -765,6 +766,7 @@ bool VaultPad::Render()
 	}
 
 	bool open = G::ShowVault;
+	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Dailies & Vault##GW2InGameHelperVault", &open))
 	{
 		const bool hovered = ImGui::IsWindowHovered(

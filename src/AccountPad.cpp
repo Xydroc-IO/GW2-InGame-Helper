@@ -3,6 +3,7 @@
 #include "BrowserTabs.h"
 #include "CraftingData.h"
 #include "Globals.h"
+#include "HelperTheme.h"
 #include "LookupPad.h"
 #include "ProgressData.h"
 #include "Settings.h"
@@ -19,8 +20,8 @@
 
 namespace
 {
-	constexpr float kPadW = 500.f;
-	constexpr float kPadH = 640.f;
+	constexpr float kPadW = 560.f;
+	constexpr float kPadH = 700.f;
 
 	bool gFocus = false;
 	bool gPlaceOnce = false;
@@ -33,41 +34,47 @@ namespace
 			WikiBrowser::Navigate(url);
 	}
 
+	void SectionLabel(const char* label)
+	{
+		ImGui::Spacing();
+		ImGui::TextColored(HelperTheme::GoldDim, "%s", label);
+		ImGui::Separator();
+		ImGui::Spacing();
+	}
+
 	void DrawOverview()
 	{
 		const bool hasKey = G::Gw2ApiKey[0] != '\0';
 
-		ImGui::TextUnformatted("Account overview");
+		ImGui::TextColored(HelperTheme::Gold, "ACCOUNT");
 		ImGui::PushTextWrapPos(0.f);
-		ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-			"Your stash, vault, trading, crafting, and legendary progress in one place. "
-			"Uses your official GW2 API key from Nexus Options — read-only.");
+		ImGui::TextColored(HelperTheme::Muted,
+			"Stash, vault, trading, crafting, and legendary progress — official API, read-only.");
 		ImGui::PopTextWrapPos();
 		ImGui::Spacing();
 
+		ImGui::BeginChild("###gw2igh_acct_keycard", ImVec2(0.f, hasKey ? 92.f : 118.f), true);
 		if (hasKey)
 		{
-			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f),
-				"API key saved locally.");
+			ImGui::TextColored(HelperTheme::Ok, "API key saved locally");
 			ImGui::PushTextWrapPos(0.f);
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-				"Useful scopes: account, characters, inventories, wallet, "
-				"tradingpost, progression, unlocks.");
+			ImGui::TextColored(HelperTheme::Muted,
+				"Scopes: account · characters · inventories · wallet · tradingpost · progression · unlocks");
 			ImGui::PopTextWrapPos();
 		}
 		else
 		{
-			ImGui::TextColored(ImVec4(0.90f, 0.55f, 0.40f, 1.f),
-				"No API key yet.");
+			ImGui::TextColored(HelperTheme::Warn, "No API key yet");
 			ImGui::PushTextWrapPos(0.f);
 			ImGui::TextWrapped(
 				"Add one under Nexus → Options → GW2 In-Game Helper. "
 				"Stash / Vault / delivery / unlocks need it; item lookup & TP prices work without.");
 			ImGui::PopTextWrapPos();
 		}
+		ImGui::EndChild();
 
 		ImGui::Spacing();
-		if (ImGui::Button("Refresh account data###gw2igh_acct_refall"))
+		if (ImGui::Button("Refresh all###gw2igh_acct_refall", ImVec2(-FLT_MIN, 0.f)))
 		{
 			WalletPad::RefreshData();
 			VaultPad::RefreshData();
@@ -75,17 +82,43 @@ namespace
 			ProgressData::RefreshIfNeeded(true);
 			CraftingData::RefreshDailiesIfNeeded(true);
 		}
-		ImGui::SameLine();
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
-			"Use the tabs for each tool.");
+		ImGui::TextColored(HelperTheme::Muted, "Pulls stash, vault, trading, crafting dailies, and progress.");
 
-		ImGui::Separator();
-		ImGui::TextUnformatted("Also available");
-		if (ImGui::Button("Fashion (Live)###gw2igh_acct_fash"))
+		SectionLabel("TOOLS");
+		ImGui::PushTextWrapPos(0.f);
+		ImGui::TextColored(HelperTheme::Muted,
+			"Use the tabs above — each tool stays in this window.");
+		ImGui::PopTextWrapPos();
+		ImGui::Spacing();
+
+		const float gap = ImGui::GetStyle().ItemSpacing.x;
+		ImGui::BeginGroup();
+		ImGui::TextColored(HelperTheme::GoldMuted, "Stash");
+		ImGui::TextColored(HelperTheme::Muted, "Wallet · mats · bank · bags");
+		ImGui::EndGroup();
+		ImGui::SameLine(0.f, gap);
+		ImGui::BeginGroup();
+		ImGui::TextColored(HelperTheme::GoldMuted, "Vault");
+		ImGui::TextColored(HelperTheme::Muted, "Dailies · Wizard's Vault");
+		ImGui::EndGroup();
+
+		ImGui::Spacing();
+		ImGui::BeginGroup();
+		ImGui::TextColored(HelperTheme::GoldMuted, "Trading");
+		ImGui::TextColored(HelperTheme::Muted, "Delivery · watchlist");
+		ImGui::EndGroup();
+		ImGui::SameLine(0.f, gap);
+		ImGui::BeginGroup();
+		ImGui::TextColored(HelperTheme::GoldMuted, "Crafting");
+		ImGui::TextColored(HelperTheme::Muted, "Dailies · recipe tree");
+		ImGui::EndGroup();
+
+		SectionLabel("ALSO AVAILABLE");
+		if (ImGui::Button("Fashion (Live)###gw2igh_acct_fash", ImVec2(-FLT_MIN, 0.f)))
 			OpenLive("about:live-fashion");
 		ImGui::PushTextWrapPos(0.f);
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
-			"Legendaries live under the Progress tab. Fashion still opens our Live panel.");
+		ImGui::TextColored(HelperTheme::Muted,
+			"Legendaries live under Progress. Fashion opens the Live panel in Browse.");
 		ImGui::PopTextWrapPos();
 	}
 }
@@ -114,7 +147,7 @@ bool AccountPad::Render()
 	const float maxH = (io.DisplaySize.y > 100.f)
 		? (std::min)(io.DisplaySize.y * 0.92f, 960.f)
 		: 720.f;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(420.f, 340.f), ImVec2(680.f, maxH));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(440.f, 360.f), ImVec2(720.f, maxH));
 	if (gPlaceOnce)
 		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
 	else
@@ -134,8 +167,10 @@ bool AccountPad::Render()
 		gFocus = false;
 	}
 
+	HelperTheme::ScopedWindow theme(G::Opacity);
+
 	bool open = G::ShowAccount;
-	if (!ImGui::Begin("Account##GW2InGameHelperAccount", &open))
+	if (!ImGui::Begin("Account###GW2InGameHelperAccount", &open))
 	{
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
@@ -165,28 +200,28 @@ bool AccountPad::Render()
 		}
 		if (ImGui::BeginTabItem("Stash###gw2igh_acct_tab1"))
 		{
-			ImGui::BeginChild("###gw2igh_acct_body1", ImVec2(0.f, 0.f), false);
+			ImGui::BeginChild("###gw2igh_acct_body1", ImVec2(0.f, 0.f), true);
 			WalletPad::RenderContents();
 			ImGui::EndChild();
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Vault###gw2igh_acct_tab2"))
 		{
-			ImGui::BeginChild("###gw2igh_acct_body2", ImVec2(0.f, 0.f), false);
+			ImGui::BeginChild("###gw2igh_acct_body2", ImVec2(0.f, 0.f), true);
 			VaultPad::RenderContents();
 			ImGui::EndChild();
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Trading###gw2igh_acct_tab3"))
 		{
-			ImGui::BeginChild("###gw2igh_acct_body3", ImVec2(0.f, 0.f), false);
+			ImGui::BeginChild("###gw2igh_acct_body3", ImVec2(0.f, 0.f), true);
 			TpWatchPad::RenderContents(true);
 			ImGui::EndChild();
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Item###gw2igh_acct_tab4"))
 		{
-			ImGui::BeginChild("###gw2igh_acct_body4", ImVec2(0.f, 0.f), false);
+			ImGui::BeginChild("###gw2igh_acct_body4", ImVec2(0.f, 0.f), true);
 			LookupPad::RenderContents();
 			ImGui::EndChild();
 			ImGui::EndTabItem();
@@ -196,7 +231,7 @@ bool AccountPad::Render()
 				? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 			if (ImGui::BeginTabItem("Crafting###gw2igh_acct_tab5", nullptr, craftFlags))
 			{
-				ImGui::BeginChild("###gw2igh_acct_body5", ImVec2(0.f, 0.f), false);
+				ImGui::BeginChild("###gw2igh_acct_body5", ImVec2(0.f, 0.f), true);
 				CraftingData::RenderContents();
 				ImGui::EndChild();
 				ImGui::EndTabItem();
@@ -204,7 +239,7 @@ bool AccountPad::Render()
 		}
 		if (ImGui::BeginTabItem("Progress###gw2igh_acct_tab6"))
 		{
-			ImGui::BeginChild("###gw2igh_acct_body6", ImVec2(0.f, 0.f), false);
+			ImGui::BeginChild("###gw2igh_acct_body6", ImVec2(0.f, 0.f), true);
 			ProgressData::RefreshIfNeeded(false);
 			ProgressData::RenderContents();
 			ImGui::EndChild();

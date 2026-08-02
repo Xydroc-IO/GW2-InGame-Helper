@@ -3,6 +3,7 @@
 #include "BrowserTabs.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "HelperTheme.h"
 #include "PadDock.h"
 #include "Settings.h"
 #include "WikiBrowser.h"
@@ -1470,6 +1471,7 @@ bool TpWatchPad::Render()
 
 	ImGuiWindowFlags winFlags = autoFit ? ImGuiWindowFlags_AlwaysAutoResize : 0;
 	bool open = G::ShowTpWatch;
+	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Trading Post##GW2InGameHelperTpWatch", &open, winFlags))
 	{
 		PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());

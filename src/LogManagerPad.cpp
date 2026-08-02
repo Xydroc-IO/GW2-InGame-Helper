@@ -4,6 +4,7 @@
 #include "EiRuntime.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "HelperTheme.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -4057,6 +4058,7 @@ bool LogManagerPad::Render()
 	}
 
 	bool open = G::ShowLogManager;
+	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("DPS Logs###gw2igh_logmgr", &open, ImGuiWindowFlags_None))
 	{
 		ImGui::End();

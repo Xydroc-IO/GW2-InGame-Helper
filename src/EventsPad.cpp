@@ -3,6 +3,7 @@
 #include "EventsData.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "HelperTheme.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -506,6 +507,7 @@ bool EventsPad::Render()
 	}
 
 	bool open = G::ShowEvents;
+	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("World Events##GW2InGameHelperEvents", &open))
 	{
 		const bool hovered = ImGui::IsWindowHovered(
@@ -524,9 +526,9 @@ bool EventsPad::Render()
 		Settings::SetDirty();
 	}
 
-	ImGui::TextUnformatted("World events");
+	ImGui::TextColored(HelperTheme::Gold, "WORLD EVENTS");
 	ImGui::PushTextWrapPos(0.f);
-	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+	ImGui::TextColored(HelperTheme::Muted,
 		"UTC timers for bosses and map metas. Track items you care about - "
 		"they sort up and highlight within 10 minutes. "
 		"Invasions / festivals / fractals stay hidden until you open that section or search/Track them.");

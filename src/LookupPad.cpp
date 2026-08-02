@@ -3,6 +3,7 @@
 #include "BrowserTabs.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "HelperTheme.h"
 #include "Settings.h"
 #include "TpWatchPad.h"
 #include "WikiBrowser.h"
@@ -643,6 +644,7 @@ bool LookupPad::Render()
 	}
 
 	bool open = G::ShowLookup;
+	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Item Lookup##GW2InGameHelperLookup", &open, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		const bool hovered = ImGui::IsWindowHovered(

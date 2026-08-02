@@ -2,6 +2,7 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "HelperTheme.h"
 #include "PadDock.h"
 #include "Settings.h"
 #include "WaypointsData.h"
@@ -610,6 +611,7 @@ bool NotesPad::Render()
 		gRequestDock = false;
 	}
 	bool open = G::ShowNotes;
+	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Notes & Waypoints##GW2InGameHelperNotes", &open))
 	{
 		PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
@@ -633,12 +635,12 @@ bool NotesPad::Render()
 	}
 	PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 
-	ImGui::TextUnformatted("Notes & Waypoints");
-	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+	ImGui::TextColored(HelperTheme::Gold, "NOTES & WAYPOINTS");
+	ImGui::TextColored(HelperTheme::Muted,
 		"Local clipboard helpers + official map waypoints. No game injection.");
 	ImGui::Separator();
 
-	if (ImGui::BeginTabBar("###gw2igh_notes_tabs"))
+	if (ImGui::BeginTabBar("###gw2igh_notes_tabs", ImGuiTabBarFlags_FittingPolicyScroll))
 	{
 		if (ImGui::BeginTabItem("Snippets###gw2igh_notes_tab_snip"))
 		{
