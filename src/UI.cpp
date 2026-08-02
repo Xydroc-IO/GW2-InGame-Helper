@@ -2624,7 +2624,7 @@ namespace
 				Sites::ToggleFavorite(Sites::ActiveId());
 		}
 
-		/* Row 2: pads — keep short labels so Logs/Notes aren't clipped off-screen. */
+		/* Row 2: pads — labels can run long; keep spacing tight. */
 		if (ImGui::Button("Account###gw2igh_account"))
 		{
 			if (G::ShowAccount)
@@ -2677,7 +2677,7 @@ namespace
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("DPS Logs — browse ArcDPS EVTC via Elite Insights");
 		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Notes###gw2igh_notes"))
+		if (ImGui::Button("Notes & Waypoints###gw2igh_notes"))
 		{
 			if (G::ShowNotes)
 			{
@@ -2688,7 +2688,7 @@ namespace
 				NotesPad::Open();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Notes snippets + Waypoints search (copy chat codes)");
+			ImGui::SetTooltip("Snippets + Waypoints search (copy chat codes)");
 
 		const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(false, false);
 		PrepareBrowsePopup(sBrowseAnchor, browseLay);
@@ -3364,7 +3364,7 @@ void UI_Options()
 			UI_ReleaseGameInput();
 		Settings::SetDirty();
 	}
-	if (ImGui::Checkbox("Show Notes window###gw2igh_shownotes", &G::ShowNotes))
+	if (ImGui::Checkbox("Show Notes & Waypoints###gw2igh_shownotes", &G::ShowNotes))
 	{
 		if (G::ShowNotes)
 			NotesPad::Open();
@@ -3592,7 +3592,7 @@ void UI_Options()
 	ImGui::TextWrapped(
 		"Hotkeys (rebind in Nexus → Keybinds): Ctrl+Shift+H helper | "
 		"Ctrl+Shift+A Account | Ctrl+Shift+G Tekkit's Guides | "
-		"Ctrl+Shift+E Events | Ctrl+Shift+N Notes. "
+		"Ctrl+Shift+E Events | Ctrl+Shift+N Notes & Waypoints. "
 		"In helper: Ctrl+T new tab | Ctrl+W close | Ctrl+Tab cycle | Ctrl+F find.");
 	SyncQr::DrawOptionsSection();
 	Settings::Save(false);
