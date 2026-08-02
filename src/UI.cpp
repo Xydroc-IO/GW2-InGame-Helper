@@ -23,6 +23,7 @@
 #include "AddonPaths.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include <cmath>
 #include <cstdio>
@@ -248,6 +249,60 @@ namespace
 	static bool sRequestNewTabPicker = false;
 	static char sFindQuery[128] = {};
 	static bool sFindMatchCase = false;
+
+	bool AnyToolPadOpen()
+	{
+		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
+			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
+			G::ShowTekkitGuides;
+	}
+
+	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves
+	   the pad rect → pad Hover is false → we used to stop capturing → GW2 ate
+	   the click. Latch while a combo popup is up after our pads opened it. */
+	bool HoveringComboPopup()
+	{
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* w = g.HoveredWindow;
+		if (!w || (w->Flags & ImGuiWindowFlags_Popup) == 0)
+			return false;
+		return std::strncmp(w->Name, "##Combo", 7) == 0;
+	}
+
+	bool ComboPopupOpen()
+	{
+		ImGuiContext& g = *GImGui;
+		for (int i = 0; i < g.OpenPopupStack.Size; ++i)
+		{
+			ImGuiWindow* w = g.OpenPopupStack[i].Window;
+			if (w && std::strncmp(w->Name, "##Combo", 7) == 0)
+				return true;
+		}
+		return false;
+	}
+
+	/* BeginCombo lists live outside the pad rect — keep capturing until closed. */
+	void CaptureForToolPads(bool padsHover)
+	{
+		static bool sComboLatch = false;
+		const bool padsOpen = AnyToolPadOpen();
+		const bool overCombo = HoveringComboPopup();
+		const bool comboOpen = ComboPopupOpen();
+
+		if (!padsOpen || !comboOpen)
+			sComboLatch = false;
+		else if (padsHover || overCombo)
+			sComboLatch = true;
+
+		if (padsHover || sHelperPopupHovered || sComboLatch || overCombo)
+		{
+			gBlockGameMouse = true;
+			gBlockGameKeyboard = true;
+			ImGui::CaptureMouseFromApp(true);
+			if (ImGui::GetIO().WantTextInput)
+				ImGui::CaptureKeyboardFromApp(true);
+		}
+	}
 
 	/* Visual-only Browse section headers (not Sites categories / not hubs). */
 	const char* BrowseSection(const char* category, const char* id)
@@ -2816,15 +2871,8 @@ void UI_Render()
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = TekkitGuidesPad::Render();
-		if (notesHover || accountHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || logsHover || tekkitHover)
-		{
-			ImGuiIO& io = ImGui::GetIO();
-			gBlockGameMouse = true;
-			gBlockGameKeyboard = true;
-			ImGui::CaptureMouseFromApp(true);
-			if (io.WantTextInput)
-				ImGui::CaptureKeyboardFromApp(true);
-		}
+		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
+			walletHover || vaultHover || eventsHover || logsHover || tekkitHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
@@ -2900,14 +2948,8 @@ void UI_Render()
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = TekkitGuidesPad::Render();
-		if (notesHover || accountHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || logsHover || tekkitHover)
-		{
-			gBlockGameMouse = true;
-			gBlockGameKeyboard = true;
-			ImGui::CaptureMouseFromApp(true);
-			if (ImGui::GetIO().WantTextInput)
-				ImGui::CaptureKeyboardFromApp(true);
-		}
+		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
+			walletHover || vaultHover || eventsHover || logsHover || tekkitHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
@@ -3285,16 +3327,8 @@ void UI_Render()
 	const bool eventsHover = EventsPad::Render();
 	const bool logsHover = LogManagerPad::Render();
 	const bool tekkitHover = TekkitGuidesPad::Render();
-	if (notesHover || accountHover || tpHover || lookupHover || walletHover || vaultHover || eventsHover || logsHover || tekkitHover)
-	{
-		/* Pointer on a pad — block GW2 only; do not force WantCapture* so
-		   Nexus / other ImGui addons keep working when the cursor leaves. */
-		gBlockGameMouse = true;
-		gBlockGameKeyboard = true;
-		ImGui::CaptureMouseFromApp(true);
-		if (io.WantTextInput)
-			ImGui::CaptureKeyboardFromApp(true);
-	}
+	CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
+		walletHover || vaultHover || eventsHover || logsHover || tekkitHover);
 	NotesPad::Save(false);
 	Settings::Save(false);
 }
