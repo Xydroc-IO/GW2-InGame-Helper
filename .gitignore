@@ -11,6 +11,7 @@ cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 .cache/
+__cmake_systeminformation/
 
 # Compiled / linked artifacts (anywhere)
 *.o
@@ -28,6 +29,10 @@ compile_commands.json
 *.res
 *.iobj
 *.ipdb
+
+# Host parse-test binary if built outside build/ (prefer build/)
+test_logmanager_parse
+test_logmanager_parse.exe
 
 # Editor / IDE
 .cursor/
@@ -56,14 +61,16 @@ Desktop.ini
 .WHITE*.kate-swp
 docs/.*.kate-swp
 
-# Local / runtime clutter
+# Local / runtime clutter (never commit)
 *.log
 settings.ini
 helper-home.html
 helper-home.ver
-__cmake_systeminformation/
+*.ok
+navlog.on
+navlog.txt
 
-# Addon runtime data (API key, notes, Live/DPS caches) — never commit if copied into the tree
+# Addon runtime data — never commit if copied into the tree
 notes.json
 stash-names.cache
 waypoints-index.cache
@@ -73,10 +80,35 @@ live-*.json
 live-*.html
 live-*.ok
 live-*.ver
+fractal-*.html
+fractal-*.ver
+raid-*.html
+raid-*.ver
+ubers-*.html
+ubers-*.ver
+dps-log-setup.html
+dps-log-setup.ver
+api-key-setup.html
+api-key-setup.ver
+home-logo.png
+home-cover.jpg
+GW2HelperBrowser.exe.ver
+
+# Elite Insights / CEF drop-ins (runtime downloads)
 ei-out/
 ei/
 cef/
+cef-runtime*/
 cef-runtime*.zip
+GW2EICLI.zip
+GW2EICLI*.zip
+
+# Pathing packs (large binaries; ship separately / make install)
+pathing/*.taco
+pathing/*.zip
+!pathing/README.md
+
+# Installed addon trees if ever nested under the repo
 **/addons/GW2-InGame-Helper/**
 **/addons/GW2-InGame-Helper-Beta/**
 
@@ -96,11 +128,13 @@ docs/CODE_AUDIT.md
 docs/SNOWCROWS.md
 docs/RELEASE_NOTES_BETA.md
 
-# Published technical reports (tracked):
+# Published technical reports (tracked on Beta):
 #   docs/ARCHITECTURE.md
 #   docs/WHITEPAPER.md
+# Golden parse fixtures (tracked):
+#   tools/fixtures/*.json
 
-# Python (if helpers scripts appear later)
+# Python
 __pycache__/
 *.pyc
 .venv/
