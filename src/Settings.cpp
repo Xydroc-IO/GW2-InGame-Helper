@@ -185,11 +185,20 @@ void Settings::Load()
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
 	if (G::LogManagerListFrac < 0.20f) G::LogManagerListFrac = 0.20f;
 	if (G::LogManagerListFrac > 0.72f) G::LogManagerListFrac = 0.72f;
-	/* Old shipping defaults — bump once toward current 1080p-friendly split. */
+	/* Old shipping defaults — bump once toward screenshot middle-pane width. */
 	if (G::LogManagerListFrac > 0.415f && G::LogManagerListFrac < 0.425f)
-		G::LogManagerListFrac = 0.47f;
+		G::LogManagerListFrac = 0.55f;
+	if (G::LogManagerListFrac > 0.445f && G::LogManagerListFrac < 0.455f)
+		G::LogManagerListFrac = 0.55f;
+	if (G::LogManagerListFrac > 0.465f && G::LogManagerListFrac < 0.475f)
+		G::LogManagerListFrac = 0.55f;
 	if (G::LogManagerListFrac > 0.515f && G::LogManagerListFrac < 0.525f)
-		G::LogManagerListFrac = 0.47f;
+		G::LogManagerListFrac = 0.55f;
+	/* Widen cramped defaults that cannot show the three-pane layout. */
+	if (G::LogManagerWinW > 0.f && G::LogManagerWinW < 1400.f)
+		G::LogManagerWinW = 1760.f;
+	if (G::LogManagerWinH > 0.f && G::LogManagerWinH < 750.f)
+		G::LogManagerWinH = 900.f;
 	if (G::LogManagerWinW < 960.f) G::LogManagerWinW = 960.f;
 	if (G::LogManagerWinH < 480.f) G::LogManagerWinH = 480.f;
 	/* Category paths restored in AddonLoad after TekkitTrails::Init(). */

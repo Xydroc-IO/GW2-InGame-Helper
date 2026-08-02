@@ -28,16 +28,16 @@
 
 namespace
 {
-	/* Default pad size — tuned to fit 1080p game clients with room for chrome. */
-	constexpr float kPadW = 1280.f;
-	constexpr float kPadH = 700.f;
-	/* Screenshot proportions ≈ filters 15% | list 40% | detail 45%. */
-	constexpr float kFilterFrac = 0.14f;
-	constexpr float kFilterMinW = 140.f;
+	/* Default when display metrics unavailable — nearly full 1080p client. */
+	constexpr float kPadW = 1760.f;
+	constexpr float kPadH = 900.f;
+	/* Screenshot: filters slim | middle list ~half of remaining | detail/KP rest. */
+	constexpr float kFilterFrac = 0.13f;
+	constexpr float kFilterMinW = 150.f;
 	constexpr float kFilterMaxW = 188.f;
-	constexpr float kLogListFracDef = 0.47f; /* of space after filters → ~40% overall */
-	constexpr float kLogListMinW = 260.f;
-	constexpr float kRightPaneMinW = 340.f; /* room for KillProof / boon tables */
+	constexpr float kLogListFracDef = 0.55f; /* of space after filters → ~48% overall */
+	constexpr float kLogListMinW = 420.f;
+	constexpr float kRightPaneMinW = 360.f;
 	constexpr float kSplitHitW = 6.f;
 	constexpr float kPaneGap = 4.f;
 	constexpr int kMaxPlayersPerLog = 64;
@@ -205,6 +205,7 @@ namespace
 
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	bool gExpandGroupsOnce = false; /* reopen all encounter sections (screenshot default) */
 	char gStatus[256] = {};
 	char gEiStatus[256] = {};
 	char gSearch[96] = {};
@@ -3146,11 +3147,15 @@ namespace
 			"All time\0Last 1 day\0Last 3 days\0Last 7 days\0Last 30 days\0");
 		ImGui::Spacing();
 		if (ImGui::Checkbox("Group by encounter###gw2igh_lm_groupby", &G::LogManagerGroupByEncounter))
+		{
 			Settings::SetDirty();
+			if (G::LogManagerGroupByEncounter)
+				gExpandGroupsOnce = true;
+		}
 		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
 			G::LogManagerGroupByEncounter
-				? "Grouped · newest first"
-				: "Flat list");
+				? "Collapsible sections · newest encounter first"
+				: "Flat list · filter with Encounter…");
 		ImGui::Spacing();
 		if (ImGui::SmallButton("Clear filters###gw2igh_lm_clearf"))
 		{
@@ -3281,6 +3286,7 @@ namespace
 		});
 
 		ImGui::BeginChild("###gw2igh_lm_groupscroll", ImVec2(-FLT_MIN, -FLT_MIN), false);
+		const bool forceOpen = gExpandGroupsOnce;
 		for (EncGroup* g : groups)
 		{
 			std::sort(g->logs.begin(), g->logs.end(), [](const LogEntry* a, const LogEntry* b) {
@@ -3310,6 +3316,8 @@ namespace
 					idHash);
 			}
 
+			if (forceOpen)
+				ImGui::SetNextItemOpen(true, ImGuiCond_Always);
 			ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.18f, 0.17f, 0.14f, 1.f));
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.24f, 0.22f, 0.16f, 1.f));
 			ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.28f, 0.26f, 0.18f, 1.f));
@@ -3318,15 +3326,19 @@ namespace
 			if (!open)
 				continue;
 
-			if (ImGui::BeginTable("###gw2igh_lm_gtable", 6,
+			/* Unique table id per encounter — shared ids fight column layout across groups. */
+			char tableId[64];
+			std::snprintf(tableId, sizeof(tableId), "###gw2igh_lm_gtable_%zu", idHash);
+			if (ImGui::BeginTable(tableId, 6,
 					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-						ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp))
+						ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+					ImVec2(-FLT_MIN, 0.f)))
 			{
-				ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthStretch, 0.28f);
+				ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthStretch, 0.34f);
 				ImGui::TableSetupColumn("Result", ImGuiTableColumnFlags_WidthStretch, 0.12f);
 				ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthStretch, 0.10f);
-				ImGui::TableSetupColumn("Dur", ImGuiTableColumnFlags_WidthStretch, 0.14f);
-				ImGui::TableSetupColumn("Squad", ImGuiTableColumnFlags_WidthStretch, 0.14f);
+				ImGui::TableSetupColumn("Dur", ImGuiTableColumnFlags_WidthStretch, 0.12f);
+				ImGui::TableSetupColumn("Squad", ImGuiTableColumnFlags_WidthStretch, 0.16f);
 				ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthStretch, 0.06f);
 				ImGui::TableHeadersRow();
 				for (const LogEntry* e : g->logs)
@@ -3334,6 +3346,7 @@ namespace
 				ImGui::EndTable();
 			}
 		}
+		gExpandGroupsOnce = false;
 		ImGui::EndChild();
 	}
 
@@ -3972,6 +3985,7 @@ void LogManagerPad::OpenAndRefresh()
 	G::ShowLogManager = true;
 	gFocus = true;
 	gPlaceOnce = true;
+	gExpandGroupsOnce = true;
 	gLogListFrac = G::LogManagerListFrac;
 	EnsureDefaultPaths();
 	Settings::SetDirty();
@@ -3995,21 +4009,20 @@ bool LogManagerPad::Render()
 	{
 		float winW = G::LogManagerWinW;
 		float winH = G::LogManagerWinH;
-		/* First open (no saved pos): size for 1080p first — leave margin for game UI. */
+		/* First open (no saved pos): nearly full client — screenshot three-pane fit. */
 		if (G::LogManagerWinX < 0.f || G::LogManagerWinY < 0.f)
 		{
-			winW = displayW * 0.67f;
-			if (winW < 1000.f) winW = 1000.f;
-			if (winW > 1360.f) winW = 1360.f; /* fits 1920×1080 with side chrome */
-
-			winH = displayH * 0.62f;
-			if (winH < 560.f) winH = 560.f;
-			if (winH > 780.f) winH = 780.f;
+			winW = displayW * 0.92f;
+			winH = displayH * 0.84f;
+			if (winW < 1100.f && displayW >= 1200.f) winW = 1100.f;
+			if (winH < 620.f && displayH >= 720.f) winH = 620.f;
+			if (winW > 2200.f) winW = 2200.f;
+			if (winH > 1200.f) winH = 1200.f;
 		}
-		/* Always clamp to current display (resolution changes / ultrawide → 1080p). */
+		/* Always clamp to current display. */
 		{
-			const float maxW = displayW > 80.f ? displayW - 40.f : winW;
-			const float maxH = displayH > 120.f ? displayH - 80.f : winH;
+			const float maxW = displayW > 80.f ? displayW - 24.f : winW;
+			const float maxH = displayH > 100.f ? displayH - 48.f : winH;
 			if (winW > maxW) winW = maxW;
 			if (winH > maxH) winH = maxH;
 			if (winW < 880.f && displayW > 920.f) winW = 880.f;
@@ -4022,16 +4035,15 @@ bool LogManagerPad::Render()
 		if (G::LogManagerWinX >= 0.f && G::LogManagerWinY >= 0.f)
 			ImGui::SetNextWindowPos(ImVec2(G::LogManagerWinX, G::LogManagerWinY), ImGuiCond_Always);
 		else
-			ImGui::SetNextWindowPos(ImVec2(40.f, 60.f), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowPos(ImVec2(24.f, 36.f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(winW, winH), ImGuiCond_Always);
 		gLogListFrac = G::LogManagerListFrac;
 		gPlaceOnce = false;
 	}
 
 	{
-		/* Usable on 1080p and smaller Proton windows; grow freely on 1440p+. */
-		float minW = 960.f;
-		float minH = 480.f;
+		float minW = 1000.f;
+		float minH = 520.f;
 		if (minW > displayW * 0.92f) minW = displayW * 0.92f;
 		if (minH > displayH * 0.85f) minH = displayH * 0.85f;
 		ImGui::SetNextWindowSizeConstraints(
@@ -4153,7 +4165,7 @@ bool LogManagerPad::Render()
 
 	ImGui::SameLine(0.f, kPaneGap);
 	ImGui::BeginChild("###gw2igh_lm_side", ImVec2(0.f, bodyH), true);
-	if (ImGui::BeginTabBar("###gw2igh_lm_tabs"))
+	if (ImGui::BeginTabBar("###gw2igh_lm_tabs", ImGuiTabBarFlags_FittingPolicyScroll))
 	{
 		if (ImGui::BeginTabItem("Detail"))
 		{
