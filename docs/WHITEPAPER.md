@@ -393,7 +393,7 @@ Memory safety tooling (ASan/TSan) cannot fully validate this stack: the DLL load
 4. **Helper-only ASan** Makefile target for continuous smoke.
 5. **Stricter ad attribution:** prefer completing network click navigations before cancel/replace with landing-only Open Ext.
 6. Schema evolution aids (explicit IPC version negotiation beyond magic).
-7. **CI:** Local `make ci` (sites validate + CSS tests + MinGW smoke); optional `.githooks/pre-push`. GitHub Actions are not used.
+7. **CI:** GitHub Actions on public pushes/PRs (`make ci` equivalent); local `make ci` / `.githooks/pre-push` for the same gate offline.
 8. **Further decomposition** of `WikiBrowser.cpp` and `helper/main.cpp` once fixture harnesses exist for present/IPC races.
 
 ### 15.1 Maintainability trajectory (2.1.x)

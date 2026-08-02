@@ -61,7 +61,12 @@ Upload the zip to a GitHub Release, then set `kDownloadUrl` / `kSha256Hex` in
 make clean
 ```
 
-### Local CI (no GitHub Actions)
+### Continuous integration
+
+**GitHub Actions** (public repo — free on standard runners) runs the same gate on
+push/PR to `master` and `GW2-InGame-Helper-Beta` (`.github/workflows/ci.yml`).
+
+Locally:
 
 ```bash
 make ci

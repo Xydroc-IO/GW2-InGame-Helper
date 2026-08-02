@@ -42,11 +42,12 @@ make test-css             # CssCompat color-mix downlevel
 make ci                   # full local gate (sites + CSS + MinGW smoke build)
 ```
 
-This project does **not** use GitHub Actions. Quality gates are **local**:
+This project uses **GitHub Actions** on public PRs/pushes (`CI` workflow) plus an
+identical local gate:
 
 ```bash
 make ci
-# optional — block pushes that fail CI:
+# optional — also block local pushes that fail CI:
 git config core.hooksPath .githooks
 ```
 
