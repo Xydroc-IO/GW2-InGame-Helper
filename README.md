@@ -20,6 +20,8 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 |------|----------|
 | How to use (built-in) | Help |
 | [New Player Guide](https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide) | Help |
+| DPS Log Setup Help (built-in) | Help |
+| API Key Setup (built-in) | Help |
 | [Guild Wars 2](https://www.guildwars2.com/) | Help |
 | [GW2 News](https://www.guildwars2.com/en/news/) | Help |
 | [Raidcore](https://raidcore.gg/gw2) | Help |
@@ -132,7 +134,8 @@ listing copy [`docs/description.html`](docs/description.html) ·
 release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
 [`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md) ·
-DPS Logs / .NET / Proton: [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md)
+DPS Logs / .NET / Proton: [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) ·
+API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 
 Local (gitignored) drafts: `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
 

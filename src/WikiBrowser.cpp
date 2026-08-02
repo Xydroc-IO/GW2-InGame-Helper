@@ -314,6 +314,10 @@ namespace
 			L"\\homestead-extras.ver",
 			L"\\wvw-consumables.html",
 			L"\\wvw-consumables.ver",
+			L"\\dps-log-setup.html",
+			L"\\dps-log-setup.ver",
+			L"\\api-key-setup.html",
+			L"\\api-key-setup.ver",
 			L"\\settings.ini",
 		};
 		for (const wchar_t* name : stale)

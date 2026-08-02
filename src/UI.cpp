@@ -310,7 +310,8 @@ namespace
 
 		if (std::strcmp(category, "Help") == 0)
 		{
-			if (std::strcmp(id, "home") == 0 || std::strcmp(id, "dak393_new_player") == 0)
+			if (std::strcmp(id, "home") == 0 || std::strcmp(id, "dak393_new_player") == 0 ||
+				std::strcmp(id, "dpsloghelp") == 0 || std::strcmp(id, "apikeyhelp") == 0)
 				return "Getting Started";
 			if (std::strcmp(id, "gw2official") == 0 || std::strcmp(id, "gw2news") == 0 ||
 				std::strcmp(id, "gw2forums") == 0)
@@ -2605,7 +2606,7 @@ namespace
 		DrawMoreMenu();
 		DrawStatusChip();
 
-		/* Row 1: Browse + favorite */
+		/* Browse + pads row — Browse stays left of Account. */
 		if (ImGui::Button("Browse###gw2igh_browse"))
 		{
 			sSyncCategory = true;
@@ -2623,8 +2624,7 @@ namespace
 			if (FavoriteToggleButton("toolbar", fav, false))
 				Sites::ToggleFavorite(Sites::ActiveId());
 		}
-
-		/* Row 2: pads — labels can run long; keep spacing tight. */
+		ImGui::SameLine(0.f, 8.f);
 		if (ImGui::Button("Account###gw2igh_account"))
 		{
 			if (G::ShowAccount)

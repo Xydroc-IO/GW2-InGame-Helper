@@ -7,7 +7,7 @@ One DLL for Nexus — no memory reads. Chromium is **private CEF Stable 150**
 (first-run download into `addons/GW2-InGame-Helper/cef/`).
 
 Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · CEF setup [`CEF_RUNTIME.md`](CEF_RUNTIME.md) ·
-DPS Logs [`DPS_LOGS.md`](DPS_LOGS.md)
+DPS Logs [`DPS_LOGS.md`](DPS_LOGS.md) · API key [`API_KEY.md`](API_KEY.md)
 (local `CODE_AUDIT.md` is gitignored)
 
 ## Install
@@ -43,17 +43,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **DPS Logs:** ArcDPS EVTC / ZEVTC browser — Elite Insights CLI auto-install
   (`addons/.../ei/`), parse to JSON, filters, players / guilds / fastest, dps.report
   upload + report-meta hydrate. Requires **.NET 8 Desktop Runtime** in the Windows /
-  Proton prefix — see [`DPS_LOGS.md`](DPS_LOGS.md).
+  Proton prefix — see [`DPS_LOGS.md`](DPS_LOGS.md). Layout mirrors ArcDPS Log Manager
+  (filters | list | detail) with a persisted splitter / window size; Players / Guilds
+  show the **selected log** only.
+- **Help setup pages:** Browse → Help → **DPS Log Setup Help** and **API Key Setup**
+  (offline `about:` sheets; mirror [`DPS_LOGS.md`](DPS_LOGS.md) / [`API_KEY.md`](API_KEY.md)).
 - **Keybinds:** Panel toggles registered with Nexus — Account `Ctrl+Shift+A`,
   Tekkit `Ctrl+Shift+G`, Events `Ctrl+Shift+E`, Notes `Ctrl+Shift+N` (rebind under
   Nexus Options → Keybinds).
-- **Toolbar:** Pads on their own row under Browse so buttons are not clipped;
-  Account + DPS Logs wiring; Notes tooltip covers waypoints.
+- **Toolbar:** Browse stays left of Account on the pads row; Notes tooltip covers
+  waypoints.
 - **Install fix:** `make install` clears `*.ver` / `*.ok` with extracted HTML so
   stale homepage stamps cannot leave CEF on a missing `file:///…/helper-home.html`.
   Saved tabs that still point at those file URLs remap to `about:` builtins.
 - **Browse:** Removed Live Dailies / Live Progress and Wiki Easy Objectives rows
-  (covered by Account). Catalog **2,716** entries.
+  (covered by Account). Catalog **2,718** entries.
 - **Stamps:** Helper `2100` · homepage `2100`
 
 ## What’s new in 2.0.2.11

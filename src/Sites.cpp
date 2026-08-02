@@ -44,6 +44,24 @@ namespace
 			nullptr,
 		},
 		{
+			"dpsloghelp",
+			"Help",
+			"DPS Log Setup Help",
+			"DPS Log Setup — ArcDPS, Elite Insights & .NET",
+			"about:dps-log-setup",
+			nullptr,
+			nullptr,
+		},
+		{
+			"apikeyhelp",
+			"Help",
+			"API Key Setup",
+			"GW2 API Key Setup — Scopes & Options",
+			"about:api-key-setup",
+			nullptr,
+			nullptr,
+		},
+		{
 			"gw2official",
 			"Help",
 			"Guild Wars 2",
@@ -24966,6 +24984,10 @@ int Sites::BestMatchForUrl(const std::string& url)
 			return -1;
 		};
 		int hit = fileHit("helper-home", "home");
+		if (hit >= 0) return hit;
+		hit = fileHit("dps-log-setup", "dpsloghelp");
+		if (hit >= 0) return hit;
+		hit = fileHit("api-key-setup", "apikeyhelp");
 		if (hit >= 0) return hit;
 		hit = fileHit("raid-food", "raidfood");
 		if (hit >= 0) return hit;

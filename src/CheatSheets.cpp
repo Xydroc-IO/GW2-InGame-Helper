@@ -2413,6 +2413,292 @@ namespace
 )BODY");
 	}
 
+	std::string HtmlDpsLogSetup()
+	{
+		return BuildHtml(
+			"DPS Log Setup Help",
+			"GW2 In-Game Helper · Setup",
+			"DPS Log Setup",
+			"Browse ArcDPS logs, parse with Elite Insights, and optionally upload to dps.report — "
+			"including .NET 8 setup on Windows and Proton.",
+			"<a href=\"#checklist\">Checklist</a>\n"
+			"<a href=\"#prereq\">Prerequisites</a>\n"
+			"<a href=\"#open\">Open pad</a>\n"
+			"<a href=\"#ei\">Elite Insights</a>\n"
+			"<a href=\"#dotnet\">.NET 8</a>\n"
+			"<a href=\"#proton\">Proton</a>\n"
+			"<a href=\"#daily\">Day-to-day</a>\n"
+			"<a href=\"#troubleshoot\">Troubleshooting</a>\n"
+			"<a href=\"#privacy\">Privacy</a>",
+			R"BODY(
+  <section class="block" id="checklist">
+    <div class="head"><h2>Quick Checklist</h2><p>What you need before DPS / boons show up.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Step</th><th>Windows</th><th>Linux (Proton / Steam)</th></tr></thead>
+        <tbody>
+          <tr><td>ArcDPS logging on</td><td>Required</td><td>Required</td></tr>
+          <tr><td>Open <strong>DPS Logs</strong> in the helper</td><td>Required</td><td>Required</td></tr>
+          <tr><td>Elite Insights CLI</td><td>Auto <strong>Install / Update EI</strong></td><td>Same (into the prefix)</td></tr>
+          <tr><td>.NET 8 Desktop Runtime x64</td><td>Install once on Windows</td><td>Install <strong>into the GW2 Wine prefix</strong> (not distro packages)</td></tr>
+          <tr><td>Optional dps.report token</td><td>Paste in the pad</td><td>Same</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:12px"><strong>Linux:</strong> Distro packages like <code>dotnet-runtime-8.0</code> do <strong>not</strong> help.
+      Elite Insights is a Windows <code>.exe</code> and only sees .NET inside the Guild Wars 2 Proton/Wine prefix.</p>
+    </div>
+  </section>
+
+  <section class="block" id="prereq">
+    <div class="head"><h2>Prerequisites</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Guild Wars 2 with <strong>Raidcore Nexus</strong> and <strong>GW2-InGame-Helper</strong></li>
+        <li><strong>ArcDPS</strong> recording combat logs</li>
+        <li>Network the first time EI downloads (and for dps.report uploads)</li>
+      </ul>
+      <p>Default log folder (Windows path; under Proton this is inside the prefix):</p>
+      <p><code>Documents\Guild Wars 2\addons\arcdps\arcdps.cbtlogs</code></p>
+      <p class="note">On Proton that usually maps under
+      <code>…/steamapps/compatdata/&lt;appid&gt;/pfx/drive_c/users/steamuser/Documents/Guild Wars 2/addons/arcdps/arcdps.cbtlogs</code></p>
+      <p>The pad uses two optional pieces <strong>outside</strong> the game client:</p>
+      <ol>
+        <li><strong>Elite Insights CLI</strong> — auto-downloaded into <code>addons/GW2-InGame-Helper/ei/</code></li>
+        <li><strong>.NET 8 Desktop Runtime (x64)</strong> — in the Windows environment that runs GW2 (native or Proton prefix)</li>
+      </ol>
+      <p class="note">Elite Insights is MIT software by
+      <a href="https://github.com/baaron4/GW2-Elite-Insights-Parser">baaron4 / GW2-Elite-Insights-Parser</a>.
+      The addon downloads official <code>GW2EICLI.zip</code> and verifies SHA-256 — binaries are not baked into the DLL.</p>
+    </div>
+  </section>
+
+  <section class="block" id="open">
+    <div class="head"><h2>Open the Pad</h2><p></p></div>
+    <div class="body">
+      <ol>
+        <li>Open the In-Game Helper window.</li>
+        <li>Click <strong>DPS Logs</strong> on the pad row (or <strong>⋯ → Show DPS Logs</strong>, or Nexus Options → <strong>Show DPS Logs</strong>).</li>
+        <li>Confirm the <strong>log folder</strong> path looks correct (edit if you moved ArcDPS logs).</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block" id="ei">
+    <div class="head"><h2>Elite Insights (Automatic)</h2><p></p></div>
+    <div class="body">
+      <ol>
+        <li>In <strong>DPS Logs</strong>, click <strong>Install / Update EI</strong> (also runs when the pad opens if EI is missing).</li>
+        <li>The addon prefers a local <code>GW2EICLI.zip</code> next to the DLL / in the addon folder, or downloads the latest from GitHub releases, verifies SHA-256, extracts to <code>addons/GW2-InGame-Helper/ei/</code>, and fills the CLI path.</li>
+        <li>Status should show Elite Insights ready (version stamp in <code>ei/ei.ver</code>).</li>
+      </ol>
+      <p class="note">You can still paste a custom path to <code>GuildWars2EliteInsights-CLI.exe</code> if you maintain your own install.</p>
+    </div>
+  </section>
+
+  <section class="block" id="dotnet">
+    <div class="head"><h2>.NET 8 Desktop Runtime</h2><p>EI’s CLI needs the Windows .NET 8 Desktop Runtime (x64).</p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Download:
+          <a href="https://dotnet.microsoft.com/download/dotnet/8.0">.NET 8 Desktop Runtime (x64)</a></li>
+        <li>Direct installer:
+          <a href="https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe">aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe</a></li>
+      </ul>
+      <p>In the pad, <strong>Install .NET 8 Runtime</strong> opens that link. <strong>Recheck .NET</strong> rescans after you finish installing.</p>
+      <div class="callout-grid">
+        <div class="callout"><h3>Windows (native)</h3>
+          <p>Run <code>windowsdesktop-runtime-*-win-x64.exe</code>, finish the wizard, then <strong>Recheck .NET</strong> in DPS Logs. Use <strong>Parse pending</strong> or <strong>Load report meta</strong> as needed.</p>
+        </div>
+        <div class="callout"><h3>Linux / Steam Deck</h3>
+          <p>Install into the <strong>GW2 Wine prefix</strong> via Protontricks — see the Proton section below. Distro <code>dotnet</code> packages will not work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="proton">
+    <div class="head"><h2>Linux / Proton — Install .NET into the Prefix</h2>
+      <p>Wine maps your Linux disk as <strong>Z:</strong>. Run the Windows installer inside the GW2 prefix.</p></div>
+    <div class="body">
+      <h3 style="color:var(--gold);margin:0 0 8px;font-size:0.95rem">A. Download on Linux</h3>
+      <ol>
+        <li>Download the Windows <strong>Desktop</strong> runtime x64 installer from
+          <a href="https://dotnet.microsoft.com/download/dotnet/8.0">dotnet.microsoft.com</a>
+          (e.g. <code>windowsdesktop-runtime-8.0.x-win-x64.exe</code>).</li>
+        <li>Save it to <code>~/Downloads</code>.</li>
+      </ol>
+      <h3 style="color:var(--gold);margin:16px 0 8px;font-size:0.95rem">B. Open the GW2 prefix</h3>
+      <ol>
+        <li>Open <strong>Protontricks</strong>.</li>
+        <li>Select <strong>Guild Wars 2</strong> → OK.</li>
+        <li><strong>Select the default wineprefix</strong> → OK.</li>
+        <li><strong>Run explorer</strong> → OK.</li>
+      </ol>
+      <h3 style="color:var(--gold);margin:16px 0 8px;font-size:0.95rem">C. Run via Z:</h3>
+      <ol>
+        <li>In Explorer: <strong>My Computer</strong> → <strong>(Z:)</strong> → <strong>home</strong> → your username → <strong>Downloads</strong>.</li>
+        <li>Double-click the <code>.exe</code> and complete Install.</li>
+        <li>.NET now lives on that prefix’s <strong>C:</strong> drive.</li>
+      </ol>
+      <h3 style="color:var(--gold);margin:16px 0 8px;font-size:0.95rem">D. Confirm in the addon</h3>
+      <ol>
+        <li>Fully restart Guild Wars 2.</li>
+        <li><strong>DPS Logs</strong> → <strong>Recheck .NET</strong> — the yellow warning should clear.</li>
+      </ol>
+      <p class="note">Install Protontricks from your distro or Flatpak (<code>com.github.Matoking.protontricks</code>) if needed. Always pick <strong>Guild Wars 2</strong> — another game’s prefix will not help.</p>
+    </div>
+  </section>
+
+  <section class="block" id="daily">
+    <div class="head"><h2>Day-to-Day</h2><p></p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Action</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Rescan</strong></td><td>Finds logs under the folder; may auto Load report meta for linked uploads</td></tr>
+          <tr><td><strong>Parse pending</strong></td><td>Runs Elite Insights CLI → JSON (needs .NET 8)</td></tr>
+          <tr><td><strong>Install / Update EI</strong></td><td>Refreshes EI from GitHub latest</td></tr>
+          <tr><td><strong>Upload</strong> / <strong>Upload filtered</strong></td><td>Uploads to dps.report; stores permalink + encounter info</td></tr>
+          <tr><td><strong>Load report meta</strong></td><td>Fills encounter, squad DPS, and boons from dps.report for existing links</td></tr>
+          <tr><td>Optional <strong>dps.report user token</strong></td><td>Associates uploads with your account (treat like a password)</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:12px">Detail shows squad <strong>DPS / Power / Condi</strong> and key boons
+      (<strong>Quick / Alac / Might / Fury / Prot</strong>). Use <strong>Open report</strong> for the full HTML.</p>
+    </div>
+  </section>
+
+  <section class="block" id="troubleshoot">
+    <div class="head"><h2>Troubleshooting</h2><p></p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>.NET not detected</h3>
+          <p>Windows: install Desktop x64, then Recheck. Proton: you installed on Linux or the wrong prefix — use Protontricks + Z: for Guild Wars 2 only. Fully quit GW2 after installing.</p>
+        </div>
+        <div class="callout"><h3>EI install / parse fails</h3>
+          <p>Install / Update EI again. Confirm <code>ei/GuildWars2EliteInsights-CLI.exe</code> exists. Fix .NET first. Check the Detail pane for a red parse error.</p>
+        </div>
+        <div class="callout"><h3>Filenames but no DPS</h3>
+          <p>Use <strong>Load report meta</strong> / Rescan, or <strong>Parse pending</strong> with EI + .NET. Confirm the folder has real <code>.zevtc</code> / <code>.evtc</code> files.</p>
+        </div>
+        <div class="callout"><h3>Install .NET opens a browser only</h3>
+          <p>The browser saves the <code>.exe</code> to Linux Downloads. You must still run it through Protontricks → Explorer → Z: so it installs into the prefix.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="privacy">
+    <div class="head"><h2>Privacy</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li>Combat logs and dps.report links can contain account names and guild tags — keep them local unless you upload.</li>
+        <li>Do not share your optional dps.report user token.</li>
+        <li>Related:
+          <a href="https://github.com/baaron4/GW2-Elite-Insights-Parser/releases">Elite Insights releases</a> ·
+          <a href="https://dps.report/">dps.report</a> ·
+          <a href="https://dotnet.microsoft.com/download/dotnet/8.0">.NET 8</a></li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
+	std::string HtmlApiKeySetup()
+	{
+		return BuildHtml(
+			"API Key Setup",
+			"GW2 In-Game Helper · Setup",
+			"API Key Setup",
+			"Create a read-only ArenaNet API key and paste it into the addon so Wallet, Vault, "
+			"Account, and TP delivery can load your data.",
+			"<a href=\"#create\">Create a key</a>\n"
+			"<a href=\"#scopes\">Required scopes</a>\n"
+			"<a href=\"#addon\">Add to the addon</a>\n"
+			"<a href=\"#features\">What uses the key</a>\n"
+			"<a href=\"#privacy\">Privacy</a>",
+			R"BODY(
+  <section class="block" id="create">
+    <div class="head"><h2>Create a Key on account.arena.net</h2><p>Official ArenaNet applications page — free, read-only.</p></div>
+    <div class="body">
+      <ol>
+        <li>Open
+          <a href="https://account.arena.net/applications">account.arena.net/applications</a>
+          and sign in with your Guild Wars 2 account.</li>
+        <li>Click <strong>New Key</strong> (or create a new application / API key).</li>
+        <li>Give it a clear name, e.g. <strong>In-Game Helper</strong>.</li>
+        <li>Enable the scopes listed below (tick every box in that list for full addon features).</li>
+        <li>Create / save the key, then <strong>copy</strong> the long key string.</li>
+      </ol>
+      <p class="note">Treat the key like a password. Anyone with it can read the account data those scopes allow.
+      You can revoke or recreate keys anytime on the same page.</p>
+    </div>
+  </section>
+
+  <section class="block" id="scopes">
+    <div class="head"><h2>Required Scopes</h2><p>Enable these on the key for GW2-InGame-Helper.</p></div>
+    <div class="body">
+      <table class="sheet">
+        <thead><tr><th>Scope</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td class="role">account</td><td>Base account identity — needed for almost every personal API call</td></tr>
+          <tr><td class="role">wallet</td><td>Wallet pad (currencies)</td></tr>
+          <tr><td class="role">inventories</td><td>Bank, material storage, shared inventory, bags / stash views</td></tr>
+          <tr><td class="role">characters</td><td>Character roster and per-toon bags</td></tr>
+          <tr><td class="role">progression</td><td>Wizard’s Vault / Dailies live progress; world-event claim marks</td></tr>
+          <tr><td class="role">unlocks</td><td>Legendary Armory unlocks (Account → Progress)</td></tr>
+          <tr><td class="role">tradingpost</td><td>Trading Post delivery box (items waiting to claim)</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:12px"><strong>Recommended:</strong> enable all of the scopes above on one key.
+      Item lookup and public TP prices work without a key; personal Vault, wallet, mats, unlocks, and delivery need these scopes.</p>
+    </div>
+  </section>
+
+  <section class="block" id="addon">
+    <div class="head"><h2>Add the Key to the Addon</h2><p></p></div>
+    <div class="body">
+      <ol>
+        <li>Open <strong>Nexus Options</strong> → find <strong>GW2-InGame-Helper</strong> (or open the helper Options panel).</li>
+        <li>Find <strong>GW2 API key (Live panels)</strong>.</li>
+        <li>Paste the key into the field (it is masked like a password).</li>
+        <li>The key is saved to this addon’s <code>settings.ini</code>. Reload Live / Account tabs if they were already open.</li>
+      </ol>
+      <p>Shortcuts from Options:</p>
+      <ul class="list">
+        <li><strong>Create key on account.arena.net</strong> — opens the applications page in your browser</li>
+        <li><strong>Clear API key</strong> — removes the saved key from the addon</li>
+      </ul>
+      <p class="note">You can also see key status from the <strong>Account</strong> pad when personal data fails to load (missing key or missing scopes).</p>
+    </div>
+  </section>
+
+  <section class="block" id="features">
+    <div class="head"><h2>What Uses the Key</h2><p></p></div>
+    <div class="body">
+      <div class="callout-grid">
+        <div class="callout"><h3>Wallet</h3><p>Currencies — needs <strong>account</strong> + <strong>wallet</strong> (+ inventories / characters for stash &amp; bags).</p></div>
+        <div class="callout"><h3>Vault / Dailies</h3><p>Live Wizard’s Vault — <strong>account</strong> + <strong>progression</strong>.</p></div>
+        <div class="callout"><h3>Account / Progress</h3><p>Mats, legendaries, roster — <strong>inventories</strong>, <strong>unlocks</strong>, <strong>characters</strong>.</p></div>
+        <div class="callout"><h3>TP delivery</h3><p>Delivery box — <strong>tradingpost</strong>. Watchlist prices are public (no key).</p></div>
+      </div>
+      <p class="note" style="margin-top:12px">If a panel says it needs a scope, edit the key on arena.net (or create a new one with the missing ticks) and paste it again.</p>
+    </div>
+  </section>
+
+  <section class="block" id="privacy">
+    <div class="head"><h2>Privacy</h2><p></p></div>
+    <div class="body">
+      <ul class="list">
+        <li>The key is stored <strong>only</strong> in this addon’s <code>settings.ini</code>.</li>
+        <li>It is never shared, never put in QR codes, and never uploaded with combat logs.</li>
+        <li>Use a <strong>read-only</strong> key with only the scopes you need — do not share screenshots that show the full key string.</li>
+      </ul>
+    </div>
+  </section>
+)BODY");
+	}
+
 	struct PageSpec
 	{
 		CheatSheets::Sheet meta;
@@ -2422,6 +2708,12 @@ namespace
 	const PageSpec* Pages(size_t* outCount)
 	{
 		static const PageSpec kPages[] = {
+			{{"dpsloghelp", "about:dps-log-setup", "dps-log-setup", "1",
+			  "DPS Log Setup Help", "DPS Log Setup — ArcDPS, Elite Insights & .NET"},
+			 HtmlDpsLogSetup},
+			{{"apikeyhelp", "about:api-key-setup", "api-key-setup", "1",
+			  "API Key Setup", "GW2 API Key Setup — Scopes & Options"},
+			 HtmlApiKeySetup},
 			{{"ubersaio", "about:ubers-aio", "ubers-all-in-one", "7",
 			  "Uber's All-In-One", "Uber's All-In-One — Waypoints"},
 			 HtmlUbersAllInOne},

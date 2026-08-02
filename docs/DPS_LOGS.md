@@ -1,5 +1,8 @@
 # DPS Logs — setup and install
 
+The same guide is available in-game under **Browse → Help → DPS Log Setup Help**
+(`about:dps-log-setup`).
+
 The **DPS Logs** pad browses your ArcDPS `.evtc` / `.zevtc` combat logs, can
 upload to [dps.report](https://dps.report/), and shows encounter metadata, squad
 DPS, and key boon uptimes.
@@ -209,6 +212,8 @@ Detail tab shows squad **DPS / Power / Condi** and key boon uptimes
 
 ## Related
 
+- In-game: **Browse → Help → DPS Log Setup Help**
+- API key (Wallet / Vault / Account / TP delivery): [`API_KEY.md`](API_KEY.md)
 - [Elite Insights releases](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases)
 - [dps.report](https://dps.report/) · [API docs](https://dps.report/api)
 - [.NET 8 downloads](https://dotnet.microsoft.com/download/dotnet/8.0)

@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.1.0.0 · Total entries: **2,716**
+**Revision:** 2.1.0.0 · Total entries: **2,718**
 
 Source of truth: `src/Sites.cpp` (Browse sections from `src/UI.cpp`).
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
@@ -11,6 +11,8 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 
 - **How to use** — `about:helper-home`
 - **New Player Guide** — [https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide](https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide)
+- **DPS Log Setup Help** — `about:dps-log-setup` (same material as [`DPS_LOGS.md`](DPS_LOGS.md))
+- **API Key Setup** — `about:api-key-setup` (same material as [`API_KEY.md`](API_KEY.md))
 
 ### ArenaNet
 
