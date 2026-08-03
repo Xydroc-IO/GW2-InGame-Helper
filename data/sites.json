@@ -1,7 +1,7 @@
 {
   "version": 2,
   "source": "data/sites.json",
-  "count": 2719,
+  "count": 2718,
   "sites": [
     {
       "id": "home",
@@ -88,6 +88,18 @@
       ]
     },
     {
+      "id": "live_news",
+      "category": "Help",
+      "label": "News Digest",
+      "title": "News & Patch Digest",
+      "homeUrl": "about:live-news",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "News"
+      ]
+    },
+    {
       "id": "raidcore",
       "category": "Addon Development",
       "label": "Raidcore",
@@ -145,30 +157,6 @@
       "searchUrlSuffix": null,
       "browsePath": [
         "AI"
-      ]
-    },
-    {
-      "id": "live_news",
-      "category": "Live",
-      "label": "News Digest",
-      "title": "Live — News & Patch Digest",
-      "homeUrl": "about:live-news",
-      "searchUrlPrefix": null,
-      "searchUrlSuffix": null,
-      "browsePath": [
-        "News"
-      ]
-    },
-    {
-      "id": "live_fashion",
-      "category": "Live",
-      "label": "Fashion Wishlist",
-      "title": "Live — Fashion Wishlist",
-      "homeUrl": "about:live-fashion",
-      "searchUrlPrefix": null,
-      "searchUrlSuffix": null,
-      "browsePath": [
-        "Fashion"
       ]
     },
     {
@@ -35393,6 +35381,7 @@
     "Help": [
       "Getting Started",
       "ArenaNet",
+      "News",
       "Other"
     ],
     "Addon Development": [
@@ -35402,11 +35391,6 @@
     "Search": [
       "Web Search",
       "AI"
-    ],
-    "Live": [
-      "News",
-      "Fashion",
-      "Other"
     ],
     "Cheat Sheets": [
       "Prep",

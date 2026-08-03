@@ -14,10 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SITES_JSON = ROOT / "data" / "sites.json"
 
 BROWSE_SECTIONS: dict[str, list[str]] = {
-	"Help": ["Getting Started", "ArenaNet", "Other"],
+	"Help": ["Getting Started", "ArenaNet", "News", "Other"],
 	"Addon Development": ["Nexus", "Source"],
 	"Search": ["Web Search", "AI"],
-	"Live": ["News", "Fashion", "Other"],
 	"Cheat Sheets": [
 		"Prep", "Gear", "Squad", "Fractals", "Encounters", "Account", "WvW", "Other"
 	],
@@ -58,6 +57,8 @@ def browse_section(category: str, sid: str) -> str | None:
 			return "Getting Started"
 		if eq(sid, "gw2official", "gw2news", "gw2forums"):
 			return "ArenaNet"
+		if eq(sid, "live_news"):
+			return "News"
 		return "Other"
 	if category == "Addon Development":
 		if eq(sid, "raidcore"):
@@ -67,12 +68,6 @@ def browse_section(category: str, sid: str) -> str | None:
 		return "Other"
 	if category == "Search":
 		return "AI" if eq(sid, "gemini") else "Web Search"
-	if category == "Live":
-		if eq(sid, "live_news"):
-			return "News"
-		if eq(sid, "live_fashion"):
-			return "Fashion"
-		return "Other"
 	if category == "Cheat Sheets":
 		if eq(sid, "raidfood", "raidutils", "homegarden", "ascendedstart"):
 			return "Prep"
