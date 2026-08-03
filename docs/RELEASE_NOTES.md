@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.1.0.1
+# GW2 In-Game Helper v2.2.0.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,7 +32,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
-## What’s new in 2.1.0.1
+## What’s new in 2.2.0.1
 
 - **Lady Features:** Barefoot / With Mounts / WP Only are **mutually exclusive**
   map-completion editions (no stacking). Enabling an edition turns on Lady
@@ -44,7 +44,8 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   Lady Barefoot / WP / Mounts use per-edition bias so **1.0×** is the correct
   baseline and editions scale together. Ribbons soft-hide in **world** (~5 m) and
   **screen space** around the projected character/mount so ImGui trails do not
-  paint over the player (including Skyscale).
+  paint over the player (including Skyscale). Overview **Player clear** slider
+  controls soft fade size (0 = hard clear only).
 - **Trails / markers:** Screen-space textured ribbons; Lady trail PNGs prioritized;
   mount shortcut icons draw with the same POI pipeline; tip labels limited to
   mount glyphs.
@@ -57,7 +58,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   edition keys persist and normalize legacy multi-on configs.
 - **Unload:** Nexus Disable allowed (`AF_None`) — pads close and CEF helper stops
   before deregister; prefer a full GW2 restart after replacing the DLL on disk.
-- **Stamps:** Helper `2101` · homepage `2101` · sites `s2101` · cheatsheets `c2101`
+- **Stamps:** Helper `2201` · homepage `2201` · sites `s2201` · cheatsheets `c2201`
 
 ## What’s new in 2.2.0.0
 
@@ -134,7 +135,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   Notes kind use in-window radios — Nexus was eating ImGui dropdown popup clicks.
 - **DPS Logs layout:** Near-full client default size, wider middle list, group-by
   sections expand on open; KillProof tab + group-by default from 2.1.0.0 retained.
-- **Stamps:** Helper `2101` · homepage `2101`
+- **Stamps:** Helper `2201` · homepage `2201`
 
 ## What’s new in 2.1.0.0
 
