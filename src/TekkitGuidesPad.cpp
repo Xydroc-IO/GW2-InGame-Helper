@@ -104,17 +104,41 @@ bool TekkitGuidesPad::Render()
 		"Nearest public waypoints to the first loaded trail point on this map. "
 		"Copy a chat code — no auto-teleport.");
 	WaypointsData::Tick();
-	if (ImGui::Button("Find nearest waypoints###gw2igh_route_wp"))
-	{
+	/* Warm the public floor index while this pad is open so Find is instant. */
+	if (!WaypointsData::Ready() && !WaypointsData::Busy())
 		WaypointsData::EnsureLoaded(false);
-		RoutingSuggest::SuggestNearTrailStart(3);
-	}
+
+	static bool sPendingRoute = false;
+	if (ImGui::Button("Find nearest waypoints###gw2igh_route_wp"))
+		sPendingRoute = true;
 	ImGui::SameLine();
 	if (ImGui::Button("Clear orange guide###gw2igh_route_clear"))
+	{
 		RoutingSuggest::ClearGuide();
+		sPendingRoute = false;
+	}
+
+	if (sPendingRoute)
+	{
+		if (!WaypointsData::Ready())
+		{
+			WaypointsData::EnsureLoaded(false);
+			ImGui::TextColored(HelperTheme::Warn, "%s",
+				WaypointsData::Busy() ? WaypointsData::Status() : "Starting waypoint index…");
+		}
+		else
+		{
+			RoutingSuggest::SuggestNearTrailStart(3);
+			sPendingRoute = false;
+		}
+	}
+	else if (WaypointsData::Busy())
+	{
+		ImGui::TextDisabled("%s", WaypointsData::Status());
+	}
 
 	const RoutingSuggest::Result& route = RoutingSuggest::Last();
-	if (!route.status.empty())
+	if (!route.status.empty() && !sPendingRoute)
 		ImGui::TextWrapped("%s", route.status.c_str());
 	if (route.trailLabel[0])
 		ImGui::TextDisabled("Trail: %s (%.0f, %.0f)", route.trailLabel, route.trailX, route.trailY);

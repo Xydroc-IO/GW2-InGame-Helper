@@ -78,11 +78,12 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 	std::snprintf(r.trailLabel, sizeof(r.trailLabel), "%s", label);
 
 	WaypointsData::EnsureLoaded(false);
+	WaypointsData::Tick(); /* promote cache/API result if the worker already finished */
 	if (!WaypointsData::Ready())
 	{
 		r.status = WaypointsData::Busy()
-			? "Loading waypoint index…"
-			: "Waypoint index not ready — open Notes → Waypoints or retry.";
+			? std::string(WaypointsData::Status())
+			: "Waypoint index not ready — retry in a moment.";
 		gLast = r;
 		return r;
 	}
