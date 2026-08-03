@@ -115,6 +115,27 @@ void UI_Options()
 	if (ImGui::Checkbox("In-world GPS trails###gw2igh_worldgps", &G::ShowWorldTrails))
 		Settings::SetDirty();
 
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::TextUnformatted("Direction compass");
+	ImGui::TextColored(HelperTheme::Muted,
+		"World N/E/S/W around your character. Reads Nexus FontBig; does not change Nexus fonts. "
+		"Disable Raidcore Compass if both feel crowded.");
+	if (ImGui::Checkbox("Enable direction compass###gw2igh_dircompass_opt", &G::ShowDirectionCompass))
+		Settings::SetDirty();
+	ImGui::SetNextItemWidth(-1.f);
+	if (ImGui::SliderFloat("Letter size###gw2igh_dirletters", &G::DirectionLetterScale, 0.5f, 2.5f, "%.2f×"))
+		Settings::SetDirty();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Scales only our N/E/S/W draw size.\n"
+			"1.00× = Nexus FontBig bake size. Does not touch FontGlobalScale.");
+	ImGui::SetNextItemWidth(-1.f);
+	if (ImGui::SliderFloat("World radius###gw2igh_dirradius", &G::DirectionWorldRadiusScale, 0.4f, 3.0f, "%.2f×"))
+		Settings::SetDirty();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("How far N/E/S/W sit from your character (hitbox base × this).");
+
 	size_t count = 0;
 	Sites::All(&count);
 	if (count > 0)

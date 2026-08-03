@@ -2,21 +2,17 @@
 
 #include "Globals.h"
 #include "HelperTheme.h"
-#include "Settings.h"
 
 #include "imgui/imgui.h"
 
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 #include <deque>
-#include <string>
 
-/* Direction compass inspired by Raidcore GW2-Compass behavior (strip + world
-   cardinals + indicator). Drawn from scratch with HelperTheme gold styling —
-   no Raidcore source copied. */
+/* World N/E/S/W around the character (Raidcore-style). Gold theming is ours —
+   no Raidcore source copied. Independent of Tekkit CompassOverlay. */
 
 namespace
 {
@@ -26,12 +22,6 @@ namespace
 	constexpr float kFarClip = 8000.f;
 	constexpr float kDefaultFov = 1.222f;
 	constexpr float kInchesToMeters = 0.0254f;
-
-	/* Strip (widget) — heading tape across the top, camera-relative. */
-	constexpr float kStripWidth = 560.f;
-	constexpr float kStripRangeDeg = 180.f;
-	constexpr float kStripStepDeg = 15.f;
-	constexpr float kStripHeight = 52.f;
 
 	struct Vec3
 	{
@@ -183,7 +173,6 @@ namespace
 		return std::isfinite(sx) && std::isfinite(sy);
 	}
 
-	/* Camera yaw degrees — same atan2(X,Z) convention as Raidcore Compass. */
 	float CameraYawDegrees()
 	{
 		const float fx = G::Mumble->fCameraFront[0];
@@ -210,16 +199,7 @@ namespace
 		return d;
 	}
 
-	ImU32 Col4(const ImVec4& c, float aMul = 1.f)
-	{
-		const int a = static_cast<int>(std::clamp(c.w * aMul, 0.f, 1.f) * 255.f);
-		return IM_COL32(
-			static_cast<int>(c.x * 255.f),
-			static_cast<int>(c.y * 255.f),
-			static_cast<int>(c.z * 255.f), a);
-	}
-
-	/* Same face Raidcore uses for world N/E/S/W (NexusLink FontBig). */
+	/* Read Nexus FontBig only — never PushFont (shared ImGui stack). */
 	ImFont* DirectionFontBig()
 	{
 		if (G::NexusLink && G::NexusLink->FontBig)
@@ -227,12 +207,13 @@ namespace
 		return ImGui::GetFont();
 	}
 
-	float FontPixelSize(ImFont* font)
+	float LetterPixelSize(ImFont* font)
 	{
-		ImGui::PushFont(font);
-		const float sz = ImGui::GetFontSize();
-		ImGui::PopFont();
-		return sz;
+		if (!font)
+			return ImGui::GetFontSize();
+		const float sz = font->FontSize * (font->Scale > 0.f ? font->Scale : 1.f);
+		const float base = (sz > 0.f) ? sz : ImGui::GetFontSize();
+		return base * std::clamp(G::DirectionLetterScale, 0.5f, 2.5f);
 	}
 
 	void DrawOutlinedText(ImDrawList* dl, ImFont* font, float sz, ImVec2 p,
@@ -251,49 +232,6 @@ namespace
 		dl->AddText(font, sz, p, fill, text);
 	}
 
-	const char* ShortBearing(int deg)
-	{
-		static const char* kNames[16] = {
-			"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-			"S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"};
-		int d = deg % 360;
-		if (d < 0)
-			d += 360;
-		const int idx = static_cast<int>(std::floor((d + 11.25f) / 22.5f)) % 16;
-		return kNames[idx];
-	}
-
-	const char* LongBearing(int deg)
-	{
-		static const char* kNames[16] = {
-			"North", "North-northeast", "Northeast", "East-northeast",
-			"East", "East-southeast", "Southeast", "South-southeast",
-			"South", "South-southwest", "Southwest", "West-southwest",
-			"West", "West-northwest", "Northwest", "North-northwest"};
-		int d = deg % 360;
-		if (d < 0)
-			d += 360;
-		const int idx = static_cast<int>(std::floor((d + 11.25f) / 22.5f)) % 16;
-		return kNames[idx];
-	}
-
-	/* Notch label for strip — cardinals as letters, else degree. */
-	std::string StripMarkerText(float markerDeg)
-	{
-		const int d = static_cast<int>(std::lround(Wrap360(markerDeg)));
-		if (d == 0 || d == 360)
-			return "N";
-		if (d == 90)
-			return "E";
-		if (d == 180)
-			return "S";
-		if (d == 270)
-			return "W";
-		char buf[16];
-		std::snprintf(buf, sizeof(buf), "%d", d);
-		return buf;
-	}
-
 	const MumbleContext* Ctx()
 	{
 		if (!G::Mumble || G::Mumble->uiTick == 0)
@@ -303,7 +241,6 @@ namespace
 
 	float WorldRadiusMeters(const MumbleContext* ctx)
 	{
-		/* Player hitbox ~24\" + padding 24\", mount scales — then inches→meters. */
 		float inches = 24.f;
 		if (ctx)
 		{
@@ -330,7 +267,8 @@ namespace
 			}
 		}
 		inches += 24.f;
-		return inches * kInchesToMeters;
+		const float scale = std::clamp(G::DirectionWorldRadiusScale, 0.4f, 3.0f);
+		return inches * kInchesToMeters * scale;
 	}
 
 	Vec3 SmoothAvatar()
@@ -354,154 +292,6 @@ namespace
 		return {sum.x / n, sum.y / n, sum.z / n};
 	}
 
-	void EnsureStripDefault(float screenW, float screenH)
-	{
-		if (!(G::DirectionWidgetX >= 0.f) || !(G::DirectionWidgetY >= 0.f))
-		{
-			G::DirectionWidgetX = (screenW - kStripWidth) * 0.5f;
-			G::DirectionWidgetY = screenH * 0.085f;
-		}
-		if (!(G::DirectionIndicatorX >= 0.f) || !(G::DirectionIndicatorY >= 0.f))
-		{
-			G::DirectionIndicatorX = screenW * 0.5f - 60.f;
-			G::DirectionIndicatorY = G::DirectionWidgetY + kStripHeight + 10.f;
-		}
-	}
-
-	/* ---- Widget: scrolling heading strip (camera yaw) ---- */
-	void DrawHeadingStrip(float cameraYawDeg)
-	{
-		const ImGuiIO& io = ImGui::GetIO();
-		EnsureStripDefault(io.DisplaySize.x, io.DisplaySize.y);
-
-		static bool sEditLive = false;
-		if (!G::DirectionEditMode)
-		{
-			sEditLive = false;
-			ImGui::SetNextWindowPos(ImVec2(G::DirectionWidgetX, G::DirectionWidgetY),
-				ImGuiCond_Always);
-		}
-		else if (!sEditLive)
-		{
-			ImGui::SetNextWindowPos(ImVec2(G::DirectionWidgetX, G::DirectionWidgetY),
-				ImGuiCond_Always);
-			sEditLive = true;
-		}
-		ImGui::SetNextWindowSize(ImVec2(kStripWidth, kStripHeight), ImGuiCond_Always);
-
-		ImGuiWindowFlags flags =
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
-			ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground;
-		if (!G::DirectionEditMode)
-			flags |= ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove;
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-		if (!ImGui::Begin("##gw2igh_dircompass_strip", nullptr, flags))
-		{
-			ImGui::End();
-			ImGui::PopStyleVar(2);
-			return;
-		}
-
-		ImDrawList* dl = ImGui::GetWindowDrawList();
-		const ImVec2 wp = ImGui::GetWindowPos();
-		const ImVec2 ws = ImGui::GetWindowSize();
-		const float cx = wp.x + ws.x * 0.5f;
-		const float top = wp.y + 4.f;
-		const float midY = wp.y + ws.y * 0.55f;
-		const float pxPerDeg = ws.x / kStripRangeDeg;
-
-		/* Soft gold underlay for readability without a heavy panel. */
-		dl->AddRectFilled(
-			ImVec2(wp.x, wp.y), ImVec2(wp.x + ws.x, wp.y + ws.y),
-			IM_COL32(6, 7, 10, 90), 4.f);
-		dl->AddLine(ImVec2(wp.x + 8.f, midY), ImVec2(wp.x + ws.x - 8.f, midY),
-			Col4(HelperTheme::Border, 0.55f), 1.0f);
-
-		/* Center notch — current facing. */
-		dl->AddTriangleFilled(
-			ImVec2(cx, top + 2.f),
-			ImVec2(cx - 7.f, top + 14.f),
-			ImVec2(cx + 7.f, top + 14.f),
-			Col4(HelperTheme::GoldBright));
-		dl->AddLine(ImVec2(cx, top + 14.f), ImVec2(cx, midY + 10.f),
-			Col4(HelperTheme::Gold), 1.6f);
-
-		const float rot = cameraYawDeg; /* markers move opposite camera turn */
-		const int steps = static_cast<int>(360.f / kStripStepDeg);
-		for (int i = 0; i < steps; ++i)
-		{
-			const float markerDeg = kStripStepDeg * static_cast<float>(i);
-			float rel = pxPerDeg * (markerDeg - rot);
-			/* Wrap into visible tape (±1.5 widths). */
-			const float wrap = ws.x * 2.f;
-			while (rel > ws.x * 1.5f)
-				rel -= wrap;
-			while (rel < -ws.x * 0.5f)
-				rel += wrap;
-
-			const float mx = cx + rel;
-			if (mx < wp.x + 2.f || mx > wp.x + ws.x - 2.f)
-				continue;
-
-			const std::string label = StripMarkerText(markerDeg);
-			const bool cardinal = (label.size() == 1 &&
-				(label[0] == 'N' || label[0] == 'E' || label[0] == 'S' || label[0] == 'W'));
-
-			/* Edge fade toward tape ends and near center helper gap. */
-			float t = 1.f;
-			const float edge = 48.f;
-			const float distLeft = mx - wp.x;
-			const float distRight = (wp.x + ws.x) - mx;
-			if (distLeft < edge)
-				t *= distLeft / edge;
-			if (distRight < edge)
-				t *= distRight / edge;
-			const float fromCenter = std::fabs(mx - cx);
-			if (fromCenter < 18.f)
-				t *= fromCenter / 18.f;
-			t = std::clamp(t, 0.f, 1.f);
-			if (t < 0.05f)
-				continue;
-
-			const float tickH = cardinal ? 14.f : 6.f;
-			dl->AddLine(
-				ImVec2(mx, midY - tickH), ImVec2(mx, midY + 2.f),
-				cardinal ? Col4(HelperTheme::Gold, t) : Col4(HelperTheme::Muted, t * 0.85f),
-				cardinal ? 1.8f : 1.0f);
-
-			ImFont* font = cardinal ? DirectionFontBig() : ImGui::GetFont();
-			const float fs = FontPixelSize(font);
-			const ImVec2 ts = font->CalcTextSizeA(fs, FLT_MAX, 0.f, label.c_str());
-			const ImVec2 tp{mx - ts.x * 0.5f, midY + 4.f};
-			DrawOutlinedText(dl, font, fs, tp,
-				cardinal ? Col4(HelperTheme::GoldBright, t) : Col4(HelperTheme::Muted, t),
-				IM_COL32(0, 0, 0, static_cast<int>(200 * t)),
-				label.c_str());
-		}
-
-		if (G::DirectionEditMode)
-		{
-			dl->AddRect(wp, ImVec2(wp.x + ws.x, wp.y + ws.y),
-				Col4(HelperTheme::Gold, 0.7f), 3.f, 0, 1.f);
-			const ImVec2 pos = ImGui::GetWindowPos();
-			if (std::fabs(pos.x - G::DirectionWidgetX) > 0.5f ||
-				std::fabs(pos.y - G::DirectionWidgetY) > 0.5f)
-			{
-				G::DirectionWidgetX = pos.x;
-				G::DirectionWidgetY = pos.y;
-				Settings::SetDirty();
-			}
-		}
-
-		ImGui::End();
-		ImGui::PopStyleVar(2);
-	}
-
-	/* ---- World: N/E/S/W around the character at hitbox radius ---- */
 	void DrawWorldCardinals(float screenW, float screenH, float cameraYawDeg)
 	{
 		const MumbleContext* ctx = Ctx();
@@ -522,12 +312,10 @@ namespace
 		const float dy = cp[1] - origin.y;
 		const float dz = cp[2] - origin.z;
 		const float camDist = std::sqrt(dx * dx + dy * dy + dz * dz);
-		/* Hide when camera is practically on top of the agent (same idea as Raidcore). */
 		if (camDist < 2.5f && cf[1] > -0.5f)
 			return;
 
 		const float radius = WorldRadiusMeters(ctx);
-		/* +Z north, +X east — matches common GW2 Mumble yaw (atan2 X,Z). */
 		struct Card { const char* label; float angleDeg; };
 		const Card cards[4] = {
 			{"N", 0.f}, {"E", 90.f}, {"S", 180.f}, {"W", 270.f}};
@@ -549,7 +337,6 @@ namespace
 			if (sx < -40.f || sy < -40.f || sx > screenW + 40.f || sy > screenH + 40.f)
 				continue;
 
-			/* Fade letters that sit behind the camera view direction. */
 			const float fade = std::clamp(
 				AngleDeltaAbs(card.angleDeg, camRot) / 45.f, 0.f, 1.f);
 			const int a = static_cast<int>(fade * 255.f);
@@ -557,7 +344,7 @@ namespace
 				continue;
 
 			ImFont* font = DirectionFontBig();
-			const float fs = FontPixelSize(font);
+			const float fs = LetterPixelSize(font);
 			const ImVec2 ts = font->CalcTextSizeA(fs, FLT_MAX, 0.f, card.label);
 			const ImVec2 p{sx - ts.x * 0.5f, sy - ts.y * 0.5f};
 			const ImU32 fill = (card.label[0] == 'N')
@@ -565,71 +352,6 @@ namespace
 				: IM_COL32(240, 242, 245, a);
 			DrawOutlinedText(dl, font, fs, p, fill, IM_COL32(0, 0, 0, a), card.label);
 		}
-	}
-
-	/* ---- Indicator: readable bearing under the strip ---- */
-	void DrawIndicator(float cameraYawDeg)
-	{
-		const int iRot = static_cast<int>(std::lround(cameraYawDeg));
-		char line[96];
-		std::snprintf(line, sizeof(line), "%d°  %s", iRot, LongBearing(iRot));
-
-		const ImVec2 textSize = ImGui::CalcTextSize(line);
-		const ImVec2 pad{10.f, 5.f};
-		static bool sEditLive = false;
-		if (!G::DirectionEditMode)
-		{
-			sEditLive = false;
-			ImGui::SetNextWindowPos(ImVec2(G::DirectionIndicatorX, G::DirectionIndicatorY),
-				ImGuiCond_Always);
-		}
-		else if (!sEditLive)
-		{
-			ImGui::SetNextWindowPos(ImVec2(G::DirectionIndicatorX, G::DirectionIndicatorY),
-				ImGuiCond_Always);
-			sEditLive = true;
-		}
-		ImGui::SetNextWindowSize(
-			ImVec2(textSize.x + pad.x * 2.f, textSize.y + pad.y * 2.f), ImGuiCond_Always);
-
-		ImGuiWindowFlags flags =
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
-			ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground;
-		if (!G::DirectionEditMode)
-			flags |= ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove;
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, pad);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-		if (ImGui::Begin("##gw2igh_dircompass_ind", nullptr, flags))
-		{
-			ImDrawList* dl = ImGui::GetWindowDrawList();
-			const ImVec2 p = ImGui::GetCursorScreenPos();
-			DrawOutlinedText(dl, ImGui::GetFont(), ImGui::GetFontSize(), p,
-				Col4(HelperTheme::GoldBright), IM_COL32(0, 0, 0, 210), line);
-			ImGui::Dummy(textSize);
-			if (ImGui::IsWindowHovered())
-				ImGui::SetTooltip("%s", ShortBearing(iRot));
-
-			if (G::DirectionEditMode)
-			{
-				const ImVec2 wp = ImGui::GetWindowPos();
-				const ImVec2 ws = ImGui::GetWindowSize();
-				dl->AddRect(wp, ImVec2(wp.x + ws.x, wp.y + ws.y),
-					Col4(HelperTheme::Gold, 0.7f), 3.f, 0, 1.f);
-				const ImVec2 pos = ImGui::GetWindowPos();
-				if (std::fabs(pos.x - G::DirectionIndicatorX) > 0.5f ||
-					std::fabs(pos.y - G::DirectionIndicatorY) > 0.5f)
-				{
-					G::DirectionIndicatorX = pos.x;
-					G::DirectionIndicatorY = pos.y;
-					Settings::SetDirty();
-				}
-			}
-		}
-		ImGui::End();
-		ImGui::PopStyleVar(2);
 	}
 }
 
@@ -657,27 +379,7 @@ void DirectionCompass::Render()
 		if (screenW < 64.f || screenH < 64.f)
 			return;
 
-		EnsureStripDefault(screenW, screenH);
-		const float camYaw = CameraYawDegrees();
-
-		if (G::ShowDirectionWorld)
-			DrawWorldCardinals(screenW, screenH, camYaw);
-		if (G::ShowDirectionWidget)
-			DrawHeadingStrip(camYaw);
-		if (G::ShowDirectionIndicator)
-			DrawIndicator(camYaw);
-
-		if (G::DirectionEditMode)
-		{
-			ImDrawList* fg = ImGui::GetForegroundDrawList();
-			if (fg)
-			{
-				DrawOutlinedText(fg, ImGui::GetFont(), ImGui::GetFontSize(),
-					ImVec2(12.f, screenH - 28.f),
-					Col4(HelperTheme::GoldBright), IM_COL32(0, 0, 0, 220),
-					"Compass edit: drag strip / indicator — turn off Edit in More when done");
-			}
-		}
+		DrawWorldCardinals(screenW, screenH, CameraYawDegrees());
 	}
 	catch (...)
 	{

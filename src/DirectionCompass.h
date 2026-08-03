@@ -1,8 +1,7 @@
 #pragma once
 
-/* Direction compass — heading strip, world N/E/S/W around the character, and
-   bearing indicator. Behavior mirrors Raidcore GW2-Compass; drawing and gold
-   theming are our own (HelperTheme). Independent of Tekkit CompassOverlay. */
+/* Direction compass — world N/E/S/W around the character. Raidcore-style
+   placement with HelperTheme gold. Independent of Tekkit CompassOverlay. */
 
 namespace DirectionCompass
 {

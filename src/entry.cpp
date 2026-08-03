@@ -43,14 +43,8 @@ namespace G
 	bool  ShowCompassOverlay = true;
 	bool  ShowWorldTrails = true;
 	bool  ShowDirectionCompass = false;
-	bool  ShowDirectionWidget = true;
-	bool  ShowDirectionIndicator = true;
-	bool  ShowDirectionWorld = true;
-	bool  DirectionEditMode = false;
-	float DirectionWidgetX = -1.f;
-	float DirectionWidgetY = -1.f;
-	float DirectionIndicatorX = -1.f;
-	float DirectionIndicatorY = -1.f;
+	float DirectionLetterScale = 1.f;
+	float DirectionWorldRadiusScale = 1.f;
 	bool  HideWhenMapOpen = true;
 	bool  HideOutOfGameplay = true;
 	float WorldTrailMaxDist = 120.f;

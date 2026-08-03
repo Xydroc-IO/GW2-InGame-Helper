@@ -86,18 +86,10 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowCompassOverlay") == 0) G::ShowCompassOverlay = AsBool(val);
 		else if (std::strcmp(key, "ShowWorldTrails") == 0) G::ShowWorldTrails = AsBool(val);
 		else if (std::strcmp(key, "ShowDirectionCompass") == 0) G::ShowDirectionCompass = AsBool(val);
-		else if (std::strcmp(key, "ShowDirectionWidget") == 0) G::ShowDirectionWidget = AsBool(val);
-		else if (std::strcmp(key, "ShowDirectionIndicator") == 0) G::ShowDirectionIndicator = AsBool(val);
-		else if (std::strcmp(key, "ShowDirectionWorld") == 0) G::ShowDirectionWorld = AsBool(val);
-		else if (std::strcmp(key, "DirectionEditMode") == 0) G::DirectionEditMode = AsBool(val);
-		else if (std::strcmp(key, "DirectionWidgetX") == 0)
-			G::DirectionWidgetX = static_cast<float>(std::atof(val));
-		else if (std::strcmp(key, "DirectionWidgetY") == 0)
-			G::DirectionWidgetY = static_cast<float>(std::atof(val));
-		else if (std::strcmp(key, "DirectionIndicatorX") == 0)
-			G::DirectionIndicatorX = static_cast<float>(std::atof(val));
-		else if (std::strcmp(key, "DirectionIndicatorY") == 0)
-			G::DirectionIndicatorY = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "DirectionLetterScale") == 0)
+			G::DirectionLetterScale = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "DirectionWorldRadiusScale") == 0)
+			G::DirectionWorldRadiusScale = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "HideWhenMapOpen") == 0) G::HideWhenMapOpen = AsBool(val);
 		else if (std::strcmp(key, "HideOutOfGameplay") == 0) G::HideOutOfGameplay = AsBool(val);
 		else if (std::strcmp(key, "WorldTrailMaxDist") == 0)
@@ -196,6 +188,10 @@ void Settings::Load()
 	if (G::WorldTrailMaxDist > 200.f) G::WorldTrailMaxDist = 200.f;
 	if (G::WorldTrailWidth < 0.5f) G::WorldTrailWidth = 0.5f;
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
+	if (G::DirectionLetterScale < 0.5f) G::DirectionLetterScale = 0.5f;
+	if (G::DirectionLetterScale > 2.5f) G::DirectionLetterScale = 2.5f;
+	if (G::DirectionWorldRadiusScale < 0.4f) G::DirectionWorldRadiusScale = 0.4f;
+	if (G::DirectionWorldRadiusScale > 3.0f) G::DirectionWorldRadiusScale = 3.0f;
 	if (G::LogManagerListFrac < 0.20f) G::LogManagerListFrac = 0.20f;
 	if (G::LogManagerListFrac > 0.72f) G::LogManagerListFrac = 0.72f;
 	/* Old shipping defaults — bump once toward screenshot middle-pane width. */
@@ -258,14 +254,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowCompassOverlay=%d\n", G::ShowCompassOverlay ? 1 : 0);
 	std::fprintf(f, "ShowWorldTrails=%d\n", G::ShowWorldTrails ? 1 : 0);
 	std::fprintf(f, "ShowDirectionCompass=%d\n", G::ShowDirectionCompass ? 1 : 0);
-	std::fprintf(f, "ShowDirectionWidget=%d\n", G::ShowDirectionWidget ? 1 : 0);
-	std::fprintf(f, "ShowDirectionIndicator=%d\n", G::ShowDirectionIndicator ? 1 : 0);
-	std::fprintf(f, "ShowDirectionWorld=%d\n", G::ShowDirectionWorld ? 1 : 0);
-	std::fprintf(f, "DirectionEditMode=%d\n", G::DirectionEditMode ? 1 : 0);
-	std::fprintf(f, "DirectionWidgetX=%.1f\n", G::DirectionWidgetX);
-	std::fprintf(f, "DirectionWidgetY=%.1f\n", G::DirectionWidgetY);
-	std::fprintf(f, "DirectionIndicatorX=%.1f\n", G::DirectionIndicatorX);
-	std::fprintf(f, "DirectionIndicatorY=%.1f\n", G::DirectionIndicatorY);
+	std::fprintf(f, "DirectionLetterScale=%.2f\n", G::DirectionLetterScale);
+	std::fprintf(f, "DirectionWorldRadiusScale=%.2f\n", G::DirectionWorldRadiusScale);
 	std::fprintf(f, "HideWhenMapOpen=%d\n", G::HideWhenMapOpen ? 1 : 0);
 	std::fprintf(f, "HideOutOfGameplay=%d\n", G::HideOutOfGameplay ? 1 : 0);
 	std::fprintf(f, "WorldTrailMaxDist=%.1f\n", G::WorldTrailMaxDist);
