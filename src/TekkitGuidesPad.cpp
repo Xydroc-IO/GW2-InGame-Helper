@@ -56,12 +56,13 @@ namespace
 
 	void DrawRouteTab()
 	{
-		ImGui::TextUnformatted("Route to trail start");
+		ImGui::TextUnformatted("Route to nearest waypoint");
 		ImGui::TextDisabled(
-			"Nearest public waypoints to the trail start (else your position). "
+			"Uses public API waypoints — works with no pathing categories enabled. "
+			"With packs on, prefers trail start; otherwise your position. "
 			"Copy a chat code — no auto-teleport.");
 
-		/* Keep map trails warm on this tab — Find used to race Update()'s async load. */
+		/* Keep map trails warm when categories are on — Find itself does not wait on packs. */
 		uint32_t mapId = 0;
 		if (G::Mumble && G::Mumble->uiTick != 0)
 		{
@@ -89,15 +90,12 @@ namespace
 		const bool trailsBusy = TekkitTrails::IsLoading() || PathingPacks::IsUpdating();
 		if (sPendingRoute)
 		{
+			/* Waypoint index only — do not block on pathing pack load/toggles. */
 			if (!WaypointsData::Ready())
 			{
 				WaypointsData::EnsureLoaded(false);
 				ImGui::TextColored(HelperTheme::Warn, "%s",
 					WaypointsData::Busy() ? WaypointsData::Status() : "Starting waypoint index…");
-			}
-			else if (trailsBusy)
-			{
-				ImGui::TextColored(HelperTheme::Warn, "Loading trail packs…");
 			}
 			else
 			{
@@ -111,7 +109,7 @@ namespace
 		}
 		else if (trailsBusy)
 		{
-			ImGui::TextDisabled("Indexing trail packs…");
+			ImGui::TextDisabled("Indexing trail packs… (Find still works without categories)");
 		}
 
 		if (ImGui::Button("Route from clipboard###gw2igh_route_clip"))
@@ -132,19 +130,21 @@ namespace
 				ImGui::SetTooltip(
 					"When on, Find uses waypoints this character has walked near.\n"
 					"Confirmed locally from MumbleLink position + API coords.");
-			const int mapId = WaypointsData::CurrentMapId();
+			const int mapIdWp = WaypointsData::CurrentMapId();
 			ImGui::TextDisabled("Confirmed: %zu total · %zu on this map",
 				ConfirmedWaypoints::CountForActive(),
-				ConfirmedWaypoints::CountOnMap(mapId));
+				ConfirmedWaypoints::CountOnMap(mapIdWp));
 		}
 
 		const RoutingSuggest::Result& route = RoutingSuggest::Last();
 		if (!route.status.empty() && !sPendingRoute)
 			ImGui::TextWrapped("%s", route.status.c_str());
 		if (route.trailLabel[0])
-			ImGui::TextDisabled("Trail: %s (%.0f, %.0f)", route.trailLabel, route.trailX, route.trailY);
+			ImGui::TextDisabled("Anchor: %s (%.0f, %.0f)", route.trailLabel, route.trailX, route.trailY);
 		if (TekkitTrails::HasSearchGuide())
 			ImGui::TextColored(HelperTheme::Ok, "Orange in-world guide active.");
+		else if (TekkitTrails::HasSearchGuideActive())
+			ImGui::TextDisabled("Orange guide loading trail geometry…");
 
 		for (size_t i = 0; i < route.nearest.size(); ++i)
 		{
@@ -178,7 +178,6 @@ namespace
 		}
 	}
 }
-
 void TekkitGuidesPad::Open()
 {
 	G::ShowTekkitGuides = true;

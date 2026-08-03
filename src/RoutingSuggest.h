@@ -29,7 +29,8 @@ namespace RoutingSuggest
 		std::vector<Candidate> nearest;
 	};
 
-	/* Uses current-map trails (enabled first, else any loaded) + waypoint index. */
+	/* Uses current-map trails when categories are enabled; otherwise player position.
+	   Public waypoint index — does not require pathing packs toggled on. */
 	Result SuggestNearTrailStart(size_t maxN = 3);
 
 	/* Parse clipboard for [&…] and route orange guide to that POI. */

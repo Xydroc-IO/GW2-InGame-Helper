@@ -84,11 +84,22 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 		maxN = 3;
 
 	uint32_t mapId = 0;
+	float playerX = 0.f;
+	float playerY = 0.f;
+	bool havePlayer = false;
 	if (G::Mumble && G::Mumble->uiTick != 0)
 	{
 		const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
 		if (ctx)
+		{
 			mapId = ctx->mapId;
+			if (std::isfinite(ctx->playerX) && std::isfinite(ctx->playerY))
+			{
+				playerX = ctx->playerX;
+				playerY = ctx->playerY;
+				havePlayer = true;
+			}
+		}
 	}
 	if (!mapId)
 	{
@@ -97,33 +108,36 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 		return r;
 	}
 
+	/* Packs optional: with no categories enabled, rank against the player.
+	   With packs on, prefer trail start when one is available. */
 	TekkitTrails::Update(mapId);
 
 	char label[96]{};
 	bool fromPlayer = false;
-	if (!TekkitTrails::TryTrailStartContinent(&r.trailX, &r.trailY, label, sizeof(label), true))
+	const bool anyEnabled = !TekkitTrails::EnabledPaths().empty();
+	if (anyEnabled &&
+		TekkitTrails::TryTrailStartContinent(&r.trailX, &r.trailY, label, sizeof(label), true))
 	{
-		/* Route tab can open before packs finish, or with no categories on —
-		   still rank waypoints against the live player continent position. */
-		if (G::Mumble && G::Mumble->uiTick != 0)
-		{
-			const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
-			if (ctx && std::isfinite(ctx->playerX) && std::isfinite(ctx->playerY))
-			{
-				r.trailX = ctx->playerX;
-				r.trailY = ctx->playerY;
-				std::snprintf(label, sizeof(label), "your position");
-				fromPlayer = true;
-			}
-		}
-		if (!fromPlayer)
-		{
-			r.status = TekkitTrails::IsLoading()
-				? "Trail packs still loading — retry in a moment."
-				: "No trail points on this map — enable a category or wait for packs.";
-			gLast = r;
-			return r;
-		}
+		/* trail start locked in */
+	}
+	else if (havePlayer)
+	{
+		r.trailX = playerX;
+		r.trailY = playerY;
+		std::snprintf(label, sizeof(label), "your position");
+		fromPlayer = true;
+	}
+	else if (TekkitTrails::TryTrailStartContinent(&r.trailX, &r.trailY, label, sizeof(label), false))
+	{
+		/* any loaded trail (search-rank) while Mumble player coords missing */
+	}
+	else
+	{
+		r.status = TekkitTrails::IsLoading()
+			? "Trail packs still loading — retry in a moment, or wait for MumbleLink."
+			: "MumbleLink position unavailable — open the map in-game and retry.";
+		gLast = r;
+		return r;
 	}
 	std::snprintf(r.trailLabel, sizeof(r.trailLabel), "%s", label);
 
@@ -219,10 +233,24 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 		if (prefer && confirmedN > 0)
 			r.status = "Nearest walk-confirmed waypoints — copy a chat code to teleport.";
 		else if (fromPlayer)
-			r.status = "Nearest waypoints to your position — copy a chat code to teleport.";
+			r.status = anyEnabled
+				? "No trail start on this map — nearest waypoints to your position."
+				: "Nearest waypoints to your position (no pathing categories enabled).";
 		else
 			r.status = "Nearest waypoints to trail start — copy a chat code to teleport.";
-		ApplyOrangeGuide(r);
+
+		/* Orange guide: toward trail start, or toward the closest WP when anchored on the player. */
+		if (fromPlayer && r.nearest[0].hasCoord)
+		{
+			Result guide = r;
+			guide.trailX = r.nearest[0].continentX;
+			guide.trailY = r.nearest[0].continentY;
+			std::snprintf(guide.trailLabel, sizeof(guide.trailLabel), "%s",
+				r.nearest[0].name.c_str());
+			ApplyOrangeGuide(guide);
+		}
+		else
+			ApplyOrangeGuide(r);
 	}
 	gLast = r;
 	return r;

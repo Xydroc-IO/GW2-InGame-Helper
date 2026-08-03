@@ -2139,6 +2139,10 @@ void TekkitTrails::SetSearchDestination(float continentX, float continentY)
 	gGuideDestX = continentX;
 	gGuideDestY = continentY;
 	RebuildSearchGuideLocked();
+	/* With no categories enabled LoadMapTrails leaves gCurrentAll empty — force a
+	   reload so search-rank trails load for the orange guide (needPack uses gGuideActive). */
+	if (gCurrentAll.empty())
+		gForceReload.store(true, std::memory_order_release);
 }
 
 void TekkitTrails::ClearSearchGuide()
