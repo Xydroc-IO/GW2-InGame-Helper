@@ -56,7 +56,7 @@ namespace G
 	bool  HideOutOfGameplay = true;
 	float WorldTrailMaxDist = 120.f;
 	float WorldTrailWidth = 1.f;
-	float WorldTrailPlayerClear = 1.f; /* 0 = hard clear only; 1 = default soft bubble */
+	float WorldTrailPlayerClear = 1.f; /* 0 = full path; 1 = default clear bubble */
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
 	bool  FontScaleAuto = false; /* opt-in only — default stays 1.0 */

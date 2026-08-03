@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 #include <vector>
 
 /* Tekkit in-world GPS: pack textures as ribbons, with a solid line always under
@@ -19,7 +20,7 @@ namespace
 	constexpr float kNearClip = 0.5f;
 	constexpr float kFarClip = 8000.f;
 	constexpr float kDefaultFov = 1.222f;
-	constexpr int kMaxSegments = 800;
+	constexpr int kMaxSegments = 1400;
 	/* No artificial lift — Pathing/TacO draw .trl points at authored Y.
 	   A height bias looks like a lateral miss once the camera pitches. */
 	constexpr float kHeightBias = 0.f;
@@ -27,9 +28,9 @@ namespace
 	/* Soft-hide POI icons that would cover the avatar. */
 	constexpr float kAvatarMarkerHideM = 2.0f;
 	constexpr float kAvatarMarkerFadeM = 5.5f;
-	/* Hard world clear — always on so ImGui trails never sit on the mesh.
-	   Soft fade beyond this is scaled by G::WorldTrailPlayerClear. */
-	constexpr float kAvatarTrailHardHideM = 2.75f;
+	/* Player-clear radii at slider 1.0× (scale linearly; 0 = full path, no hole). */
+	constexpr float kAvatarTrailHideAt1 = 5.0f;
+	constexpr float kAvatarTrailFadeExtraAt1 = 4.0f;
 
 	struct Vec3
 	{
@@ -172,13 +173,15 @@ namespace
 			return false;
 		float cx, cy, cz, cw;
 		viewProj.Transform(world.x, world.y, world.z, cx, cy, cz, cw);
-		if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(cw) || cw <= 0.35f)
+		/* Looser than before — Windows high-FOV / look-along used to fail cw/NDC
+		   and blank whole ribbons while Linux Wine often kept them. */
+		if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(cw) || cw <= 0.15f)
 			return false;
 		const float ndcX = cx / cw;
 		const float ndcY = cy / cw;
 		if (!std::isfinite(ndcX) || !std::isfinite(ndcY))
 			return false;
-		if (ndcX < -3.5f || ndcX > 3.5f || ndcY < -3.5f || ndcY > 3.5f)
+		if (ndcX < -6.f || ndcX > 6.f || ndcY < -6.f || ndcY > 6.f)
 			return false;
 		sx = (ndcX + 1.f) * 0.5f * screenW;
 		sy = (-ndcY + 1.f) * 0.5f * screenH;
@@ -207,7 +210,7 @@ namespace
 	{
 		/* Higher than kNearClip — points barely past the plane project wildly
 		   and stretch gold lines when looking along the trail. */
-		constexpr float kEps = 0.45f;
+		constexpr float kEps = 0.25f;
 		const float aw = ClipW(a, viewProj);
 		const float bw = ClipW(b, viewProj);
 		if (!std::isfinite(aw) || !std::isfinite(bw))
@@ -286,15 +289,17 @@ namespace
 		constexpr float kMinSpacing2 = 0.75f * 0.75f;
 		/* Continuity vs stretch — break only on big jumps; subdivide for draw. */
 		constexpr float kMaxGap2 = 40.f * 40.f;
-		constexpr float kDrawStepM = 6.0f;
-		const float maxLineScreen = std::min(280.f, std::min(screenW, screenH) * 0.35f);
+		/* Shorter steps keep look-along screen lengths manageable (esp. 1440p/4K). */
+		constexpr float kDrawStepM = 3.0f;
+		/* Was min(280, 0.35×) — on Windows high-res that dropped look-along segs. */
+		const float maxLineScreen = std::max(320.f, std::min(screenW, screenH) * 0.65f);
 
 		const float clearMul = std::clamp(G::WorldTrailPlayerClear, 0.f, 3.f);
-		/* Soft bubble grows with the slider; hard hide always stays on. */
-		const float softHideM = kAvatarTrailHardHideM + 2.25f * clearMul;
-		const float softFadeM = (clearMul <= 0.001f)
-			? softHideM
-			: softHideM + 4.0f * clearMul;
+		/* 0 = draw the full path (including through the player). Higher = larger
+		   clear bubble that fades in gradually from the avatar. */
+		const float hideM = kAvatarTrailHideAt1 * clearMul;
+		const float fadeM = hideM + kAvatarTrailFadeExtraAt1 * clearMul;
+		const bool clearOn = clearMul > 0.001f;
 
 		auto distFade = [&](const Vec3& w, float& fadeOut) -> bool
 		{
@@ -308,16 +313,15 @@ namespace
 			fadeOut = 1.f;
 			if (dist > fadeStart)
 				fadeOut = 1.f - (dist - fadeStart) / std::max(1.f, fadeEnd - fadeStart);
-			/* Hard clear always — even at Player clear 0. */
-			if (dist <= kAvatarTrailHardHideM)
-				return false;
-			if (clearMul > 0.001f && dist < softFadeM)
+			if (clearOn)
 			{
-				const float lo = softHideM;
-				if (dist <= lo)
+				if (dist <= hideM)
 					return false;
-				const float t = (dist - lo) / std::max(0.25f, softFadeM - lo);
-				fadeOut *= std::clamp(t, 0.f, 1.f);
+				if (dist < fadeM)
+				{
+					const float t = (dist - hideM) / std::max(0.25f, fadeM - hideM);
+					fadeOut *= std::clamp(t, 0.f, 1.f);
+				}
 			}
 			fadeOut = std::clamp(fadeOut, 0.f, 1.f);
 			return baseA * fadeOut >= 0.05f;
@@ -348,13 +352,12 @@ namespace
 			return WorldToScreen(w, viewProj, screenW, screenH, sx, sy);
 		};
 
-		/* Screen-space clear — trails ahead still land on the character silhouette
-		   because ImGui draws over the scene with no depth test. */
+		/* Screen-space clear — only when Player clear > 0 (ImGui has no depth). */
 		float avatarSx = 0.f, avatarSy = 0.f;
 		float avatarScreenR = std::min(screenW, screenH) * 0.10f;
 		bool haveAvatarScreen = false;
+		if (clearOn)
 		{
-			/* Feet + torso + mount-ish height — pick the strongest on-screen radius. */
 			const float heights[] = { 0.35f, 1.15f, 2.35f };
 			for (float hy : heights)
 			{
@@ -367,14 +370,10 @@ namespace
 					avatarSy = sy;
 					haveAvatarScreen = true;
 				}
-				else
+				else if (hy > 0.9f && hy < 1.5f)
 				{
-					/* Bias toward torso for the clear center. */
-					if (hy > 0.9f && hy < 1.5f)
-					{
-						avatarSx = sx;
-						avatarSy = sy;
-					}
+					avatarSx = sx;
+					avatarSy = sy;
 				}
 				float ox = 0.f, oy = 0.f;
 				const float side = (hy > 1.8f) ? 2.0f : 1.4f;
@@ -418,13 +417,14 @@ namespace
 			return std::sqrt(cx * cx + cy * cy);
 		};
 
-		auto drawSeg = [&](Vec3 raw0, Vec3 raw1, float& alongM) -> void
+		std::function<void(Vec3, Vec3, float&, int)> drawSeg;
+		drawSeg = [&](Vec3 raw0, Vec3 raw1, float& alongM, int depth) -> void
 		{
 			if (drawn >= segsLeft)
 				return;
 			Vec3 dir{raw1.x - raw0.x, raw1.y - raw0.y, raw1.z - raw0.z};
 			const float segLen = std::sqrt(dir.LengthSq());
-			if (!(segLen > 0.2f) || !std::isfinite(segLen) || segLen > 40.f)
+			if (!(segLen > 0.15f) || !std::isfinite(segLen) || segLen > 40.f)
 				return;
 
 			float fade0 = 1.f, fade1 = 1.f;
@@ -435,23 +435,20 @@ namespace
 				alongM += segLen;
 				return;
 			}
-			/* Segment may still skim the player/mount even if endpoints are outside. */
-			const float nearD = segDistToAvatar(raw0, raw1);
-			if (nearD <= kAvatarTrailHardHideM)
-			{
-				alongM += segLen;
-				return;
-			}
 			float avatarMul = 1.f;
-			if (clearMul > 0.001f && nearD < softFadeM)
+			if (clearOn)
 			{
-				if (nearD <= softHideM)
+				const float nearD = segDistToAvatar(raw0, raw1);
+				if (nearD <= hideM)
 				{
 					alongM += segLen;
 					return;
 				}
-				avatarMul = (nearD - softHideM) / std::max(0.25f, softFadeM - softHideM);
-				avatarMul = std::clamp(avatarMul, 0.f, 1.f);
+				if (nearD < fadeM)
+				{
+					avatarMul = (nearD - hideM) / std::max(0.25f, fadeM - hideM);
+					avatarMul = std::clamp(avatarMul, 0.f, 1.f);
+				}
 			}
 
 			Vec3 p0 = raw0;
@@ -463,21 +460,24 @@ namespace
 			}
 
 			float cx0 = 0.f, cy0 = 0.f, cx1 = 0.f, cy1 = 0.f;
-			if (!projectWorld(p0, cx0, cy0) || !projectWorld(p1, cx1, cy1))
+			const bool ok0 = projectWorld(p0, cx0, cy0);
+			const bool ok1 = projectWorld(p1, cx1, cy1);
+			const float centerLen = (ok0 && ok1) ? screenLen(cx0, cy0, cx1, cy1) : 1.0e30f;
+			/* Look-along / high-DPI: split instead of dropping (Windows 1440p/4K). */
+			if ((!ok0 || !ok1 || centerLen > maxLineScreen) &&
+				depth < 5 && segLen > 0.45f)
 			{
-				alongM += segLen;
+				const Vec3 mid = Lerp3(raw0, raw1, 0.5f);
+				drawSeg(raw0, mid, alongM, depth + 1);
+				drawSeg(mid, raw1, alongM, depth + 1);
 				return;
 			}
-			const float centerLen = screenLen(cx0, cy0, cx1, cy1);
-			if (centerLen < 0.5f || centerLen > maxLineScreen)
+			if (!ok0 || !ok1 || centerLen < 0.35f)
 			{
 				alongM += segLen;
 				return;
 			}
 
-			/* Screen-space ribbon — world-space side offsets blow up look-along
-			   and we used to fall back to a solid cyan/white line. Pixel width
-			   stays stable so pack chevron textures actually show. */
 			const float sdx = cx1 - cx0;
 			const float sdy = cy1 - cy0;
 			const float invLen = 1.f / std::max(0.001f, centerLen);
@@ -492,34 +492,28 @@ namespace
 					(avatar.x - p1.x) * (avatar.x - p1.x) +
 					(avatar.y - p1.y) * (avatar.y - p1.y) +
 					(avatar.z - p1.z) * (avatar.z - p1.z)));
-			/* Perspective screen width — old fixed [5,16]px clamp saturated near
-			   the avatar, so GPS width looked inert up close (and on dense Barefoot
-			   feet trails). Scale the clamp with widthMul so the slider always bites. */
-			const float halfPx = std::clamp(
+			float halfPx = std::clamp(
 				halfM * 900.f / std::max(4.f, avgDist),
 				4.f * widthMul, 14.f * widthMul);
+			/* Cap ribbon flare if a long look-along seg still slips through. */
+			if (centerLen > maxLineScreen)
+				halfPx = std::min(halfPx, 10.f * widthMul);
 
-			/* Hard silhouette clear always includes ribbon half-width — previously
-			   center-line distance alone let thick trails paint over the player
-			   when Player clear was low / fade was off. Soft fade scales separately. */
-			if (haveAvatarScreen)
+			if (clearOn && haveAvatarScreen)
 			{
 				const float segScreen = pointToSeg2D(
 					avatarSx, avatarSy, cx0, cy0, cx1, cy1);
-				const float hardR = avatarScreenR + halfPx + 10.f;
+				const float hardR = (avatarScreenR + halfPx + 10.f) * clearMul;
+				const float softR = hardR + avatarScreenR * (0.55f * clearMul);
 				if (segScreen <= hardR)
 				{
 					alongM += segLen;
 					return;
 				}
-				if (clearMul > 0.001f)
+				if (segScreen < softR)
 				{
-					const float softR = hardR + avatarScreenR * (0.45f + 1.25f * clearMul);
-					if (segScreen < softR)
-					{
-						const float t = (segScreen - hardR) / std::max(1.f, softR - hardR);
-						avatarMul *= std::clamp(t, 0.f, 1.f);
-					}
+					const float t = (segScreen - hardR) / std::max(1.f, softR - hardR);
+					avatarMul *= std::clamp(t, 0.f, 1.f);
 				}
 			}
 
@@ -551,7 +545,6 @@ namespace
 			}
 			else
 			{
-				/* Missing pack texture — soft gold, not default cyan. */
 				dl->AddQuadFilled(sL0, sL1, sR1, sR0,
 					IM_COL32(rr, gg, bb, aCh));
 			}
@@ -581,7 +574,7 @@ namespace
 				{
 					const float t0 = static_cast<float>(s) / static_cast<float>(steps);
 					const float t1 = static_cast<float>(s + 1) / static_cast<float>(steps);
-					drawSeg(Lerp3(a, b, t0), Lerp3(a, b, t1), alongM);
+					drawSeg(Lerp3(a, b, t0), Lerp3(a, b, t1), alongM, 0);
 				}
 			}
 		};

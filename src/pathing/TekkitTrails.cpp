@@ -2782,9 +2782,9 @@ bool TekkitTrails::DrawOverlaySettings()
 		dirty |= ImGui::SliderFloat("Player clear", &G::WorldTrailPlayerClear, 0.f, 3.0f, "%.1f×");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
-				"How far trails fade away from you.\n"
-				"0 = tight hard clear only (still never paints over you).\n"
-				"1 = default soft bubble · higher = larger gap.");
+				"Fade trails away from you.\n"
+				"0 = full path visible (can draw over you).\n"
+				"1 = default gap · higher = larger clear bubble.");
 		ImGui::Unindent();
 
 		dirty |= ImGui::Checkbox("Hide when world map open", &G::HideWhenMapOpen);

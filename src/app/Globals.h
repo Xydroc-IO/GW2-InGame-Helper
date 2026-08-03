@@ -90,7 +90,7 @@ namespace G
 	extern bool  HideOutOfGameplay;
 	extern float WorldTrailMaxDist; /* meters from player */
 	extern float WorldTrailWidth;
-	/* Soft fade / clear size around the player (0 = hard silhouette clear only). */
+	/* Soft fade / clear size around the player (0 = full path, no hole). */
 	extern float WorldTrailPlayerClear;
 	extern float Opacity;
 	extern float FontScale;
