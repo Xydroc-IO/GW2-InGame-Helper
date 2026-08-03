@@ -163,7 +163,8 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 
 | Path | Responsibility |
 |------|----------------|
-| `src/UI.cpp` | Orchestration, toolbar, tabs, CEF input routing |
+| `src/UI.cpp` | Orchestration, helper side rail, tabs, CEF input routing |
+| `PadNav` / `PadDock` | Side-rail / wrapping chip nav; persisted pad geom |
 | `src/UI_Browse.cpp` | Browse picker, section maps, favorites UI |
 | `src/UI_Options.cpp` | Nexus options panel |
 
@@ -183,7 +184,7 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 | `LogManagerPad` / `Parse` / `Upload` / `Ei` | DPS Logs UI, EVTC/JSON parse, dps.report, EI CLI |
 | `TekkitTrails` / `Parse` / `Index` / `PathingPacks` | Pathing runtime, curated pack download, taco/XML/.trl |
 | `CompassOverlay` / `WorldOverlay` | Tekkit trail overlays on minimap / in-world |
-| `DirectionCompass` | World N/E/S/W around the character (independent of Tekkit) |
+| `DirectionCompass` | World N/E/S/W + Compass settings pad (independent of Tekkit) |
 | `LivePanels` / `Build` / `Html` | about: live digests — workers vs HTML builders |
 | `CheatSheets` + `data/cheatsheets/` | Offline about: sheets (embedded zip → runtime extract) |
 | `AccountPad`, `WalletPad`, `VaultPad`, `NotesPad`, … | ImGui feature pads |

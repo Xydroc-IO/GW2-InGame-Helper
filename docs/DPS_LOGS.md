@@ -60,7 +60,7 @@ On Proton that usually maps to something like:
 ## 2. Open the pad
 
 1. Open the In-Game Helper window.
-2. Click **DPS Logs** on the pad row (or **⋯ → Show DPS Logs**, or Nexus Options → **Show DPS Logs**).
+2. Click **DPS Logs** on the left side rail (or **⋯ → Show DPS Logs**, or Nexus Options → **Show DPS Logs**).
 3. Confirm the **log folder** path looks correct (edit if you moved ArcDPS logs).
 
 ---
@@ -95,7 +95,7 @@ In the pad, **Install .NET 8 Runtime** opens that installer link. **Recheck .NET
 1. Download and run `windowsdesktop-runtime-*-win-x64.exe`.
 2. Complete the wizard.
 3. Back in **DPS Logs**, click **Recheck .NET** — the yellow warning should clear.
-4. Use **Parse pending** or **Load report meta** as needed.
+4. Use **Parse** or **Load DPS/boons** as needed (or leave **Auto-parse after scan** on).
 
 ### Linux / Steam Deck (Proton) — Protontricks GUI
 
@@ -151,11 +151,11 @@ Some Steam Deck setups use Discover / flatpak `com.github.Matoking.protontricks`
 
 | Action | What it does |
 |--------|----------------|
-| **Rescan** | Finds logs under the log folder; may auto **Load report meta** for linked uploads |
-| **Parse pending** | Runs Elite Insights CLI → JSON (needs .NET 8) |
+| **Rescan** | Finds logs under the log folder; may auto **Load DPS/boons** for linked uploads |
+| **Parse** | Runs Elite Insights CLI → JSON (needs .NET 8). With **Auto-parse after scan** (default on), this also runs when a scan finishes |
 | **Install / Update EI** | Refreshes EI from GitHub latest |
 | **Upload** / **Upload filtered** | Uploads to dps.report; stores permalink + basic encounter info |
-| **Load report meta** | Fills encounter, squad DPS, and boon uptimes from dps.report (`getJson`) for existing links |
+| **Load DPS/boons** | Fills encounter, squad DPS, and boon uptimes from dps.report (`getJson`) for existing links |
 | Optional **dps.report user token** | Associates uploads with your dps.report account (treat like a password) |
 
 Detail tab shows squad **DPS / Power / Condi** and key boon uptimes
@@ -183,10 +183,12 @@ profiles show **—**.
 Filters | log list | Detail / Players / **KillProof** / … — drag the vertical
 splitter between the list and the right pane to resize (saved).
 
-**Group by encounter** is **on by default** (Filters pane): collapsible sections
-per boss with count / kills / best kill / last time; newest encounters first.
-Uncheck for a flat chronological-style list. Result / Mode / Time filters use
-**in-window radios** (not popup combos — Nexus often eats ImGui dropdown clicks).
+**Search** matches filename, encounter name, or path (one field). Result / Mode /
+Time filters use **in-window radios**. **Group by encounter** is **on by default**:
+collapsible sections per boss with count / kills / best kill / last time; newest
+encounters first. Uncheck for a flat list. **Auto-parse after scan** (default on)
+runs Elite Insights when a Rescan finishes if .NET 8 + EI are ready.
+
 Window size and position are remembered; first-open size uses most of the game
 client (~92%×84%, e.g. ~1760×900 on 1080p) so filters | list | Detail/KillProof
 match the intended layout. Tables scroll horizontally if a pane is still tight.
@@ -211,8 +213,8 @@ match the intended layout. Tables scroll horizontally if a pane is still tight.
 
 ### Logs list shows filenames but `?` / no DPS
 
-- Uploads alone used to store only the link. Use **Load report meta** (or Rescan)
-  to pull DPS/boons from dps.report, or **Parse pending** with EI + .NET.
+- Uploads alone used to store only the link. Use **Load DPS/boons** (or Rescan)
+  to pull DPS/boons from dps.report, or **Parse** with EI + .NET.
 - Confirm the log folder path points at real `.zevtc` / `.evtc` files.
 
 ### KillProof shows only dashes / “none/private”

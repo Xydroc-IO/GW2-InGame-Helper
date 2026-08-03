@@ -24,7 +24,7 @@ This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper
 
 1. Read `data/sites.json` (schema **v2**: `browsePath`, `browseSections`) + `make validate-sites`.
 2. Runtime catalog lives in `addons/GW2-InGame-Helper/sites.json` (extracted from the DLL). Edit that file and fully restart GW2 to change Browse without rebuilding; keep `data/sites.json` in git as the source of truth for releases.
-3. Trace one pad: e.g. `NotesPad` or `WalletPad` → `UI.cpp` toolbar button → settings flag in `Globals.h` / `Settings.cpp`.
+3. Trace one pad: e.g. `NotesPad` or `WalletPad` → `UI.cpp` helper side rail → settings flag in `Globals.h` / `Settings.cpp`. Pad positions persist via `PadDock` / `G::PadGeom`.
 
 **Done when:** you can add a Browse entry via JSON and find where a pad is toggled.
 
@@ -37,9 +37,10 @@ This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper
 | Browse UI | `UI_Browse.cpp` |
 | DPS Logs | `LogManagerPad.cpp` → `LogManagerParse` / `Upload` / `Ei` |
 | Pathing | `TekkitTrails.cpp` → `TekkitParse` / `TekkitIndex` / `PathingPacks` |
-| Direction compass | `DirectionCompass.cpp` (toolbar Compass; independent of Tekkit overlays) |
-| Live digests | `LivePanels.cpp` → `LivePanelsBuild` |
+| Direction compass | `DirectionCompass.cpp` (side-rail **Compass** pad; letter size + radius) |
+| Live digests | `LivePanels.cpp` → `LivePanelsBuild` (News Digest under Browse → Help) |
 | Account API pads | `AccountPad.cpp`, `ProgressData.cpp`, `CraftingData.cpp` |
+| Pad placement | `PadDock.h` (`G::PadGeom` → `settings.ini`) |
 
 Run parse fixture tests: `make test-parse`.
 

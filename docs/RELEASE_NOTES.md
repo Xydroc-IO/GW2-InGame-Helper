@@ -33,17 +33,25 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ## What’s new in 2.1.0.4
 
-- **Direction compass:** Toolbar **Compass** — world N/E/S/W around the character
+- **Direction compass:** Side-rail **Compass** pad — world N/E/S/W around the character
   (Nexus `FontBig`, letter size + world radius sliders); gold theme; independent of
   Tekkit compass-trail overlay. (Heading strip / bearing / edit mode removed.)
+- **Helper chrome:** Left side rail for Browse / Account / Pathing / Events / DPS Logs /
+  Notes / Compass; favorite ★ beside Find; Account & Pathing use side-rail tabs.
+  Floating pad positions/sizes persist in `settings.ini`.
 - **Pathing presets:** Map Completion **Skyscale** beside Foot / Griffon; **All Lady**
-  (`legs` + `leag`); **All off** clears Tekkit, Lady, and MC.
+  (`legs` + `leag`); **All off** clears Tekkit, Lady, and MC. Packs list fills Overview.
+- **Browse catalog:** News Digest under **Help → News**; removed Live category and
+  Fashion Wishlist (`s2105`, 2,718 entries).
+- **DPS Logs:** **Auto-parse after scan** (default on); toolbar **Parse**; wider Filters
+  pane; one **Search** field (file + encounter).
+- **Account:** Unlocks kinds use wrapping chip rows (no ◀ ▶ scroll arrows).
 - **Pathing trails:** Honor TacO/Blish/Taimi `.trl` **section breaks** (`(0,0,0)`);
   skip duplicate Tekkit AIO pack aliases; tighter compass/GPS drawing (no map-wide
   spaghetti / stacked ribbons); soft-hide POI markers near the avatar.
 - **Browse:** New **Addon Development** category (Raidcore under Nexus, GitHub under
-  Source); catalog **2,719** entries; sites stamp `s2104`.
-- **Stamps:** Helper `2103` · homepage `2104` · sites `s2104` · cheatsheets `c2103`
+  Source); catalog **2,718** entries; sites stamp `s2105`.
+- **Stamps:** Helper `2103` · homepage `2104` · sites `s2105` · cheatsheets `c2103`
 
 ## What’s new in 2.1.0.3
 

@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.1.0.4 · Total entries: **2,719**
+**Revision:** 2.1.0.4 · Total entries: **2,718**
 
 Source of truth: `data/sites.json` (schema v2 with `browsePath` / `browseSections`).
 At runtime the DLL extracts it to `addons/<addon-name>/sites.json` (`Sites::Init` / `SitesLoad.cpp`).
@@ -22,6 +22,10 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 - **GW2 News** — [https://www.guildwars2.com/en/news/](https://www.guildwars2.com/en/news/)
 - **Forums** — [https://en-forum.guildwars2.com/](https://en-forum.guildwars2.com/)
 
+### News
+
+- **News Digest** — `about:live-news`
+
 ## Addon Development
 
 ### Nexus
@@ -42,20 +46,6 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 ### AI
 
 - **Gemini** — [https://gemini.google.com/app](https://gemini.google.com/app) (Google login / Pro often needs **Open Ext**; Google blocks embedded CEF sign-in)
-
-## Live
-
-DLL-generated panels (official API / RSS / wiki). Optional API key in Nexus Options.
-Reload the tab to refresh (≈5 min cache). Wizard’s Vault dailies and legendary /
-character progress live in the **Account** ImGui pad (not Browse).
-
-### News
-
-- **News Digest** — `about:live-news`
-
-### Fashion
-
-- **Fashion Wishlist** — `about:live-fashion`
 
 ## ImGui pads (toolbar)
 
