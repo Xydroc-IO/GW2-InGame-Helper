@@ -75,6 +75,13 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 Default Features edition is **Barefoot**. First run with an empty category list
 auto-enables Lady so Core routes show without hunting Categories.
 
+### In-world GPS width
+
+Pathing **GPS width** (default **1.0×**) is a shared relative scale. Lady
+Barefoot / WP Only / With Mounts bake per-edition bias so 1.0 looks correct for
+each; moving the slider scales them evenly. Ribbons soft-hide near the character
+so they do not paint over the player mesh.
+
 **Skyscale routes:** Tekkit only ships a Skyscale Edition for **Heart of Thorns**,
 **Secrets of the Obscure**, and generic Routes in **Janthir Wilds**. Core Tyria,
 PoF, EoD, Living World, and VoE have no Skyscale path set — use Foot or Griffon

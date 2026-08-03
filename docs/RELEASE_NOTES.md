@@ -40,6 +40,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **World GPS:** Sticky nearby-cache so sparse sampling / brief Mumble misses no
   longer blank ribbons; denser trail sampling; longer WP Only activation and
   draw distance with faster ahead refresh while moving.
+- **GPS width:** Slider scales screen ribbons near and far (no fixed px ceiling);
+  Lady Barefoot / WP / Mounts use per-edition bias so **1.0×** is the correct
+  baseline and editions scale together. Soft-hide (~3.25 m) keeps ribbons from
+  painting over the character.
 - **Trails / markers:** Screen-space textured ribbons; Lady trail PNGs prioritized;
   mount shortcut icons draw with the same POI pipeline; tip labels limited to
   mount glyphs.
