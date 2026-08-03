@@ -1,10 +1,10 @@
 #include "AccountPad.h"
 
-#include "BrowserTabs.h"
 #include "CraftingData.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "LookupPad.h"
+#include "PadDock.h"
 #include "PadNav.h"
 #include "ProgressData.h"
 #include "SessionHistoryData.h"
@@ -14,7 +14,6 @@
 #include "UnlocksPad.h"
 #include "VaultPad.h"
 #include "WalletPad.h"
-#include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
 
@@ -29,15 +28,7 @@ namespace
 
 	bool gFocus = false;
 	bool gPlaceOnce = false;
-	int  gAccountTab = 0; /* Overview…History — wrapping PadNav, no ◀ ▶ */
-
-	void OpenLive(const char* url)
-	{
-		G::ShowWiki = true;
-		Settings::SetDirty();
-		if (BrowserTabs::OpenNewUrl("live", url) < 0)
-			WikiBrowser::Navigate(url);
-	}
+	int  gAccountTab = 0; /* Overview…History — left PadNav side rail */
 
 	void SectionLabel(const char* label)
 	{
@@ -122,13 +113,10 @@ namespace
 		ImGui::TextColored(HelperTheme::Muted, "Dailies · recipe tree");
 		ImGui::EndGroup();
 
-		SectionLabel("ALSO AVAILABLE");
-		if (ImGui::Button("Fashion (Live)###gw2igh_acct_fash", ImVec2(-FLT_MIN, 0.f)))
-			OpenLive("about:live-fashion");
+		ImGui::Spacing();
 		ImGui::PushTextWrapPos(0.f);
-	ImGui::TextColored(HelperTheme::Muted,
-		"Legendaries live under Progress. Unlocks covers wardrobe skins/dyes/minis. "
-		"Fashion opens the Live panel in Browse.");
+		ImGui::TextColored(HelperTheme::Muted,
+			"Legendaries live under Progress. Unlocks covers wardrobe skins/dyes/minis.");
 		ImGui::PopTextWrapPos();
 	}
 }
@@ -161,19 +149,14 @@ bool AccountPad::Render()
 		? (std::min)(io.DisplaySize.y * 0.92f, 960.f)
 		: 720.f;
 	ImGui::SetNextWindowSizeConstraints(ImVec2(440.f, 360.f), ImVec2(720.f, maxH));
-	if (gPlaceOnce)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
-	else
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gPlaceOnce)
 	{
-		const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.34f : 100.f;
-		const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.10f : 70.f;
-		ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Appearing);
-		ImGui::SetNextWindowFocus();
-		gPlaceOnce = false;
+		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.34f : 100.f;
+		const float fy = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.10f : 70.f;
+		PadDock::Place(G::PadAccount, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
+	if (!gPlaceOnce && G::PadAccount.w < 80.f)
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 	if (gFocus)
 	{
 		ImGui::SetNextWindowFocus();
@@ -185,6 +168,8 @@ bool AccountPad::Render()
 	bool open = G::ShowAccount;
 	if (!ImGui::Begin("Account###GW2InGameHelperAccount", &open))
 	{
+		if (PadDock::Capture(G::PadAccount))
+			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 		ImGui::End();
@@ -200,6 +185,8 @@ bool AccountPad::Render()
 		G::ShowAccount = false;
 		Settings::SetDirty();
 	}
+	if (PadDock::Capture(G::PadAccount))
+		Settings::SetDirty();
 
 	if (CraftingData::ConsumeFocusTab())
 		gAccountTab = 5; /* Crafting */
@@ -208,7 +195,7 @@ bool AccountPad::Render()
 		"Overview", "Stash", "Vault", "Trading", "Item",
 		"Crafting", "Progress", "Unlocks", "History"
 	};
-	gAccountTab = PadNav::DrawTabs("###gw2igh_acct_nav", kTabs, 9, gAccountTab);
+	gAccountTab = PadNav::DrawSideRail("###gw2igh_acct_nav", kTabs, 9, gAccountTab, 112.f);
 
 	ImGui::BeginChild("###gw2igh_acct_body", ImVec2(0.f, 0.f), gAccountTab != 0);
 	switch (gAccountTab)

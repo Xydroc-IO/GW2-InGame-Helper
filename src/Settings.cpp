@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "BrowserTabs.h"
 #include "Globals.h"
+#include "PadDock.h"
 #include "Sites.h"
 #include "TekkitTrails.h"
 #include "UI.h"
@@ -74,6 +75,7 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowOptions") == 0) G::ShowOptions = AsBool(val);
 		/* Pad open flags are session-only — never restore open pads. */
 		else if (std::strcmp(key, "ShowNotes") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowCompassPad") == 0) { /* ignore — session only */ }
 		else if (std::strcmp(key, "ShowTpWatch") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowLookup") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowWallet") == 0) { /* ignore */ }
@@ -154,6 +156,26 @@ void Settings::Load()
 			G::LogManagerWinY = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "LogManagerGroupByEncounter") == 0)
 			G::LogManagerGroupByEncounter = std::atoi(val) != 0;
+		else if (std::strcmp(key, "LogManagerAutoParse") == 0)
+			G::LogManagerAutoParse = std::atoi(val) != 0;
+		else if (std::strcmp(key, "PadAccount") == 0)
+			PadDock::ParseGeom(val, G::PadAccount);
+		else if (std::strcmp(key, "PadPathing") == 0)
+			PadDock::ParseGeom(val, G::PadPathing);
+		else if (std::strcmp(key, "PadEvents") == 0)
+			PadDock::ParseGeom(val, G::PadEvents);
+		else if (std::strcmp(key, "PadNotes") == 0)
+			PadDock::ParseGeom(val, G::PadNotes);
+		else if (std::strcmp(key, "PadCompass") == 0)
+			PadDock::ParseGeom(val, G::PadCompass);
+		else if (std::strcmp(key, "PadTp") == 0)
+			PadDock::ParseGeom(val, G::PadTp);
+		else if (std::strcmp(key, "PadLookup") == 0)
+			PadDock::ParseGeom(val, G::PadLookup);
+		else if (std::strcmp(key, "PadWallet") == 0)
+			PadDock::ParseGeom(val, G::PadWallet);
+		else if (std::strcmp(key, "PadVault") == 0)
+			PadDock::ParseGeom(val, G::PadVault);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -285,6 +307,16 @@ void Settings::Save(bool force)
 	std::fprintf(f, "LogManagerWinX=%.1f\n", G::LogManagerWinX);
 	std::fprintf(f, "LogManagerWinY=%.1f\n", G::LogManagerWinY);
 	std::fprintf(f, "LogManagerGroupByEncounter=%d\n", G::LogManagerGroupByEncounter ? 1 : 0);
+	std::fprintf(f, "LogManagerAutoParse=%d\n", G::LogManagerAutoParse ? 1 : 0);
+	PadDock::WriteGeom(f, "PadAccount", G::PadAccount);
+	PadDock::WriteGeom(f, "PadPathing", G::PadPathing);
+	PadDock::WriteGeom(f, "PadEvents", G::PadEvents);
+	PadDock::WriteGeom(f, "PadNotes", G::PadNotes);
+	PadDock::WriteGeom(f, "PadCompass", G::PadCompass);
+	PadDock::WriteGeom(f, "PadTp", G::PadTp);
+	PadDock::WriteGeom(f, "PadLookup", G::PadLookup);
+	PadDock::WriteGeom(f, "PadWallet", G::PadWallet);
+	PadDock::WriteGeom(f, "PadVault", G::PadVault);
 	char favBuf[640]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);

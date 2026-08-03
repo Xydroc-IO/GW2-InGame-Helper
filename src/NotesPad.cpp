@@ -607,20 +607,16 @@ bool NotesPad::Render()
 		Load();
 
 	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 460.f), ImVec2(720.f, 1200.f));
-	/* Appearing (every open this session) — old imgui.ini sizes were too short
-	   and hid the body text box until the user resized. */
-	ImGui::SetNextWindowSize(ImVec2(kNotesPadW, kNotesPadH), ImGuiCond_Appearing);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gRequestDock)
-	{
-		ImGui::SetNextWindowPos(PadDock::ForNotes(kNotesPadW), ImGuiCond_Always);
-		ImGui::SetNextWindowFocus();
-		gRequestDock = false;
-	}
+	PadDock::Place(G::PadNotes, gRequestDock, kNotesPadW, kNotesPadH, PadDock::ForNotes(kNotesPadW));
+	if (!gRequestDock && G::PadNotes.w < 80.f)
+		ImGui::SetNextWindowSize(ImVec2(kNotesPadW, kNotesPadH), ImGuiCond_Appearing);
 	bool open = G::ShowNotes;
 	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Notes & Waypoints##GW2InGameHelperNotes", &open))
 	{
+		if (PadDock::Capture(G::PadNotes))
+			Settings::SetDirty();
 		PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
@@ -640,6 +636,8 @@ bool NotesPad::Render()
 		PadDock::ClearNotes();
 		Settings::SetDirty();
 	}
+	if (PadDock::Capture(G::PadNotes))
+		Settings::SetDirty();
 	PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 
 	ImGui::TextColored(HelperTheme::Gold, "NOTES & WAYPOINTS");

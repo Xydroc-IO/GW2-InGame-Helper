@@ -5,6 +5,7 @@
 #include "Gw2Http.h"
 #include "HelperTheme.h"
 #include "InventoryData.h"
+#include "PadDock.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -1074,20 +1075,14 @@ bool WalletPad::Render()
 		? std::min(io.DisplaySize.y * 0.90f, 900.f)
 		: 720.f;
 	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(560.f, maxH));
-	/* Same ballpark as Notes — fits laptop / 1080p without eating the screen. */
-	if (gPlaceOnce)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
-	else
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gPlaceOnce)
 	{
-		const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.52f : 160.f;
-		const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.14f : 80.f;
-		ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Appearing);
-		ImGui::SetNextWindowFocus();
-		gPlaceOnce = false;
+		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.52f : 160.f;
+		const float fy = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.14f : 80.f;
+		PadDock::Place(G::PadWallet, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
+	if (!gPlaceOnce && G::PadWallet.w < 80.f)
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 	if (gFocus)
 	{
 		ImGui::SetNextWindowFocus();
@@ -1098,6 +1093,8 @@ bool WalletPad::Render()
 	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Wallet & Stash##GW2InGameHelperWallet", &open))
 	{
+		if (PadDock::Capture(G::PadWallet))
+			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 		ImGui::End();
@@ -1113,6 +1110,8 @@ bool WalletPad::Render()
 		G::ShowWallet = false;
 		Settings::SetDirty();
 	}
+	if (PadDock::Capture(G::PadWallet))
+		Settings::SetDirty();
 
 	RenderContents();
 

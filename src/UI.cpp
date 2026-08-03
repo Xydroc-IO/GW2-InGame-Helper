@@ -18,6 +18,7 @@
 #include "LogManagerPad.h"
 #include "TekkitGuidesPad.h"
 #include "TekkitTrails.h"
+#include "PadNav.h"
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
 #include "DirectionCompass.h"
@@ -251,7 +252,7 @@ namespace
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowTekkitGuides;
+			G::ShowTekkitGuides || G::ShowCompassPad;
 	}
 
 	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves
@@ -598,14 +599,15 @@ namespace
 					TekkitGuidesPad::Open();
 			}
 			ImGui::Separator();
-			if (ImGui::BeginMenu("Direction compass"))
+			if (ImGui::MenuItem(G::ShowCompassPad ? "Hide Compass" : "Show Compass"))
 			{
-				if (ImGui::MenuItem("Enabled", nullptr, G::ShowDirectionCompass))
+				if (G::ShowCompassPad)
 				{
-					G::ShowDirectionCompass = !G::ShowDirectionCompass;
+					G::ShowCompassPad = false;
 					Settings::SetDirty();
 				}
-				ImGui::EndMenu();
+				else
+					DirectionCompass::Open();
 			}
 			UI_NoteHelperPopupHover();
 			ImGui::EndPopup();
@@ -614,8 +616,6 @@ namespace
 
 	void DrawToolbar()
 	{
-		const SiteDef& active = Sites::Active();
-
 		/* Compact nav cluster */
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.f, 6.f));
 		if (SoftButton("<###gw2igh_back", BrowserTabs::CanGoBack()))
@@ -632,16 +632,11 @@ namespace
 			BrowserTabs::GoHome();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Default landing site");
-		ImGui::SameLine();
-		if (ImGui::Button("Reload###gw2igh_reload"))
-			BrowserTabs::Reload();
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Reload");
 		ImGui::PopStyleVar();
 
 		ImGui::SameLine(0.f, 12.f);
 		{
-			float avail = ImGui::GetContentRegionAvail().x - 120.f;
+			float avail = ImGui::GetContentRegionAvail().x - 200.f;
 			if (avail < 140.f) avail = 140.f;
 			if (avail > 420.f) avail = 420.f;
 			ImGui::SetNextItemWidth(avail);
@@ -660,6 +655,17 @@ namespace
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Find text on this page. Enter = next match.\nUse Web for DuckDuckGo / site search.");
+
+		ImGui::SameLine(0.f, 4.f);
+		if (UI_Browse_ToolbarFavoriteToggle())
+			Settings::SetDirty();
+
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Reload###gw2igh_reload"))
+			BrowserTabs::Reload();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Reload");
+
 		ImGui::SameLine(0.f, 4.f);
 		if (ImGui::Button("Web###gw2igh_web"))
 		{
@@ -675,19 +681,29 @@ namespace
 		ImGui::SameLine(0.f, 8.f);
 		DrawMoreMenu();
 		DrawStatusChip();
+	}
 
-		/* Browse + pads row — Browse stays left of Account. */
-		if (ImGui::Button("Browse###gw2igh_browse"))
+	void DrawHelperSideRail()
+	{
+		const SiteDef& active = Sites::Active();
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 8.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 5.f));
+		ImGui::BeginChild("###gw2igh_helper_rail", ImVec2(118.f, 0.f), true,
+			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened);
+
+		if (PadNav::SideToggle("Browse###gw2igh_browse", false))
 			UI_Browse_OnMainButtonClicked();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("%s - %s",
 				active.category ? active.category : "",
 				active.label ? active.label : "");
 		UI_Browse_DrawMainPopup();
-		ImGui::SameLine(0.f, 4.f);
-		UI_Browse_ToolbarFavoriteToggle();
-		ImGui::SameLine(0.f, 8.f);
-		if (ImGui::Button("Account###gw2igh_account"))
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
+		if (PadNav::SideToggle("Account###gw2igh_account", G::ShowAccount))
 		{
 			if (G::ShowAccount)
 			{
@@ -698,9 +714,9 @@ namespace
 				AccountPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Account — stash, vault, TP, item lookup (tabbed)");
-		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Pathing###gw2igh_pathing"))
+			ImGui::SetTooltip("Account — stash, vault, TP, item lookup");
+
+		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowTekkitGuides))
 		{
 			if (G::ShowTekkitGuides)
 			{
@@ -711,9 +727,9 @@ namespace
 				TekkitGuidesPad::Open();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Pathing — compass / GPS trails (Tekkit + Lady Elyssa + Hero + your packs)");
-		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Events###gw2igh_events"))
+			ImGui::SetTooltip("Pathing — Tekkit + Lady Elyssa + Hero packs");
+
+		if (PadNav::SideToggle("Events###gw2igh_events", G::ShowEvents))
 		{
 			if (G::ShowEvents)
 			{
@@ -725,8 +741,8 @@ namespace
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("World events — UTC timers + track list");
-		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("DPS Logs###gw2igh_logs"))
+
+		if (PadNav::SideToggle("DPS Logs###gw2igh_logs", G::ShowLogManager))
 		{
 			if (G::ShowLogManager)
 			{
@@ -737,9 +753,9 @@ namespace
 				LogManagerPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("DPS Logs — browse ArcDPS EVTC via Elite Insights");
-		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Notes & Waypoints###gw2igh_notes"))
+			ImGui::SetTooltip("DPS Logs — ArcDPS EVTC via Elite Insights");
+
+		if (PadNav::SideToggle("Notes###gw2igh_notes", G::ShowNotes))
 		{
 			if (G::ShowNotes)
 			{
@@ -750,13 +766,27 @@ namespace
 				NotesPad::Open();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Snippets + Waypoints search (copy chat codes)");
-		ImGui::SameLine(0.f, 8.f);
-		if (ImGui::Checkbox("Compass###gw2igh_dircompass", &G::ShowDirectionCompass))
-			Settings::SetDirty();
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Direction compass — world N/E/S/W around your character");
+			ImGui::SetTooltip("Snippets + Waypoints search");
 
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		if (PadNav::SideToggle("Compass###gw2igh_dircompass", G::ShowCompassPad))
+		{
+			if (G::ShowCompassPad)
+			{
+				G::ShowCompassPad = false;
+				Settings::SetDirty();
+			}
+			else
+				DirectionCompass::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Direction compass — enable + letter size + radius");
+
+		ImGui::EndChild();
+		ImGui::PopStyleVar(2);
+		ImGui::SameLine(0.f, 8.f);
 	}
 
 }
@@ -866,8 +896,10 @@ void UI_Render()
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = TekkitGuidesPad::Render();
+		const bool compassHover = DirectionCompass::RenderPad();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-			walletHover || vaultHover || eventsHover || logsHover || tekkitHover);
+			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
+			compassHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
@@ -943,8 +975,10 @@ void UI_Render()
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = TekkitGuidesPad::Render();
+		const bool compassHover = DirectionCompass::RenderPad();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-			walletHover || vaultHover || eventsHover || logsHover || tekkitHover);
+			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
+			compassHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
@@ -1085,6 +1119,8 @@ void UI_Render()
 	}
 
 	ImGui::Separator();
+
+	DrawHelperSideRail();
 
 	const ImVec2 avail = ImGui::GetContentRegionAvail();
 	ImGui::BeginChild("##gw2igh_wiki_osr_slot", avail, false,
@@ -1319,8 +1355,10 @@ void UI_Render()
 	const bool eventsHover = EventsPad::Render();
 	const bool logsHover = LogManagerPad::Render();
 	const bool tekkitHover = TekkitGuidesPad::Render();
+	const bool compassHover = DirectionCompass::RenderPad();
 	CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-		walletHover || vaultHover || eventsHover || logsHover || tekkitHover);
+		walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
+		compassHover);
 	NotesPad::Save(false);
 	Settings::Save(false);
 }

@@ -22,7 +22,7 @@ namespace
 	constexpr float kPadW = 480.f;
 	constexpr float kPadH = 700.f;
 
-	bool gRequestDock = false;
+	bool gRequestDock = false; /* placeOnce — restore saved or dock beside helper */
 	int gPathTab = 0; /* 0 Overview · 1 Features · 2 Categories · 3 Route */
 
 	void SyncEnabledToSettings()
@@ -194,21 +194,18 @@ bool TekkitGuidesPad::Render()
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = std::max(360.f, io.DisplaySize.y - 40.f);
 	ImGui::SetNextWindowSizeConstraints(ImVec2(400.f, 320.f), ImVec2(640.f, maxH));
-	ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-
-	if (gRequestDock)
-	{
-		ImGui::SetNextWindowPos(PadDock::BesideHelper(kPadW), ImGuiCond_Always);
-		ImGui::SetNextWindowFocus();
-		gRequestDock = false;
-	}
+	PadDock::Place(G::PadPathing, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
+	if (!gRequestDock && G::PadPathing.w < 80.f)
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 
 	bool open = G::ShowTekkitGuides;
 	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Pathing##GW2InGameHelperPathing", &open,
 		ImGuiWindowFlags_NoNavInputs))
 	{
+		if (PadDock::Capture(G::PadPathing))
+			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 		const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
@@ -224,12 +221,12 @@ bool TekkitGuidesPad::Render()
 	{
 		G::ShowTekkitGuides = false;
 		Settings::SetDirty();
-		ImGui::End();
-		return false;
 	}
+	if (PadDock::Capture(G::PadPathing))
+		Settings::SetDirty();
 
 	static const char* kTabs[] = { "Overview", "Features", "Categories", "Route" };
-	gPathTab = PadNav::DrawTabs("###gw2igh_path_nav", kTabs, 4, gPathTab);
+	gPathTab = PadNav::DrawSideRail("###gw2igh_path_nav", kTabs, 4, gPathTab, 112.f);
 
 	ImGui::BeginChild("###gw2igh_path_body", ImVec2(0.f, 0.f), gPathTab != 0);
 	switch (gPathTab)

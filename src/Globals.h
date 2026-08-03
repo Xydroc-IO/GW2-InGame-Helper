@@ -80,6 +80,7 @@ namespace G
 	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
 	extern bool  ShowWorldTrails; /* in-world GPS breadcrumbs */
 	extern bool  ShowDirectionCompass; /* world N/E/S/W around the character */
+	extern bool  ShowCompassPad; /* ImGui Compass settings pad (sliders) */
 	extern float DirectionLetterScale; /* × Nexus FontBig */
 	extern float DirectionWorldRadiusScale; /* × hitbox-based radius */
 	extern bool  HideWhenMapOpen; /* hide compass/world overlays while map open */
@@ -112,4 +113,23 @@ namespace G
 	extern float LogManagerWinX; /* <0 = unset */
 	extern float LogManagerWinY;
 	extern bool  LogManagerGroupByEncounter; /* collapsible encounter sections in log list */
+	extern bool  LogManagerAutoParse; /* parse pending with EI after each scan */
+
+	/* Last user placement for floating pads (x < 0 = never placed — use dock fallback). */
+	struct PadGeom
+	{
+		float x = -1.f;
+		float y = -1.f;
+		float w = 0.f;
+		float h = 0.f;
+	};
+	extern PadGeom PadAccount;
+	extern PadGeom PadPathing;
+	extern PadGeom PadEvents;
+	extern PadGeom PadNotes;
+	extern PadGeom PadCompass;
+	extern PadGeom PadTp;
+	extern PadGeom PadLookup;
+	extern PadGeom PadWallet;
+	extern PadGeom PadVault;
 }

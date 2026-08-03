@@ -2,6 +2,8 @@
 
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadDock.h"
+#include "Settings.h"
 
 #include "imgui/imgui.h"
 
@@ -22,6 +24,7 @@ namespace
 	constexpr float kFarClip = 8000.f;
 	constexpr float kDefaultFov = 1.222f;
 	constexpr float kInchesToMeters = 0.0254f;
+	bool gRequestDock = false;
 
 	struct Vec3
 	{
@@ -353,6 +356,84 @@ namespace
 			DrawOutlinedText(dl, font, fs, p, fill, IM_COL32(0, 0, 0, a), card.label);
 		}
 	}
+}
+
+void DirectionCompass::DrawControls()
+{
+	ImGui::TextColored(HelperTheme::Muted,
+		"World N/E/S/W around your character. Reads Nexus FontBig; does not change Nexus fonts.");
+	if (ImGui::Checkbox("Enable direction compass###gw2igh_dircompass_pad", &G::ShowDirectionCompass))
+		Settings::SetDirty();
+	ImGui::SetNextItemWidth(-1.f);
+	if (ImGui::SliderFloat("Letter size###gw2igh_dirletters_pad", &G::DirectionLetterScale, 0.5f, 2.5f, "%.2f×"))
+		Settings::SetDirty();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Scales only our N/E/S/W draw size.\n"
+			"1.00× = Nexus FontBig bake size. Does not touch FontGlobalScale.");
+	ImGui::SetNextItemWidth(-1.f);
+	if (ImGui::SliderFloat("World radius###gw2igh_dirradius_pad", &G::DirectionWorldRadiusScale, 0.4f, 3.0f, "%.2f×"))
+		Settings::SetDirty();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("How far N/E/S/W sit from your character (hitbox base × this).");
+}
+
+void DirectionCompass::Open()
+{
+	G::ShowCompassPad = true;
+	gRequestDock = true;
+	Settings::SetDirty();
+}
+
+bool DirectionCompass::RenderPad()
+{
+	if (!G::ShowCompassPad)
+		return false;
+
+	constexpr float kPadW = 320.f;
+	constexpr float kPadH = 220.f;
+
+	const float maxH = ImGui::GetIO().DisplaySize.y > 100.f
+		? ImGui::GetIO().DisplaySize.y - 24.f
+		: 900.f;
+	ImGui::SetNextWindowSizeConstraints(ImVec2(280.f, 180.f), ImVec2(420.f, maxH));
+	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	PadDock::Place(G::PadCompass, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
+	if (!gRequestDock && G::PadCompass.w < 80.f)
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
+
+	bool open = G::ShowCompassPad;
+	HelperTheme::ScopedWindow theme(G::Opacity);
+	if (!ImGui::Begin("Compass###GW2InGameHelperCompass", &open))
+	{
+		if (PadDock::Capture(G::PadCompass))
+			Settings::SetDirty();
+		const bool hovered = ImGui::IsWindowHovered(
+			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+			ImGuiHoveredFlags_ChildWindows);
+		ImGui::End();
+		if (!open)
+		{
+			G::ShowCompassPad = false;
+			Settings::SetDirty();
+		}
+		return hovered;
+	}
+
+	DrawControls();
+
+	if (PadDock::Capture(G::PadCompass))
+		Settings::SetDirty();
+	const bool hovered = ImGui::IsWindowHovered(
+		ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+		ImGuiHoveredFlags_ChildWindows);
+	ImGui::End();
+	if (!open)
+	{
+		G::ShowCompassPad = false;
+		Settings::SetDirty();
+	}
+	return hovered;
 }
 
 void DirectionCompass::Render()

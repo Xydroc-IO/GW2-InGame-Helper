@@ -46,6 +46,7 @@ namespace G
 	bool  ShowCompassOverlay = true;
 	bool  ShowWorldTrails = true;
 	bool  ShowDirectionCompass = false;
+	bool  ShowCompassPad = false;
 	float DirectionLetterScale = 1.f;
 	float DirectionWorldRadiusScale = 1.f;
 	bool  HideWhenMapOpen = true;
@@ -78,6 +79,16 @@ namespace G
 	float LogManagerWinX = -1.f;
 	float LogManagerWinY = -1.f;
 	bool  LogManagerGroupByEncounter = true;
+	bool  LogManagerAutoParse = true;
+	PadGeom PadAccount{};
+	PadGeom PadPathing{};
+	PadGeom PadEvents{};
+	PadGeom PadNotes{};
+	PadGeom PadCompass{};
+	PadGeom PadTp{};
+	PadGeom PadLookup{};
+	PadGeom PadWallet{};
+	PadGeom PadVault{};
 }
 
 static constexpr const char* KB_TOGGLE = "KB_HELPER_BETA_TOGGLE";
@@ -743,6 +754,7 @@ static void AddonLoad(AddonAPI_t* api)
 	G::ShowEvents = false;
 	G::ShowLogManager = false;
 	G::ShowTekkitGuides = false;
+	G::ShowCompassPad = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
 	Sites::Init();

@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "UnlocksData.h"
 
 #include "imgui/imgui.h"
@@ -30,31 +31,25 @@ void UnlocksPad::RenderContents()
 
 	if (ImGui::Button("Refresh unlocks###gw2igh_unlocks_ref"))
 		UnlocksData::EnsureAll(true);
-	ImGui::SameLine();
 	if (UnlocksData::BusyAny())
+	{
+		ImGui::SameLine();
 		ImGui::TextDisabled("Loading…");
+	}
 
 	static int sKind = 0;
 	static char sFilter[96] = {};
-	if (ImGui::BeginTabBar("###gw2igh_unlock_kinds", ImGuiTabBarFlags_FittingPolicyScroll))
-	{
-		for (int i = 0; i < static_cast<int>(UnlocksData::Kind::Count); ++i)
-		{
-			const auto kind = static_cast<UnlocksData::Kind>(i);
-			char label[64];
-			std::snprintf(label, sizeof(label), "%s###gw2igh_uk%d",
-				UnlocksData::KindLabel(kind), i);
-			if (ImGui::BeginTabItem(label))
-			{
-				sKind = i;
-				UnlocksData::EnsureLoaded(kind, false);
-				ImGui::EndTabItem();
-			}
-		}
-		ImGui::EndTabBar();
-	}
-
+	static const char* kKindTabs[] = {
+		"Skins", "Dyes", "Minis", "Finishers", "Outfits",
+		"Gliders", "Mail carriers", "Novelties", "Titles"
+	};
+	const int prev = sKind;
+	sKind = PadNav::DrawTabs("###gw2igh_unlock_kinds", kKindTabs,
+		static_cast<int>(UnlocksData::Kind::Count), sKind);
 	const auto kind = static_cast<UnlocksData::Kind>(sKind);
+	if (sKind != prev || !UnlocksData::Ready(kind))
+		UnlocksData::EnsureLoaded(kind, false);
+
 	ImGui::TextDisabled("%s — %zu unlocked · %s",
 		UnlocksData::KindLabel(kind),
 		UnlocksData::Count(kind),

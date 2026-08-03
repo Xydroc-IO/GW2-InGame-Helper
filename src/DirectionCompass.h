@@ -5,5 +5,13 @@
 
 namespace DirectionCompass
 {
+	void Open();
+
+	/* Enable + letter size + world radius. Used by the Compass pad and Options. */
+	void DrawControls();
+
+	/* Draw when G::ShowCompassPad. Returns true if pointer is over the window. */
+	bool RenderPad();
+
 	void Render();
 }

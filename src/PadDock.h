@@ -4,9 +4,11 @@
 
 #include "imgui/imgui.h"
 
-/* Place Notes / TP beside the main helper on open. If the other pad is already
-   open, stack the new one directly below it (same X) so they never overlap.
-   Caller uses ImGuiCond_Always only for that frame — afterward the user can drag. */
+#include <cmath>
+#include <cstdio>
+
+/* Place Notes / TP beside the main helper on first open. Persist user drags via
+   G::PadGeom + Settings. Caller Place() only on the open frame (placeOnce). */
 namespace PadDock
 {
 	struct Rect
@@ -41,6 +43,11 @@ namespace PadDock
 
 	inline void ClearNotes() { gNotes = {}; }
 	inline void ClearTp() { gTp = {}; }
+
+	inline bool HasSavedPos(const G::PadGeom& g)
+	{
+		return g.x >= 0.f && g.y >= 0.f;
+	}
 
 	inline ImVec2 ClampPos(float x, float y, float padW)
 	{
@@ -118,5 +125,65 @@ namespace PadDock
 			return ClampPos(base.x, base.y + fallbackOtherH + kGap, padW);
 		}
 		return BesideHelper(padW);
+	}
+
+	/* Apply saved pos/size once on open; otherwise fallbackPos + defW/defH. */
+	inline void Place(G::PadGeom& g, bool& placeOnce, float defW, float defH, ImVec2 fallbackPos,
+		bool applySize = true)
+	{
+		if (!placeOnce)
+			return;
+		const float useW = (g.w >= 80.f) ? g.w : defW;
+		if (HasSavedPos(g))
+			ImGui::SetNextWindowPos(ClampPos(g.x, g.y, useW), ImGuiCond_Always);
+		else
+			ImGui::SetNextWindowPos(fallbackPos, ImGuiCond_Always);
+		if (applySize)
+		{
+			if (g.w >= 80.f && g.h >= 60.f)
+				ImGui::SetNextWindowSize(ImVec2(g.w, g.h), ImGuiCond_Always);
+			else
+				ImGui::SetNextWindowSize(ImVec2(defW, defH), ImGuiCond_Always);
+		}
+		ImGui::SetNextWindowFocus();
+		placeOnce = false;
+	}
+
+	/* After Begin — remember geom for settings.ini. Returns true if changed. */
+	inline bool Capture(G::PadGeom& g)
+	{
+		const ImVec2 p = ImGui::GetWindowPos();
+		const ImVec2 s = ImGui::GetWindowSize();
+		if (std::fabs(p.x - g.x) > 0.5f || std::fabs(p.y - g.y) > 0.5f ||
+			std::fabs(s.x - g.w) > 0.5f || std::fabs(s.y - g.h) > 0.5f)
+		{
+			g.x = p.x;
+			g.y = p.y;
+			g.w = s.x;
+			g.h = s.y;
+			return true;
+		}
+		return false;
+	}
+
+	inline bool ParseGeom(const char* val, G::PadGeom& g)
+	{
+		if (!val || !val[0])
+			return false;
+		float x = -1.f, y = -1.f, w = 0.f, h = 0.f;
+		if (std::sscanf(val, "%f,%f,%f,%f", &x, &y, &w, &h) < 2)
+			return false;
+		g.x = x;
+		g.y = y;
+		g.w = w;
+		g.h = h;
+		return true;
+	}
+
+	inline void WriteGeom(FILE* f, const char* key, const G::PadGeom& g)
+	{
+		if (!f || !key)
+			return;
+		std::fprintf(f, "%s=%.1f,%.1f,%.1f,%.1f\n", key, g.x, g.y, g.w, g.h);
 	}
 }

@@ -6,6 +6,7 @@ CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
 CXXFLAGS += -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS
 CXXFLAGS += -DCEF_API_VERSION=15000
 CXXFLAGS += -Isrc -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen
+CXXFLAGS += -MMD -MP
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
 LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
@@ -207,6 +208,8 @@ $(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(S
 build/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+-include $(DLL_OBJ:.o=.d)
 
 build/%.o: %.c
 	@mkdir -p $(dir $@)

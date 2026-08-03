@@ -2253,7 +2253,8 @@ bool TekkitTrails::DrawPackTools()
 			PackCount(), TrailCount(), MarkerCount());
 	if (!packs.empty())
 	{
-		ImGui::BeginChild("##igh_tekkit_packs", ImVec2(0.f, 56.f), true);
+		/* Fill remaining Overview height — no tiny clipped list. */
+		ImGui::BeginChild("##igh_tekkit_packs", ImVec2(0.f, 0.f), true);
 		for (const std::string& name : packs)
 			ImGui::BulletText("%s", name.c_str());
 		ImGui::EndChild();
@@ -2342,7 +2343,7 @@ bool TekkitTrails::DrawCategoryBrowser()
 	}
 
 	/* Breadcrumb — wraps to new rows (no single-line clip / scroll arrows). */
-	if (PadNav::WrapButton("Root###gw2igh_cat_root", sDrill.empty()))
+	if (PadNav::WrapButton("Root###gw2igh_cat_root", sDrill.empty(), /*first=*/true))
 		sDrill.clear();
 	for (size_t i = 0; i < sDrill.size(); ++i)
 	{
