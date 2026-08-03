@@ -859,7 +859,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 2;
-	G::AddonDef.Version.Build    = 0;
+	G::AddonDef.Version.Build    = 1;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
