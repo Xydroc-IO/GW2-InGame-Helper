@@ -43,6 +43,9 @@ namespace G
 	bool  ShowLogManager = false;
 	bool  ShowTekkitGuides = false;
 	bool  ShowTekkitTrails = true;
+	bool  LadyBarefoot = true;  /* Lady map-completion foot routes */
+	bool  LadyWpOnly = false;   /* Lady Core WP Only routes */
+	bool  LadyWithMounts = false; /* off by default so Barefoot works out of the box */
 	bool  ShowCompassOverlay = true;
 	bool  ShowWorldTrails = true;
 	bool  ShowDirectionCompass = false;
@@ -55,6 +58,7 @@ namespace G
 	float WorldTrailWidth = 1.f;
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
+	bool  FontScaleAuto = false; /* opt-in only — default stays 1.0 */
 	float WindowWidth  = 1100.f;
 	float WindowHeight = 760.f;
 	float WindowPosX   = 60.f;
@@ -744,6 +748,14 @@ static void AddonLoad(AddonAPI_t* api)
 	   load applies settings here so order stays Load → Init → apply). */
 	if (G::TekkitEnabled[0])
 		TekkitTrails::ParseEnabledPaths(G::TekkitEnabled);
+	else
+	{
+		/* First run / empty settings — enable Lady Elyssa so Windows users see
+		   trails without hunting Categories (was a common "trails broken" report). */
+		TekkitTrails::EnableAllLadyCategories();
+		TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
+		Settings::SetDirty();
+	}
 	G::ShowWiki = false;
 	G::ShowNotes = false;
 	G::ShowTpWatch = false;
@@ -784,7 +796,21 @@ static void AddonUnload()
 	if (!G::API)
 		return;
 
+	/* Stop drawing / input before tearing down CEF and workers. */
 	G::ShowWiki = false;
+	G::ShowNotes = false;
+	G::ShowTpWatch = false;
+	G::ShowLookup = false;
+	G::ShowWallet = false;
+	G::ShowVault = false;
+	G::ShowAccount = false;
+	G::ShowEvents = false;
+	G::ShowLogManager = false;
+	G::ShowTekkitGuides = false;
+	G::ShowCompassPad = false;
+	G::ShowDirectionCompass = false;
+	G::ShowOptions = false;
+
 	G::API->GUI_Deregister(UI_Render);
 	G::API->GUI_Deregister(UI_Options);
 	G::API->InputBinds_Deregister(KB_TOGGLE);
@@ -799,15 +825,20 @@ static void AddonUnload()
 	HelperQuickAccess::Shutdown();
 	WikiBrowser::Shutdown();
 	Sites::Shutdown();
-	TekkitTrails::Shutdown();
 
+	/* Persist pathing toggles before Shutdown clears runtime state. */
+	TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
 	NotesPad::Save(true);
 	CharacterProfiles::CaptureCurrent();
 	CharacterProfiles::Save(true);
 	ConfirmedWaypoints::Save(true);
 	SessionHistoryData::Save(true);
-	Settings::SetDirty();
-	Settings::Save(true);
+	Settings::SaveNow();
+
+	TekkitTrails::Shutdown();
+
+	if (G::API->Log)
+		G::API->Log(LOGL_INFO, ADDON_NAME, "Unloaded (Nexus disable / hot-reload).");
 
 	G::API = nullptr;
 	G::NexusLink = nullptr;
@@ -835,7 +866,8 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
-	G::AddonDef.Flags            = AF_DisableHotloading; /* CEF helper — no Nexus hot-reload */
+	/* Hot-unload on Nexus Disable — WikiBrowser::Shutdown stops the CEF helper first. */
+	G::AddonDef.Flags            = AF_None;
 	G::AddonDef.Provider         = UP_GitHub;
 	G::AddonDef.UpdateLink       = "https://github.com/Xydroc-IO/GW2-InGame-Helper";
 	return &G::AddonDef;

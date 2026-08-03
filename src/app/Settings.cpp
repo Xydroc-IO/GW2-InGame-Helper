@@ -36,6 +36,12 @@ void Settings::SetDirty()
 	gDirty = true;
 }
 
+void Settings::SaveNow()
+{
+	gDirty = true;
+	Save(true);
+}
+
 void Settings::Load()
 {
 	char path[MAX_PATH]{};
@@ -49,9 +55,15 @@ void Settings::Load()
 		return;
 	}
 
-	char line[768];
+	bool sawFontScaleAuto = false;
+	bool sawLadyBarefoot = false;
+	bool sawLadyWpOnly = false;
+
+	/* TekkitEnabled can be multi-KB — old 768-byte fgets truncated category lists
+	   so ParseEnabledPaths saw a partial/empty value and reset toggles on reload. */
+	char line[8704];
 	char key[64];
-	char val[640];
+	char val[8192];
 	while (std::fgets(line, sizeof(line), f))
 	{
 		const char* eq = std::strchr(line, '=');
@@ -85,6 +97,46 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowLogManager") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowTekkitTrails") == 0) G::ShowTekkitTrails = AsBool(val);
+		else if (std::strcmp(key, "LadyBarefoot") == 0)
+		{
+			G::LadyBarefoot = AsBool(val);
+			sawLadyBarefoot = true;
+		}
+		else if (std::strcmp(key, "LadyWpOnly") == 0)
+		{
+			G::LadyWpOnly = AsBool(val);
+			sawLadyWpOnly = true;
+		}
+		else if (std::strcmp(key, "LadyRouteEdition") == 0)
+		{
+			/* Legacy only when new keys were not present in this file. */
+			if (sawLadyBarefoot || sawLadyWpOnly)
+				continue;
+			const int ed = std::atoi(val);
+			if (ed == 1)
+			{
+				G::LadyBarefoot = true;
+				G::LadyWpOnly = false;
+				G::LadyWithMounts = true;
+			}
+			else if (ed == 2)
+			{
+				G::LadyBarefoot = false;
+				G::LadyWpOnly = true;
+			}
+			else if (ed == 0)
+			{
+				G::LadyBarefoot = true;
+				G::LadyWpOnly = false;
+			}
+			else
+			{
+				G::LadyBarefoot = false;
+				G::LadyWpOnly = false;
+			}
+		}
+		else if (std::strcmp(key, "LadyWithMounts") == 0)
+			G::LadyWithMounts = AsBool(val);
 		else if (std::strcmp(key, "ShowCompassOverlay") == 0) G::ShowCompassOverlay = AsBool(val);
 		else if (std::strcmp(key, "ShowWorldTrails") == 0) G::ShowWorldTrails = AsBool(val);
 		else if (std::strcmp(key, "ShowDirectionCompass") == 0) G::ShowDirectionCompass = AsBool(val);
@@ -99,7 +151,13 @@ void Settings::Load()
 		else if (std::strcmp(key, "WorldTrailWidth") == 0)
 			G::WorldTrailWidth = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "Opacity") == 0) G::Opacity = static_cast<float>(std::atof(val));
-		else if (std::strcmp(key, "FontScale") == 0) G::FontScale = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "FontScale") == 0)
+			G::FontScale = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "FontScaleAuto") == 0)
+		{
+			G::FontScaleAuto = AsBool(val);
+			sawFontScaleAuto = true;
+		}
 		else if (std::strcmp(key, "WindowWidth") == 0)
 		{
 			G::WindowWidth = static_cast<float>(std::atof(val));
@@ -189,6 +247,17 @@ void Settings::Load()
 	if (G::Opacity > 1.f) G::Opacity = 1.f;
 	if (G::FontScale < 0.75f) G::FontScale = 0.75f;
 	if (G::FontScale > 2.f) G::FontScale = 2.f;
+	/* One-shot: early auto used Nexus UI scale and pushed many installs to ~2×.
+	   Default is 1.0; manual slider values persist when auto is off. */
+	if (G::FontScaleAuto || !sawFontScaleAuto)
+	{
+		if (G::FontScaleAuto)
+		{
+			G::FontScale = 1.f;
+			gDirty = true;
+		}
+		G::FontScaleAuto = false;
+	}
 	if (G::WindowWidth < 320.f) G::WindowWidth = 320.f;
 	if (G::WindowHeight < 240.f) G::WindowHeight = 240.f;
 
@@ -210,6 +279,22 @@ void Settings::Load()
 	if (G::WorldTrailMaxDist > 200.f) G::WorldTrailMaxDist = 200.f;
 	if (G::WorldTrailWidth < 0.5f) G::WorldTrailWidth = 0.5f;
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
+	/* Lady editions are exclusive — older settings could have several on at once. */
+	{
+		const int n = (G::LadyBarefoot ? 1 : 0) + (G::LadyWithMounts ? 1 : 0) +
+			(G::LadyWpOnly ? 1 : 0);
+		if (n > 1)
+		{
+			if (G::LadyWithMounts)
+			{
+				G::LadyBarefoot = false;
+				G::LadyWpOnly = false;
+			}
+			else if (G::LadyBarefoot)
+				G::LadyWpOnly = false;
+			gDirty = true;
+		}
+	}
 	if (G::DirectionLetterScale < 0.5f) G::DirectionLetterScale = 0.5f;
 	if (G::DirectionLetterScale > 2.5f) G::DirectionLetterScale = 2.5f;
 	if (G::DirectionWorldRadiusScale < 0.4f) G::DirectionWorldRadiusScale = 0.4f;
@@ -273,6 +358,9 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowLogManager=0\n");
 	std::fprintf(f, "ShowTekkitGuides=0\n");
 	std::fprintf(f, "ShowTekkitTrails=%d\n", G::ShowTekkitTrails ? 1 : 0);
+	std::fprintf(f, "LadyBarefoot=%d\n", G::LadyBarefoot ? 1 : 0);
+	std::fprintf(f, "LadyWpOnly=%d\n", G::LadyWpOnly ? 1 : 0);
+	std::fprintf(f, "LadyWithMounts=%d\n", G::LadyWithMounts ? 1 : 0);
 	std::fprintf(f, "ShowCompassOverlay=%d\n", G::ShowCompassOverlay ? 1 : 0);
 	std::fprintf(f, "ShowWorldTrails=%d\n", G::ShowWorldTrails ? 1 : 0);
 	std::fprintf(f, "ShowDirectionCompass=%d\n", G::ShowDirectionCompass ? 1 : 0);
@@ -286,6 +374,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "TekkitEnabled=%s\n", G::TekkitEnabled);
 	std::fprintf(f, "Opacity=%.4f\n", G::Opacity);
 	std::fprintf(f, "FontScale=%.4f\n", G::FontScale);
+	std::fprintf(f, "FontScaleAuto=%d\n", G::FontScaleAuto ? 1 : 0);
 	std::fprintf(f, "WindowWidth=%.1f\n", G::WindowWidth);
 	std::fprintf(f, "WindowHeight=%.1f\n", G::WindowHeight);
 	std::fprintf(f, "WindowPosX=%.1f\n", G::WindowPosX);

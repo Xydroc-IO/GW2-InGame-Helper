@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Globals.h"
+#include "UiScale.h"
+
 #include "imgui/imgui.h"
 
 /* Shared gold/dark chrome used by In-Game Helper Browse and themed pads. */
@@ -104,5 +107,18 @@ namespace HelperTheme
 		}
 		ScopedWindow(const ScopedWindow&) = delete;
 		ScopedWindow& operator=(const ScopedWindow&) = delete;
+	};
+
+	/* RAII: apply FontScale × window-size factor after Begin.
+	   Do NOT reset after End() — that marks ImGui's Debug##Default. */
+	struct ScopedFontScale
+	{
+		explicit ScopedFontScale(float refW = 560.f, float refH = 700.f)
+		{
+			ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(refW, refH));
+		}
+		~ScopedFontScale() = default;
+		ScopedFontScale(const ScopedFontScale&) = delete;
+		ScopedFontScale& operator=(const ScopedFontScale&) = delete;
 	};
 }

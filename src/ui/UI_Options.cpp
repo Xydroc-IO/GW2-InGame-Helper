@@ -15,6 +15,7 @@
 #include "SyncQr.h"
 #include "TekkitGuidesPad.h"
 #include "TpWatchPad.h"
+#include "UiScale.h"
 #include "VaultPad.h"
 #include "WalletPad.h"
 #include "DirectionCompass.h"
@@ -135,7 +136,23 @@ void UI_Options()
 	if (ImGui::SliderFloat("Opacity###gw2igh_opacity", &G::Opacity, 0.15f, 1.f, "%.2f"))
 		Settings::SetDirty();
 	if (ImGui::SliderFloat("Font scale###gw2igh_font", &G::FontScale, 0.75f, 2.f, "%.2f"))
+	{
+		G::FontScaleAuto = false;
 		Settings::SetDirty();
+	}
+	ImGui::TextColored(HelperTheme::Muted, "Default 1.00×. Content also scales with each panel’s size as you resize.");
+	if (ImGui::Checkbox("Auto font scale###gw2igh_font_auto", &G::FontScaleAuto))
+	{
+		if (G::FontScaleAuto)
+		{
+			const ImGuiIO& io = ImGui::GetIO();
+			if (io.DisplaySize.x > 100.f && io.DisplaySize.y > 100.f)
+				G::FontScale = UiScale::Suggest(io.DisplaySize.x, io.DisplaySize.y);
+		}
+		Settings::SetDirty();
+	}
+	if (G::FontScaleAuto)
+		ImGui::TextColored(HelperTheme::Muted, "Auto: mild bump on tall displays only (cap 1.25×).");
 	if (ImGui::Checkbox("Keep browser warm when closed###gw2igh_warm", &G::KeepHelperWarm))
 		Settings::SetDirty();
 	ImGui::TextColored(HelperTheme::Muted, "Faster reopen; uses more RAM while the helper is hidden.");

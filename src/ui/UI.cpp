@@ -25,6 +25,7 @@
 #include "Settings.h"
 #include "Sites.h"
 #include "SyncQr.h"
+#include "UiScale.h"
 #include "WikiBrowser.h"
 #include "WikiIpc.h"
 #include "AddonPaths.h"
@@ -91,8 +92,8 @@ namespace
 		if (dw < 100.f || dh < 100.f)
 			return;
 
-		const float maxW = Clampf(dw * 0.92f, 320.f, dw);
-		const float maxH = Clampf(dh * 0.92f, 240.f, dh);
+		const float maxW = Clampf(dw * 0.96f, 320.f, dw);
+		const float maxH = Clampf(dh * 0.96f, 240.f, dh);
 		bool changed = false;
 		if (G::WindowWidth > maxW + 0.5f || G::WindowWidth < 320.f)
 		{
@@ -686,9 +687,14 @@ namespace
 	void DrawHelperSideRail()
 	{
 		const SiteDef& active = Sites::Active();
+		static const char* kRailLabels[] = {
+			"Browse", "Account", "Pathing", "Events", "DPS Logs", "Notes", "Compass"
+		};
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, 7);
+
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 8.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 5.f));
-		ImGui::BeginChild("###gw2igh_helper_rail", ImVec2(118.f, 0.f), true,
+		ImGui::BeginChild("###gw2igh_helper_rail", ImVec2(railW, 0.f), true,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened);
 
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false))
@@ -840,6 +846,7 @@ void UI_Render()
 {
 	/* Always poll first — must run while the helper is closed too. */
 	HelperHotkeys_Poll();
+	UiScale::TickAuto();
 	WikiBrowser::Tick();
 	MumbleIdentity::Tick();
 	CharacterProfiles::Tick();
@@ -917,14 +924,21 @@ void UI_Render()
 		const ImGuiIO& dio = ImGui::GetIO();
 		if (dio.DisplaySize.x > 100.f && dio.DisplaySize.y > 100.f)
 		{
-			/* First open: ~30% of the display (clamped so it stays usable). */
-			G::WindowWidth = Clampf(dio.DisplaySize.x * 0.30f, 640.f, 1600.f);
-			G::WindowHeight = Clampf(dio.DisplaySize.y * 0.30f, 420.f, 1000.f);
+			/* First open: ~32% of the display (clamped so it stays usable). */
+			G::WindowWidth = Clampf(dio.DisplaySize.x * 0.32f, 720.f, 1680.f);
+			G::WindowHeight = Clampf(dio.DisplaySize.y * 0.36f, 480.f, 1100.f);
 			G::HasSavedSize = true; /* apply once — ImGui FirstUseEver + persist */
 			Settings::SetDirty();
 		}
 	}
 	ClampHelperGeomToDisplay();
+	const ImGuiIO& sizeIo = ImGui::GetIO();
+	if (sizeIo.DisplaySize.x > 100.f && sizeIo.DisplaySize.y > 100.f)
+	{
+		ImGui::SetNextWindowSizeConstraints(
+			ImVec2(320.f, 240.f),
+			ImVec2(sizeIo.DisplaySize.x * 0.96f, sizeIo.DisplaySize.y * 0.96f));
+	}
 	const ImGuiCond geomCond = gUi.forceHelperOnScreen ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
 	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), geomCond);
 	ImGui::SetNextWindowPos(ImVec2(G::WindowPosX, G::WindowPosY), geomCond);
@@ -991,7 +1005,7 @@ void UI_Render()
 		UI_ReleaseGameInput();
 	}
 
-	ImGui::SetWindowFontScale(G::FontScale);
+	ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(1100.f, 760.f));
 
 	BrowserTabs::EnsureDefault();
 	BrowserTabs::Tick();

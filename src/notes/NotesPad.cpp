@@ -21,8 +21,8 @@ namespace
 	constexpr int kMaxSnippets = 48;
 	constexpr int kTitleLen = 64;
 	constexpr int kBodyLen = 512;
-	constexpr float kNotesPadW = 440.f;
-	constexpr float kNotesPadH = 600.f;
+	constexpr float kNotesPadW = 500.f;
+	constexpr float kNotesPadH = 640.f;
 	/* Title + kind + multiline body + Delete/Copy — keep visible without resize. */
 	constexpr float kEditorReserve = 230.f;
 
@@ -606,7 +606,8 @@ bool NotesPad::Render()
 	if (!gLoaded)
 		Load();
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 460.f), ImVec2(720.f, 1200.f));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 400.f),
+		ImVec2(PadDock::MaxW(720.f), PadDock::MaxH(460.f)));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	PadDock::Place(G::PadNotes, gRequestDock, kNotesPadW, kNotesPadH, PadDock::ForNotes(kNotesPadW));
 	if (!gRequestDock && G::PadNotes.w < 80.f)
@@ -639,6 +640,8 @@ bool NotesPad::Render()
 	if (PadDock::Capture(G::PadNotes))
 		Settings::SetDirty();
 	PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
+
+	HelperTheme::ScopedFontScale fontScale;
 
 	ImGui::TextColored(HelperTheme::Gold, "NOTES & WAYPOINTS");
 	ImGui::TextColored(HelperTheme::Muted,

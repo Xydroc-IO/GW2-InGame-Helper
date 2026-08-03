@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "2200";
+	static constexpr const char* kHomePageVersion = "2201";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -150,7 +150,7 @@ const char* HomePage::Html()
   .page {
     position: relative;
     z-index: 2;
-    max-width: 900px;
+    max-width: min(1120px, 94vw);
     margin: 0 auto;
     padding: 28px 22px 48px;
     animation: riseIn 0.7s ease-out both;
@@ -484,7 +484,7 @@ const char* HomePage::Html()
         <div class="head"><h2>Tips</h2></div>
         <div class="body">
           <ul>
-            <li>Opacity, font scale, and <strong>Keep browser warm</strong> are in the addon’s Nexus options. Warm keeps CEF ready while the helper is closed (uses more RAM).</li>
+            <li>Opacity, auto/manual font scale, and <strong>Keep browser warm</strong> are in the addon’s Nexus options. Warm keeps CEF ready while the helper is closed (uses more RAM).</li>
             <li>Collapsing the title bar hides the UI but <strong>keeps the browser running</strong> — expand again without a full reload.</li>
             <li>Opening the helper restores your saved tabs (or your default landing site). The Home button opens that default site.</li>
             <li>In Browse, sections start collapsed — expand what you need; open/closed state is remembered. Large Wiki lists (Food, Utility, Minis) use clipped scrolling.</li>

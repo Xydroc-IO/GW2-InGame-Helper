@@ -28,8 +28,8 @@ namespace
 	constexpr int kHttpTimeoutMs = 2500;
 	constexpr int kWarnWithinSec = 10 * 60;
 	constexpr int kSoonFilterSec = 30 * 60;
-	constexpr float kPadW = 460.f;
-	constexpr float kPadH = 560.f;
+	constexpr float kPadW = 520.f;
+	constexpr float kPadH = 600.f;
 
 	struct Timing
 	{
@@ -484,10 +484,8 @@ bool EventsPad::Render()
 	const EventsData::Entry* all = EventsData::All(&nAll);
 
 	const ImGuiIO& io = ImGui::GetIO();
-	const float maxH = (io.DisplaySize.y > 100.f)
-		? (io.DisplaySize.y * 0.90f < 920.f ? io.DisplaySize.y * 0.90f : 920.f)
-		: 720.f;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 300.f), ImVec2(620.f, maxH));
+	const float maxH = PadDock::MaxH(300.f);
+	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 300.f), ImVec2(PadDock::MaxW(620.f), maxH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.46f : 160.f;
@@ -525,6 +523,8 @@ bool EventsPad::Render()
 	}
 	if (PadDock::Capture(G::PadEvents))
 		Settings::SetDirty();
+
+	HelperTheme::ScopedFontScale fontScale;
 
 	ImGui::TextColored(HelperTheme::Gold, "WORLD EVENTS");
 	ImGui::PushTextWrapPos(0.f);

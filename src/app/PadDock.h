@@ -49,6 +49,25 @@ namespace PadDock
 		return g.x >= 0.f && g.y >= 0.f;
 	}
 
+	/* Resize ceilings — prefer most of the display so users can grow pads freely. */
+	inline float MaxW(float floorPx = 640.f)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		if (io.DisplaySize.x <= 100.f)
+			return floorPx > 1200.f ? floorPx : 1200.f;
+		const float fromDisp = io.DisplaySize.x * 0.94f;
+		return fromDisp > floorPx ? fromDisp : floorPx;
+	}
+
+	inline float MaxH(float floorPx = 480.f)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		if (io.DisplaySize.y <= 100.f)
+			return floorPx > 900.f ? floorPx : 900.f;
+		const float fromDisp = io.DisplaySize.y * 0.94f;
+		return fromDisp > floorPx ? fromDisp : floorPx;
+	}
+
 	inline ImVec2 ClampPos(float x, float y, float padW)
 	{
 		const ImGuiIO& io = ImGui::GetIO();

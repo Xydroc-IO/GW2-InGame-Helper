@@ -627,14 +627,16 @@ bool LookupPad::Render()
 		return false;
 
 	const ImGuiIO& io = ImGui::GetIO();
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 0.f), ImVec2(520.f, io.DisplaySize.y * 0.85f));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 200.f),
+		ImVec2(PadDock::MaxW(520.f), PadDock::MaxH(280.f)));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.42f : 120.f;
 		const float fy = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.18f : 100.f;
-		/* Auto-resize height — persist position only. */
-		PadDock::Place(G::PadLookup, gPlaceOnce, 400.f, 0.f, ImVec2(fx, fy), /*applySize=*/false);
+		PadDock::Place(G::PadLookup, gPlaceOnce, 440.f, 420.f, ImVec2(fx, fy), /*applySize=*/true);
 	}
+	if (!gPlaceOnce && G::PadLookup.w < 80.f)
+		ImGui::SetNextWindowSize(ImVec2(440.f, 420.f), ImGuiCond_FirstUseEver);
 	if (gFocus)
 	{
 		ImGui::SetNextWindowFocus();
@@ -643,7 +645,7 @@ bool LookupPad::Render()
 
 	bool open = G::ShowLookup;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Item Lookup##GW2InGameHelperLookup", &open, ImGuiWindowFlags_AlwaysAutoResize))
+	if (!ImGui::Begin("Item Lookup##GW2InGameHelperLookup", &open))
 	{
 		if (PadDock::Capture(G::PadLookup))
 			Settings::SetDirty();
@@ -665,6 +667,7 @@ bool LookupPad::Render()
 	if (PadDock::Capture(G::PadLookup))
 		Settings::SetDirty();
 
+	HelperTheme::ScopedFontScale fontScale;
 	RenderContents();
 
 	const bool hovered = ImGui::IsWindowHovered(

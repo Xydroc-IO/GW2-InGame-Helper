@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HelperTheme.h"
+#include "UiScale.h"
 
 #include "imgui/imgui.h"
 
@@ -86,8 +87,12 @@ namespace PadNav
 	/* Left rail: full-width buttons stacked vertically. Caller draws content
 	   after this (usually SameLine is already done — rail ends with SameLine). */
 	inline int DrawSideRail(const char* id, const char* const* labels, int count, int current,
-		float width = 118.f)
+		float width = 0.f)
 	{
+		if (width <= 1.f)
+			width = UiScale::FitSideRailWidth(labels, count);
+		else
+			width = UiScale::SideRailWidth(width);
 		if (!labels || count <= 0)
 			return 0;
 		if (current < 0)

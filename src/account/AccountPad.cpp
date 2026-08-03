@@ -23,8 +23,8 @@
 
 namespace
 {
-	constexpr float kPadW = 560.f;
-	constexpr float kPadH = 700.f;
+	constexpr float kPadW = 620.f;
+	constexpr float kPadH = 740.f;
 
 	bool gFocus = false;
 	bool gPlaceOnce = false;
@@ -145,10 +145,8 @@ bool AccountPad::Render()
 	SessionHistoryData::Tick();
 
 	const ImGuiIO& io = ImGui::GetIO();
-	const float maxH = (io.DisplaySize.y > 100.f)
-		? (std::min)(io.DisplaySize.y * 0.92f, 960.f)
-		: 720.f;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(440.f, 360.f), ImVec2(720.f, maxH));
+	const float maxH = PadDock::MaxH(360.f);
+	ImGui::SetNextWindowSizeConstraints(ImVec2(440.f, 360.f), ImVec2(PadDock::MaxW(720.f), maxH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.34f : 100.f;
@@ -188,6 +186,8 @@ bool AccountPad::Render()
 	if (PadDock::Capture(G::PadAccount))
 		Settings::SetDirty();
 
+	HelperTheme::ScopedFontScale fontScale;
+
 	if (CraftingData::ConsumeFocusTab())
 		gAccountTab = 5; /* Crafting */
 
@@ -195,7 +195,7 @@ bool AccountPad::Render()
 		"Overview", "Stash", "Vault", "Trading", "Item",
 		"Crafting", "Progress", "Unlocks", "History"
 	};
-	gAccountTab = PadNav::DrawSideRail("###gw2igh_acct_nav", kTabs, 9, gAccountTab, 112.f);
+	gAccountTab = PadNav::DrawSideRail("###gw2igh_acct_nav", kTabs, 9, gAccountTab);
 
 	ImGui::BeginChild("###gw2igh_acct_body", ImVec2(0.f, 0.f), gAccountTab != 0);
 	switch (gAccountTab)

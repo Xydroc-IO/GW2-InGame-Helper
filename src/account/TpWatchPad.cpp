@@ -1447,34 +1447,23 @@ bool TpWatchPad::Render()
 		return false;
 	}
 
-	size_t contentCount = 0;
-	{
-		std::lock_guard<std::mutex> lock(gMu);
-		contentCount = gRows.size() + gDelivery.items.size();
-	}
+	const float maxWinH = PadDock::MaxH(400.f);
 
-	const ImGuiIO& io = ImGui::GetIO();
-	const float maxWinH = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.85f : 720.f;
-	constexpr size_t kAutoFitMax = 8;
-	const bool autoFit = contentCount <= kAutoFitMax;
-
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 0.f), ImVec2(520.f, maxWinH));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 200.f), ImVec2(PadDock::MaxW(520.f), maxWinH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	if (gRequestFocus)
 	{
-		/* Size: saved when present; auto-fit small lists still use AlwaysAutoResize. */
 		PadDock::Place(G::PadTp, gRequestFocus, kTpPadW, maxWinH * 0.72f,
-			PadDock::ForTp(kTpPadW), /*applySize=*/!autoFit);
-		if (!autoFit && G::PadTp.w < 80.f)
+			PadDock::ForTp(kTpPadW), /*applySize=*/true);
+		if (G::PadTp.w < 80.f)
 			ImGui::SetNextWindowSize(ImVec2(440.f, maxWinH * 0.72f), ImGuiCond_FirstUseEver);
 	}
-	else if (!autoFit && G::PadTp.w < 80.f)
+	else if (G::PadTp.w < 80.f)
 		ImGui::SetNextWindowSize(ImVec2(440.f, maxWinH * 0.72f), ImGuiCond_FirstUseEver);
 
-	ImGuiWindowFlags winFlags = autoFit ? ImGuiWindowFlags_AlwaysAutoResize : 0;
 	bool open = G::ShowTpWatch;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Trading Post##GW2InGameHelperTpWatch", &open, winFlags))
+	if (!ImGui::Begin("Trading Post##GW2InGameHelperTpWatch", &open))
 	{
 		if (PadDock::Capture(G::PadTp))
 			Settings::SetDirty();
@@ -1500,6 +1489,7 @@ bool TpWatchPad::Render()
 		Settings::SetDirty();
 	PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 
+	HelperTheme::ScopedFontScale fontScale;
 	RenderContents(false);
 
 	const bool hovered = ImGui::IsWindowHovered(

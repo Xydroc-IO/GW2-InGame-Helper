@@ -1067,14 +1067,12 @@ bool WalletPad::Render()
 	if (!G::ShowWallet)
 		return false;
 
-	constexpr float kPadW = 420.f;
-	constexpr float kPadH = 560.f;
+	constexpr float kPadW = 480.f;
+	constexpr float kPadH = 600.f;
 
 	const ImGuiIO& io = ImGui::GetIO();
-	const float maxH = (io.DisplaySize.y > 100.f)
-		? std::min(io.DisplaySize.y * 0.90f, 900.f)
-		: 720.f;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(560.f, maxH));
+	const float maxH = PadDock::MaxH(280.f);
+	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(PadDock::MaxW(560.f), maxH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.52f : 160.f;
@@ -1113,6 +1111,7 @@ bool WalletPad::Render()
 	if (PadDock::Capture(G::PadWallet))
 		Settings::SetDirty();
 
+	HelperTheme::ScopedFontScale fontScale;
 	RenderContents();
 
 	const bool hovered = ImGui::IsWindowHovered(

@@ -2422,6 +2422,8 @@ bool LogManagerPad::Render()
 		return false;
 	}
 
+	HelperTheme::ScopedFontScale fontScale(1200.f, 800.f);
+
 	const bool hasDotNet = EiRuntime::HasDotNet8Runtime();
 	MaybeAutoParseAfterScan(hasDotNet);
 	std::vector<const LogEntry*> filtered;

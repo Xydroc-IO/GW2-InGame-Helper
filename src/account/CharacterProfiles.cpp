@@ -130,6 +130,7 @@ namespace
 		G::FontScale = p.fontScale;
 		if (G::FontScale < 0.75f) G::FontScale = 0.75f;
 		if (G::FontScale > 2.f) G::FontScale = 2.f;
+		G::FontScaleAuto = false;
 
 		if (p.hasPos)
 		{

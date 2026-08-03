@@ -76,6 +76,10 @@ namespace G
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
 	extern bool  ShowTekkitGuides; /* ImGui Tekkit category / credit panel */
 	extern bool  ShowTekkitTrails; /* master: load packs + draw overlays */
+	/* Lady Elyssa route filters — mutually exclusive map-completion editions. */
+	extern bool  LadyBarefoot;   /* foot routes + bfs shortcuts */
+	extern bool  LadyWpOnly;     /* WP Only routes alone */
+	extern bool  LadyWithMounts; /* mount-optimized routes + mount icons */
 	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
 	extern bool  ShowWorldTrails; /* in-world GPS breadcrumbs */
 	extern bool  ShowDirectionCompass; /* world N/E/S/W around the character */
@@ -88,6 +92,7 @@ namespace G
 	extern float WorldTrailWidth;
 	extern float Opacity;
 	extern float FontScale;
+	extern bool  FontScaleAuto; /* true: derive FontScale from display / Nexus Scaling */
 	extern float WindowWidth;
 	extern float WindowHeight;
 	extern float WindowPosX;
