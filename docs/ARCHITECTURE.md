@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.0.0` |
+| Addon revision (shipping) | `2.2.1.0` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites stamps | `2200` / `2200` / `s2200` |
+| Helper / home / sites stamps | `2210` / `2210` / `s2210` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
@@ -63,7 +63,8 @@ Keep `src/browser/CefRuntime.h` URL + SHA256 in sync after uploading a new zip.
 
 - Helper joined to a Job Object with `KILL_ON_JOB_CLOSE` so children die with the game.
 - Helper watches host PID (`SYNCHRONIZE`) and exits if GW2 exits.
-- `AF_DisableHotloading` — Nexus must not unload the DLL while CEF is live.
+- Hot-unload allowed (`AF_None`) — `AddonUnload` closes pads and stops the CEF helper
+  before deregistering UI. Prefer a full GW2 restart after replacing the DLL on disk.
 
 ### Multi-client
 
@@ -217,5 +218,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.0 / side-rail + pad dock + curated Tekkit/Lady/Hero Pathing + catalog Help News |
+| Last architecture sync | 2.2.1.0 / Lady Features exclusivity + sticky world GPS + per-panel UI scale + Nexus disable unload |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps |

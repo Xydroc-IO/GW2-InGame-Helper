@@ -59,17 +59,21 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 
 1. Copy any `.taco` pack into this folder (same format as TacO / BlishHUD / Taimi).
 2. In-game, open **Pathing** and click **Reload packs** (or **Update curated** to refresh downloads too).
-3. Enable the categories you want (everything starts unchecked each launch).
+3. Enable the categories / Features edition you want (first run may auto-enable Lady).
 
 ### Quick presets
 
 | Control | What it does |
 |---------|----------------|
-| **Map Completion – Foot / Griffon / Skyscale** | Hearts / POIs / vistas + one route edition (mutually exclusive) |
+| **Map Completion – Foot / Griffon / Skyscale** | Hearts / POIs / vistas + one Tekkit route edition (mutually exclusive) |
+| **Lady – Barefoot / With Mounts / WP Only** | One Lady map-completion edition at a time (Features); enabling one turns Lady categories on when needed |
 | **All Tekkit** | Enables the whole Tekkit tree (`tw_guides`) |
 | **All Lady** | Enables Lady Elyssa Guides + Achievements (`legs` + `leag`) |
 | **All Hero** | Enables Hero's Marker Pack (`HMP` + `hmpSim`) |
 | **All off** | Clears every enabled category (Tekkit, Lady, Hero, MC presets) |
+
+Default Features edition is **Barefoot**. First run with an empty category list
+auto-enables Lady so Core routes show without hunting Categories.
 
 **Skyscale routes:** Tekkit only ships a Skyscale Edition for **Heart of Thorns**,
 **Secrets of the Obscure**, and generic Routes in **Janthir Wilds**. Core Tyria,

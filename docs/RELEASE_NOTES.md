@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.0
+# GW2 In-Game Helper v2.2.1.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,28 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.1.0
+
+- **Lady Features:** Barefoot / With Mounts / WP Only are **mutually exclusive**
+  map-completion editions (no stacking). Enabling an edition turns on Lady
+  categories when needed. Defaults: Barefoot on, With Mounts off.
+- **World GPS:** Sticky nearby-cache so sparse sampling / brief Mumble misses no
+  longer blank ribbons; denser trail sampling; longer WP Only activation and
+  draw distance with faster ahead refresh while moving.
+- **Trails / markers:** Screen-space textured ribbons; Lady trail PNGs prioritized;
+  mount shortcut icons draw with the same POI pipeline; tip labels limited to
+  mount glyphs.
+- **First run:** Empty `TekkitEnabled` auto-enables Lady categories so trails
+  appear without hunting Categories.
+- **UI scale:** Per-panel font scale from Options × window size (`UiScale`);
+  optional mild auto scale on tall displays; pads no longer touch Nexus
+  `FontGlobalScale`.
+- **Settings:** Longer `TekkitEnabled` read buffer; `SaveNow` on unload; Lady
+  edition keys persist and normalize legacy multi-on configs.
+- **Unload:** Nexus Disable allowed (`AF_None`) — pads close and CEF helper stops
+  before deregister; prefer a full GW2 restart after replacing the DLL on disk.
+- **Stamps:** Helper `2210` · homepage `2210` · sites `s2210` · cheatsheets `c2210`
 
 ## What’s new in 2.2.0.0
 

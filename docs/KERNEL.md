@@ -48,7 +48,8 @@ When behavior of the **embedded helper EXE** changes, bump **all** that apply an
 **Rules:**
 1. Never change `WikiIpcState` field order/size without bumping magic **and** rebuilding DLL + helper in one commit.
 2. Never bump helper stamp without embedding a new helper (`make all` rebuilds the blob).
-3. After install: **full GW2 restart** (`AF_DisableHotloading`).
+3. After install: prefer a **full GW2 restart**. Nexus Disable can unload the addon
+   (`AF_None`); restart if Browse/CEF misbehaves after a DLL replace.
 
 Host CI checks packed IPC layout: `make test-ipc` (magic + `sizeof` + queue constants).
 

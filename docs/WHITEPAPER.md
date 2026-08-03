@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.0.0 |
+| Revision described | 2.2.1.0 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -110,7 +110,7 @@ This work is a **systems engineering report** for a shipping community addon, no
 | Proton viability | `disable-gpu*`, `no-sandbox`, Open Ext via game process | Weaker sandbox; more CPU paint |
 | Multi-client | PID-scoped IPC object names | Slightly more complex naming |
 | Partner ad revenue | Allow ad loads; externalise click URLs when detected | Mixed in-tab versus external UX |
-| Hot-reload | `AF_DisableHotloading` | Users must restart Guild Wars 2 after DLL updates |
+| Hot-reload | `AF_None` (unload stops CEF first) | Prefer full GW2 restart after DLL replace; Nexus Disable is supported |
 
 ---
 
@@ -424,7 +424,7 @@ Memory-safety tooling (ASan, TSan) cannot fully validate this stack: the DLL loa
 
 ### 15.1 Maintainability trajectory
 
-As of revision 2.2.0.0 the Browse catalog is data-driven (`data/sites.json` → embedded and runtime extract via `SitesLoad`), and former monolithic translation units (`UI`, LogManager, Tekkit/Pathing, LivePanels, CheatSheets, WikiBrowser, helper) are split into focused units. This reduces merge-conflict surface for feature work but does **not** remove the need for restricted ownership of the CEF, IPC, and present path. See [`ARCHITECTURE.md`](ARCHITECTURE.md) §7 and [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+As of revision 2.2.1.0 the Browse catalog is data-driven (`data/sites.json` → embedded and runtime extract via `SitesLoad`), and former monolithic translation units (`UI`, LogManager, Tekkit/Pathing, LivePanels, CheatSheets, WikiBrowser, helper) are split into focused units. This reduces merge-conflict surface for feature work but does **not** remove the need for restricted ownership of the CEF, IPC, and present path. See [`ARCHITECTURE.md`](ARCHITECTURE.md) §7 and [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ---
 
@@ -449,11 +449,11 @@ IPC rigidity, CPU upload cost, and sandbox gaps are correctly noted by critics. 
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.2.0.0)
+## Appendix A — Quantitative constants (revision 2.2.1.0)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.2.0.0 |
+| Addon version | 2.2.1.0 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -466,7 +466,7 @@ IPC rigidity, CPU upload cost, and sandbox gaps are correctly noted by critics. 
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites stamps | 2200 / 2200 / s2200 |
+| Helper / home / sites stamps | 2210 / 2210 / s2210 |
 | OSR `device_scale_factor` | 1.0 (view-pixel mouse and paint) |
 | User-Agent product token | `GW2-InGame-Helper` |
 | Browse catalog source | `data/sites.json` (≈ 2718 entries) |
@@ -498,6 +498,6 @@ Application-layer modules live under `src/account/`, `src/pathing/`, `src/logs/`
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.0 — academic rewrite; curated Tekkit / Lady / Hero Pathing noted in Appendix A |
+| Last sync | 2.2.1.0 — Lady Features exclusivity, sticky GPS, UI scale, Nexus disable unload |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy change; advertisement-routing change; module-boundary change |
-| How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.0, 2026. |
+| How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.1.0, 2026. |

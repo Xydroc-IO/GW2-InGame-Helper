@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.0.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.1.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
@@ -377,7 +377,9 @@ Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map th
 
 - Click inside the rendered page first.
 - Click the game outside the window to release keyboard focus.
-- Restart after replacing the DLL (hotloading is disabled for this addon).
+- After replacing the DLL, prefer a full GW2 restart. Nexus **Disable** can unload this
+  addon (CEF helper is shut down first); hot-replace without unload may still leave a
+  stale helper process — restart if Browse misbehaves.
 
 ## Policy & compliance
 
