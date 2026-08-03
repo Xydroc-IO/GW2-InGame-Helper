@@ -24,7 +24,7 @@ This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper
 
 1. Read `data/sites.json` (schema **v2**: `browsePath`, `browseSections`) + `make validate-sites`.
 2. Runtime catalog lives in `addons/GW2-InGame-Helper/sites.json` (extracted from the DLL). Edit that file and fully restart GW2 to change Browse without rebuilding; keep `data/sites.json` in git as the source of truth for releases.
-3. Trace one pad: e.g. `NotesPad` or `WalletPad` → `UI.cpp` helper side rail → settings flag in `Globals.h` / `Settings.cpp`. Pad positions persist via `PadDock` / `G::PadGeom`.
+3. Trace one pad: e.g. `src/notes/NotesPad` or `src/account/WalletPad` → `src/ui/UI.cpp` helper side rail → settings flag in `src/app/Globals.h` / `Settings.cpp`. Pad positions persist via `PadDock` / `G::PadGeom`.
 
 **Done when:** you can add a Browse entry via JSON and find where a pad is toggled.
 
@@ -34,13 +34,13 @@ This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper
 
 | Area | Start here |
 |------|------------|
-| Browse UI | `UI_Browse.cpp` |
-| DPS Logs | `LogManagerPad.cpp` → `LogManagerParse` / `Upload` / `Ei` |
-| Pathing | `TekkitTrails.cpp` → `TekkitParse` / `TekkitIndex` / `PathingPacks` |
-| Direction compass | `DirectionCompass.cpp` (side-rail **Compass** pad; letter size + radius) |
-| Live digests | `LivePanels.cpp` → `LivePanelsBuild` (News Digest under Browse → Help) |
-| Account API pads | `AccountPad.cpp`, `ProgressData.cpp`, `CraftingData.cpp` |
-| Pad placement | `PadDock.h` (`G::PadGeom` → `settings.ini`) |
+| Browse UI | `src/ui/UI_Browse.cpp` |
+| DPS Logs | `src/logs/LogManagerPad.cpp` → Parse / Upload / Ei |
+| Pathing | `src/pathing/TekkitTrails.cpp` → TekkitParse / TekkitIndex / PathingPacks |
+| Direction compass | `src/pathing/DirectionCompass.cpp` (side-rail **Compass** pad) |
+| Live digests | `src/browse/LivePanels.cpp` → LivePanelsBuild (News Digest under Help) |
+| Account API pads | `src/account/AccountPad.cpp`, `ProgressData.cpp`, `CraftingData.cpp` |
+| Pad placement | `src/app/PadDock.h` (`G::PadGeom` → `settings.ini`) |
 
 Run parse fixture tests: `make test-parse`.
 
@@ -52,10 +52,10 @@ Run parse fixture tests: `make test-parse`.
 
 Read only; do not change yet without [`KERNEL.md`](KERNEL.md):
 
-- `WikiIpc.h` — packed IPC contract (`HLI5`); `make test-ipc`
-- `WikiBrowser*.cpp` — extract/launch (`Helper`), present (`Present`), IPC rings (`Ipc`)
-- `helper/HelperNavPolicy.cpp` / `HelperOsrRender.cpp` / `main.cpp` — policy, OSR, boot
-- `entry.cpp` — WndProc / input ownership
+- `src/browser/WikiIpc.h` — packed IPC contract (`HLI5`); `make test-ipc`
+- `src/browser/WikiBrowser*.cpp` — extract/launch (`Helper`), present (`Present`), IPC rings (`Ipc`)
+- `src/helper/HelperNavPolicy.cpp` / `HelperOsrRender.cpp` / `main.cpp` — policy, OSR, boot
+- `src/entry.cpp` — WndProc / input ownership
 
 **Done when:** you can name which TU owns present vs nav policy vs launch, and why stamp bumps matter.
 

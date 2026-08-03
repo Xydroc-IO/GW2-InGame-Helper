@@ -29,7 +29,7 @@ make pack-cef
 ```
 
 Upload `build/cef-runtime/cef-runtime-150-windows64.zip` to a GitHub Release and keep
-`kDownloadUrl` / `kSha256Hex` in `src/CefRuntime.h` in sync.
+`kDownloadUrl` / `kSha256Hex` in `src/browser/CefRuntime.h` in sync.
 
 ## Local offline test (no GitHub)
 

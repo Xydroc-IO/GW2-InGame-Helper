@@ -130,7 +130,7 @@ Works on Windows and on Linux via Wine/Proton.
 
 > **Players copy one DLL** into `addons/`. Helper + homepage extract into
 > `addons/GW2-InGame-Helper/`. Private CEF 150 downloads once into
-> `addons/GW2-InGame-Helper/cef/` (see `src/CefRuntime.h`). Never writes
+> `addons/GW2-InGame-Helper/cef/` (see `src/browser/CefRuntime.h`). Never writes
 > into `bin64/cef`.
 
 Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
@@ -337,8 +337,8 @@ Offline **Cheat Sheets** use `about:` URLs (e.g. `about:raid-food`, `about:ubers
 
 | Page | Sources |
 |------|---------|
-| Raid Food | `src/RaidFood.cpp` |
-| Other sheets (incl. Uber's All-In-One) | `data/cheatsheets/` (+ thin `src/CheatSheets.cpp` loader) |
+| Raid Food | `src/browse/RaidFood.cpp` |
+| Other sheets (incl. Uber's All-In-One) | `data/cheatsheets/` (+ thin `src/browse/CheatSheets.cpp` loader) |
 
 **Uber's All-In-One** (`about:ubers-aio`) — waypoint / landmark chat codes (hubs, Wizard’s Vault, Chak Egg, Obsidian, Provisioner). Click a code to copy, paste in game chat, click the link to travel. Waypoint list curated by **uberduber.1249**.
 

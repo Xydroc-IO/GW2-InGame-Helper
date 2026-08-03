@@ -1,7 +1,7 @@
 # Kernel playbook — WikiBrowser + CEF helper
 
 **Audience:** anyone who must change Browse rendering, IPC, launch/extract, or navigation policy.  
-**Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md), [`WikiIpc.h`](../src/WikiIpc.h), [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+**Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md), [`WikiIpc.h`](../src/browser/WikiIpc.h), [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 This is the **restricted kernel**. Pad/Sites edits do not belong here. Prefer paired review for any PR that touches these files.
 
@@ -9,7 +9,7 @@ This is the **restricted kernel**. Pad/Sites edits do not belong here. Prefer pa
 
 ## 1. Ownership map (where to edit)
 
-### DLL host (`WikiBrowser*`)
+### DLL host (`src/browser/`)
 
 | File | Own this |
 |------|----------|
@@ -19,6 +19,8 @@ This is the **restricted kernel**. Pad/Sites edits do not belong here. Prefer pa
 | `WikiBrowserPresent.cpp` | D3D11 staging → DEFAULT upload, `PresentFrame`, frame SRV/UV getters |
 | `WikiBrowserShared.h` | Shared `WikiBrowserDetail` state — do not redefine globals in a second TU |
 | `WikiBrowser.h` | Public API only — keep stable |
+| `WikiIpc.h` | Packed IPC contract (`HLI5`) |
+| `CefRuntime.*` | Private CEF zip download / verify / extract |
 
 ### Helper process (`src/helper/`)
 

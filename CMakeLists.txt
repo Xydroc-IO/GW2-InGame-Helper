@@ -5,6 +5,21 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(SRC_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/app
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/api
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/browse
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/browser
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/account
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/pathing
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/logs
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/events
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/notes
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/helper
+)
+
 add_executable(GW2HelperBrowser WIN32
   src/helper/main.cpp
   src/helper/HelperNavPolicy.cpp
@@ -13,7 +28,7 @@ add_executable(GW2HelperBrowser WIN32
   src/helper/CssProxy.cpp
 )
 target_include_directories(GW2HelperBrowser PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${SRC_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/cef
 )
 target_compile_definitions(GW2HelperBrowser PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
@@ -28,62 +43,62 @@ set_target_properties(GW2HelperBrowser PROPERTIES
 
 add_library(GW2-InGame-Helper SHARED
   src/entry.cpp
-  src/Settings.cpp
-  src/AddonPaths.cpp
-  src/Sites.cpp
-  src/SitesLoad.cpp
-  src/BrowserTabs.cpp
-  src/HomePage.cpp
-  src/RaidFood.cpp
-  src/CheatSheets.cpp
-  src/Gw2Http.cpp
-  src/LivePanels.cpp
-  src/LivePanelsBuild.cpp
-  src/LivePanels_Html.cpp
-  src/NotesPad.cpp
-  src/WaypointsData.cpp
-  src/MumbleIdentity.cpp
-  src/RoutingSuggest.cpp
-  src/CharacterProfiles.cpp
-  src/ConfirmedWaypoints.cpp
-  src/UnlocksData.cpp
-  src/UnlocksPad.cpp
-  src/InventoryData.cpp
-  src/SessionHistoryData.cpp
-  src/TpWatchPad.cpp
-  src/LookupPad.cpp
-  src/WalletPad.cpp
-  src/VaultPad.cpp
-  src/AccountPad.cpp
-  src/ProgressData.cpp
-  src/CraftingData.cpp
-  src/EventsPad.cpp
-  src/EventsData.cpp
-  src/LogManagerPad.cpp
-  src/LogManagerParse.cpp
-  src/LogManagerUpload.cpp
-  src/LogManagerEi.cpp
-  src/EiRuntime.cpp
-  src/TekkitGuidesPad.cpp
-  src/TekkitTrails.cpp
-  src/TekkitIndex.cpp
-  src/TekkitParse.cpp
-  src/PathingPacks.cpp
-  src/PathingFeatures.cpp
-  src/MarkerBehaviors.cpp
-  src/CompassOverlay.cpp
-  src/WorldOverlay.cpp
-  src/DirectionCompass.cpp
-  src/HelperQuickAccess.cpp
-  src/WikiBrowser.cpp
-  src/WikiBrowserHelper.cpp
-  src/WikiBrowserIpc.cpp
-  src/WikiBrowserPresent.cpp
-  src/CefRuntime.cpp
-  src/UI.cpp
-  src/UI_Browse.cpp
-  src/UI_Options.cpp
-  src/SyncQr.cpp
+  src/app/Settings.cpp
+  src/app/AddonPaths.cpp
+  src/app/MumbleIdentity.cpp
+  src/api/Gw2Http.cpp
+  src/browse/Sites.cpp
+  src/browse/SitesLoad.cpp
+  src/browse/BrowserTabs.cpp
+  src/browse/HomePage.cpp
+  src/browse/RaidFood.cpp
+  src/browse/CheatSheets.cpp
+  src/browse/LivePanels.cpp
+  src/browse/LivePanelsBuild.cpp
+  src/browse/LivePanels_Html.cpp
+  src/notes/NotesPad.cpp
+  src/pathing/WaypointsData.cpp
+  src/pathing/RoutingSuggest.cpp
+  src/pathing/ConfirmedWaypoints.cpp
+  src/account/CharacterProfiles.cpp
+  src/account/UnlocksData.cpp
+  src/account/UnlocksPad.cpp
+  src/account/InventoryData.cpp
+  src/account/SessionHistoryData.cpp
+  src/account/TpWatchPad.cpp
+  src/account/LookupPad.cpp
+  src/account/WalletPad.cpp
+  src/account/VaultPad.cpp
+  src/account/AccountPad.cpp
+  src/account/ProgressData.cpp
+  src/account/CraftingData.cpp
+  src/events/EventsPad.cpp
+  src/events/EventsData.cpp
+  src/logs/LogManagerPad.cpp
+  src/logs/LogManagerParse.cpp
+  src/logs/LogManagerUpload.cpp
+  src/logs/LogManagerEi.cpp
+  src/logs/EiRuntime.cpp
+  src/pathing/TekkitGuidesPad.cpp
+  src/pathing/TekkitTrails.cpp
+  src/pathing/TekkitIndex.cpp
+  src/pathing/TekkitParse.cpp
+  src/pathing/PathingPacks.cpp
+  src/pathing/PathingFeatures.cpp
+  src/pathing/MarkerBehaviors.cpp
+  src/pathing/CompassOverlay.cpp
+  src/pathing/WorldOverlay.cpp
+  src/pathing/DirectionCompass.cpp
+  src/ui/HelperQuickAccess.cpp
+  src/browser/WikiBrowser.cpp
+  src/browser/WikiBrowserHelper.cpp
+  src/browser/WikiBrowserIpc.cpp
+  src/browser/WikiBrowserPresent.cpp
+  src/browser/CefRuntime.cpp
+  src/ui/UI.cpp
+  src/ui/UI_Browse.cpp
+  src/ui/UI_Options.cpp
+  src/ui/SyncQr.cpp
   deps/qrcodegen/qrcodegen.c
   deps/imgui/imgui.cpp
   deps/imgui/imgui_draw.cpp
@@ -95,7 +110,7 @@ add_library(GW2-InGame-Helper SHARED
   deps/miniz/miniz_zip.c
 )
 target_include_directories(GW2-InGame-Helper PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${SRC_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/deps
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/imgui
   ${CMAKE_CURRENT_SOURCE_DIR}/deps/cef

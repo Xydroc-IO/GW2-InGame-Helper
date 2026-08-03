@@ -5,7 +5,9 @@ LD       = x86_64-w64-mingw32-ld
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
 CXXFLAGS += -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS
 CXXFLAGS += -DCEF_API_VERSION=15000
-CXXFLAGS += -Isrc -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen
+CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/api -Isrc/browse -Isrc/browser \
+	-Isrc/account -Isrc/pathing -Isrc/logs -Isrc/events -Isrc/notes -Isrc/helper
+CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen
 CXXFLAGS += -MMD -MP
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
@@ -30,62 +32,62 @@ CHEATSHEETS_ZIP_OBJ = build/cheatsheets_zip.o
 
 DLL_SRC = \
 	src/entry.cpp \
-	src/Settings.cpp \
-	src/AddonPaths.cpp \
-	src/Sites.cpp \
-	src/SitesLoad.cpp \
-	src/BrowserTabs.cpp \
-	src/HomePage.cpp \
-	src/RaidFood.cpp \
-	src/CheatSheets.cpp \
-	src/Gw2Http.cpp \
-	src/LivePanels.cpp \
-	src/LivePanelsBuild.cpp \
-	src/LivePanels_Html.cpp \
-	src/NotesPad.cpp \
-	src/WaypointsData.cpp \
-	src/MumbleIdentity.cpp \
-	src/RoutingSuggest.cpp \
-	src/CharacterProfiles.cpp \
-	src/ConfirmedWaypoints.cpp \
-	src/UnlocksData.cpp \
-	src/UnlocksPad.cpp \
-	src/InventoryData.cpp \
-	src/SessionHistoryData.cpp \
-	src/TpWatchPad.cpp \
-	src/LookupPad.cpp \
-	src/WalletPad.cpp \
-	src/VaultPad.cpp \
-	src/AccountPad.cpp \
-	src/ProgressData.cpp \
-	src/CraftingData.cpp \
-	src/EventsPad.cpp \
-	src/EventsData.cpp \
-	src/LogManagerPad.cpp \
-	src/LogManagerParse.cpp \
-	src/LogManagerUpload.cpp \
-	src/LogManagerEi.cpp \
-	src/EiRuntime.cpp \
-	src/TekkitGuidesPad.cpp \
-	src/TekkitTrails.cpp \
-	src/TekkitIndex.cpp \
-	src/TekkitParse.cpp \
-	src/PathingPacks.cpp \
-	src/PathingFeatures.cpp \
-	src/MarkerBehaviors.cpp \
-	src/CompassOverlay.cpp \
-	src/WorldOverlay.cpp \
-	src/DirectionCompass.cpp \
-	src/HelperQuickAccess.cpp \
-	src/WikiBrowser.cpp \
-	src/WikiBrowserHelper.cpp \
-	src/WikiBrowserIpc.cpp \
-	src/WikiBrowserPresent.cpp \
-	src/CefRuntime.cpp \
-	src/UI.cpp \
-	src/UI_Browse.cpp \
-	src/UI_Options.cpp \
-	src/SyncQr.cpp \
+	src/app/Settings.cpp \
+	src/app/AddonPaths.cpp \
+	src/app/MumbleIdentity.cpp \
+	src/api/Gw2Http.cpp \
+	src/browse/Sites.cpp \
+	src/browse/SitesLoad.cpp \
+	src/browse/BrowserTabs.cpp \
+	src/browse/HomePage.cpp \
+	src/browse/RaidFood.cpp \
+	src/browse/CheatSheets.cpp \
+	src/browse/LivePanels.cpp \
+	src/browse/LivePanelsBuild.cpp \
+	src/browse/LivePanels_Html.cpp \
+	src/notes/NotesPad.cpp \
+	src/pathing/WaypointsData.cpp \
+	src/pathing/RoutingSuggest.cpp \
+	src/pathing/ConfirmedWaypoints.cpp \
+	src/account/CharacterProfiles.cpp \
+	src/account/UnlocksData.cpp \
+	src/account/UnlocksPad.cpp \
+	src/account/InventoryData.cpp \
+	src/account/SessionHistoryData.cpp \
+	src/account/TpWatchPad.cpp \
+	src/account/LookupPad.cpp \
+	src/account/WalletPad.cpp \
+	src/account/VaultPad.cpp \
+	src/account/AccountPad.cpp \
+	src/account/ProgressData.cpp \
+	src/account/CraftingData.cpp \
+	src/events/EventsPad.cpp \
+	src/events/EventsData.cpp \
+	src/logs/LogManagerPad.cpp \
+	src/logs/LogManagerParse.cpp \
+	src/logs/LogManagerUpload.cpp \
+	src/logs/LogManagerEi.cpp \
+	src/logs/EiRuntime.cpp \
+	src/pathing/TekkitGuidesPad.cpp \
+	src/pathing/TekkitTrails.cpp \
+	src/pathing/TekkitIndex.cpp \
+	src/pathing/TekkitParse.cpp \
+	src/pathing/PathingPacks.cpp \
+	src/pathing/PathingFeatures.cpp \
+	src/pathing/MarkerBehaviors.cpp \
+	src/pathing/CompassOverlay.cpp \
+	src/pathing/WorldOverlay.cpp \
+	src/pathing/DirectionCompass.cpp \
+	src/ui/HelperQuickAccess.cpp \
+	src/browser/WikiBrowser.cpp \
+	src/browser/WikiBrowserHelper.cpp \
+	src/browser/WikiBrowserIpc.cpp \
+	src/browser/WikiBrowserPresent.cpp \
+	src/browser/CefRuntime.cpp \
+	src/ui/UI.cpp \
+	src/ui/UI_Browse.cpp \
+	src/ui/UI_Options.cpp \
+	src/ui/SyncQr.cpp \
 	deps/qrcodegen/qrcodegen.c \
 	deps/imgui/imgui.cpp \
 	deps/imgui/imgui_draw.cpp \
@@ -139,13 +141,13 @@ test-parse: $(TEST_PARSE_BIN)
 test-ipc: $(TEST_IPC_BIN)
 	./$(TEST_IPC_BIN)
 
-$(TEST_PARSE_BIN): tools/test_logmanager_parse.cpp src/LogManagerParse.cpp src/LogManagerParse.h
+$(TEST_PARSE_BIN): tools/test_logmanager_parse.cpp src/logs/LogManagerParse.cpp src/logs/LogManagerParse.h
 	@mkdir -p build
-	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -o $@ tools/test_logmanager_parse.cpp src/LogManagerParse.cpp
+	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -Isrc/logs -o $@ tools/test_logmanager_parse.cpp src/logs/LogManagerParse.cpp
 
-$(TEST_IPC_BIN): tools/test_wiki_ipc.cpp src/WikiIpc.h
+$(TEST_IPC_BIN): tools/test_wiki_ipc.cpp src/browser/WikiIpc.h
 	@mkdir -p build
-	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -o $@ tools/test_wiki_ipc.cpp
+	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -Isrc/browser -o $@ tools/test_wiki_ipc.cpp
 
 # Local continuous integration. Also used by .githooks/pre-push and GitHub Actions.
 ci:
@@ -154,7 +156,7 @@ ci:
 pack-cef:
 	bash scripts/pack-cef-runtime.sh
 
-$(HELPER_OUT): $(HELPER_SRC) src/WikiIpc.h src/helper/HelperInternal.h \
+$(HELPER_OUT): $(HELPER_SRC) src/browser/WikiIpc.h src/helper/HelperInternal.h \
 	src/helper/CssCompat.h src/helper/CssProxy.h src/helper/BootJs.h
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS_EXE) $(LDFLAGS_EXE) -o $@ $(HELPER_SRC) $(LIBS_EXE)

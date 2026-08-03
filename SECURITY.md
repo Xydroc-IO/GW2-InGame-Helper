@@ -32,6 +32,6 @@ Include: affected version/stamp, environment (Windows / Proton), reproduction st
 
 ## Supply chain notes
 
-- Private CEF zip is SHA-256 verified at install (`src/CefRuntime.h`).
+- Private CEF zip is SHA-256 verified at install (`src/browser/CefRuntime.h`).
 - Elite Insights CLI zip is similarly verified when used.
 - Prefer reviewing dependency / CEF major bumps carefully; treat helper/IPC changes as high risk.

@@ -53,7 +53,7 @@ make pack-cef
 
 Writes `build/cef-runtime/cef-runtime-150-windows64.zip` + `SHA256SUMS`.
 Upload the zip to a GitHub Release, then set `kDownloadUrl` / `kSha256Hex` in
-[`src/CefRuntime.h`](../src/CefRuntime.h).
+[`src/browser/CefRuntime.h`](../src/browser/CefRuntime.h).
 
 ### Clean
 
@@ -84,7 +84,7 @@ git config core.hooksPath .githooks
 | Target | Sources |
 |--------|---------|
 | `GW2HelperBrowser.exe` | `src/helper/*.cpp` against `deps/cef` **150** headers |
-| Host DLL | `src/*.cpp` + Dear ImGui + miniz + embedded helper blob + `sites.json` + cheatsheets zip |
+| Host DLL | `src/**/*.cpp` (hybrid layers + domains) + Dear ImGui + miniz + embedded helper blob + `sites.json` + cheatsheets zip |
 
 ### Browse catalog (runtime JSON)
 

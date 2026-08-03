@@ -76,8 +76,8 @@ Browse hierarchy is data-driven (`browsePath` / `browseSections`). Runtime file:
 Bump **only when asked**. Keep these aligned:
 
 1. `src/entry.cpp` — `G::AddonDef.Version` (Major / Minor / Build / Revision)
-2. `src/WikiBrowserHelper.cpp` — `kHelperStamp`
-3. `src/HomePage.cpp` — `kHomePageVersion`
+2. `src/browser/WikiBrowserHelper.cpp` — `kHelperStamp`
+3. `src/browse/HomePage.cpp` — `kHomePageVersion`
 4. `README.md`, `RELEASE_NOTES.md`, `description.html`; local (gitignored) `RAIDCORE.md`, `DISCORD.md`
 5. Refresh `ARCHITECTURE.md` / `WHITEPAPER.md` appendices if constants changed
 6. `make && make install` (or release package)

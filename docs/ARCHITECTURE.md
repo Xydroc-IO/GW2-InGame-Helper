@@ -57,7 +57,7 @@ Guild Wars 2.exe
 make pack-cef   # scripts/pack-cef-runtime.sh
 ```
 
-Keep `src/CefRuntime.h` URL + SHA256 in sync after uploading a new zip.
+Keep `src/browser/CefRuntime.h` URL + SHA256 in sync after uploading a new zip.
 
 ### Job Object and host watch
 
@@ -93,7 +93,7 @@ The Beta branch (when present) substitutes `GW2-InGame-Helper-Beta` for the DLL 
 
 ## 4. IPC (`WikiIpcState`, packed)
 
-Shared header: `src/WikiIpc.h` (`#pragma pack(1)`, magic `HLI5`).
+Shared header: `src/browser/WikiIpc.h` (`#pragma pack(1)`, magic `HLI5`).
 
 | Area | Mechanism |
 |------|-----------|
@@ -138,7 +138,9 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 
 ---
 
-## 7. Source map (post-modularization)
+## 7. Source map (hybrid layout)
+
+`src/` is organized as **shared layers** (`app`, `ui`, `api`, `browse`, `browser`, `helper`) plus **feature domains** (`account`, `pathing`, `logs`, `events`, `notes`). Includes stay flat (`#include "Foo.h"`) via multiple `-Isrc/...` paths.
 
 ### Kernel (high blast radius — paired review)
 
@@ -147,50 +149,46 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 | Path | Responsibility |
 |------|----------------|
 | `src/entry.cpp` | Nexus load/unload, WndProc, version |
-| `src/WikiBrowser.cpp` | Lifecycle, navigate/tabs/input, status |
-| `src/WikiBrowserHelper.cpp` | Extract, launch, IPC maps, Open Ext/Tab drains |
-| `src/WikiBrowserIpc.cpp` | Cmd/input rings, `about:` URL resolve |
-| `src/WikiBrowserPresent.cpp` | D3D11 present / frame getters |
-| `src/WikiBrowserShared.h` | Shared DLL host state |
-| `src/WikiIpc.h` | Shared memory contract (`HLI5`) |
+| `src/browser/WikiBrowser.cpp` | Lifecycle, navigate/tabs/input, status |
+| `src/browser/WikiBrowserHelper.cpp` | Extract, launch, IPC maps, Open Ext/Tab drains |
+| `src/browser/WikiBrowserIpc.cpp` | Cmd/input rings, `about:` URL resolve |
+| `src/browser/WikiBrowserPresent.cpp` | D3D11 present / frame getters |
+| `src/browser/WikiBrowserShared.h` | Shared DLL host state |
+| `src/browser/WikiIpc.h` | Shared memory contract (`HLI5`) |
+| `src/browser/CefRuntime.*` | CEF zip download / verify / extract |
 | `src/helper/main.cpp` | CEF boot, tabs, IPC drain, resource handlers |
 | `src/helper/HelperNavPolicy.cpp` | Nav / ad / Open Ext policy |
 | `src/helper/HelperOsrRender.cpp` | OSR paint + popup composite |
 | `src/helper/HelperInternal.h` | Shared helper state |
 | `src/helper/BootJs.h` / `CssCompat.*` / `CssProxy.*` | Injected JS / CSS filters |
 
-### UI chrome
+### Shared layers
 
 | Path | Responsibility |
 |------|----------------|
-| `src/UI.cpp` | Orchestration, helper side rail, tabs, CEF input routing |
-| `PadNav` / `PadDock` | Side-rail / wrapping chip nav; persisted pad geom |
-| `src/UI_Browse.cpp` | Browse picker, section maps, favorites UI |
-| `src/UI_Options.cpp` | Nexus options panel |
+| `src/app/` | `Globals`, `Settings`, `AddonPaths`, `HelperTheme`, `PadDock`, `PadNav`, `MumbleIdentity` |
+| `src/ui/` | Helper chrome (`UI*`), QuickAccess, SyncQr |
+| `src/api/` | `Gw2Http` (blocking WinHTTP — worker threads only) |
+| `src/browse/` | Sites catalog, HomePage, CheatSheets, RaidFood, LivePanels |
 
-### Catalog
+### Feature domains
+
+| Path | Responsibility |
+|------|----------------|
+| `src/account/` | Account hub + unlocks/inventory/wallet/vault/TP/lookup/crafting/progress/history/profiles |
+| `src/pathing/` | Tekkit/Pathing packs, trails, markers, compass/world overlays, routing, waypoints |
+| `src/logs/` | DPS Logs (`LogManager*`) + Elite Insights runtime |
+| `src/events/` | World Events pad + schedule data |
+| `src/notes/` | Notes + waypoint snippets pad |
+
+### Catalog data (not under `src/`)
 
 | Path | Responsibility |
 |------|----------------|
 | `data/sites.json` | **Canonical** Browse registry (schema v2) |
-| `src/SitesLoad.cpp` | Extract/parse runtime `addons/…/sites.json` |
-| `src/Sites.cpp` | Active site, favorites, URL match |
+| `data/cheatsheets/` | Offline about: sheets (embedded zip → runtime extract) |
 | `tools/validate_sites.py` / `enrich_sites_browse.py` | Integrity + hierarchy enrichment |
-
-### Feature modules (pads / data)
-
-| Path | Responsibility |
-|------|----------------|
-| `LogManagerPad` / `Parse` / `Upload` / `Ei` | DPS Logs UI, EVTC/JSON parse, dps.report, EI CLI |
-| `TekkitTrails` / `Parse` / `Index` / `PathingPacks` | Pathing runtime; curated Tekkit + Lady + Hero download; taco/XML/.trl |
-| `CompassOverlay` / `WorldOverlay` | Tekkit trail overlays on minimap / in-world |
-| `DirectionCompass` | World N/E/S/W + Compass settings pad (independent of Tekkit) |
-| `LivePanels` / `Build` / `Html` | about: live digests — workers vs HTML builders |
-| `CheatSheets` + `data/cheatsheets/` | Offline about: sheets (embedded zip → runtime extract) |
-| `AccountPad`, `WalletPad`, `VaultPad`, `NotesPad`, … | ImGui feature pads |
-| `CraftingData`, `ProgressData`, `WaypointsData`, `EventsData` | API / cache helpers |
-| `CefRuntime.*` | CEF zip download / verify / extract |
-| `Gw2Http.*` | Blocking WinHTTP (worker threads only) |
+| `pathing/` (repo root) | Curated `.taco` packs + README (runtime copies under addons) |
 
 ---
 

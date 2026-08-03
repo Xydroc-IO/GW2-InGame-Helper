@@ -35,13 +35,13 @@ Private Chromium runtime used by **`GW2-InGame-Helper`** (v2.0.2.0+).
 ### Important
 
 - Do **not** unpack this into Guild Wars 2 `bin64/cef`
-- Filename and tag should stay `cef-runtime-150` / `cef-runtime-150-windows64.zip` (download URL in `src/CefRuntime.h`)
+- Filename and tag should stay `cef-runtime-150` / `cef-runtime-150-windows64.zip` (download URL in `src/browser/CefRuntime.h`)
 
 ### Download URL (temporary test host)
 
 https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/1.0.0.0/cef-runtime-150-windows64.zip
 
-When done testing, move the asset to tag `cef-runtime-150` and update `kDownloadUrl` in `src/CefRuntime.h` to match.
+When done testing, move the asset to tag `cef-runtime-150` and update `kDownloadUrl` in `src/browser/CefRuntime.h` to match.
 
 ### Pack locally
 

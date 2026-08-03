@@ -22,15 +22,16 @@ feature work on Beta; merge to `master` only after in-game verification.
 
 ## 2. Ownership zones
 
-| Zone | Casual edits | Extra rules |
-|------|--------------|-------------|
-| Pads (`*Pad.cpp`, `*Data.cpp`) | Yes | Prefer in-window chips/radios over ImGui popup combos |
-| Catalog (`data/sites.json`) | Yes | `make validate-sites` required; schema v2 + `browsePath` |
-| Cheat sheets (`data/cheatsheets/`) | Yes | Edit HTML/CSS + `manifest.json`; bump pack stamp `c2200` in `CheatSheets.cpp` when shipping extract changes |
-| LivePanels HTML builders | Careful | No secrets in HTML; bump panel version when caching |
-| `WikiBrowser` / `WikiIpc` / `helper/*` | **Restricted** | Follow [`docs/KERNEL.md`](docs/KERNEL.md); stamp bump + coordinated DLL+helper; pair review |
-| `entry.cpp` WndProc / mouse capture | **Restricted** | Autorun / focus regressions — test in GW2 |
-| Tekkit parsers / LogManager parse | Careful | Prefer golden fixtures when changing formats |
+| Zone | Path | Casual edits | Extra rules |
+|------|------|--------------|-------------|
+| Pads / feature data | `src/account/`, `src/pathing/`, `src/logs/`, `src/events/`, `src/notes/` | Yes | Prefer in-window chips/radios over ImGui popup combos |
+| Catalog | `data/sites.json` + `src/browse/` | Yes | `make validate-sites` required; schema v2 + `browsePath` |
+| Cheat sheets | `data/cheatsheets/` | Yes | Edit HTML/CSS + `manifest.json`; bump pack stamp `c2200` in `src/browse/CheatSheets.cpp` when shipping extract changes |
+| LivePanels HTML builders | `src/browse/LivePanels*` | Careful | No secrets in HTML; bump panel version when caching |
+| Browser kernel | `src/browser/`, `src/helper/` | **Restricted** | Follow [`docs/KERNEL.md`](docs/KERNEL.md); stamp bump + coordinated DLL+helper; pair review |
+| Nexus entry / WndProc | `src/entry.cpp` | **Restricted** | Autorun / focus regressions — test in GW2 |
+| Shared chrome / app | `src/ui/`, `src/app/`, `src/api/` | Careful | Side-rail / settings / HTTP touch many pads |
+| Pathing / Logs parsers | `src/pathing/TekkitParse*`, `src/logs/LogManagerParse*` | Careful | Prefer golden fixtures when changing formats |
 
 ---
 

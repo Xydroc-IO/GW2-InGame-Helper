@@ -477,17 +477,17 @@ IPC rigidity, CPU upload cost, and sandbox gaps are correctly noted by critics. 
 | Path | Role |
 |------|------|
 | `src/entry.cpp` | Nexus entry, version, WndProc |
-| `src/UI.cpp` / `UI_Browse.cpp` / `UI_Options.cpp` | ImGui chrome, Browse, options |
-| `src/WikiBrowser*.cpp` | Host: lifecycle, helper launch, IPC, present |
+| `src/ui/UI.cpp` / `UI_Browse.cpp` / `UI_Options.cpp` | ImGui chrome, Browse, options |
+| `src/browser/WikiBrowser*.cpp` | Host: lifecycle, helper launch, IPC, present |
 | `src/helper/main.cpp` + `HelperNavPolicy` / `HelperOsrRender` | CEF client, navigation and advertisement policy, OSR |
-| `src/WikiIpc.h` | Shared contract |
-| `src/CefRuntime.*` | Download, verify, extract |
-| `data/sites.json` → runtime `sites.json` + `SitesLoad.cpp` | Catalog |
-| `data/cheatsheets/` → zip extract + `CheatSheets.cpp` | Offline `about:` sheets |
+| `src/browser/WikiIpc.h` | Shared contract |
+| `src/browser/CefRuntime.*` | Download, verify, extract |
+| `data/sites.json` → runtime `sites.json` + `src/browse/SitesLoad.cpp` | Catalog |
+| `data/cheatsheets/` → zip extract + `src/browse/CheatSheets.cpp` | Offline `about:` sheets |
 | `src/helper/BootJs.h` | Injected page logic |
 | `scripts/pack-cef-runtime.sh` | Rehost stock CEF |
 
-Application-layer modules (Account, Pathing/Tekkit, DPS Logs, Events, compass) are listed in [`ARCHITECTURE.md`](ARCHITECTURE.md); they are outside the CEF kernel ownership zone defined in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+Application-layer modules live under `src/account/`, `src/pathing/`, `src/logs/`, `src/events/`, and `src/notes/`. See [`ARCHITECTURE.md`](ARCHITECTURE.md); they are outside the CEF kernel ownership zone defined in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ## Appendix C — Document control
 

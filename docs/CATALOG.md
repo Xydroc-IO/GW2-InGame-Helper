@@ -4,7 +4,7 @@
 
 Source of truth: `data/sites.json` (schema v2 with `browsePath` / `browseSections`).
 At runtime the DLL extracts it to `addons/<addon-name>/sites.json` (`Sites::Init` / `SitesLoad.cpp`).
-Browse UI walks `browsePath` in `src/UI_Browse.cpp` — no C++ hierarchy tables.
+Browse UI walks `browsePath` in `src/ui/UI_Browse.cpp` — no C++ hierarchy tables.
 See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 
 ## Help
