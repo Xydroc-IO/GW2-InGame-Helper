@@ -27,9 +27,9 @@ namespace
 	/* Soft-hide POI icons that would cover the avatar. */
 	constexpr float kAvatarMarkerHideM = 2.0f;
 	constexpr float kAvatarMarkerFadeM = 5.5f;
-	/* World bubble — ImGui has no depth vs the mesh, so also use screen clear. */
-	constexpr float kAvatarTrailHideM = 5.0f;
-	constexpr float kAvatarTrailFadeM = 9.0f;
+	/* Hard world clear — always on so ImGui trails never sit on the mesh.
+	   Soft fade beyond this is scaled by G::WorldTrailPlayerClear. */
+	constexpr float kAvatarTrailHardHideM = 2.75f;
 
 	struct Vec3
 	{
@@ -289,6 +289,13 @@ namespace
 		constexpr float kDrawStepM = 6.0f;
 		const float maxLineScreen = std::min(280.f, std::min(screenW, screenH) * 0.35f);
 
+		const float clearMul = std::clamp(G::WorldTrailPlayerClear, 0.f, 3.f);
+		/* Soft bubble grows with the slider; hard hide always stays on. */
+		const float softHideM = kAvatarTrailHardHideM + 2.25f * clearMul;
+		const float softFadeM = (clearMul <= 0.001f)
+			? softHideM
+			: softHideM + 4.0f * clearMul;
+
 		auto distFade = [&](const Vec3& w, float& fadeOut) -> bool
 		{
 			const float adx = avatar.x - w.x;
@@ -301,13 +308,15 @@ namespace
 			fadeOut = 1.f;
 			if (dist > fadeStart)
 				fadeOut = 1.f - (dist - fadeStart) / std::max(1.f, fadeEnd - fadeStart);
-			/* 3D bubble — covers underfoot and trails through a flying mount. */
-			if (dist <= kAvatarTrailHideM)
+			/* Hard clear always — even at Player clear 0. */
+			if (dist <= kAvatarTrailHardHideM)
 				return false;
-			if (dist < kAvatarTrailFadeM)
+			if (clearMul > 0.001f && dist < softFadeM)
 			{
-				const float t = (dist - kAvatarTrailHideM) /
-					(kAvatarTrailFadeM - kAvatarTrailHideM);
+				const float lo = softHideM;
+				if (dist <= lo)
+					return false;
+				const float t = (dist - lo) / std::max(0.25f, softFadeM - lo);
 				fadeOut *= std::clamp(t, 0.f, 1.f);
 			}
 			fadeOut = std::clamp(fadeOut, 0.f, 1.f);
@@ -342,23 +351,44 @@ namespace
 		/* Screen-space clear — trails ahead still land on the character silhouette
 		   because ImGui draws over the scene with no depth test. */
 		float avatarSx = 0.f, avatarSy = 0.f;
-		float avatarScreenR = std::min(screenW, screenH) * 0.085f;
+		float avatarScreenR = std::min(screenW, screenH) * 0.10f;
 		bool haveAvatarScreen = false;
 		{
-			const Vec3 torso{avatar.x, avatar.y + 1.15f, avatar.z};
-			if (projectWorld(torso, avatarSx, avatarSy))
+			/* Feet + torso + mount-ish height — pick the strongest on-screen radius. */
+			const float heights[] = { 0.35f, 1.15f, 2.35f };
+			for (float hy : heights)
 			{
-				haveAvatarScreen = true;
-				float ox = 0.f, oy = 0.f;
-				/* Apparent character/mount size from a ~1.4 m world offset. */
-				if (projectWorld(Vec3{avatar.x + 1.4f, avatar.y + 1.15f, avatar.z}, ox, oy))
+				float sx = 0.f, sy = 0.f;
+				if (!projectWorld(Vec3{avatar.x, avatar.y + hy, avatar.z}, sx, sy))
+					continue;
+				if (!haveAvatarScreen)
 				{
-					const float dx = ox - avatarSx;
-					const float dy = oy - avatarSy;
+					avatarSx = sx;
+					avatarSy = sy;
+					haveAvatarScreen = true;
+				}
+				else
+				{
+					/* Bias toward torso for the clear center. */
+					if (hy > 0.9f && hy < 1.5f)
+					{
+						avatarSx = sx;
+						avatarSy = sy;
+					}
+				}
+				float ox = 0.f, oy = 0.f;
+				const float side = (hy > 1.8f) ? 2.0f : 1.4f;
+				if (projectWorld(Vec3{avatar.x + side, avatar.y + hy, avatar.z}, ox, oy))
+				{
+					const float dx = ox - sx;
+					const float dy = oy - sy;
 					const float r = std::sqrt(dx * dx + dy * dy);
 					if (std::isfinite(r) && r > 8.f)
-						avatarScreenR = std::clamp(r * 2.35f, 56.f,
-							std::min(screenW, screenH) * 0.22f);
+					{
+						const float cand = std::clamp(r * 2.6f, 64.f,
+							std::min(screenW, screenH) * 0.28f);
+						avatarScreenR = std::max(avatarScreenR, cand);
+					}
 				}
 			}
 		}
@@ -407,16 +437,20 @@ namespace
 			}
 			/* Segment may still skim the player/mount even if endpoints are outside. */
 			const float nearD = segDistToAvatar(raw0, raw1);
-			if (nearD <= kAvatarTrailHideM)
+			if (nearD <= kAvatarTrailHardHideM)
 			{
 				alongM += segLen;
 				return;
 			}
 			float avatarMul = 1.f;
-			if (nearD < kAvatarTrailFadeM)
+			if (clearMul > 0.001f && nearD < softFadeM)
 			{
-				avatarMul = (nearD - kAvatarTrailHideM) /
-					(kAvatarTrailFadeM - kAvatarTrailHideM);
+				if (nearD <= softHideM)
+				{
+					alongM += segLen;
+					return;
+				}
+				avatarMul = (nearD - softHideM) / std::max(0.25f, softFadeM - softHideM);
 				avatarMul = std::clamp(avatarMul, 0.f, 1.f);
 			}
 
@@ -465,22 +499,27 @@ namespace
 				halfM * 900.f / std::max(4.f, avgDist),
 				4.f * widthMul, 14.f * widthMul);
 
-			/* Clear the character/mount silhouette in screen space (ImGui overlay). */
+			/* Hard silhouette clear always includes ribbon half-width — previously
+			   center-line distance alone let thick trails paint over the player
+			   when Player clear was low / fade was off. Soft fade scales separately. */
 			if (haveAvatarScreen)
 			{
 				const float segScreen = pointToSeg2D(
 					avatarSx, avatarSy, cx0, cy0, cx1, cy1);
-				const float clearR = std::max(avatarScreenR, halfPx * 1.35f);
-				const float fadeR = clearR * 2.15f;
-				if (segScreen <= clearR)
+				const float hardR = avatarScreenR + halfPx + 10.f;
+				if (segScreen <= hardR)
 				{
 					alongM += segLen;
 					return;
 				}
-				if (segScreen < fadeR)
+				if (clearMul > 0.001f)
 				{
-					const float t = (segScreen - clearR) / std::max(1.f, fadeR - clearR);
-					avatarMul *= std::clamp(t, 0.f, 1.f);
+					const float softR = hardR + avatarScreenR * (0.45f + 1.25f * clearMul);
+					if (segScreen < softR)
+					{
+						const float t = (segScreen - hardR) / std::max(1.f, softR - hardR);
+						avatarMul *= std::clamp(t, 0.f, 1.f);
+					}
 				}
 			}
 

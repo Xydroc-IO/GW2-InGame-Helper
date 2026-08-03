@@ -56,6 +56,7 @@ namespace G
 	bool  HideOutOfGameplay = true;
 	float WorldTrailMaxDist = 120.f;
 	float WorldTrailWidth = 1.f;
+	float WorldTrailPlayerClear = 1.f; /* 0 = hard clear only; 1 = default soft bubble */
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
 	bool  FontScaleAuto = false; /* opt-in only — default stays 1.0 */
@@ -858,7 +859,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.APIVersion       = NEXUS_API_VERSION;
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 2;
-	G::AddonDef.Version.Minor    = 1;
+	G::AddonDef.Version.Minor    = 2;
 	G::AddonDef.Version.Build    = 0;
 	G::AddonDef.Version.Revision = 1;
 	G::AddonDef.Author           = "xydroc";

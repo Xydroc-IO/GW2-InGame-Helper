@@ -150,6 +150,8 @@ void Settings::Load()
 			G::WorldTrailMaxDist = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WorldTrailWidth") == 0)
 			G::WorldTrailWidth = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WorldTrailPlayerClear") == 0)
+			G::WorldTrailPlayerClear = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "Opacity") == 0) G::Opacity = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "FontScale") == 0)
 			G::FontScale = static_cast<float>(std::atof(val));
@@ -279,6 +281,8 @@ void Settings::Load()
 	if (G::WorldTrailMaxDist > 200.f) G::WorldTrailMaxDist = 200.f;
 	if (G::WorldTrailWidth < 0.5f) G::WorldTrailWidth = 0.5f;
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
+	if (G::WorldTrailPlayerClear < 0.f) G::WorldTrailPlayerClear = 0.f;
+	if (G::WorldTrailPlayerClear > 3.f) G::WorldTrailPlayerClear = 3.f;
 	/* Lady editions are exclusive — older settings could have several on at once. */
 	{
 		const int n = (G::LadyBarefoot ? 1 : 0) + (G::LadyWithMounts ? 1 : 0) +
@@ -370,6 +374,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "HideOutOfGameplay=%d\n", G::HideOutOfGameplay ? 1 : 0);
 	std::fprintf(f, "WorldTrailMaxDist=%.1f\n", G::WorldTrailMaxDist);
 	std::fprintf(f, "WorldTrailWidth=%.2f\n", G::WorldTrailWidth);
+	std::fprintf(f, "WorldTrailPlayerClear=%.2f\n", G::WorldTrailPlayerClear);
 	TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
 	std::fprintf(f, "TekkitEnabled=%s\n", G::TekkitEnabled);
 	std::fprintf(f, "Opacity=%.4f\n", G::Opacity);

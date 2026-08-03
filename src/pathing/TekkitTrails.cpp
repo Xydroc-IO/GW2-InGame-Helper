@@ -2767,15 +2767,26 @@ bool TekkitTrails::DrawOverlaySettings()
 		dirty |= ImGui::Checkbox("In-world GPS trails", &G::ShowWorldTrails);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("3D world breadcrumbs near you (same categories as the compass).");
-		if (G::ShowWorldTrails)
-		{
-			dirty |= ImGui::SliderFloat("GPS range (m)", &G::WorldTrailMaxDist, 40.f, 200.f, "%.0f");
-			dirty |= ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f×");
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip(
-					"Relative size — 1.0 is calibrated for Lady Barefoot / Mounts / WP.\n"
-					"All route types scale together from that baseline.");
-		}
+
+		/* Always visible on Overview under the GPS checkbox. */
+		ImGui::Indent();
+		ImGui::TextUnformatted("In-world GPS");
+		if (!G::ShowWorldTrails)
+			ImGui::TextDisabled("Enable “In-world GPS trails” above to apply.");
+		dirty |= ImGui::SliderFloat("GPS range (m)", &G::WorldTrailMaxDist, 40.f, 200.f, "%.0f");
+		dirty |= ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f×");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Relative size — 1.0 is calibrated for Lady Barefoot / Mounts / WP.\n"
+				"All route types scale together from that baseline.");
+		dirty |= ImGui::SliderFloat("Player clear", &G::WorldTrailPlayerClear, 0.f, 3.0f, "%.1f×");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"How far trails fade away from you.\n"
+				"0 = tight hard clear only (still never paints over you).\n"
+				"1 = default soft bubble · higher = larger gap.");
+		ImGui::Unindent();
+
 		dirty |= ImGui::Checkbox("Hide when world map open", &G::HideWhenMapOpen);
 		dirty |= ImGui::Checkbox("Hide out of gameplay", &G::HideOutOfGameplay);
 	}
