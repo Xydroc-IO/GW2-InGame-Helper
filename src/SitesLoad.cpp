@@ -23,7 +23,7 @@ namespace SitesDetail
 
 	namespace
 	{
-		constexpr const char* kSitesStamp = "s2103";
+		constexpr const char* kSitesStamp = "s2104";
 		constexpr int kMaxBrowsePath = 8;
 		constexpr int kMaxCategories = 32;
 
@@ -518,19 +518,10 @@ namespace SitesDetail
 			gSiteCount = 1;
 
 			SectionList help;
-			help.names = { "Getting Started", "ArenaNet", "Nexus", "Other" };
-			help.ptrs = {
-				help.names[0].c_str(), help.names[1].c_str(),
-				help.names[2].c_str(), help.names[3].c_str()
-			};
+			help.names = { "Getting Started", "ArenaNet", "Other" };
+			for (const std::string& n : help.names)
+				help.ptrs.push_back(n.c_str());
 			gSections.emplace("Help", std::move(help));
-			auto it = gSections.find("Help");
-			if (it != gSections.end())
-			{
-				it->second.ptrs.clear();
-				for (const std::string& n : it->second.names)
-					it->second.ptrs.push_back(n.c_str());
-			}
 		}
 
 		std::wstring SitesPathW()

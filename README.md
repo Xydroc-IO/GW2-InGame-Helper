@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.1.0.3` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.1.0.4` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
@@ -43,6 +43,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | DPS Logs (toolbar **DPS Logs**) | ImGui |
 | World Events (toolbar **Events**) | ImGui |
 | Pathing (toolbar) | ImGui + MumbleLink · Tekkit + Lady Elyssa + user `.taco` |
+| Direction compass | Heading strip + world N/E/S/W + bearing (Nexus FontBig) |
 | Notes + Waypoints (toolbar **Notes**) | ImGui |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |

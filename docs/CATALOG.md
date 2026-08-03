@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.1.0.3 · Total entries: **2,718**
+**Revision:** 2.1.0.4 · Total entries: **2,719**
 
 Source of truth: `data/sites.json` (schema v2 with `browsePath` / `browseSections`).
 At runtime the DLL extracts it to `addons/<addon-name>/sites.json` (`Sites::Init` / `SitesLoad.cpp`).
@@ -22,9 +22,15 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 - **GW2 News** — [https://www.guildwars2.com/en/news/](https://www.guildwars2.com/en/news/)
 - **Forums** — [https://en-forum.guildwars2.com/](https://en-forum.guildwars2.com/)
 
+## Addon Development
+
 ### Nexus
 
 - **Raidcore** — [https://raidcore.gg/gw2](https://raidcore.gg/gw2)
+
+### Source
+
+- **GitHub** — [https://github.com/](https://github.com/) (search suffix for repositories)
 
 ## Search
 
@@ -63,7 +69,8 @@ Not Browse rows — open from the helper toolbar / Nexus Options. Session-only v
 - **Vault** — Dailies & Wizard’s Vault with UTC reset countdowns (also under Account → Vault)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + optional dps.report; KillProof tab (killproof.me); group-by-encounter default; see [`DPS_LOGS.md`](DPS_LOGS.md)
 - **World Events** — UTC boss / meta timers; keybind `KB_HELPER_EVENTS` (`Ctrl+Shift+E`)
-- **Pathing** — curated Tekkit + Lady Elyssa `.taco` auto-update + local packs; keybind `KB_HELPER_TEKKIT` (`Ctrl+Shift+G`)
+- **Pathing** — curated Tekkit + Lady Elyssa `.taco` auto-update + local packs; Foot / Griffon / Skyscale MC presets, All Tekkit / All Lady / All off; keybind `KB_HELPER_TEKKIT` (`Ctrl+Shift+G`)
+- **Direction compass** — toolbar Compass; heading strip, world N/E/S/W (Nexus FontBig), bearing indicator
 
 ## Wiki
 

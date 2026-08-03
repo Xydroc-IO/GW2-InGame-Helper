@@ -1,7 +1,7 @@
 {
   "version": 2,
   "source": "data/sites.json",
-  "count": 2718,
+  "count": 2719,
   "sites": [
     {
       "id": "home",
@@ -76,18 +76,6 @@
       ]
     },
     {
-      "id": "raidcore",
-      "category": "Help",
-      "label": "Raidcore",
-      "title": "Raidcore — Guild Wars 2",
-      "homeUrl": "https://raidcore.gg/gw2",
-      "searchUrlPrefix": null,
-      "searchUrlSuffix": null,
-      "browsePath": [
-        "Nexus"
-      ]
-    },
-    {
       "id": "gw2forums",
       "category": "Help",
       "label": "Forums",
@@ -97,6 +85,30 @@
       "searchUrlSuffix": null,
       "browsePath": [
         "ArenaNet"
+      ]
+    },
+    {
+      "id": "raidcore",
+      "category": "Addon Development",
+      "label": "Raidcore",
+      "title": "Raidcore — Nexus & Guild Wars 2 addons",
+      "homeUrl": "https://raidcore.gg/gw2",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Nexus"
+      ]
+    },
+    {
+      "id": "github",
+      "category": "Addon Development",
+      "label": "GitHub",
+      "title": "GitHub — host addon source & releases",
+      "homeUrl": "https://github.com/",
+      "searchUrlPrefix": "https://github.com/search?q=",
+      "searchUrlSuffix": "&type=repositories",
+      "browsePath": [
+        "Source"
       ]
     },
     {
@@ -35381,8 +35393,11 @@
     "Help": [
       "Getting Started",
       "ArenaNet",
-      "Nexus",
       "Other"
+    ],
+    "Addon Development": [
+      "Nexus",
+      "Source"
     ],
     "Search": [
       "Web Search",

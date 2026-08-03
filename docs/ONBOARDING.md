@@ -37,6 +37,7 @@ This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper
 | Browse UI | `UI_Browse.cpp` |
 | DPS Logs | `LogManagerPad.cpp` → `LogManagerParse` / `Upload` / `Ei` |
 | Pathing | `TekkitTrails.cpp` → `TekkitParse` / `TekkitIndex` / `PathingPacks` |
+| Direction compass | `DirectionCompass.cpp` (toolbar Compass; independent of Tekkit overlays) |
 | Live digests | `LivePanels.cpp` → `LivePanelsBuild` |
 | Account API pads | `AccountPad.cpp`, `ProgressData.cpp`, `CraftingData.cpp` |
 

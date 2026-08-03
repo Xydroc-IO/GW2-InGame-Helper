@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.1.0.3` |
+| Addon revision (shipping) | `2.1.0.4` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home stamps | `2103` / `2103` |
+| Helper / home / sites stamps | `2103` / `2104` / `s2104` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
@@ -182,6 +182,8 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 |------|----------------|
 | `LogManagerPad` / `Parse` / `Upload` / `Ei` | DPS Logs UI, EVTC/JSON parse, dps.report, EI CLI |
 | `TekkitTrails` / `Parse` / `Index` / `PathingPacks` | Pathing runtime, curated pack download, taco/XML/.trl |
+| `CompassOverlay` / `WorldOverlay` | Tekkit trail overlays on minimap / in-world |
+| `DirectionCompass` | Heading strip + world N/E/S/W + bearing (independent of Tekkit) |
 | `LivePanels` / `Build` / `Html` | about: live digests — workers vs HTML builders |
 | `CheatSheets` + `data/cheatsheets/` | Offline about: sheets (embedded zip → runtime extract) |
 | `AccountPad`, `WalletPad`, `VaultPad`, `NotesPad`, … | ImGui feature pads |
@@ -216,5 +218,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.1.0.3 / modular tree + runtime sites.json |
+| Last architecture sync | 2.1.0.4 / direction compass + Pathing presets + Addon Development browse |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps |
