@@ -413,14 +413,14 @@ PID-scoped shared memory → DLL uploads via staging D3D11 texture → `ImGui::I
 Browse rows are labeled hyperlinks into public sites (and built-in `about:` pages).
 
 1. `GW2-InGame-Helper.dll` — Nexus UI, site picker, QuickAccess, D3D11 present.
-2. Embedded `GW2HelperBrowser.exe` — loads `addons/GW2-InGame-Helper/cef/libcef.dll`.
+2. Embedded `GW2HelperBrowser.exe` — loads private **CEF Stable 150** from `addons/GW2-InGame-Helper/cef/libcef.dll`.
 3. CEF renders off-screen into shared memory (PID-scoped IPC v5).
-4. CSS is downleveled for Chromium 103 on selected hosts; **ads are allowed** (since 2.0.0.20).
-5. YouTube on guides becomes a Watch card / Open Ext (in-page play is not reliable on CEF 103 OSR).
+4. Modern CSS is used natively on CEF 150 (oklch / color-mix downlevel is off); **ads are allowed** (since 2.0.0.20).
+5. YouTube on guides becomes a Watch card / Open Ext (in-page play is not reliable under windowless OSR).
    Twitch does the same — official CEF builds omit the H.264 / AAC codecs its player needs (Error #4000).
 6. Chromium profile / cache lives under `%LOCALAPPDATA%\GW2-InGame-Helper\cef-cache` (not under `addons`).
 7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
-8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); offline sheets in `data/cheatsheets/` (and `RaidFood.cpp` for raid food).
+8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); offline sheets in `data/cheatsheets/` (and `src/browse/RaidFood.cpp` for raid food).
 
 Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 Architecture / design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
@@ -436,7 +436,7 @@ This project is licensed under the [MIT License](LICENSE).
 |-----------|---------|--------|
 | [Raidcore Nexus API](https://github.com/RaidcoreGG/RCGG-lib-nexus-api) (`deps/nexus`) | MIT | Headers only |
 | [Dear ImGui](https://github.com/RaidcoreGG/imgui) (`deps/imgui`) | MIT | Raidcore fork |
-| CEF headers (`deps/cef`) | BSD-style (Chromium Embedded Framework) | Headers only; runtime `libcef.dll` is shipped by Guild Wars 2 |
+| CEF headers (`deps/cef`) | BSD-style (Chromium Embedded Framework) | Headers only; runtime is private CEF 150 under `addons/…/cef/` |
 
-Guild Wars 2, its CEF runtime, and related trademarks belong to ArenaNet / NCSoft.
+Guild Wars 2 and related trademarks belong to ArenaNet / NCSoft.
 This project is not affiliated with them.
