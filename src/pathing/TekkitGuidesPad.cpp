@@ -19,8 +19,8 @@
 
 namespace
 {
-	constexpr float kPadW = 480.f;
-	constexpr float kPadH = 700.f;
+	constexpr float kPadW = 720.f;
+	constexpr float kPadH = 780.f;
 
 	bool gRequestDock = false; /* placeOnce — restore saved or dock beside helper */
 	int gPathTab = 0; /* 0 Overview · 1 Features · 2 Categories · 3 Route */
@@ -28,7 +28,8 @@ namespace
 	void SyncEnabledToSettings()
 	{
 		TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
-		Settings::SetDirty();
+		/* Immediate write — debounce left toggles unset across Nexus reload. */
+		Settings::SaveNow();
 	}
 
 	void DrawCredits()
@@ -190,12 +191,19 @@ bool TekkitGuidesPad::Render()
 	if (!G::ShowTekkitGuides)
 		return false;
 
-	const ImGuiIO& io = ImGui::GetIO();
-	const float maxH = std::max(360.f, io.DisplaySize.y - 40.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(400.f, 320.f), ImVec2(640.f, maxH));
+	const float maxH = PadDock::MaxH(400.f);
+	ImGui::SetNextWindowSizeConstraints(ImVec2(560.f, 360.f), ImVec2(PadDock::MaxW(900.f), maxH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	PadDock::Place(G::PadPathing, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
-	if (!gRequestDock && G::PadPathing.w < 80.f)
+	/* Migrate old narrow saved sizes that clipped Categories Open buttons. */
+	if (!gRequestDock && G::PadPathing.w > 80.f && G::PadPathing.w < 560.f)
+	{
+		G::PadPathing.w = kPadW;
+		ImGui::SetNextWindowSize(ImVec2(kPadW, std::max(G::PadPathing.h, kPadH * 0.85f)),
+			ImGuiCond_Always);
+		Settings::SetDirty();
+	}
+	else if (!gRequestDock && G::PadPathing.w < 80.f)
 		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 
 	bool open = G::ShowTekkitGuides;
@@ -224,8 +232,10 @@ bool TekkitGuidesPad::Render()
 	if (PadDock::Capture(G::PadPathing))
 		Settings::SetDirty();
 
+	HelperTheme::ScopedFontScale fontScale;
+
 	static const char* kTabs[] = { "Overview", "Features", "Categories", "Route" };
-	gPathTab = PadNav::DrawSideRail("###gw2igh_path_nav", kTabs, 4, gPathTab, 112.f);
+	gPathTab = PadNav::DrawSideRail("###gw2igh_path_nav", kTabs, 4, gPathTab);
 
 	ImGui::BeginChild("###gw2igh_path_body", ImVec2(0.f, 0.f), gPathTab != 0);
 	switch (gPathTab)

@@ -546,7 +546,12 @@ void MarkerBehaviors::Tick(
 			interactTarget = &m;
 		}
 
-		if ((m.tipName[0] || m.tipDescription[0] || m.info[0]) && d < bestTipDist)
+		if ((m.tipDescription[0] || m.info[0] ||
+			(m.tipName[0] && (std::strstr(m.label, ".bfs.") ||
+				std::strstr(m.label, ".mount.") ||
+				(m.iconId[0] && (std::strstr(m.iconId, "Mounts") ||
+					std::strstr(m.iconId, "mounts")))))) &&
+			d < bestTipDist)
 		{
 			bestTipDist = d;
 			nearUi.valid = true;

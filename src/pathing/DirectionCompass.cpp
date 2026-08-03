@@ -390,13 +390,11 @@ bool DirectionCompass::RenderPad()
 	if (!G::ShowCompassPad)
 		return false;
 
-	constexpr float kPadW = 320.f;
-	constexpr float kPadH = 220.f;
+	constexpr float kPadW = 360.f;
+	constexpr float kPadH = 260.f;
 
-	const float maxH = ImGui::GetIO().DisplaySize.y > 100.f
-		? ImGui::GetIO().DisplaySize.y - 24.f
-		: 900.f;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(280.f, 180.f), ImVec2(420.f, maxH));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(280.f, 180.f),
+		ImVec2(PadDock::MaxW(420.f), PadDock::MaxH(220.f)));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	PadDock::Place(G::PadCompass, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
 	if (!gRequestDock && G::PadCompass.w < 80.f)
@@ -420,6 +418,7 @@ bool DirectionCompass::RenderPad()
 		return hovered;
 	}
 
+	HelperTheme::ScopedFontScale fontScale(360.f, 260.f);
 	DrawControls();
 
 	if (PadDock::Capture(G::PadCompass))

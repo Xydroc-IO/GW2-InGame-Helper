@@ -169,13 +169,13 @@ namespace
 			return false;
 		float cx, cy, cz, cw;
 		viewProj.Transform(world.x, world.y, world.z, cx, cy, cz, cw);
-		if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(cw) || cw <= 0.08f)
+		if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(cw) || cw <= 0.35f)
 			return false;
 		const float ndcX = cx / cw;
 		const float ndcY = cy / cw;
 		if (!std::isfinite(ndcX) || !std::isfinite(ndcY))
 			return false;
-		if (ndcX < -2.5f || ndcX > 2.5f || ndcY < -2.5f || ndcY > 2.5f)
+		if (ndcX < -3.5f || ndcX > 3.5f || ndcY < -3.5f || ndcY > 3.5f)
 			return false;
 		sx = (ndcX + 1.f) * 0.5f * screenW;
 		sy = (-ndcY + 1.f) * 0.5f * screenH;
@@ -202,7 +202,9 @@ namespace
 	   underfoot camera angles don't blank whole ribbons. */
 	bool ClipSegmentToNearPlane(Vec3& a, Vec3& b, const Mat4& viewProj)
 	{
-		constexpr float kEps = 0.12f;
+		/* Higher than kNearClip — points barely past the plane project wildly
+		   and stretch gold lines when looking along the trail. */
+		constexpr float kEps = 0.45f;
 		const float aw = ClipW(a, viewProj);
 		const float bw = ClipW(b, viewProj);
 		if (!std::isfinite(aw) || !std::isfinite(bw))
@@ -259,7 +261,7 @@ namespace
 		TrailFadeRange(seg, maxDist, fadeStart, fadeEnd);
 		const float fadeEnd2 = fadeEnd * fadeEnd;
 
-		constexpr float kBlishHalfM = 20.f * 0.0254f;
+		constexpr float kBlishHalfM = 28.f * 0.0254f; /* ~Blish chevron ribbon width */
 		const float halfM = kBlishHalfM *
 			std::clamp(seg.trailScale, 0.5f, 2.0f) *
 			std::clamp(thickness, 0.5f, 2.5f);
@@ -272,10 +274,12 @@ namespace
 				texture = nullptr;
 		}
 
-		const Vec3 worldUp{0.f, 1.f, 0.f};
 		int drawn = 0;
-		constexpr float kMinSpacing2 = 1.0f * 1.0f;
-		constexpr float kMaxGap2 = 80.f * 80.f;
+		constexpr float kMinSpacing2 = 0.75f * 0.75f;
+		/* Continuity vs stretch — break only on big jumps; subdivide for draw. */
+		constexpr float kMaxGap2 = 40.f * 40.f;
+		constexpr float kDrawStepM = 6.0f;
+		const float maxLineScreen = std::min(280.f, std::min(screenW, screenH) * 0.35f);
 
 		auto distFade = [&](const Vec3& w, float& fadeOut) -> bool
 		{
@@ -289,6 +293,8 @@ namespace
 			fadeOut = 1.f;
 			if (dist > fadeStart)
 				fadeOut = 1.f - (dist - fadeStart) / std::max(1.f, fadeEnd - fadeStart);
+			if (dist < 2.5f)
+				fadeOut *= dist / 2.5f;
 			fadeOut = std::clamp(fadeOut, 0.f, 1.f);
 			return baseA * fadeOut >= 0.05f;
 		};
@@ -298,139 +304,132 @@ namespace
 			return WorldToScreen(w, viewProj, screenW, screenH, sx, sy);
 		};
 
+		auto screenLen = [](float x0, float y0, float x1, float y1) -> float
+		{
+			const float dx = x1 - x0;
+			const float dy = y1 - y0;
+			const float len = std::sqrt(dx * dx + dy * dy);
+			return std::isfinite(len) ? len : 1.0e30f;
+		};
+
+		auto drawSeg = [&](Vec3 raw0, Vec3 raw1, float& alongM) -> void
+		{
+			if (drawn >= segsLeft)
+				return;
+			Vec3 dir{raw1.x - raw0.x, raw1.y - raw0.y, raw1.z - raw0.z};
+			const float segLen = std::sqrt(dir.LengthSq());
+			if (!(segLen > 0.2f) || !std::isfinite(segLen) || segLen > 40.f)
+				return;
+
+			float fade0 = 1.f, fade1 = 1.f;
+			const bool in0 = distFade(raw0, fade0);
+			const bool in1 = distFade(raw1, fade1);
+			if (!in0 && !in1)
+			{
+				alongM += segLen;
+				return;
+			}
+
+			Vec3 p0 = raw0;
+			Vec3 p1 = raw1;
+			if (!ClipSegmentToNearPlane(p0, p1, viewProj))
+			{
+				alongM += segLen;
+				return;
+			}
+
+			float cx0 = 0.f, cy0 = 0.f, cx1 = 0.f, cy1 = 0.f;
+			if (!projectWorld(p0, cx0, cy0) || !projectWorld(p1, cx1, cy1))
+			{
+				alongM += segLen;
+				return;
+			}
+			const float centerLen = screenLen(cx0, cy0, cx1, cy1);
+			if (centerLen < 0.5f || centerLen > maxLineScreen)
+			{
+				alongM += segLen;
+				return;
+			}
+
+			const float avgA = baseA * (
+				(in0 ? fade0 : fade1) + (in1 ? fade1 : fade0)) * 0.5f;
+			const int aCh = static_cast<int>(std::clamp(avgA, 0.f, 1.f) * 255.f);
+			if (aCh < 8)
+			{
+				alongM += segLen;
+				return;
+			}
+
+			/* Screen-space ribbon — world-space side offsets blow up look-along
+			   and we used to fall back to a solid cyan/white line. Pixel width
+			   stays stable so pack chevron textures actually show. */
+			const float sdx = cx1 - cx0;
+			const float sdy = cy1 - cy0;
+			const float invLen = 1.f / std::max(0.001f, centerLen);
+			const float px = -sdy * invLen;
+			const float py = sdx * invLen;
+			const float halfPx = std::clamp(
+				halfM * 900.f / std::max(4.f,
+					0.5f * (std::sqrt(
+						(avatar.x - p0.x) * (avatar.x - p0.x) +
+						(avatar.y - p0.y) * (avatar.y - p0.y) +
+						(avatar.z - p0.z) * (avatar.z - p0.z)) +
+					std::sqrt(
+						(avatar.x - p1.x) * (avatar.x - p1.x) +
+						(avatar.y - p1.y) * (avatar.y - p1.y) +
+						(avatar.z - p1.z) * (avatar.z - p1.z)))),
+				5.f, 16.f);
+			const ImVec2 sL0{cx0 + px * halfPx, cy0 + py * halfPx};
+			const ImVec2 sR0{cx0 - px * halfPx, cy0 - py * halfPx};
+			const ImVec2 sL1{cx1 + px * halfPx, cy1 + py * halfPx};
+			const ImVec2 sR1{cx1 - px * halfPx, cy1 - py * halfPx};
+
+			if (texture)
+			{
+				constexpr float kUvPeriod = kBlishHalfM * 2.f;
+				const float v0 = -(alongM / kUvPeriod);
+				const float v1 = -((alongM + segLen) / kUvPeriod);
+				dl->AddImageQuad(
+					reinterpret_cast<ImTextureID>(texture->Resource),
+					sL0, sL1, sR1, sR0,
+					ImVec2(0.f, v0), ImVec2(0.f, v1),
+					ImVec2(1.f, v1), ImVec2(1.f, v0),
+					IM_COL32(255, 255, 255, aCh));
+			}
+			else
+			{
+				/* Missing pack texture — soft gold, not default cyan. */
+				dl->AddQuadFilled(sL0, sL1, sR1, sR0,
+					IM_COL32(rr, gg, bb, aCh));
+			}
+
+			alongM += segLen;
+			++drawn;
+		};
+
 		auto drawSection = [&](const std::vector<Vec3>& pts) -> void
 		{
 			if (pts.size() < 2 || drawn >= segsLeft)
 				return;
 			float alongM = 0.f;
-			Vec3 lastSide{};
-			float flipOver = 1.f;
 			for (size_t i = 0; i + 1 < pts.size(); ++i)
 			{
 				if (drawn >= segsLeft)
 					break;
-				const Vec3& raw0 = pts[i];
-				const Vec3& raw1 = pts[i + 1];
-				Vec3 dir{raw1.x - raw0.x, raw1.y - raw0.y, raw1.z - raw0.z};
-				const float segLen = std::sqrt(dir.LengthSq());
-				if (!(segLen > 0.25f) || !std::isfinite(segLen))
+				const Vec3& a = pts[i];
+				const Vec3& b = pts[i + 1];
+				Vec3 ab{b.x - a.x, b.y - a.y, b.z - a.z};
+				const float len = std::sqrt(ab.LengthSq());
+				if (!(len > 0.2f) || !std::isfinite(len) || len > 40.f)
 					continue;
-
-				float fade0 = 1.f, fade1 = 1.f;
-				const bool in0 = distFade(raw0, fade0);
-				const bool in1 = distFade(raw1, fade1);
-				if (!in0 && !in1)
+				/* Subdivide long edges so look-along never stretches one quad. */
+				const int steps = std::max(1, static_cast<int>(std::ceil(len / kDrawStepM)));
+				for (int s = 0; s < steps; ++s)
 				{
-					alongM += segLen;
-					continue;
+					const float t0 = static_cast<float>(s) / static_cast<float>(steps);
+					const float t1 = static_cast<float>(s + 1) / static_cast<float>(steps);
+					drawSeg(Lerp3(a, b, t0), Lerp3(a, b, t1), alongM);
 				}
-
-				Vec3 p0 = raw0;
-				Vec3 p1 = raw1;
-				if (!ClipSegmentToNearPlane(p0, p1, viewProj))
-				{
-					alongM += segLen;
-					continue;
-				}
-
-				float cx0 = 0.f, cy0 = 0.f, cx1 = 0.f, cy1 = 0.f;
-				if (!projectWorld(p0, cx0, cy0) || !projectWorld(p1, cx1, cy1))
-				{
-					alongM += segLen;
-					continue;
-				}
-
-				Vec3 side = dir.Cross(worldUp);
-				if (side.LengthSq() < 1e-8f)
-					side = dir.Cross(Vec3{1.f, 0.f, 0.f});
-				side = side.Normalised();
-				if (side.LengthSq() < 0.5f)
-					side = {};
-				if (side.LengthSq() > 0.5f)
-				{
-					if (lastSide.LengthSq() > 0.5f && side.Dot(lastSide) < 0.f)
-						flipOver = -flipOver;
-					lastSide = side;
-					side = Vec3{side.x * flipOver, side.y * flipOver, side.z * flipOver};
-				}
-
-				const float avgA = baseA * (
-					(in0 ? fade0 : fade1) + (in1 ? fade1 : fade0)) * 0.5f;
-				const int aCh = static_cast<int>(std::clamp(avgA, 0.f, 1.f) * 255.f);
-				if (aCh < 8)
-				{
-					alongM += segLen;
-					continue;
-				}
-
-				bool drewQuad = false;
-				if (side.LengthSq() > 0.5f)
-				{
-					Vec3 left0{p0.x + side.x * halfM, p0.y, p0.z + side.z * halfM};
-					Vec3 right0{p0.x - side.x * halfM, p0.y, p0.z - side.z * halfM};
-					Vec3 left1{p1.x + side.x * halfM, p1.y, p1.z + side.z * halfM};
-					Vec3 right1{p1.x - side.x * halfM, p1.y, p1.z - side.z * halfM};
-					/* Clip each ribbon edge independently — one behind-cam corner
-					   used to blank the entire segment. */
-					ClipSegmentToNearPlane(left0, left1, viewProj);
-					ClipSegmentToNearPlane(right0, right1, viewProj);
-
-					float lx0 = 0.f, ly0 = 0.f, rx0 = 0.f, ry0 = 0.f;
-					float lx1 = 0.f, ly1 = 0.f, rx1 = 0.f, ry1 = 0.f;
-					const bool okL0 = projectWorld(left0, lx0, ly0);
-					const bool okR0 = projectWorld(right0, rx0, ry0);
-					const bool okL1 = projectWorld(left1, lx1, ly1);
-					const bool okR1 = projectWorld(right1, rx1, ry1);
-					if (okL0 && okR0 && okL1 && okR1)
-					{
-						const float qdx = lx1 - lx0;
-						const float qdy = ly1 - ly0;
-						const float qlen = std::sqrt(qdx * qdx + qdy * qdy);
-						const float w0x = rx0 - lx0, w0y = ry0 - ly0;
-						const float w1x = rx1 - lx1, w1y = ry1 - ly1;
-						const float avgWidth = 0.5f * (
-							std::sqrt(w0x * w0x + w0y * w0y) +
-							std::sqrt(w1x * w1x + w1y * w1y));
-						/* Allow foreshortened look-along segments; only skip
-						   absurd perspective blow-ups (use line fallback). */
-						if (std::isfinite(qlen) && qlen >= 0.5f &&
-							qlen <= screenW * 1.25f &&
-							avgWidth > 1.25f)
-						{
-							const ImVec2 sL0{lx0, ly0}, sR0{rx0, ry0};
-							const ImVec2 sL1{lx1, ly1}, sR1{rx1, ry1};
-							if (texture)
-							{
-								constexpr float kUvPeriod = kBlishHalfM * 2.f;
-								const float v0 = -(alongM / kUvPeriod);
-								const float v1 = -((alongM + segLen) / kUvPeriod);
-								dl->AddImageQuad(
-									reinterpret_cast<ImTextureID>(texture->Resource),
-									sL0, sL1, sR1, sR0,
-									ImVec2(0.f, v0), ImVec2(0.f, v1),
-									ImVec2(1.f, v1), ImVec2(1.f, v0),
-									IM_COL32(255, 255, 255, aCh));
-							}
-							else
-							{
-								dl->AddQuadFilled(sL0, sL1, sR1, sR0,
-									IM_COL32(rr, gg, bb, aCh));
-							}
-							drewQuad = true;
-						}
-					}
-				}
-
-				/* Centerline always — keeps path visible when ribbons fail. */
-				if (!drewQuad)
-				{
-					const float lineW = std::clamp(halfM * 90.f, 2.5f, 10.f);
-					dl->AddLine(ImVec2{cx0, cy0}, ImVec2{cx1, cy1},
-						IM_COL32(rr, gg, bb, aCh), lineW);
-				}
-
-				alongM += segLen;
-				++drawn;
 			}
 		};
 
@@ -479,9 +478,11 @@ namespace
 	{
 		for (const TekkitTrails::Marker& marker : markers)
 		{
+			/* TacO heightOffset is inches (same for Numbers and Mounts icons). */
+			const float heightM = marker.heightOffset * kInchesToMeters;
 			const Vec3 world{
 				marker.world.x,
-				marker.world.y + marker.heightOffset,
+				marker.world.y + heightM,
 				marker.world.z,
 			};
 			const float dx = world.x - avatar.x;
@@ -552,6 +553,35 @@ namespace
 					ImVec2(sx, sy), std::max(2.f, size * 0.3f),
 					IM_COL32(rr, gg, bb, alpha), 10);
 			}
+
+			/* Distance label only for mount PNGs (same markers as Numbers otherwise). */
+			const bool mountIcon = marker.iconId[0] &&
+				(std::strstr(marker.iconId, "Mounts") || std::strstr(marker.iconId, "mounts"));
+			if (mountIcon && marker.tipName[0] && distance < 90.f && alpha > 40)
+			{
+				char line[96];
+				char upper[48]{};
+				size_t ui = 0;
+				for (const char* p = marker.tipName; *p && ui + 1 < sizeof(upper); ++p)
+				{
+					char ch = *p;
+					if (ch >= 'a' && ch <= 'z')
+						ch = static_cast<char>(ch - 'a' + 'A');
+					if (ch == '_' || ch == '-')
+						ch = ' ';
+					upper[ui++] = ch;
+				}
+				upper[ui] = 0;
+				if (distance >= 10.f)
+					std::snprintf(line, sizeof(line), "%s  %.0fm", upper, distance);
+				else
+					std::snprintf(line, sizeof(line), "%s  %.1fm", upper, distance);
+				const ImVec2 ts = ImGui::CalcTextSize(line);
+				const float lx = sx - ts.x * 0.5f;
+				const float ly = sy + size * 0.55f;
+				dl->AddText(ImVec2(lx + 1.f, ly + 1.f), IM_COL32(0, 0, 0, alpha), line);
+				dl->AddText(ImVec2(lx, ly), IM_COL32(220, 255, 255, alpha), line);
+			}
 		}
 	}
 
@@ -609,8 +639,20 @@ void WorldOverlay::Render()
 
 	Mat4 viewProj{};
 	Vec3 cam{};
+	static Mat4 sLastViewProj{};
+	static bool sHaveViewProj = false;
 	if (!BuildViewProj(screenW, screenH, viewProj, cam))
-		return;
+	{
+		/* Brief Mumble camera glitches used to blank the whole GPS for a frame. */
+		if (!sHaveViewProj)
+			return;
+		viewProj = sLastViewProj;
+	}
+	else
+	{
+		sLastViewProj = viewProj;
+		sHaveViewProj = true;
+	}
 	(void)cam;
 
 	ImDrawList* dl = ImGui::GetBackgroundDrawList();
@@ -618,7 +660,9 @@ void WorldOverlay::Render()
 		return;
 	TekkitTrails::BeginFrame();
 
-	const float maxDist = std::clamp(G::WorldTrailMaxDist, 40.f, 200.f);
+	const float maxDist = G::LadyWpOnly
+		? std::clamp(std::max(G::WorldTrailMaxDist, 200.f), 160.f, 320.f)
+		: std::clamp(G::WorldTrailMaxDist, 40.f, 200.f);
 	/* 1.0 ≈ Blish/TacO default trail width; slider is a multiplier. */
 	const float thickness = std::clamp(G::WorldTrailWidth, 0.5f, 4.0f);
 	int segsLeft = kMaxSegments;
@@ -648,7 +692,9 @@ void WorldOverlay::Render()
 	const float mdx = ax - sCacheAx;
 	const float mdy = ay - sCacheAy;
 	const float mdz = az - sCacheAz;
-	const bool movedFar = (mdx * mdx + mdy * mdy + mdz * mdz) > (4.f * 4.f);
+	/* WP Only refreshes sooner so the path stays ahead while moving. */
+	const float refreshM = G::LadyWpOnly ? 4.0f : 10.f;
+	const bool movedFar = (mdx * mdx + mdy * mdy + mdz * mdz) > (refreshM * refreshM);
 	const bool needRefresh = (sGpsContent != content) || sNearCache.empty() || movedFar;
 
 	if (G::ShowWorldTrails && needRefresh)
@@ -657,16 +703,34 @@ void WorldOverlay::Render()
 		std::vector<TekkitTrails::Marker> marks;
 		if (TekkitTrails::TryNearbyWorldGps(ax, ay, az, maxDist, snips, marks))
 		{
-			/* Keep last ribbon if a refresh returns empty (lock timing / brief gap). */
-			if (!snips.empty() || sGpsContent != content)
+			const bool got = !snips.empty() || !marks.empty();
+			if (got)
 			{
 				sNearCache = std::move(snips);
 				sMarkerCache = std::move(marks);
+				sCacheAx = ax;
+				sCacheAy = ay;
+				sCacheAz = az;
+				sGpsContent = content;
 			}
-			sCacheAx = ax;
-			sCacheAy = ay;
-			sCacheAz = az;
-			sGpsContent = content;
+			else if (!TekkitTrails::HasDrawableWorldGps())
+			{
+				/* Filters really off / nothing loaded — allow clear. */
+				sNearCache.clear();
+				sMarkerCache.clear();
+				sCacheAx = ax;
+				sCacheAy = ay;
+				sCacheAz = az;
+				sGpsContent = content;
+			}
+			else
+			{
+				/* Trails exist but this sample missed (gap / budget) — keep ribbon. */
+				sCacheAx = ax;
+				sCacheAy = ay;
+				sCacheAz = az;
+				sGpsContent = content;
+			}
 		}
 	}
 
@@ -692,7 +756,9 @@ void WorldOverlay::Render()
 
 	if (G::ShowWorldTrails && segsLeft > 0)
 	{
-		const float drawDist = std::max(maxDist * 1.35f, 90.f);
+		float drawDist = std::max(maxDist * 1.35f, 90.f);
+		if (G::LadyWpOnly)
+			drawDist = std::max(maxDist * 1.85f, 260.f);
 		for (const TekkitTrails::WorldSnippet& seg : sNearCache)
 		{
 			if (segsLeft <= 0)

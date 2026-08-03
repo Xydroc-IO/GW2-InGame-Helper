@@ -3,39 +3,50 @@
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PathingPacks.h"
+#include "Settings.h"
 #include "TekkitTrails.h"
 
 #include "imgui/imgui.h"
 
+#include <cctype>
 #include <string>
-#include <vector>
 
 namespace
 {
-	bool PathEnabled(const std::vector<std::string>& enabled, const char* path)
+	std::string LowerCopy(std::string s)
 	{
-		if (!path || !path[0] || enabled.empty())
-			return false;
-		std::string want = path;
-		for (char& c : want)
-			if (c >= 'A' && c <= 'Z')
-				c = static_cast<char>(c - 'A' + 'a');
-		for (const std::string& p : enabled)
+		for (char& ch : s)
+			ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+		return s;
+	}
+
+	bool LadyPackEnabled()
+	{
+		for (const std::string& p : TekkitTrails::EnabledPaths())
 		{
-			std::string el = p;
-			for (char& c : el)
-				if (c >= 'A' && c <= 'Z')
-					c = static_cast<char>(c - 'A' + 'a');
-			if (el == want)
-				return true;
-			if (el.size() > want.size() && el.compare(0, want.size(), want) == 0 &&
-				el[want.size()] == '.')
-				return true;
-			if (want.size() > el.size() && want.compare(0, el.size(), el) == 0 &&
-				want[el.size()] == '.')
+			const std::string l = LowerCopy(p);
+			if (l == "legs" || l == "leag" ||
+				(l.size() > 5 && (l.compare(0, 5, "legs.") == 0 || l.compare(0, 5, "leag.") == 0)))
 				return true;
 		}
 		return false;
+	}
+
+	void EnsureLadyCategories()
+	{
+		if (!LadyPackEnabled())
+			TekkitTrails::EnableAllLadyCategories();
+	}
+
+	/* One map-completion edition at a time — stacking drew WP on top of mounts. */
+	void SetLadyEdition(bool bare, bool mounts, bool wp)
+	{
+		G::LadyBarefoot = bare;
+		G::LadyWithMounts = mounts;
+		G::LadyWpOnly = wp;
+		if (bare || mounts || wp)
+			EnsureLadyCategories();
+		TekkitTrails::NotifyVisibilityFilterChanged();
 	}
 }
 
@@ -52,40 +63,6 @@ bool PathingFeatures::RenderContents()
 	}
 	TekkitTrails::Update(mapId ? mapId : 1u);
 
-	ImGui::TextColored(HelperTheme::Gold, "QUICK ENABLE");
-	ImGui::TextDisabled("Check a pack to turn its whole tree on. Drill down in Categories.");
-
-	const std::vector<std::string> enabled = TekkitTrails::EnabledPaths();
-	bool tekkitOn = PathEnabled(enabled, "tw_guides");
-	bool ladyOn = PathEnabled(enabled, "legs") || PathEnabled(enabled, "leag");
-	bool heroOn = PathEnabled(enabled, "HMP") || PathEnabled(enabled, "hmpSim");
-
-	/* Additive toggles — checking one pack does not clear the others. */
-	if (ImGui::Checkbox("Tekkit's All-In-One###gw2igh_feat_tekkit", &tekkitOn))
-	{
-		TekkitTrails::SetCategoryEnabled("tw_guides", tekkitOn);
-		dirty = true;
-	}
-	if (ImGui::Checkbox("Lady Elyssa (Guides + Achievements)###gw2igh_feat_lady", &ladyOn))
-	{
-		TekkitTrails::SetCategoryEnabled("legs", ladyOn);
-		TekkitTrails::SetCategoryEnabled("leag", ladyOn);
-		dirty = true;
-	}
-	if (ImGui::Checkbox("Hero's Marker Pack###gw2igh_feat_hero", &heroOn))
-	{
-		TekkitTrails::SetCategoryEnabled("HMP", heroOn);
-		TekkitTrails::SetCategoryEnabled("hmpSim", heroOn);
-		dirty = true;
-	}
-	if (ImGui::Button("All packs off###gw2igh_feat_alloff"))
-	{
-		TekkitTrails::DisableAllCategories();
-		dirty = true;
-	}
-
-	ImGui::Spacing();
-	ImGui::Separator();
 	ImGui::TextUnformatted("Map Completion (Tekkit)");
 	ImGui::TextDisabled("One route edition at a time.");
 	const auto activeMc = TekkitTrails::ActiveMapCompletionRoutes();
@@ -120,6 +97,66 @@ bool PathingFeatures::RenderContents()
 		dirty = true;
 	}
 	ImGui::TextDisabled("Skyscale routes: HoT + SotO only. Elsewhere use Foot/Griffon.");
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::TextUnformatted("Lady Elyssa");
+	ImGui::TextDisabled("One map-completion route edition at a time.");
+	if (ImGui::Button("Enable Lady packs###gw2igh_feat_lady_on"))
+	{
+		TekkitTrails::EnableAllLadyCategories();
+		dirty = true;
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Turns on Lady Elyssa Guides + Achievements under Categories.\n"
+			"Needed before Barefoot / WP Only / With Mounts show anything.");
+
+	bool ladyBare = G::LadyBarefoot;
+	bool ladyMounts = G::LadyWithMounts;
+	bool ladyWp = G::LadyWpOnly;
+	if (ImGui::Checkbox("Barefoot###gw2igh_feat_lady_bare", &ladyBare))
+	{
+		if (ladyBare)
+			SetLadyEdition(true, false, false);
+		else
+			SetLadyEdition(false, false, false);
+		dirty = true;
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Foot / no-mount map routes (footprint trails + number markers).\n"
+			"Barefoot Shortcuts (bfs mount icons) show here.\n"
+			"Hides With Mounts and WP Only.");
+	ImGui::SameLine();
+	if (ImGui::Checkbox("WP Only###gw2igh_feat_lady_wp", &ladyWp))
+	{
+		if (ladyWp)
+			SetLadyEdition(false, false, true);
+		else
+			SetLadyEdition(false, false, false);
+		dirty = true;
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Waypoint Only map routes only.\n"
+			"Does not stack on Barefoot / With Mounts trails.");
+	ImGui::SameLine();
+	if (ImGui::Checkbox("With Mounts###gw2igh_feat_lady_mounts", &ladyMounts))
+	{
+		if (ladyMounts)
+			SetLadyEdition(false, true, false);
+		else
+			SetLadyEdition(false, false, false);
+		dirty = true;
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Mount-optimized routes (all / main / withmounts).\n"
+			"Shows mount shortcut icons (beetle, springer, …).\n"
+			"Hides Barefoot and WP Only.");
+	ImGui::TextDisabled("Barefoot = foot trails. With Mounts = mount trails + icons.");
+	ImGui::TextDisabled("WP Only = waypoint trails alone. Categories must include Lady.");
 
 	if (TekkitTrails::IsLoading() || PathingPacks::IsUpdating())
 		ImGui::TextDisabled("Indexing packs…");

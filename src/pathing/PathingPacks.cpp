@@ -16,6 +16,7 @@ namespace
 {
 	std::atomic<bool> gForceUpdate{false};
 	std::atomic<bool> gUpdating{false};
+	std::atomic<bool> gCancel{false};
 	std::mutex gStatusMu;
 	char gStatus[160]{};
 
@@ -343,6 +344,11 @@ namespace
 					ok = true;
 					while (WinHttpReadData(req, buf.data(), static_cast<DWORD>(buf.size()), &got) && got > 0)
 					{
+						if (gCancel.load(std::memory_order_acquire))
+						{
+							ok = false;
+							break;
+						}
 						DWORD written = 0;
 						if (!WriteFile(file, buf.data(), got, &written, nullptr) || written != got)
 						{
@@ -526,6 +532,11 @@ void PathingPacks::RequestForceUpdate()
 	gForceUpdate.store(true, std::memory_order_release);
 }
 
+void PathingPacks::RequestCancel()
+{
+	gCancel.store(true, std::memory_order_release);
+}
+
 bool PathingPacks::IsUpdating()
 {
 	return gUpdating.load(std::memory_order_acquire);
@@ -543,6 +554,7 @@ bool PathingPacks::EnsureCurated(const wchar_t* pathingDirWide)
 {
 	if (!pathingDirWide || !pathingDirWide[0])
 		return false;
+	gCancel.store(false, std::memory_order_release);
 	gUpdating.store(true, std::memory_order_release);
 	const bool force = gForceUpdate.exchange(false, std::memory_order_acq_rel);
 	SetStatus(force ? "Pathing: checking curated packs (force)…" : "Pathing: checking curated packs…");
@@ -552,10 +564,15 @@ bool PathingPacks::EnsureCurated(const wchar_t* pathingDirWide)
 	bool anyOk = false;
 	for (const CuratedPack& pack : kPacks)
 	{
+		if (gCancel.load(std::memory_order_acquire))
+		{
+			SetStatus("Pathing: update cancelled");
+			break;
+		}
 		if (EnsureOne(dir, pack, force))
 			anyOk = true;
 	}
-	if (anyOk)
+	if (anyOk && !gCancel.load(std::memory_order_acquire))
 		SetStatus("Pathing: curated packs ready (user .taco files kept)");
 	gUpdating.store(false, std::memory_order_release);
 	return anyOk;

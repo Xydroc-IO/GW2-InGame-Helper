@@ -175,9 +175,10 @@ MarkerStyle ParseStyle(const std::string& tag)
 			value = Attr(tag, (std::string("bh-") + key).c_str());
 		return value;
 	};
-	std::string value = compatible("iconFile");
+	std::string 	value = compatible("iconFile");
 	if (!value.empty())
 	{
+		DecodeXmlEntities(value);
 		std::replace(value.begin(), value.end(), '\\', '/');
 		out.iconFile = std::move(value);
 		out.hasIconFile = true;
@@ -185,6 +186,7 @@ MarkerStyle ParseStyle(const std::string& tag)
 	value = compatible("texture");
 	if (!value.empty())
 	{
+		DecodeXmlEntities(value);
 		std::replace(value.begin(), value.end(), '\\', '/');
 		out.texture = std::move(value);
 		out.hasTexture = true;
@@ -721,9 +723,13 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 			!(x == 0.f && y == 0.f && z == 0.f);
 	};
 
+	/* Collect every section first — Lady HP trails are multi-section and used to
+	   drop everything after a flat 512-point budget (paths stopped mid-map). */
+	std::vector<std::vector<TekkitTrails::WorldPoint>> sections;
+	sections.reserve(64);
 	std::vector<TekkitTrails::WorldPoint> section;
 	section.reserve(64);
-	world.reserve(std::min(count, kMaxPointsPerTrail));
+	size_t totalPts = 0;
 
 	auto flushSection = [&]()
 	{
@@ -732,32 +738,10 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 			section.clear();
 			return;
 		}
-		/* Decimate inside the section only — never subsample across breaks. */
-		const size_t budgetLeft = kMaxPointsPerTrail > world.size()
-			? (kMaxPointsPerTrail - world.size()) : 0;
-		if (budgetLeft < 2)
-		{
-			section.clear();
-			return;
-		}
-		if (!world.empty())
-		{
-			/* NaN sentinel = section break for draw code. */
-			world.push_back({NAN, NAN, NAN});
-		}
-		if (section.size() <= budgetLeft)
-		{
-			world.insert(world.end(), section.begin(), section.end());
-		}
-		else
-		{
-			for (size_t k = 0; k < budgetLeft; ++k)
-			{
-				const size_t i = (k * (section.size() - 1)) / (budgetLeft - 1);
-				world.push_back(section[i]);
-			}
-		}
+		totalPts += section.size();
+		sections.push_back(std::move(section));
 		section.clear();
+		section.reserve(64);
 	};
 
 	for (size_t i = 0; i < count; ++i)
@@ -776,6 +760,59 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 		section.push_back({x, y, z});
 	}
 	flushSection();
+	if (sections.empty())
+		return false;
+
+	auto appendDecimated = [&](const std::vector<TekkitTrails::WorldPoint>& src, size_t budget)
+	{
+		if (src.size() < 2 || budget < 2)
+			return;
+		if (!world.empty())
+			world.push_back({NAN, NAN, NAN});
+		if (src.size() <= budget)
+		{
+			world.insert(world.end(), src.begin(), src.end());
+			return;
+		}
+		for (size_t k = 0; k < budget; ++k)
+		{
+			const size_t i = (k * (src.size() - 1)) / (budget - 1);
+			world.push_back(src[i]);
+		}
+	};
+
+	/* Leave room for NaN section breaks in the point budget. */
+	const size_t breakBudget = sections.size() > 0 ? sections.size() - 1 : 0;
+	size_t pointBudget = kMaxPointsPerTrail > breakBudget
+		? (kMaxPointsPerTrail - breakBudget) : 2;
+	world.reserve(std::min(totalPts + breakBudget, kMaxPointsPerTrail));
+
+	if (totalPts <= pointBudget)
+	{
+		for (const auto& sec : sections)
+			appendDecimated(sec, sec.size());
+	}
+	else
+	{
+		/* Spread budget across sections so later HP segments are not dropped. */
+		size_t assigned = 0;
+		for (size_t s = 0; s < sections.size(); ++s)
+		{
+			const size_t leftSecs = sections.size() - s;
+			const size_t leftBudget = pointBudget > assigned ? (pointBudget - assigned) : 0;
+			size_t share = std::max<size_t>(2, (sections[s].size() * pointBudget) / totalPts);
+			if (share > leftBudget)
+				share = leftBudget;
+			/* Keep enough for remaining sections (2 pts each). */
+			const size_t needRest = (leftSecs - 1) * 2;
+			if (leftBudget > needRest && share > leftBudget - needRest)
+				share = leftBudget - needRest;
+			if (share < 2)
+				share = leftBudget >= 2 ? 2 : leftBudget;
+			appendDecimated(sections[s], share);
+			assigned += share;
+		}
+	}
 	return world.size() >= 2;
 }
 
@@ -839,6 +876,23 @@ void ParseMarkerMenuXml(
 
 		std::string path = stack.empty() ? name : (stack.back().path + "." + name);
 		MarkerStyle style = ParseStyle(tag);
+		/* Only promote DisplayName → tip for mount/shortcut leaves — copying it
+		   for every category (Three/Four/…) flooded world labels + tip UI. */
+		if (!style.hasTipName && !display.empty() && !sep)
+		{
+			const std::string pathLow = ToLower(path);
+			const bool mountLeaf =
+				pathLow.find(".bfs.") != std::string::npos ||
+				pathLow.find("images/mounts/") != std::string::npos ||
+				pathLow.find(".mount.") != std::string::npos ||
+				pathLow.find(".mounts.") != std::string::npos ||
+				(style.hasIconFile && ToLower(style.iconFile).find("images/mounts/") != std::string::npos);
+			if (mountLeaf)
+			{
+				style.tipName = display;
+				style.hasTipName = true;
+			}
+		}
 		const std::string stylePath = ToLower(path);
 		auto styleIt = styles.find(stylePath);
 		if (styleIt == styles.end())

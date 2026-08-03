@@ -40,7 +40,7 @@ namespace
 namespace TekkitDetail
 {
 
-	constexpr size_t kMaxTrailsPerMap = 180;
+	constexpr size_t kMaxTrailsPerMap = 480;
 	/* World XYZ mirrors ParseTrl (full-length sample, not start-only). */
 	constexpr size_t kMaxMarkersPerMap = 800;
 	constexpr size_t kMaxMinimapMarkers = 250;
@@ -75,6 +75,8 @@ namespace TekkitDetail
 	uint32_t gActiveMap = 0;
 	std::vector<TekkitTrails::Trail> gCurrentAll; /* all trails for map */
 	std::vector<TekkitTrails::Marker> gCurrentMarkers;
+	/* Maps that have Lady barefoot edition trails (for Mounts-off fallback). */
+	std::unordered_set<uint32_t> gMapsWithLadyBarefoot;
 	/* Opt-in: empty = nothing draws. Enabling a path shows that category and
 	   all descendants (TacO-style prefix). */ 
 	std::vector<std::string> gEnabledPaths;
@@ -82,6 +84,7 @@ namespace TekkitDetail
 	std::mutex gIconMutex;
 	std::vector<PendingIcon> gPendingIcons;
 	std::unordered_map<std::string, bool> gIconQueued; /* iconFile → queued */
+	std::unordered_map<std::string, std::vector<uint8_t>> gIconRetain;
 	bool gGuideActive = false;
 	float gGuideDestX = 0.f;
 	float gGuideDestY = 0.f;
@@ -286,6 +289,35 @@ namespace TekkitDetail
 		return id;
 	}
 
+	bool TypeHasLadyMountShortcut(const std::string& typeLow);
+	bool IsLadyShortcutTypeLabel(const char* label);
+
+	bool IsMountShortcutMarker(const TekkitTrails::Marker& marker)
+	{
+		/* Type path first — iconId is empty until pack extract + Nexus upload. */
+		if (IsLadyShortcutTypeLabel(marker.label))
+			return true;
+		if (!marker.iconId[0])
+			return false;
+		/* IconTextureId keeps alnum from path → …Images_Mounts_Mount_Raptor… */
+		return std::strstr(marker.iconId, "Mounts") != nullptr ||
+			std::strstr(marker.iconId, "mounts") != nullptr;
+	}
+
+	bool MarkerShownInWorld(const TekkitTrails::Marker& marker)
+	{
+		if (IsMountShortcutMarker(marker))
+			return true;
+		return marker.inGameVisible;
+	}
+
+	bool MarkerShownOnCompass(const TekkitTrails::Marker& marker)
+	{
+		if (IsMountShortcutMarker(marker))
+			return true;
+		return marker.minimapVisible;
+	}
+
 
 
 
@@ -301,7 +333,81 @@ namespace TekkitDetail
 
 
 
-	bool TypeEnabledWithEnabled(const std::string& type, const std::vector<std::string>& enabled)
+	/* Lady map-completion editions live at legs.map.<region>.<map>.<edition>…
+	   Editions: barefoot | all/main/withmounts | wp. Do not treat "main"/"wp"
+	   outside legs.map (festivals/chests) as a route edition. */
+	bool LadyMapRouteEdition(const std::string& typeLow, std::string& outEdition)
+	{
+		if (typeLow.size() < 10)
+			return false;
+		if (typeLow.compare(0, 9, "legs.map.") != 0 &&
+			typeLow.compare(0, 9, "leag.map.") != 0)
+			return false;
+		size_t start = 9; /* after legs.map. / leag.map. */
+		for (int i = 0; i < 2; ++i)
+		{
+			const size_t dot = typeLow.find('.', start);
+			if (dot == std::string::npos)
+				return false;
+			start = dot + 1;
+		}
+		const size_t dot = typeLow.find('.', start);
+		outEdition = (dot == std::string::npos)
+			? typeLow.substr(start)
+			: typeLow.substr(start, dot - start);
+		return !outEdition.empty();
+	}
+
+	bool IsLadyWithMountsEdition(const std::string& seg)
+	{
+		return seg == "all" || seg == "main" || seg == "withmounts";
+	}
+
+	bool IsLadyRouteEditionSeg(const std::string& seg)
+	{
+		return seg == "barefoot" || IsLadyWithMountsEdition(seg) || seg == "wp";
+	}
+
+	/* Mount shortcut category leaves (icons under Data/Images/Mounts/). */
+	bool IsLadyMountShortcutSeg(const std::string& seg)
+	{
+		return seg == "mount" || seg == "mounted" || seg == "mounts" ||
+			seg == "beetle" || seg == "griffon" || seg == "jackal" ||
+			seg == "raptor" || seg == "skimmer" || seg == "skyscale" ||
+			seg == "skyscal" || seg == "springer" || seg == "warclaw" ||
+			seg == "turtle" || seg == "dismount" || seg == "leap" ||
+			seg == "hover" || seg == "bof";
+	}
+
+	bool TypeHasLadyMountShortcut(const std::string& typeLow)
+	{
+		size_t start = 0;
+		while (start <= typeLow.size())
+		{
+			const size_t dot = typeLow.find('.', start);
+			const std::string seg = (dot == std::string::npos)
+				? typeLow.substr(start)
+				: typeLow.substr(start, dot - start);
+			if (IsLadyMountShortcutSeg(seg))
+				return true;
+			if (dot == std::string::npos)
+				break;
+			start = dot + 1;
+		}
+		return false;
+	}
+
+	bool IsLadyShortcutTypeLabel(const char* label)
+	{
+		if (!label || !label[0])
+			return false;
+		const std::string typeLow = ToLower(label);
+		if (typeLow.find(".bfs.") != std::string::npos)
+			return true;
+		return TypeHasLadyMountShortcut(typeLow);
+	}
+
+	bool TypeCategoryEnabled(const std::string& type, const std::vector<std::string>& enabled)
 	{
 		if (type.empty() || enabled.empty())
 			return false;
@@ -312,6 +418,77 @@ namespace TekkitDetail
 				return true;
 		}
 		return false;
+	}
+
+	bool TypeEnabledWithEnabled(const std::string& type, const std::vector<std::string>& enabled)
+	{
+		if (type.empty() || enabled.empty())
+			return false;
+		const std::string typeLow = ToLower(type);
+
+		/* Lady Elyssa map-completion Features: Barefoot | With Mounts | WP Only
+		   are mutually exclusive route editions (same idea as Tekkit Foot/Griffon). */
+		const bool ladyPack =
+			typeLow == "legs" || typeLow == "leag" ||
+			(typeLow.size() > 5 && typeLow.compare(0, 5, "legs.") == 0) ||
+			(typeLow.size() > 5 && typeLow.compare(0, 5, "leag.") == 0);
+		if (ladyPack)
+		{
+			const bool bareOn = G::LadyBarefoot;
+			const bool wpOn = G::LadyWpOnly;
+			const bool mountsOn = G::LadyWithMounts;
+			const bool anyEdition = bareOn || wpOn || mountsOn;
+			const bool barefootShortcut = typeLow.find(".bfs.") != std::string::npos;
+			std::string mapEd;
+			if (LadyMapRouteEdition(typeLow, mapEd))
+			{
+				/* No Features edition selected → hide all legs.map route content. */
+				if (!anyEdition)
+					return false;
+
+				/* Barefoot Shortcuts live at legs.map.*.bfs.<mount> — Barefoot only. */
+				if (barefootShortcut ||
+					(IsLadyMountShortcutSeg(mapEd) && !IsLadyRouteEditionSeg(mapEd)))
+				{
+					if (!bareOn)
+						return false;
+				}
+				else if (mapEd == "wp")
+				{
+					if (!wpOn)
+						return false;
+				}
+				else if (mapEd == "barefoot")
+				{
+					if (!bareOn)
+						return false;
+				}
+				else if (IsLadyWithMountsEdition(mapEd))
+				{
+					if (!mountsOn)
+					{
+						/* Maps with no barefoot edition: Barefoot still needs a route. */
+						if (!(bareOn && gMapsWithLadyBarefoot.count(gActiveMap) == 0))
+							return false;
+					}
+				}
+				else if (IsLadyRouteEditionSeg(mapEd))
+					return false;
+			}
+			else if (TypeHasLadyMountShortcut(typeLow))
+			{
+				/* Non-map mount POIs (adventures/chests/…) follow With Mounts. */
+				if (barefootShortcut)
+				{
+					if (!bareOn)
+						return false;
+				}
+				else if (!mountsOn)
+					return false;
+			}
+		}
+
+		return TypeCategoryEnabled(type, enabled);
 	}
 
 	bool TypeEnabledLocked(const std::string& type)
@@ -327,8 +504,8 @@ namespace TekkitDetail
 		for (const std::string& p : gEnabledPaths)
 		{
 			const std::string el = ToLower(p);
-			/* Exact match, or an enabled ancestor covers this node. */
-			if (PrefixMatchesType(low, el))
+			/* Ancestor covers this node, or this node covers an enabled child. */
+			if (PrefixMatchesType(low, el) || PrefixMatchesType(el, low) || low == el)
 				return true;
 		}
 		return false;
@@ -473,8 +650,7 @@ namespace TekkitDetail
 
 		bool Open(const std::wstring& path)
 		{
-			if (ok)
-				return true;
+			Close();
 			if (!ReadFileW(path, file, kMaxZipBytes))
 				return false;
 			std::memset(&zip, 0, sizeof(zip));
@@ -518,6 +694,7 @@ namespace TekkitDetail
 			gLoadedEnabledGen = enabledGen;
 			gCurrentAll.clear();
 			gCurrentMarkers.clear();
+			gMapsWithLadyBarefoot.erase(mapId);
 			gGuide = {};
 			gContentRevision.fetch_add(1, std::memory_order_release);
 			return;
@@ -558,26 +735,49 @@ namespace TekkitDetail
 		};
 		std::vector<Cand> cands;
 		cands.reserve(256);
+		bool mapHasBarefoot = false;
 		for (const IndexedTrail& it : indexCopy)
 		{
 			if (it.mapId != mapId)
 				continue; /* header-resolved; unknown (0) trails are skipped */
 			int rank;
-			if (TypeEnabledWithEnabled(it.type, enabledCopy))
+			/* Category enable only — Lady Barefoot/WP/Mounts filter at draw time. */
+			if (TypeCategoryEnabled(it.type, enabledCopy))
 				rank = 0;
 			else if (it.mapCompletion)
 				rank = 1;
 			else
 				rank = 2;
+			std::string ed;
+			if (rank == 0 && LadyMapRouteEdition(ToLower(it.type), ed) && ed == "barefoot")
+				mapHasBarefoot = true;
 			cands.push_back({&it, rank});
 		}
 
-		/* Stable sort by pack (fewer reopens) then rank. */
+		/* Prefer Lady barefoot / wp / mounts editions so a trail cap cannot drop
+		   the routes Features toggles need. Then pack path, then rank. */
+		auto ladyEdPrio = [](const std::string& type) -> int
+		{
+			std::string ed;
+			if (!LadyMapRouteEdition(ToLower(type), ed))
+				return 50;
+			if (ed == "barefoot")
+				return 0;
+			if (ed == "wp")
+				return 1;
+			if (IsLadyWithMountsEdition(ed))
+				return 2;
+			return 40;
+		};
 		std::stable_sort(cands.begin(), cands.end(),
-			[](const Cand& a, const Cand& b) {
-				if (a.it->packPath != b.it->packPath)
-					return a.it->packPath < b.it->packPath;
-				return a.rank < b.rank;
+			[&](const Cand& a, const Cand& b) {
+				if (a.rank != b.rank)
+					return a.rank < b.rank;
+				const int pa = (a.rank == 0) ? ladyEdPrio(a.it->type) : 50;
+				const int pb = (b.rank == 0) ? ladyEdPrio(b.it->type) : 50;
+				if (pa != pb)
+					return pa < pb;
+				return a.it->packPath < b.it->packPath;
 			});
 
 		std::vector<TekkitTrails::Trail> loaded;
@@ -630,6 +830,20 @@ namespace TekkitDetail
 			trail.color = style.hasColor ? style.color : it.color;
 			trail.minimapVisible = style.minimapVisible;
 			trail.inGameVisible = style.inGameVisible;
+			/* Blish: mapVisibility is the fullscreen map, not in-world GPS. */
+			{
+				const std::string typeLow = ToLower(it.type);
+				if (typeLow.compare(0, 9, "legs.map.") == 0 ||
+					typeLow.compare(0, 9, "leag.map.") == 0)
+				{
+					/* Lady map routes: always drawable on our compass + world GPS. */
+					if (!style.hasInGameVisible)
+						trail.inGameVisible = true;
+					trail.minimapVisible = true;
+				}
+				else if (style.hasMapVisible && !style.hasInGameVisible)
+					trail.inGameVisible = style.mapVisible;
+			}
 			trail.alpha = std::clamp(style.alpha, 0.f, 1.f);
 			trail.trailScale = std::clamp(style.trailScale, 0.1f, 8.f);
 			trail.fadeNear = style.fadeNear;
@@ -671,15 +885,37 @@ namespace TekkitDetail
 			loaded.push_back(std::move(trail));
 		}
 
-		/* POI markers for this map — same TacO prefix enable rules as trails. */
-		std::vector<TekkitTrails::Marker> markers;
-		markers.reserve(std::min(poiCopy.size(), kMaxMarkersPerMap));
+		/* POI markers for this map — same TacO prefix enable rules as trails.
+		   Prefer Barefoot Shortcuts / Mounts icons so the per-map cap cannot
+		   drop them behind heart/festival POI spam. */
+		std::vector<const IndexedPoi*> poiCands;
+		poiCands.reserve(512);
 		for (const IndexedPoi& poi : poiCopy)
 		{
 			if (poi.mapId != mapId)
 				continue;
-			if (!TypeEnabledWithEnabled(poi.type, enabledCopy))
+			if (!TypeCategoryEnabled(poi.type, enabledCopy))
 				continue;
+			poiCands.push_back(&poi);
+		}
+		std::stable_sort(poiCands.begin(), poiCands.end(),
+			[](const IndexedPoi* a, const IndexedPoi* b) {
+				auto prio = [](const IndexedPoi& p) -> int {
+					const std::string low = ToLower(p.type);
+					if (low.find(".bfs.") != std::string::npos)
+						return 0;
+					if (TypeHasLadyMountShortcut(low))
+						return 1;
+					return 2;
+				};
+				return prio(*a) < prio(*b);
+			});
+
+		std::vector<TekkitTrails::Marker> markers;
+		markers.reserve(std::min(poiCands.size(), kMaxMarkersPerMap));
+		for (const IndexedPoi* poiPtr : poiCands)
+		{
+			const IndexedPoi& poi = *poiPtr;
 			const MarkerStyle style = ResolveStyle(poi.type, poi.style, styleCopy);
 			TekkitTrails::Point cc{};
 			WorldToContinent(rects, poi.wx, poi.wz, cc.x, cc.y);
@@ -692,6 +928,18 @@ namespace TekkitDetail
 			m.world = {poi.wx, poi.wy, poi.wz};
 			m.minimapVisible = style.minimapVisible;
 			m.inGameVisible = style.inGameVisible;
+			/* Blish separates mapVisibility (fullscreen map) from inGameVisibility.
+			   Do NOT copy mapVisibility=0 onto in-world — Lady Mounts categories set
+			   mapVisibility/miniMapVisibility to 0 but still draw in the world. */
+			{
+				const std::string typeLow = ToLower(poi.type);
+				if (typeLow.compare(0, 9, "legs.map.") == 0 ||
+					typeLow.compare(0, 9, "leag.map.") == 0)
+				{
+					if (m.inGameVisible)
+						m.minimapVisible = true;
+				}
+			}
 			m.mapDisplaySize = std::max(1.f, style.mapDisplaySize);
 			m.minSize = std::max(1.f, style.minSize);
 			m.maxSize = std::max(m.minSize, style.maxSize);
@@ -730,20 +978,133 @@ namespace TekkitDetail
 				const std::string tid = IconTextureId(icon);
 				std::snprintf(m.iconId, sizeof(m.iconId), "%s", tid.c_str());
 				assetsNeeded.emplace(icon, poi.packPath);
+				const std::string iconLow = ToLower(icon);
+				/* Same rules for Numbers and Mounts PNGs — Lady often sets
+				   mapVisibility=0; that is the fullscreen map, not in-world/compass. */
+				if (iconLow.find("images/mounts/") != std::string::npos ||
+					iconLow.find("images/numbers/") != std::string::npos)
+				{
+					m.minimapVisible = true;
+					m.inGameVisible = true;
+					m.mapDisplaySize = std::max(m.mapDisplaySize, 24.f);
+					m.minSize = std::max(m.minSize, 16.f);
+					m.maxSize = std::max(m.maxSize, 48.f);
+					m.iconSize = std::max(m.iconSize, 1.f);
+					if (!m.tipName[0] &&
+						iconLow.find("images/mounts/") != std::string::npos)
+					{
+						std::string leaf = icon;
+						const size_t slash = leaf.find_last_of("/\\");
+						if (slash != std::string::npos)
+							leaf = leaf.substr(slash + 1);
+						const size_t dot = leaf.find_last_of('.');
+						if (dot != std::string::npos)
+							leaf = leaf.substr(0, dot);
+						if (leaf.rfind("Mount_", 0) == 0)
+							leaf = leaf.substr(6);
+						for (char& ch : leaf)
+						{
+							if (ch == '_' || ch == '-')
+								ch = ' ';
+						}
+						std::snprintf(m.tipName, sizeof(m.tipName), "%s", leaf.c_str());
+					}
+				}
 			}
 			markers.push_back(std::move(m));
 			if (markers.size() >= kMaxMarkersPerMap)
 				break;
 		}
 
-		/* Extract a bounded set of icons while opening each huge pack only once.
-		   v62 reopened Tekkit's ~100MB zip per icon, causing long stalls/OOM. */
+		/* Free trail zip before icon pass — Wine cannot hold two 45MB packs. */
+		pack.Close();
+		openPath.clear();
+
+		/* Extract icons — trail chevrons first (missing → solid line), then Mounts,
+		   then Numbers. Never rescan the whole 45MB zip (Wine OOM). */
 		if (!assetsNeeded.empty())
 		{
+			static const char* kLadyMountIcons[] = {
+				"Data/Images/Mounts/Mount_Raptor.png",
+				"Data/Images/Mounts/Mount_Springer.png",
+				"Data/Images/Mounts/Mount_Skimmer.png",
+				"Data/Images/Mounts/Mount_Jackal.png",
+				"Data/Images/Mounts/Mount_Griffon.png",
+				"Data/Images/Mounts/Mount_Beetle.png",
+				"Data/Images/Mounts/Mount_Warclaw.png",
+				"Data/Images/Mounts/Mount_Skyscale.png",
+				"Data/Images/Mounts/Dismount.png",
+				"Data/Images/Mounts/Leap.png",
+				"Data/Images/Mounts/Hover.png",
+				nullptr
+			};
+			/* Lady map-completion inherits these — guarantee they upload. */
+			static const char* kLadyTrailIcons[] = {
+				"Data/Images/Trails/White Arrow Black Border.png",
+				"Data/Images/Trails/Footprints.png",
+				"Data/Images/Trails/Trail Pointer - Small.png",
+				"Data/Images/Trails/Dashed Lines - Fine with Shadow.png",
+				"Data/Images/Trail - Stubby.png",
+				"Data/Images/trailarrow.png",
+				"Data/Images/trailarrow-small.png",
+				"Data/Images/trailarrow-two-tone.png",
+				"Data/Images/Line - Heart.png",
+				nullptr
+			};
+			std::wstring mountPack;
+			for (const Cand& c : cands)
+			{
+				if (c.rank == 0 && c.it && !c.it->packPath.empty())
+				{
+					mountPack = c.it->packPath;
+					break;
+				}
+			}
+			for (const IndexedPoi* poiPtr : poiCands)
+			{
+				if (poiPtr && !poiPtr->packPath.empty())
+				{
+					if (mountPack.empty())
+						mountPack = poiPtr->packPath;
+					break;
+				}
+			}
+			if (mountPack.empty() && !assetsNeeded.empty())
+				mountPack = assetsNeeded.begin()->second;
+			if (!mountPack.empty())
+			{
+				for (int i = 0; kLadyTrailIcons[i]; ++i)
+					assetsNeeded.emplace(kLadyTrailIcons[i], mountPack);
+				for (int i = 0; kLadyMountIcons[i]; ++i)
+					assetsNeeded.emplace(kLadyMountIcons[i], mountPack);
+			}
+
 			std::vector<std::pair<std::string, std::wstring>> iconList(
 				assetsNeeded.begin(), assetsNeeded.end());
 			std::sort(iconList.begin(), iconList.end(),
-				[](const auto& a, const auto& b) { return a.second < b.second; });
+				[](const auto& a, const auto& b) {
+					auto prio = [](const std::string& path) {
+						const std::string low = ToLower(path);
+						/* Paths first — cyan/white line means these never uploaded. */
+						if (low.find("images/trails/") != std::string::npos ||
+							low.find("/trails/") != std::string::npos ||
+							low.find("trailarrow") != std::string::npos ||
+							low.find("trail -") != std::string::npos ||
+							low.find("trail_") != std::string::npos ||
+							low.find("footprints") != std::string::npos)
+							return 0;
+						if (low.find("images/mounts/") != std::string::npos)
+							return 1;
+						if (low.find("images/numbers/") != std::string::npos)
+							return 2;
+						return 3;
+					};
+					const int pa = prio(a.first);
+					const int pb = prio(b.first);
+					if (pa != pb)
+						return pa < pb;
+					return a.second < b.second;
+				});
 			OpenPack iconPack;
 			std::wstring iconPackPath;
 			size_t queued = 0;
@@ -764,6 +1125,7 @@ namespace TekkitDetail
 						continue;
 				}
 				std::string entry = kv.first;
+				DecodeXmlEntities(entry);
 				std::replace(entry.begin(), entry.end(), '\\', '/');
 				while (entry.rfind("./", 0) == 0)
 					entry.erase(0, 2);
@@ -774,6 +1136,12 @@ namespace TekkitDetail
 					idx = ZipLocate(iconPack.zip, entry.substr(5));
 				if (idx < 0)
 					idx = ZipLocate(iconPack.zip, std::string("Data/") + entry);
+				if (idx < 0 && entry.rfind("POIs/", 0) == 0)
+					idx = ZipLocate(iconPack.zip, entry.substr(5));
+				if (idx < 0)
+					idx = ZipLocate(iconPack.zip, std::string("POIs/") + entry);
+				if (idx < 0 && entry.rfind("Data/", 0) == 0)
+					idx = ZipLocate(iconPack.zip, std::string("POIs/") + entry);
 				std::vector<uint8_t> bytes;
 				if (idx < 0 || !ZipExtractIndex(iconPack.zip, idx, bytes, 2u * 1024u * 1024u))
 					continue;
@@ -800,6 +1168,10 @@ namespace TekkitDetail
 		gLoadedEnabledGen = gEnabledGen.load(std::memory_order_acquire);
 		gCurrentAll = std::move(loaded);
 		gCurrentMarkers = std::move(markers);
+		if (mapHasBarefoot)
+			gMapsWithLadyBarefoot.insert(mapId);
+		else
+			gMapsWithLadyBarefoot.erase(mapId);
 		gContentRevision.fetch_add(1, std::memory_order_release);
 		RebuildSearchGuideLocked();
 	}
@@ -899,6 +1271,7 @@ void TekkitTrails::Init()
 		std::lock_guard<std::mutex> lock(gIconMutex);
 		gPendingIcons.clear();
 		gIconQueued.clear();
+		gIconRetain.clear();
 	}
 	gPackCount.store(0, std::memory_order_release);
 }
@@ -908,13 +1281,27 @@ void TekkitTrails::Shutdown()
 	MarkerBehaviors::Shutdown();
 	gEpoch.fetch_add(1, std::memory_order_acq_rel);
 	gLoadGen.fetch_add(1, std::memory_order_acq_rel);
+	PathingPacks::RequestCancel();
 	AbortHttp();
+	/* Join when possible so Nexus Disable can FreeLibrary safely. Detach only
+	   if join throws (should be rare after cancel + epoch bump). */
 	if (gWorker.joinable())
-		gWorker.detach();
+	{
+		try
+		{
+			gWorker.join();
+		}
+		catch (...)
+		{
+			if (gWorker.joinable())
+				gWorker.detach();
+		}
+	}
 	{
 		std::lock_guard<std::mutex> lock(gIconMutex);
 		gPendingIcons.clear();
 		gIconQueued.clear();
+		gIconRetain.clear();
 	}
 	std::lock_guard<std::mutex> lock(gMutex);
 	gIndex.clear();
@@ -925,6 +1312,7 @@ void TekkitTrails::Shutdown()
 	gCurrentMarkers.clear();
 	gGuide = {};
 	gGuideActive = false;
+	gIndexStarted.store(false, std::memory_order_release);
 	gLoading.store(false, std::memory_order_release);
 }
 
@@ -1081,6 +1469,27 @@ uint64_t TekkitTrails::ContentRevision()
 	return gContentRevision.load(std::memory_order_acquire);
 }
 
+bool TekkitTrails::HasDrawableWorldGps()
+{
+	std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
+	if (!lock.owns_lock())
+		return true; /* unknown — do not wipe sticky cache */
+	for (const Trail& t : gCurrentAll)
+	{
+		if (t.worldPoints.size() >= 2 && t.inGameVisible && TypeEnabledLocked(t.label))
+			return true;
+	}
+	for (const Marker& m : gCurrentMarkers)
+	{
+		if (!TypeEnabledLocked(m.label))
+			continue;
+		if (!MarkerShownInWorld(m))
+			continue;
+		return true;
+	}
+	return false;
+}
+
 int TekkitTrails::TrailCountAllOnMap()
 {
 	std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
@@ -1105,24 +1514,38 @@ int TekkitTrails::TrailCount()
 
 std::vector<TekkitTrails::Trail> TekkitTrails::CurrentTrails()
 {
-	std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
-	if (!lock.owns_lock())
-		return {};
+	/* Snapshot: keep last only while the pack worker holds the mutex. */
+	static std::vector<Trail> sLast;
+	static uint32_t sLastMap = 0;
+
+	std::unique_lock<std::mutex> lock(gMutex, std::defer_lock);
+	if (gLoading.load(std::memory_order_acquire))
+	{
+		if (!lock.try_lock())
+			return (sLastMap == gActiveMap) ? sLast : std::vector<Trail>{};
+	}
+	else
+		lock.lock();
+
 	std::vector<Trail> out;
-	/* Minimap only needs continent polylines — never deep-copy worldPoints. */
-	constexpr int kMaxDraw = 96;
+	/* Compass needs continent polylines — never deep-copy worldPoints. */
+	constexpr int kMaxDraw = 128;
 	out.reserve(static_cast<size_t>(kMaxDraw));
 	for (const Trail& t : gCurrentAll)
 	{
 		if (static_cast<int>(out.size()) >= kMaxDraw)
 			break;
-		if (!TypeEnabledLocked(t.label) || !t.minimapVisible || t.points.size() < 2)
+		if (!TypeEnabledLocked(t.label) || t.points.size() < 2)
+			continue;
+		/* Show in-game pathing routes on our compass even when the pack sets
+		   miniMapVisibility=0 (common for Lady map-completion / WP Only). */
+		if (!t.minimapVisible && !t.inGameVisible)
 			continue;
 		Trail slim{};
 		slim.mapId = t.mapId;
 		slim.color = t.color;
 		std::snprintf(slim.textureId, sizeof(slim.textureId), "%s", t.textureId);
-		slim.minimapVisible = t.minimapVisible;
+		slim.minimapVisible = true;
 		slim.inGameVisible = t.inGameVisible;
 		slim.alpha = t.alpha;
 		slim.trailScale = t.trailScale;
@@ -1132,6 +1555,9 @@ std::vector<TekkitTrails::Trail> TekkitTrails::CurrentTrails()
 		slim.points = t.points;
 		out.push_back(std::move(slim));
 	}
+	/* Always accept the filtered result — including empty — so toggles turn off. */
+	sLast = out;
+	sLastMap = gActiveMap;
 	return out;
 }
 
@@ -1157,13 +1583,24 @@ std::vector<TekkitTrails::Marker> TekkitTrails::CurrentMarkersInBounds(
 	std::vector<Marker> out;
 	if (!(minX <= maxX && minY <= maxY))
 		return out;
+	static std::vector<Marker> sLast;
+	static float sMinX = 0.f, sMinY = 0.f, sMaxX = 0.f, sMaxY = 0.f;
+	static uint32_t sLastMap = 0;
 	std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
 	if (!lock.owns_lock())
+	{
+		if (sLastMap == gActiveMap &&
+			std::fabs(minX - sMinX) < 50.f && std::fabs(maxX - sMaxX) < 50.f &&
+			std::fabs(minY - sMinY) < 50.f && std::fabs(maxY - sMaxY) < 50.f)
+			return sLast;
 		return out;
+	}
 	out.reserve(std::min<size_t>(gCurrentMarkers.size(), kMaxMinimapMarkers));
 	for (const Marker& marker : gCurrentMarkers)
 	{
-		if (!marker.minimapVisible)
+		if (!TypeEnabledLocked(marker.label))
+			continue;
+		if (!MarkerShownOnCompass(marker))
 			continue;
 		if (!MarkerBehaviorVisible(marker))
 			continue;
@@ -1174,6 +1611,9 @@ std::vector<TekkitTrails::Marker> TekkitTrails::CurrentMarkersInBounds(
 		if (out.size() >= kMaxMinimapMarkers)
 			break;
 	}
+	sLast = out;
+	sLastMap = gActiveMap;
+	sMinX = minX; sMinY = minY; sMaxX = maxX; sMaxY = maxY;
 	return out;
 }
 
@@ -1191,7 +1631,9 @@ std::vector<TekkitTrails::Marker> TekkitTrails::NearbyWorldMarkers(
 	out.reserve(std::min(maxMarkers, gCurrentMarkers.size()));
 	for (const Marker& marker : gCurrentMarkers)
 	{
-		if (!marker.inGameVisible)
+		if (!TypeEnabledLocked(marker.label))
+			continue;
+		if (!MarkerShownInWorld(marker))
 			continue;
 		if (!MarkerBehaviorVisible(marker))
 			continue;
@@ -1212,13 +1654,32 @@ void TekkitTrails::BeginFrame()
 {
 	if (!G::API || !G::API->Textures_GetOrCreateFromMemory)
 		return;
-	for (int n = 0; n < 4; ++n)
+
+	/* Drop retain buffers once Nexus has a live Resource. */
+	std::vector<std::string> dropIds;
+	{
+		std::lock_guard<std::mutex> lock(gIconMutex);
+		dropIds.reserve(gIconRetain.size());
+		for (const auto& kv : gIconRetain)
+			dropIds.push_back(kv.first);
+	}
+	for (const std::string& id : dropIds)
+	{
+		Texture_t* tex = G::API->Textures_Get
+			? G::API->Textures_Get(id.c_str()) : nullptr;
+		if (!(tex && tex->Resource))
+			continue;
+		std::lock_guard<std::mutex> lock(gIconMutex);
+		gIconRetain.erase(id);
+	}
+
+	for (int n = 0; n < 48; ++n)
 	{
 		PendingIcon icon;
 		{
 			std::lock_guard<std::mutex> lock(gIconMutex);
 			if (gPendingIcons.empty())
-				return;
+				break;
 			icon = std::move(gPendingIcons.front());
 			gPendingIcons.erase(gPendingIcons.begin());
 		}
@@ -1227,9 +1688,22 @@ void TekkitTrails::BeginFrame()
 		if (G::API->Textures_Get(icon.id.c_str()) &&
 			G::API->Textures_Get(icon.id.c_str())->Resource)
 			continue;
+		/* Keep PNG bytes alive across async Nexus decode (Wine often deferred).
+		   QuickAccess icons work because their buffers are static duration. */
+		const uint8_t* data = nullptr;
+		uint64_t size = 0;
+		{
+			std::lock_guard<std::mutex> lock(gIconMutex);
+			auto& slot = gIconRetain[icon.id];
+			if (slot.empty())
+				slot = std::move(icon.bytes);
+			data = slot.data();
+			size = static_cast<uint64_t>(slot.size());
+		}
+		if (!data || size == 0)
+			continue;
 		G::API->Textures_GetOrCreateFromMemory(
-			icon.id.c_str(), icon.bytes.data(),
-			static_cast<uint64_t>(icon.bytes.size()));
+			icon.id.c_str(), const_cast<uint8_t*>(data), size);
 	}
 }
 
@@ -1289,6 +1763,8 @@ std::vector<TekkitTrails::WorldSnippet> TekkitTrails::NearbyWorldSnippets(
 			if (++pointTests > maxPointTests)
 				break;
 			const WorldPoint& p = tr.worldPoints[i];
+			if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z))
+				continue;
 			const float d = dist2(p.x, p.y, p.z);
 			if (d < bestD)
 			{
@@ -1313,21 +1789,24 @@ std::vector<TekkitTrails::WorldSnippet> TekkitTrails::NearbyWorldSnippets(
 		const Trail& tr = gCurrentAll[c.idx];
 		const auto& pts = tr.worldPoints;
 		const size_t n = pts.size();
+		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
+			continue;
+		/* Stay inside one TacO section — never expand across NaN breaks. */
 		size_t a = c.nearest;
 		size_t b = c.nearest;
-		constexpr size_t kMinPad = 12;
-		if (a > kMinPad)
-			a -= kMinPad;
-		else
-			a = 0;
-		b = std::min(n - 1, b + kMinPad);
-		while (a > 0 && dist2(pts[a - 1].x, pts[a - 1].y, pts[a - 1].z) <= softDist2)
+		while (a > 0 &&
+			std::isfinite(pts[a - 1].x) && std::isfinite(pts[a - 1].y) &&
+			std::isfinite(pts[a - 1].z) &&
+			dist2(pts[a - 1].x, pts[a - 1].y, pts[a - 1].z) <= softDist2)
 		{
 			--a;
 			if (++pointTests > maxPointTests)
 				break;
 		}
-		while (b + 1 < n && dist2(pts[b + 1].x, pts[b + 1].y, pts[b + 1].z) <= softDist2)
+		while (b + 1 < n &&
+			std::isfinite(pts[b + 1].x) && std::isfinite(pts[b + 1].y) &&
+			std::isfinite(pts[b + 1].z) &&
+			dist2(pts[b + 1].x, pts[b + 1].y, pts[b + 1].z) <= softDist2)
 		{
 			++b;
 			if (++pointTests > maxPointTests)
@@ -1343,8 +1822,8 @@ std::vector<TekkitTrails::WorldSnippet> TekkitTrails::NearbyWorldSnippets(
 		snip.trailScale = tr.trailScale;
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
-		/* Local slice only — never ship a map-long ribbon to the render thread. */
-		constexpr size_t kMaxPts = 96;
+		/* Local slice — keep enough points for long HP sections near the player. */
+		constexpr size_t kMaxPts = 192;
 		snip.points.reserve(std::min(b - a + 1, kMaxPts));
 		const size_t span = b - a;
 		const size_t stride = (span > kMaxPts) ? (span / kMaxPts) : 1;
@@ -1352,7 +1831,7 @@ std::vector<TekkitTrails::WorldSnippet> TekkitTrails::NearbyWorldSnippets(
 		{
 			const WorldPoint& wp = pts[i];
 			if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z))
-				continue;
+				break; /* section end — do not skip and stitch */
 			snip.points.push_back(wp);
 			if (snip.points.size() >= kMaxPts)
 				break;
@@ -1372,18 +1851,35 @@ bool TekkitTrails::TryNearbyWorldGps(
 {
 	outSnippets.clear();
 	outMarkers.clear();
-	std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
-	if (!lock.owns_lock())
-		return false;
+	std::unique_lock<std::mutex> lock(gMutex, std::defer_lock);
+	/* Prefer a real lock so GPS does not blank every frame; only try_lock while
+	   the pack worker holds the mutex (avoids hitching the render thread). */
+	if (gLoading.load(std::memory_order_acquire))
+	{
+		if (!lock.try_lock())
+			return false;
+	}
+	else
+		lock.lock();
 
 	if (!std::isfinite(avatarX) || !std::isfinite(avatarY) || !std::isfinite(avatarZ))
 		return true;
 
-	/* Activation + draw window — keep closer to Blish/Taimi on-screen load. */
-	const float maxDist = std::clamp(maxDistMeters, 20.f, 160.f);
-	const float activateDist = std::max(maxDist * 1.35f, 90.f);
+	/* Activation + draw window — slightly generous so coarse sampling misses
+	   do not drop the route while walking between .trl vertices. */
+	float maxDist = std::clamp(maxDistMeters, 20.f, 160.f);
+	float activateDist = std::max(maxDist * 1.55f, 110.f);
+	float softDist = activateDist;
+	size_t maxPts = 192;
+	/* WP Only chains are long and sparse — pull a much longer window ahead. */
+	if (G::LadyWpOnly)
+	{
+		maxDist = std::clamp(std::max(maxDistMeters, 180.f) * 1.85f, 160.f, 340.f);
+		activateDist = std::max(maxDist * 1.4f, 220.f);
+		softDist = activateDist * 1.35f;
+		maxPts = 420;
+	}
 	const float activateDist2 = activateDist * activateDist;
-	const float softDist = activateDist;
 	const float softDist2 = softDist * softDist;
 	auto dist2 = [&](float x, float y, float z) {
 		const float dx = avatarX - x;
@@ -1401,7 +1897,7 @@ bool TekkitTrails::TryNearbyWorldGps(
 	std::vector<Cand> cands;
 	cands.reserve(32);
 	int pointTests = 0;
-	constexpr int kMaxPointTests = 8000;
+	constexpr int kMaxPointTests = 12000;
 	for (size_t ti = 0; ti < gCurrentAll.size(); ++ti)
 	{
 		const Trail& tr = gCurrentAll[ti];
@@ -1410,24 +1906,32 @@ bool TekkitTrails::TryNearbyWorldGps(
 		const size_t n = tr.worldPoints.size();
 		size_t bestI = 0;
 		float bestD = 1.0e30f;
-		const size_t step = std::max<size_t>(1, n / 40);
+		/* Denser than n/40 — sparse samples missed the player between vertices. */
+		const size_t step = std::max<size_t>(1, n / 96);
 		for (size_t i = 0; i < n; i += step)
 		{
 			if (++pointTests > kMaxPointTests)
 				break;
-			const float d = dist2(tr.worldPoints[i].x, tr.worldPoints[i].y, tr.worldPoints[i].z);
+			const WorldPoint& p = tr.worldPoints[i];
+			if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z))
+				continue;
+			const float d = dist2(p.x, p.y, p.z);
 			if (d < bestD)
 			{
 				bestD = d;
 				bestI = i;
 			}
 		}
-		/* Refine near the coarse hit. */
-		const size_t lo = bestI > step ? bestI - step : 0;
-		const size_t hi = std::min(n, bestI + step + 1);
+		/* Refine near the coarse hit (same section only). */
+		const size_t refine = std::max<size_t>(step, 8);
+		const size_t lo = bestI > refine ? bestI - refine : 0;
+		const size_t hi = std::min(n, bestI + refine + 1);
 		for (size_t i = lo; i < hi; ++i)
 		{
-			const float d = dist2(tr.worldPoints[i].x, tr.worldPoints[i].y, tr.worldPoints[i].z);
+			const WorldPoint& p = tr.worldPoints[i];
+			if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z))
+				continue;
+			const float d = dist2(p.x, p.y, p.z);
 			if (d < bestD)
 			{
 				bestD = d;
@@ -1484,18 +1988,22 @@ bool TekkitTrails::TryNearbyWorldGps(
 		const Trail& tr = gCurrentAll[c.idx];
 		const auto& pts = tr.worldPoints;
 		const size_t n = pts.size();
+		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
+			continue;
+		/* One TacO section only — expanding to index 0 across NaN breaks caused
+		   screen-long gold stretch lines on Lady HP (and similar) packs. */
 		size_t a = c.nearest;
 		size_t b = c.nearest;
-		while (a > 0 && dist2(pts[a - 1].x, pts[a - 1].y, pts[a - 1].z) <= softDist2)
+		while (a > 0 &&
+			std::isfinite(pts[a - 1].x) && std::isfinite(pts[a - 1].y) &&
+			std::isfinite(pts[a - 1].z) &&
+			dist2(pts[a - 1].x, pts[a - 1].y, pts[a - 1].z) <= softDist2)
 			--a;
-		while (b + 1 < n && dist2(pts[b + 1].x, pts[b + 1].y, pts[b + 1].z) <= softDist2)
+		while (b + 1 < n &&
+			std::isfinite(pts[b + 1].x) && std::isfinite(pts[b + 1].y) &&
+			std::isfinite(pts[b + 1].z) &&
+			dist2(pts[b + 1].x, pts[b + 1].y, pts[b + 1].z) <= softDist2)
 			++b;
-		constexpr size_t kPad = 16;
-		if (c.nearest > kPad)
-			a = std::min(a, c.nearest - kPad);
-		else
-			a = 0;
-		b = std::max(b, std::min(n - 1, c.nearest + kPad));
 		if (b <= a)
 			continue;
 
@@ -1508,21 +2016,28 @@ bool TekkitTrails::TryNearbyWorldGps(
 		snip.fadeFar = tr.fadeFar;
 		/* ≥1 m spacing — Blish GPU strip hides micro-samples; ImGui cannot. */
 		constexpr float kMinSp2 = 1.0f * 1.0f;
-		constexpr size_t kMaxPts = 96;
-		snip.points.reserve(std::min(b - a + 1, kMaxPts));
+		constexpr float kMaxKeepGap2 = 40.f * 40.f;
+		snip.points.reserve(std::min(b - a + 1, maxPts));
 		WorldPoint lastKept{};
 		bool haveKept = false;
 		for (size_t i = a; i <= b; ++i)
 		{
 			const WorldPoint& wp = pts[i];
 			if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z))
-				continue;
-			if (haveKept && distPts2(wp, lastKept) < kMinSp2 && i != b)
-				continue;
+				break; /* do not skip breaks and stitch sections */
+			if (haveKept)
+			{
+				const float gap2 = distPts2(wp, lastKept);
+				if (gap2 < kMinSp2 && i != b)
+					continue;
+				/* Hard break — stitching across a big jump is the gold stretch. */
+				if (gap2 > kMaxKeepGap2)
+					break;
+			}
 			snip.points.push_back(wp);
 			lastKept = wp;
 			haveKept = true;
-			if (snip.points.size() >= kMaxPts)
+			if (snip.points.size() >= maxPts)
 				break;
 		}
 		if (snip.points.size() < 2)
@@ -1541,18 +2056,37 @@ bool TekkitTrails::TryNearbyWorldGps(
 		outSnippets.push_back(std::move(snip));
 	}
 
-	const float markDist2 = (activateDist * 1.2f) * (activateDist * 1.2f);
+	const float markDist2 = (activateDist * 1.55f) * (activateDist * 1.55f);
 	outMarkers.reserve(64);
+	/* Prefer Mounts/shortcut icons so they are not starved by heart/POI spam. */
+	std::vector<const Marker*> mountFirst;
+	mountFirst.reserve(std::min<size_t>(gCurrentMarkers.size(), 256));
 	for (const Marker& marker : gCurrentMarkers)
 	{
-		if (!marker.inGameVisible)
+		if (!TypeEnabledLocked(marker.label))
+			continue;
+		if (!MarkerShownInWorld(marker))
 			continue;
 		if (!MarkerBehaviorVisible(marker))
 			continue;
 		const float d = dist2(marker.world.x, marker.world.y, marker.world.z);
 		if (d > markDist2)
 			continue;
-		outMarkers.push_back(marker);
+		mountFirst.push_back(&marker);
+	}
+	std::stable_sort(mountFirst.begin(), mountFirst.end(),
+		[&](const Marker* a, const Marker* b) {
+			const bool am = IsMountShortcutMarker(*a);
+			const bool bm = IsMountShortcutMarker(*b);
+			if (am != bm)
+				return am && !bm;
+			const float da = dist2(a->world.x, a->world.y, a->world.z);
+			const float db = dist2(b->world.x, b->world.y, b->world.z);
+			return da < db;
+		});
+	for (const Marker* marker : mountFirst)
+	{
+		outMarkers.push_back(*marker);
 		if (outMarkers.size() >= 120)
 			break;
 	}
@@ -2003,6 +2537,14 @@ void TekkitTrails::EnableAllLadyCategories()
 	gMenuRevision.fetch_add(1, std::memory_order_release);
 	gEnabledGen.fetch_add(1, std::memory_order_release);
 	gForceReload.store(true, std::memory_order_release);
+}
+
+void TekkitTrails::NotifyVisibilityFilterChanged()
+{
+	/* Draw-time only — editions are already loaded (category ranking). Forcing a
+	   pack reload here blanked trails while Barefoot/WP should have appeared. */
+	gContentRevision.fetch_add(1, std::memory_order_release);
+	gMenuRevision.fetch_add(1, std::memory_order_release);
 }
 
 void TekkitTrails::EnableAllHeroCategories()
@@ -2456,21 +2998,42 @@ bool TekkitTrails::DrawCategoryBrowser()
 			}
 			ImGui::PushID(c.path.c_str());
 			bool en = c.enabled;
-			if (ImGui::Checkbox(c.label.c_str(), &en))
+			const bool hasKids = !c.children.empty();
+			/* Reserve Open first so long names never steal its column (Windows DPI). */
+			const float openW = hasKids
+				? (ImGui::CalcTextSize("Open").x + ImGui::GetStyle().FramePadding.x * 2.f + 12.f)
+				: 0.f;
+			const float rowStartX = ImGui::GetCursorPosX();
+			const float rowAvail = ImGui::GetContentRegionAvail().x;
+
+			if (ImGui::Checkbox("##en", &en))
 			{
 				SetCategoryEnabled(c.path, en);
 				dirty = true;
 			}
-			if (ImGui::IsItemHovered())
+			ImGui::SameLine(0.f, 6.f);
+			ImGui::AlignTextToFramePadding();
+			const float afterCheck = ImGui::GetCursorPosX();
+			const float labMax = std::max(48.f,
+				rowAvail - (afterCheck - rowStartX) - openW - (hasKids ? 8.f : 0.f));
+			ImGui::PushClipRect(
+				ImGui::GetCursorScreenPos(),
+				ImVec2(ImGui::GetCursorScreenPos().x + labMax,
+					ImGui::GetCursorScreenPos().y + ImGui::GetTextLineHeightWithSpacing()),
+				true);
+			ImGui::TextUnformatted(c.label.c_str());
+			ImGui::PopClipRect();
+			if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
 			{
 				if (!c.tip.empty())
 					ImGui::SetTooltip("%s\n\n%s", c.tip.c_str(), c.path.c_str());
 				else
 					ImGui::SetTooltip("%s", c.path.c_str());
 			}
-			if (!c.children.empty())
+			if (hasKids)
 			{
-				ImGui::SameLine(0.f, 8.f);
+				ImGui::SameLine(0.f, 0.f);
+				ImGui::SetCursorPosX(rowStartX + rowAvail - openW);
 				if (ImGui::SmallButton("Open"))
 					sDrill.push_back(c.path);
 			}

@@ -126,12 +126,16 @@ namespace
 		const float rawH = static_cast<float>(ctx->compassHeight);
 		const int padW = BlishPad(rawW, kMapWMax, kMapWMin, 40.f);
 		const int padH = BlishPad(rawH, kMapHMax, kMapHMin, 40.f);
-		(void)padW;
-		(void)padH;
 
 		out.min = ImVec2(x1, y1);
 		out.max = ImVec2(x2, y2);
-		out.mid = ImVec2((x1 + x2) * 0.5f, (y1 + y2) * 0.5f);
+		/* Project from the padded compass content center (Blish FlatMap offset).
+		   Using the unpadded TacO mid left trails slightly off the painted disc. */
+		const float cx0 = x1 + static_cast<float>(padW);
+		const float cy0 = y1 + static_cast<float>(padH);
+		const float cx1 = x2 - static_cast<float>(padW);
+		const float cy1 = y2 - static_cast<float>(padH);
+		out.mid = ImVec2((cx0 + cx1) * 0.5f, (cy0 + cy1) * 0.5f);
 		return true;
 	}
 
@@ -185,21 +189,10 @@ void CompassOverlay::Render()
 		return;
 
 	const ImGuiIO& io = ImGui::GetIO();
-	float screenW = io.DisplaySize.x;
-	float screenH = io.DisplaySize.y;
-	/* Prefer Nexus viewport when it matches the game client (avoids DPI drift). */
-	if (G::NexusLink && G::NexusLink->Width > 64 && G::NexusLink->Height > 64)
-	{
-		const float nw = static_cast<float>(G::NexusLink->Width);
-		const float nh = static_cast<float>(G::NexusLink->Height);
-		/* Only trust Nexus sizes close to ImGui display (Wine/DPI safe). */
-		if (std::fabs(nw - screenW) < screenW * 0.08f &&
-			std::fabs(nh - screenH) < screenH * 0.08f)
-		{
-			screenW = nw;
-			screenH = nh;
-		}
-	}
+	/* Match WorldOverlay — ImGui draw-list space only. Mixing Nexus sizes on
+	   Windows DPI builds misplaces compass trails. */
+	const float screenW = io.DisplaySize.x;
+	const float screenH = io.DisplaySize.y;
 	if (screenW < 64.f || screenH < 64.f)
 		return;
 
@@ -252,7 +245,7 @@ void CompassOverlay::Render()
 		}
 		a = std::clamp(static_cast<int>(a * tr.alpha), 40, 230);
 		const ImU32 col = IM_COL32(r, g, b, a);
-		const float thickness = std::clamp(2.0f * tr.trailScale, 1.2f, 4.0f);
+		const float thickness = std::clamp(2.6f * tr.trailScale, 1.6f, 5.0f);
 
 		const size_t step = (tr.points.size() > 160) ? 2u : 1u;
 		size_t start = 0;
@@ -269,26 +262,25 @@ void CompassOverlay::Render()
 		{
 			if (!std::isfinite(tr.points[i].x) || !std::isfinite(tr.points[i].y))
 			{
+				/* TacO section break — do not stitch to the next segment. */
 				prevOk = false;
 				continue;
 			}
 			/* Section break / bad stitch — TacO (0,0,0) gaps become huge jumps. */
 			const float cdx = tr.points[i].x - prevCx;
 			const float cdy = tr.points[i].y - prevCy;
-			if (cdx * cdx + cdy * cdy > (2500.f * 2500.f))
+			ImVec2 cur = ToScreen(tr.points[i].x, tr.points[i].y);
+			if (!prevOk || (cdx * cdx + cdy * cdy > (2500.f * 2500.f)))
 			{
-				prev = ToScreen(tr.points[i].x, tr.points[i].y);
-				prevOk = InCompass(prev);
+				prev = cur;
+				prevOk = true;
 				prevCx = tr.points[i].x;
 				prevCy = tr.points[i].y;
 				continue;
 			}
-			ImVec2 cur = ToScreen(tr.points[i].x, tr.points[i].y);
-			const bool curOk = InCompass(cur);
-			if (prevOk || curOk)
-				dl->AddLine(prev, cur, col, thickness);
+			dl->AddLine(prev, cur, col, thickness);
 			prev = cur;
-			prevOk = curOk;
+			prevOk = true;
 			prevCx = tr.points[i].x;
 			prevCy = tr.points[i].y;
 		}
@@ -310,6 +302,7 @@ void CompassOverlay::Render()
 	{
 		if (drawn >= kMaxMarkers)
 			break;
+		/* MarkerShownOnCompass already forced Barefoot/Mount shortcuts on. */
 		if (!m.minimapVisible)
 			continue;
 		ImVec2 p = ToScreen(m.pos.x, m.pos.y);

@@ -28,7 +28,7 @@ namespace TekkitTrails
 	struct Trail
 	{
 		uint32_t mapId = 0;
-		uint32_t color = 0xFF00FFFF; /* ARGB */
+		uint32_t color = 0xFFFFFFFFu; /* ARGB — white; cyan was the missing-texture fallback */
 		char     label[96]{};
 		char     textureId[160]{}; /* pack trail texture, uploaded through Nexus */
 		bool     minimapVisible = true;
@@ -122,6 +122,8 @@ namespace TekkitTrails
 	int  MarkerCount();         /* visible (category-enabled) POIs */
 	/* Bumps when current-map trail/marker set changes — world GPS cache key. */
 	uint64_t ContentRevision();
+	/* True if any enabled trail/marker is loaded for the map (for sticky GPS cache). */
+	bool HasDrawableWorldGps();
 
 	/* Category tree — Tekkit menu order / DisplayNames (like the official overlay). */
 	std::vector<Category> CategoryTree();
@@ -142,6 +144,8 @@ namespace TekkitTrails
 	void EnableAllLadyCategories(); /* Lady Elyssa Guides (legs) + Achievements (leag) */
 	void EnableAllHeroCategories(); /* Hero's Marker Pack (HMP + hmpSim) */
 	void DisableAllCategories();
+	/* After Lady Barefoot / WP Only / With Mounts (or similar) changes. */
+	void NotifyVisibilityFilterChanged();
 	/* Exact category paths the user turned on (prefix enables descendants). */
 	std::vector<std::string> EnabledPaths();
 	void SetEnabledPaths(const std::vector<std::string>& paths);
@@ -163,7 +167,7 @@ namespace TekkitTrails
 	/* Lightweight nearby world polylines for in-world GPS (no full-map copy). */
 	struct WorldSnippet
 	{
-		uint32_t color = 0xFF00FFFF;
+		uint32_t color = 0xFFFFFFFFu;
 		char textureId[160]{};
 		float alpha = 1.f;
 		float trailScale = 1.f;

@@ -14,6 +14,9 @@ namespace PathingPacks
 	/* Request a re-download even when local .ver stamps match. */
 	void RequestForceUpdate();
 
+	/* Abort in-flight EnsureCurated (Nexus Disable / unload). */
+	void RequestCancel();
+
 	/* True while EnsureCurated is running. */
 	bool IsUpdating();
 

@@ -467,6 +467,7 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 			std::lock_guard<std::mutex> lock(gIconMutex);
 			gPendingIcons.clear();
 			gIconQueued.clear();
+			gIconRetain.clear();
 		}
 		gPackCount.store(0, std::memory_order_release);
 

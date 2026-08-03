@@ -36,6 +36,7 @@ namespace TekkitDetail
 	using TekkitParse::ParseTrl;
 	using TekkitParse::ParseMarkerMenuXml;
 	using TekkitParse::ResolveStyle;
+	using TekkitParse::DecodeXmlEntities;
 
 	extern std::mutex gMutex;
 	extern std::atomic<uint32_t> gEpoch;
@@ -68,6 +69,9 @@ namespace TekkitDetail
 	extern std::mutex gIconMutex;
 	extern std::vector<PendingIcon> gPendingIcons;
 	extern std::unordered_map<std::string, bool> gIconQueued;
+	/* Nexus may decode GetOrCreateFromMemory asynchronously (Wine). Keep PNG
+	   bytes alive until Textures_Get()->Resource is non-null. */
+	extern std::unordered_map<std::string, std::vector<uint8_t>> gIconRetain;
 	extern bool gGuideActive;
 	extern TekkitTrails::Trail gGuide;
 

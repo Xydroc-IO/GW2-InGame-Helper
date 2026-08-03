@@ -14,7 +14,7 @@ namespace TekkitParse
 {
 	constexpr size_t kMaxZipBytes = 120u * 1024u * 1024u;
 	constexpr size_t kMaxTrailFile = 8u * 1024u * 1024u;
-	constexpr size_t kMaxPointsPerTrail = 512;
+	constexpr size_t kMaxPointsPerTrail = 4096;
 
 	struct MarkerStyle
 	{
