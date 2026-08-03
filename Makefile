@@ -43,7 +43,11 @@ DLL_SRC = \
 	src/browse/RaidFood.cpp \
 	src/browse/CheatSheets.cpp \
 	src/browse/LivePanels.cpp \
-	src/browse/LivePanelsBuild.cpp \
+	src/browse/LivePanelsBuildCommon.cpp \
+	src/browse/LivePanelsBuildDailies.cpp \
+	src/browse/LivePanelsBuildNews.cpp \
+	src/browse/LivePanelsBuildFashion.cpp \
+	src/browse/LivePanelsBuildProgress.cpp \
 	src/browse/LivePanels_Html.cpp \
 	src/notes/NotesPad.cpp \
 	src/pathing/WaypointsData.cpp \
@@ -55,23 +59,38 @@ DLL_SRC = \
 	src/account/InventoryData.cpp \
 	src/account/SessionHistoryData.cpp \
 	src/account/TpWatchPad.cpp \
+	src/account/TpWatchData.cpp \
 	src/account/LookupPad.cpp \
 	src/account/WalletPad.cpp \
+	src/account/WalletFetch.cpp \
 	src/account/VaultPad.cpp \
 	src/account/AccountPad.cpp \
 	src/account/ProgressData.cpp \
 	src/account/CraftingData.cpp \
+	src/account/CraftingApi.cpp \
+	src/account/CraftingWiki.cpp \
+	src/account/CraftingPlan.cpp \
+	src/account/CraftingDailies.cpp \
 	src/events/EventsPad.cpp \
 	src/events/EventsData.cpp \
 	src/logs/LogManagerPad.cpp \
 	src/logs/LogManagerParse.cpp \
 	src/logs/LogManagerUpload.cpp \
 	src/logs/LogManagerEi.cpp \
+	src/logs/LogManagerCache.cpp \
+	src/logs/LogManagerKillProof.cpp \
+	src/logs/LogManagerScan.cpp \
+	src/logs/LogManagerStats.cpp \
+	src/logs/LogManagerUi.cpp \
 	src/logs/EiRuntime.cpp \
-	src/pathing/TekkitGuidesPad.cpp \
-	src/pathing/TekkitTrails.cpp \
-	src/pathing/TekkitIndex.cpp \
-	src/pathing/TekkitParse.cpp \
+	src/pathing/PathingGuidesPad.cpp \
+	src/pathing/PathingTrails.cpp \
+	src/pathing/PathingLoad.cpp \
+	src/pathing/PathingTrailsGps.cpp \
+	src/pathing/PathingTrailsPresets.cpp \
+	src/pathing/PathingTrailsUi.cpp \
+	src/pathing/PathingIndex.cpp \
+	src/pathing/PathingParse.cpp \
 	src/pathing/PathingPacks.cpp \
 	src/pathing/PathingFeatures.cpp \
 	src/pathing/MarkerBehaviors.cpp \

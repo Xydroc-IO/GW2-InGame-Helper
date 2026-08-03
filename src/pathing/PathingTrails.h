@@ -10,7 +10,7 @@
    user-enabled paths draw. Compass + world overlays consume CurrentTrails /
    NearbyWorldGps. Other pathing addons are optional fallbacks. */
 
-namespace TekkitTrails
+namespace PathingTrails
 {
 	struct Point
 	{

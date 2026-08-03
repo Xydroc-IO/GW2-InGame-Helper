@@ -1,4 +1,4 @@
-#include "TekkitIndex.h"
+#include "PathingIndex.h"
 
 #include "AddonPaths.h"
 #include "Globals.h"
@@ -16,12 +16,12 @@
 #include <shlobj.h>
 #include "miniz/miniz.h"
 
-namespace TekkitDetail
+namespace PathingDetail
 {
 std::string WideLeafUtf8(const std::wstring& path);
 
 void IndexPack(const std::wstring& packPath, std::vector<IndexedTrail>& out,
-	std::vector<IndexedPoi>& poisOut, std::vector<TekkitTrails::Category>& menuOut,
+	std::vector<IndexedPoi>& poisOut, std::vector<PathingTrails::Category>& menuOut,
 	std::unordered_map<std::string, MarkerStyle>& stylesOut,
 	uint32_t epoch, bool* openedOut)
 {
@@ -83,9 +83,9 @@ void IndexPack(const std::wstring& packPath, std::vector<IndexedTrail>& out,
 		   the same fine-grained toggles as the official Tekkit overlay. */
 		if (ToLower(xml).find("<markercategory") != std::string::npos)
 		{
-			std::vector<TekkitTrails::Category> parsed;
+			std::vector<PathingTrails::Category> parsed;
 			ParseMarkerMenuXml(xml, parsed, stylesOut);
-			for (TekkitTrails::Category& root : parsed)
+			for (PathingTrails::Category& root : parsed)
 				MergeCategoryTree(menuOut, std::move(root));
 		}
 	}
@@ -384,10 +384,10 @@ void SuppressDuplicateTacoPacks(std::vector<std::wstring>& packs)
 	packs.swap(filtered);
 }
 
-void MergeCategoryTree(std::vector<TekkitTrails::Category>& dest, TekkitTrails::Category&& src)
+void MergeCategoryTree(std::vector<PathingTrails::Category>& dest, PathingTrails::Category&& src)
 {
-	TekkitTrails::Category* found = nullptr;
-	for (TekkitTrails::Category& c : dest)
+	PathingTrails::Category* found = nullptr;
+	for (PathingTrails::Category& c : dest)
 	{
 		if (c.path == src.path)
 		{
@@ -406,7 +406,7 @@ void MergeCategoryTree(std::vector<TekkitTrails::Category>& dest, TekkitTrails::
 		found->tip = std::move(src.tip);
 	if (!src.separator)
 		found->separator = false;
-	for (TekkitTrails::Category& ch : src.children)
+	for (PathingTrails::Category& ch : src.children)
 		MergeCategoryTree(found->children, std::move(ch));
 	src.children.clear();
 }
@@ -429,10 +429,10 @@ void AddTypeCounts(
 }
 
 void ApplyItemCounts(
-	std::vector<TekkitTrails::Category>& nodes,
+	std::vector<PathingTrails::Category>& nodes,
 	const std::unordered_map<std::string, int>& counts)
 {
-	for (TekkitTrails::Category& c : nodes)
+	for (PathingTrails::Category& c : nodes)
 	{
 		auto it = counts.find(ToLower(c.path));
 		c.trails = (it == counts.end()) ? 0 : it->second;
@@ -513,7 +513,7 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 
 		std::vector<IndexedTrail> index;
 		std::vector<IndexedPoi> pois;
-		std::vector<TekkitTrails::Category> menu;
+		std::vector<PathingTrails::Category> menu;
 		std::unordered_map<std::string, MarkerStyle> categoryStyles;
 		index.reserve(4096);
 		pois.reserve(16384);
@@ -571,4 +571,4 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 	}
 }
 
-} // namespace TekkitDetail
+} // namespace PathingDetail

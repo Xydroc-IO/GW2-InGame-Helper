@@ -16,8 +16,8 @@
 #include "AccountPad.h"
 #include "EventsPad.h"
 #include "LogManagerPad.h"
-#include "TekkitGuidesPad.h"
-#include "TekkitTrails.h"
+#include "PathingGuidesPad.h"
+#include "PathingTrails.h"
 #include "PadNav.h"
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
@@ -253,7 +253,7 @@ namespace
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowTekkitGuides || G::ShowCompassPad;
+			G::ShowPathingGuides || G::ShowCompassPad;
 	}
 
 	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves
@@ -589,15 +589,15 @@ namespace
 				else
 					LogManagerPad::OpenAndRefresh();
 			}
-			if (ImGui::MenuItem(G::ShowTekkitGuides ? "Hide Pathing" : "Show Pathing"))
+			if (ImGui::MenuItem(G::ShowPathingGuides ? "Hide Pathing" : "Show Pathing"))
 			{
-				if (G::ShowTekkitGuides)
+				if (G::ShowPathingGuides)
 				{
-					G::ShowTekkitGuides = false;
+					G::ShowPathingGuides = false;
 					Settings::SetDirty();
 				}
 				else
-					TekkitGuidesPad::Open();
+					PathingGuidesPad::Open();
 			}
 			ImGui::Separator();
 			if (ImGui::MenuItem(G::ShowCompassPad ? "Hide Compass" : "Show Compass"))
@@ -722,15 +722,15 @@ namespace
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Account — stash, vault, TP, item lookup");
 
-		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowTekkitGuides))
+		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides))
 		{
-			if (G::ShowTekkitGuides)
+			if (G::ShowPathingGuides)
 			{
-				G::ShowTekkitGuides = false;
+				G::ShowPathingGuides = false;
 				Settings::SetDirty();
 			}
 			else
-				TekkitGuidesPad::Open();
+				PathingGuidesPad::Open();
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Pathing — Tekkit + Lady Elyssa + Hero packs");
@@ -854,7 +854,7 @@ void UI_Render()
 	/* Tekkit overlays — always, even with the browser closed. */
 	CompassOverlay::Render();
 	WorldOverlay::Render();
-	TekkitTrails::DrawMarkerBehaviorOverlay();
+	PathingTrails::DrawMarkerBehaviorOverlay();
 	DirectionCompass::Render();
 	/* URL-index warm: heavier when closed; light drip while open so Browse stays snappy. */
 	if (!G::ShowWiki)
@@ -902,7 +902,7 @@ void UI_Render()
 		const bool vaultHover = VaultPad::Render();
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
-		const bool tekkitHover = TekkitGuidesPad::Render();
+		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
@@ -988,7 +988,7 @@ void UI_Render()
 		const bool vaultHover = VaultPad::Render();
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
-		const bool tekkitHover = TekkitGuidesPad::Render();
+		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
@@ -1368,7 +1368,7 @@ void UI_Render()
 	const bool vaultHover = VaultPad::Render();
 	const bool eventsHover = EventsPad::Render();
 	const bool logsHover = LogManagerPad::Render();
-	const bool tekkitHover = TekkitGuidesPad::Render();
+	const bool tekkitHover = PathingGuidesPad::Render();
 	const bool compassHover = DirectionCompass::RenderPad();
 	CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 		walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||

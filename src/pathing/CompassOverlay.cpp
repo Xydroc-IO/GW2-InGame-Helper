@@ -1,7 +1,7 @@
 #include "CompassOverlay.h"
 
 #include "Globals.h"
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 
 #include "imgui/imgui.h"
 
@@ -170,7 +170,7 @@ void CompassOverlay::Render()
 {
 	try
 	{
-	if (!G::ShowTekkitTrails || !G::ShowCompassOverlay)
+	if (!G::ShowPathingTrails || !G::ShowCompassOverlay)
 		return;
 	if (G::HideOutOfGameplay && G::NexusLink && !G::NexusLink->IsGameplay)
 		return;
@@ -181,8 +181,8 @@ void CompassOverlay::Render()
 	if (!ctx || ctx->mapId == 0)
 		return;
 
-	TekkitTrails::Update(ctx->mapId);
-	TekkitTrails::TickMarkerBehaviors();
+	PathingTrails::Update(ctx->mapId);
+	PathingTrails::TickMarkerBehaviors();
 
 	const bool mapOpen = (ctx->uiState & static_cast<uint32_t>(UiStateBits::MapOpen)) != 0;
 	if (G::HideWhenMapOpen && mapOpen)
@@ -225,11 +225,11 @@ void CompassOverlay::Render()
 	if (!dl)
 		return;
 
-	TekkitTrails::BeginFrame();
+	PathingTrails::BeginFrame();
 	dl->PushClipRect(lay.min, lay.max, true);
 
-	const std::vector<TekkitTrails::Trail> trails = TekkitTrails::CurrentTrails();
-	for (const TekkitTrails::Trail& tr : trails)
+	const std::vector<PathingTrails::Trail> trails = PathingTrails::CurrentTrails();
+	for (const PathingTrails::Trail& tr : trails)
 	{
 		if (tr.points.size() < 2 || !tr.minimapVisible)
 			continue;
@@ -292,13 +292,13 @@ void CompassOverlay::Render()
 		scale = 1.f;
 	const float halfW = (lay.max.x - lay.min.x) * 0.5f * scale;
 	const float halfH = (lay.max.y - lay.min.y) * 0.5f * scale;
-	const std::vector<TekkitTrails::Marker> marks = TekkitTrails::CurrentMarkersInBounds(
+	const std::vector<PathingTrails::Marker> marks = PathingTrails::CurrentMarkersInBounds(
 		centerX - halfW * 1.4f, centerY - halfH * 1.4f,
 		centerX + halfW * 1.4f, centerY + halfH * 1.4f);
 
 	int drawn = 0;
 	constexpr int kMaxMarkers = 140;
-	for (const TekkitTrails::Marker& m : marks)
+	for (const PathingTrails::Marker& m : marks)
 	{
 		if (drawn >= kMaxMarkers)
 			break;

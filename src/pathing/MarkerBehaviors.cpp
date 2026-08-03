@@ -3,7 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "HelperTheme.h"
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 
 #include <atomic>
 #include <cmath>
@@ -185,7 +185,7 @@ namespace
 		return out;
 	}
 
-	bool HasRuntime(const TekkitTrails::Marker& m)
+	bool HasRuntime(const PathingTrails::Marker& m)
 	{
 		return m.guid[0] != 0 || m.behavior != 0 || m.hide[0] || m.show[0] ||
 			m.autoTrigger || m.info[0] || m.copy[0] || m.tipName[0] || m.tipDescription[0];
@@ -199,7 +199,7 @@ namespace
 		return std::sqrt(dx * dx + dy * dy + dz * dz);
 	}
 
-	float InteractRange(const TekkitTrails::Marker& m)
+	float InteractRange(const PathingTrails::Marker& m)
 	{
 		if (m.triggerRange > 0.05f)
 			return m.triggerRange;
@@ -237,7 +237,7 @@ namespace
 		}
 	}
 
-	bool IsHiddenLocked(const TekkitTrails::Marker& m,
+	bool IsHiddenLocked(const PathingTrails::Marker& m,
 		uint32_t mapId, uint32_t shardId, uint32_t instanceId,
 		const char* characterName)
 	{
@@ -258,7 +258,7 @@ namespace
 		return !m.invertBehavior;
 	}
 
-	void QueueShowHide(const TekkitTrails::Marker& m)
+	void QueueShowHide(const PathingTrails::Marker& m)
 	{
 		for (std::string& p : SplitCsv(m.hide))
 			gPendingHide.push_back(std::move(p));
@@ -266,7 +266,7 @@ namespace
 			gPendingShow.push_back(std::move(p));
 	}
 
-	void ActivateLocked(const TekkitTrails::Marker& m,
+	void ActivateLocked(const PathingTrails::Marker& m,
 		uint32_t mapId, uint32_t shardId, uint32_t instanceId,
 		const char* characterName, int behaviorOverride = -1)
 	{
@@ -286,15 +286,15 @@ namespace
 		gDirty = true;
 	}
 
-	/* Queue side-effects; does not call TekkitTrails (avoid re-entrancy). */
-	bool QueueTrigger(const TekkitTrails::Marker& m,
+	/* Queue side-effects; does not call PathingTrails (avoid re-entrancy). */
+	bool QueueTrigger(const PathingTrails::Marker& m,
 		uint32_t mapId, uint32_t shardId, uint32_t instanceId,
 		const char* characterName, int behaviorOverride = -1)
 	{
 		const int behavior = behaviorOverride >= 0 ? behaviorOverride : m.behavior;
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			TekkitTrails::Marker check = m;
+			PathingTrails::Marker check = m;
 			check.behavior = behavior;
 			if (behavior != 0 && IsHiddenLocked(check, mapId, shardId, instanceId, characterName) &&
 				!m.invertBehavior)
@@ -316,7 +316,7 @@ namespace
 	{
 		if (!gPendingShow.empty() || !gPendingHide.empty())
 		{
-			TekkitTrails::ApplyCategoryShowHide(gPendingShow, gPendingHide);
+			PathingTrails::ApplyCategoryShowHide(gPendingShow, gPendingHide);
 			gPendingShow.clear();
 			gPendingHide.clear();
 		}
@@ -449,7 +449,7 @@ void MarkerBehaviors::RequestInteract()
 	gInteractReq.store(true, std::memory_order_release);
 }
 
-bool MarkerBehaviors::ShouldDisplay(const TekkitTrails::Marker& m,
+bool MarkerBehaviors::ShouldDisplay(const PathingTrails::Marker& m,
 	uint32_t mapId, uint32_t shardId, uint32_t instanceId,
 	const char* characterName)
 {
@@ -469,7 +469,7 @@ void MarkerBehaviors::Tick(
 	uint32_t mapId, uint32_t shardId, uint32_t instanceId,
 	float avatarX, float avatarY, float avatarZ,
 	const char* characterName,
-	const std::vector<TekkitTrails::Marker>& markers)
+	const std::vector<PathingTrails::Marker>& markers)
 {
 	const DWORD nowTick = GetTickCount();
 	const bool wantInteract = gInteractReq.exchange(false, std::memory_order_acq_rel);
@@ -502,10 +502,10 @@ void MarkerBehaviors::Tick(
 	NearbyUi nearUi{};
 	float bestTipDist = 12.f;
 	float bestInteractDist = 1e30f;
-	const TekkitTrails::Marker* interactTarget = nullptr;
+	const PathingTrails::Marker* interactTarget = nullptr;
 	std::unordered_set<std::string> firedGuids;
 
-	for (const TekkitTrails::Marker& m : markers)
+	for (const PathingTrails::Marker& m : markers)
 	{
 		if (!HasRuntime(m))
 			continue;

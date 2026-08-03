@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 
 #include <cstdint>
 
@@ -26,10 +26,10 @@ namespace MarkerBehaviors
 		uint32_t mapId, uint32_t shardId, uint32_t instanceId,
 		float avatarX, float avatarY, float avatarZ,
 		const char* characterName,
-		const std::vector<TekkitTrails::Marker>& markers);
+		const std::vector<PathingTrails::Marker>& markers);
 
 	/* True if the marker should be drawn (behavior state allows it). */
-	bool ShouldDisplay(const TekkitTrails::Marker& m,
+	bool ShouldDisplay(const PathingTrails::Marker& m,
 		uint32_t mapId, uint32_t shardId, uint32_t instanceId,
 		const char* characterName);
 

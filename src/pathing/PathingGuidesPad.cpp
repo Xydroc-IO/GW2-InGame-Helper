@@ -1,4 +1,4 @@
-#include "TekkitGuidesPad.h"
+#include "PathingGuidesPad.h"
 
 #include "Globals.h"
 #include "HelperTheme.h"
@@ -9,7 +9,7 @@
 #include "ConfirmedWaypoints.h"
 #include "RoutingSuggest.h"
 #include "Settings.h"
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 #include "WaypointsData.h"
 
 #include "imgui/imgui.h"
@@ -27,7 +27,7 @@ namespace
 
 	void SyncEnabledToSettings()
 	{
-		TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
+		PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
 		/* Immediate write — debounce left toggles unset across Nexus reload. */
 		Settings::SaveNow();
 	}
@@ -72,7 +72,7 @@ namespace
 				mapId = ctx->mapId;
 		}
 		if (mapId)
-			TekkitTrails::Update(mapId);
+			PathingTrails::Update(mapId);
 
 		WaypointsData::Tick();
 		if (!WaypointsData::Ready() && !WaypointsData::Busy())
@@ -88,7 +88,7 @@ namespace
 			sPendingRoute = false;
 		}
 
-		const bool trailsBusy = TekkitTrails::IsLoading() || PathingPacks::IsUpdating();
+		const bool trailsBusy = PathingTrails::IsLoading() || PathingPacks::IsUpdating();
 		if (sPendingRoute)
 		{
 			/* Waypoint index only — do not block on pathing pack load/toggles. */
@@ -142,9 +142,9 @@ namespace
 			ImGui::TextWrapped("%s", route.status.c_str());
 		if (route.trailLabel[0])
 			ImGui::TextDisabled("Anchor: %s (%.0f, %.0f)", route.trailLabel, route.trailX, route.trailY);
-		if (TekkitTrails::HasSearchGuide())
+		if (PathingTrails::HasSearchGuide())
 			ImGui::TextColored(HelperTheme::Ok, "Orange in-world guide active.");
-		else if (TekkitTrails::HasSearchGuideActive())
+		else if (PathingTrails::HasSearchGuideActive())
 			ImGui::TextDisabled("Orange guide loading trail geometry…");
 
 		for (size_t i = 0; i < route.nearest.size(); ++i)
@@ -179,16 +179,16 @@ namespace
 		}
 	}
 }
-void TekkitGuidesPad::Open()
+void PathingGuidesPad::Open()
 {
-	G::ShowTekkitGuides = true;
+	G::ShowPathingGuides = true;
 	gRequestDock = true;
 	Settings::SetDirty();
 }
 
-bool TekkitGuidesPad::Render()
+bool PathingGuidesPad::Render()
 {
-	if (!G::ShowTekkitGuides)
+	if (!G::ShowPathingGuides)
 		return false;
 
 	const float maxH = PadDock::MaxH(400.f);
@@ -206,7 +206,7 @@ bool TekkitGuidesPad::Render()
 	else if (!gRequestDock && G::PadPathing.w < 80.f)
 		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 
-	bool open = G::ShowTekkitGuides;
+	bool open = G::ShowPathingGuides;
 	HelperTheme::ScopedWindow theme(G::Opacity);
 	if (!ImGui::Begin("Pathing##GW2InGameHelperPathing", &open,
 		ImGuiWindowFlags_NoNavInputs))
@@ -219,14 +219,14 @@ bool TekkitGuidesPad::Render()
 		ImGui::End();
 		if (!open)
 		{
-			G::ShowTekkitGuides = false;
+			G::ShowPathingGuides = false;
 			Settings::SetDirty();
 		}
 		return hovered || (focused && ImGui::GetIO().WantTextInput);
 	}
 	if (!open)
 	{
-		G::ShowTekkitGuides = false;
+		G::ShowPathingGuides = false;
 		Settings::SetDirty();
 	}
 	if (PadDock::Capture(G::PadPathing))
@@ -243,17 +243,17 @@ bool TekkitGuidesPad::Render()
 	case 0:
 		DrawCredits();
 		ImGui::Separator();
-		if (TekkitTrails::DrawOverlaySettings())
+		if (PathingTrails::DrawOverlaySettings())
 			SyncEnabledToSettings();
 		ImGui::Separator();
-		TekkitTrails::DrawPackTools();
+		PathingTrails::DrawPackTools();
 		break;
 	case 1:
 		if (PathingFeatures::RenderContents())
 			SyncEnabledToSettings();
 		break;
 	case 2:
-		if (TekkitTrails::DrawCategoryBrowser())
+		if (PathingTrails::DrawCategoryBrowser())
 			SyncEnabledToSettings();
 		break;
 	case 3:

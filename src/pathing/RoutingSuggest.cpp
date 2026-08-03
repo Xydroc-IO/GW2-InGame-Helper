@@ -2,7 +2,7 @@
 
 #include "ConfirmedWaypoints.h"
 #include "Globals.h"
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 #include "WaypointsData.h"
 
 #include <algorithm>
@@ -130,13 +130,13 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 
 	/* Packs optional: with no categories enabled, rank against the player.
 	   With packs on, prefer trail start when one is available. */
-	TekkitTrails::Update(mapId);
+	PathingTrails::Update(mapId);
 
 	char label[96]{};
 	bool fromPlayer = false;
-	const bool anyEnabled = !TekkitTrails::EnabledPaths().empty();
+	const bool anyEnabled = !PathingTrails::EnabledPaths().empty();
 	if (anyEnabled &&
-		TekkitTrails::TryTrailStartContinent(&r.trailX, &r.trailY, label, sizeof(label), true))
+		PathingTrails::TryTrailStartContinent(&r.trailX, &r.trailY, label, sizeof(label), true))
 	{
 		/* trail start locked in */
 	}
@@ -147,13 +147,13 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 		std::snprintf(label, sizeof(label), "your position");
 		fromPlayer = true;
 	}
-	else if (TekkitTrails::TryTrailStartContinent(&r.trailX, &r.trailY, label, sizeof(label), false))
+	else if (PathingTrails::TryTrailStartContinent(&r.trailX, &r.trailY, label, sizeof(label), false))
 	{
 		/* any loaded trail (search-rank) while Mumble player coords missing */
 	}
 	else
 	{
-		r.status = TekkitTrails::IsLoading()
+		r.status = PathingTrails::IsLoading()
 			? "Trail packs still loading — retry in a moment, or wait for MumbleLink."
 			: "MumbleLink position unavailable — open the map in-game and retry.";
 		gLast = r;
@@ -328,9 +328,9 @@ RoutingSuggest::Result RoutingSuggest::SuggestFromClipboard()
 	r.ok = true;
 	r.status = std::string("Routing to ") + poi.name + " (" + poi.type + ")";
 	ApplyOrangeGuide(r);
-	if (TekkitTrails::HasSearchGuide())
+	if (PathingTrails::HasSearchGuide())
 		r.status += " — orange guide set.";
-	else if (TekkitTrails::HasSearchGuideActive())
+	else if (PathingTrails::HasSearchGuideActive())
 		r.status += " — orange guide loading trail geometry…";
 	else
 		r.status += " — destination set (enable a nearby trail category if the guide stays empty).";
@@ -342,12 +342,12 @@ void RoutingSuggest::ApplyOrangeGuide(const Result& r)
 {
 	if (!r.trailLabel[0] && r.trailX == 0.f && r.trailY == 0.f)
 		return;
-	TekkitTrails::SetSearchDestination(r.trailX, r.trailY);
+	PathingTrails::SetSearchDestination(r.trailX, r.trailY);
 }
 
 void RoutingSuggest::ClearGuide()
 {
-	TekkitTrails::ClearSearchGuide();
+	PathingTrails::ClearSearchGuide();
 }
 
 bool RoutingSuggest::CopyChatLink(const char* chatLink)

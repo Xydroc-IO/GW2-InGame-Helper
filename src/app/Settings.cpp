@@ -5,7 +5,7 @@
 #include "Globals.h"
 #include "PadDock.h"
 #include "Sites.h"
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 #include "UI.h"
 
 #include <cstdio>
@@ -59,7 +59,7 @@ void Settings::Load()
 	bool sawLadyBarefoot = false;
 	bool sawLadyWpOnly = false;
 
-	/* TekkitEnabled can be multi-KB — old 768-byte fgets truncated category lists
+	/* PathingEnabled can be multi-KB — old 768-byte fgets truncated category lists
 	   so ParseEnabledPaths saw a partial/empty value and reset toggles on reload. */
 	char line[8704];
 	char key[64];
@@ -95,8 +95,11 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowAccount") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowEvents") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowLogManager") == 0) { /* ignore */ }
-		else if (std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore */ }
-		else if (std::strcmp(key, "ShowTekkitTrails") == 0) G::ShowTekkitTrails = AsBool(val);
+		else if (std::strcmp(key, "ShowPathingGuides") == 0 ||
+			std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowPathingTrails") == 0 ||
+			std::strcmp(key, "ShowTekkitTrails") == 0)
+			G::ShowPathingTrails = AsBool(val);
 		else if (std::strcmp(key, "LadyBarefoot") == 0)
 		{
 			G::LadyBarefoot = AsBool(val);
@@ -196,8 +199,9 @@ void Settings::Load()
 			std::snprintf(G::TpWatchAlerts, sizeof(G::TpWatchAlerts), "%s", val);
 		else if (std::strcmp(key, "EventTrackIds") == 0)
 			std::snprintf(G::EventTrackIds, sizeof(G::EventTrackIds), "%s", val);
-		else if (std::strcmp(key, "TekkitEnabled") == 0)
-			std::snprintf(G::TekkitEnabled, sizeof(G::TekkitEnabled), "%s", val);
+		else if (std::strcmp(key, "PathingEnabled") == 0 ||
+			std::strcmp(key, "TekkitEnabled") == 0)
+			std::snprintf(G::PathingEnabled, sizeof(G::PathingEnabled), "%s", val);
 		else if (std::strcmp(key, "LogFolder") == 0)
 			std::snprintf(G::LogFolder, sizeof(G::LogFolder), "%s", val);
 		else if (std::strcmp(key, "EliteInsightsPath") == 0)
@@ -321,7 +325,7 @@ void Settings::Load()
 		G::LogManagerWinH = 900.f;
 	if (G::LogManagerWinW < 960.f) G::LogManagerWinW = 960.f;
 	if (G::LogManagerWinH < 480.f) G::LogManagerWinH = 480.f;
-	/* Category paths restored in AddonLoad after TekkitTrails::Init(). */
+	/* Category paths restored in AddonLoad after PathingTrails::Init(). */
 
 	gDirty = false;
 }
@@ -360,8 +364,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowAccount=0\n");
 	std::fprintf(f, "ShowEvents=0\n");
 	std::fprintf(f, "ShowLogManager=0\n");
-	std::fprintf(f, "ShowTekkitGuides=0\n");
-	std::fprintf(f, "ShowTekkitTrails=%d\n", G::ShowTekkitTrails ? 1 : 0);
+	std::fprintf(f, "ShowPathingGuides=0\n");
+	std::fprintf(f, "ShowPathingTrails=%d\n", G::ShowPathingTrails ? 1 : 0);
 	std::fprintf(f, "LadyBarefoot=%d\n", G::LadyBarefoot ? 1 : 0);
 	std::fprintf(f, "LadyWpOnly=%d\n", G::LadyWpOnly ? 1 : 0);
 	std::fprintf(f, "LadyWithMounts=%d\n", G::LadyWithMounts ? 1 : 0);
@@ -375,8 +379,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "WorldTrailMaxDist=%.1f\n", G::WorldTrailMaxDist);
 	std::fprintf(f, "WorldTrailWidth=%.2f\n", G::WorldTrailWidth);
 	std::fprintf(f, "WorldTrailPlayerClear=%.2f\n", G::WorldTrailPlayerClear);
-	TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
-	std::fprintf(f, "TekkitEnabled=%s\n", G::TekkitEnabled);
+	PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
+	std::fprintf(f, "PathingEnabled=%s\n", G::PathingEnabled);
 	std::fprintf(f, "Opacity=%.4f\n", G::Opacity);
 	std::fprintf(f, "FontScale=%.4f\n", G::FontScale);
 	std::fprintf(f, "FontScaleAuto=%d\n", G::FontScaleAuto ? 1 : 0);

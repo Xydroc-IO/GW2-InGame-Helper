@@ -14,8 +14,8 @@
 #include "SessionHistoryData.h"
 #include "TpWatchPad.h"
 #include "EventsPad.h"
-#include "TekkitGuidesPad.h"
-#include "TekkitTrails.h"
+#include "PathingGuidesPad.h"
+#include "PathingTrails.h"
 #include "VaultPad.h"
 #include "WalletPad.h"
 #include "Settings.h"
@@ -41,8 +41,8 @@ namespace G
 	bool  ShowAccount  = false;
 	bool  ShowEvents   = false;
 	bool  ShowLogManager = false;
-	bool  ShowTekkitGuides = false;
-	bool  ShowTekkitTrails = true;
+	bool  ShowPathingGuides = false;
+	bool  ShowPathingTrails = true;
 	bool  LadyBarefoot = true;  /* Lady map-completion foot routes */
 	bool  LadyWpOnly = false;   /* Lady Core WP Only routes */
 	bool  LadyWithMounts = false; /* off by default so Barefoot works out of the box */
@@ -74,7 +74,7 @@ namespace G
 	char  TpWatchIds[1024] = "";
 	char  TpWatchAlerts[2048] = "";
 	char  EventTrackIds[4096] = "";
-	char  TekkitEnabled[8192] = "";
+	char  PathingEnabled[8192] = "";
 	char  LogFolder[512] = "";
 	char  EliteInsightsPath[512] = "";
 	char  DpsReportToken[128] = "";
@@ -195,22 +195,22 @@ static void OnToggleAccount(const char*, bool release)
 		AccountPad::OpenAndRefresh();
 }
 
-static void OnToggleTekkit(const char*, bool release)
+static void OnTogglePathing(const char*, bool release)
 {
 	if (release || !PanelBindDebounce()) return;
-	if (G::ShowTekkitGuides)
+	if (G::ShowPathingGuides)
 	{
-		G::ShowTekkitGuides = false;
+		G::ShowPathingGuides = false;
 		Settings::SetDirty();
 	}
 	else
-		TekkitGuidesPad::Open();
+		PathingGuidesPad::Open();
 }
 
 static void OnMarkerInteract(const char*, bool release)
 {
 	if (release) return;
-	TekkitTrails::RequestMarkerInteract();
+	PathingTrails::RequestMarkerInteract();
 }
 
 static void OnToggleEvents(const char*, bool release)
@@ -744,17 +744,17 @@ static void AddonLoad(AddonAPI_t* api)
 	CharacterProfiles::Load();
 	ConfirmedWaypoints::Load();
 	SessionHistoryData::Load();
-	TekkitTrails::Init();
+	PathingTrails::Init();
 	/* Restore category toggles after Init (Init no longer wipes them, but first
 	   load applies settings here so order stays Load → Init → apply). */
-	if (G::TekkitEnabled[0])
-		TekkitTrails::ParseEnabledPaths(G::TekkitEnabled);
+	if (G::PathingEnabled[0])
+		PathingTrails::ParseEnabledPaths(G::PathingEnabled);
 	else
 	{
 		/* First run / empty settings — enable Lady Elyssa so Windows users see
 		   trails without hunting Categories (was a common "trails broken" report). */
-		TekkitTrails::EnableAllLadyCategories();
-		TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
+		PathingTrails::EnableAllLadyCategories();
+		PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
 		Settings::SetDirty();
 	}
 	G::ShowWiki = false;
@@ -766,7 +766,7 @@ static void AddonLoad(AddonAPI_t* api)
 	G::ShowAccount = false;
 	G::ShowEvents = false;
 	G::ShowLogManager = false;
-	G::ShowTekkitGuides = false;
+	G::ShowPathingGuides = false;
 	G::ShowCompassPad = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
@@ -781,7 +781,7 @@ static void AddonLoad(AddonAPI_t* api)
 	api->InputBinds_RegisterWithString(KB_TOGGLE, OnToggle, "CTRL+SHIFT+H");
 	/* Panel pads — rebind in Nexus Options → Keybinds. */
 	api->InputBinds_RegisterWithString(KB_ACCOUNT, OnToggleAccount, "CTRL+SHIFT+A");
-	api->InputBinds_RegisterWithString(KB_TEKKIT, OnToggleTekkit, "CTRL+SHIFT+G");
+	api->InputBinds_RegisterWithString(KB_TEKKIT, OnTogglePathing, "CTRL+SHIFT+G");
 	api->InputBinds_RegisterWithString(KB_MARKER, OnMarkerInteract, "CTRL+SHIFT+F");
 	api->InputBinds_RegisterWithString(KB_EVENTS, OnToggleEvents, "CTRL+SHIFT+E");
 	api->InputBinds_RegisterWithString(KB_NOTES, OnToggleNotes, "CTRL+SHIFT+N");
@@ -807,7 +807,7 @@ static void AddonUnload()
 	G::ShowAccount = false;
 	G::ShowEvents = false;
 	G::ShowLogManager = false;
-	G::ShowTekkitGuides = false;
+	G::ShowPathingGuides = false;
 	G::ShowCompassPad = false;
 	G::ShowDirectionCompass = false;
 	G::ShowOptions = false;
@@ -828,7 +828,7 @@ static void AddonUnload()
 	Sites::Shutdown();
 
 	/* Persist pathing toggles before Shutdown clears runtime state. */
-	TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
+	PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
 	NotesPad::Save(true);
 	CharacterProfiles::CaptureCurrent();
 	CharacterProfiles::Save(true);
@@ -836,7 +836,7 @@ static void AddonUnload()
 	SessionHistoryData::Save(true);
 	Settings::SaveNow();
 
-	TekkitTrails::Shutdown();
+	PathingTrails::Shutdown();
 
 	if (G::API->Log)
 		G::API->Log(LOGL_INFO, ADDON_NAME, "Unloaded (Nexus disable / hot-reload).");

@@ -105,7 +105,7 @@ namespace
 	{
 		Profile p;
 		p.helper = G::ShowWiki;
-		p.pathing = G::ShowTekkitGuides;
+		p.pathing = G::ShowPathingGuides;
 		p.wallet = G::ShowWallet;
 		p.notes = G::ShowNotes;
 		p.account = G::ShowAccount;
@@ -122,7 +122,7 @@ namespace
 	void ApplyToGlobals(const Profile& p)
 	{
 		G::ShowWiki = p.helper;
-		G::ShowTekkitGuides = p.pathing;
+		G::ShowPathingGuides = p.pathing;
 		G::ShowWallet = p.wallet;
 		G::ShowNotes = p.notes;
 		G::ShowAccount = p.account;

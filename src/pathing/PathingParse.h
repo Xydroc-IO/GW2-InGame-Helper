@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 
 #include <cstdint>
 #include <string>
@@ -9,8 +9,8 @@
 
 #include "miniz/miniz.h"
 
-/* Zip / XML / .trl / .taco parsing helpers for TekkitTrails (no overlay state). */
-namespace TekkitParse
+/* Zip / XML / .trl / .taco parsing helpers for PathingTrails (no overlay state). */
+namespace PathingParse
 {
 	constexpr size_t kMaxZipBytes = 120u * 1024u * 1024u;
 	constexpr size_t kMaxTrailFile = 8u * 1024u * 1024u;
@@ -133,10 +133,10 @@ namespace TekkitParse
 		std::vector<IndexedPoi>& out,
 		const std::unordered_map<std::string, uint32_t>& categoryMapIds);
 	bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
-		std::vector<TekkitTrails::WorldPoint>& world);
+		std::vector<PathingTrails::WorldPoint>& world);
 
 	void ParseMarkerMenuXml(
 		const std::string& xml,
-		std::vector<TekkitTrails::Category>& roots,
+		std::vector<PathingTrails::Category>& roots,
 		std::unordered_map<std::string, MarkerStyle>& styles);
 }

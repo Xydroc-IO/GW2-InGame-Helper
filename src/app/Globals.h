@@ -74,8 +74,8 @@ namespace G
 	extern bool  ShowAccount; /* ImGui Account pad (tabbed stash/vault/TP/item) */
 	extern bool  ShowEvents; /* ImGui world-boss timers + track list — free-floating */
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
-	extern bool  ShowTekkitGuides; /* ImGui Tekkit category / credit panel */
-	extern bool  ShowTekkitTrails; /* master: load packs + draw overlays */
+	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
+	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
 	/* Lady Elyssa route filters — mutually exclusive map-completion editions. */
 	extern bool  LadyBarefoot;   /* foot routes + bfs shortcuts */
 	extern bool  LadyWpOnly;     /* WP Only routes alone */
@@ -109,7 +109,7 @@ namespace G
 	extern char  TpWatchIds[1024]; /* comma-separated item ids — user TP watchlist */
 	extern char  TpWatchAlerts[2048]; /* id:copperThresh,… — sell ≤ alert; 0/absent = off */
 	extern char  EventTrackIds[4096]; /* comma-separated event ids — user track list */
-	extern char  TekkitEnabled[8192]; /* '|' separated Tekkit category paths — persisted */
+	extern char  PathingEnabled[8192]; /* '|' separated category paths — persisted (settings also read legacy TekkitEnabled=) */
 	extern char  LogFolder[512]; /* ArcDPS cbtlogs folder */
 	extern char  EliteInsightsPath[512]; /* GuildWars2EliteInsights-CLI.exe */
 	extern char  DpsReportToken[128]; /* optional dps.report user token */

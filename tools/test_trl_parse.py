@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Golden checks for Tekkit .trl binary layout (mirrors TekkitParse::ParseTrl)."""
+"""Golden checks for TacO/Blish .trl binary layout (mirrors PathingParse::ParseTrl)."""
 
 from __future__ import annotations
 

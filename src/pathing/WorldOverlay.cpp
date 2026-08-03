@@ -1,7 +1,7 @@
 #include "WorldOverlay.h"
 
 #include "Globals.h"
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 
 #include "imgui/imgui.h"
 
@@ -240,7 +240,7 @@ namespace
 		return true;
 	}
 
-	void TrailFadeRange(const TekkitTrails::WorldSnippet& /*seg*/, float maxDist,
+	void TrailFadeRange(const PathingTrails::WorldSnippet& /*seg*/, float maxDist,
 		float& fadeStart, float& fadeEnd)
 	{
 		/* Soft edge — match the longer along-trail GPS window. */
@@ -251,7 +251,7 @@ namespace
 
 	int DrawTrailRibbon(ImDrawList* dl, const Mat4& viewProj,
 		float screenW, float screenH,
-		const Vec3& avatar, const TekkitTrails::WorldSnippet& seg,
+		const Vec3& avatar, const PathingTrails::WorldSnippet& seg,
 		float maxDist, float thickness, int segsLeft, bool bright)
 	{
 		if (!dl || seg.points.size() < 2 || segsLeft <= 0)
@@ -581,7 +581,7 @@ namespace
 
 		std::vector<Vec3> pts;
 		pts.reserve(64);
-		for (const TekkitTrails::WorldPoint& wp : seg.points)
+		for (const PathingTrails::WorldPoint& wp : seg.points)
 		{
 			if (!ReasonablePos(wp.x, wp.y, wp.z))
 			{
@@ -620,9 +620,9 @@ namespace
 
 	void DrawWorldMarkers(
 		ImDrawList* dl, const Mat4& viewProj, float screenW, float screenH,
-		const Vec3& avatar, const std::vector<TekkitTrails::Marker>& markers)
+		const Vec3& avatar, const std::vector<PathingTrails::Marker>& markers)
 	{
-		for (const TekkitTrails::Marker& marker : markers)
+		for (const PathingTrails::Marker& marker : markers)
 		{
 			/* TacO heightOffset is inches (same for Numbers and Mounts icons). */
 			const float heightM = marker.heightOffset * kInchesToMeters;
@@ -743,7 +743,7 @@ void WorldOverlay::Render()
 {
 	try
 	{
-	if (!G::ShowTekkitTrails)
+	if (!G::ShowPathingTrails)
 		return;
 	if (G::HideOutOfGameplay && G::NexusLink && !G::NexusLink->IsGameplay)
 		return;
@@ -756,10 +756,10 @@ void WorldOverlay::Render()
 
 	/* Always drive trail loading — even when in-world GPS is off or the world
 	   map is open — so enabling a category reloads without needing Reload packs. */
-	TekkitTrails::Update(ctx->mapId);
-	TekkitTrails::TickMarkerBehaviors();
+	PathingTrails::Update(ctx->mapId);
+	PathingTrails::TickMarkerBehaviors();
 
-	if (!G::ShowWorldTrails && !TekkitTrails::HasSearchGuideActive())
+	if (!G::ShowWorldTrails && !PathingTrails::HasSearchGuideActive())
 		return;
 	if (G::HideWhenMapOpen && (ctx->uiState & static_cast<uint32_t>(UiStateBits::MapOpen)))
 		return;
@@ -804,7 +804,7 @@ void WorldOverlay::Render()
 	ImDrawList* dl = ImGui::GetBackgroundDrawList();
 	if (!dl)
 		return;
-	TekkitTrails::BeginFrame();
+	PathingTrails::BeginFrame();
 
 	const float maxDist = G::LadyWpOnly
 		? std::clamp(std::max(G::WorldTrailMaxDist, 200.f), 160.f, 320.f)
@@ -815,14 +815,14 @@ void WorldOverlay::Render()
 	const Vec3 avatar{ax, ay, az};
 
 	/* Nearby route windows only (not full-map copies on the render thread). */
-	static std::vector<TekkitTrails::WorldSnippet> sNearCache;
-	static std::vector<TekkitTrails::Marker> sMarkerCache;
-	static TekkitTrails::WorldSnippet sGuideCache;
+	static std::vector<PathingTrails::WorldSnippet> sNearCache;
+	static std::vector<PathingTrails::Marker> sMarkerCache;
+	static PathingTrails::WorldSnippet sGuideCache;
 	static float sCacheAx = 0.f, sCacheAy = 0.f, sCacheAz = 0.f;
 	static uint32_t sGpsMap = 0;
 	static uint64_t sGpsContent = 0;
 
-	const uint64_t content = TekkitTrails::ContentRevision();
+	const uint64_t content = PathingTrails::ContentRevision();
 	if (sGpsMap != ctx->mapId)
 	{
 		sNearCache.clear();
@@ -845,9 +845,9 @@ void WorldOverlay::Render()
 
 	if (G::ShowWorldTrails && needRefresh)
 	{
-		std::vector<TekkitTrails::WorldSnippet> snips;
-		std::vector<TekkitTrails::Marker> marks;
-		if (TekkitTrails::TryNearbyWorldGps(ax, ay, az, maxDist, snips, marks))
+		std::vector<PathingTrails::WorldSnippet> snips;
+		std::vector<PathingTrails::Marker> marks;
+		if (PathingTrails::TryNearbyWorldGps(ax, ay, az, maxDist, snips, marks))
 		{
 			const bool got = !snips.empty() || !marks.empty();
 			if (got)
@@ -859,7 +859,7 @@ void WorldOverlay::Render()
 				sCacheAz = az;
 				sGpsContent = content;
 			}
-			else if (!TekkitTrails::HasDrawableWorldGps())
+			else if (!PathingTrails::HasDrawableWorldGps())
 			{
 				/* Filters really off / nothing loaded — allow clear. */
 				sNearCache.clear();
@@ -880,11 +880,11 @@ void WorldOverlay::Render()
 		}
 	}
 
-	if (TekkitTrails::HasSearchGuideActive())
+	if (PathingTrails::HasSearchGuideActive())
 	{
-		if (TekkitTrails::HasSearchGuide())
+		if (PathingTrails::HasSearchGuide())
 		{
-			const TekkitTrails::WorldSnippet guide = TekkitTrails::SearchGuideWorldSnippet();
+			const PathingTrails::WorldSnippet guide = PathingTrails::SearchGuideWorldSnippet();
 			if (guide.points.size() >= 2)
 				sGuideCache = guide;
 		}
@@ -905,7 +905,7 @@ void WorldOverlay::Render()
 		float drawDist = std::max(maxDist * 1.35f, 90.f);
 		if (G::LadyWpOnly)
 			drawDist = std::max(maxDist * 1.85f, 260.f);
-		for (const TekkitTrails::WorldSnippet& seg : sNearCache)
+		for (const PathingTrails::WorldSnippet& seg : sNearCache)
 		{
 			if (segsLeft <= 0)
 				break;

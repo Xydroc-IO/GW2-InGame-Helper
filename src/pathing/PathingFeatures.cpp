@@ -4,7 +4,7 @@
 #include "HelperTheme.h"
 #include "PathingPacks.h"
 #include "Settings.h"
-#include "TekkitTrails.h"
+#include "PathingTrails.h"
 
 #include "imgui/imgui.h"
 
@@ -22,7 +22,7 @@ namespace
 
 	bool LadyPackEnabled()
 	{
-		for (const std::string& p : TekkitTrails::EnabledPaths())
+		for (const std::string& p : PathingTrails::EnabledPaths())
 		{
 			const std::string l = LowerCopy(p);
 			if (l == "legs" || l == "leag" ||
@@ -35,7 +35,7 @@ namespace
 	void EnsureLadyCategories()
 	{
 		if (!LadyPackEnabled())
-			TekkitTrails::EnableAllLadyCategories();
+			PathingTrails::EnableAllLadyCategories();
 	}
 
 	/* One map-completion edition at a time — stacking drew WP on top of mounts. */
@@ -46,7 +46,7 @@ namespace
 		G::LadyWpOnly = wp;
 		if (bare || mounts || wp)
 			EnsureLadyCategories();
-		TekkitTrails::NotifyVisibilityFilterChanged();
+		PathingTrails::NotifyVisibilityFilterChanged();
 	}
 }
 
@@ -61,39 +61,39 @@ bool PathingFeatures::RenderContents()
 		if (ctx)
 			mapId = ctx->mapId;
 	}
-	TekkitTrails::Update(mapId ? mapId : 1u);
+	PathingTrails::Update(mapId ? mapId : 1u);
 
 	ImGui::TextUnformatted("Map Completion (Tekkit)");
 	ImGui::TextDisabled("One route edition at a time.");
-	const auto activeMc = TekkitTrails::ActiveMapCompletionRoutes();
-	using Mc = TekkitTrails::MapCompletionRoutes;
+	const auto activeMc = PathingTrails::ActiveMapCompletionRoutes();
+	using Mc = PathingTrails::MapCompletionRoutes;
 	bool bareOn = (activeMc == Mc::Barefoot);
 	bool griffOn = (activeMc == Mc::Griffon);
 	bool skyOn = (activeMc == Mc::Skyscale);
 	if (ImGui::Checkbox("Foot###gw2igh_feat_mc_bare", &bareOn))
 	{
 		if (bareOn)
-			TekkitTrails::EnableMapCompletionPreset(Mc::Barefoot);
+			PathingTrails::EnableMapCompletionPreset(Mc::Barefoot);
 		else
-			TekkitTrails::ClearMapCompletionCategories();
+			PathingTrails::ClearMapCompletionCategories();
 		dirty = true;
 	}
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Griffon###gw2igh_feat_mc_griff", &griffOn))
 	{
 		if (griffOn)
-			TekkitTrails::EnableMapCompletionPreset(Mc::Griffon);
+			PathingTrails::EnableMapCompletionPreset(Mc::Griffon);
 		else
-			TekkitTrails::ClearMapCompletionCategories();
+			PathingTrails::ClearMapCompletionCategories();
 		dirty = true;
 	}
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Skyscale###gw2igh_feat_mc_sky", &skyOn))
 	{
 		if (skyOn)
-			TekkitTrails::EnableMapCompletionPreset(Mc::Skyscale);
+			PathingTrails::EnableMapCompletionPreset(Mc::Skyscale);
 		else
-			TekkitTrails::ClearMapCompletionCategories();
+			PathingTrails::ClearMapCompletionCategories();
 		dirty = true;
 	}
 	ImGui::TextDisabled("Skyscale routes: HoT + SotO only. Elsewhere use Foot/Griffon.");
@@ -104,7 +104,7 @@ bool PathingFeatures::RenderContents()
 	ImGui::TextDisabled("One map-completion route edition at a time.");
 	if (ImGui::Button("Enable Lady packs###gw2igh_feat_lady_on"))
 	{
-		TekkitTrails::EnableAllLadyCategories();
+		PathingTrails::EnableAllLadyCategories();
 		dirty = true;
 	}
 	if (ImGui::IsItemHovered())
@@ -158,13 +158,13 @@ bool PathingFeatures::RenderContents()
 	ImGui::TextDisabled("Barefoot = foot trails. With Mounts = mount trails + icons.");
 	ImGui::TextDisabled("WP Only = waypoint trails alone. Categories must include Lady.");
 
-	if (TekkitTrails::IsLoading() || PathingPacks::IsUpdating())
+	if (PathingTrails::IsLoading() || PathingPacks::IsUpdating())
 		ImGui::TextDisabled("Indexing packs…");
 
 	ImGui::Spacing();
 	ImGui::Separator();
 	if (ImGui::Button("Reset marker states###gw2igh_path_feat_reset"))
-		TekkitTrails::ResetMarkerBehaviorStates();
+		PathingTrails::ResetMarkerBehaviorStates();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Clear Blish/TacO activation data (weekly chests, auto-triggers).\n"

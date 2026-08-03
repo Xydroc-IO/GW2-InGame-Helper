@@ -13,7 +13,7 @@
 #include "Settings.h"
 #include "Sites.h"
 #include "SyncQr.h"
-#include "TekkitGuidesPad.h"
+#include "PathingGuidesPad.h"
 #include "TpWatchPad.h"
 #include "UiScale.h"
 #include "VaultPad.h"
@@ -102,15 +102,15 @@ void UI_Options()
 	}
 	ImGui::TextColored(HelperTheme::Muted,
 		"ArcDPS EVTC browser. Auto-installs Elite Insights. Optional dps.report token.");
-	if (ImGui::Checkbox("Show Pathing###gw2igh_showtekkit", &G::ShowTekkitGuides))
+	if (ImGui::Checkbox("Show Pathing###gw2igh_showtekkit", &G::ShowPathingGuides))
 	{
-		if (G::ShowTekkitGuides)
-			TekkitGuidesPad::Open();
+		if (G::ShowPathingGuides)
+			PathingGuidesPad::Open();
 		Settings::SetDirty();
 	}
 	ImGui::TextColored(HelperTheme::Muted,
-		"Tekkit categories + compass. Keybind: KB_HELPER_TEKKIT (CTRL+SHIFT+G).");
-	if (ImGui::Checkbox("Enable Tekkit trail system###gw2igh_tekkitmaster", &G::ShowTekkitTrails))
+		"Pathing packs + compass. Keybind: KB_HELPER_TEKKIT (CTRL+SHIFT+G).");
+	if (ImGui::Checkbox("Enable Pathing trail system###gw2igh_pathingmaster", &G::ShowPathingTrails))
 		Settings::SetDirty();
 	if (ImGui::Checkbox("Draw over in-game compass###gw2igh_compass", &G::ShowCompassOverlay))
 		Settings::SetDirty();

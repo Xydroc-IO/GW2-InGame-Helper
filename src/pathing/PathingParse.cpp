@@ -1,4 +1,4 @@
-#include "TekkitParse.h"
+#include "PathingParse.h"
 
 #include <algorithm>
 #include <cmath>
@@ -12,7 +12,7 @@
 
 #include "miniz/miniz.h"
 
-namespace TekkitParse
+namespace PathingParse
 {
 std::string ToLower(std::string s)
 {
@@ -689,7 +689,7 @@ void IndexPoisXml(const std::wstring& packPath, const std::string& xml,
 }
 
 bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
-	std::vector<TekkitTrails::WorldPoint>& world)
+	std::vector<PathingTrails::WorldPoint>& world)
 {
 	world.clear();
 	if (data.size() < 20)
@@ -725,9 +725,9 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 
 	/* Collect every section first — Lady HP trails are multi-section and used to
 	   drop everything after a flat 512-point budget (paths stopped mid-map). */
-	std::vector<std::vector<TekkitTrails::WorldPoint>> sections;
+	std::vector<std::vector<PathingTrails::WorldPoint>> sections;
 	sections.reserve(64);
-	std::vector<TekkitTrails::WorldPoint> section;
+	std::vector<PathingTrails::WorldPoint> section;
 	section.reserve(64);
 	size_t totalPts = 0;
 
@@ -763,7 +763,7 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 	if (sections.empty())
 		return false;
 
-	auto appendDecimated = [&](const std::vector<TekkitTrails::WorldPoint>& src, size_t budget)
+	auto appendDecimated = [&](const std::vector<PathingTrails::WorldPoint>& src, size_t budget)
 	{
 		if (src.size() < 2 || budget < 2)
 			return;
@@ -819,12 +819,12 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 /* Parse Tekkit MarkerCategory menu (DisplayName + order) from overlay XML. */
 void ParseMarkerMenuXml(
 	const std::string& xml,
-	std::vector<TekkitTrails::Category>& roots,
+	std::vector<PathingTrails::Category>& roots,
 	std::unordered_map<std::string, MarkerStyle>& styles)
 {
 	struct Frame
 	{
-		TekkitTrails::Category* node;
+		PathingTrails::Category* node;
 		std::string path;
 	};
 	std::vector<Frame> stack;
@@ -899,7 +899,7 @@ void ParseMarkerMenuXml(
 			styles.emplace(stylePath, style);
 		else
 			MergeStyle(styleIt->second, style);
-		TekkitTrails::Category neu;
+		PathingTrails::Category neu;
 		neu.path = path;
 		neu.label = display;
 		neu.separator = sep;
@@ -911,10 +911,10 @@ void ParseMarkerMenuXml(
 		neu.trails = 0;
 		neu.enabled = false;
 
-		std::vector<TekkitTrails::Category>* dest =
+		std::vector<PathingTrails::Category>* dest =
 			stack.empty() ? &roots : &stack.back().node->children;
 		dest->push_back(std::move(neu));
-		TekkitTrails::Category* added = &dest->back();
+		PathingTrails::Category* added = &dest->back();
 
 		const bool selfClose = tag.size() >= 2 && tag[tag.size() - 2] == '/';
 		if (!selfClose)
@@ -922,4 +922,4 @@ void ParseMarkerMenuXml(
 	}
 }
 
-} // namespace TekkitParse
+} // namespace PathingParse
