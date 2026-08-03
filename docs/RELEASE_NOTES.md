@@ -40,7 +40,11 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   generated `Sites.gen.cpp`; edit `addons/GW2-InGame-Helper/sites.json` and restart
   for no-rebuild tweaks.
 - **UI input state:** File-local `UiContext` owns helper focus / game-input routing flags.
-- **Stamps:** Helper `2103` · homepage `2103` · sites `s2103`
+- **Cheat sheets:** Offline pages live in `data/cheatsheets/` (embedded zip extract).
+- **Pathing:** Panel renamed from Tekkit’s Guides; auto-downloads latest **Tekkit**
+  All-In-One + **Lady Elyssa** packs (GitHub / Tekkit CDN) into `pathing/`; user
+  `.taco` files are kept. Credits for both authors in-panel.
+- **Stamps:** Helper `2103` · homepage `2104` · sites `s2103` · cheatsheets `c2103`
 
 ## What’s new in 2.1.0.2
 

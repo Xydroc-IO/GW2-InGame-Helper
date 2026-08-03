@@ -1,6 +1,6 @@
 #pragma once
 
-/* ImGui control panel for Tekkit's Guides — credit + category toggles.
+/* ImGui Pathing panel — credits + category toggles for TacO packs.
    Compass / world drawing lives in CompassOverlay + WorldOverlay. */
 namespace TekkitGuidesPad
 {

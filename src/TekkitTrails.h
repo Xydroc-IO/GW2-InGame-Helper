@@ -88,6 +88,8 @@ namespace TekkitTrails
 	std::vector<std::string> LoadedPackNames();
 	std::string PathingFolderHint();
 	void ReloadPacks(); /* re-scan pathing/ after adding/removing .taco files */
+	/* Force re-download curated packs (Lady Elyssa + Tekkit), then ReloadPacks. */
+	void UpdateCuratedPacks();
 	int  TrailCount();          /* visible (category-enabled) trails */
 	int  TrailCountAllOnMap();  /* all loaded for this map (for routing) */
 	int  MarkerCount();         /* visible (category-enabled) POIs */

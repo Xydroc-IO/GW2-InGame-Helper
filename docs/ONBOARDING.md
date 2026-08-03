@@ -36,13 +36,13 @@ This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper
 |------|------------|
 | Browse UI | `UI_Browse.cpp` |
 | DPS Logs | `LogManagerPad.cpp` → `LogManagerParse` / `Upload` / `Ei` |
-| Tekkit | `TekkitTrails.cpp` → `TekkitParse` / `TekkitIndex` |
+| Pathing | `TekkitTrails.cpp` → `TekkitParse` / `TekkitIndex` / `PathingPacks` |
 | Live digests | `LivePanels.cpp` → `LivePanelsBuild` |
 | Account API pads | `AccountPad.cpp`, `ProgressData.cpp`, `CraftingData.cpp` |
 
 Run parse fixture tests: `make test-parse`.
 
-**Done when:** you know which TU owns parse vs UI for Logs and Tekkit.
+**Done when:** you know which TU owns parse vs UI for Logs and Pathing.
 
 ---
 

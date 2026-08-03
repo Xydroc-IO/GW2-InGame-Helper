@@ -1,10 +1,11 @@
 #include "TekkitTrails.h"
 
-#include "TekkitParse.h"
-#include "TekkitIndex.h"
-
+#include "AddonPaths.h"
 #include "Globals.h"
+#include "PathingPacks.h"
 #include "Settings.h"
+#include "TekkitIndex.h"
+#include "TekkitParse.h"
 
 #include <atomic>
 #include <algorithm>
@@ -871,7 +872,9 @@ void TekkitTrails::Shutdown()
 
 void TekkitTrails::Update(uint32_t mapId)
 {
-	if (!G::ShowTekkitTrails || mapId == 0)
+	/* Index / curated downloads can run with overlays off (Pathing panel open).
+	   Compass / world callers only invoke Update when overlays are enabled. */
+	if (mapId == 0)
 		return;
 
 	/* Keep search routing locked to the live player continent position, but only
@@ -1006,6 +1009,12 @@ void TekkitTrails::ReloadPacks()
 	gLoading.store(false, std::memory_order_release);
 	gForceReload.store(false, std::memory_order_release);
 	gIndexStarted.store(false, std::memory_order_release);
+}
+
+void TekkitTrails::UpdateCuratedPacks()
+{
+	PathingPacks::RequestForceUpdate();
+	ReloadPacks();
 }
 
 uint64_t TekkitTrails::ContentRevision()
@@ -1886,10 +1895,9 @@ bool TekkitTrails::DrawSettings()
 
 	dirty |= ImGui::Checkbox("Enable path overlays", &G::ShowTekkitTrails);
 	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("Master switch — loads packs and allows compass / world drawing.");
-	if (!G::ShowTekkitTrails)
-		return dirty;
-
+		ImGui::SetTooltip("Master switch — allows compass / world drawing (packs still index below).");
+	if (G::ShowTekkitTrails)
+	{
 	dirty |= ImGui::Checkbox("Draw on in-game compass", &G::ShowCompassOverlay);
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip("TacO / Blish style — project enabled markers onto the stock compass.");
@@ -1907,6 +1915,7 @@ bool TekkitTrails::DrawSettings()
 	}
 	dirty |= ImGui::Checkbox("Hide when world map open", &G::HideWhenMapOpen);
 	dirty |= ImGui::Checkbox("Hide out of gameplay", &G::HideOutOfGameplay);
+	}
 
 	ImGui::Separator();
 	ImGui::TextUnformatted("Packs");
@@ -1915,15 +1924,28 @@ bool TekkitTrails::DrawSettings()
 	if (ImGui::Button("Reload packs"))
 		ReloadPacks();
 	ImGui::SameLine();
+	if (ImGui::Button("Update curated"))
+		UpdateCuratedPacks();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Re-download latest Lady Elyssa + Tekkit packs from GitHub / Tekkit CDN.\n"
+			"Does not remove any .taco you added yourself.");
+	ImGui::SameLine();
 	if (ImGui::Button("Open folder"))
 		OpenPathingFolder();
-	if (IsLoading())
+	if (IsLoading() || PathingPacks::IsUpdating())
 	{
 		ImGui::SameLine();
-		ImGui::TextDisabled("Loading…");
+		ImGui::TextDisabled(PathingPacks::IsUpdating() ? "Updating…" : "Loading…");
+	}
+	{
+		char st[160]{};
+		PathingPacks::GetStatus(st, sizeof(st));
+		if (st[0])
+			ImGui::TextDisabled("%s", st);
 	}
 
-	const bool loading = IsLoading();
+	const bool loading = IsLoading() || PathingPacks::IsUpdating();
 	const std::vector<std::string> packs = LoadedPackNames();
 	if (loading)
 		ImGui::TextDisabled("Packs: %d  ·  indexing categories…", PackCount());
@@ -1940,7 +1962,7 @@ bool TekkitTrails::DrawSettings()
 	if (PackCount() == 0 && !loading)
 	{
 		ImGui::TextColored(ImVec4(1.f, 0.7f, 0.3f, 1.f),
-			"No .taco packs — drop Tekkit's All-In-One into the pathing folder.");
+			"No .taco packs yet — click Update curated, or drop packs into the pathing folder.");
 		return dirty;
 	}
 

@@ -61,6 +61,7 @@ DLL_SRC = \
 	src/TekkitTrails.cpp \
 	src/TekkitIndex.cpp \
 	src/TekkitParse.cpp \
+	src/PathingPacks.cpp \
 	src/CompassOverlay.cpp \
 	src/WorldOverlay.cpp \
 	src/HelperQuickAccess.cpp \

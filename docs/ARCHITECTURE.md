@@ -82,7 +82,7 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
   cef/                     # private CEF 150 (downloaded)
   settings.ini
   helper-home.html (+ .ver)
-  pathing/                 # Tekkit packs
+  pathing/                 # curated Tekkit + Lady Elyssa .taco (+ user packs)
   ei/                      # Elite Insights CLI (optional)
 ```
 
@@ -181,7 +181,7 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 | Path | Responsibility |
 |------|----------------|
 | `LogManagerPad` / `Parse` / `Upload` / `Ei` | DPS Logs UI, EVTC/JSON parse, dps.report, EI CLI |
-| `TekkitTrails` / `Parse` / `Index` | Pathing runtime, taco/XML/.trl parse, pack index |
+| `TekkitTrails` / `Parse` / `Index` / `PathingPacks` | Pathing runtime, curated pack download, taco/XML/.trl |
 | `LivePanels` / `Build` / `Html` | about: live digests — workers vs HTML builders |
 | `CheatSheets` + `data/cheatsheets/` | Offline about: sheets (embedded zip → runtime extract) |
 | `AccountPad`, `WalletPad`, `VaultPad`, `NotesPad`, … | ImGui feature pads |

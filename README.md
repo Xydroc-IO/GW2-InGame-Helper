@@ -42,7 +42,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | Vault (toolbar **Vault**) | ImGui |
 | DPS Logs (toolbar **DPS Logs**) | ImGui |
 | World Events (toolbar **Events**) | ImGui |
-| Tekkit's Guides (toolbar **Tekkit**) | ImGui + MumbleLink |
+| Pathing (toolbar) | ImGui + MumbleLink · Tekkit + Lady Elyssa + user `.taco` |
 | Notes + Waypoints (toolbar **Notes**) | ImGui |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |

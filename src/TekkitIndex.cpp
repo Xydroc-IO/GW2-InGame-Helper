@@ -1,6 +1,8 @@
 #include "TekkitIndex.h"
 
+#include "AddonPaths.h"
 #include "Globals.h"
+#include "PathingPacks.h"
 
 #include <algorithm>
 #include <atomic>
@@ -368,6 +370,16 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 		}
 		gPackCount.store(0, std::memory_order_release);
 
+		/* Download / refresh curated packs into our pathing/ first (worker only).
+		   User-dropped .taco files are never removed. */
+		{
+			const std::wstring ourPathing = AddonPaths::DataDir() + L"\\pathing";
+			if (!ourPathing.empty())
+				PathingPacks::EnsureCurated(ourPathing.c_str());
+		}
+		if (gEpoch.load(std::memory_order_acquire) != epoch)
+			return;
+
 		std::vector<std::wstring> dirs;
 		DiscoverPackDirs(dirs);
 
@@ -392,8 +404,8 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 				ListTacoFiles(d, packs, true); /* Tekkit seed only */
 		}
 
-		/* Soft cap — huge multi-pack dumps blow memory under Wine. */
-		constexpr size_t kMaxPacks = 8;
+		/* Soft cap — curated + a few user packs; huge dumps still blow Wine. */
+		constexpr size_t kMaxPacks = 12;
 		if (packs.size() > kMaxPacks)
 			packs.resize(kMaxPacks);
 

@@ -63,7 +63,7 @@ Not Browse rows — open from the helper toolbar / Nexus Options. Session-only v
 - **Vault** — Dailies & Wizard’s Vault with UTC reset countdowns (also under Account → Vault)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + optional dps.report; KillProof tab (killproof.me); group-by-encounter default; see [`DPS_LOGS.md`](DPS_LOGS.md)
 - **World Events** — UTC boss / meta timers; keybind `KB_HELPER_EVENTS` (`Ctrl+Shift+E`)
-- **Tekkit's Guides** — local `.taco` pathing + MumbleLink overlays; keybind `KB_HELPER_TEKKIT` (`Ctrl+Shift+G`)
+- **Pathing** — curated Tekkit + Lady Elyssa `.taco` auto-update + local packs; keybind `KB_HELPER_TEKKIT` (`Ctrl+Shift+G`)
 
 ## Wiki
 

@@ -60,6 +60,7 @@ add_library(GW2-InGame-Helper SHARED
   src/TekkitTrails.cpp
   src/TekkitIndex.cpp
   src/TekkitParse.cpp
+  src/PathingPacks.cpp
   src/CompassOverlay.cpp
   src/WorldOverlay.cpp
   src/HelperQuickAccess.cpp

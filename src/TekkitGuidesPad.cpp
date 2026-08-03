@@ -3,6 +3,7 @@
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PadDock.h"
+#include "PathingPacks.h"
 #include "Settings.h"
 #include "TekkitTrails.h"
 
@@ -55,7 +56,7 @@ bool TekkitGuidesPad::Render()
 	bool open = G::ShowTekkitGuides;
 	HelperTheme::ScopedWindow theme(G::Opacity);
 	/* NoNavInputs — gamepad/keyboard nav steals letters from the category filter. */
-	if (!ImGui::Begin("Tekkit's Guides##GW2InGameHelperTekkit", &open,
+	if (!ImGui::Begin("Pathing##GW2InGameHelperPathing", &open,
 		ImGuiWindowFlags_NoNavInputs))
 	{
 		const bool hovered = ImGui::IsWindowHovered(
@@ -77,12 +78,18 @@ bool TekkitGuidesPad::Render()
 		return false;
 	}
 
-	ImGui::TextColored(HelperTheme::Gold, "TEKKIT'S GUIDES");
+	ImGui::TextColored(HelperTheme::Gold, "PATHING");
 	ImGui::PushTextWrapPos(0.f);
 	ImGui::TextColored(HelperTheme::Muted,
-		"Guides & trails © Tekkit's Workshop (All-In-One pack) — used with permission. "
-		"This panel only toggles display.");
+		"Curated packs auto-update from the authors' releases. Drop any extra .taco "
+		"into the pathing folder — your files are never deleted.");
+	ImGui::Spacing();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Tekkit's All-In-One © Tekkit's Workshop — used with permission.");
 	ImGui::TextDisabled("https://www.tekkitsworkshop.net/");
+	ImGui::TextColored(HelperTheme::Muted,
+		"Lady Elyssa's Guides & Achievements © Lady Elyssa.");
+	ImGui::TextDisabled("https://wiki.guildwars2.com/wiki/User:Lady_Elyssa");
 	ImGui::PopTextWrapPos();
 	ImGui::Separator();
 

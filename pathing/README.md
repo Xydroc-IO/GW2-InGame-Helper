@@ -2,17 +2,26 @@
 
 Put TacO / BlishHUD **`.taco`** files in this folder. The addon loads all of them.
 
-## Included / recommended
+## Curated packs (auto-updated)
 
-- **`Tekkit's All-In-One.taco`** — © Tekkit's Workshop (used with permission)
+On first Pathing load (and when you click **Update curated**), the addon downloads:
 
-`make install` copies this folder (and will also pull Tekkit’s pack from
-`../gw2-minimap-resizer/pathing/` if present and missing here).
+| Pack | Source |
+|------|--------|
+| `tw_ALL_IN_ONE.taco` | [Tekkit's Workshop](https://www.tekkitsworkshop.net/) CDN |
+| `LadyElyssa.taco` | [LadyElyssaTacoTrails](https://github.com/LadyElyssa/LadyElyssaTacoTrails) GitHub Releases |
+| `LadyElyssaAP.taco` | [LadyElyssaAchievementGuides](https://github.com/LadyElyssa/LadyElyssaAchievementGuides) GitHub Releases |
+
+Credits: **Tekkit's Workshop** (All-In-One — used with permission) · **Lady Elyssa**
+([wiki](https://wiki.guildwars2.com/wiki/User:Lady_Elyssa)).
+
+Stamp files (`*.taco.ver`) track the release / size so updates only re-download when needed.
+**Your own `.taco` files are never deleted.**
 
 ## Custom packs
 
-1. Copy any `.taco` pack here (same format as TacO / BlishHUD / Taimi).
-2. In-game, open **Tekkit** (toolbar) and click **Reload packs**.
+1. Copy any `.taco` pack into this folder (same format as TacO / BlishHUD / Taimi).
+2. In-game, open **Pathing** and click **Reload packs** (or **Update curated** to refresh downloads too).
 3. Enable the categories you want (everything starts unchecked each launch).
 
 Installed path:
@@ -22,4 +31,4 @@ Installed path:
 ```
 
 Taimi / Blish / TacO are **not** required. Fallback discovery still looks for
-Tekkit under Minimap Resizer / those installs if present.
+packs under Minimap Resizer / those installs if our folder is empty.

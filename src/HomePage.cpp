@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "2103";
+	static constexpr const char* kHomePageVersion = "2104";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -431,7 +431,7 @@ const char* HomePage::Html()
           <ul>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>) — open / close this helper</li>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> — Account pad</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> — Tekkit's Guides</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> — Pathing</li>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — World Events</li>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> — Notes</li>
             <li><kbd>Ctrl</kbd>+<kbd>T</kbd> — new tab picker · <kbd>Ctrl</kbd>+<kbd>W</kbd> — close tab · <kbd>Ctrl</kbd>+<kbd>Tab</kbd> — cycle tabs</li>

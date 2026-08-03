@@ -582,7 +582,7 @@ namespace
 				else
 					LogManagerPad::OpenAndRefresh();
 			}
-			if (ImGui::MenuItem(G::ShowTekkitGuides ? "Hide Tekkit's Guides" : "Show Tekkit's Guides"))
+			if (ImGui::MenuItem(G::ShowTekkitGuides ? "Hide Pathing" : "Show Pathing"))
 			{
 				if (G::ShowTekkitGuides)
 				{
@@ -685,7 +685,7 @@ namespace
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Account — stash, vault, TP, item lookup (tabbed)");
 		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Tekkit's Guides###gw2igh_tekkit"))
+		if (ImGui::Button("Pathing###gw2igh_pathing"))
 		{
 			if (G::ShowTekkitGuides)
 			{
@@ -696,7 +696,7 @@ namespace
 				TekkitGuidesPad::Open();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Tekkit's Guides — compass trails + category toggles (© Tekkit)");
+			ImGui::SetTooltip("Pathing — compass / GPS trails (Tekkit + Lady Elyssa + your packs)");
 		ImGui::SameLine(0.f, 4.f);
 		if (ImGui::Button("Events###gw2igh_events"))
 		{

@@ -100,7 +100,7 @@ void UI_Options()
 	}
 	ImGui::TextColored(HelperTheme::Muted,
 		"ArcDPS EVTC browser. Auto-installs Elite Insights. Optional dps.report token.");
-	if (ImGui::Checkbox("Show Tekkit's Guides###gw2igh_showtekkit", &G::ShowTekkitGuides))
+	if (ImGui::Checkbox("Show Pathing###gw2igh_showtekkit", &G::ShowTekkitGuides))
 	{
 		if (G::ShowTekkitGuides)
 			TekkitGuidesPad::Open();
@@ -267,7 +267,7 @@ void UI_Options()
 		"Window size and position are saved automatically.");
 	ImGui::TextWrapped(
 		"Hotkeys (rebind in Nexus → Keybinds): Ctrl+Shift+H helper | "
-		"Ctrl+Shift+A Account | Ctrl+Shift+G Tekkit's Guides | "
+		"Ctrl+Shift+A Account | Ctrl+Shift+G Pathing | "
 		"Ctrl+Shift+E Events | Ctrl+Shift+N Notes & Waypoints. "
 		"In helper: Ctrl+T new tab | Ctrl+W close | Ctrl+Tab cycle | Ctrl+F find.");
 	SyncQr::DrawOptionsSection();
