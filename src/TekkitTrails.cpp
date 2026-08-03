@@ -2,6 +2,9 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "MarkerBehaviors.h"
+#include "MumbleIdentity.h"
+#include "PadNav.h"
 #include "PathingPacks.h"
 #include "Settings.h"
 #include "TekkitIndex.h"
@@ -28,6 +31,11 @@
 #include <shlobj.h>
 
 #include "imgui/imgui.h"
+
+namespace
+{
+	bool MarkerBehaviorVisible(const TekkitTrails::Marker& m);
+}
 
 namespace TekkitDetail
 {
@@ -339,9 +347,12 @@ namespace TekkitDetail
 
 	void RebuildSearchGuideLocked()
 	{
-		gGuide = {};
 		if (!gGuideActive || gCurrentAll.empty())
+		{
+			/* Keep any previous guide polyline — clearing here makes the orange
+			   ribbon blink whenever packs are mid-reload. */
 			return;
+		}
 
 		const float destX = gGuideDestX;
 		const float destY = gGuideDestY;
@@ -403,7 +414,7 @@ namespace TekkitDetail
 		}
 
 		if (bestTrail < 0)
-			return;
+			return; /* keep prior gGuide — avoids disappear/reappear flicker */
 
 		const TekkitTrails::Trail& src = gCurrentAll[static_cast<size_t>(bestTrail)];
 		int a = bestPi;
@@ -415,21 +426,22 @@ namespace TekkitDetail
 		if (b - a < 1)
 			return;
 
-		gGuide.mapId = src.mapId;
-		gGuide.color = 0xFFFFAA20u;
-		std::snprintf(gGuide.label, sizeof(gGuide.label), "Search route · %s", src.label);
-		gGuide.points.assign(src.points.begin() + a, src.points.begin() + b + 1);
-		/* Keep world meters in lockstep — in-world GPS needs these. */
+		TekkitTrails::Trail next{};
+		next.mapId = src.mapId;
+		next.color = 0xFFFFAA20u;
+		std::snprintf(next.label, sizeof(next.label), "Search route · %s", src.label);
+		next.points.assign(src.points.begin() + a, src.points.begin() + b + 1);
 		if (src.worldPoints.size() == src.points.size())
 		{
-			gGuide.worldPoints.assign(
+			next.worldPoints.assign(
 				src.worldPoints.begin() + a, src.worldPoints.begin() + b + 1);
 		}
 		if (bestPi > bestDi)
 		{
-			std::reverse(gGuide.points.begin(), gGuide.points.end());
-			std::reverse(gGuide.worldPoints.begin(), gGuide.worldPoints.end());
+			std::reverse(next.points.begin(), next.points.end());
+			std::reverse(next.worldPoints.begin(), next.worldPoints.end());
 		}
+		gGuide = std::move(next);
 	}
 
 	struct OpenPack
@@ -681,6 +693,29 @@ namespace TekkitDetail
 			m.fadeFar = style.fadeFar;
 			m.alpha = std::clamp(style.alpha, 0.f, 1.f);
 			std::snprintf(m.label, sizeof(m.label), "%s", poi.type.c_str());
+			if (!poi.guid.empty())
+				std::snprintf(m.guid, sizeof(m.guid), "%s", poi.guid.c_str());
+			m.behavior = style.behavior;
+			m.autoTrigger = style.autoTrigger;
+			m.triggerRange = style.hasTriggerRange ? style.triggerRange : 2.f;
+			m.resetLength = style.resetLength;
+			m.invertBehavior = style.invertBehavior;
+			if (style.hasHide)
+				std::snprintf(m.hide, sizeof(m.hide), "%s", style.hide.c_str());
+			if (style.hasShow)
+				std::snprintf(m.show, sizeof(m.show), "%s", style.show.c_str());
+			if (style.hasTipName)
+				std::snprintf(m.tipName, sizeof(m.tipName), "%s", style.tipName.c_str());
+			if (style.hasTipDescription)
+				std::snprintf(m.tipDescription, sizeof(m.tipDescription), "%s",
+					style.tipDescription.c_str());
+			if (style.hasInfo)
+				std::snprintf(m.info, sizeof(m.info), "%s", style.info.c_str());
+			if (style.hasCopy)
+				std::snprintf(m.copy, sizeof(m.copy), "%s", style.copy.c_str());
+			if (style.hasCopyMessage)
+				std::snprintf(m.copyMessage, sizeof(m.copyMessage), "%s",
+					style.copyMessage.c_str());
 			const std::string& icon = style.iconFile;
 			if (!icon.empty())
 			{
@@ -827,6 +862,7 @@ using namespace TekkitDetail;
 
 void TekkitTrails::Init()
 {
+	MarkerBehaviors::Init();
 	gEpoch.fetch_add(1, std::memory_order_acq_rel);
 	gLoadGen.fetch_add(1, std::memory_order_acq_rel);
 	AbortHttp();
@@ -861,6 +897,7 @@ void TekkitTrails::Init()
 
 void TekkitTrails::Shutdown()
 {
+	MarkerBehaviors::Shutdown();
 	gEpoch.fetch_add(1, std::memory_order_acq_rel);
 	gLoadGen.fetch_add(1, std::memory_order_acq_rel);
 	AbortHttp();
@@ -901,7 +938,8 @@ void TekkitTrails::Update(uint32_t mapId)
 			std::lock_guard<std::mutex> lock(gMutex);
 			const float dx = ctx->playerX - gGuidePlayerX;
 			const float dy = ctx->playerY - gGuidePlayerY;
-			const bool moved = (dx * dx + dy * dy) > (120.f * 120.f);
+			/* Larger hysteresis — rebuilds used to flip the orange guide on/off. */
+			const bool moved = (dx * dx + dy * dy) > (280.f * 280.f);
 			gGuidePlayerX = ctx->playerX;
 			gGuidePlayerY = ctx->playerY;
 			const bool first = !gGuideHavePlayer;
@@ -1119,6 +1157,8 @@ std::vector<TekkitTrails::Marker> TekkitTrails::CurrentMarkersInBounds(
 	{
 		if (!marker.minimapVisible)
 			continue;
+		if (!MarkerBehaviorVisible(marker))
+			continue;
 		if (marker.pos.x < minX || marker.pos.x > maxX ||
 			marker.pos.y < minY || marker.pos.y > maxY)
 			continue;
@@ -1144,6 +1184,8 @@ std::vector<TekkitTrails::Marker> TekkitTrails::NearbyWorldMarkers(
 	for (const Marker& marker : gCurrentMarkers)
 	{
 		if (!marker.inGameVisible)
+			continue;
+		if (!MarkerBehaviorVisible(marker))
 			continue;
 		const float dx = marker.world.x - x;
 		const float dy = marker.world.y - y;
@@ -1497,6 +1539,8 @@ bool TekkitTrails::TryNearbyWorldGps(
 	{
 		if (!marker.inGameVisible)
 			continue;
+		if (!MarkerBehaviorVisible(marker))
+			continue;
 		const float d = dist2(marker.world.x, marker.world.y, marker.world.z);
 		if (d > markDist2)
 			continue;
@@ -1509,10 +1553,9 @@ bool TekkitTrails::TryNearbyWorldGps(
 
 TekkitTrails::WorldSnippet TekkitTrails::SearchGuideWorldSnippet()
 {
-	std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
+	/* Blocking lock — try_lock returned empty mid-Update and blinked the guide. */
+	std::lock_guard<std::mutex> lock(gMutex);
 	WorldSnippet snip;
-	if (!lock.owns_lock())
-		return snip;
 	if (!gGuideActive || gGuide.worldPoints.size() < 2)
 		return snip;
 	snip.color = gGuide.color ? gGuide.color : 0xFFFFAA20u;
@@ -1545,24 +1588,103 @@ std::vector<TekkitTrails::Category> TekkitTrails::CategoryTree()
 
 void TekkitTrails::SetCategoryEnabled(const std::string& path, bool enabled)
 {
+	ApplyCategoryShowHide(
+		enabled ? std::vector<std::string>{path} : std::vector<std::string>{},
+		enabled ? std::vector<std::string>{} : std::vector<std::string>{path});
+}
+
+void TekkitTrails::ApplyCategoryShowHide(
+	const std::vector<std::string>& showPaths,
+	const std::vector<std::string>& hidePaths)
+{
+	if (showPaths.empty() && hidePaths.empty())
+		return;
 	std::lock_guard<std::mutex> lock(gMutex);
-	const std::string low = ToLower(path);
-	/* Drop this path, its descendants, and (when disabling) any ancestor that
-	   was covering it via prefix inheritance. */
-	gEnabledPaths.erase(
-		std::remove_if(gEnabledPaths.begin(), gEnabledPaths.end(),
-			[&](const std::string& p) {
-				const std::string el = ToLower(p);
-				return PrefixMatchesType(el, low) || PrefixMatchesType(low, el);
-			}),
-		gEnabledPaths.end());
-	if (enabled)
+	auto stripPath = [&](const std::string& path) {
+		const std::string low = ToLower(path);
+		gEnabledPaths.erase(
+			std::remove_if(gEnabledPaths.begin(), gEnabledPaths.end(),
+				[&](const std::string& p) {
+					const std::string el = ToLower(p);
+					return PrefixMatchesType(el, low) || PrefixMatchesType(low, el);
+				}),
+			gEnabledPaths.end());
+	};
+	for (const std::string& path : hidePaths)
+	{
+		if (!path.empty())
+			stripPath(path);
+	}
+	for (const std::string& path : showPaths)
+	{
+		if (path.empty())
+			continue;
+		stripPath(path);
 		gEnabledPaths.push_back(path);
+	}
 	MarkEnabled(gMenu);
 	gMenuRevision.fetch_add(1, std::memory_order_release);
 	gEnabledGen.fetch_add(1, std::memory_order_release);
 	gForceReload.store(true, std::memory_order_release);
 }
+
+void TekkitTrails::ResetMarkerBehaviorStates()
+{
+	MarkerBehaviors::ResetAllStates();
+}
+
+void TekkitTrails::RequestMarkerInteract()
+{
+	MarkerBehaviors::RequestInteract();
+}
+
+void TekkitTrails::DrawMarkerBehaviorOverlay()
+{
+	MarkerBehaviors::DrawOverlay();
+}
+
+void TekkitTrails::TickMarkerBehaviors()
+{
+	if (!G::Mumble || G::Mumble->uiTick == 0)
+		return;
+	const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
+	if (!ctx || ctx->mapId == 0)
+		return;
+	MumbleIdentity::Tick();
+	std::vector<Marker> markers;
+	{
+		std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
+		if (!lock.owns_lock())
+			return;
+		markers = gCurrentMarkers;
+	}
+	MarkerBehaviors::Tick(
+		ctx->mapId, ctx->shardId, ctx->instance,
+		G::Mumble->fAvatarPosition[0],
+		G::Mumble->fAvatarPosition[1],
+		G::Mumble->fAvatarPosition[2],
+		MumbleIdentity::CharacterName(),
+		markers);
+}
+
+namespace
+{
+bool MarkerBehaviorVisible(const TekkitTrails::Marker& m)
+{
+	uint32_t mapId = 0, shard = 0, inst = 0;
+	if (G::Mumble && G::Mumble->uiTick != 0)
+	{
+		const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
+		if (ctx)
+		{
+			mapId = ctx->mapId;
+			shard = ctx->shardId;
+			inst = ctx->instance;
+		}
+	}
+	return MarkerBehaviors::ShouldDisplay(m, mapId, shard, inst, MumbleIdentity::CharacterName());
+}
+} // namespace
 
 void TekkitTrails::EnableMapCompletionPreset(MapCompletionRoutes routes)
 {
@@ -1875,6 +1997,18 @@ void TekkitTrails::EnableAllLadyCategories()
 	gForceReload.store(true, std::memory_order_release);
 }
 
+void TekkitTrails::EnableAllHeroCategories()
+{
+	std::lock_guard<std::mutex> lock(gMutex);
+	gEnabledPaths.clear();
+	gEnabledPaths.push_back("HMP");
+	gEnabledPaths.push_back("hmpSim");
+	MarkEnabled(gMenu);
+	gMenuRevision.fetch_add(1, std::memory_order_release);
+	gEnabledGen.fetch_add(1, std::memory_order_release);
+	gForceReload.store(true, std::memory_order_release);
+}
+
 void TekkitTrails::DisableAllCategories()
 {
 	std::lock_guard<std::mutex> lock(gMutex);
@@ -2020,6 +2154,12 @@ bool TekkitTrails::HasSearchGuide()
 	return gGuideActive && gGuide.points.size() >= 2;
 }
 
+bool TekkitTrails::HasSearchGuideActive()
+{
+	std::lock_guard<std::mutex> lock(gMutex);
+	return gGuideActive;
+}
+
 TekkitTrails::Trail TekkitTrails::SearchGuide()
 {
 	std::lock_guard<std::mutex> lock(gMutex);
@@ -2031,11 +2171,9 @@ TekkitTrails::Trail TekkitTrails::SearchGuide()
 	return slim;
 }
 
-bool TekkitTrails::DrawSettings()
+bool TekkitTrails::DrawOverlaySettings()
 {
 	bool dirty = false;
-
-	/* Keep packs indexing while the panel is open (even if overlays are off). */
 	uint32_t mapId = 0;
 	if (G::Mumble && G::Mumble->uiTick != 0)
 	{
@@ -2050,26 +2188,35 @@ bool TekkitTrails::DrawSettings()
 		ImGui::SetTooltip("Master switch — allows compass / world drawing (packs still index below).");
 	if (G::ShowTekkitTrails)
 	{
-	dirty |= ImGui::Checkbox("Draw on in-game compass", &G::ShowCompassOverlay);
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("TacO / Blish style — project enabled markers onto the stock compass.");
-	dirty |= ImGui::Checkbox("In-world GPS trails", &G::ShowWorldTrails);
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("3D world breadcrumbs near you (same categories as the compass).");
-	if (G::ShowWorldTrails)
-	{
-		dirty |= ImGui::SliderFloat("GPS range (m)", &G::WorldTrailMaxDist, 40.f, 200.f, "%.0f");
-		dirty |= ImGui::SliderFloat("GPS width (× Blish)", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f");
+		dirty |= ImGui::Checkbox("Draw on in-game compass", &G::ShowCompassOverlay);
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(
-				"Multiplier on Blish/TacO world trail width (~20\" × pack trailscale).\n"
-				"1.0 matches Blish default; raise if you want thicker ribbons.");
+			ImGui::SetTooltip("TacO / Blish style — project enabled markers onto the stock compass.");
+		dirty |= ImGui::Checkbox("In-world GPS trails", &G::ShowWorldTrails);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("3D world breadcrumbs near you (same categories as the compass).");
+		if (G::ShowWorldTrails)
+		{
+			dirty |= ImGui::SliderFloat("GPS range (m)", &G::WorldTrailMaxDist, 40.f, 200.f, "%.0f");
+			dirty |= ImGui::SliderFloat("GPS width (× Blish)", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f");
+		}
+		dirty |= ImGui::Checkbox("Hide when world map open", &G::HideWhenMapOpen);
+		dirty |= ImGui::Checkbox("Hide out of gameplay", &G::HideOutOfGameplay);
 	}
-	dirty |= ImGui::Checkbox("Hide when world map open", &G::HideWhenMapOpen);
-	dirty |= ImGui::Checkbox("Hide out of gameplay", &G::HideOutOfGameplay);
-	}
+	return dirty;
+}
 
-	ImGui::Separator();
+bool TekkitTrails::DrawPackTools()
+{
+	bool dirty = false;
+	uint32_t mapId = 0;
+	if (G::Mumble && G::Mumble->uiTick != 0)
+	{
+		const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
+		if (ctx)
+			mapId = ctx->mapId;
+	}
+	Update(mapId ? mapId : 1u);
+
 	ImGui::TextUnformatted("Packs");
 	const std::string pathHint = PathingFolderHint();
 	ImGui::TextDisabled("%s", pathHint.c_str());
@@ -2080,7 +2227,7 @@ bool TekkitTrails::DrawSettings()
 		UpdateCuratedPacks();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Re-download latest Lady Elyssa + Tekkit packs from GitHub / Tekkit CDN.\n"
+			"Re-download latest Lady Elyssa + Hero + Tekkit packs from GitHub / Tekkit CDN.\n"
 			"Does not remove any .taco you added yourself.");
 	ImGui::SameLine();
 	if (ImGui::Button("Open folder"))
@@ -2106,7 +2253,7 @@ bool TekkitTrails::DrawSettings()
 			PackCount(), TrailCount(), MarkerCount());
 	if (!packs.empty())
 	{
-		ImGui::BeginChild("##igh_tekkit_packs", ImVec2(0.f, 48.f), true);
+		ImGui::BeginChild("##igh_tekkit_packs", ImVec2(0.f, 56.f), true);
 		for (const std::string& name : packs)
 			ImGui::BulletText("%s", name.c_str());
 		ImGui::EndChild();
@@ -2115,85 +2262,31 @@ bool TekkitTrails::DrawSettings()
 	{
 		ImGui::TextColored(ImVec4(1.f, 0.7f, 0.3f, 1.f),
 			"No .taco packs yet — click Update curated, or drop packs into the pathing folder.");
-		return dirty;
 	}
+	(void)dirty;
+	return false;
+}
 
-	ImGui::Separator();
+bool TekkitTrails::DrawCategoryBrowser()
+{
+	bool dirty = false;
+	uint32_t mapId = 0;
+	if (G::Mumble && G::Mumble->uiTick != 0)
+	{
+		const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
+		if (ctx)
+			mapId = ctx->mapId;
+	}
+	Update(mapId ? mapId : 1u);
+
+	const bool loading = IsLoading() || PathingPacks::IsUpdating();
 	ImGui::TextUnformatted("Categories");
-	ImGui::TextDisabled("Like Blish / TacO / Taimi: parent on = all children. Saved between sessions.");
-
-	ImGui::TextDisabled("Pick one route edition — Foot, Griffon, or Skyscale.");
-	const MapCompletionRoutes activeMc = ActiveMapCompletionRoutes();
-	bool bareOn = (activeMc == MapCompletionRoutes::Barefoot);
-	bool griffOn = (activeMc == MapCompletionRoutes::Griffon);
-	bool skyOn = (activeMc == MapCompletionRoutes::Skyscale);
-	if (ImGui::Checkbox("Map Completion - Foot###gw2igh_tekkit_mc_bare", &bareOn))
-	{
-		if (bareOn)
-			EnableMapCompletionPreset(MapCompletionRoutes::Barefoot);
-		else
-			ClearMapCompletionCategories();
-		dirty = true;
-	}
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip(
-			"Hearts / POIs / vistas + Barefoot routes only.\n"
-			"Turns Griffon / Skyscale routes off.");
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Map Completion - Griffon###gw2igh_tekkit_mc_griff", &griffOn))
-	{
-		if (griffOn)
-			EnableMapCompletionPreset(MapCompletionRoutes::Griffon);
-		else
-			ClearMapCompletionCategories();
-		dirty = true;
-	}
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip(
-			"Hearts / POIs / vistas + Griffon routes only.\n"
-			"Turns Foot / Skyscale routes off.");
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Map Completion - Skyscale###gw2igh_tekkit_mc_sky", &skyOn))
-	{
-		if (skyOn)
-			EnableMapCompletionPreset(MapCompletionRoutes::Skyscale);
-		else
-			ClearMapCompletionCategories();
-		dirty = true;
-	}
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip(
-			"Hearts / POIs / vistas everywhere Tekkit has map completion.\n"
-			"Skyscale path ribbons only where Tekkit ships them:\n"
-			"  • Heart of Thorns\n"
-			"  • Secrets of the Obscure\n"
-			"  • Janthir Wilds (generic Routes)\n"
-			"Core Tyria / PoF / EoD / LWS / VoE have no Skyscale edition —\n"
-			"use Foot or Griffon there. Turns Foot / Griffon routes off.");
 	ImGui::TextDisabled(
-		"Skyscale routes: HoT + SotO only (Tekkit pack). Elsewhere use Foot/Griffon.");
-	if (ImGui::Button("All Tekkit"))
-	{
-		EnableAllTekkitCategories();
-		dirty = true;
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("All Lady"))
-	{
-		EnableAllLadyCategories();
-		dirty = true;
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("All off"))
-	{
-		DisableAllCategories();
-		dirty = true;
-	}
+		"Check to enable. Open drills into children. Breadcrumb wraps — no scroll arrows.");
 
 	static char sFilter[96]{};
 	ImGui::SetNextItemWidth(-1.f);
 	ImGui::InputTextWithHint("###gw2igh_tekkit_filter", "Filter categories...", sFilter, sizeof(sFilter));
-	/* Keep keys on this field even if the pointer drifts off the pad. */
 	if (ImGui::IsItemActive())
 	{
 		ImGui::GetIO().WantCaptureKeyboard = true;
@@ -2202,10 +2295,10 @@ bool TekkitTrails::DrawSettings()
 
 	static uint64_t sTreeRevision = 0;
 	static std::vector<Category> tree;
+	static std::vector<std::string> sDrill; /* Category.path stack for breadcrumb */
 	const uint64_t revision = gMenuRevision.load(std::memory_order_acquire);
 	if (revision != sTreeRevision)
 	{
-		/* Don't wipe the tree on a transient lock miss (Blish never blanks the menu). */
 		std::vector<Category> next = CategoryTree();
 		if (!next.empty())
 		{
@@ -2216,20 +2309,61 @@ bool TekkitTrails::DrawSettings()
 		{
 			tree.clear();
 			sTreeRevision = revision;
+			sDrill.clear();
 		}
 	}
 	if (tree.empty())
 	{
-		ImGui::TextDisabled(loading ? "Indexing Tekkit menu…" : "No categories yet — wait for pack index.");
+		ImGui::TextDisabled(loading ? "Indexing menu…" : "No categories yet — wait for pack index.");
 		return dirty;
 	}
 
-	/* O(N) visibility mask — per-node recursive search was O(N^2) and froze
-	   typing on Tekkit's large category tree. */
+	std::function<Category*(std::vector<Category>&, const std::string&)> findNode =
+		[&](std::vector<Category>& nodes, const std::string& path) -> Category* {
+		for (Category& c : nodes)
+		{
+			if (c.path == path)
+				return &c;
+			if (Category* ch = findNode(c.children, path))
+				return ch;
+		}
+		return nullptr;
+	};
+
+	std::vector<Category>* level = &tree;
+	Category* current = nullptr;
+	if (!sDrill.empty())
+	{
+		current = findNode(tree, sDrill.back());
+		if (!current)
+			sDrill.clear();
+		else
+			level = &current->children;
+	}
+
+	/* Breadcrumb — wraps to new rows (no single-line clip / scroll arrows). */
+	if (PadNav::WrapButton("Root###gw2igh_cat_root", sDrill.empty()))
+		sDrill.clear();
+	for (size_t i = 0; i < sDrill.size(); ++i)
+	{
+		PadNav::WrapSlash();
+		Category* n = findNode(tree, sDrill[i]);
+		char lab[160];
+		std::snprintf(lab, sizeof(lab), "%s###gw2igh_bc_%zu",
+			n ? n->label.c_str() : sDrill[i].c_str(), i);
+		if (PadNav::WrapButton(lab, i + 1 == sDrill.size()))
+			sDrill.resize(i + 1);
+	}
+	if (!sDrill.empty())
+	{
+		if (PadNav::WrapButton("Back###gw2igh_cat_back", false))
+			sDrill.pop_back();
+	}
+
+	const bool filterOn = sFilter[0] != 0;
 	static char sFilterBuilt[96]{};
 	static uint64_t sFilterTreeRev = 0;
 	static std::unordered_set<std::string> sFilterShow;
-	const bool filterOn = sFilter[0] != 0;
 	if (!filterOn)
 	{
 		sFilterBuilt[0] = 0;
@@ -2241,107 +2375,113 @@ bool TekkitTrails::DrawSettings()
 		std::memcpy(sFilterBuilt, sFilter, sizeof(sFilterBuilt));
 		sFilterTreeRev = sTreeRevision;
 		sFilterShow.clear();
-
-		auto toLower = [](std::string s) -> std::string
-		{
+		auto toLower = [](std::string s) {
 			for (char& ch : s)
 				if (ch >= 'A' && ch <= 'Z')
 					ch = static_cast<char>(ch - 'A' + 'a');
 			return s;
 		};
 		const std::string needle = toLower(sFilter);
-
-		std::function<bool(const Category&)> mark = [&](const Category& node) -> bool
-		{
-			if (node.hidden)
-				return false;
-			bool hit = toLower(node.label).find(needle) != std::string::npos ||
-				toLower(node.path).find(needle) != std::string::npos;
-			for (const Category& ch : node.children)
-				hit = mark(ch) || hit;
-			if (hit)
-				sFilterShow.insert(node.path);
-			return hit;
+		std::function<bool(Category&)> mark = [&](Category& c) -> bool {
+			bool hit = toLower(c.label).find(needle) != std::string::npos ||
+				toLower(c.path).find(needle) != std::string::npos;
+			bool childHit = false;
+			for (Category& ch : c.children)
+				childHit = mark(ch) || childHit;
+			if (hit || childHit)
+				sFilterShow.insert(c.path);
+			return hit || childHit;
 		};
-		for (const Category& c : tree)
+		for (Category& c : tree)
 			mark(c);
 	}
 
 	const float listH = std::max(180.f, ImGui::GetContentRegionAvail().y - 28.f);
 	ImGui::BeginChild("##tekkit_cats", ImVec2(0.f, listH), true);
-	std::function<void(Category&)> draw = [&](Category& c)
+
+	if (filterOn)
 	{
-		if (c.hidden)
-			return;
-		if (filterOn && sFilterShow.find(c.path) == sFilterShow.end())
-			return;
-
-		ImGui::PushID(c.path.c_str());
-		if (c.separator)
-		{
-			ImGui::Spacing();
-			ImGui::TextDisabled("%s", c.label.c_str());
-			for (Category& ch : c.children)
-				draw(ch);
+		/* Flat filtered results — checkboxes, no tree. */
+		std::function<void(Category&)> flat = [&](Category& c) {
+			if (c.hidden || c.separator)
+				return;
+			if (sFilterShow.find(c.path) == sFilterShow.end())
+				return;
+			ImGui::PushID(c.path.c_str());
+			bool en = c.enabled;
+			if (ImGui::Checkbox(c.label.c_str(), &en))
+			{
+				SetCategoryEnabled(c.path, en);
+				dirty = true;
+			}
+			if (ImGui::IsItemHovered())
+			{
+				if (!c.tip.empty())
+					ImGui::SetTooltip("%s\n\n%s", c.tip.c_str(), c.path.c_str());
+				else
+					ImGui::SetTooltip("%s", c.path.c_str());
+			}
 			ImGui::PopID();
-			return;
-		}
-
-		const bool hasKids = !c.children.empty();
-		bool en = c.enabled;
-
-		if (hasKids)
+			for (Category& ch : c.children)
+				flat(ch);
+		};
+		for (Category& c : tree)
+			flat(c);
+	}
+	else
+	{
+		for (Category& c : *level)
 		{
-			if (ImGui::Checkbox("##en", &en))
+			if (c.hidden)
+				continue;
+			if (c.separator)
 			{
-				SetCategoryEnabled(c.path, en);
-				dirty = true;
+				ImGui::Spacing();
+				ImGui::TextDisabled("%s", c.label.c_str());
+				continue;
 			}
-			ImGui::SameLine();
-			char tip[192];
-			if (c.trails > 0)
-				std::snprintf(tip, sizeof(tip), "%s  (%d)", c.label.c_str(), c.trails);
-			else
-				std::snprintf(tip, sizeof(tip), "%s", c.label.c_str());
-			if (filterOn)
-				ImGui::SetNextItemOpen(true); /* expand matches while filtering */
-			const bool open = ImGui::TreeNodeEx(tip,
-				ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnArrow);
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("%s", c.path.c_str());
-			if (open)
-			{
-				for (Category& ch : c.children)
-					draw(ch);
-				ImGui::TreePop();
-			}
-		}
-		else
-		{
-			char label[192];
-			if (c.trails > 0)
-				std::snprintf(label, sizeof(label), "%s  (%d)", c.label.c_str(), c.trails);
-			else
-				std::snprintf(label, sizeof(label), "%s", c.label.c_str());
-			if (ImGui::Checkbox(label, &en))
+			ImGui::PushID(c.path.c_str());
+			bool en = c.enabled;
+			if (ImGui::Checkbox(c.label.c_str(), &en))
 			{
 				SetCategoryEnabled(c.path, en);
 				dirty = true;
 			}
 			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("%s", c.path.c_str());
+			{
+				if (!c.tip.empty())
+					ImGui::SetTooltip("%s\n\n%s", c.tip.c_str(), c.path.c_str());
+				else
+					ImGui::SetTooltip("%s", c.path.c_str());
+			}
+			if (!c.children.empty())
+			{
+				ImGui::SameLine(0.f, 8.f);
+				if (ImGui::SmallButton("Open"))
+					sDrill.push_back(c.path);
+			}
+			ImGui::PopID();
 		}
-		ImGui::PopID();
-	};
-	for (Category& c : tree)
-		draw(c);
+	}
 	ImGui::EndChild();
 
 	if (!loading && TrailCount() == 0 && MarkerCount() == 0)
 		ImGui::TextColored(ImVec4(1.f, 0.75f, 0.35f, 1.f),
-			"Nothing visible on this map — enable categories above.");
+			"Nothing visible on this map — enable categories above or in Features.");
 	else
-		ImGui::TextDisabled("Checked categories draw on compass + world GPS.");
+		ImGui::TextDisabled("Enabled categories draw on compass + world GPS.");
 
 	return dirty;
 }
+
+bool TekkitTrails::DrawSettings()
+{
+	bool dirty = false;
+	dirty |= DrawOverlaySettings();
+	ImGui::Separator();
+	dirty |= DrawPackTools();
+	ImGui::Separator();
+	dirty |= DrawCategoryBrowser();
+	return dirty;
+}
+

@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-/* Nearest public-map waypoints to a trail start + orange search guide.
-   Clipboard only — no auto-teleport. Unlock filtering can be added later. */
+/* Nearest waypoints to a trail start / chat-link destination + orange guide.
+   Clipboard only — no auto-teleport. Prefer walk-confirmed WPs when enabled. */
 namespace RoutingSuggest
 {
 	struct Candidate
@@ -16,6 +16,7 @@ namespace RoutingSuggest
 		float continentY = 0.f;
 		float dist = 0.f; /* continent units */
 		bool hasCoord = false;
+		bool confirmed = false; /* walked near this WP on this character */
 	};
 
 	struct Result
@@ -31,7 +32,10 @@ namespace RoutingSuggest
 	/* Uses current-map trails (enabled first, else any loaded) + waypoint index. */
 	Result SuggestNearTrailStart(size_t maxN = 3);
 
-	/* Sets Tekkit orange guide toward the trail start. */
+	/* Parse clipboard for [&…] and route orange guide to that POI. */
+	Result SuggestFromClipboard();
+
+	/* Sets Tekkit orange guide toward the trail/destination point. */
 	void ApplyOrangeGuide(const Result& r);
 
 	void ClearGuide();

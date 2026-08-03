@@ -6,6 +6,7 @@
 
 #include "AccountPad.h"
 #include "CharacterProfiles.h"
+#include "ConfirmedWaypoints.h"
 #include "Globals.h"
 #include "HelperQuickAccess.h"
 #include "LookupPad.h"
@@ -81,6 +82,7 @@ namespace G
 static constexpr const char* KB_TOGGLE = "KB_HELPER_BETA_TOGGLE";
 static constexpr const char* KB_ACCOUNT = "KB_HELPER_BETA_ACCOUNT";
 static constexpr const char* KB_TEKKIT = "KB_HELPER_BETA_TEKKIT";
+static constexpr const char* KB_MARKER = "KB_HELPER_BETA_MARKER_INTERACT";
 static constexpr const char* KB_EVENTS = "KB_HELPER_BETA_EVENTS";
 static constexpr const char* KB_NOTES = "KB_HELPER_BETA_NOTES";
 static constexpr const char* KB_ITEM_LEGACY = "KB_HELPER_BETA_ITEM"; /* removed — deregister only */
@@ -186,6 +188,12 @@ static void OnToggleTekkit(const char*, bool release)
 	}
 	else
 		TekkitGuidesPad::Open();
+}
+
+static void OnMarkerInteract(const char*, bool release)
+{
+	if (release) return;
+	TekkitTrails::RequestMarkerInteract();
 }
 
 static void OnToggleEvents(const char*, bool release)
@@ -717,6 +725,7 @@ static void AddonLoad(AddonAPI_t* api)
 	Settings::Load();
 	NotesPad::Load();
 	CharacterProfiles::Load();
+	ConfirmedWaypoints::Load();
 	TekkitTrails::Init();
 	/* Restore category toggles after Init (Init no longer wipes them, but first
 	   load applies settings here so order stays Load → Init → apply). */
@@ -746,6 +755,7 @@ static void AddonLoad(AddonAPI_t* api)
 	/* Panel pads — rebind in Nexus Options → Keybinds. */
 	api->InputBinds_RegisterWithString(KB_ACCOUNT, OnToggleAccount, "CTRL+SHIFT+A");
 	api->InputBinds_RegisterWithString(KB_TEKKIT, OnToggleTekkit, "CTRL+SHIFT+G");
+	api->InputBinds_RegisterWithString(KB_MARKER, OnMarkerInteract, "CTRL+SHIFT+F");
 	api->InputBinds_RegisterWithString(KB_EVENTS, OnToggleEvents, "CTRL+SHIFT+E");
 	api->InputBinds_RegisterWithString(KB_NOTES, OnToggleNotes, "CTRL+SHIFT+N");
 	api->WndProc_Register(OnWndProc);
@@ -766,6 +776,7 @@ static void AddonUnload()
 	G::API->InputBinds_Deregister(KB_TOGGLE);
 	G::API->InputBinds_Deregister(KB_ACCOUNT);
 	G::API->InputBinds_Deregister(KB_TEKKIT);
+	G::API->InputBinds_Deregister(KB_MARKER);
 	G::API->InputBinds_Deregister(KB_EVENTS);
 	G::API->InputBinds_Deregister(KB_NOTES);
 	G::API->InputBinds_Deregister(KB_ITEM_LEGACY);
@@ -779,6 +790,7 @@ static void AddonUnload()
 	NotesPad::Save(true);
 	CharacterProfiles::CaptureCurrent();
 	CharacterProfiles::Save(true);
+	ConfirmedWaypoints::Save(true);
 	Settings::SetDirty();
 	Settings::Save(true);
 

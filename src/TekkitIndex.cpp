@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include <unordered_map>
@@ -17,21 +18,42 @@
 
 namespace TekkitDetail
 {
+std::string WideLeafUtf8(const std::wstring& path);
+
 void IndexPack(const std::wstring& packPath, std::vector<IndexedTrail>& out,
 	std::vector<IndexedPoi>& poisOut, std::vector<TekkitTrails::Category>& menuOut,
 	std::unordered_map<std::string, MarkerStyle>& stylesOut,
-	uint32_t epoch)
+	uint32_t epoch, bool* openedOut)
 {
+	if (openedOut)
+		*openedOut = false;
 	std::vector<uint8_t> file;
 	if (!ReadFileW(packPath, file, kMaxZipBytes))
 		return;
 
 	mz_zip_archive zip{};
 	if (!mz_zip_reader_init_mem(&zip, file.data(), file.size(), 0))
+	{
+		if (G::API && G::API->Log)
+		{
+			std::string leaf;
+			const size_t slash = packPath.find_last_of(L"\\/");
+			const std::wstring wleaf = (slash == std::wstring::npos)
+				? packPath : packPath.substr(slash + 1);
+			for (wchar_t c : wleaf)
+				if (c < 128) leaf.push_back(static_cast<char>(c));
+			char msg[256];
+			std::snprintf(msg, sizeof(msg), "Pathing: failed to open zip %s", leaf.c_str());
+			G::API->Log(LOGL_WARNING, ADDON_NAME, msg);
+		}
 		return;
+	}
+	if (openedOut)
+		*openedOut = true;
 
 	const size_t startIdx = out.size();
 	const int n = static_cast<int>(mz_zip_reader_get_num_files(&zip));
+	std::unordered_map<std::string, uint32_t> categoryMapIds;
 	for (int i = 0; i < n; ++i)
 	{
 		if (gEpoch.load(std::memory_order_acquire) != epoch)
@@ -53,8 +75,9 @@ void IndexPack(const std::wstring& packPath, std::vector<IndexedTrail>& out,
 			continue;
 		std::string xml(static_cast<char*>(mem), sz);
 		mz_free(mem);
+		CollectCategoryMapIds(xml, categoryMapIds);
 		IndexXml(packPath, xml, out);
-		IndexPoisXml(packPath, xml, poisOut);
+		IndexPoisXml(packPath, xml, poisOut, categoryMapIds);
 
 		/* Merge every MarkerCategory tree (tw_aaa + detail XMLs) so we get
 		   the same fine-grained toggles as the official Tekkit overlay. */
@@ -256,6 +279,15 @@ void ListTacoFiles(const std::wstring& dir, std::vector<std::wstring>& out, bool
 		if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			continue;
 		std::wstring name = fd.cFileName;
+		/* Reject stamp files like Foo.taco.ver (Wine *.taco can match them). */
+		{
+			std::wstring low = name;
+			for (wchar_t& c : low)
+				if (c >= L'A' && c <= L'Z')
+					c = static_cast<wchar_t>(c - L'A' + L'a');
+			if (low.size() < 5 || low.compare(low.size() - 5, 5, L".taco") != 0)
+				continue;
+		}
 		if (tekkitOnly)
 		{
 			std::wstring low = name;
@@ -370,6 +402,8 @@ void MergeCategoryTree(std::vector<TekkitTrails::Category>& dest, TekkitTrails::
 	}
 	if (!src.label.empty())
 		found->label = std::move(src.label);
+	if (!src.tip.empty())
+		found->tip = std::move(src.tip);
 	if (!src.separator)
 		found->separator = false;
 	for (TekkitTrails::Category& ch : src.children)
@@ -489,8 +523,12 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 			if (gEpoch.load(std::memory_order_acquire) != epoch)
 				return;
 			const size_t before = index.size() + pois.size();
-			IndexPack(pack, index, pois, menu, categoryStyles, epoch);
-			if (index.size() + pois.size() > before)
+			const size_t menuBefore = menu.size();
+			bool opened = false;
+			IndexPack(pack, index, pois, menu, categoryStyles, epoch, &opened);
+			/* List any pack we successfully opened as a zip — Hero/Blish packs
+			   used to vanish from Overview when MapID inheritance left 0 POIs. */
+			if (opened || index.size() + pois.size() > before || menu.size() > menuBefore)
 			{
 				++packCount;
 				packNames.push_back(WideLeafUtf8(pack));

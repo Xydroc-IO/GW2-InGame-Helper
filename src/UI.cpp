@@ -3,6 +3,7 @@
 
 #include "BrowserTabs.h"
 #include "CharacterProfiles.h"
+#include "ConfirmedWaypoints.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "LivePanels.h"
@@ -16,6 +17,7 @@
 #include "EventsPad.h"
 #include "LogManagerPad.h"
 #include "TekkitGuidesPad.h"
+#include "TekkitTrails.h"
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
 #include "DirectionCompass.h"
@@ -709,7 +711,7 @@ namespace
 				TekkitGuidesPad::Open();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Pathing — compass / GPS trails (Tekkit + Lady Elyssa + your packs)");
+			ImGui::SetTooltip("Pathing — compass / GPS trails (Tekkit + Lady Elyssa + Hero + your packs)");
 		ImGui::SameLine(0.f, 4.f);
 		if (ImGui::Button("Events###gw2igh_events"))
 		{
@@ -811,9 +813,11 @@ void UI_Render()
 	WikiBrowser::Tick();
 	MumbleIdentity::Tick();
 	CharacterProfiles::Tick();
+	ConfirmedWaypoints::Tick();
 	/* Tekkit overlays — always, even with the browser closed. */
 	CompassOverlay::Render();
 	WorldOverlay::Render();
+	TekkitTrails::DrawMarkerBehaviorOverlay();
 	DirectionCompass::Render();
 	/* URL-index warm: heavier when closed; light drip while open so Browse stays snappy. */
 	if (!G::ShowWiki)

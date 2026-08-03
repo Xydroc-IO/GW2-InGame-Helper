@@ -48,6 +48,29 @@ bool LooksLikeMapCompletion(const std::string& type, const std::string& path)
 	return false;
 }
 
+void DecodeXmlEntities(std::string& text)
+{
+	auto replaceAll = [&](const char* from, const char* to) {
+		const size_t fromLen = std::strlen(from);
+		const size_t toLen = std::strlen(to);
+		size_t pos = 0;
+		while ((pos = text.find(from, pos)) != std::string::npos)
+		{
+			text.replace(pos, fromLen, to);
+			pos += toLen;
+		}
+	};
+	replaceAll("&#xA;", "\n");
+	replaceAll("&#XA;", "\n");
+	replaceAll("&#xa;", "\n");
+	replaceAll("&#10;", "\n");
+	replaceAll("&quot;", "\"");
+	replaceAll("&apos;", "'");
+	replaceAll("&lt;", "<");
+	replaceAll("&gt;", ">");
+	replaceAll("&amp;", "&");
+}
+
 uint32_t ParseColorAttr(const std::string& tag)
 {
 	size_t p = tag.find("color=\"");
@@ -129,6 +152,18 @@ void MergeStyle(MarkerStyle& dst, const MarkerStyle& src)
 	if (src.hasAlpha) { dst.alpha = src.alpha; dst.hasAlpha = true; }
 	if (src.hasTrailScale) { dst.trailScale = src.trailScale; dst.hasTrailScale = true; }
 	if (src.hasColor) { dst.color = src.color; dst.hasColor = true; }
+	if (src.hasBehavior) { dst.behavior = src.behavior; dst.hasBehavior = true; }
+	if (src.hasAutoTrigger) { dst.autoTrigger = src.autoTrigger; dst.hasAutoTrigger = true; }
+	if (src.hasTriggerRange) { dst.triggerRange = src.triggerRange; dst.hasTriggerRange = true; }
+	if (src.hasResetLength) { dst.resetLength = src.resetLength; dst.hasResetLength = true; }
+	if (src.hasInvertBehavior) { dst.invertBehavior = src.invertBehavior; dst.hasInvertBehavior = true; }
+	if (src.hasHide) { dst.hide = src.hide; dst.hasHide = true; }
+	if (src.hasShow) { dst.show = src.show; dst.hasShow = true; }
+	if (src.hasTipName) { dst.tipName = src.tipName; dst.hasTipName = true; }
+	if (src.hasTipDescription) { dst.tipDescription = src.tipDescription; dst.hasTipDescription = true; }
+	if (src.hasInfo) { dst.info = src.info; dst.hasInfo = true; }
+	if (src.hasCopy) { dst.copy = src.copy; dst.hasCopy = true; }
+	if (src.hasCopyMessage) { dst.copyMessage = src.copyMessage; dst.hasCopyMessage = true; }
 }
 
 MarkerStyle ParseStyle(const std::string& tag)
@@ -234,6 +269,91 @@ MarkerStyle ParseStyle(const std::string& tag)
 		const std::string synthetic = "color=\"" + value + "\"";
 		out.color = ParseColorAttr(synthetic);
 		out.hasColor = true;
+	}
+
+	value = compatible("behavior");
+	if (!value.empty())
+	{
+		out.behavior = std::atoi(value.c_str());
+		out.hasBehavior = true;
+	}
+	value = compatible("autoTrigger");
+	if (value.empty()) value = compatible("AutoTrigger");
+	if (!value.empty())
+	{
+		out.autoTrigger = ParseBoolValue(value, false);
+		out.hasAutoTrigger = true;
+	}
+	value = compatible("triggerRange");
+	if (value.empty()) value = compatible("TriggerRange");
+	if (!value.empty())
+	{
+		out.triggerRange = static_cast<float>(std::atof(value.c_str()));
+		out.hasTriggerRange = std::isfinite(out.triggerRange);
+	}
+	value = compatible("resetLength");
+	if (value.empty()) value = compatible("ResetLength");
+	if (!value.empty())
+	{
+		out.resetLength = static_cast<float>(std::atof(value.c_str()));
+		out.hasResetLength = std::isfinite(out.resetLength);
+	}
+	value = compatible("invertBehavior");
+	if (value.empty()) value = compatible("InvertBehavior");
+	if (!value.empty())
+	{
+		out.invertBehavior = ParseBoolValue(value, false);
+		out.hasInvertBehavior = true;
+	}
+	value = compatible("hide");
+	if (!value.empty())
+	{
+		out.hide = std::move(value);
+		out.hasHide = true;
+	}
+	value = compatible("show");
+	if (!value.empty())
+	{
+		out.show = std::move(value);
+		out.hasShow = true;
+	}
+	value = Attr(tag, "tip-name");
+	if (value.empty()) value = Attr(tag, "tipName");
+	if (!value.empty())
+	{
+		DecodeXmlEntities(value);
+		out.tipName = std::move(value);
+		out.hasTipName = true;
+	}
+	value = Attr(tag, "tip-description");
+	if (value.empty()) value = Attr(tag, "tipDescription");
+	if (!value.empty())
+	{
+		DecodeXmlEntities(value);
+		out.tipDescription = std::move(value);
+		out.hasTipDescription = true;
+	}
+	value = compatible("info");
+	if (!value.empty())
+	{
+		DecodeXmlEntities(value);
+		out.info = std::move(value);
+		out.hasInfo = true;
+	}
+	value = compatible("copy");
+	if (!value.empty())
+	{
+		DecodeXmlEntities(value);
+		out.copy = std::move(value);
+		out.hasCopy = true;
+	}
+	value = Attr(tag, "copy-message");
+	if (value.empty()) value = Attr(tag, "copyMessage");
+	if (!value.empty())
+	{
+		DecodeXmlEntities(value);
+		out.copyMessage = std::move(value);
+		out.hasCopyMessage = true;
 	}
 	return out;
 }
@@ -409,9 +529,94 @@ void IndexXml(const std::wstring& packPath, const std::string& xml,
 	}
 }
 
-void IndexPoisXml(const std::wstring& packPath, const std::string& xml,
-	std::vector<IndexedPoi>& out)
+void CollectCategoryMapIds(const std::string& xml,
+	std::unordered_map<std::string, uint32_t>& categoryMapIds)
 {
+	/* Same nesting walk as ParseMarkerMenuXml — MapID on a category applies to
+	   descendant POIs that omit MapID (Hero's Fractal Dailies, Twin Largos, …). */
+	struct Frame
+	{
+		std::string path;
+		uint32_t mapId = 0;
+	};
+	std::vector<Frame> stack;
+	size_t pos = 0;
+	while (pos < xml.size())
+	{
+		size_t t = xml.find('<', pos);
+		if (t == std::string::npos)
+			break;
+		if (t + 1 < xml.size() && xml[t + 1] == '/')
+		{
+			size_t end = xml.find('>', t);
+			if (end == std::string::npos)
+				break;
+			const std::string close = ToLower(xml.substr(t + 2, end - (t + 2)));
+			if (close.find("markercategory") == 0 && !stack.empty())
+				stack.pop_back();
+			pos = end + 1;
+			continue;
+		}
+		const bool isCat =
+			xml.compare(t, 15, "<MarkerCategory") == 0 ||
+			xml.compare(t, 15, "<markercategory") == 0;
+		if (!isCat)
+		{
+			pos = t + 1;
+			continue;
+		}
+		size_t end = xml.find('>', t);
+		if (end == std::string::npos)
+			break;
+		const std::string tag = xml.substr(t, end - t + 1);
+		pos = end + 1;
+
+		std::string name = Attr(tag, "name");
+		if (name.empty())
+			name = Attr(tag, "Name");
+		if (name.empty())
+			continue;
+		std::string path = stack.empty() ? name : (stack.back().path + "." + name);
+		uint32_t mapId = 0;
+		std::string mapStr = Attr(tag, "MapID");
+		if (mapStr.empty()) mapStr = Attr(tag, "mapid");
+		if (mapStr.empty()) mapStr = Attr(tag, "MapId");
+		if (!mapStr.empty())
+			mapId = static_cast<uint32_t>(std::strtoul(mapStr.c_str(), nullptr, 10));
+		if (mapId == 0 && !stack.empty())
+			mapId = stack.back().mapId;
+		if (mapId != 0)
+			categoryMapIds[ToLower(path)] = mapId;
+
+		const bool selfClose = tag.size() >= 2 && tag[tag.size() - 2] == '/';
+		if (!selfClose)
+			stack.push_back({path, mapId});
+	}
+}
+
+void IndexPoisXml(const std::wstring& packPath, const std::string& xml,
+	std::vector<IndexedPoi>& out,
+	const std::unordered_map<std::string, uint32_t>& categoryMapIds)
+{
+	auto resolveMapId = [&](const std::string& type, uint32_t own) -> uint32_t {
+		if (own != 0)
+			return own;
+		if (type.empty() || categoryMapIds.empty())
+			return 0;
+		std::string low = ToLower(type);
+		while (!low.empty())
+		{
+			auto it = categoryMapIds.find(low);
+			if (it != categoryMapIds.end() && it->second != 0)
+				return it->second;
+			const size_t dot = low.rfind('.');
+			if (dot == std::string::npos)
+				break;
+			low.resize(dot);
+		}
+		return 0;
+	};
+
 	size_t pos = 0;
 	while (pos < xml.size() && out.size() < 80000)
 	{
@@ -447,7 +652,8 @@ void IndexPoisXml(const std::wstring& packPath, const std::string& xml,
 			mapStr = Attr(tag, "mapid");
 		if (mapStr.empty())
 			mapStr = Attr(tag, "MapId");
-		const uint32_t mapId = static_cast<uint32_t>(std::strtoul(mapStr.c_str(), nullptr, 10));
+		uint32_t mapId = static_cast<uint32_t>(std::strtoul(mapStr.c_str(), nullptr, 10));
+		mapId = resolveMapId(type, mapId);
 		if (mapId == 0)
 			continue;
 
@@ -471,6 +677,9 @@ void IndexPoisXml(const std::wstring& packPath, const std::string& xml,
 		poi.wy = ys.empty() ? 0.f : static_cast<float>(std::atof(ys.c_str()));
 		poi.wz = static_cast<float>(std::atof(zs.c_str()));
 		poi.style = ParseStyle(tag);
+		poi.guid = Attr(tag, "GUID");
+		if (poi.guid.empty())
+			poi.guid = Attr(tag, "guid");
 		if (!std::isfinite(poi.wx) || !std::isfinite(poi.wz))
 			continue;
 		out.push_back(std::move(poi));
@@ -633,13 +842,15 @@ void ParseMarkerMenuXml(
 		const std::string stylePath = ToLower(path);
 		auto styleIt = styles.find(stylePath);
 		if (styleIt == styles.end())
-			styles.emplace(stylePath, std::move(style));
+			styles.emplace(stylePath, style);
 		else
 			MergeStyle(styleIt->second, style);
 		TekkitTrails::Category neu;
 		neu.path = path;
 		neu.label = display;
 		neu.separator = sep;
+		if (style.hasTipDescription)
+			neu.tip = style.tipDescription;
 		std::string hidden = Attr(tag, "IsHidden");
 		if (hidden.empty()) hidden = Attr(tag, "bh-IsHidden");
 		neu.hidden = ParseBoolValue(hidden, false);

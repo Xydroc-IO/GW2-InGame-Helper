@@ -32,6 +32,7 @@ namespace TekkitDetail
 	using TekkitParse::PeekTrlMapId;
 	using TekkitParse::IndexXml;
 	using TekkitParse::IndexPoisXml;
+	using TekkitParse::CollectCategoryMapIds;
 	using TekkitParse::ParseTrl;
 	using TekkitParse::ParseMarkerMenuXml;
 	using TekkitParse::ResolveStyle;
@@ -77,7 +78,7 @@ namespace TekkitDetail
 	void IndexPack(const std::wstring& packPath, std::vector<IndexedTrail>& out,
 		std::vector<IndexedPoi>& poisOut, std::vector<TekkitTrails::Category>& menuOut,
 		std::unordered_map<std::string, MarkerStyle>& stylesOut,
-		uint32_t epoch);
+		uint32_t epoch, bool* openedOut = nullptr);
 	void DiscoverPackDirs(std::vector<std::wstring>& dirs);
 	bool IsOurPathingDir(const std::wstring& dir);
 	void ListTacoFiles(const std::wstring& dir, std::vector<std::wstring>& out, bool tekkitOnly);

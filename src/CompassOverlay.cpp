@@ -178,6 +178,7 @@ void CompassOverlay::Render()
 		return;
 
 	TekkitTrails::Update(ctx->mapId);
+	TekkitTrails::TickMarkerBehaviors();
 
 	const bool mapOpen = (ctx->uiState & static_cast<uint32_t>(UiStateBits::MapOpen)) != 0;
 	if (G::HideWhenMapOpen && mapOpen)

@@ -1,7 +1,7 @@
 #pragma once
 
-/* ImGui Pathing panel — credits + category toggles for TacO packs.
-   Compass / world drawing lives in CompassOverlay + WorldOverlay. */
+/* ImGui Pathing panel — wrapping PadNav sections (no ◀ ▶ tab scroll):
+   Overview / Features / Categories / Route. Pack data stays in TekkitTrails. */
 namespace TekkitGuidesPad
 {
 	void Open();

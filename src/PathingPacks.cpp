@@ -388,6 +388,14 @@ namespace
 			"https://github.com/LadyElyssa/LadyElyssaAchievementGuides/releases/latest/download/LadyElyssaAP.taco",
 		},
 		{
+			/* GitHub ships .zip; we store as .taco (same zip bytes) for the indexer. */
+			"Hero.Blish.Pack.taco",
+			"Hero's Marker Pack",
+			"https://api.github.com/repos/QuitarHero/Heros-Marker-Pack/releases/latest",
+			"Hero.Blish.Pack.zip",
+			"https://github.com/QuitarHero/Heros-Marker-Pack/releases/latest/download/Hero.Blish.Pack.zip",
+		},
+		{
 			"tw_ALL_IN_ONE.taco",
 			"Tekkit's All-In-One",
 			nullptr,

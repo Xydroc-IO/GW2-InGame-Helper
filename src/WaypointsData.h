@@ -37,6 +37,9 @@ namespace WaypointsData
 
 	void ListForMap(int mapId, bool waypointsOnly, std::vector<Poi>& out);
 
+	/* Exact chat_link match (e.g. [&BPoAAAA=]). */
+	bool FindByChatLink(const char* chatLink, Poi& out);
+
 	void ListMaps(const char* filter, std::vector<MapRow>& out, size_t maxN = 80);
 
 	/* MumbleLink map id, or 0 if unavailable. */

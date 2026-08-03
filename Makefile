@@ -46,6 +46,7 @@ DLL_SRC = \
 	src/MumbleIdentity.cpp \
 	src/RoutingSuggest.cpp \
 	src/CharacterProfiles.cpp \
+	src/ConfirmedWaypoints.cpp \
 	src/TpWatchPad.cpp \
 	src/LookupPad.cpp \
 	src/WalletPad.cpp \
@@ -65,6 +66,8 @@ DLL_SRC = \
 	src/TekkitIndex.cpp \
 	src/TekkitParse.cpp \
 	src/PathingPacks.cpp \
+	src/PathingFeatures.cpp \
+	src/MarkerBehaviors.cpp \
 	src/CompassOverlay.cpp \
 	src/WorldOverlay.cpp \
 	src/DirectionCompass.cpp \

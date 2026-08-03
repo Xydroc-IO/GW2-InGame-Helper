@@ -48,6 +48,32 @@ namespace TekkitParse
 		bool hasTrailScale = false;
 		uint32_t color = 0xFFFFFFFFu;
 		bool hasColor = false;
+
+		/* Blish Pathing / TacO runtime (category-inheritable). */
+		int behavior = 0;
+		bool hasBehavior = false;
+		bool autoTrigger = false;
+		bool hasAutoTrigger = false;
+		float triggerRange = 2.f;
+		bool hasTriggerRange = false;
+		float resetLength = 0.f;
+		bool hasResetLength = false;
+		bool invertBehavior = false;
+		bool hasInvertBehavior = false;
+		std::string hide; /* comma-separated category paths */
+		bool hasHide = false;
+		std::string show;
+		bool hasShow = false;
+		std::string tipName;
+		bool hasTipName = false;
+		std::string tipDescription;
+		bool hasTipDescription = false;
+		std::string info;
+		bool hasInfo = false;
+		std::string copy;
+		bool hasCopy = false;
+		std::string copyMessage;
+		bool hasCopyMessage = false;
 	};
 
 	struct IndexedTrail
@@ -66,6 +92,7 @@ namespace TekkitParse
 	{
 		std::wstring packPath;
 		std::string  type;
+		std::string  guid; /* Blish/TacO GUID — behavior persistence key */
 		uint32_t     mapId = 0;
 		float        wx = 0.f;
 		float        wy = 0.f;
@@ -75,6 +102,7 @@ namespace TekkitParse
 
 	std::string ToLower(std::string s);
 	bool LooksLikeMapCompletion(const std::string& type, const std::string& path);
+	void DecodeXmlEntities(std::string& text);
 
 	uint32_t ParseColorAttr(const std::string& tag);
 	std::string Attr(const std::string& tag, const char* key);
@@ -98,8 +126,12 @@ namespace TekkitParse
 
 	void IndexXml(const std::wstring& packPath, const std::string& xml,
 		std::vector<IndexedTrail>& out);
+	/* categoryMapIds: MarkerCategory path → MapID (Blish inherits onto child POIs). */
+	void CollectCategoryMapIds(const std::string& xml,
+		std::unordered_map<std::string, uint32_t>& categoryMapIds);
 	void IndexPoisXml(const std::wstring& packPath, const std::string& xml,
-		std::vector<IndexedPoi>& out);
+		std::vector<IndexedPoi>& out,
+		const std::unordered_map<std::string, uint32_t>& categoryMapIds);
 	bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 		std::vector<TekkitTrails::WorldPoint>& world);
 

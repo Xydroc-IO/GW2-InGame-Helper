@@ -11,12 +11,26 @@ On first Pathing load (and when you click **Update curated**), the addon downloa
 | `tw_ALL_IN_ONE.taco` | [Tekkit's Workshop](https://www.tekkitsworkshop.net/) CDN |
 | `LadyElyssa.taco` | [LadyElyssaTacoTrails](https://github.com/LadyElyssa/LadyElyssaTacoTrails) GitHub Releases |
 | `LadyElyssaAP.taco` | [LadyElyssaAchievementGuides](https://github.com/LadyElyssa/LadyElyssaAchievementGuides) GitHub Releases |
+| `Hero.Blish.Pack.taco` | [Heros-Marker-Pack](https://github.com/QuitarHero/Heros-Marker-Pack) GitHub Releases (`Hero.Blish.Pack.zip`) |
 
 Credits: **Tekkit's Workshop** (All-In-One — used with permission) · **Lady Elyssa**
-([wiki](https://wiki.guildwars2.com/wiki/User:Lady_Elyssa)).
+([wiki](https://wiki.guildwars2.com/wiki/User:Lady_Elyssa)) · **QuitarHero**
+([Hero's Marker Pack](https://github.com/QuitarHero/Heros-Marker-Pack)).
 
 Stamp files (`*.taco.ver`) track the release / size so updates only re-download when needed.
 **Your own `.taco` files are never deleted.**
+
+### Blish Pathing behaviors
+
+The addon implements TacO/Blish marker **behaviors** (0–7, 101), **AutoTrigger**,
+**hide=/show=** category flips, **tips**, **info** popups, and **copy** clipboard —
+enough for Hero's raid/strike tracking and most interactive markers.
+
+**Not supported:** Lua `script-*` features (HTcm simulation scripts, combatFade,
+script-trigger practices, etc.). Those still need [Blish HUD Pathing](https://blishhud.com/modules/?module=bh.community.pathing).
+
+Interact default: **Ctrl+Shift+F** (`KB_HELPER_BETA_MARKER_INTERACT`) — rebind in Nexus.
+States persist in `marker_behaviors.txt` (Pathing → **Reset marker states** to clear).
 
 Do **not** keep a second copy of Tekkit under another name (e.g. both
 `tw_ALL_IN_ONE.taco` and `Tekkit's All-In-One.taco`). That loads every route
@@ -42,7 +56,8 @@ draw straight lines across the whole map.
 | **Map Completion – Foot / Griffon / Skyscale** | Hearts / POIs / vistas + one route edition (mutually exclusive) |
 | **All Tekkit** | Enables the whole Tekkit tree (`tw_guides`) |
 | **All Lady** | Enables Lady Elyssa Guides + Achievements (`legs` + `leag`) |
-| **All off** | Clears every enabled category (Tekkit, Lady, MC presets) |
+| **All Hero** | Enables Hero's Marker Pack (`HMP` + `hmpSim`) |
+| **All off** | Clears every enabled category (Tekkit, Lady, Hero, MC presets) |
 
 **Skyscale routes:** Tekkit only ships a Skyscale Edition for **Heart of Thorns**,
 **Secrets of the Obscure**, and generic Routes in **Janthir Wilds**. Core Tyria,

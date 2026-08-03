@@ -4,6 +4,7 @@
 
 /* Curated TacO packs downloaded into addons/<name>/pathing/:
      - LadyElyssa.taco / LadyElyssaAP.taco (GitHub releases/latest)
+     - Hero.Blish.Pack.taco (QuitarHero Heros-Marker-Pack releases)
      - tw_ALL_IN_ONE.taco (Tekkit's Workshop CDN)
    User-dropped .taco files in the same folder are never deleted.
    Call EnsureCurated from a worker thread only (blocking HTTP). */

@@ -634,6 +634,32 @@ void WaypointsData::ListForMap(int mapId, bool waypointsOnly, std::vector<Poi>& 
 		});
 }
 
+bool WaypointsData::FindByChatLink(const char* chatLink, Poi& out)
+{
+	out = {};
+	if (!chatLink || !chatLink[0])
+		return false;
+	std::string needle = chatLink;
+	/* Allow pasting with surrounding text — keep first [&…]. */
+	const size_t a = needle.find("[&");
+	if (a != std::string::npos)
+	{
+		const size_t b = needle.find(']', a);
+		if (b != std::string::npos)
+			needle = needle.substr(a, b - a + 1);
+	}
+	std::lock_guard<std::mutex> lock(gMu);
+	for (const Poi& p : gPois)
+	{
+		if (p.chatLink == needle)
+		{
+			out = p;
+			return true;
+		}
+	}
+	return false;
+}
+
 void WaypointsData::ListMaps(const char* filter, std::vector<MapRow>& out, size_t maxN)
 {
 	out.clear();

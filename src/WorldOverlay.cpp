@@ -182,6 +182,56 @@ namespace
 		return std::isfinite(sx) && std::isfinite(sy);
 	}
 
+	Vec3 Lerp3(const Vec3& a, const Vec3& b, float t)
+	{
+		return {
+			a.x + (b.x - a.x) * t,
+			a.y + (b.y - a.y) * t,
+			a.z + (b.z - a.z) * t,
+		};
+	}
+
+	float ClipW(const Vec3& world, const Mat4& viewProj)
+	{
+		float cx, cy, cz, cw;
+		viewProj.Transform(world.x, world.y, world.z, cx, cy, cz, cw);
+		return cw;
+	}
+
+	/* Pull segment endpoints in front of the camera near plane so look-along /
+	   underfoot camera angles don't blank whole ribbons. */
+	bool ClipSegmentToNearPlane(Vec3& a, Vec3& b, const Mat4& viewProj)
+	{
+		constexpr float kEps = 0.12f;
+		const float aw = ClipW(a, viewProj);
+		const float bw = ClipW(b, viewProj);
+		if (!std::isfinite(aw) || !std::isfinite(bw))
+			return false;
+		if (aw <= kEps && bw <= kEps)
+			return false;
+		if (aw <= kEps)
+		{
+			const float denom = bw - aw;
+			if (!(std::fabs(denom) > 1e-6f))
+				return false;
+			const float t = (kEps - aw) / denom;
+			if (!(t > 0.f && t < 1.f))
+				return false;
+			a = Lerp3(a, b, t);
+		}
+		else if (bw <= kEps)
+		{
+			const float denom = aw - bw;
+			if (!(std::fabs(denom) > 1e-6f))
+				return false;
+			const float t = (kEps - bw) / denom;
+			if (!(t > 0.f && t < 1.f))
+				return false;
+			b = Lerp3(b, a, t);
+		}
+		return true;
+	}
+
 	void TrailFadeRange(const TekkitTrails::WorldSnippet& /*seg*/, float maxDist,
 		float& fadeStart, float& fadeEnd)
 	{
@@ -227,7 +277,7 @@ namespace
 		constexpr float kMinSpacing2 = 1.0f * 1.0f;
 		constexpr float kMaxGap2 = 80.f * 80.f;
 
-		auto project = [&](const Vec3& w, float& sx, float& sy, float& fadeOut) -> bool
+		auto distFade = [&](const Vec3& w, float& fadeOut) -> bool
 		{
 			const float adx = avatar.x - w.x;
 			const float ady = avatar.y - w.y;
@@ -240,8 +290,11 @@ namespace
 			if (dist > fadeStart)
 				fadeOut = 1.f - (dist - fadeStart) / std::max(1.f, fadeEnd - fadeStart);
 			fadeOut = std::clamp(fadeOut, 0.f, 1.f);
-			if (baseA * fadeOut < 0.05f)
-				return false;
+			return baseA * fadeOut >= 0.05f;
+		};
+
+		auto projectWorld = [&](Vec3 w, float& sx, float& sy) -> bool
+		{
 			return WorldToScreen(w, viewProj, screenW, screenH, sx, sy);
 		};
 
@@ -256,81 +309,126 @@ namespace
 			{
 				if (drawn >= segsLeft)
 					break;
-				const Vec3& p0 = pts[i];
-				const Vec3& p1 = pts[i + 1];
-				Vec3 dir{p1.x - p0.x, p1.y - p0.y, p1.z - p0.z};
+				const Vec3& raw0 = pts[i];
+				const Vec3& raw1 = pts[i + 1];
+				Vec3 dir{raw1.x - raw0.x, raw1.y - raw0.y, raw1.z - raw0.z};
 				const float segLen = std::sqrt(dir.LengthSq());
 				if (!(segLen > 0.25f) || !std::isfinite(segLen))
 					continue;
+
+				float fade0 = 1.f, fade1 = 1.f;
+				const bool in0 = distFade(raw0, fade0);
+				const bool in1 = distFade(raw1, fade1);
+				if (!in0 && !in1)
+				{
+					alongM += segLen;
+					continue;
+				}
+
+				Vec3 p0 = raw0;
+				Vec3 p1 = raw1;
+				if (!ClipSegmentToNearPlane(p0, p1, viewProj))
+				{
+					alongM += segLen;
+					continue;
+				}
+
+				float cx0 = 0.f, cy0 = 0.f, cx1 = 0.f, cy1 = 0.f;
+				if (!projectWorld(p0, cx0, cy0) || !projectWorld(p1, cx1, cy1))
+				{
+					alongM += segLen;
+					continue;
+				}
 
 				Vec3 side = dir.Cross(worldUp);
 				if (side.LengthSq() < 1e-8f)
 					side = dir.Cross(Vec3{1.f, 0.f, 0.f});
 				side = side.Normalised();
 				if (side.LengthSq() < 0.5f)
-					continue;
-				if (lastSide.LengthSq() > 0.5f && side.Dot(lastSide) < 0.f)
-					flipOver = -flipOver;
-				lastSide = side;
-				side = Vec3{side.x * flipOver, side.y * flipOver, side.z * flipOver};
-
-				const Vec3 left0{p0.x + side.x * halfM, p0.y, p0.z + side.z * halfM};
-				const Vec3 right0{p0.x - side.x * halfM, p0.y, p0.z - side.z * halfM};
-				const Vec3 left1{p1.x + side.x * halfM, p1.y, p1.z + side.z * halfM};
-				const Vec3 right1{p1.x - side.x * halfM, p1.y, p1.z - side.z * halfM};
-
-				float fade0 = 1.f, fade1 = 1.f;
-				float lx0 = 0.f, ly0 = 0.f, rx0 = 0.f, ry0 = 0.f;
-				float lx1 = 0.f, ly1 = 0.f, rx1 = 0.f, ry1 = 0.f;
-				if (!project(left0, lx0, ly0, fade0) || !project(right0, rx0, ry0, fade0) ||
-					!project(left1, lx1, ly1, fade1) || !project(right1, rx1, ry1, fade1))
+					side = {};
+				if (side.LengthSq() > 0.5f)
 				{
-					alongM += segLen;
-					continue;
+					if (lastSide.LengthSq() > 0.5f && side.Dot(lastSide) < 0.f)
+						flipOver = -flipOver;
+					lastSide = side;
+					side = Vec3{side.x * flipOver, side.y * flipOver, side.z * flipOver};
 				}
 
-				const float qdx = lx1 - lx0;
-				const float qdy = ly1 - ly0;
-				const float qlen = std::sqrt(qdx * qdx + qdy * qdy);
-				if (!std::isfinite(qlen) || qlen < 0.75f || qlen > screenW * 0.85f)
-				{
-					alongM += segLen;
-					continue;
-				}
-				const float w0x = rx0 - lx0, w0y = ry0 - ly0;
-				const float w1x = rx1 - lx1, w1y = ry1 - ly1;
-				const float avgWidth = 0.5f * (
-					std::sqrt(w0x * w0x + w0y * w0y) + std::sqrt(w1x * w1x + w1y * w1y));
-				if (!(avgWidth > 1.5f) || qlen < avgWidth * 0.4f)
-				{
-					alongM += segLen;
-					continue;
-				}
-
-				const float avgA = baseA * (fade0 + fade1) * 0.5f;
+				const float avgA = baseA * (
+					(in0 ? fade0 : fade1) + (in1 ? fade1 : fade0)) * 0.5f;
 				const int aCh = static_cast<int>(std::clamp(avgA, 0.f, 1.f) * 255.f);
 				if (aCh < 8)
 				{
 					alongM += segLen;
 					continue;
 				}
-				const ImVec2 sL0{lx0, ly0}, sR0{rx0, ry0}, sL1{lx1, ly1}, sR1{rx1, ry1};
-				if (texture)
+
+				bool drewQuad = false;
+				if (side.LengthSq() > 0.5f)
 				{
-					constexpr float kUvPeriod = kBlishHalfM * 2.f;
-					const float v0 = -(alongM / kUvPeriod);
-					const float v1 = -((alongM + segLen) / kUvPeriod);
-					dl->AddImageQuad(
-						reinterpret_cast<ImTextureID>(texture->Resource),
-						sL0, sL1, sR1, sR0,
-						ImVec2(0.f, v0), ImVec2(0.f, v1),
-						ImVec2(1.f, v1), ImVec2(1.f, v0),
-						IM_COL32(255, 255, 255, aCh));
+					Vec3 left0{p0.x + side.x * halfM, p0.y, p0.z + side.z * halfM};
+					Vec3 right0{p0.x - side.x * halfM, p0.y, p0.z - side.z * halfM};
+					Vec3 left1{p1.x + side.x * halfM, p1.y, p1.z + side.z * halfM};
+					Vec3 right1{p1.x - side.x * halfM, p1.y, p1.z - side.z * halfM};
+					/* Clip each ribbon edge independently — one behind-cam corner
+					   used to blank the entire segment. */
+					ClipSegmentToNearPlane(left0, left1, viewProj);
+					ClipSegmentToNearPlane(right0, right1, viewProj);
+
+					float lx0 = 0.f, ly0 = 0.f, rx0 = 0.f, ry0 = 0.f;
+					float lx1 = 0.f, ly1 = 0.f, rx1 = 0.f, ry1 = 0.f;
+					const bool okL0 = projectWorld(left0, lx0, ly0);
+					const bool okR0 = projectWorld(right0, rx0, ry0);
+					const bool okL1 = projectWorld(left1, lx1, ly1);
+					const bool okR1 = projectWorld(right1, rx1, ry1);
+					if (okL0 && okR0 && okL1 && okR1)
+					{
+						const float qdx = lx1 - lx0;
+						const float qdy = ly1 - ly0;
+						const float qlen = std::sqrt(qdx * qdx + qdy * qdy);
+						const float w0x = rx0 - lx0, w0y = ry0 - ly0;
+						const float w1x = rx1 - lx1, w1y = ry1 - ly1;
+						const float avgWidth = 0.5f * (
+							std::sqrt(w0x * w0x + w0y * w0y) +
+							std::sqrt(w1x * w1x + w1y * w1y));
+						/* Allow foreshortened look-along segments; only skip
+						   absurd perspective blow-ups (use line fallback). */
+						if (std::isfinite(qlen) && qlen >= 0.5f &&
+							qlen <= screenW * 1.25f &&
+							avgWidth > 1.25f)
+						{
+							const ImVec2 sL0{lx0, ly0}, sR0{rx0, ry0};
+							const ImVec2 sL1{lx1, ly1}, sR1{rx1, ry1};
+							if (texture)
+							{
+								constexpr float kUvPeriod = kBlishHalfM * 2.f;
+								const float v0 = -(alongM / kUvPeriod);
+								const float v1 = -((alongM + segLen) / kUvPeriod);
+								dl->AddImageQuad(
+									reinterpret_cast<ImTextureID>(texture->Resource),
+									sL0, sL1, sR1, sR0,
+									ImVec2(0.f, v0), ImVec2(0.f, v1),
+									ImVec2(1.f, v1), ImVec2(1.f, v0),
+									IM_COL32(255, 255, 255, aCh));
+							}
+							else
+							{
+								dl->AddQuadFilled(sL0, sL1, sR1, sR0,
+									IM_COL32(rr, gg, bb, aCh));
+							}
+							drewQuad = true;
+						}
+					}
 				}
-				else
+
+				/* Centerline always — keeps path visible when ribbons fail. */
+				if (!drewQuad)
 				{
-					dl->AddQuadFilled(sL0, sL1, sR1, sR0, IM_COL32(rr, gg, bb, aCh));
+					const float lineW = std::clamp(halfM * 90.f, 2.5f, 10.f);
+					dl->AddLine(ImVec2{cx0, cy0}, ImVec2{cx1, cy1},
+						IM_COL32(rr, gg, bb, aCh), lineW);
 				}
+
 				alongM += segLen;
 				++drawn;
 			}
@@ -483,8 +581,9 @@ void WorldOverlay::Render()
 	/* Always drive trail loading — even when in-world GPS is off or the world
 	   map is open — so enabling a category reloads without needing Reload packs. */
 	TekkitTrails::Update(ctx->mapId);
+	TekkitTrails::TickMarkerBehaviors();
 
-	if (!G::ShowWorldTrails && !TekkitTrails::HasSearchGuide())
+	if (!G::ShowWorldTrails && !TekkitTrails::HasSearchGuideActive())
 		return;
 	if (G::HideWhenMapOpen && (ctx->uiState & static_cast<uint32_t>(UiStateBits::MapOpen)))
 		return;
@@ -571,15 +670,21 @@ void WorldOverlay::Render()
 		}
 	}
 
-	if (TekkitTrails::HasSearchGuide())
+	if (TekkitTrails::HasSearchGuideActive())
 	{
-		const TekkitTrails::WorldSnippet guide = TekkitTrails::SearchGuideWorldSnippet();
-		if (guide.points.size() >= 2)
-			sGuideCache = guide;
+		if (TekkitTrails::HasSearchGuide())
+		{
+			const TekkitTrails::WorldSnippet guide = TekkitTrails::SearchGuideWorldSnippet();
+			if (guide.points.size() >= 2)
+				sGuideCache = guide;
+		}
 		if (sGuideCache.points.size() >= 2)
 		{
+			/* Huge fade window — avatar-distance fade was blinking far segments
+			   of the orange route as you walked / looked along it. */
+			constexpr float kGuideFadeM = 2500.f;
 			segsLeft -= DrawTrailRibbon(dl, viewProj, screenW, screenH, avatar,
-				sGuideCache, maxDist * 2.5f, thickness + 0.35f, segsLeft, true);
+				sGuideCache, kGuideFadeM, thickness + 0.35f, segsLeft, true);
 		}
 	}
 	else

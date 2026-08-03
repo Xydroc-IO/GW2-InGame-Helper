@@ -3,7 +3,10 @@
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PadDock.h"
+#include "PadNav.h"
+#include "PathingFeatures.h"
 #include "PathingPacks.h"
+#include "ConfirmedWaypoints.h"
 #include "RoutingSuggest.h"
 #include "Settings.h"
 #include "TekkitTrails.h"
@@ -16,15 +19,163 @@
 
 namespace
 {
-	constexpr float kPadW = 460.f;
-	constexpr float kPadH = 680.f;
+	constexpr float kPadW = 480.f;
+	constexpr float kPadH = 700.f;
 
 	bool gRequestDock = false;
+	int gPathTab = 0; /* 0 Overview · 1 Features · 2 Categories · 3 Route */
 
 	void SyncEnabledToSettings()
 	{
 		TekkitTrails::SerializeEnabledPaths(G::TekkitEnabled, sizeof(G::TekkitEnabled));
 		Settings::SetDirty();
+	}
+
+	void DrawCredits()
+	{
+		ImGui::TextColored(HelperTheme::Gold, "PATHING");
+		ImGui::PushTextWrapPos(0.f);
+		ImGui::TextColored(HelperTheme::Muted,
+			"Curated packs auto-update. Drop extra .taco into pathing/ — yours are never deleted.");
+		ImGui::TextDisabled("Tekkit · Lady Elyssa · QuitarHero (hover)");
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextUnformatted("Tekkit's All-In-One © Tekkit's Workshop — used with permission");
+			ImGui::TextUnformatted("https://www.tekkitsworkshop.net/");
+			ImGui::Spacing();
+			ImGui::TextUnformatted("Guides & Achievements © Lady Elyssa");
+			ImGui::TextUnformatted("https://wiki.guildwars2.com/wiki/User:Lady_Elyssa");
+			ImGui::Spacing();
+			ImGui::TextUnformatted("Hero's Marker Pack © QuitarHero");
+			ImGui::TextUnformatted("https://github.com/QuitarHero/Heros-Marker-Pack");
+			ImGui::EndTooltip();
+		}
+		ImGui::PopTextWrapPos();
+	}
+
+	void DrawRouteTab()
+	{
+		ImGui::TextUnformatted("Route to trail start");
+		ImGui::TextDisabled(
+			"Nearest public waypoints to the trail start (else your position). "
+			"Copy a chat code — no auto-teleport.");
+
+		/* Keep map trails warm on this tab — Find used to race Update()'s async load. */
+		uint32_t mapId = 0;
+		if (G::Mumble && G::Mumble->uiTick != 0)
+		{
+			const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
+			if (ctx)
+				mapId = ctx->mapId;
+		}
+		if (mapId)
+			TekkitTrails::Update(mapId);
+
+		WaypointsData::Tick();
+		if (!WaypointsData::Ready() && !WaypointsData::Busy())
+			WaypointsData::EnsureLoaded(false);
+
+		static bool sPendingRoute = false;
+		if (ImGui::Button("Find nearest waypoints###gw2igh_route_wp"))
+			sPendingRoute = true;
+		ImGui::SameLine();
+		if (ImGui::Button("Clear orange guide###gw2igh_route_clear"))
+		{
+			RoutingSuggest::ClearGuide();
+			sPendingRoute = false;
+		}
+
+		const bool trailsBusy = TekkitTrails::IsLoading() || PathingPacks::IsUpdating();
+		if (sPendingRoute)
+		{
+			if (!WaypointsData::Ready())
+			{
+				WaypointsData::EnsureLoaded(false);
+				ImGui::TextColored(HelperTheme::Warn, "%s",
+					WaypointsData::Busy() ? WaypointsData::Status() : "Starting waypoint index…");
+			}
+			else if (trailsBusy)
+			{
+				ImGui::TextColored(HelperTheme::Warn, "Loading trail packs…");
+			}
+			else
+			{
+				RoutingSuggest::SuggestNearTrailStart(3);
+				sPendingRoute = false;
+			}
+		}
+		else if (WaypointsData::Busy())
+		{
+			ImGui::TextDisabled("%s", WaypointsData::Status());
+		}
+		else if (trailsBusy)
+		{
+			ImGui::TextDisabled("Indexing trail packs…");
+		}
+
+		if (ImGui::Button("Route from clipboard###gw2igh_route_clip"))
+		{
+			WaypointsData::EnsureLoaded(false);
+			RoutingSuggest::SuggestFromClipboard();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Shift+click a waypoint in GW2 (copies [&…]), then click here.\n"
+				"Sets the orange guide to that POI — no auto-teleport.");
+
+		{
+			bool prefer = ConfirmedWaypoints::PreferConfirmed();
+			if (ImGui::Checkbox("Prefer walk-confirmed waypoints###gw2igh_wp_confirmed", &prefer))
+				ConfirmedWaypoints::SetPreferConfirmed(prefer);
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip(
+					"When on, Find uses waypoints this character has walked near.\n"
+					"Confirmed locally from MumbleLink position + API coords.");
+			const int mapId = WaypointsData::CurrentMapId();
+			ImGui::TextDisabled("Confirmed: %zu total · %zu on this map",
+				ConfirmedWaypoints::CountForActive(),
+				ConfirmedWaypoints::CountOnMap(mapId));
+		}
+
+		const RoutingSuggest::Result& route = RoutingSuggest::Last();
+		if (!route.status.empty() && !sPendingRoute)
+			ImGui::TextWrapped("%s", route.status.c_str());
+		if (route.trailLabel[0])
+			ImGui::TextDisabled("Trail: %s (%.0f, %.0f)", route.trailLabel, route.trailX, route.trailY);
+		if (TekkitTrails::HasSearchGuide())
+			ImGui::TextColored(HelperTheme::Ok, "Orange in-world guide active.");
+
+		for (size_t i = 0; i < route.nearest.size(); ++i)
+		{
+			const RoutingSuggest::Candidate& c = route.nearest[i];
+			ImGui::PushID(static_cast<int>(i));
+			if (c.confirmed)
+				ImGui::BulletText("%s  (%.0f)  [confirmed]", c.name.c_str(), c.dist);
+			else
+				ImGui::BulletText("%s  (%.0f)", c.name.c_str(), c.dist);
+			ImGui::SameLine();
+			ImGui::TextDisabled("%s", c.chatLink.c_str());
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Copy"))
+				RoutingSuggest::CopyChatLink(c.chatLink.c_str());
+			ImGui::PopID();
+		}
+
+		ImGui::Separator();
+		if (!G::Mumble || G::Mumble->uiTick == 0)
+			ImGui::TextColored(HelperTheme::Warn, "MumbleLink: waiting");
+		else
+		{
+			const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
+			ImGui::TextColored(HelperTheme::Ok, "MumbleLink OK");
+			if (ctx && ctx->mapId)
+			{
+				ImGui::SameLine();
+				ImGui::TextDisabled("map %u · compass %ux%u",
+					ctx->mapId, ctx->compassWidth, ctx->compassHeight);
+			}
+		}
 	}
 }
 
@@ -42,12 +193,10 @@ bool TekkitGuidesPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = std::max(360.f, io.DisplaySize.y - 40.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 320.f), ImVec2(620.f, maxH));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(400.f, 320.f), ImVec2(640.f, maxH));
 	ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 
-	/* Dock beside the helper on each Open() — same as Notes / TP.
-	   Cond_Always so a stale imgui.ini left-edge pos cannot win. */
 	if (gRequestDock)
 	{
 		ImGui::SetNextWindowPos(PadDock::BesideHelper(kPadW), ImGuiCond_Always);
@@ -57,7 +206,6 @@ bool TekkitGuidesPad::Render()
 
 	bool open = G::ShowTekkitGuides;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	/* NoNavInputs — gamepad/keyboard nav steals letters from the category filter. */
 	if (!ImGui::Begin("Pathing##GW2InGameHelperPathing", &open,
 		ImGuiWindowFlags_NoNavInputs))
 	{
@@ -80,105 +228,39 @@ bool TekkitGuidesPad::Render()
 		return false;
 	}
 
-	ImGui::TextColored(HelperTheme::Gold, "PATHING");
-	ImGui::PushTextWrapPos(0.f);
-	ImGui::TextColored(HelperTheme::Muted,
-		"Curated packs auto-update from the authors' releases. Drop any extra .taco "
-		"into the pathing folder — your files are never deleted.");
-	ImGui::Spacing();
-	ImGui::TextColored(HelperTheme::Muted,
-		"Tekkit's All-In-One © Tekkit's Workshop — used with permission.");
-	ImGui::TextDisabled("https://www.tekkitsworkshop.net/");
-	ImGui::TextColored(HelperTheme::Muted,
-		"Lady Elyssa's Guides & Achievements © Lady Elyssa.");
-	ImGui::TextDisabled("https://wiki.guildwars2.com/wiki/User:Lady_Elyssa");
-	ImGui::PopTextWrapPos();
-	ImGui::Separator();
+	static const char* kTabs[] = { "Overview", "Features", "Categories", "Route" };
+	gPathTab = PadNav::DrawTabs("###gw2igh_path_nav", kTabs, 4, gPathTab);
 
-	if (TekkitTrails::DrawSettings())
-		SyncEnabledToSettings();
-
-	ImGui::Separator();
-	ImGui::TextUnformatted("Route to trail start");
-	ImGui::TextDisabled(
-		"Nearest public waypoints to the first loaded trail point on this map. "
-		"Copy a chat code — no auto-teleport.");
-	WaypointsData::Tick();
-	/* Warm the public floor index while this pad is open so Find is instant. */
-	if (!WaypointsData::Ready() && !WaypointsData::Busy())
-		WaypointsData::EnsureLoaded(false);
-
-	static bool sPendingRoute = false;
-	if (ImGui::Button("Find nearest waypoints###gw2igh_route_wp"))
-		sPendingRoute = true;
-	ImGui::SameLine();
-	if (ImGui::Button("Clear orange guide###gw2igh_route_clear"))
+	ImGui::BeginChild("###gw2igh_path_body", ImVec2(0.f, 0.f), gPathTab != 0);
+	switch (gPathTab)
 	{
-		RoutingSuggest::ClearGuide();
-		sPendingRoute = false;
+	case 0:
+		DrawCredits();
+		ImGui::Separator();
+		if (TekkitTrails::DrawOverlaySettings())
+			SyncEnabledToSettings();
+		ImGui::Separator();
+		TekkitTrails::DrawPackTools();
+		break;
+	case 1:
+		if (PathingFeatures::RenderContents())
+			SyncEnabledToSettings();
+		break;
+	case 2:
+		if (TekkitTrails::DrawCategoryBrowser())
+			SyncEnabledToSettings();
+		break;
+	case 3:
+		DrawRouteTab();
+		break;
+	default:
+		break;
 	}
-
-	if (sPendingRoute)
-	{
-		if (!WaypointsData::Ready())
-		{
-			WaypointsData::EnsureLoaded(false);
-			ImGui::TextColored(HelperTheme::Warn, "%s",
-				WaypointsData::Busy() ? WaypointsData::Status() : "Starting waypoint index…");
-		}
-		else
-		{
-			RoutingSuggest::SuggestNearTrailStart(3);
-			sPendingRoute = false;
-		}
-	}
-	else if (WaypointsData::Busy())
-	{
-		ImGui::TextDisabled("%s", WaypointsData::Status());
-	}
-
-	const RoutingSuggest::Result& route = RoutingSuggest::Last();
-	if (!route.status.empty() && !sPendingRoute)
-		ImGui::TextWrapped("%s", route.status.c_str());
-	if (route.trailLabel[0])
-		ImGui::TextDisabled("Trail: %s (%.0f, %.0f)", route.trailLabel, route.trailX, route.trailY);
-	if (TekkitTrails::HasSearchGuide())
-		ImGui::TextColored(HelperTheme::Ok, "Orange in-world guide active.");
-
-	for (size_t i = 0; i < route.nearest.size(); ++i)
-	{
-		const RoutingSuggest::Candidate& c = route.nearest[i];
-		ImGui::PushID(static_cast<int>(i));
-		ImGui::BulletText("%s  (%.0f)", c.name.c_str(), c.dist);
-		ImGui::SameLine();
-		ImGui::TextDisabled("%s", c.chatLink.c_str());
-		ImGui::SameLine();
-		if (ImGui::SmallButton("Copy"))
-			RoutingSuggest::CopyChatLink(c.chatLink.c_str());
-		ImGui::PopID();
-	}
-
-	ImGui::Separator();
-	if (!G::Mumble || G::Mumble->uiTick == 0)
-		ImGui::TextColored(HelperTheme::Warn,
-			"MumbleLink: waiting (needed for compass / GPS)");
-	else
-	{
-		const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
-		ImGui::TextColored(HelperTheme::Ok, "MumbleLink: OK");
-		if (ctx && ctx->mapId)
-		{
-			ImGui::SameLine();
-			ImGui::TextDisabled("map %u · compass %ux%u",
-				ctx->mapId, ctx->compassWidth, ctx->compassHeight);
-		}
-	}
+	ImGui::EndChild();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 	const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
-	/* Keep routing keys here while the filter (or any text field) is active,
-	   even if the cursor leaves the window slightly. */
 	const bool typingHere = focused && ImGui::GetIO().WantTextInput;
 	ImGui::End();
 	return hovered || typingHere;

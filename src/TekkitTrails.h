@@ -48,6 +48,7 @@ namespace TekkitTrails
 		uint32_t color = 0xFFFFCC33; /* ARGB */
 		char     label[96]{};
 		char     iconId[160]{}; /* Nexus texture id when icon loaded */
+		char     guid[96]{};
 		Point    pos;           /* continent */
 		WorldPoint world;
 		bool     minimapVisible = true;
@@ -60,12 +61,27 @@ namespace TekkitTrails
 		float    fadeNear = -1.f;
 		float    fadeFar = -1.f;
 		float    alpha = 1.f;
+
+		/* Blish Pathing runtime */
+		int      behavior = 0;
+		bool     autoTrigger = false;
+		float    triggerRange = 2.f;
+		float    resetLength = 0.f;
+		bool     invertBehavior = false;
+		char     hide[192]{};
+		char     show[192]{};
+		char     tipName[96]{};
+		char     tipDescription[384]{};
+		char     info[768]{};
+		char     copy[256]{};
+		char     copyMessage[128]{};
 	};
 
 	struct Category
 	{
 		std::string path;   /* e.g. "tw_guides.tw_mc" — enable prefix */
 		std::string label;  /* DisplayName from Tekkit menu when known */
+		std::string tip;    /* tip-description from MarkerCategory (Blish hover) */
 		int         trails = 0; /* trails + POIs under this prefix */
 		bool        enabled = false; /* opt-in: on only if user enabled this/ancestor */
 		bool        separator = false; /* section header, not toggleable */
@@ -88,7 +104,18 @@ namespace TekkitTrails
 	std::vector<std::string> LoadedPackNames();
 	std::string PathingFolderHint();
 	void ReloadPacks(); /* re-scan pathing/ after adding/removing .taco files */
-	/* Force re-download curated packs (Lady Elyssa + Tekkit), then ReloadPacks. */
+	/* Enable/disable many category paths in one reload (Blish hide=/show=). */
+	void ApplyCategoryShowHide(
+		const std::vector<std::string>& showPaths,
+		const std::vector<std::string>& hidePaths);
+
+	/* Blish/TacO marker behaviors (Hero pack tracking, tips, interact). */
+	void TickMarkerBehaviors();
+	void ResetMarkerBehaviorStates();
+	void RequestMarkerInteract();
+	void DrawMarkerBehaviorOverlay();
+
+	/* Force re-download curated packs (Lady / Hero / Tekkit), then ReloadPacks. */
 	void UpdateCuratedPacks();
 	int  TrailCount();          /* visible (category-enabled) trails */
 	int  TrailCountAllOnMap();  /* all loaded for this map (for routing) */
@@ -113,6 +140,7 @@ namespace TekkitTrails
 	MapCompletionRoutes ActiveMapCompletionRoutes();
 	void EnableAllTekkitCategories();
 	void EnableAllLadyCategories(); /* Lady Elyssa Guides (legs) + Achievements (leag) */
+	void EnableAllHeroCategories(); /* Hero's Marker Pack (HMP + hmpSim) */
 	void DisableAllCategories();
 	/* Exact category paths the user turned on (prefix enables descendants). */
 	std::vector<std::string> EnabledPaths();
@@ -159,7 +187,8 @@ namespace TekkitTrails
 	/* Search: pick a Tekkit trail sub-path toward this continent point. */
 	void SetSearchDestination(float continentX, float continentY);
 	void ClearSearchGuide();
-	bool HasSearchGuide();
+	bool HasSearchGuide(); /* active + rebuilt polyline available */
+	bool HasSearchGuideActive(); /* destination set (may still be rebuilding) */
 	Trail SearchGuide(); /* empty if none found yet */
 
 	/* First continent point of a trail on the loaded map.
@@ -167,6 +196,10 @@ namespace TekkitTrails
 	bool TryTrailStartContinent(float* outX, float* outY,
 		char* labelOut, size_t labelLen, bool preferEnabled = true);
 
-	/* Settings panel (ImGui). Returns true if settings changed. */
+	/* Overlay / pack tools / category browser — modular Pathing tab pieces.
+	   DrawSettings() combines them for any single-panel caller. */
+	bool DrawOverlaySettings();
+	bool DrawPackTools();
+	bool DrawCategoryBrowser();
 	bool DrawSettings();
 }
