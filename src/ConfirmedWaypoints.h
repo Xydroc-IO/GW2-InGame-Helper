@@ -4,7 +4,7 @@
 
 /* Per-character waypoints confirmed by walking near them (Mumble continent
    position vs official API coords). Independent of third-party addons —
-   our own JSON under the Beta data dir. Display / routing only. */
+   our own JSON under the addon data dir. Display / routing only. */
 namespace ConfirmedWaypoints
 {
 	void Load();

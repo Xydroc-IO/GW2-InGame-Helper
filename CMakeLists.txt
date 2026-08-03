@@ -109,7 +109,7 @@ if(MINGW)
   set_target_properties(GW2-InGame-Helper PROPERTIES PREFIX "")
 endif()
 set_target_properties(GW2-InGame-Helper PROPERTIES
-  OUTPUT_NAME "GW2-InGame-Helper-Beta"
+  OUTPUT_NAME "GW2-InGame-Helper"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 add_dependencies(GW2-InGame-Helper GW2HelperBrowser)

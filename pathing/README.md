@@ -29,7 +29,7 @@ enough for Hero's raid/strike tracking and most interactive markers.
 **Not supported:** Lua `script-*` features (HTcm simulation scripts, combatFade,
 script-trigger practices, etc.). Those still need [Blish HUD Pathing](https://blishhud.com/modules/?module=bh.community.pathing).
 
-Interact default: **Ctrl+Shift+F** (`KB_HELPER_BETA_MARKER_INTERACT`) — rebind in Nexus.
+Interact default: **Ctrl+Shift+F** (`KB_HELPER_MARKER_INTERACT`) — rebind in Nexus.
 States persist in `marker_behaviors.txt` (Pathing → **Reset marker states** to clear).
 
 Do **not** keep a second copy of Tekkit under another name (e.g. both
