@@ -11,6 +11,7 @@
 #include "HelperQuickAccess.h"
 #include "LookupPad.h"
 #include "NotesPad.h"
+#include "SessionHistoryData.h"
 #include "TpWatchPad.h"
 #include "EventsPad.h"
 #include "TekkitGuidesPad.h"
@@ -726,6 +727,7 @@ static void AddonLoad(AddonAPI_t* api)
 	NotesPad::Load();
 	CharacterProfiles::Load();
 	ConfirmedWaypoints::Load();
+	SessionHistoryData::Load();
 	TekkitTrails::Init();
 	/* Restore category toggles after Init (Init no longer wipes them, but first
 	   load applies settings here so order stays Load → Init → apply). */
@@ -791,6 +793,7 @@ static void AddonUnload()
 	CharacterProfiles::CaptureCurrent();
 	CharacterProfiles::Save(true);
 	ConfirmedWaypoints::Save(true);
+	SessionHistoryData::Save(true);
 	Settings::SetDirty();
 	Settings::Save(true);
 

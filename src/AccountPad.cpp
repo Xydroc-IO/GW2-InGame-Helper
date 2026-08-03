@@ -5,9 +5,13 @@
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "LookupPad.h"
+#include "PadNav.h"
 #include "ProgressData.h"
+#include "SessionHistoryData.h"
 #include "Settings.h"
 #include "TpWatchPad.h"
+#include "UnlocksData.h"
+#include "UnlocksPad.h"
 #include "VaultPad.h"
 #include "WalletPad.h"
 #include "WikiBrowser.h"
@@ -25,6 +29,7 @@ namespace
 
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	int  gAccountTab = 0; /* Overview…History — wrapping PadNav, no ◀ ▶ */
 
 	void OpenLive(const char* url)
 	{
@@ -49,7 +54,7 @@ namespace
 		ImGui::TextColored(HelperTheme::Gold, "ACCOUNT");
 		ImGui::PushTextWrapPos(0.f);
 		ImGui::TextColored(HelperTheme::Muted,
-			"Stash, vault, trading, crafting, and legendary progress — official API, read-only.");
+			"Stash, vault, trading, crafting, unlocks, and legendary progress — official API, read-only.");
 		ImGui::PopTextWrapPos();
 		ImGui::Spacing();
 
@@ -81,8 +86,12 @@ namespace
 			TpWatchPad::RefreshData();
 			ProgressData::RefreshIfNeeded(true);
 			CraftingData::RefreshDailiesIfNeeded(true);
+			UnlocksData::EnsureAll(true);
 		}
-		ImGui::TextColored(HelperTheme::Muted, "Pulls stash, vault, trading, crafting dailies, and progress.");
+		ImGui::TextColored(HelperTheme::Muted,
+			"Pulls stash, vault, trading, crafting dailies, progress, and unlocks.");
+
+		SessionHistoryData::RenderOverviewSnippet();
 
 		SectionLabel("TOOLS");
 		ImGui::PushTextWrapPos(0.f);
@@ -117,8 +126,9 @@ namespace
 		if (ImGui::Button("Fashion (Live)###gw2igh_acct_fash", ImVec2(-FLT_MIN, 0.f)))
 			OpenLive("about:live-fashion");
 		ImGui::PushTextWrapPos(0.f);
-		ImGui::TextColored(HelperTheme::Muted,
-			"Legendaries live under Progress. Fashion opens the Live panel in Browse.");
+	ImGui::TextColored(HelperTheme::Muted,
+		"Legendaries live under Progress. Unlocks covers wardrobe skins/dyes/minis. "
+		"Fashion opens the Live panel in Browse.");
 		ImGui::PopTextWrapPos();
 	}
 }
@@ -134,6 +144,7 @@ void AccountPad::OpenAndRefresh()
 	TpWatchPad::RefreshData();
 	ProgressData::RefreshIfNeeded(false);
 	CraftingData::RefreshDailiesIfNeeded(false);
+	UnlocksData::EnsureLoaded(UnlocksData::Kind::Skins, false);
 }
 
 bool AccountPad::Render()
@@ -142,6 +153,8 @@ bool AccountPad::Render()
 		return false;
 
 	TpWatchPad::Tick();
+	UnlocksData::Tick();
+	SessionHistoryData::Tick();
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = (io.DisplaySize.y > 100.f)
@@ -188,65 +201,33 @@ bool AccountPad::Render()
 		Settings::SetDirty();
 	}
 
-	const bool focusCraft = CraftingData::ConsumeFocusTab();
-	if (ImGui::BeginTabBar("###gw2igh_acct_tabs", ImGuiTabBarFlags_FittingPolicyScroll))
+	if (CraftingData::ConsumeFocusTab())
+		gAccountTab = 5; /* Crafting */
+
+	static const char* kTabs[] = {
+		"Overview", "Stash", "Vault", "Trading", "Item",
+		"Crafting", "Progress", "Unlocks", "History"
+	};
+	gAccountTab = PadNav::DrawTabs("###gw2igh_acct_nav", kTabs, 9, gAccountTab);
+
+	ImGui::BeginChild("###gw2igh_acct_body", ImVec2(0.f, 0.f), gAccountTab != 0);
+	switch (gAccountTab)
 	{
-		if (ImGui::BeginTabItem("Overview###gw2igh_acct_tab0"))
-		{
-			ImGui::BeginChild("###gw2igh_acct_body0", ImVec2(0.f, 0.f), false);
-			DrawOverview();
-			ImGui::EndChild();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Stash###gw2igh_acct_tab1"))
-		{
-			ImGui::BeginChild("###gw2igh_acct_body1", ImVec2(0.f, 0.f), true);
-			WalletPad::RenderContents();
-			ImGui::EndChild();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Vault###gw2igh_acct_tab2"))
-		{
-			ImGui::BeginChild("###gw2igh_acct_body2", ImVec2(0.f, 0.f), true);
-			VaultPad::RenderContents();
-			ImGui::EndChild();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Trading###gw2igh_acct_tab3"))
-		{
-			ImGui::BeginChild("###gw2igh_acct_body3", ImVec2(0.f, 0.f), true);
-			TpWatchPad::RenderContents(true);
-			ImGui::EndChild();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Item###gw2igh_acct_tab4"))
-		{
-			ImGui::BeginChild("###gw2igh_acct_body4", ImVec2(0.f, 0.f), true);
-			LookupPad::RenderContents();
-			ImGui::EndChild();
-			ImGui::EndTabItem();
-		}
-		{
-			const ImGuiTabItemFlags craftFlags = focusCraft
-				? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-			if (ImGui::BeginTabItem("Crafting###gw2igh_acct_tab5", nullptr, craftFlags))
-			{
-				ImGui::BeginChild("###gw2igh_acct_body5", ImVec2(0.f, 0.f), true);
-				CraftingData::RenderContents();
-				ImGui::EndChild();
-				ImGui::EndTabItem();
-			}
-		}
-		if (ImGui::BeginTabItem("Progress###gw2igh_acct_tab6"))
-		{
-			ImGui::BeginChild("###gw2igh_acct_body6", ImVec2(0.f, 0.f), true);
-			ProgressData::RefreshIfNeeded(false);
-			ProgressData::RenderContents();
-			ImGui::EndChild();
-			ImGui::EndTabItem();
-		}
-		ImGui::EndTabBar();
+	case 0: DrawOverview(); break;
+	case 1: WalletPad::RenderContents(); break;
+	case 2: VaultPad::RenderContents(); break;
+	case 3: TpWatchPad::RenderContents(true); break;
+	case 4: LookupPad::RenderContents(); break;
+	case 5: CraftingData::RenderContents(); break;
+	case 6:
+		ProgressData::RefreshIfNeeded(false);
+		ProgressData::RenderContents();
+		break;
+	case 7: UnlocksPad::RenderContents(); break;
+	case 8: SessionHistoryData::RenderContents(); break;
+	default: break;
 	}
+	ImGui::EndChild();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

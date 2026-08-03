@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "InventoryData.h"
 
 #include "imgui/imgui.h"
 
@@ -535,28 +536,37 @@ namespace
 
 	void LoadOwned(std::unordered_map<int, int>& owned)
 	{
-		if (!G::Gw2ApiKey[0]) return;
-		const char* key = G::Gw2ApiKey;
-		OwnedJob jobs[3] = {
-			{ "/v2/account/materials", key, {} },
-			{ "/v2/account/bank", key, {} },
-			{ "/v2/account/inventory", key, {} },
-		};
-		HANDLE hs[3]{};
-		for (int i = 0; i < 3; ++i)
-			hs[i] = CreateThread(nullptr, 0, OwnedProc, &jobs[i], 0, nullptr);
-		if (hs[0] && hs[1] && hs[2])
-			WaitForMultipleObjects(3, hs, TRUE, 12000);
-		for (int i = 0; i < 3; ++i)
+		InventoryData::Tick();
+		if (!InventoryData::Ready())
 		{
-			if (hs[i])
+			InventoryData::RefreshIfNeeded(false);
+			/* Fall back to a quick materials/bank/shared pull if inventory module
+			   is still cold — same endpoints, keeps planner usable. */
+			if (!G::Gw2ApiKey[0]) return;
+			const char* key = G::Gw2ApiKey;
+			OwnedJob jobs[3] = {
+				{ "/v2/account/materials", key, {} },
+				{ "/v2/account/bank", key, {} },
+				{ "/v2/account/inventory", key, {} },
+			};
+			HANDLE hs[3]{};
+			for (int i = 0; i < 3; ++i)
+				hs[i] = CreateThread(nullptr, 0, OwnedProc, &jobs[i], 0, nullptr);
+			if (hs[0] && hs[1] && hs[2])
+				WaitForMultipleObjects(3, hs, TRUE, 12000);
+			for (int i = 0; i < 3; ++i)
 			{
-				WaitForSingleObject(hs[i], 0);
-				CloseHandle(hs[i]);
+				if (hs[i])
+				{
+					WaitForSingleObject(hs[i], 0);
+					CloseHandle(hs[i]);
+				}
+				if (jobs[i].result.ok)
+					AddOwnedCounts(owned, jobs[i].result.body);
 			}
-			if (jobs[i].result.ok)
-				AddOwnedCounts(owned, jobs[i].result.body);
+			return;
 		}
+		InventoryData::FillOwnedMap(owned);
 	}
 
 	bool LoadApiRecipeForOutput(int outputId, int& outCount, std::vector<RecipeIng>& ings, int& recipeId)

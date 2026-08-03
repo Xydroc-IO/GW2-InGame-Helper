@@ -4,6 +4,7 @@
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "HelperTheme.h"
+#include "InventoryData.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -22,8 +23,8 @@
 
 namespace
 {
-	constexpr int kHttpTimeoutMs = 2500;
-	constexpr int kCharTimeoutMs = 2000;
+	constexpr int kHttpTimeoutMs = 8000;
+	constexpr int kCharTimeoutMs = 8000;
 	constexpr DWORD kCacheTtlMs = 5 * 60 * 1000; /* soft TTL — still show instantly */
 	constexpr int kItemBatch = 200;
 	constexpr int kMaxChars = 64;
@@ -67,6 +68,8 @@ namespace
 		std::string status;
 		std::vector<Entry> entries;
 		int charCount = 0;
+		int charBagsOk = 0;
+		int characterLocItems = 0; /* entries that have at least one Loc_Character */
 		DWORD fetchedAt = 0;
 	};
 
@@ -392,11 +395,12 @@ namespace
 	}
 
 	Snapshot SnapshotFromMap(std::unordered_map<int, Entry>& byId, const char* status,
-		int charCount, bool ok)
+		int charCount, int charBagsOk, bool ok)
 	{
 		Snapshot snap;
 		snap.ok = ok;
 		snap.charCount = charCount;
+		snap.charBagsOk = charBagsOk;
 		snap.status = status ? status : "";
 		snap.fetchedAt = GetTickCount();
 		snap.entries.reserve(byId.size());
@@ -409,12 +413,17 @@ namespace
 					if (a.kind != b.kind) return a.kind < b.kind;
 					return a.where < b.where;
 				});
+			for (const LocQty& l : e.locs)
+			{
+				if (l.kind == Loc_Character)
+				{
+					++snap.characterLocItems;
+					break;
+				}
+			}
 			snap.entries.push_back(std::move(e));
 		}
 		byId.clear();
-		/* Rebuild byId not needed — caller keeps separate map. We moved entries out.
-		   Fix: SnapshotFromMap shouldn't clear caller's map via move of entries from
-		   references into byId values - we moved e out of byId. Caller must not reuse. */
 		std::sort(snap.entries.begin(), snap.entries.end(),
 			[](const Entry& a, const Entry& b) {
 				const size_t n = std::min(a.name.size(), b.name.size());
@@ -431,10 +440,10 @@ namespace
 
 	/* Non-destructive publish copy. */
 	void Publish(const std::unordered_map<int, Entry>& byId, const char* status,
-		int charCount, bool ok)
+		int charCount, int charBagsOk, bool ok)
 	{
 		std::unordered_map<int, Entry> copy = byId;
-		Snapshot snap = SnapshotFromMap(copy, status, charCount, ok);
+		Snapshot snap = SnapshotFromMap(copy, status, charCount, charBagsOk, ok);
 		std::lock_guard<std::mutex> lock(gMu);
 		gSnap = std::move(snap);
 		gGen.fetch_add(1);
@@ -527,6 +536,8 @@ namespace
 	{
 		std::vector<std::string> names;
 		std::atomic<size_t> next{0};
+		std::atomic<int> bagsOk{0};
+		std::atomic<int> bagsFail{0};
 		std::unordered_map<int, Entry> map;
 		std::mutex mu;
 		const char* key = nullptr;
@@ -545,7 +556,12 @@ namespace
 			path += UrlEncode(name);
 			path += "/inventory";
 			auto inv = Gw2Http::Api(path.c_str(), job->key, kCharTimeoutMs);
-			if (!inv.ok) continue;
+			if (!inv.ok)
+			{
+				job->bagsFail.fetch_add(1);
+				continue;
+			}
+			job->bagsOk.fetch_add(1);
 			QtyMap qty;
 			CollectSlots(inv.body, qty);
 			std::unordered_map<int, Entry> local;
@@ -701,7 +717,7 @@ namespace
 		{
 			std::lock_guard<std::mutex> lock(acc.mu);
 			ResolveMissingNames(acc.map, G::Gw2ApiKey);
-			Publish(acc.map, "Account stash ready — loading characters…", 0, true);
+			Publish(acc.map, "Account stash ready — loading characters…", 0, 0, true);
 		}
 
 		if (gCancel)
@@ -736,11 +752,30 @@ namespace
 			std::lock_guard<std::mutex> lock2(job.mu);
 			MergeMap(acc.map, job.map);
 			ResolveMissingNames(acc.map, G::Gw2ApiKey);
-			char st[160];
-			std::snprintf(st, sizeof(st), "%d unique · %d toons. %s",
-				static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
-				acc.note.c_str());
-			Publish(acc.map, st, static_cast<int>(job.names.size()), true);
+			char st[200];
+			const int bagsOk = job.bagsOk.load();
+			const int bagsFail = job.bagsFail.load();
+			if (bagsFail > 0 && bagsOk == 0)
+			{
+				std::snprintf(st, sizeof(st),
+					"%d unique · %d toons listed, 0 bags loaded (need characters + inventories?). %s",
+					static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
+					acc.note.c_str());
+			}
+			else if (bagsFail > 0)
+			{
+				std::snprintf(st, sizeof(st),
+					"%d unique · %d/%d toon bags (%d failed). %s",
+					static_cast<int>(acc.map.size()), bagsOk,
+					static_cast<int>(job.names.size()), bagsFail, acc.note.c_str());
+			}
+			else
+			{
+				std::snprintf(st, sizeof(st), "%d unique · %d toons. %s",
+					static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
+					acc.note.c_str());
+			}
+			Publish(acc.map, st, static_cast<int>(job.names.size()), bagsOk, true);
 		}
 		else
 		{
@@ -748,7 +783,7 @@ namespace
 			std::string st = "Account stash loaded.";
 			if (chars.status == 401 || chars.status == 403)
 				st += " Enable characters scope for per-toon bags.";
-			Publish(acc.map, st.c_str(), 0, true);
+			Publish(acc.map, st.c_str(), 0, 0, true);
 		}
 
 		gBusy = false;
@@ -856,6 +891,7 @@ namespace
 void WalletPad::RefreshData()
 {
 	LoadNames();
+	InventoryData::RefreshIfNeeded(false);
 	/* Show whatever we already have immediately; refresh only if stale/empty. */
 	bool need = true;
 	{
@@ -957,14 +993,20 @@ void WalletPad::RenderContents()
 				? FormatCoins(e.total)
 				: FormatCount(e.total);
 
-			const bool openNode = ImGui::TreeNodeEx("##row",
-				ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap,
-				"%s", e.name.c_str());
+			/* Click row to expand — no TreeNode arrow. */
+			static std::unordered_map<int, bool> sOpen;
+			const int rowKey = e.isCurrency ? -e.id : e.id;
+			bool& open = sOpen[rowKey];
+			char rowLabel[256];
+			std::snprintf(rowLabel, sizeof(rowLabel), "%s###stash_row_%d", e.name.c_str(), rowKey);
+			if (ImGui::Selectable(rowLabel, open, ImGuiSelectableFlags_AllowDoubleClick))
+				open = !open;
 			ImGui::SameLine();
 			ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f), "%s", qty.c_str());
 
-			if (openNode)
+			if (open)
 			{
+				ImGui::Indent();
 				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
 					"%s #%d", e.isCurrency ? "Currency" : "Item", e.id);
 				for (const LocQty& l : e.locs)
@@ -976,16 +1018,43 @@ void WalletPad::RenderContents()
 						: FormatCount(l.count);
 					ImGui::BulletText("%s — %s", l.where.c_str(), lq.c_str());
 				}
-				ImGui::TreePop();
+				ImGui::Unindent();
 			}
 			ImGui::PopID();
 		}
 		if (shown == 0 && !gBusy)
 		{
 			ImGui::PushTextWrapPos(0.f);
-			ImGui::TextWrapped(snap.ok
-				? "No matches. Clear the filter or pick All locations."
-				: "No data yet — click Refresh.");
+			if (!snap.ok)
+			{
+				ImGui::TextWrapped("No data yet — click Refresh.");
+			}
+			else if (locFilter == 5) /* Characters location chip */
+			{
+				if (snap.charCount <= 0)
+					ImGui::TextWrapped(
+						"No character bags indexed. Enable the characters + inventories "
+						"scopes on your API key, then click Refresh.");
+				else if (snap.charBagsOk <= 0)
+					ImGui::TextWrapped(
+						"%d characters listed but bag fetch failed. Check inventories "
+						"scope, then Refresh.", snap.charCount);
+				else if (snap.characterLocItems <= 0)
+					ImGui::TextWrapped(
+						"Character bags loaded empty (or still resolving names). Try Refresh.");
+				else if (gFilter[0])
+					ImGui::TextWrapped("No matches in character bags for that filter.");
+				else
+					ImGui::TextWrapped("No character-bag items match.");
+			}
+			else if (gFilter[0] || locFilter > 0)
+			{
+				ImGui::TextWrapped("No matches. Clear the filter or pick All locations.");
+			}
+			else
+			{
+				ImGui::TextWrapped("Stash is empty.");
+			}
 			ImGui::PopTextWrapPos();
 		}
 		ImGui::EndChild();

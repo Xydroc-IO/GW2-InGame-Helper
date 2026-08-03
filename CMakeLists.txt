@@ -46,6 +46,10 @@ add_library(GW2-InGame-Helper SHARED
   src/RoutingSuggest.cpp
   src/CharacterProfiles.cpp
   src/ConfirmedWaypoints.cpp
+  src/UnlocksData.cpp
+  src/UnlocksPad.cpp
+  src/InventoryData.cpp
+  src/SessionHistoryData.cpp
   src/TpWatchPad.cpp
   src/LookupPad.cpp
   src/WalletPad.cpp
