@@ -498,6 +498,6 @@ Application-layer modules live under `src/account/`, `src/pathing/`, `src/logs/`
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.1.0 — Lady Features, GPS width bias + avatar soft-hide, sticky GPS, UI scale, Nexus disable unload |
+| Last sync | 2.2.1.0 — Lady Features, GPS width bias + world/screen avatar soft-hide, sticky GPS, UI scale, Nexus disable unload |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy change; advertisement-routing change; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.1.0, 2026. |

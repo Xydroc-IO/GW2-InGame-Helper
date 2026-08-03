@@ -42,8 +42,9 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   draw distance with faster ahead refresh while moving.
 - **GPS width:** Slider scales screen ribbons near and far (no fixed px ceiling);
   Lady Barefoot / WP / Mounts use per-edition bias so **1.0×** is the correct
-  baseline and editions scale together. Soft-hide (~3.25 m) keeps ribbons from
-  painting over the character.
+  baseline and editions scale together. Ribbons soft-hide in **world** (~5 m) and
+  **screen space** around the projected character/mount so ImGui trails do not
+  paint over the player (including Skyscale).
 - **Trails / markers:** Screen-space textured ribbons; Lady trail PNGs prioritized;
   mount shortcut icons draw with the same POI pipeline; tip labels limited to
   mount glyphs.

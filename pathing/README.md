@@ -80,7 +80,8 @@ auto-enables Lady so Core routes show without hunting Categories.
 Pathing **GPS width** (default **1.0×**) is a shared relative scale. Lady
 Barefoot / WP Only / With Mounts bake per-edition bias so 1.0 looks correct for
 each; moving the slider scales them evenly. Ribbons soft-hide near the character
-so they do not paint over the player mesh.
+in world space and clear a screen-space bubble around the projected avatar/mount
+(ImGui has no depth test against the mesh).
 
 **Skyscale routes:** Tekkit only ships a Skyscale Edition for **Heart of Thorns**,
 **Secrets of the Obscure**, and generic Routes in **Janthir Wilds**. Core Tyria,

@@ -218,5 +218,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.1.0 / Lady Features + GPS width bias + avatar soft-hide + sticky world GPS + UI scale + Nexus disable unload |
+| Last architecture sync | 2.2.1.0 / Lady Features + GPS width bias + world/screen avatar soft-hide + sticky world GPS + UI scale + Nexus disable unload |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps |
