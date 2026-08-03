@@ -64,6 +64,7 @@ DLL_SRC = \
 	src/PathingPacks.cpp \
 	src/CompassOverlay.cpp \
 	src/WorldOverlay.cpp \
+	src/DirectionCompass.cpp \
 	src/HelperQuickAccess.cpp \
 	src/WikiBrowser.cpp \
 	src/WikiBrowserHelper.cpp \

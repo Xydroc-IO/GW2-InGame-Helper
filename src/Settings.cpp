@@ -85,6 +85,19 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowTekkitTrails") == 0) G::ShowTekkitTrails = AsBool(val);
 		else if (std::strcmp(key, "ShowCompassOverlay") == 0) G::ShowCompassOverlay = AsBool(val);
 		else if (std::strcmp(key, "ShowWorldTrails") == 0) G::ShowWorldTrails = AsBool(val);
+		else if (std::strcmp(key, "ShowDirectionCompass") == 0) G::ShowDirectionCompass = AsBool(val);
+		else if (std::strcmp(key, "ShowDirectionWidget") == 0) G::ShowDirectionWidget = AsBool(val);
+		else if (std::strcmp(key, "ShowDirectionIndicator") == 0) G::ShowDirectionIndicator = AsBool(val);
+		else if (std::strcmp(key, "ShowDirectionWorld") == 0) G::ShowDirectionWorld = AsBool(val);
+		else if (std::strcmp(key, "DirectionEditMode") == 0) G::DirectionEditMode = AsBool(val);
+		else if (std::strcmp(key, "DirectionWidgetX") == 0)
+			G::DirectionWidgetX = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "DirectionWidgetY") == 0)
+			G::DirectionWidgetY = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "DirectionIndicatorX") == 0)
+			G::DirectionIndicatorX = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "DirectionIndicatorY") == 0)
+			G::DirectionIndicatorY = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "HideWhenMapOpen") == 0) G::HideWhenMapOpen = AsBool(val);
 		else if (std::strcmp(key, "HideOutOfGameplay") == 0) G::HideOutOfGameplay = AsBool(val);
 		else if (std::strcmp(key, "WorldTrailMaxDist") == 0)
@@ -244,6 +257,15 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowTekkitTrails=%d\n", G::ShowTekkitTrails ? 1 : 0);
 	std::fprintf(f, "ShowCompassOverlay=%d\n", G::ShowCompassOverlay ? 1 : 0);
 	std::fprintf(f, "ShowWorldTrails=%d\n", G::ShowWorldTrails ? 1 : 0);
+	std::fprintf(f, "ShowDirectionCompass=%d\n", G::ShowDirectionCompass ? 1 : 0);
+	std::fprintf(f, "ShowDirectionWidget=%d\n", G::ShowDirectionWidget ? 1 : 0);
+	std::fprintf(f, "ShowDirectionIndicator=%d\n", G::ShowDirectionIndicator ? 1 : 0);
+	std::fprintf(f, "ShowDirectionWorld=%d\n", G::ShowDirectionWorld ? 1 : 0);
+	std::fprintf(f, "DirectionEditMode=%d\n", G::DirectionEditMode ? 1 : 0);
+	std::fprintf(f, "DirectionWidgetX=%.1f\n", G::DirectionWidgetX);
+	std::fprintf(f, "DirectionWidgetY=%.1f\n", G::DirectionWidgetY);
+	std::fprintf(f, "DirectionIndicatorX=%.1f\n", G::DirectionIndicatorX);
+	std::fprintf(f, "DirectionIndicatorY=%.1f\n", G::DirectionIndicatorY);
 	std::fprintf(f, "HideWhenMapOpen=%d\n", G::HideWhenMapOpen ? 1 : 0);
 	std::fprintf(f, "HideOutOfGameplay=%d\n", G::HideOutOfGameplay ? 1 : 0);
 	std::fprintf(f, "WorldTrailMaxDist=%.1f\n", G::WorldTrailMaxDist);

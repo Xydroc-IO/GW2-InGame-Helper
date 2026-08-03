@@ -16,6 +16,7 @@
 #include "TekkitGuidesPad.h"
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
+#include "DirectionCompass.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "SyncQr.h"
@@ -592,6 +593,37 @@ namespace
 				else
 					TekkitGuidesPad::Open();
 			}
+			ImGui::Separator();
+			if (ImGui::BeginMenu("Direction compass"))
+			{
+				if (ImGui::MenuItem("Enabled", nullptr, G::ShowDirectionCompass))
+				{
+					G::ShowDirectionCompass = !G::ShowDirectionCompass;
+					Settings::SetDirty();
+				}
+				if (ImGui::MenuItem("Heading strip", nullptr, G::ShowDirectionWidget))
+				{
+					G::ShowDirectionWidget = !G::ShowDirectionWidget;
+					Settings::SetDirty();
+				}
+				if (ImGui::MenuItem("Bearing indicator", nullptr, G::ShowDirectionIndicator))
+				{
+					G::ShowDirectionIndicator = !G::ShowDirectionIndicator;
+					Settings::SetDirty();
+				}
+				if (ImGui::MenuItem("World N/E/S/W", nullptr, G::ShowDirectionWorld))
+				{
+					G::ShowDirectionWorld = !G::ShowDirectionWorld;
+					Settings::SetDirty();
+				}
+				ImGui::Separator();
+				if (ImGui::MenuItem("Edit positions", nullptr, G::DirectionEditMode))
+				{
+					G::DirectionEditMode = !G::DirectionEditMode;
+					Settings::SetDirty();
+				}
+				ImGui::EndMenu();
+			}
 			UI_NoteHelperPopupHover();
 			ImGui::EndPopup();
 		}
@@ -736,6 +768,13 @@ namespace
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Snippets + Waypoints search (copy chat codes)");
+		ImGui::SameLine(0.f, 8.f);
+		if (ImGui::Checkbox("Compass###gw2igh_dircompass", &G::ShowDirectionCompass))
+			Settings::SetDirty();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Direction compass — heading strip, world N/E/S/W, bearing text\n"
+				"(Raidcore-style; our gold theme)");
 
 	}
 
@@ -794,6 +833,7 @@ void UI_Render()
 	/* Tekkit overlays — always, even with the browser closed. */
 	CompassOverlay::Render();
 	WorldOverlay::Render();
+	DirectionCompass::Render();
 	/* URL-index warm: heavier when closed; light drip while open so Browse stays snappy. */
 	if (!G::ShowWiki)
 		Sites::TickWarmUrlKeys(96);

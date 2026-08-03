@@ -42,6 +42,15 @@ namespace G
 	bool  ShowTekkitTrails = true;
 	bool  ShowCompassOverlay = true;
 	bool  ShowWorldTrails = true;
+	bool  ShowDirectionCompass = false;
+	bool  ShowDirectionWidget = true;
+	bool  ShowDirectionIndicator = true;
+	bool  ShowDirectionWorld = true;
+	bool  DirectionEditMode = false;
+	float DirectionWidgetX = -1.f;
+	float DirectionWidgetY = -1.f;
+	float DirectionIndicatorX = -1.f;
+	float DirectionIndicatorY = -1.f;
 	bool  HideWhenMapOpen = true;
 	bool  HideOutOfGameplay = true;
 	float WorldTrailMaxDist = 120.f;
@@ -795,7 +804,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 1;
 	G::AddonDef.Version.Build    = 0;
-	G::AddonDef.Version.Revision = 3;
+	G::AddonDef.Version.Revision = 4;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";

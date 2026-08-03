@@ -78,6 +78,15 @@ namespace G
 	extern bool  ShowTekkitTrails; /* master: load packs + draw overlays */
 	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
 	extern bool  ShowWorldTrails; /* in-world GPS breadcrumbs */
+	extern bool  ShowDirectionCompass; /* master: direction ring / indicator / world N-E-S-W */
+	extern bool  ShowDirectionWidget;
+	extern bool  ShowDirectionIndicator;
+	extern bool  ShowDirectionWorld;
+	extern bool  DirectionEditMode; /* drag widget + indicator */
+	extern float DirectionWidgetX; /* <0 = place default */
+	extern float DirectionWidgetY;
+	extern float DirectionIndicatorX;
+	extern float DirectionIndicatorY;
 	extern bool  HideWhenMapOpen; /* hide compass/world overlays while map open */
 	extern bool  HideOutOfGameplay;
 	extern float WorldTrailMaxDist; /* meters from player */
