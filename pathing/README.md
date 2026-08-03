@@ -24,6 +24,15 @@ Stamp files (`*.taco.ver`) track the release / size so updates only re-download 
 2. In-game, open **Pathing** and click **Reload packs** (or **Update curated** to refresh downloads too).
 3. Enable the categories you want (everything starts unchecked each launch).
 
+### Quick presets
+
+| Control | What it does |
+|---------|----------------|
+| **Map Completion – Foot / Griffon / Skyscale** | Hearts / POIs / vistas + one route edition (mutually exclusive) |
+| **All Tekkit** | Enables the whole Tekkit tree (`tw_guides`) |
+| **All Lady** | Enables Lady Elyssa Guides + Achievements (`legs` + `leag`) |
+| **All off** | Clears every enabled category (Tekkit, Lady, MC presets) |
+
 Installed path:
 
 ```

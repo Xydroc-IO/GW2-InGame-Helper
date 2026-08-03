@@ -1557,6 +1557,7 @@ void TekkitTrails::EnableMapCompletionPreset(MapCompletionRoutes routes)
 	{
 		const std::string leaf = ToLower(leafOf(c.path));
 		const std::string lab = ToLower(c.label);
+		const std::string pathLow = ToLower(c.path);
 
 		auto ends = [](const std::string& s, const char* suf) -> bool
 		{
@@ -1564,23 +1565,47 @@ void TekkitTrails::EnableMapCompletionPreset(MapCompletionRoutes routes)
 			return s.size() >= n && s.compare(s.size() - n, n, suf) == 0;
 		};
 
-		/* Single generic "Routes" (e.g. Janthir Wilds) — OK for either pick. */
+		/* Single generic "Routes" (e.g. Janthir Wilds) — OK for any pick. */
 		if (lab == "routes")
 			return true;
 
 		const bool bare = lab.find("barefoot") != std::string::npos;
 		const bool griff = lab.find("griffon") != std::string::npos;
-		if (bare || griff)
-			return (routes == MapCompletionRoutes::Barefoot) ? bare : griff;
+		const bool sky = lab.find("skyscale") != std::string::npos;
+		const bool lantern = lab.find("lantern") != std::string::npos;
+		const bool skimmer = lab.find("skimmer") != std::string::npos;
 
-		/* Fallback when DisplayName missing: Core/HoT/PoF/EoD/LWS naming only. */
-		if (lab.find("skyscale") != std::string::npos ||
-			lab.find("skimmer") != std::string::npos ||
-			lab.find("lantern") != std::string::npos)
-			return false;
 		if (routes == MapCompletionRoutes::Barefoot)
+		{
+			if (bare)
+				return true;
+			if (griff || sky || lantern || skimmer)
+				return false;
 			return ends(leaf, "trails2");
-		return ends(leaf, "trails") && !ends(leaf, "trails2") && !ends(leaf, "trails3");
+		}
+		if (routes == MapCompletionRoutes::Griffon)
+		{
+			if (griff)
+				return true;
+			if (bare || sky || lantern || skimmer)
+				return false;
+			/* Exclude SotO/VoE — their primary trails folder is Skyscale/Skimmer. */
+			if (pathLow.find("tw_mc_soto") != std::string::npos ||
+				pathLow.find("tw_mc_voe") != std::string::npos)
+				return false;
+			return ends(leaf, "trails") && !ends(leaf, "trails2") && !ends(leaf, "trails3");
+		}
+		/* Skyscale: HoT trails3, SotO trails (Skyscale Edition), label match. */
+		if (sky)
+			return true;
+		if (bare || griff || lantern || skimmer)
+			return false;
+		if (ends(leaf, "trails3") && pathLow.find("tw_mc_eod") == std::string::npos)
+			return true; /* HoT Skyscale; skip EoD lanterns trails3 */
+		if (pathLow.find("tw_mc_soto") != std::string::npos &&
+			ends(leaf, "trails") && !ends(leaf, "trails2") && !ends(leaf, "trails3"))
+			return true;
+		return false;
 	};
 
 	auto enablePath = [&](const std::string& path)
@@ -1651,7 +1676,7 @@ void TekkitTrails::EnableMapCompletionPreset(MapCompletionRoutes routes)
 	}
 	else
 	{
-		/* Pack menu not indexed yet — enable known Barefoot / Griffon folders only. */
+		/* Pack menu not indexed yet — enable known route folders only. */
 		static const char* bareRoutes[] = {
 			"tw_guides.tw_mc.tw_mc_trails2",
 			"tw_guides.tw_mc_hot.tw_mc_hot_trails2",
@@ -1670,10 +1695,23 @@ void TekkitTrails::EnableMapCompletionPreset(MapCompletionRoutes routes)
 			"tw_guides.tw_mc_lws4.tw_mc_lws4_trails",
 			"tw_guides.tw_mc_lws5.tw_mc_lws5_trails",
 		};
-		const char** list = (routes == MapCompletionRoutes::Barefoot) ? bareRoutes : griffRoutes;
-		const size_t n = (routes == MapCompletionRoutes::Barefoot)
-			? (sizeof(bareRoutes) / sizeof(bareRoutes[0]))
-			: (sizeof(griffRoutes) / sizeof(griffRoutes[0]));
+		static const char* skyRoutes[] = {
+			"tw_guides.tw_mc_hot.tw_mc_hot_trails3",
+			"tw_guides.tw_mc_soto.tw_mc_soto_trails",
+			"tw_guides.tw_mc_jw.tw_mc_jw_trails",
+		};
+		const char** list = bareRoutes;
+		size_t n = sizeof(bareRoutes) / sizeof(bareRoutes[0]);
+		if (routes == MapCompletionRoutes::Griffon)
+		{
+			list = griffRoutes;
+			n = sizeof(griffRoutes) / sizeof(griffRoutes[0]);
+		}
+		else if (routes == MapCompletionRoutes::Skyscale)
+		{
+			list = skyRoutes;
+			n = sizeof(skyRoutes) / sizeof(skyRoutes[0]);
+		}
 		for (size_t i = 0; i < n; ++i)
 			enablePath(list[i]);
 	}
@@ -1715,6 +1753,7 @@ TekkitTrails::MapCompletionRoutes TekkitTrails::ActiveMapCompletionRoutes()
 	std::lock_guard<std::mutex> lock(gMutex);
 	bool bare = false;
 	bool griff = false;
+	bool sky = false;
 	for (const std::string& p : gEnabledPaths)
 	{
 		const std::string low = ToLower(p);
@@ -1725,7 +1764,7 @@ TekkitTrails::MapCompletionRoutes TekkitTrails::ActiveMapCompletionRoutes()
 			const size_t n = std::strlen(suf);
 			return s.size() >= n && s.compare(s.size() - n, n, suf) == 0;
 		};
-		/* Known Barefoot / Griffon folders (not SotO lanterns / VoE skimmer). */
+		/* Known Barefoot / Griffon / Skyscale folders (not SotO lanterns / VoE skimmer). */
 		if (ends(leaf, "trails2") &&
 			low.find("tw_mc_soto") == std::string::npos &&
 			low.find("tw_mc_voe") == std::string::npos)
@@ -1735,12 +1774,21 @@ TekkitTrails::MapCompletionRoutes TekkitTrails::ActiveMapCompletionRoutes()
 			low.find("tw_mc_voe") == std::string::npos &&
 			low.find("tw_mc_jw") == std::string::npos)
 			griff = true;
+		/* HoT Skyscale trails3; SotO primary trails = Skyscale Edition. */
+		if (ends(leaf, "trails3") && low.find("tw_mc_eod") == std::string::npos)
+			sky = true;
+		if (low.find("tw_mc_soto") != std::string::npos &&
+			ends(leaf, "trails") && !ends(leaf, "trails2") && !ends(leaf, "trails3"))
+			sky = true;
 	}
-	if (bare && !griff)
+	const int n = (bare ? 1 : 0) + (griff ? 1 : 0) + (sky ? 1 : 0);
+	if (n != 1)
+		return MapCompletionRoutes::None;
+	if (bare)
 		return MapCompletionRoutes::Barefoot;
-	if (griff && !bare)
+	if (griff)
 		return MapCompletionRoutes::Griffon;
-	return MapCompletionRoutes::None;
+	return MapCompletionRoutes::Skyscale;
 }
 
 void TekkitTrails::EnableAllTekkitCategories()
@@ -1748,6 +1796,18 @@ void TekkitTrails::EnableAllTekkitCategories()
 	std::lock_guard<std::mutex> lock(gMutex);
 	gEnabledPaths.clear();
 	gEnabledPaths.push_back("tw_guides");
+	MarkEnabled(gMenu);
+	gMenuRevision.fetch_add(1, std::memory_order_release);
+	gEnabledGen.fetch_add(1, std::memory_order_release);
+	gForceReload.store(true, std::memory_order_release);
+}
+
+void TekkitTrails::EnableAllLadyCategories()
+{
+	std::lock_guard<std::mutex> lock(gMutex);
+	gEnabledPaths.clear();
+	gEnabledPaths.push_back("legs"); /* Lady Elyssa's Guides */
+	gEnabledPaths.push_back("leag"); /* Lady Elyssa's AP Guides */
 	MarkEnabled(gMenu);
 	gMenuRevision.fetch_add(1, std::memory_order_release);
 	gEnabledGen.fetch_add(1, std::memory_order_release);
@@ -1970,10 +2030,11 @@ bool TekkitTrails::DrawSettings()
 	ImGui::TextUnformatted("Categories");
 	ImGui::TextDisabled("Like Blish / TacO / Taimi: parent on = all children. Saved between sessions.");
 
-	ImGui::TextDisabled("Pick one route edition — never both.");
+	ImGui::TextDisabled("Pick one route edition — Foot, Griffon, or Skyscale.");
 	const MapCompletionRoutes activeMc = ActiveMapCompletionRoutes();
 	bool bareOn = (activeMc == MapCompletionRoutes::Barefoot);
 	bool griffOn = (activeMc == MapCompletionRoutes::Griffon);
+	bool skyOn = (activeMc == MapCompletionRoutes::Skyscale);
 	if (ImGui::Checkbox("Map Completion - Foot###gw2igh_tekkit_mc_bare", &bareOn))
 	{
 		if (bareOn)
@@ -1985,7 +2046,7 @@ bool TekkitTrails::DrawSettings()
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Hearts / POIs / vistas + Barefoot routes only.\n"
-			"Turns Griffon routes off.");
+			"Turns Griffon / Skyscale routes off.");
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Map Completion - Griffon###gw2igh_tekkit_mc_griff", &griffOn))
 	{
@@ -1998,11 +2059,29 @@ bool TekkitTrails::DrawSettings()
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Hearts / POIs / vistas + Griffon routes only.\n"
-			"Turns Barefoot routes off.");
+			"Turns Foot / Skyscale routes off.");
 	ImGui::SameLine();
+	if (ImGui::Checkbox("Map Completion - Skyscale###gw2igh_tekkit_mc_sky", &skyOn))
+	{
+		if (skyOn)
+			EnableMapCompletionPreset(MapCompletionRoutes::Skyscale);
+		else
+			ClearMapCompletionCategories();
+		dirty = true;
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Hearts / POIs / vistas + Skyscale routes only (HoT / SotO).\n"
+			"Turns Foot / Griffon routes off.");
 	if (ImGui::Button("All Tekkit"))
 	{
 		EnableAllTekkitCategories();
+		dirty = true;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("All Lady"))
+	{
+		EnableAllLadyCategories();
 		dirty = true;
 	}
 	ImGui::SameLine();

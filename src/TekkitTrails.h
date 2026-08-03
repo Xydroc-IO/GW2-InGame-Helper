@@ -105,12 +105,14 @@ namespace TekkitTrails
 		None     = -1,
 		Barefoot = 0,
 		Griffon  = 1,
+		Skyscale = 2,
 	};
 	void EnableMapCompletionPreset(MapCompletionRoutes routes);
 	void ClearMapCompletionCategories();
 	/* Which route edition is currently selected via the MC preset (-1 = none/mixed). */
 	MapCompletionRoutes ActiveMapCompletionRoutes();
 	void EnableAllTekkitCategories();
+	void EnableAllLadyCategories(); /* Lady Elyssa Guides (legs) + Achievements (leag) */
 	void DisableAllCategories();
 	/* Exact category paths the user turned on (prefix enables descendants). */
 	std::vector<std::string> EnabledPaths();
