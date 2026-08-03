@@ -35,11 +35,11 @@ This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper
 | Area | Start here |
 |------|------------|
 | Browse UI | `src/ui/UI_Browse.cpp` |
-| DPS Logs | `src/logs/LogManagerPad.cpp` → Parse / Upload / Ei |
-| Pathing | `src/pathing/TekkitTrails.cpp` → TekkitParse / TekkitIndex / PathingPacks |
+| DPS Logs | `src/logs/LogManagerPad.cpp` (defs) + Shared → Cache / KillProof / Scan / Stats / Ui / Parse / Upload / Ei |
+| Pathing | `src/pathing/PathingTrails.cpp` + `PathingIndex.h` → Load / Gps / Presets / Ui / Parse / Index / PathingPacks |
 | Direction compass | `src/pathing/DirectionCompass.cpp` (side-rail **Compass** pad) |
-| Live digests | `src/browse/LivePanels.cpp` → LivePanelsBuild (News Digest under Help) |
-| Account API pads | `src/account/AccountPad.cpp`, `ProgressData.cpp`, `CraftingData.cpp` |
+| Live digests | `src/browse/LivePanels.cpp` → BuildCommon / Dailies / News / Fashion / Progress |
+| Account API pads | `src/account/AccountPad.cpp`, `ProgressData.cpp`, `CraftingData.cpp` (+ Api/Wiki/Plan/Dailies); TP/Wallet → Data/Fetch TUs |
 | Pad placement | `src/app/PadDock.h` (`G::PadGeom` → `settings.ini`) |
 
 Run parse fixture tests: `make test-parse`.

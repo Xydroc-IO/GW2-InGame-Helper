@@ -53,13 +53,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Trails / markers:** Screen-space textured ribbons; Lady trail PNGs prioritized;
   mount shortcut icons draw with the same POI pipeline; tip labels limited to
   mount glyphs.
-- **First run:** Empty `TekkitEnabled` auto-enables Lady categories so trails
-  appear without hunting Categories.
+- **First run:** Empty `PathingEnabled` (legacy `TekkitEnabled=`) auto-enables
+  Lady categories so trails appear without hunting Categories.
 - **UI scale:** Per-panel font scale from Options × window size (`UiScale`);
   optional mild auto scale on tall displays; pads no longer touch Nexus
   `FontGlobalScale`.
-- **Settings:** Longer `TekkitEnabled` read buffer; `SaveNow` on unload; Lady
-  edition keys persist and normalize legacy multi-on configs.
+- **Settings:** Longer enabled-category read buffer; persists as `PathingEnabled`
+  (still loads legacy `TekkitEnabled` / `ShowTekkitTrails`); `SaveNow` on unload;
+  Lady edition keys persist and normalize legacy multi-on configs.
+- **Code layout:** Pathing / Logs / Browse builders / Crafting·TP·Wallet megafiles
+  split into Shared + focused TUs; former `TekkitTrails*` modules renamed
+  `PathingTrails*` (Tekkit pack branding unchanged).
 - **Unload:** Nexus Disable allowed (`AF_None`) — pads close and CEF helper stops
   before deregister; prefer a full GW2 restart after replacing the DLL on disk.
 - **Stamps:** Helper `2201` · homepage `2201` · sites `s2201` · cheatsheets `c2201`

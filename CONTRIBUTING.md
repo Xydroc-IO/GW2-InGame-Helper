@@ -31,7 +31,7 @@ feature work on Beta; merge to `master` only after in-game verification.
 | Browser kernel | `src/browser/`, `src/helper/` | **Restricted** | Follow [`docs/KERNEL.md`](docs/KERNEL.md); stamp bump + coordinated DLL+helper; pair review |
 | Nexus entry / WndProc | `src/entry.cpp` | **Restricted** | Autorun / focus regressions — test in GW2 |
 | Shared chrome / app | `src/ui/`, `src/app/`, `src/api/` | Careful | Side-rail / settings / HTTP touch many pads |
-| Pathing / Logs parsers | `src/pathing/TekkitParse*`, `src/logs/LogManagerParse*` | Careful | Prefer golden fixtures when changing formats |
+| Pathing / Logs parsers | `src/pathing/PathingParse*`, `src/logs/LogManagerParse*` | Careful | Prefer golden fixtures when changing formats |
 
 ---
 

@@ -22,6 +22,8 @@ This is the **restricted kernel**. Pad/Sites edits do not belong here. Prefer pa
 | `WikiIpc.h` | Packed IPC contract (`HLI5`) |
 | `CefRuntime.*` | Private CEF zip download / verify / extract |
 
+Feature domains use the same Shared pattern (`PathingIndex.h`, `LogManagerShared.h`, `LivePanelsBuildShared.h`, `CraftingShared.h`, `TpWatchShared.h`, `WalletShared.h`) — see [`ARCHITECTURE.md`](ARCHITECTURE.md) §7.
+
 ### Helper process (`src/helper/`)
 
 | File | Own this |

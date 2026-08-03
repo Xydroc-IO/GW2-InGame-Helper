@@ -170,17 +170,20 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 | `src/app/` | `Globals`, `Settings`, `AddonPaths`, `HelperTheme`, `PadDock`, `PadNav`, `MumbleIdentity` |
 | `src/ui/` | Helper chrome (`UI*`), QuickAccess, SyncQr |
 | `src/api/` | `Gw2Http` (blocking WinHTTP — worker threads only) |
-| `src/browse/` | Sites catalog, HomePage, CheatSheets, RaidFood, LivePanels |
+| `src/browse/` | Sites catalog, HomePage, CheatSheets, RaidFood, LivePanels (+ Build* TUs) |
 
 ### Feature domains
 
 | Path | Responsibility |
 |------|----------------|
-| `src/account/` | Account hub + unlocks/inventory/wallet/vault/TP/lookup/crafting/progress/history/profiles |
-| `src/pathing/` | Tekkit/Pathing packs, trails, markers, compass/world overlays, routing, waypoints |
-| `src/logs/` | DPS Logs (`LogManager*`) + Elite Insights runtime |
+| `src/account/` | Account hub + unlocks/inventory/wallet/vault/TP/lookup/crafting/progress/history/profiles. Fat pads use Shared + focused TUs (`Crafting*`, `TpWatchData`, `WalletFetch`) |
+| `src/pathing/` | Tekkit/Pathing packs, trails, markers, compass/world overlays, routing, waypoints. Hub: `PathingTrails.cpp` + `PathingIndex.h` Shared; Load / Gps / Presets / Ui TUs |
+| `src/logs/` | DPS Logs (`LogManager*`) + Elite Insights runtime. `LogManagerShared.h` + Pad defs; Cache / KillProof / Scan / Stats / Ui / Parse / Upload / Ei |
+| `src/browse/` | Sites catalog, HomePage, CheatSheets, RaidFood, LivePanels. HTML builders: `LivePanelsBuildCommon` + Dailies / News / Fashion / Progress |
 | `src/events/` | World Events pad + schedule data |
 | `src/notes/` | Notes + waypoint snippets pad |
+
+Same pattern as `WikiBrowserShared.h`: public `.h` stable; `*Shared.h` / `PathingIndex.h` for cross-TU decls; **one** TU defines Shared globals.
 
 ### Catalog data (not under `src/`)
 
@@ -218,5 +221,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.1 / Lady Features + GPS width bias + Player clear (0=full path) + look-along subdiv + sticky world GPS + UI scale + Nexus disable unload |
+| Last architecture sync | 2.2.0.1 / Pathing* rename (was TekkitTrails*) + megafile Shared splits |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps |
