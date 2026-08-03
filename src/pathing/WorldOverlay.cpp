@@ -27,10 +27,9 @@ namespace
 	/* Soft-hide POI icons that would cover the avatar. */
 	constexpr float kAvatarMarkerHideM = 2.0f;
 	constexpr float kAvatarMarkerFadeM = 5.5f;
-	/* Keep GPS ribbons from painting over the character (wider than markers —
-	   trails are thick screen-space quads). Horizontal xz only — Y is up. */
-	constexpr float kAvatarTrailHideM = 3.25f;
-	constexpr float kAvatarTrailFadeM = 6.5f;
+	/* World bubble — ImGui has no depth vs the mesh, so also use screen clear. */
+	constexpr float kAvatarTrailHideM = 5.0f;
+	constexpr float kAvatarTrailFadeM = 9.0f;
 
 	struct Vec3
 	{
@@ -302,13 +301,12 @@ namespace
 			fadeOut = 1.f;
 			if (dist > fadeStart)
 				fadeOut = 1.f - (dist - fadeStart) / std::max(1.f, fadeEnd - fadeStart);
-			/* Soft bubble around the player — hide under feet / through the mesh. */
-			const float horiz = std::sqrt(adx * adx + adz * adz);
-			if (horiz <= kAvatarTrailHideM)
+			/* 3D bubble — covers underfoot and trails through a flying mount. */
+			if (dist <= kAvatarTrailHideM)
 				return false;
-			if (horiz < kAvatarTrailFadeM)
+			if (dist < kAvatarTrailFadeM)
 			{
-				const float t = (horiz - kAvatarTrailHideM) /
+				const float t = (dist - kAvatarTrailHideM) /
 					(kAvatarTrailFadeM - kAvatarTrailHideM);
 				fadeOut *= std::clamp(t, 0.f, 1.f);
 			}
@@ -316,21 +314,24 @@ namespace
 			return baseA * fadeOut >= 0.05f;
 		};
 
-		/* Closest horizontal approach of a segment to the avatar (trail underfoot). */
-		auto segHorizToAvatar = [&](const Vec3& a, const Vec3& b) -> float
+		/* Closest 3D approach of a segment to the avatar. */
+		auto segDistToAvatar = [&](const Vec3& a, const Vec3& b) -> float
 		{
 			const float abx = b.x - a.x;
+			const float aby = b.y - a.y;
 			const float abz = b.z - a.z;
-			const float ab2 = abx * abx + abz * abz;
+			const float ab2 = abx * abx + aby * aby + abz * abz;
 			float t = 0.f;
 			if (ab2 > 1.0e-6f)
 			{
-				t = ((avatar.x - a.x) * abx + (avatar.z - a.z) * abz) / ab2;
+				t = ((avatar.x - a.x) * abx + (avatar.y - a.y) * aby +
+					(avatar.z - a.z) * abz) / ab2;
 				t = std::clamp(t, 0.f, 1.f);
 			}
 			const float cx = a.x + abx * t - avatar.x;
+			const float cy = a.y + aby * t - avatar.y;
 			const float cz = a.z + abz * t - avatar.z;
-			return std::sqrt(cx * cx + cz * cz);
+			return std::sqrt(cx * cx + cy * cy + cz * cz);
 		};
 
 		auto projectWorld = [&](Vec3 w, float& sx, float& sy) -> bool
@@ -338,12 +339,53 @@ namespace
 			return WorldToScreen(w, viewProj, screenW, screenH, sx, sy);
 		};
 
+		/* Screen-space clear — trails ahead still land on the character silhouette
+		   because ImGui draws over the scene with no depth test. */
+		float avatarSx = 0.f, avatarSy = 0.f;
+		float avatarScreenR = std::min(screenW, screenH) * 0.085f;
+		bool haveAvatarScreen = false;
+		{
+			const Vec3 torso{avatar.x, avatar.y + 1.15f, avatar.z};
+			if (projectWorld(torso, avatarSx, avatarSy))
+			{
+				haveAvatarScreen = true;
+				float ox = 0.f, oy = 0.f;
+				/* Apparent character/mount size from a ~1.4 m world offset. */
+				if (projectWorld(Vec3{avatar.x + 1.4f, avatar.y + 1.15f, avatar.z}, ox, oy))
+				{
+					const float dx = ox - avatarSx;
+					const float dy = oy - avatarSy;
+					const float r = std::sqrt(dx * dx + dy * dy);
+					if (std::isfinite(r) && r > 8.f)
+						avatarScreenR = std::clamp(r * 2.35f, 56.f,
+							std::min(screenW, screenH) * 0.22f);
+				}
+			}
+		}
+
 		auto screenLen = [](float x0, float y0, float x1, float y1) -> float
 		{
 			const float dx = x1 - x0;
 			const float dy = y1 - y0;
 			const float len = std::sqrt(dx * dx + dy * dy);
 			return std::isfinite(len) ? len : 1.0e30f;
+		};
+
+		auto pointToSeg2D = [](float px, float py,
+			float x0, float y0, float x1, float y1) -> float
+		{
+			const float abx = x1 - x0;
+			const float aby = y1 - y0;
+			const float ab2 = abx * abx + aby * aby;
+			float t = 0.f;
+			if (ab2 > 1.0e-6f)
+			{
+				t = ((px - x0) * abx + (py - y0) * aby) / ab2;
+				t = std::clamp(t, 0.f, 1.f);
+			}
+			const float cx = x0 + abx * t - px;
+			const float cy = y0 + aby * t - py;
+			return std::sqrt(cx * cx + cy * cy);
 		};
 
 		auto drawSeg = [&](Vec3 raw0, Vec3 raw1, float& alongM) -> void
@@ -363,17 +405,17 @@ namespace
 				alongM += segLen;
 				return;
 			}
-			/* Segment may still skim under the player even if endpoints are outside. */
-			const float nearH = segHorizToAvatar(raw0, raw1);
-			if (nearH <= kAvatarTrailHideM)
+			/* Segment may still skim the player/mount even if endpoints are outside. */
+			const float nearD = segDistToAvatar(raw0, raw1);
+			if (nearD <= kAvatarTrailHideM)
 			{
 				alongM += segLen;
 				return;
 			}
 			float avatarMul = 1.f;
-			if (nearH < kAvatarTrailFadeM)
+			if (nearD < kAvatarTrailFadeM)
 			{
-				avatarMul = (nearH - kAvatarTrailHideM) /
+				avatarMul = (nearD - kAvatarTrailHideM) /
 					(kAvatarTrailFadeM - kAvatarTrailHideM);
 				avatarMul = std::clamp(avatarMul, 0.f, 1.f);
 			}
@@ -394,15 +436,6 @@ namespace
 			}
 			const float centerLen = screenLen(cx0, cy0, cx1, cy1);
 			if (centerLen < 0.5f || centerLen > maxLineScreen)
-			{
-				alongM += segLen;
-				return;
-			}
-
-			const float avgA = baseA * avatarMul * (
-				(in0 ? fade0 : fade1) + (in1 ? fade1 : fade0)) * 0.5f;
-			const int aCh = static_cast<int>(std::clamp(avgA, 0.f, 1.f) * 255.f);
-			if (aCh < 8)
 			{
 				alongM += segLen;
 				return;
@@ -431,6 +464,35 @@ namespace
 			const float halfPx = std::clamp(
 				halfM * 900.f / std::max(4.f, avgDist),
 				4.f * widthMul, 14.f * widthMul);
+
+			/* Clear the character/mount silhouette in screen space (ImGui overlay). */
+			if (haveAvatarScreen)
+			{
+				const float segScreen = pointToSeg2D(
+					avatarSx, avatarSy, cx0, cy0, cx1, cy1);
+				const float clearR = std::max(avatarScreenR, halfPx * 1.35f);
+				const float fadeR = clearR * 2.15f;
+				if (segScreen <= clearR)
+				{
+					alongM += segLen;
+					return;
+				}
+				if (segScreen < fadeR)
+				{
+					const float t = (segScreen - clearR) / std::max(1.f, fadeR - clearR);
+					avatarMul *= std::clamp(t, 0.f, 1.f);
+				}
+			}
+
+			const float avgA = baseA * avatarMul * (
+				(in0 ? fade0 : fade1) + (in1 ? fade1 : fade0)) * 0.5f;
+			const int aCh = static_cast<int>(std::clamp(avgA, 0.f, 1.f) * 255.f);
+			if (aCh < 8)
+			{
+				alongM += segLen;
+				return;
+			}
+
 			const ImVec2 sL0{cx0 + px * halfPx, cy0 + py * halfPx};
 			const ImVec2 sR0{cx0 - px * halfPx, cy0 - py * halfPx};
 			const ImVec2 sL1{cx1 + px * halfPx, cy1 + py * halfPx};
