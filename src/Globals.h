@@ -4,8 +4,9 @@
 
 #include "nexus/Nexus.h"
 
-#define ADDON_NAME "GW2-InGame-Helper"
-#define ADDON_SIG  0x48454C50u /* 'HELP' */
+#define ADDON_NAME "GW2-InGame-Helper-Beta"
+/* Distinct from shipping HELP (0x48454C50) so Beta can load beside stable in Nexus. */
+#define ADDON_SIG  0x48454C42u /* 'HELB' */
 
 struct MumbleContext
 {

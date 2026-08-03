@@ -5,10 +5,10 @@
 
 namespace
 {
-	constexpr const char* kQaId       = "QA_GW2_INGAME_HELPER";
-	constexpr const char* kTexId      = "TEX_GW2_HELPER_ICON";
-	constexpr const char* kTexHoverId = "TEX_GW2_HELPER_ICON_HOVER";
-	constexpr const char* kKbToggle   = "KB_HELPER_TOGGLE";
+	constexpr const char* kQaId       = "QA_GW2_INGAME_HELPER_BETA";
+	constexpr const char* kTexId      = "TEX_GW2_HELPER_BETA_ICON";
+	constexpr const char* kTexHoverId = "TEX_GW2_HELPER_BETA_ICON_HOVER";
+	constexpr const char* kKbToggle   = "KB_HELPER_BETA_TOGGLE";
 	bool gAdded = false;
 }
 
@@ -34,7 +34,7 @@ void HelperQuickAccess::Init()
 		kTexId,
 		kTexHoverId,
 		kKbToggle,
-		"In-Game Helper (Ctrl+Shift+H)");
+		"In-Game Helper BETA (Ctrl+Shift+H)");
 	gAdded = true;
 
 	if (G::API->Log)
