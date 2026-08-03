@@ -1,4 +1,4 @@
-# Kernel playbook — WikiBrowser + CEF helper (Beta)
+# Kernel playbook — WikiBrowser + CEF helper
 
 **Audience:** anyone who must change Browse rendering, IPC, launch/extract, or navigation policy.  
 **Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md), [`WikiIpc.h`](../src/WikiIpc.h), [`CONTRIBUTING.md`](../CONTRIBUTING.md).
@@ -100,7 +100,8 @@ After any kernel PR:
 
 ## 5. What not to do
 
-- Load Beta and shipping DLLs together (same Nexus signature `HELP`).
+- Rely on loading Beta and shipping DLLs together without understanding separate
+  signatures (`HELB` vs `HELP`) and data folders — prefer one channel when testing.
 - Write CEF into `bin64/cef`.
 - `Sleep` / `TerminateProcess` on the render thread for quit (use `Tick` + quit pending).
 - Edit `WikiBrowserShared.h` / `HelperInternal.h` globals without checking every TU that links them.

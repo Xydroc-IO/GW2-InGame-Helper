@@ -4,7 +4,7 @@
 
 Companion: [`../CONTRIBUTING.md`](../CONTRIBUTING.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`COMPLIANCE.md`](COMPLIANCE.md) · [`BUILD.md`](BUILD.md).
 
-This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper.dll`). An experimental **`GW2-InGame-Helper-Beta`** branch may exist with a separate `ADDON_NAME` / data folder — do **not** load both DLLs together (same Nexus signature).
+This guide assumes the **`master`** branch (shipping install: `GW2-InGame-Helper.dll`). An experimental **`GW2-InGame-Helper-Beta`** branch may exist with a separate `ADDON_NAME` / data folder and Nexus signature `HELB` (shipping is `HELP`).
 
 ---
 

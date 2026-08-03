@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.1.0.4
+# GW2 In-Game Helper v2.2.0.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -24,34 +24,51 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ### Upgrading from the Beta DLL
 
-1. Remove `GW2-InGame-Helper-Beta.dll` from `addons/` (same Nexus signature).
+1. Disable/remove `GW2-InGame-Helper-Beta.dll` from `addons/` (Beta uses signature
+   `HELB`; shipping uses `HELP` — do not run both if you only want one data folder).
 2. Install `GW2-InGame-Helper.dll`.
-3. Data/CEF now live under `addons/GW2-InGame-Helper/` — optionally move
+3. Data/CEF live under `addons/GW2-InGame-Helper/` — optionally move
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
 
+## What’s new in 2.2.0.0
+
+- **Product:** Former Beta channel features ship in `GW2-InGame-Helper.dll`
+  (signature `HELP`, GitHub updates). Experimental Beta builds remain a separate
+  `HELB` / `GW2-InGame-Helper-Beta` identity when needed.
+- **Helper chrome:** Left **side rail** for Browse / Account / Pathing / Events /
+  DPS Logs / Notes / Compass; favorite ★ beside Find. Floating pad positions and
+  sizes persist in `settings.ini`.
+- **Account hub:** Unlocks, inventory, session history, and wrapping chip rows;
+  Overview / Stash / Vault / Trading / Item / Crafting / Progress stay on the
+  official API. Per-character profiles for routing progress.
+- **Pathing:** **Hero** pack download; marker behaviors + Features / Categories;
+  packs list fills Overview; trail-start **GPS** routing; TacO `.trl` section
+  breaks and duplicate AIO pack skip (from 2.1.0.4) retained. Map Completion
+  Skyscale / All Lady / All off presets.
+- **Direction compass:** Side-rail **Compass** — world N/E/S/W (letter size +
+  world radius sliders); independent of Tekkit compass-trail overlay.
+- **Browse catalog:** News Digest under **Help → News**; removed Live category
+  and Fashion Wishlist; Addon Development category; catalog **2,718** entries;
+  sites stamp `s2200`.
+- **DPS Logs:** Auto-parse after scan (default on); toolbar **Parse**; wider
+  Filters pane; one **Search** field (file + encounter).
+- **Stamps:** Helper `2200` · homepage `2200` · sites `s2200` · cheatsheets `c2200`
+
 ## What’s new in 2.1.0.4
 
-- **Direction compass:** Side-rail **Compass** pad — world N/E/S/W around the character
+- **Direction compass:** Toolbar **Compass** — world N/E/S/W around the character
   (Nexus `FontBig`, letter size + world radius sliders); gold theme; independent of
   Tekkit compass-trail overlay. (Heading strip / bearing / edit mode removed.)
-- **Helper chrome:** Left side rail for Browse / Account / Pathing / Events / DPS Logs /
-  Notes / Compass; favorite ★ beside Find; Account & Pathing use side-rail tabs.
-  Floating pad positions/sizes persist in `settings.ini`.
 - **Pathing presets:** Map Completion **Skyscale** beside Foot / Griffon; **All Lady**
-  (`legs` + `leag`); **All off** clears Tekkit, Lady, and MC. Packs list fills Overview.
-- **Browse catalog:** News Digest under **Help → News**; removed Live category and
-  Fashion Wishlist (`s2105`, 2,718 entries).
-- **DPS Logs:** **Auto-parse after scan** (default on); toolbar **Parse**; wider Filters
-  pane; one **Search** field (file + encounter).
-- **Account:** Unlocks kinds use wrapping chip rows (no ◀ ▶ scroll arrows).
+  (`legs` + `leag`); **All off** clears Tekkit, Lady, and MC.
 - **Pathing trails:** Honor TacO/Blish/Taimi `.trl` **section breaks** (`(0,0,0)`);
   skip duplicate Tekkit AIO pack aliases; tighter compass/GPS drawing (no map-wide
   spaghetti / stacked ribbons); soft-hide POI markers near the avatar.
 - **Browse:** New **Addon Development** category (Raidcore under Nexus, GitHub under
-  Source); catalog **2,718** entries; sites stamp `s2105`.
-- **Stamps:** Helper `2103` · homepage `2104` · sites `s2105` · cheatsheets `c2103`
+  Source); catalog **2,719** entries; sites stamp `s2104`.
+- **Stamps:** Helper `2103` · homepage `2104` · sites `s2104` · cheatsheets `c2103`
 
 ## What’s new in 2.1.0.3
 

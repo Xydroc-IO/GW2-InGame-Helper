@@ -3,7 +3,7 @@
 
 **Technical report (engineering whitepaper)**  
 **Product:** GW2 In-Game Helper  
-**Revision described:** 2.1.0.4 (shipping; experimental Beta branch may share architecture)  
+**Revision described:** 2.2.0.0 (shipping; experimental Beta branch may share architecture)  
 **Signature:** `0x48454C50` (`HELP`)  
 **IPC contract:** `HLI5` (`0x484C4935`)  
 **Runtime:** Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129  
@@ -398,7 +398,7 @@ Memory safety tooling (ASan/TSan) cannot fully validate this stack: the DLL load
 
 ### 15.1 Maintainability trajectory (2.1.x)
 
-As of 2.1.0.4 the Browse catalog is data-driven (`data/sites.json` → embedded + runtime extract via `SitesLoad`), and former “god files” (`UI`, LogManager, Tekkit, LivePanels, CheatSheets, WikiBrowser, helper) are split into focused translation units. This reduces merge conflict surface for feature work but does **not** remove the need for restricted ownership of the CEF/IPC/present path. See `ARCHITECTURE.md` §7 and `CONTRIBUTING.md`.
+As of 2.2.0.0 the Browse catalog is data-driven (`data/sites.json` → embedded + runtime extract via `SitesLoad`), and former “god files” (`UI`, LogManager, Tekkit, LivePanels, CheatSheets, WikiBrowser, helper) are split into focused translation units. This reduces merge conflict surface for feature work but does **not** remove the need for restricted ownership of the CEF/IPC/present path. See `ARCHITECTURE.md` §7 and `CONTRIBUTING.md`.
 
 ---
 
@@ -423,11 +423,11 @@ Critics correctly note IPC rigidity, CPU upload cost, and sandbox gaps. Those ar
 
 ---
 
-## Appendix A — Quantitative constants (v2.1.0.4)
+## Appendix A — Quantitative constants (v2.2.0.0)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.1.0.4 |
+| Addon version | 2.2.0.0 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Max frame | 1920 × 1200 BGRA |
@@ -440,10 +440,10 @@ Critics correctly note IPC rigidity, CPU upload cost, and sandbox gaps. Those ar
 | Present idle / interact / wheel | ~30 / ~60 / ~120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites stamps | 2103 / 2104 / s2104 |
+| Helper / home / sites stamps | 2200 / 2200 / s2200 |
 | OSR `device_scale_factor` | 1.0 (view-pixel mouse/paint) |
 | User-Agent product token | `GW2-InGame-Helper` |
-| Browse catalog source | `data/sites.json` (~2719 entries) |
+| Browse catalog source | `data/sites.json` (~2718 entries) |
 
 ## Appendix B — Source map
 
@@ -469,5 +469,5 @@ Critics correctly note IPC rigidity, CPU upload cost, and sandbox gaps. Those ar
 | Form | Technical report / engineering whitepaper |
 | Peer review | None (project documentation) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.1.0.4 direction compass + Pathing presets + Addon Development browse |
+| Last sync | 2.2.0.0 side-rail + pad dock + Pathing Hero/GPS + Help News Digest |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy change; ad-routing change; module-boundary change |

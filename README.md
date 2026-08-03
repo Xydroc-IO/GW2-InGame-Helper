@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.1.0.4` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.0.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
@@ -33,18 +33,17 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
 | [Google](https://www.google.com/) | Search |
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
-| News Digest (built-in Live) | Live |
-| Fashion Wishlist (built-in Live) | Live |
-| Account (toolbar **Account** — stash, vault, TP, item, crafting, progress) | ImGui |
-| TP Watchlist (toolbar **TP**) | ImGui |
-| Item Lookup (toolbar **Item**) | ImGui |
-| Wallet & Stash (toolbar **Wallet**) | ImGui |
-| Vault (toolbar **Vault**) | ImGui |
-| DPS Logs (toolbar **DPS Logs**) | ImGui |
-| World Events (toolbar **Events**) | ImGui |
-| Pathing (toolbar) | ImGui + MumbleLink · Tekkit + Lady Elyssa + user `.taco` |
-| Direction compass | Heading strip + world N/E/S/W + bearing (Nexus FontBig) |
-| Notes + Waypoints (toolbar **Notes**) | ImGui |
+| News Digest (built-in) | Help |
+| Account (side-rail **Account** — unlocks, inventory, history, stash, vault, TP, crafting, progress) | ImGui |
+| TP Watchlist (Account / pad) | ImGui |
+| Item Lookup (Account / pad) | ImGui |
+| Wallet & Stash (Account / pad) | ImGui |
+| Vault (Account / pad) | ImGui |
+| DPS Logs (side-rail **DPS Logs**) | ImGui |
+| World Events (side-rail **Events**) | ImGui |
+| Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
+| Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
+| Notes + Waypoints (side-rail **Notes**) | ImGui |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |

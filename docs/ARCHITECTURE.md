@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.1.0.4` |
+| Addon revision (shipping) | `2.2.0.0` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites stamps | `2103` / `2104` / `s2104` |
+| Helper / home / sites stamps | `2200` / `2200` / `s2200` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
@@ -219,5 +219,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.1.0.4 / compass simplify + TacO .trl section breaks + pack dedupe |
+| Last architecture sync | 2.2.0.0 / side-rail + pad dock + Pathing Hero/GPS + catalog Help News |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps |

@@ -14,7 +14,9 @@ This guide states how a second maintainer can change the codebase **without** si
 | Shipping | `master` | `GW2-InGame-Helper` → `addons/GW2-InGame-Helper.dll` |
 | Experimental | `GW2-InGame-Helper-Beta` | `GW2-InGame-Helper-Beta` → Beta DLL + data folder |
 
-Do **not** enable both DLLs under Nexus at once (identical signature `HELP`). Prefer feature work on Beta; merge to `master` only after in-game verification.
+Do **not** enable both DLLs under Nexus at once unless you intentionally want
+side-by-side testing (Beta uses signature `HELB`, shipping uses `HELP`). Prefer
+feature work on Beta; merge to `master` only after in-game verification.
 
 ---
 
@@ -24,7 +26,7 @@ Do **not** enable both DLLs under Nexus at once (identical signature `HELP`). Pr
 |------|--------------|-------------|
 | Pads (`*Pad.cpp`, `*Data.cpp`) | Yes | Prefer in-window chips/radios over ImGui popup combos |
 | Catalog (`data/sites.json`) | Yes | `make validate-sites` required; schema v2 + `browsePath` |
-| Cheat sheets (`data/cheatsheets/`) | Yes | Edit HTML/CSS + `manifest.json`; bump pack stamp `c2103` in `CheatSheets.cpp` when shipping extract changes |
+| Cheat sheets (`data/cheatsheets/`) | Yes | Edit HTML/CSS + `manifest.json`; bump pack stamp `c2200` in `CheatSheets.cpp` when shipping extract changes |
 | LivePanels HTML builders | Careful | No secrets in HTML; bump panel version when caching |
 | `WikiBrowser` / `WikiIpc` / `helper/*` | **Restricted** | Follow [`docs/KERNEL.md`](docs/KERNEL.md); stamp bump + coordinated DLL+helper; pair review |
 | `entry.cpp` WndProc / mouse capture | **Restricted** | Autorun / focus regressions — test in GW2 |
