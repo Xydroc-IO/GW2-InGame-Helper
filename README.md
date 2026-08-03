@@ -404,7 +404,7 @@ ArenaNet does not endorse third-party software. Use at your own risk. Not affili
 - Share pixels/input via local shared-memory IPC
 - Block keyboard from the game while the page has focus **or** while typing in ImGui (Browse / Search / Find)
 - Block mouse from the game while the pointer is over the overlay
-- Display Tekkit’s All-In-One marker pack (© Tekkit's Workshop, used with permission)
+- Display curated pathing packs locally: Tekkit’s All-In-One (© Tekkit's Workshop, used with permission), Lady Elyssa Guides / Achievements, and Hero's Marker Pack (QuitarHero)
 
 ## How it works
 

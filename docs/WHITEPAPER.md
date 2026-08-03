@@ -469,5 +469,5 @@ Critics correctly note IPC rigidity, CPU upload cost, and sandbox gaps. Those ar
 | Form | Technical report / engineering whitepaper |
 | Peer review | None (project documentation) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.0 side-rail + pad dock + Pathing Hero/GPS + Help News Digest |
+| Last sync | 2.2.0.0 side-rail + pad dock + curated Tekkit/Lady/Hero Pathing + Help News Digest |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy change; ad-routing change; module-boundary change |

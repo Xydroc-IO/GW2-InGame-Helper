@@ -15,7 +15,7 @@ Current policy snapshot: **v2.2.0.0** — process/IPC notes: [`ARCHITECTURE.md`]
 - DLL WinHTTP reads to **killproof.me** (`/api/kp/…`) for the DPS Logs **KillProof** tab — public profiles only; no killproof.me login; results cached in-memory
 - Local Notes pad (`notes.json` under the addon folder) with clipboard copy helpers — no game injection
 - Item Lookup pad (public `/v2/items` + wiki search), Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories), and Vault pad (Wizard’s Vault / dailies — same Live panel API) — read-only; item name cache in `stash-names.cache`
-- Tekkit’s All-In-One `.taco` pathing packs (© Tekkit's Workshop, used with permission) loaded locally for display
+- Tekkit’s All-In-One `.taco` (© Tekkit's Workshop, used with permission), Lady Elyssa Guides / Achievements packs, and Hero's Marker Pack (QuitarHero) — curated downloads into `pathing/` for local display; user `.taco` files kept
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
 - Optional **Elite Insights CLI** under `addons/GW2-InGame-Helper/ei/` (on-demand download of upstream `GW2EICLI.zip` + SHA-256 verify; MIT, baaron4; requires user-installed .NET 8)

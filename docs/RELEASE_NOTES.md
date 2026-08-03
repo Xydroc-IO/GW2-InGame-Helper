@@ -43,13 +43,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Account hub:** Unlocks, inventory, session history, and wrapping chip rows;
   Overview / Stash / Vault / Trading / Item / Crafting / Progress stay on the
   official API. Per-character profiles for routing progress.
-- **Pathing:** **Hero** pack download; marker behaviors + Features / Categories;
-  packs list fills Overview; trail-start **GPS** routing; TacO `.trl` section
-  breaks and duplicate AIO pack skip (from 2.1.0.4) retained. Map Completion
-  Skyscale / All Lady / All off presets. **Find nearest waypoints** uses the
-  public waypoint index and works with **no categories enabled** (anchors on
-  your position; orange guide toward the closest WP); with packs on, prefers
-  trail start when available.
+- **Pathing:** Curated packs auto-download into `pathing/`: **Tekkit** All-In-One,
+  **Lady Elyssa** Guides + Achievements, and **Hero's Marker Pack** (QuitarHero);
+  marker behaviors + Features / Categories; packs list fills Overview; trail-start
+  **GPS** routing; TacO `.trl` section breaks and duplicate AIO pack skip (from
+  2.1.0.4) retained. Map Completion Skyscale / All Lady / All Hero / All off
+  presets. **Find nearest waypoints** uses the public waypoint index and works
+  with **no categories enabled** (anchors on your position; orange guide toward
+  the closest WP); with packs on, prefers trail start when available.
 - **Direction compass:** Side-rail **Compass** — world N/E/S/W (letter size +
   world radius sliders); independent of Tekkit compass-trail overlay.
 - **Browse catalog:** News Digest under **Help → News**; removed Live category

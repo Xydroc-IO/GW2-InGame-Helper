@@ -4,7 +4,8 @@ Put TacO / BlishHUD **`.taco`** files in this folder. The addon loads all of the
 
 ## Curated packs (auto-updated)
 
-On first Pathing load (and when you click **Update curated**), the addon downloads:
+On first Pathing load (and when you click **Update curated**), the addon downloads
+three shipping packs into this folder (plus any `.taco` files you add yourself):
 
 | Pack | Source |
 |------|--------|
