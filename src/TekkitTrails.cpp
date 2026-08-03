@@ -382,6 +382,8 @@ namespace TekkitDetail
 			float bestP = 1e30f;
 			for (size_t i = 0; i < tr.points.size(); ++i)
 			{
+				if (!std::isfinite(tr.points[i].x) || !std::isfinite(tr.points[i].y))
+					continue;
 				const float dD = Dist2(tr.points[i].x, tr.points[i].y, destX, destY);
 				if (dD < bestD)
 				{
@@ -403,7 +405,10 @@ namespace TekkitDetail
 			if (havePlayer && bestP > kMaxPlayerDist2)
 				continue;
 
-			const float score = havePlayer ? (bestD + bestP * 0.85f) : bestD;
+			/* Prefer trails that still have world samples — in-world GPS needs them. */
+			float score = havePlayer ? (bestD + bestP * 0.85f) : bestD;
+			if (tr.worldPoints.size() == tr.points.size() && tr.worldPoints.size() >= 2)
+				score *= 0.55f;
 			if (score < bestScore)
 			{
 				bestScore = score;
@@ -414,7 +419,7 @@ namespace TekkitDetail
 		}
 
 		if (bestTrail < 0)
-			return; /* keep prior gGuide — avoids disappear/reappear flicker */
+			return; /* caller may force-reload; keep prior until a better snap exists */
 
 		const TekkitTrails::Trail& src = gCurrentAll[static_cast<size_t>(bestTrail)];
 		int a = bestPi;
@@ -490,6 +495,7 @@ namespace TekkitDetail
 		std::vector<std::string> enabledCopy;
 		std::unordered_map<std::string, MarkerStyle> styleCopy;
 		uint32_t enabledGen = 0;
+		bool guideActive = false;
 		{
 			std::lock_guard<std::mutex> lock(gMutex);
 			indexCopy = gIndex;
@@ -497,11 +503,12 @@ namespace TekkitDetail
 			enabledCopy = gEnabledPaths;
 			styleCopy = gCategoryStyles;
 			enabledGen = gEnabledGen.load(std::memory_order_acquire);
+			guideActive = gGuideActive;
 		}
 
 		/* Nothing opted in and no active search → skip opening the ~100MB pack.
 		   This was a common Wine OOM path when every category defaulted on. */
-		const bool needPack = !enabledCopy.empty() || gGuideActive;
+		const bool needPack = !enabledCopy.empty() || guideActive;
 		if (!needPack)
 		{
 			std::lock_guard<std::mutex> lock(gMutex);
@@ -637,13 +644,17 @@ namespace TekkitDetail
 			std::snprintf(trail.label, sizeof(trail.label), "%s",
 				it.type.empty() ? "trail" : it.type.c_str());
 			trail.points.reserve(world.size());
+			trail.worldPoints.reserve(world.size());
 			for (const TekkitTrails::WorldPoint& w : world)
 			{
 				if (!std::isfinite(w.x) || !std::isfinite(w.y) || !std::isfinite(w.z))
 				{
 					/* Preserve TacO section break so compass/world don't stitch segments. */
 					if (!trail.points.empty() && std::isfinite(trail.points.back().x))
+					{
 						trail.points.push_back({NAN, NAN});
+						trail.worldPoints.push_back({NAN, NAN, NAN});
+					}
 					continue;
 				}
 				TekkitTrails::Point cc{};
@@ -651,11 +662,8 @@ namespace TekkitDetail
 				if (!std::isfinite(cc.x) || !std::isfinite(cc.y))
 					continue;
 				trail.points.push_back(cc);
+				trail.worldPoints.push_back(w);
 			}
-			/* Keep full-span world samples for enabled trails (ParseTrl already
-			   covers start→end, with NaN section breaks). */
-			if (c.rank == 0 && trail.points.size() >= 2)
-				trail.worldPoints = std::move(world);
 			if (trail.points.size() < 2)
 				continue;
 			if (c.rank != 0)
@@ -2138,10 +2146,11 @@ void TekkitTrails::SetSearchDestination(float continentX, float continentY)
 	gGuideActive = true;
 	gGuideDestX = continentX;
 	gGuideDestY = continentY;
+	/* Drop the previous ribbon so clipboard / Find don't keep showing an old route. */
+	gGuide = {};
 	RebuildSearchGuideLocked();
-	/* With no categories enabled LoadMapTrails leaves gCurrentAll empty — force a
-	   reload so search-rank trails load for the orange guide (needPack uses gGuideActive). */
-	if (gCurrentAll.empty())
+	/* Empty geometry → load/reload map trails (search-rank) until a snap succeeds. */
+	if (gGuide.points.size() < 2)
 		gForceReload.store(true, std::memory_order_release);
 }
 

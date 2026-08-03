@@ -50,15 +50,35 @@ namespace
 	{
 		if (!OpenClipboard(nullptr))
 			return {};
-		HANDLE h = GetClipboardData(CF_TEXT);
 		std::string out;
-		if (h)
+		/* GW2 / Wine often expose Shift+click chat links as Unicode only. */
+		HANDLE uni = GetClipboardData(CF_UNICODETEXT);
+		if (uni)
 		{
-			const char* p = static_cast<const char*>(GlobalLock(h));
-			if (p)
+			const wchar_t* w = static_cast<const wchar_t*>(GlobalLock(uni));
+			if (w && w[0])
 			{
-				out = p;
-				GlobalUnlock(h);
+				const int n = WideCharToMultiByte(CP_UTF8, 0, w, -1, nullptr, 0, nullptr, nullptr);
+				if (n > 1)
+				{
+					out.resize(static_cast<size_t>(n - 1));
+					WideCharToMultiByte(CP_UTF8, 0, w, -1, out.data(), n, nullptr, nullptr);
+				}
+			}
+			if (w)
+				GlobalUnlock(uni);
+		}
+		if (out.empty())
+		{
+			HANDLE h = GetClipboardData(CF_TEXT);
+			if (h)
+			{
+				const char* p = static_cast<const char*>(GlobalLock(h));
+				if (p)
+				{
+					out = p;
+					GlobalUnlock(h);
+				}
 			}
 		}
 		CloseClipboard();
@@ -306,8 +326,14 @@ RoutingSuggest::Result RoutingSuggest::SuggestFromClipboard()
 	c.dist = 0.f;
 	r.nearest.push_back(std::move(c));
 	r.ok = true;
-	r.status = std::string("Routing to ") + poi.name + " (" + poi.type + ") — orange guide set.";
+	r.status = std::string("Routing to ") + poi.name + " (" + poi.type + ")";
 	ApplyOrangeGuide(r);
+	if (TekkitTrails::HasSearchGuide())
+		r.status += " — orange guide set.";
+	else if (TekkitTrails::HasSearchGuideActive())
+		r.status += " — orange guide loading trail geometry…";
+	else
+		r.status += " — destination set (enable a nearby trail category if the guide stays empty).";
 	gLast = r;
 	return r;
 }
