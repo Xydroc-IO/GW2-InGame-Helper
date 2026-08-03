@@ -4,8 +4,10 @@
 #include "HelperTheme.h"
 #include "PadDock.h"
 #include "PathingPacks.h"
+#include "RoutingSuggest.h"
 #include "Settings.h"
 #include "TekkitTrails.h"
+#include "WaypointsData.h"
 
 #include "imgui/imgui.h"
 
@@ -95,6 +97,42 @@ bool TekkitGuidesPad::Render()
 
 	if (TekkitTrails::DrawSettings())
 		SyncEnabledToSettings();
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Route to trail start");
+	ImGui::TextDisabled(
+		"Nearest public waypoints to the first loaded trail point on this map. "
+		"Copy a chat code — no auto-teleport.");
+	WaypointsData::Tick();
+	if (ImGui::Button("Find nearest waypoints###gw2igh_route_wp"))
+	{
+		WaypointsData::EnsureLoaded(false);
+		RoutingSuggest::SuggestNearTrailStart(3);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Clear orange guide###gw2igh_route_clear"))
+		RoutingSuggest::ClearGuide();
+
+	const RoutingSuggest::Result& route = RoutingSuggest::Last();
+	if (!route.status.empty())
+		ImGui::TextWrapped("%s", route.status.c_str());
+	if (route.trailLabel[0])
+		ImGui::TextDisabled("Trail: %s (%.0f, %.0f)", route.trailLabel, route.trailX, route.trailY);
+	if (TekkitTrails::HasSearchGuide())
+		ImGui::TextColored(HelperTheme::Ok, "Orange in-world guide active.");
+
+	for (size_t i = 0; i < route.nearest.size(); ++i)
+	{
+		const RoutingSuggest::Candidate& c = route.nearest[i];
+		ImGui::PushID(static_cast<int>(i));
+		ImGui::BulletText("%s  (%.0f)", c.name.c_str(), c.dist);
+		ImGui::SameLine();
+		ImGui::TextDisabled("%s", c.chatLink.c_str());
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Copy"))
+			RoutingSuggest::CopyChatLink(c.chatLink.c_str());
+		ImGui::PopID();
+	}
 
 	ImGui::Separator();
 	if (!G::Mumble || G::Mumble->uiTick == 0)

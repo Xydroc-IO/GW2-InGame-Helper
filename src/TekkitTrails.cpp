@@ -1967,6 +1967,37 @@ bool TekkitTrails::OpenPathingFolder()
 	return reinterpret_cast<INT_PTR>(r) > 32;
 }
 
+bool TekkitTrails::TryTrailStartContinent(float* outX, float* outY,
+	char* labelOut, size_t labelLen, bool preferEnabled)
+{
+	if (!outX || !outY)
+		return false;
+	std::lock_guard<std::mutex> lock(gMutex);
+	auto tryPick = [&](bool enabledOnly) -> bool {
+		for (const Trail& t : gCurrentAll)
+		{
+			if (enabledOnly && !TypeEnabledLocked(t.label))
+				continue;
+			for (const Point& p : t.points)
+			{
+				if (!std::isfinite(p.x) || !std::isfinite(p.y))
+					continue;
+				if (p.x == 0.f && p.y == 0.f)
+					continue;
+				*outX = p.x;
+				*outY = p.y;
+				if (labelOut && labelLen)
+					std::snprintf(labelOut, labelLen, "%s", t.label);
+				return true;
+			}
+		}
+		return false;
+	};
+	if (preferEnabled && tryPick(true))
+		return true;
+	return tryPick(false);
+}
+
 void TekkitTrails::SetSearchDestination(float continentX, float continentY)
 {
 	std::lock_guard<std::mutex> lock(gMutex);

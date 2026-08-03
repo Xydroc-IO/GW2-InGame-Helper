@@ -2,9 +2,11 @@
 #include "UI_Browse.h"
 
 #include "BrowserTabs.h"
+#include "CharacterProfiles.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "LivePanels.h"
+#include "MumbleIdentity.h"
 #include "NotesPad.h"
 #include "TpWatchPad.h"
 #include "LookupPad.h"
@@ -807,6 +809,8 @@ void UI_Render()
 	/* Always poll first — must run while the helper is closed too. */
 	HelperHotkeys_Poll();
 	WikiBrowser::Tick();
+	MumbleIdentity::Tick();
+	CharacterProfiles::Tick();
 	/* Tekkit overlays — always, even with the browser closed. */
 	CompassOverlay::Render();
 	WorldOverlay::Render();

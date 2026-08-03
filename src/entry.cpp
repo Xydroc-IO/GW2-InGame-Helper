@@ -5,6 +5,7 @@
 #include "imgui/imgui.h"
 
 #include "AccountPad.h"
+#include "CharacterProfiles.h"
 #include "Globals.h"
 #include "HelperQuickAccess.h"
 #include "LookupPad.h"
@@ -77,12 +78,12 @@ namespace G
 	bool  LogManagerGroupByEncounter = true;
 }
 
-static constexpr const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
-static constexpr const char* KB_ACCOUNT = "KB_HELPER_ACCOUNT";
-static constexpr const char* KB_TEKKIT = "KB_HELPER_TEKKIT";
-static constexpr const char* KB_EVENTS = "KB_HELPER_EVENTS";
-static constexpr const char* KB_NOTES = "KB_HELPER_NOTES";
-static constexpr const char* KB_ITEM_LEGACY = "KB_HELPER_ITEM"; /* removed — deregister only */
+static constexpr const char* KB_TOGGLE = "KB_HELPER_BETA_TOGGLE";
+static constexpr const char* KB_ACCOUNT = "KB_HELPER_BETA_ACCOUNT";
+static constexpr const char* KB_TEKKIT = "KB_HELPER_BETA_TEKKIT";
+static constexpr const char* KB_EVENTS = "KB_HELPER_BETA_EVENTS";
+static constexpr const char* KB_NOTES = "KB_HELPER_BETA_NOTES";
+static constexpr const char* KB_ITEM_LEGACY = "KB_HELPER_BETA_ITEM"; /* removed — deregister only */
 
 static DWORD gLastToggleMs = 0;
 static DWORD gLastPanelBindMs = 0;
@@ -715,6 +716,7 @@ static void AddonLoad(AddonAPI_t* api)
 
 	Settings::Load();
 	NotesPad::Load();
+	CharacterProfiles::Load();
 	TekkitTrails::Init();
 	/* Restore category toggles after Init (Init no longer wipes them, but first
 	   load applies settings here so order stays Load → Init → apply). */
@@ -775,6 +777,8 @@ static void AddonUnload()
 	TekkitTrails::Shutdown();
 
 	NotesPad::Save(true);
+	CharacterProfiles::CaptureCurrent();
+	CharacterProfiles::Save(true);
 	Settings::SetDirty();
 	Settings::Save(true);
 
@@ -801,11 +805,13 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Revision = 4;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
-		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";
+		"BETA — experimental In-Game Helper (routing + character profiles). "
+		"Local builds do not auto-update from GitHub.";
 	G::AddonDef.Load             = AddonLoad;
 	G::AddonDef.Unload           = AddonUnload;
 	G::AddonDef.Flags            = AF_DisableHotloading; /* CEF helper — no Nexus hot-reload */
-	G::AddonDef.Provider         = UP_GitHub;
-	G::AddonDef.UpdateLink       = "https://github.com/Xydroc-IO/GW2-InGame-Helper";
+	/* UP_None: local Beta installs must not be overwritten by GitHub releases. */
+	G::AddonDef.Provider         = UP_None;
+	G::AddonDef.UpdateLink       = nullptr;
 	return &G::AddonDef;
 }

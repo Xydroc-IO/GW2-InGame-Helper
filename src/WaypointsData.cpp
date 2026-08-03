@@ -19,7 +19,7 @@
 
 namespace
 {
-	constexpr const char* kCacheVer = "4";
+	constexpr const char* kCacheVer = "5";
 	constexpr DWORD kCacheTtlMs = 7u * 24u * 60u * 60u * 1000u;
 	constexpr int kFloorTimeoutMs = 60000;
 
@@ -98,6 +98,33 @@ namespace
 			out.push_back(c);
 		}
 		return out;
+	}
+
+	bool JsonCoordAfterKey(const std::string& json, const char* key, size_t from,
+		float& outX, float& outY)
+	{
+		std::string pat = "\"";
+		pat += key;
+		pat += "\"";
+		size_t k = json.find(pat, from);
+		if (k == std::string::npos) return false;
+		k = json.find(':', k + pat.size());
+		if (k == std::string::npos) return false;
+		++k;
+		while (k < json.size() && (json[k] == ' ' || json[k] == '\t')) ++k;
+		if (k >= json.size() || json[k] != '[') return false;
+		++k;
+		char* end1 = nullptr;
+		const float x = static_cast<float>(std::strtod(json.c_str() + k, &end1));
+		if (!end1 || end1 == json.c_str() + k) return false;
+		k = static_cast<size_t>(end1 - json.c_str());
+		while (k < json.size() && (json[k] == ' ' || json[k] == '\t' || json[k] == ',')) ++k;
+		char* end2 = nullptr;
+		const float y = static_cast<float>(std::strtod(json.c_str() + k, &end2));
+		if (!end2 || end2 == json.c_str() + k) return false;
+		outX = x;
+		outY = y;
+		return true;
 	}
 
 	long long JsonIntAfterKey(const std::string& json, const char* key, size_t from)
@@ -212,6 +239,15 @@ namespace
 			out += EscapeField(p.name);
 			out += '\t';
 			out += EscapeField(p.chatLink);
+			out += '\t';
+			if (p.hasCoord)
+			{
+				char buf[64];
+				std::snprintf(buf, sizeof(buf), "%.3f\t%.3f", p.continentX, p.continentY);
+				out += buf;
+			}
+			else
+				out += "\t";
 			out += '\n';
 		}
 		return WriteUtf8File(CachePath(), out);
@@ -252,9 +288,9 @@ namespace
 			std::string line = raw.substr(p, end - p);
 			p = end + 1;
 			if (line.empty() || line[0] == '#') continue;
-			std::string fields[6];
+			std::string fields[8];
 			size_t fi = 0, start = 0;
-			for (size_t i = 0; i <= line.size() && fi < 6; ++i)
+			for (size_t i = 0; i <= line.size() && fi < 8; ++i)
 			{
 				if (i == line.size() || line[i] == '\t')
 				{
@@ -270,6 +306,12 @@ namespace
 			poi.type = fields[3];
 			poi.name = fields[4];
 			poi.chatLink = fields[5];
+			if (fi >= 8 && !fields[6].empty() && !fields[7].empty())
+			{
+				poi.continentX = static_cast<float>(std::atof(fields[6].c_str()));
+				poi.continentY = static_cast<float>(std::atof(fields[7].c_str()));
+				poi.hasCoord = true;
+			}
 			if (poi.mapId > 0 && poi.id > 0 && !poi.chatLink.empty())
 				pois.push_back(std::move(poi));
 		}
@@ -401,6 +443,8 @@ namespace
 					poi.name = JsonStringAfterKey(body, "name", brace);
 					poi.type = JsonStringAfterKey(body, "type", brace);
 					poi.chatLink = JsonStringAfterKey(body, "chat_link", brace);
+					poi.hasCoord = JsonCoordAfterKey(body, "coord", brace,
+						poi.continentX, poi.continentY);
 					if (poi.id > 0 && !poi.chatLink.empty() && !poi.type.empty())
 					{
 						if (poi.name.empty())

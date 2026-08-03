@@ -14,6 +14,9 @@ namespace WaypointsData
 		std::string name;
 		std::string type; /* waypoint | landmark | vista | unlock */
 		std::string chatLink;
+		float continentX = 0.f; /* from API "coord" when present */
+		float continentY = 0.f;
+		bool hasCoord = false;
 	};
 
 	struct MapRow

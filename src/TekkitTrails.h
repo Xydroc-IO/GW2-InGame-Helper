@@ -162,6 +162,11 @@ namespace TekkitTrails
 	bool HasSearchGuide();
 	Trail SearchGuide(); /* empty if none found yet */
 
+	/* First continent point of a trail on the loaded map.
+	   preferEnabled: try category-enabled trails first, then any pack trail. */
+	bool TryTrailStartContinent(float* outX, float* outY,
+		char* labelOut, size_t labelLen, bool preferEnabled = true);
+
 	/* Settings panel (ImGui). Returns true if settings changed. */
 	bool DrawSettings();
 }

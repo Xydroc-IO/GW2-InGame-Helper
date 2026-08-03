@@ -42,6 +42,9 @@ add_library(GW2-InGame-Helper SHARED
   src/LivePanels_Html.cpp
   src/NotesPad.cpp
   src/WaypointsData.cpp
+  src/MumbleIdentity.cpp
+  src/RoutingSuggest.cpp
+  src/CharacterProfiles.cpp
   src/TpWatchPad.cpp
   src/LookupPad.cpp
   src/WalletPad.cpp
@@ -99,7 +102,7 @@ if(MINGW)
   set_target_properties(GW2-InGame-Helper PROPERTIES PREFIX "")
 endif()
 set_target_properties(GW2-InGame-Helper PROPERTIES
-  OUTPUT_NAME "GW2-InGame-Helper"
+  OUTPUT_NAME "GW2-InGame-Helper-Beta"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 add_dependencies(GW2-InGame-Helper GW2HelperBrowser)
