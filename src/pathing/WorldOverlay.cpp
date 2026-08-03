@@ -27,6 +27,10 @@ namespace
 	/* Soft-hide POI icons that would cover the avatar. */
 	constexpr float kAvatarMarkerHideM = 2.0f;
 	constexpr float kAvatarMarkerFadeM = 5.5f;
+	/* Keep GPS ribbons from painting over the character (wider than markers —
+	   trails are thick screen-space quads). Horizontal xz only — Y is up. */
+	constexpr float kAvatarTrailHideM = 3.25f;
+	constexpr float kAvatarTrailFadeM = 6.5f;
 
 	struct Vec3
 	{
@@ -262,9 +266,14 @@ namespace
 		const float fadeEnd2 = fadeEnd * fadeEnd;
 
 		constexpr float kBlishHalfM = 28.f * 0.0254f; /* ~Blish chevron ribbon width */
-		const float halfM = kBlishHalfM *
+		/* Pack trailScale × Lady edition bias × GPS width slider.
+		   Bias normalizes Barefoot/WP/Mounts so 1.0 looks correct; the slider
+		   then scales every edition by the same factor. */
+		const float widthMul =
 			std::clamp(seg.trailScale, 0.5f, 2.0f) *
-			std::clamp(thickness, 0.5f, 2.5f);
+			std::clamp(seg.widthBias, 0.5f, 8.0f) *
+			std::clamp(thickness, 0.5f, 4.0f);
+		const float halfM = kBlishHalfM * widthMul;
 
 		Texture_t* texture = nullptr;
 		if (seg.textureId[0] && G::API && G::API->Textures_Get)
@@ -293,10 +302,35 @@ namespace
 			fadeOut = 1.f;
 			if (dist > fadeStart)
 				fadeOut = 1.f - (dist - fadeStart) / std::max(1.f, fadeEnd - fadeStart);
-			if (dist < 2.5f)
-				fadeOut *= dist / 2.5f;
+			/* Soft bubble around the player — hide under feet / through the mesh. */
+			const float horiz = std::sqrt(adx * adx + adz * adz);
+			if (horiz <= kAvatarTrailHideM)
+				return false;
+			if (horiz < kAvatarTrailFadeM)
+			{
+				const float t = (horiz - kAvatarTrailHideM) /
+					(kAvatarTrailFadeM - kAvatarTrailHideM);
+				fadeOut *= std::clamp(t, 0.f, 1.f);
+			}
 			fadeOut = std::clamp(fadeOut, 0.f, 1.f);
 			return baseA * fadeOut >= 0.05f;
+		};
+
+		/* Closest horizontal approach of a segment to the avatar (trail underfoot). */
+		auto segHorizToAvatar = [&](const Vec3& a, const Vec3& b) -> float
+		{
+			const float abx = b.x - a.x;
+			const float abz = b.z - a.z;
+			const float ab2 = abx * abx + abz * abz;
+			float t = 0.f;
+			if (ab2 > 1.0e-6f)
+			{
+				t = ((avatar.x - a.x) * abx + (avatar.z - a.z) * abz) / ab2;
+				t = std::clamp(t, 0.f, 1.f);
+			}
+			const float cx = a.x + abx * t - avatar.x;
+			const float cz = a.z + abz * t - avatar.z;
+			return std::sqrt(cx * cx + cz * cz);
 		};
 
 		auto projectWorld = [&](Vec3 w, float& sx, float& sy) -> bool
@@ -329,6 +363,20 @@ namespace
 				alongM += segLen;
 				return;
 			}
+			/* Segment may still skim under the player even if endpoints are outside. */
+			const float nearH = segHorizToAvatar(raw0, raw1);
+			if (nearH <= kAvatarTrailHideM)
+			{
+				alongM += segLen;
+				return;
+			}
+			float avatarMul = 1.f;
+			if (nearH < kAvatarTrailFadeM)
+			{
+				avatarMul = (nearH - kAvatarTrailHideM) /
+					(kAvatarTrailFadeM - kAvatarTrailHideM);
+				avatarMul = std::clamp(avatarMul, 0.f, 1.f);
+			}
 
 			Vec3 p0 = raw0;
 			Vec3 p1 = raw1;
@@ -351,7 +399,7 @@ namespace
 				return;
 			}
 
-			const float avgA = baseA * (
+			const float avgA = baseA * avatarMul * (
 				(in0 ? fade0 : fade1) + (in1 ? fade1 : fade0)) * 0.5f;
 			const int aCh = static_cast<int>(std::clamp(avgA, 0.f, 1.f) * 255.f);
 			if (aCh < 8)
@@ -368,17 +416,21 @@ namespace
 			const float invLen = 1.f / std::max(0.001f, centerLen);
 			const float px = -sdy * invLen;
 			const float py = sdx * invLen;
+			const float avgDist = 0.5f * (
+				std::sqrt(
+					(avatar.x - p0.x) * (avatar.x - p0.x) +
+					(avatar.y - p0.y) * (avatar.y - p0.y) +
+					(avatar.z - p0.z) * (avatar.z - p0.z)) +
+				std::sqrt(
+					(avatar.x - p1.x) * (avatar.x - p1.x) +
+					(avatar.y - p1.y) * (avatar.y - p1.y) +
+					(avatar.z - p1.z) * (avatar.z - p1.z)));
+			/* Perspective screen width — old fixed [5,16]px clamp saturated near
+			   the avatar, so GPS width looked inert up close (and on dense Barefoot
+			   feet trails). Scale the clamp with widthMul so the slider always bites. */
 			const float halfPx = std::clamp(
-				halfM * 900.f / std::max(4.f,
-					0.5f * (std::sqrt(
-						(avatar.x - p0.x) * (avatar.x - p0.x) +
-						(avatar.y - p0.y) * (avatar.y - p0.y) +
-						(avatar.z - p0.z) * (avatar.z - p0.z)) +
-					std::sqrt(
-						(avatar.x - p1.x) * (avatar.x - p1.x) +
-						(avatar.y - p1.y) * (avatar.y - p1.y) +
-						(avatar.z - p1.z) * (avatar.z - p1.z)))),
-				5.f, 16.f);
+				halfM * 900.f / std::max(4.f, avgDist),
+				4.f * widthMul, 14.f * widthMul);
 			const ImVec2 sL0{cx0 + px * halfPx, cy0 + py * halfPx};
 			const ImVec2 sR0{cx0 - px * halfPx, cy0 - py * halfPx};
 			const ImVec2 sL1{cx1 + px * halfPx, cy1 + py * halfPx};

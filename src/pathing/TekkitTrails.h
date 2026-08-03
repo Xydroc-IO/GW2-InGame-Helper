@@ -171,6 +171,9 @@ namespace TekkitTrails
 		char textureId[160]{};
 		float alpha = 1.f;
 		float trailScale = 1.f;
+		/* Lady Barefoot/WP need ~4× and Mounts ~2× vs raw pack scale so GPS
+		   width 1.0 looks correct; slider then scales every edition evenly. */
+		float widthBias = 1.f;
 		float fadeNear = -1.f;
 		float fadeFar = -1.f;
 		std::vector<WorldPoint> points;

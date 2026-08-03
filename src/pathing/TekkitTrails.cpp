@@ -407,6 +407,22 @@ namespace TekkitDetail
 		return TypeHasLadyMountShortcut(typeLow);
 	}
 
+	/* Calibrated so GPS width 1.0 matches “correct” size for each edition
+	   (user: Mounts ~2.0, Barefoot/WP ~4.0 on the old unnormalized slider). */
+	float LadyGpsWidthBias(const char* label)
+	{
+		if (!label || !label[0])
+			return 1.f;
+		std::string ed;
+		if (!LadyMapRouteEdition(ToLower(label), ed))
+			return 1.f;
+		if (ed == "barefoot" || ed == "wp")
+			return 4.f;
+		if (IsLadyWithMountsEdition(ed))
+			return 2.f;
+		return 1.f;
+	}
+
 	bool TypeCategoryEnabled(const std::string& type, const std::vector<std::string>& enabled)
 	{
 		if (type.empty() || enabled.empty())
@@ -1820,6 +1836,7 @@ std::vector<TekkitTrails::WorldSnippet> TekkitTrails::NearbyWorldSnippets(
 		std::snprintf(snip.textureId, sizeof(snip.textureId), "%s", tr.textureId);
 		snip.alpha = tr.alpha;
 		snip.trailScale = tr.trailScale;
+		snip.widthBias = LadyGpsWidthBias(tr.label);
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
 		/* Local slice — keep enough points for long HP sections near the player. */
@@ -2012,6 +2029,7 @@ bool TekkitTrails::TryNearbyWorldGps(
 		std::snprintf(snip.textureId, sizeof(snip.textureId), "%s", tr.textureId);
 		snip.alpha = tr.alpha;
 		snip.trailScale = tr.trailScale;
+		snip.widthBias = LadyGpsWidthBias(tr.label);
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
 		/* ≥1 m spacing — Blish GPU strip hides micro-samples; ImGui cannot. */
@@ -2752,7 +2770,11 @@ bool TekkitTrails::DrawOverlaySettings()
 		if (G::ShowWorldTrails)
 		{
 			dirty |= ImGui::SliderFloat("GPS range (m)", &G::WorldTrailMaxDist, 40.f, 200.f, "%.0f");
-			dirty |= ImGui::SliderFloat("GPS width (× Blish)", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f");
+			dirty |= ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f×");
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip(
+					"Relative size — 1.0 is calibrated for Lady Barefoot / Mounts / WP.\n"
+					"All route types scale together from that baseline.");
 		}
 		dirty |= ImGui::Checkbox("Hide when world map open", &G::HideWhenMapOpen);
 		dirty |= ImGui::Checkbox("Hide out of gameplay", &G::HideOutOfGameplay);
