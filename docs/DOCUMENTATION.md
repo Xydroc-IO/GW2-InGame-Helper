@@ -94,4 +94,4 @@ Browse rows are **labeled hyperlinks** (`SiteDef`): id + label + URL. Canonical 
 
 Public engineering docs should remain **report-grade**: explicit revision, reproducible commands, normative vs descriptive separation (compliance vs architecture vs whitepaper), and update-in-lockstep with behavioral changes.
 
-[`WHITEPAPER.md`](WHITEAPER.md) aims at **academic technical-report quality** (structured abstract, contributions, related work, evaluation criteria, threats to validity, numbered references). It is still a project document—not a peer-reviewed journal article. [`ARCHITECTURE.md`](ARCHITECTURE.md) remains the operational systems map; [`COMPLIANCE.md`](COMPLIANCE.md) remains normative policy.
+[`WHITEPAPER.md`](WHITEPAPER.md) aims at **academic technical-report quality** (structured abstract, contributions, related work, evaluation criteria, threats to validity, numbered references). It is still a project document—not a peer-reviewed journal article. [`ARCHITECTURE.md`](ARCHITECTURE.md) remains the operational systems map; [`COMPLIANCE.md`](COMPLIANCE.md) remains normative policy.
