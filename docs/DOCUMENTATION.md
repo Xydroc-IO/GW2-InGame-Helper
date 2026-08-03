@@ -38,7 +38,7 @@ GW2 In-Game Helper — where to find what.
 | [`RELEASE_NOTES_CEF_RUNTIME.md`](RELEASE_NOTES_CEF_RUNTIME.md) | GitHub body for tag `cef-runtime-150` (zip asset) |
 | [`description.html`](description.html) | HTML listing for web / Nexus description paste |
 | `RAIDCORE.md` *(gitignored)* | Local Nexus listing draft |
-| `DISCORD.md` / `DISCORD_*.md` *(gitignored)* | Local Discord announcement drafts |
+| `DISCORD.md` / `DISCORD_*.md` *(gitignored)* | Local Discord announcement + feature-update paste drafts |
 
 ---
 

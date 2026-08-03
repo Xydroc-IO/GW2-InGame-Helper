@@ -124,12 +124,17 @@ Companion-App/
 keystore.properties
 
 # Local listing / announcement drafts (keep on disk; do not publish in git)
+# Discord paste drafts, Raidcore listing notes, audits, partner briefs, Beta notes.
 docs/DISCORD.md
 docs/DISCORD_*.md
+docs/*ANNOUNCE*.md
+docs/*ANNOUNCEMENT*.md
 docs/RAIDCORE.md
 docs/CODE_AUDIT.md
 docs/SNOWCROWS.md
 docs/RELEASE_NOTES_BETA.md
+docs/*_LOCAL.md
+docs/*_DRAFT.md
 
 # Published technical reports (tracked on Beta):
 #   docs/ARCHITECTURE.md
