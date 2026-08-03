@@ -39,9 +39,9 @@ namespace LogManagerDetail
 	constexpr float kPadW = 1760.f;
 	constexpr float kPadH = 900.f;
 	/* Screenshot: filters slim | middle list ~half of remaining | detail/KP rest. */
-	constexpr float kFilterFrac = 0.13f;
-	constexpr float kFilterMinW = 150.f;
-	constexpr float kFilterMaxW = 188.f;
+	constexpr float kFilterFrac = 0.18f;
+	constexpr float kFilterMinW = 220.f;
+	constexpr float kFilterMaxW = 280.f;
 	constexpr float kLogListFracDef = 0.55f; /* of space after filters → ~48% overall */
 	constexpr float kLogListMinW = 420.f;
 	constexpr float kRightPaneMinW = 360.f;
@@ -149,7 +149,6 @@ namespace LogManagerDetail
 	char gStatus[256] = {};
 	char gEiStatus[256] = {};
 	char gSearch[96] = {};
-	char gEncounterFilter[96] = {};
 	int gResultFilter = static_cast<int>(ResultFilter::All);
 	int gModeFilter = static_cast<int>(ModeFilter::All);
 	int gDaysCombo = 0; /* index into kDaysMap */
@@ -1301,6 +1300,22 @@ namespace LogManagerDetail
 		gDrawnGen = gGen.load();
 	}
 
+	/* After a scan finishes, kick EI parse when Auto-parse is on. */
+	void MaybeAutoParseAfterScan(bool hasDotNet)
+	{
+		static bool sWasScanBusy = false;
+		const bool scanning = gScanBusy.load();
+		const bool justFinished = sWasScanBusy && !scanning;
+		sWasScanBusy = scanning;
+		if (!justFinished || !G::LogManagerAutoParse)
+			return;
+		if (!hasDotNet || gParseBusy.load() || gEiInstallBusy.load())
+			return;
+		if (!G::EliteInsightsPath[0] || !PathExistsUtf8(G::EliteInsightsPath))
+			return;
+		BeginParsePending();
+	}
+
 	void OpenFolderFor(const std::wstring& path)
 	{
 		std::wstring dir = path;
@@ -1323,8 +1338,6 @@ namespace LogManagerDetail
 		{
 			if (gSearch[0] && !ContainsI(e.fileName, gSearch) && !ContainsI(e.encounter, gSearch) &&
 				!ContainsI(e.pathUtf8, gSearch))
-				continue;
-			if (gEncounterFilter[0] && !ContainsI(e.encounter, gEncounterFilter))
 				continue;
 			const auto rf = static_cast<ResultFilter>(gResultFilter);
 			if (rf == ResultFilter::Success && e.result != 1)
@@ -1380,13 +1393,13 @@ namespace LogManagerDetail
 			!gEiInstallBusy.load() && G::EliteInsightsPath[0] && PathExistsUtf8(G::EliteInsightsPath);
 		if (canParse)
 		{
-			if (ImGui::Button("Parse pending###gw2igh_lm_parse"))
+			if (ImGui::Button("Parse###gw2igh_lm_parse"))
 				BeginParsePending();
 		}
 		else
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-			ImGui::Button("Parse pending###gw2igh_lm_parse");
+			ImGui::Button("Parse###gw2igh_lm_parse");
 			ImGui::PopStyleVar();
 		}
 		ImGui::SameLine(0.f, 4.f);
@@ -1445,19 +1458,17 @@ namespace LogManagerDetail
 		ImGui::TextUnformatted("Filters");
 		ImGui::Separator();
 		ImGui::SetNextItemWidth(-1.f);
-		ImGui::InputTextWithHint("###gw2igh_lm_search", "Search…", gSearch, sizeof(gSearch));
-		ImGui::SetNextItemWidth(-1.f);
-		ImGui::InputTextWithHint("###gw2igh_lm_enc", "Encounter…", gEncounterFilter, sizeof(gEncounterFilter));
+		ImGui::InputTextWithHint("###gw2igh_lm_search", "Search file or encounter…",
+			gSearch, sizeof(gSearch));
 		ImGui::Spacing();
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Result");
 		ImGui::RadioButton("All###gw2igh_lm_res0", &gResultFilter, 0);
 		ImGui::SameLine();
 		ImGui::RadioButton("Kills###gw2igh_lm_res1", &gResultFilter, 1);
-		ImGui::SameLine();
 		ImGui::RadioButton("Fails###gw2igh_lm_res2", &gResultFilter, 2);
+		ImGui::SameLine();
 		ImGui::RadioButton("Unknown###gw2igh_lm_res3", &gResultFilter, 3);
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Mode");
-		/* Two rows — filter pane is ~150–188px; one row clips CM/LCM labels. */
 		ImGui::RadioButton("All###gw2igh_lm_mode0", &gModeFilter, 0);
 		ImGui::SameLine();
 		ImGui::RadioButton("Normal###gw2igh_lm_mode1", &gModeFilter, 1);
@@ -1479,15 +1490,20 @@ namespace LogManagerDetail
 			if (G::LogManagerGroupByEncounter)
 				gExpandGroupsOnce = true;
 		}
+		if (ImGui::Checkbox("Auto-parse after scan###gw2igh_lm_autoparse", &G::LogManagerAutoParse))
+			Settings::SetDirty();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("After Rescan / open, parse pending logs with Elite Insights automatically.");
+		ImGui::PushTextWrapPos(0.f);
 		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
 			G::LogManagerGroupByEncounter
 				? "Collapsible sections · newest encounter first"
-				: "Flat list · filter with Encounter…");
+				: "Flat list · use Search to narrow");
+		ImGui::PopTextWrapPos();
 		ImGui::Spacing();
 		if (ImGui::SmallButton("Clear filters###gw2igh_lm_clearf"))
 		{
 			gSearch[0] = 0;
-			gEncounterFilter[0] = 0;
 			gResultFilter = static_cast<int>(ResultFilter::All);
 			gModeFilter = static_cast<int>(ModeFilter::All);
 			gDaysCombo = 0;
@@ -2407,6 +2423,7 @@ bool LogManagerPad::Render()
 	}
 
 	const bool hasDotNet = EiRuntime::HasDotNet8Runtime();
+	MaybeAutoParseAfterScan(hasDotNet);
 	std::vector<const LogEntry*> filtered;
 	CollectFiltered(filtered);
 
@@ -2418,15 +2435,15 @@ bool LogManagerPad::Render()
 	float filterW = bodyW * kFilterFrac;
 	if (filterW < kFilterMinW) filterW = kFilterMinW;
 	if (filterW > kFilterMaxW) filterW = kFilterMaxW;
-	/* Narrow / 1080p: keep filters compact so list + KillProof keep room. */
+	/* Narrow / 1080p: keep filters readable — radios need ~210px. */
 	if (bodyW < 1100.f)
 	{
-		filterW = bodyW * 0.15f;
-		if (filterW < 132.f) filterW = 132.f;
-		if (filterW > 168.f) filterW = 168.f;
+		filterW = bodyW * 0.20f;
+		if (filterW < 210.f) filterW = 210.f;
+		if (filterW > 250.f) filterW = 250.f;
 	}
-	if (filterW > bodyW * 0.22f)
-		filterW = bodyW * 0.22f;
+	if (filterW > bodyW * 0.28f)
+		filterW = bodyW * 0.28f;
 
 	ImGui::BeginChild("###gw2igh_lm_filters", ImVec2(filterW, bodyH), true);
 	DrawFilterPane();
