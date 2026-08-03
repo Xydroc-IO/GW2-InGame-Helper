@@ -45,7 +45,11 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   baseline and editions scale together. Ribbons soft-hide in **world** (~5 m) and
   **screen space** around the projected character/mount so ImGui trails do not
   paint over the player (including Skyscale). Overview **Player clear** slider
-  controls soft fade size (0 = hard clear only).
+  scales that hole (**0** = full path, no clear; default **1**). Range / width /
+  Player clear sit under Overview In-world GPS (not nested under the checkbox).
+- **Look-along trails:** Long camera-aligned segments subdivide instead of
+  dropping (fixes missing ribbons / camera-angle gaps on high-res Windows);
+  denser draw steps and looser clip for far path.
 - **Trails / markers:** Screen-space textured ribbons; Lady trail PNGs prioritized;
   mount shortcut icons draw with the same POI pipeline; tip labels limited to
   mount glyphs.

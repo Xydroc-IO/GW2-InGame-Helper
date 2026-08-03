@@ -81,7 +81,10 @@ Pathing **GPS width** (default **1.0×**) is a shared relative scale. Lady
 Barefoot / WP Only / With Mounts bake per-edition bias so 1.0 looks correct for
 each; moving the slider scales them evenly. Ribbons soft-hide near the character
 in world space and clear a screen-space bubble around the projected avatar/mount
-(ImGui has no depth test against the mesh).
+(ImGui has no depth test against the mesh). **Player clear** (default **1**)
+scales that hole; **0** shows the full path with no avatar clear. Range / width /
+Player clear are always under Overview In-world GPS. Long look-along segments
+subdivide so trails stay visible when the camera aims down the path (esp. Windows).
 
 **Skyscale routes:** Tekkit only ships a Skyscale Edition for **Heart of Thorns**,
 **Secrets of the Obscure**, and generic Routes in **Janthir Wilds**. Core Tyria,
