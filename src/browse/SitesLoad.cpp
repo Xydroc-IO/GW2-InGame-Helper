@@ -23,7 +23,7 @@ namespace SitesDetail
 
 	namespace
 	{
-		constexpr const char* kSitesStamp = "s2210";
+		constexpr const char* kSitesStamp = "s2101";
 		constexpr int kMaxBrowsePath = 8;
 		constexpr int kMaxCategories = 32;
 

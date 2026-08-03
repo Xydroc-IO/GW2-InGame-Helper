@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.1.0
+# GW2 In-Game Helper v2.1.0.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,7 +32,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
-## What’s new in 2.2.1.0
+## What’s new in 2.1.0.1
 
 - **Lady Features:** Barefoot / With Mounts / WP Only are **mutually exclusive**
   map-completion editions (no stacking). Enabling an edition turns on Lady
@@ -57,7 +57,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   edition keys persist and normalize legacy multi-on configs.
 - **Unload:** Nexus Disable allowed (`AF_None`) — pads close and CEF helper stops
   before deregister; prefer a full GW2 restart after replacing the DLL on disk.
-- **Stamps:** Helper `2210` · homepage `2210` · sites `s2210` · cheatsheets `c2210`
+- **Stamps:** Helper `2101` · homepage `2101` · sites `s2101` · cheatsheets `c2101`
 
 ## What’s new in 2.2.0.0
 

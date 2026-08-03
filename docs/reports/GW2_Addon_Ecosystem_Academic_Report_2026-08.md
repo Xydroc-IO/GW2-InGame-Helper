@@ -72,7 +72,7 @@ Candidates were drawn from Dexerto, Mukluk Labs, Convergence Corp, Hardstuck Arc
 | Alter Ego | PieOrCake/alter_ego | 3 | 2026-04-07 | 2026-07-01 |
 | GW2 In-Game Helper | Xydroc-IO/GW2-InGame-Helper | 1 | 2026-07-19 | 2026-08-03 |
 
-**Helper local engineering signals (workspace checkout, research date):** MIT-licensed Raidcore Nexus CEF browser / reference / QoL aggregator, version **2.2.1.0**; signature `HELP` / `0x48454C50`; private CEF 150 OSR (does not write game `bin64/cef`); ~45 975 lines across `src/` C++/headers; domain LOC approx. pathing 9 186, account 9 088, browse 6 432, logs 5 598, helper 4 813, browser 3 181; ≥19 markdown docs; WHITEPAPER alone ~4 481 words; README ~2 828 words; high commit density July–August 2026; 1 GitHub star.
+**Helper local engineering signals (workspace checkout, research date):** MIT-licensed Raidcore Nexus CEF browser / reference / QoL aggregator, version **2.1.0.1**; signature `HELP` / `0x48454C50`; private CEF 150 OSR (does not write game `bin64/cef`); ~45 975 lines across `src/` C++/headers; domain LOC approx. pathing 9 186, account 9 088, browse 6 432, logs 5 598, helper 4 813, browser 3 181; ≥19 markdown docs; WHITEPAPER alone ~4 481 words; README ~2 828 words; high commit density July–August 2026; 1 GitHub star.
 
 **Boundary rules:** In-client hooks, overlays, and loaders are primary subjects. Elite Insights is included as a companion EVTC parser where Frame A/B require it. Pure websites, ReShade/Hook visual injectors, and GPU translation layers are out of Top-10 maturity tables unless noted as honorable mentions.
 
@@ -318,7 +318,7 @@ Among ≤12-month Nexus addons sampled, Helper shows **exceptional documentation
 
 ### 9.7 Xydroc-IO — GW2 In-Game Helper
 
-- **Artefacts:** MIT C++ Nexus addon; out-of-process CEF 150 OSR; HLI5 IPC; WHITEPAPER, ARCHITECTURE, COMPLIANCE, KERNEL, ONBOARDING; version 2.2.1.0; created 2026-07-19; 1★; solo shortlog dominant.
+- **Artefacts:** MIT C++ Nexus addon; out-of-process CEF 150 OSR; HLI5 IPC; WHITEPAPER, ARCHITECTURE, COMPLIANCE, KERNEL, ONBOARDING; version 2.1.0.1; created 2026-07-19; 1★; solo shortlog dominant.
 - **Problem framing:** In-game access to guides, tools, official API account data, pathing, and log review without game CEF writes or game-memory reads.
 - **Abstraction:** Hybrid—restricted browser kernel + feature pads on Nexus APIs.
 - **Communication:** Exhaustive, formal, compliance-forward; documentation as control surface (opposite of Arc minimalism).
