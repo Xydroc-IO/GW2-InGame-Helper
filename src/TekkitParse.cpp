@@ -483,7 +483,9 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 	world.clear();
 	if (data.size() < 20)
 		return false;
-	/* version (u32) + mapId (u32) + N * float3 (x,y,z) — Y up, horizontal = x,z */
+	/* version (u32) + mapId (u32) + N * float3 (x,y,z) — Y up, horizontal = x,z.
+	   TacO/Blish/Taimi: a (0,0,0) point ends a trail *section*. Connecting across
+	   those breaks draws compass spaghetti (hub → every next segment). */
 	uint32_t ver = 0, mid = 0;
 	std::memcpy(&ver, data.data(), 4);
 	std::memcpy(&mid, data.data() + 4, 4);
@@ -499,39 +501,72 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 	if (count < 2)
 		return false;
 
-	world.reserve(std::min(count, kMaxPointsPerTrail));
-	auto readAt = [&](size_t i, TekkitTrails::WorldPoint& p) -> bool {
-		std::memcpy(&p.x, data.data() + off + i * 12, 4);
-		std::memcpy(&p.y, data.data() + off + i * 12 + 4, 4);
-		std::memcpy(&p.z, data.data() + off + i * 12 + 8, 4);
-		if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z))
-			return false;
-		if (std::fabs(p.x) > 1.0e6f || std::fabs(p.y) > 1.0e6f || std::fabs(p.z) > 1.0e6f)
-			return false;
-		return true;
+	auto isBreak = [](float x, float y, float z) -> bool
+	{
+		return x == 0.f && y == 0.f && z == 0.f;
 	};
-	/* Uniform samples across the ENTIRE .trl — distance-from-start caps used
-	   to fill the budget with only the beginning, so paths "stopped" mid-route
-	   (Tekkit keeps the full trail). */
-	if (count <= kMaxPointsPerTrail)
+	auto okPoint = [](float x, float y, float z) -> bool
 	{
-		for (size_t i = 0; i < count; ++i)
-		{
-			TekkitTrails::WorldPoint p{};
-			if (readAt(i, p))
-				world.push_back(p);
-		}
-	}
-	else
+		return std::isfinite(x) && std::isfinite(y) && std::isfinite(z) &&
+			std::fabs(x) < 1.0e6f && std::fabs(y) < 1.0e6f && std::fabs(z) < 1.0e6f &&
+			!(x == 0.f && y == 0.f && z == 0.f);
+	};
+
+	std::vector<TekkitTrails::WorldPoint> section;
+	section.reserve(64);
+	world.reserve(std::min(count, kMaxPointsPerTrail));
+
+	auto flushSection = [&]()
 	{
-		for (size_t k = 0; k < kMaxPointsPerTrail; ++k)
+		if (section.size() < 2)
 		{
-			const size_t i = (k * (count - 1)) / (kMaxPointsPerTrail - 1);
-			TekkitTrails::WorldPoint p{};
-			if (readAt(i, p))
-				world.push_back(p);
+			section.clear();
+			return;
 		}
+		/* Decimate inside the section only — never subsample across breaks. */
+		const size_t budgetLeft = kMaxPointsPerTrail > world.size()
+			? (kMaxPointsPerTrail - world.size()) : 0;
+		if (budgetLeft < 2)
+		{
+			section.clear();
+			return;
+		}
+		if (!world.empty())
+		{
+			/* NaN sentinel = section break for draw code. */
+			world.push_back({NAN, NAN, NAN});
+		}
+		if (section.size() <= budgetLeft)
+		{
+			world.insert(world.end(), section.begin(), section.end());
+		}
+		else
+		{
+			for (size_t k = 0; k < budgetLeft; ++k)
+			{
+				const size_t i = (k * (section.size() - 1)) / (budgetLeft - 1);
+				world.push_back(section[i]);
+			}
+		}
+		section.clear();
+	};
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		float x = 0.f, y = 0.f, z = 0.f;
+		std::memcpy(&x, data.data() + off + i * 12, 4);
+		std::memcpy(&y, data.data() + off + i * 12 + 4, 4);
+		std::memcpy(&z, data.data() + off + i * 12 + 8, 4);
+		if (isBreak(x, y, z))
+		{
+			flushSection();
+			continue;
+		}
+		if (!okPoint(x, y, z))
+			continue;
+		section.push_back({x, y, z});
 	}
+	flushSection();
 	return world.size() >= 2;
 }
 

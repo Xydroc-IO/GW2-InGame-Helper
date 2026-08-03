@@ -254,16 +254,42 @@ void CompassOverlay::Render()
 		const float thickness = std::clamp(2.0f * tr.trailScale, 1.2f, 4.0f);
 
 		const size_t step = (tr.points.size() > 160) ? 2u : 1u;
-		ImVec2 prev = ToScreen(tr.points[0].x, tr.points[0].y);
+		size_t start = 0;
+		while (start < tr.points.size() &&
+			(!std::isfinite(tr.points[start].x) || !std::isfinite(tr.points[start].y)))
+			++start;
+		if (start >= tr.points.size())
+			continue;
+		ImVec2 prev = ToScreen(tr.points[start].x, tr.points[start].y);
 		bool prevOk = InCompass(prev);
-		for (size_t i = step; i < tr.points.size(); i += step)
+		float prevCx = tr.points[start].x;
+		float prevCy = tr.points[start].y;
+		for (size_t i = start + step; i < tr.points.size(); i += step)
 		{
+			if (!std::isfinite(tr.points[i].x) || !std::isfinite(tr.points[i].y))
+			{
+				prevOk = false;
+				continue;
+			}
+			/* Section break / bad stitch — TacO (0,0,0) gaps become huge jumps. */
+			const float cdx = tr.points[i].x - prevCx;
+			const float cdy = tr.points[i].y - prevCy;
+			if (cdx * cdx + cdy * cdy > (2500.f * 2500.f))
+			{
+				prev = ToScreen(tr.points[i].x, tr.points[i].y);
+				prevOk = InCompass(prev);
+				prevCx = tr.points[i].x;
+				prevCy = tr.points[i].y;
+				continue;
+			}
 			ImVec2 cur = ToScreen(tr.points[i].x, tr.points[i].y);
 			const bool curOk = InCompass(cur);
 			if (prevOk || curOk)
 				dl->AddLine(prev, cur, col, thickness);
 			prev = cur;
 			prevOk = curOk;
+			prevCx = tr.points[i].x;
+			prevCy = tr.points[i].y;
 		}
 	}
 

@@ -18,6 +18,17 @@ Credits: **Tekkit's Workshop** (All-In-One — used with permission) · **Lady E
 Stamp files (`*.taco.ver`) track the release / size so updates only re-download when needed.
 **Your own `.taco` files are never deleted.**
 
+Do **not** keep a second copy of Tekkit under another name (e.g. both
+`tw_ALL_IN_ONE.taco` and `Tekkit's All-In-One.taco`). That loads every route
+twice and stacks in-world GPS. The addon skips known duplicates automatically.
+
+## Trail sections
+
+TacO / Blish / Taimi `.trl` files can contain **section breaks** (a `(0,0,0)`
+point). Those end one polyline and start another (e.g. after a portal). The
+addon honors breaks on the compass and in-world GPS — stitching them used to
+draw straight lines across the whole map.
+
 ## Custom packs
 
 1. Copy any `.taco` pack into this folder (same format as TacO / BlishHUD / Taimi).
@@ -32,6 +43,11 @@ Stamp files (`*.taco.ver`) track the release / size so updates only re-download 
 | **All Tekkit** | Enables the whole Tekkit tree (`tw_guides`) |
 | **All Lady** | Enables Lady Elyssa Guides + Achievements (`legs` + `leag`) |
 | **All off** | Clears every enabled category (Tekkit, Lady, MC presets) |
+
+**Skyscale routes:** Tekkit only ships a Skyscale Edition for **Heart of Thorns**,
+**Secrets of the Obscure**, and generic Routes in **Janthir Wilds**. Core Tyria,
+PoF, EoD, Living World, and VoE have no Skyscale path set — use Foot or Griffon
+there. The Skyscale preset still enables hearts / POIs / vistas in all MC regions.
 
 Installed path:
 

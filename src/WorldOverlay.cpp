@@ -24,6 +24,9 @@ namespace
 	   A height bias looks like a lateral miss once the camera pitches. */
 	constexpr float kHeightBias = 0.f;
 	constexpr float kInchesToMeters = 1.f / 39.3700787f;
+	/* Soft-hide POI icons that would cover the avatar. */
+	constexpr float kAvatarMarkerHideM = 2.0f;
+	constexpr float kAvatarMarkerFadeM = 5.5f;
 
 	struct Vec3
 	{
@@ -199,12 +202,6 @@ namespace
 		int rr = static_cast<int>((seg.color >> 16) & 0xFFu);
 		int gg = static_cast<int>((seg.color >> 8) & 0xFFu);
 		int bb = static_cast<int>(seg.color & 0xFFu);
-		if (rr > 245 && gg > 245 && bb > 245)
-		{
-			rr = 0;
-			gg = 220;
-			bb = 255;
-		}
 		const float baseA = (bright ? 0.98f : 0.92f) *
 			std::clamp(seg.alpha > 0.05f ? seg.alpha : 1.f, 0.f, 1.f);
 
@@ -212,12 +209,10 @@ namespace
 		TrailFadeRange(seg, maxDist, fadeStart, fadeEnd);
 		const float fadeEnd2 = fadeEnd * fadeEnd;
 
-		/* Blish Pathing: TRAIL_WIDTH = 20 inches → meters, × trailScale.
-		   Full ribbon is 2× that (offset both sides). User thickness scales it. */
-		constexpr float kBlishHalfM = 20.f * 0.0254f; /* ~0.508 m */
+		constexpr float kBlishHalfM = 20.f * 0.0254f;
 		const float halfM = kBlishHalfM *
-			std::max(0.35f, seg.trailScale) *
-			std::clamp(thickness, 0.35f, 4.f);
+			std::clamp(seg.trailScale, 0.5f, 2.0f) *
+			std::clamp(thickness, 0.5f, 2.5f);
 
 		Texture_t* texture = nullptr;
 		if (seg.textureId[0] && G::API && G::API->Textures_Get)
@@ -229,8 +224,8 @@ namespace
 
 		const Vec3 worldUp{0.f, 1.f, 0.f};
 		int drawn = 0;
-		float pathV = 0.f;
-		float alongM = 0.f;
+		constexpr float kMinSpacing2 = 1.0f * 1.0f;
+		constexpr float kMaxGap2 = 80.f * 80.f;
 
 		auto project = [&](const Vec3& w, float& sx, float& sy, float& fadeOut) -> bool
 		{
@@ -250,79 +245,133 @@ namespace
 			return WorldToScreen(w, viewProj, screenW, screenH, sx, sy);
 		};
 
-		for (size_t i = 0; i + 1 < seg.points.size(); ++i)
+		auto drawSection = [&](const std::vector<Vec3>& pts) -> void
 		{
-			if (drawn >= segsLeft)
-				break;
-			const TekkitTrails::WorldPoint& a = seg.points[i];
-			const TekkitTrails::WorldPoint& b = seg.points[i + 1];
-			if (!ReasonablePos(a.x, a.y, a.z) || !ReasonablePos(b.x, b.y, b.z))
-				continue;
-
-			Vec3 p0{a.x, a.y + kHeightBias, a.z};
-			Vec3 p1{b.x, b.y + kHeightBias, b.z};
-			Vec3 dir{p1.x - p0.x, p1.y - p0.y, p1.z - p0.z};
-			const float segLen = std::sqrt(dir.LengthSq());
-			if (!(segLen > 0.05f) || !std::isfinite(segLen))
-				continue;
-
-			/* Horizontal perpendicular (Blish Cross(path, Forward) ≈ XZ plane). */
-			Vec3 side = dir.Cross(worldUp);
-			if (side.LengthSq() < 1e-8f)
-				side = dir.Cross(Vec3{1.f, 0.f, 0.f});
-			side = side.Normalised();
-			if (side.LengthSq() < 0.5f)
-				continue;
-
-			const Vec3 left0{p0.x + side.x * halfM, p0.y + side.y * halfM, p0.z + side.z * halfM};
-			const Vec3 right0{p0.x - side.x * halfM, p0.y - side.y * halfM, p0.z - side.z * halfM};
-			const Vec3 left1{p1.x + side.x * halfM, p1.y + side.y * halfM, p1.z + side.z * halfM};
-			const Vec3 right1{p1.x - side.x * halfM, p1.y - side.y * halfM, p1.z - side.z * halfM};
-
-			float fade0 = 1.f, fade1 = 1.f;
-			float lx0 = 0.f, ly0 = 0.f, rx0 = 0.f, ry0 = 0.f;
-			float lx1 = 0.f, ly1 = 0.f, rx1 = 0.f, ry1 = 0.f;
-			if (!project(left0, lx0, ly0, fade0) || !project(right0, rx0, ry0, fade0))
-				continue;
-			if (!project(left1, lx1, ly1, fade1) || !project(right1, rx1, ry1, fade1))
-				continue;
-
-			/* Reject wild projections (behind camera / across screen). */
-			const float qdx = lx1 - lx0;
-			const float qdy = ly1 - ly0;
-			const float qlen = std::sqrt(qdx * qdx + qdy * qdy);
-			if (!std::isfinite(qlen) || qlen < 0.5f || qlen > screenW * 0.9f)
-				continue;
-
-			const float avgA = baseA * (fade0 + fade1) * 0.5f;
-			const int aCh = static_cast<int>(std::clamp(avgA, 0.f, 1.f) * 255.f);
-			const ImVec2 sL0{lx0, ly0}, sR0{rx0, ry0}, sL1{lx1, ly1}, sR1{rx1, ry1};
-
-			if (texture)
+			if (pts.size() < 2 || drawn >= segsLeft)
+				return;
+			float alongM = 0.f;
+			Vec3 lastSide{};
+			float flipOver = 1.f;
+			for (size_t i = 0; i + 1 < pts.size(); ++i)
 			{
-				/* UV along path in meters — Blish uses pastDistance / (TRAIL_WIDTH*2). */
-				constexpr float kUvPeriod = kBlishHalfM * 2.f;
-				const float v0 = -(alongM / kUvPeriod);
-				const float v1 = -((alongM + segLen) / kUvPeriod);
-				dl->AddImageQuad(
-					reinterpret_cast<ImTextureID>(texture->Resource),
-					sL0, sL1, sR1, sR0,
-					ImVec2(0.f, v0), ImVec2(0.f, v1),
-					ImVec2(1.f, v1), ImVec2(1.f, v0),
-					IM_COL32(255, 255, 255, aCh));
-			}
-			else
-			{
-				dl->AddQuadFilled(sL0, sL1, sR1, sR0, IM_COL32(rr, gg, bb, aCh));
-			}
-			/* Soft edge so gaps between segments are less obvious. */
-			dl->AddQuad(sL0, sL1, sR1, sR0, IM_COL32(rr, gg, bb, std::min(aCh, 180)), 1.25f);
+				if (drawn >= segsLeft)
+					break;
+				const Vec3& p0 = pts[i];
+				const Vec3& p1 = pts[i + 1];
+				Vec3 dir{p1.x - p0.x, p1.y - p0.y, p1.z - p0.z};
+				const float segLen = std::sqrt(dir.LengthSq());
+				if (!(segLen > 0.25f) || !std::isfinite(segLen))
+					continue;
 
-			alongM += segLen;
-			pathV = alongM;
-			(void)pathV;
-			++drawn;
+				Vec3 side = dir.Cross(worldUp);
+				if (side.LengthSq() < 1e-8f)
+					side = dir.Cross(Vec3{1.f, 0.f, 0.f});
+				side = side.Normalised();
+				if (side.LengthSq() < 0.5f)
+					continue;
+				if (lastSide.LengthSq() > 0.5f && side.Dot(lastSide) < 0.f)
+					flipOver = -flipOver;
+				lastSide = side;
+				side = Vec3{side.x * flipOver, side.y * flipOver, side.z * flipOver};
+
+				const Vec3 left0{p0.x + side.x * halfM, p0.y, p0.z + side.z * halfM};
+				const Vec3 right0{p0.x - side.x * halfM, p0.y, p0.z - side.z * halfM};
+				const Vec3 left1{p1.x + side.x * halfM, p1.y, p1.z + side.z * halfM};
+				const Vec3 right1{p1.x - side.x * halfM, p1.y, p1.z - side.z * halfM};
+
+				float fade0 = 1.f, fade1 = 1.f;
+				float lx0 = 0.f, ly0 = 0.f, rx0 = 0.f, ry0 = 0.f;
+				float lx1 = 0.f, ly1 = 0.f, rx1 = 0.f, ry1 = 0.f;
+				if (!project(left0, lx0, ly0, fade0) || !project(right0, rx0, ry0, fade0) ||
+					!project(left1, lx1, ly1, fade1) || !project(right1, rx1, ry1, fade1))
+				{
+					alongM += segLen;
+					continue;
+				}
+
+				const float qdx = lx1 - lx0;
+				const float qdy = ly1 - ly0;
+				const float qlen = std::sqrt(qdx * qdx + qdy * qdy);
+				if (!std::isfinite(qlen) || qlen < 0.75f || qlen > screenW * 0.85f)
+				{
+					alongM += segLen;
+					continue;
+				}
+				const float w0x = rx0 - lx0, w0y = ry0 - ly0;
+				const float w1x = rx1 - lx1, w1y = ry1 - ly1;
+				const float avgWidth = 0.5f * (
+					std::sqrt(w0x * w0x + w0y * w0y) + std::sqrt(w1x * w1x + w1y * w1y));
+				if (!(avgWidth > 1.5f) || qlen < avgWidth * 0.4f)
+				{
+					alongM += segLen;
+					continue;
+				}
+
+				const float avgA = baseA * (fade0 + fade1) * 0.5f;
+				const int aCh = static_cast<int>(std::clamp(avgA, 0.f, 1.f) * 255.f);
+				if (aCh < 8)
+				{
+					alongM += segLen;
+					continue;
+				}
+				const ImVec2 sL0{lx0, ly0}, sR0{rx0, ry0}, sL1{lx1, ly1}, sR1{rx1, ry1};
+				if (texture)
+				{
+					constexpr float kUvPeriod = kBlishHalfM * 2.f;
+					const float v0 = -(alongM / kUvPeriod);
+					const float v1 = -((alongM + segLen) / kUvPeriod);
+					dl->AddImageQuad(
+						reinterpret_cast<ImTextureID>(texture->Resource),
+						sL0, sL1, sR1, sR0,
+						ImVec2(0.f, v0), ImVec2(0.f, v1),
+						ImVec2(1.f, v1), ImVec2(1.f, v0),
+						IM_COL32(255, 255, 255, aCh));
+				}
+				else
+				{
+					dl->AddQuadFilled(sL0, sL1, sR1, sR0, IM_COL32(rr, gg, bb, aCh));
+				}
+				alongM += segLen;
+				++drawn;
+			}
+		};
+
+		std::vector<Vec3> pts;
+		pts.reserve(64);
+		for (const TekkitTrails::WorldPoint& wp : seg.points)
+		{
+			if (!ReasonablePos(wp.x, wp.y, wp.z))
+			{
+				/* TacO/Taimi (0,0,0) / NaN section break — do not stitch. */
+				drawSection(pts);
+				pts.clear();
+				continue;
+			}
+			Vec3 p{wp.x, wp.y + kHeightBias, wp.z};
+			if (!pts.empty())
+			{
+				const float dx = p.x - pts.back().x;
+				const float dy = p.y - pts.back().y;
+				const float dz = p.z - pts.back().z;
+				const float d2 = dx * dx + dy * dy + dz * dz;
+				if (d2 < kMinSpacing2)
+					continue;
+				if (d2 > kMaxGap2)
+				{
+					drawSection(pts);
+					pts.clear();
+				}
+			}
+			pts.push_back(p);
+			if (pts.size() >= 96)
+			{
+				drawSection(pts);
+				Vec3 keep = pts.back();
+				pts.clear();
+				pts.push_back(keep);
+			}
 		}
+		drawSection(pts);
 		return drawn;
 	}
 
@@ -344,7 +393,19 @@ namespace
 			if (!std::isfinite(distance) || distance < 0.05f)
 				continue;
 
-			float fade = 1.f;
+			const float horiz = std::sqrt(dx * dx + dz * dz);
+			float nearFade = 1.f;
+			if (horiz <= kAvatarMarkerHideM)
+				continue;
+			if (horiz < kAvatarMarkerFadeM)
+			{
+				float t = (horiz - kAvatarMarkerHideM) /
+					(kAvatarMarkerFadeM - kAvatarMarkerHideM);
+				t = std::clamp(t, 0.f, 1.f);
+				nearFade = t * t * (3.f - 2.f * t);
+			}
+
+			float fade = nearFade;
 			float maxVis = 160.f;
 			if (marker.fadeFar > 0.f)
 				maxVis = std::max(maxVis, marker.fadeFar * kInchesToMeters);
@@ -355,7 +416,7 @@ namespace
 				const float nearM = marker.fadeNear * kInchesToMeters;
 				const float farM = std::max(nearM + 1.f, marker.fadeFar * kInchesToMeters);
 				if (distance > nearM)
-					fade = 1.f - (distance - nearM) / (farM - nearM);
+					fade *= 1.f - (distance - nearM) / (farM - nearM);
 			}
 			float sx = 0.f, sy = 0.f;
 			if (!WorldToScreen(world, viewProj, screenW, screenH, sx, sy))
@@ -526,7 +587,7 @@ void WorldOverlay::Render()
 
 	if (G::ShowWorldTrails && segsLeft > 0)
 	{
-		const float drawDist = std::max(maxDist * 2.0f, 180.f);
+		const float drawDist = std::max(maxDist * 1.35f, 90.f);
 		for (const TekkitTrails::WorldSnippet& seg : sNearCache)
 		{
 			if (segsLeft <= 0)

@@ -286,6 +286,72 @@ void ListTacoFiles(const std::wstring& dir, std::vector<std::wstring>& out, bool
 	FindClose(h);
 }
 
+/* Drop alias copies of curated packs (same content, different filename).
+   e.g. "Tekkit's All-In-One.taco" next to curated tw_ALL_IN_ONE.taco → every
+   route draws twice in-world. */
+void SuppressDuplicateTacoPacks(std::vector<std::wstring>& packs)
+{
+	bool hasCuratedTekkit = false;
+	for (const std::wstring& p : packs)
+	{
+		if (LeafLower(p) == L"tw_all_in_one.taco")
+		{
+			hasCuratedTekkit = true;
+			break;
+		}
+	}
+
+	auto isTekkitAioAlias = [](const std::wstring& leaf) -> bool
+	{
+		if (leaf == L"tw_all_in_one.taco")
+			return false;
+		const bool hasTekkit = leaf.find(L"tekkit") != std::wstring::npos;
+		const bool hasAio =
+			leaf.find(L"all_in_one") != std::wstring::npos ||
+			leaf.find(L"all-in-one") != std::wstring::npos ||
+			leaf.find(L"allinone") != std::wstring::npos;
+		return hasTekkit && hasAio;
+	};
+
+	if (hasCuratedTekkit)
+	{
+		packs.erase(
+			std::remove_if(packs.begin(), packs.end(),
+				[&](const std::wstring& p) { return isTekkitAioAlias(LeafLower(p)); }),
+			packs.end());
+	}
+
+	/* Exact byte-size clones of an already-kept pack (any author). */
+	std::vector<std::pair<std::wstring, ULONGLONG>> kept;
+	kept.reserve(packs.size());
+	std::vector<std::wstring> filtered;
+	filtered.reserve(packs.size());
+	for (const std::wstring& p : packs)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA fad{};
+		ULONGLONG sz = 0;
+		if (GetFileAttributesExW(p.c_str(), GetFileExInfoStandard, &fad))
+			sz = (static_cast<ULONGLONG>(fad.nFileSizeHigh) << 32) | fad.nFileSizeLow;
+		bool clone = false;
+		if (sz > 0)
+		{
+			for (const auto& k : kept)
+			{
+				if (k.second == sz)
+				{
+					clone = true;
+					break;
+				}
+			}
+		}
+		if (clone)
+			continue;
+		kept.push_back({p, sz});
+		filtered.push_back(p);
+	}
+	packs.swap(filtered);
+}
+
 void MergeCategoryTree(std::vector<TekkitTrails::Category>& dest, TekkitTrails::Category&& src)
 {
 	TekkitTrails::Category* found = nullptr;
@@ -403,6 +469,7 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 			for (const std::wstring& d : fallbackDirs)
 				ListTacoFiles(d, packs, true); /* Tekkit seed only */
 		}
+		SuppressDuplicateTacoPacks(packs);
 
 		/* Soft cap — curated + a few user packs; huge dumps still blow Wine. */
 		constexpr size_t kMaxPacks = 12;

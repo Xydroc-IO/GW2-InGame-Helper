@@ -206,13 +206,9 @@ install: $(DLL_OUT)
 	@mkdir -p "$(INSTALL_DIR)" "$(INSTALL_DIR)/pathing"
 	/bin/cp -f "$(DLL_OUT)" "$(INSTALL_DLL)"
 	/bin/cp -f pathing/README.md "$(INSTALL_DIR)/pathing/README.md"
-	@if [ ! -f "$(INSTALL_DIR)/pathing/Tekkit's All-In-One.taco" ]; then \
-		if [ -f "pathing/Tekkit's All-In-One.taco" ]; then \
-			/bin/cp -f "pathing/Tekkit's All-In-One.taco" "$(INSTALL_DIR)/pathing/"; \
-		elif [ -f "../gw2-minimap-resizer/pathing/Tekkit's All-In-One.taco" ]; then \
-			/bin/cp -f "../gw2-minimap-resizer/pathing/Tekkit's All-In-One.taco" "$(INSTALL_DIR)/pathing/"; \
-		fi; \
-	fi
+	# Curated Tekkit is tw_ALL_IN_ONE.taco (PathingPacks download). Never seed
+	# the old "Tekkit's All-In-One.taco" alias — loading both doubles every GPS route.
+	/bin/rm -f "$(INSTALL_DIR)/pathing/Tekkit's All-In-One.taco"
 	/bin/rm -f "$(INSTALL_DIR)/GW2-InGame-Helper.dll" \
 		"$(INSTALL_DIR)/GW2HelperBrowser.exe" \
 		"$(GW2_ADDONS)/GW2HelperBrowser.exe" \

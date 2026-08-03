@@ -564,6 +564,7 @@ namespace TekkitDetail
 		std::vector<TekkitTrails::Trail> loaded;
 		loaded.reserve(64);
 		std::unordered_map<std::string, std::wstring> assetsNeeded;
+		std::unordered_set<std::string> seenTrailFiles;
 		size_t otherCount = 0;
 
 		OpenPack pack;
@@ -580,6 +581,11 @@ namespace TekkitDetail
 				continue;
 
 			const IndexedTrail& it = *c.it;
+			/* Same .trl from two packs (duplicate Tekkit AIO copies) → skip. */
+			const std::string trailKey = ToLower(it.entryName) + "#" +
+				std::to_string(static_cast<unsigned>(mapId));
+			if (!seenTrailFiles.insert(trailKey).second)
+				continue;
 			if (it.packPath != openPath)
 			{
 				pack.Close();
@@ -621,6 +627,13 @@ namespace TekkitDetail
 			trail.points.reserve(world.size());
 			for (const TekkitTrails::WorldPoint& w : world)
 			{
+				if (!std::isfinite(w.x) || !std::isfinite(w.y) || !std::isfinite(w.z))
+				{
+					/* Preserve TacO section break so compass/world don't stitch segments. */
+					if (!trail.points.empty() && std::isfinite(trail.points.back().x))
+						trail.points.push_back({NAN, NAN});
+					continue;
+				}
 				TekkitTrails::Point cc{};
 				WorldToContinent(rects, w.x, w.z, cc.x, cc.y);
 				if (!std::isfinite(cc.x) || !std::isfinite(cc.y))
@@ -628,7 +641,7 @@ namespace TekkitDetail
 				trail.points.push_back(cc);
 			}
 			/* Keep full-span world samples for enabled trails (ParseTrl already
-			   covers start→end). Do not re-cap from the front. */
+			   covers start→end, with NaN section breaks). */
 			if (c.rank == 0 && trail.points.size() >= 2)
 				trail.worldPoints = std::move(world);
 			if (trail.points.size() < 2)
@@ -1316,10 +1329,9 @@ bool TekkitTrails::TryNearbyWorldGps(
 	if (!std::isfinite(avatarX) || !std::isfinite(avatarY) || !std::isfinite(avatarZ))
 		return true;
 
-	/* Activation + draw: Tekkit-style distance fade around the player. The
-	   polyline itself is the full trail (start→end); we only skip far segments. */
-	const float maxDist = std::clamp(maxDistMeters, 20.f, 220.f);
-	const float activateDist = std::max(maxDist * 2.0f, 180.f);
+	/* Activation + draw window — keep closer to Blish/Taimi on-screen load. */
+	const float maxDist = std::clamp(maxDistMeters, 20.f, 160.f);
+	const float activateDist = std::max(maxDist * 1.35f, 90.f);
 	const float activateDist2 = activateDist * activateDist;
 	const float softDist = activateDist;
 	const float softDist2 = softDist * softDist;
@@ -1343,7 +1355,7 @@ bool TekkitTrails::TryNearbyWorldGps(
 	for (size_t ti = 0; ti < gCurrentAll.size(); ++ti)
 	{
 		const Trail& tr = gCurrentAll[ti];
-		if (tr.worldPoints.size() < 2 || !TypeEnabledLocked(tr.label))
+		if (tr.worldPoints.size() < 2 || !tr.inGameVisible || !TypeEnabledLocked(tr.label))
 			continue;
 		const size_t n = tr.worldPoints.size();
 		size_t bestI = 0;
@@ -1380,23 +1392,55 @@ bool TekkitTrails::TryNearbyWorldGps(
 	std::sort(cands.begin(), cands.end(),
 		[](const Cand& a, const Cand& b) { return a.nearestD2 < b.nearestD2; });
 
-	outSnippets.reserve(std::min<size_t>(cands.size(), 20));
+	auto samplePt = [](const std::vector<WorldPoint>& pts, float t) -> WorldPoint
+	{
+		if (pts.empty())
+			return {};
+		const float u = std::clamp(t, 0.f, 1.f);
+		const size_t i = static_cast<size_t>(u * static_cast<float>(pts.size() - 1));
+		return pts[std::min(i, pts.size() - 1)];
+	};
+	auto distPts2 = [](const WorldPoint& p, const WorldPoint& q) -> float
+	{
+		const float dx = p.x - q.x;
+		const float dy = p.y - q.y;
+		const float dz = p.z - q.z;
+		return dx * dx + dy * dy + dz * dz;
+	};
+	/* Same corridor = Foot/Griffon/pack clone. Mid samples catch parallels. */
+	auto roughlySamePath = [&](const WorldSnippet& a, const WorldSnippet& b) -> bool
+	{
+		if (a.points.size() < 2 || b.points.size() < 2)
+			return false;
+		constexpr float r2 = 5.f * 5.f;
+		int hits = 0;
+		for (float t = 0.f; t <= 1.001f; t += 0.25f)
+		{
+			const WorldPoint pa = samplePt(a.points, t);
+			float best = 1.0e30f;
+			for (float u = 0.f; u <= 1.001f; u += 0.2f)
+				best = std::min(best, distPts2(pa, samplePt(b.points, u)));
+			if (best <= r2)
+				++hits;
+		}
+		return hits >= 3;
+	};
+
+	outSnippets.reserve(5);
 	for (const Cand& c : cands)
 	{
-		if (outSnippets.size() >= 20)
+		if (outSnippets.size() >= 5)
 			break;
 		const Trail& tr = gCurrentAll[c.idx];
 		const auto& pts = tr.worldPoints;
 		const size_t n = pts.size();
 		size_t a = c.nearest;
 		size_t b = c.nearest;
-		/* Grow along the full polyline while near the player (Tekkit fade). */
 		while (a > 0 && dist2(pts[a - 1].x, pts[a - 1].y, pts[a - 1].z) <= softDist2)
 			--a;
 		while (b + 1 < n && dist2(pts[b + 1].x, pts[b + 1].y, pts[b + 1].z) <= softDist2)
 			++b;
-		/* Keep a minimum ribbon even when samples are sparse. */
-		constexpr size_t kPad = 24;
+		constexpr size_t kPad = 16;
 		if (c.nearest > kPad)
 			a = std::min(a, c.nearest - kPad);
 		else
@@ -1412,22 +1456,39 @@ bool TekkitTrails::TryNearbyWorldGps(
 		snip.trailScale = tr.trailScale;
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
-		/* Copy the local window densely — trail data already spans the full route. */
-		constexpr size_t kMaxPts = 256;
+		/* ≥1 m spacing — Blish GPU strip hides micro-samples; ImGui cannot. */
+		constexpr float kMinSp2 = 1.0f * 1.0f;
+		constexpr size_t kMaxPts = 96;
 		snip.points.reserve(std::min(b - a + 1, kMaxPts));
-		const size_t span = b - a;
-		const size_t stride = (span > kMaxPts) ? (span / kMaxPts) : 1;
-		for (size_t i = a; i <= b; i += std::max<size_t>(1, stride))
+		WorldPoint lastKept{};
+		bool haveKept = false;
+		for (size_t i = a; i <= b; ++i)
 		{
 			const WorldPoint& wp = pts[i];
 			if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z))
 				continue;
+			if (haveKept && distPts2(wp, lastKept) < kMinSp2 && i != b)
+				continue;
 			snip.points.push_back(wp);
+			lastKept = wp;
+			haveKept = true;
 			if (snip.points.size() >= kMaxPts)
 				break;
 		}
-		if (snip.points.size() >= 2)
-			outSnippets.push_back(std::move(snip));
+		if (snip.points.size() < 2)
+			continue;
+		bool dupPath = false;
+		for (const WorldSnippet& prev : outSnippets)
+		{
+			if (roughlySamePath(prev, snip))
+			{
+				dupPath = true;
+				break;
+			}
+		}
+		if (dupPath)
+			continue;
+		outSnippets.push_back(std::move(snip));
 	}
 
 	const float markDist2 = (activateDist * 1.2f) * (activateDist * 1.2f);
@@ -2071,8 +2132,15 @@ bool TekkitTrails::DrawSettings()
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Hearts / POIs / vistas + Skyscale routes only (HoT / SotO).\n"
-			"Turns Foot / Griffon routes off.");
+			"Hearts / POIs / vistas everywhere Tekkit has map completion.\n"
+			"Skyscale path ribbons only where Tekkit ships them:\n"
+			"  • Heart of Thorns\n"
+			"  • Secrets of the Obscure\n"
+			"  • Janthir Wilds (generic Routes)\n"
+			"Core Tyria / PoF / EoD / LWS / VoE have no Skyscale edition —\n"
+			"use Foot or Griffon there. Turns Foot / Griffon routes off.");
+	ImGui::TextDisabled(
+		"Skyscale routes: HoT + SotO only (Tekkit pack). Elsewhere use Foot/Griffon.");
 	if (ImGui::Button("All Tekkit"))
 	{
 		EnableAllTekkitCategories();
