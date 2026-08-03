@@ -183,7 +183,7 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 | `LogManagerPad` / `Parse` / `Upload` / `Ei` | DPS Logs UI, EVTC/JSON parse, dps.report, EI CLI |
 | `TekkitTrails` / `Parse` / `Index` / `PathingPacks` | Pathing runtime, curated pack download, taco/XML/.trl |
 | `CompassOverlay` / `WorldOverlay` | Tekkit trail overlays on minimap / in-world |
-| `DirectionCompass` | Heading strip + world N/E/S/W + bearing (independent of Tekkit) |
+| `DirectionCompass` | World N/E/S/W around the character (independent of Tekkit) |
 | `LivePanels` / `Build` / `Html` | about: live digests — workers vs HTML builders |
 | `CheatSheets` + `data/cheatsheets/` | Offline about: sheets (embedded zip → runtime extract) |
 | `AccountPad`, `WalletPad`, `VaultPad`, `NotesPad`, … | ImGui feature pads |
@@ -218,5 +218,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.1.0.4 / direction compass + Pathing presets + Addon Development browse |
+| Last architecture sync | 2.1.0.4 / compass simplify + TacO .trl section breaks + pack dedupe |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps |

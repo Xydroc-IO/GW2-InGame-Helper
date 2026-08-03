@@ -33,11 +33,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ## What’s new in 2.1.0.4
 
-- **Direction compass:** Toolbar **Compass** + More → Direction compass — heading
-  strip, world N/E/S/W (Nexus `FontBig`, Raidcore-sized), bearing indicator; gold
-  theme; independent of Tekkit compass-trail overlay.
+- **Direction compass:** Toolbar **Compass** — world N/E/S/W around the character
+  (Nexus `FontBig`, letter size + world radius sliders); gold theme; independent of
+  Tekkit compass-trail overlay. (Heading strip / bearing / edit mode removed.)
 - **Pathing presets:** Map Completion **Skyscale** beside Foot / Griffon; **All Lady**
   (`legs` + `leag`); **All off** clears Tekkit, Lady, and MC.
+- **Pathing trails:** Honor TacO/Blish/Taimi `.trl` **section breaks** (`(0,0,0)`);
+  skip duplicate Tekkit AIO pack aliases; tighter compass/GPS drawing (no map-wide
+  spaghetti / stacked ribbons); soft-hide POI markers near the avatar.
 - **Browse:** New **Addon Development** category (Raidcore under Nexus, GitHub under
   Source); catalog **2,719** entries; sites stamp `s2104`.
 - **Stamps:** Helper `2103` · homepage `2104` · sites `s2104` · cheatsheets `c2103`
