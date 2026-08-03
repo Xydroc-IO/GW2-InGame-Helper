@@ -46,7 +46,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Pathing:** **Hero** pack download; marker behaviors + Features / Categories;
   packs list fills Overview; trail-start **GPS** routing; TacO `.trl` section
   breaks and duplicate AIO pack skip (from 2.1.0.4) retained. Map Completion
-  Skyscale / All Lady / All off presets.
+  Skyscale / All Lady / All off presets. **Find nearest waypoints** uses the
+  public waypoint index and works with **no categories enabled** (anchors on
+  your position; orange guide toward the closest WP); with packs on, prefers
+  trail start when available.
 - **Direction compass:** Side-rail **Compass** — world N/E/S/W (letter size +
   world radius sliders); independent of Tekkit compass-trail overlay.
 - **Browse catalog:** News Digest under **Help → News**; removed Live category

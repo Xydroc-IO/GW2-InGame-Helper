@@ -43,6 +43,17 @@ point). Those end one polyline and start another (e.g. after a portal). The
 addon honors breaks on the compass and in-world GPS — stitching them used to
 draw straight lines across the whole map.
 
+## Route → Find nearest waypoints
+
+Pathing **Route** finds public API waypoints near an anchor and lists chat codes
+(copy only — no auto-teleport).
+
+- **No categories enabled:** anchors on your Mumble continent position; orange
+  guide points at the closest waypoint (search trails may load in the background).
+- **Categories enabled:** prefers the trail start when one is on the map; otherwise
+  falls back to your position.
+- Does **not** wait for pack indexing to finish before listing waypoints.
+
 ## Custom packs
 
 1. Copy any `.taco` pack into this folder (same format as TacO / BlishHUD / Taimi).

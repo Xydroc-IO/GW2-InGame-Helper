@@ -59,7 +59,7 @@ Not Browse rows — open from the helper toolbar / Nexus Options. Session-only v
 - **Vault** — Dailies & Wizard’s Vault with UTC reset countdowns (also under Account → Vault)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + optional dps.report; KillProof tab (killproof.me); group-by-encounter default; see [`DPS_LOGS.md`](DPS_LOGS.md)
 - **World Events** — UTC boss / meta timers; keybind `KB_HELPER_EVENTS` (`Ctrl+Shift+E`)
-- **Pathing** — curated Tekkit + Lady Elyssa `.taco` auto-update + local packs; Foot / Griffon / Skyscale MC presets, All Tekkit / All Lady / All off; keybind `KB_HELPER_TEKKIT` (`Ctrl+Shift+G`)
+- **Pathing** — curated Tekkit + Lady Elyssa + Hero `.taco` auto-update + local packs; Foot / Griffon / Skyscale MC presets, All Tekkit / All Lady / All off; Route → Find nearest waypoints (API; works with no categories on); keybind `KB_HELPER_TEKKIT` (`Ctrl+Shift+G`)
 - **Direction compass** — toolbar Compass; heading strip, world N/E/S/W (Nexus FontBig), bearing indicator
 
 ## Wiki
