@@ -95,6 +95,7 @@ namespace G
 	extern float WorldTrailWidth;
 	/* Soft fade / clear size around the player (0 = full path, no hole). */
 	extern float WorldTrailPlayerClear;
+	extern float WorldMarkerPlayerClear; /* soft-clear radius for world markers (0 = none) */
 	extern float WorldMarkerScale; /* × pack iconSize in world GPS; default 2 */
 	extern float CompassMarkerScale; /* × pack iconSize on stock compass; default 1 */
 	extern float Opacity;

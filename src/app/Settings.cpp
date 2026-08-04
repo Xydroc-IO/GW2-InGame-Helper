@@ -160,6 +160,8 @@ void Settings::Load()
 			G::WorldTrailWidth = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WorldTrailPlayerClear") == 0)
 			G::WorldTrailPlayerClear = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WorldMarkerPlayerClear") == 0)
+			G::WorldMarkerPlayerClear = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WorldMarkerScale") == 0)
 			G::WorldMarkerScale = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "CompassMarkerScale") == 0)
@@ -298,6 +300,8 @@ void Settings::Load()
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
 	if (G::WorldTrailPlayerClear < 0.f) G::WorldTrailPlayerClear = 0.f;
 	if (G::WorldTrailPlayerClear > 3.f) G::WorldTrailPlayerClear = 3.f;
+	if (G::WorldMarkerPlayerClear < 0.f) G::WorldMarkerPlayerClear = 0.f;
+	if (G::WorldMarkerPlayerClear > 3.f) G::WorldMarkerPlayerClear = 3.f;
 	if (G::WorldMarkerScale < 0.5f) G::WorldMarkerScale = 0.5f;
 	if (G::WorldMarkerScale > 3.f) G::WorldMarkerScale = 3.f;
 	if (G::CompassMarkerScale < 0.5f) G::CompassMarkerScale = 0.5f;
@@ -380,6 +384,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "WorldTrailMaxDist=%.1f\n", G::WorldTrailMaxDist);
 	std::fprintf(f, "WorldTrailWidth=%.2f\n", G::WorldTrailWidth);
 	std::fprintf(f, "WorldTrailPlayerClear=%.2f\n", G::WorldTrailPlayerClear);
+	std::fprintf(f, "WorldMarkerPlayerClear=%.2f\n", G::WorldMarkerPlayerClear);
 	std::fprintf(f, "WorldMarkerScale=%.2f\n", G::WorldMarkerScale);
 	std::fprintf(f, "CompassMarkerScale=%.2f\n", G::CompassMarkerScale);
 	PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));

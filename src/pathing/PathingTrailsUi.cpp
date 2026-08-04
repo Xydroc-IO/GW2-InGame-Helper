@@ -81,6 +81,13 @@ bool PathingTrails::DrawOverlaySettings()
 				"Fade trails away from you.\n"
 				"0 = full path visible (can draw over you).\n"
 				"1 = default gap · higher = larger clear bubble.");
+		dirty |= ImGui::SliderFloat("Marker clear", &G::WorldMarkerPlayerClear, 0.f, 3.0f, "%.1f×");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Fade world markers near you (occlusion / soft-clear).\n"
+				"0 = keep icons at your feet.\n"
+				"1 ≈ 2–5.5 m · higher = larger hole.\n"
+				"Mount / Barefoot shortcut icons use a smaller bubble.");
 		ImGui::Unindent();
 
 		dirty |= ImGui::Checkbox("Hide when world map open", &G::HideWhenMapOpen);

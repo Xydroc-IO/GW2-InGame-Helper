@@ -62,6 +62,7 @@ namespace G
 	float WorldTrailMaxDist = 120.f;
 	float WorldTrailWidth = 1.f;
 	float WorldTrailPlayerClear = 1.f; /* 0 = full path; 1 = default clear bubble */
+	float WorldMarkerPlayerClear = 1.f; /* 0 = no marker hole; 1 = ~2–5.5m soft-clear */
 	float WorldMarkerScale = 2.f; /* world GPS icons */
 	float CompassMarkerScale = 1.f; /* stock compass / minimap icons */
 	float Opacity      = 0.97f;

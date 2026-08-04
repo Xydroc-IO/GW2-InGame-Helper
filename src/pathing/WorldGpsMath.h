@@ -10,8 +10,8 @@ namespace WorldGpsMath
 	constexpr float kDefaultFov = 1.222f;
 	constexpr float kHeightBias = 0.f;
 	constexpr float kInchesToMeters = 1.f / 39.3700787f;
-	constexpr float kAvatarMarkerHideM = 0.55f; /* was 2m — hid mount/bfs icons at feet */
-	constexpr float kAvatarMarkerFadeM = 1.75f; /* was 5.5m — soft-clear bubble looked empty */
+	constexpr float kAvatarMarkerHideAt1 = 2.0f; /* meters — soft-clear hole at Player-clear 1× */
+	constexpr float kAvatarMarkerFadeExtraAt1 = 3.5f; /* fade band beyond hide (→ ~5.5m at 1×) */
 	constexpr float kAvatarTrailHideAt1 = 5.0f;
 	constexpr float kAvatarTrailFadeExtraAt1 = 4.0f;
 	/* Blish StandardTrail: TRAIL_WIDTH = 20" half-offset × trailScale.

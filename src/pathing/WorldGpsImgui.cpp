@@ -312,20 +312,28 @@ void WorldGpsImgui::DrawMarkers(
 
 		const float horiz = std::sqrt(dx * dx + dz * dz);
 		float nearFade = 1.f;
-		/* Soft-clear around the avatar — keep tiny to avoid z-fight only.
-		   Mount/bfs guide icons sit on the path; a large bubble made them
-		   look missing while following the route. */
+		/* Soft-clear around the avatar — Marker clear slider (default ~2–5.5m).
+		   Mount/bfs guide icons keep a smaller bubble so they stay visible on path. */
 		const bool guideIcon = PathingDetail::IsMountShortcutMarker(marker) ||
 			(marker.label[0] && std::strstr(marker.label, ".bfs") != nullptr);
-		const float hideM = guideIcon ? 0.35f : WorldGpsMath::kAvatarMarkerHideM;
-		const float fadeM = guideIcon ? 1.1f : WorldGpsMath::kAvatarMarkerFadeM;
-		if (horiz <= hideM)
-			continue;
-		if (horiz < fadeM)
+		const float clearMul = std::clamp(G::WorldMarkerPlayerClear, 0.f, 3.f);
+		if (clearMul > 0.01f)
 		{
-			float t = (horiz - hideM) / std::max(0.15f, fadeM - hideM);
-			t = std::clamp(t, 0.f, 1.f);
-			nearFade = t * t * (3.f - 2.f * t);
+			float hideM = WorldGpsMath::kAvatarMarkerHideAt1 * clearMul;
+			float fadeM = hideM + WorldGpsMath::kAvatarMarkerFadeExtraAt1 * clearMul;
+			if (guideIcon)
+			{
+				hideM *= 0.35f;
+				fadeM = hideM + (fadeM - hideM) * 0.45f;
+			}
+			if (horiz <= hideM)
+				continue;
+			if (horiz < fadeM)
+			{
+				float t = (horiz - hideM) / std::max(0.25f, fadeM - hideM);
+				t = std::clamp(t, 0.f, 1.f);
+				nearFade = t * t * (3.f - 2.f * t);
+			}
 		}
 
 		float fade = nearFade;
