@@ -5,6 +5,7 @@
 
 #include "EiRuntime.h"
 #include "Globals.h"
+#include "HelperTheme.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -34,7 +35,7 @@ namespace LogManagerDetail
 		}
 
 		ImGui::TextUnformatted(sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+		ImGui::TextColored(HelperTheme::Muted,
 			"Public killproof.me profiles for this run");
 
 		if (sel->players.empty())
@@ -133,7 +134,7 @@ namespace LogManagerDetail
 				}
 				if (state == 3)
 				{
-					ImGui::TextColored(ImVec4(0.45f, 0.45f, 0.48f, 1.f), "—");
+					ImGui::TextColored(HelperTheme::Muted, "—");
 					if (ImGui::IsItemHovered())
 						ImGui::SetTooltip("No public killproof.me profile");
 					return;
@@ -244,7 +245,7 @@ namespace LogManagerDetail
 			return a.second.label < b.second.label;
 		});
 
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+		ImGui::TextColored(HelperTheme::Muted,
 			"%d guilds in this run", static_cast<int>(rows.size()));
 
 		if (rows.empty())
@@ -285,7 +286,7 @@ namespace LogManagerDetail
 	{
 		std::vector<FastestKill> kills;
 		BuildFastest(filtered, kills);
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+		ImGui::TextColored(HelperTheme::Muted,
 			"Best kill time per encounter (filtered)");
 		if (ImGui::BeginTable("###gw2igh_lm_fast", 3,
 				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
@@ -377,11 +378,9 @@ namespace LogManagerDetail
 				nullptr, nullptr, SW_SHOWNORMAL);
 		ImGui::SameLine();
 		if (ImGui::Button("Open log folder###gw2igh_lm_setup_folder"))
-		{
-			const std::wstring w = Utf8ToWide(G::LogFolder);
-			if (!w.empty())
-				ShellExecuteW(nullptr, L"explore", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-		}
+			OpenConfiguredLogFolder();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Open the ArcDPS combat-log folder in Explorer.");
 
 		if (gEiInstallBusy.load())
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",

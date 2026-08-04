@@ -1,6 +1,7 @@
 #include "PathingTrails.h"
 
 #include "Globals.h"
+#include "HelperTheme.h"
 #include "PadNav.h"
 #include "PathingPacks.h"
 #include "PathingIndex.h"
@@ -49,7 +50,12 @@ bool PathingTrails::DrawOverlaySettings()
 		ImGui::Indent();
 		ImGui::TextUnformatted("In-world GPS");
 		if (!G::ShowWorldTrails)
-			ImGui::TextDisabled("Enable “In-world GPS trails” above to apply.");
+		{
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted,
+				"Enable “In-world GPS trails” above to apply.");
+			PadNav::PopWrap();
+		}
 		dirty |= ImGui::SliderFloat("GPS range (m)", &G::WorldTrailMaxDist, 40.f, 200.f, "%.0f");
 		dirty |= ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f×");
 		if (ImGui::IsItemHovered())
@@ -83,38 +89,49 @@ bool PathingTrails::DrawPackTools()
 
 	ImGui::TextUnformatted("Packs");
 	const std::string pathHint = PathingFolderHint();
-	ImGui::TextDisabled("%s", pathHint.c_str());
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted, "%s", pathHint.c_str());
+	PadNav::PopWrap();
 	if (ImGui::Button("Reload packs"))
 		ReloadPacks();
-	ImGui::SameLine();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Update curated"));
 	if (ImGui::Button("Update curated"))
 		UpdateCuratedPacks();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Re-download latest Lady Elyssa + Hero + Tekkit packs from GitHub / Tekkit CDN.\n"
 			"Does not remove any .taco you added yourself.");
-	ImGui::SameLine();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Open folder"));
 	if (ImGui::Button("Open folder"))
 		OpenPathingFolder();
 	if (IsLoading() || PathingPacks::IsUpdating())
 	{
-		ImGui::SameLine();
-		ImGui::TextDisabled(PathingPacks::IsUpdating() ? "Updating…" : "Loading…");
+		PadNav::WrapSameLine(ImGui::CalcTextSize("Updating…").x);
+		ImGui::TextColored(HelperTheme::Muted,
+			PathingPacks::IsUpdating() ? "Updating…" : "Loading…");
 	}
 	{
 		char st[160]{};
 		PathingPacks::GetStatus(st, sizeof(st));
 		if (st[0])
-			ImGui::TextDisabled("%s", st);
+		{
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted, "%s", st);
+			PadNav::PopWrap();
+		}
 	}
 
 	const bool loading = IsLoading() || PathingPacks::IsUpdating();
 	const std::vector<std::string> packs = LoadedPackNames();
+	PadNav::PushWrap();
 	if (loading)
-		ImGui::TextDisabled("Packs: %d  ·  indexing categories…", PackCount());
+		ImGui::TextColored(HelperTheme::Muted,
+			"Packs: %d  ·  indexing categories…", PackCount());
 	else
-		ImGui::TextDisabled("Packs: %d  ·  This map: %d trails, %d markers on",
+		ImGui::TextColored(HelperTheme::Muted,
+			"Packs: %d  ·  This map: %d trails, %d markers on",
 			PackCount(), TrailCount(), MarkerCount());
+	PadNav::PopWrap();
 	if (!packs.empty())
 	{
 		/* Fill remaining Overview height — no tiny clipped list. */
@@ -125,8 +142,10 @@ bool PathingTrails::DrawPackTools()
 	}
 	if (PackCount() == 0 && !loading)
 	{
+		PadNav::PushWrap();
 		ImGui::TextColored(ImVec4(1.f, 0.7f, 0.3f, 1.f),
 			"No .taco packs yet — click Update curated, or drop packs into the pathing folder.");
+		PadNav::PopWrap();
 	}
 	(void)dirty;
 	return false;
@@ -146,8 +165,10 @@ bool PathingTrails::DrawCategoryBrowser()
 
 	const bool loading = IsLoading() || PathingPacks::IsUpdating();
 	ImGui::TextUnformatted("Categories");
-	ImGui::TextDisabled(
-		"Check to enable. Open drills into children. Breadcrumb wraps — no scroll arrows.");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Check to enable. Open drills into children.");
+	PadNav::PopWrap();
 
 	static char sFilter[96]{};
 	ImGui::SetNextItemWidth(-1.f);
@@ -179,7 +200,10 @@ bool PathingTrails::DrawCategoryBrowser()
 	}
 	if (tree.empty())
 	{
-		ImGui::TextDisabled(loading ? "Indexing menu…" : "No categories yet — wait for pack index.");
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted,
+			loading ? "Indexing menu…" : "No categories yet — wait for pack index.");
+		PadNav::PopWrap();
 		return dirty;
 	}
 
@@ -261,7 +285,7 @@ bool PathingTrails::DrawCategoryBrowser()
 			mark(c);
 	}
 
-	const float listH = std::max(180.f, ImGui::GetContentRegionAvail().y - 28.f);
+	const float listH = std::max(180.f, ImGui::GetContentRegionAvail().y - 48.f);
 	ImGui::BeginChild("##tekkit_cats", ImVec2(0.f, listH), true);
 
 	if (filterOn)
@@ -308,12 +332,11 @@ bool PathingTrails::DrawCategoryBrowser()
 			ImGui::PushID(c.path.c_str());
 			bool en = c.enabled;
 			const bool hasKids = !c.children.empty();
-			/* Reserve Open first so long names never steal its column (Windows DPI). */
-			const float openW = hasKids
-				? (ImGui::CalcTextSize("Open").x + ImGui::GetStyle().FramePadding.x * 2.f + 12.f)
-				: 0.f;
+			const float openW = hasKids ? (PadNav::ButtonWidth("Open") + 8.f) : 0.f;
 			const float rowStartX = ImGui::GetCursorPosX();
 			const float rowAvail = ImGui::GetContentRegionAvail().x;
+			/* Same-line Open only when the label still has room to breathe. */
+			const bool openInline = hasKids && (rowAvail >= openW + 120.f);
 
 			if (ImGui::Checkbox("##en", &en))
 			{
@@ -324,14 +347,10 @@ bool PathingTrails::DrawCategoryBrowser()
 			ImGui::AlignTextToFramePadding();
 			const float afterCheck = ImGui::GetCursorPosX();
 			const float labMax = std::max(48.f,
-				rowAvail - (afterCheck - rowStartX) - openW - (hasKids ? 8.f : 0.f));
-			ImGui::PushClipRect(
-				ImGui::GetCursorScreenPos(),
-				ImVec2(ImGui::GetCursorScreenPos().x + labMax,
-					ImGui::GetCursorScreenPos().y + ImGui::GetTextLineHeightWithSpacing()),
-				true);
+				rowAvail - (afterCheck - rowStartX) - (openInline ? openW : 0.f));
+			ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + labMax);
 			ImGui::TextUnformatted(c.label.c_str());
-			ImGui::PopClipRect();
+			ImGui::PopTextWrapPos();
 			if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
 			{
 				if (!c.tip.empty())
@@ -341,8 +360,13 @@ bool PathingTrails::DrawCategoryBrowser()
 			}
 			if (hasKids)
 			{
-				ImGui::SameLine(0.f, 0.f);
-				ImGui::SetCursorPosX(rowStartX + rowAvail - openW);
+				const bool singleLine =
+					ImGui::GetItemRectSize().y <= ImGui::GetTextLineHeightWithSpacing() * 1.15f;
+				if (openInline && singleLine)
+				{
+					ImGui::SameLine(0.f, 0.f);
+					ImGui::SetCursorPosX(rowStartX + rowAvail - openW);
+				}
 				if (ImGui::SmallButton("Open"))
 					sDrill.push_back(c.path);
 			}
@@ -352,10 +376,19 @@ bool PathingTrails::DrawCategoryBrowser()
 	ImGui::EndChild();
 
 	if (!loading && TrailCount() == 0 && MarkerCount() == 0)
+	{
+		PadNav::PushWrap();
 		ImGui::TextColored(ImVec4(1.f, 0.75f, 0.35f, 1.f),
 			"Nothing visible on this map — enable categories above or in Features.");
+		PadNav::PopWrap();
+	}
 	else
-		ImGui::TextDisabled("Enabled categories draw on compass + world GPS.");
+	{
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted,
+			"Enabled categories draw on compass + world GPS.");
+		PadNav::PopWrap();
+	}
 
 	return dirty;
 }

@@ -11,20 +11,60 @@
    chrome — a fixed left column instead of wrapping rows or ImGui ◀ ▶ tabs. */
 namespace PadNav
 {
+	/* Visible right edge in screen space. Prefer ContentRegionMax over
+	   WindowContentRegionMax — the latter can overshoot the clip rect after a
+	   side-rail SameLine + BeginChild, so text never wraps and just clips. */
+	inline float WrapEdgeX()
+	{
+		return ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x;
+	}
+
+	/* Word-wrap to the remaining content width (not WorkRect-0, which can lie). */
+	inline void PushWrap()
+	{
+		ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x);
+	}
+
+	inline void PopWrap()
+	{
+		ImGui::PopTextWrapPos();
+	}
+
+	/* SameLine only when next item still fits (Account-style flow). */
+	inline void WrapSameLine(float nextItemWidth)
+	{
+		const ImGuiStyle& style = ImGui::GetStyle();
+		const float lastX2 = ImGui::GetItemRectMax().x;
+		const float nextX2 = lastX2 + style.ItemSpacing.x + nextItemWidth;
+		if (nextX2 < WrapEdgeX() - 1.f)
+			ImGui::SameLine(0.f, style.ItemSpacing.x);
+	}
+
+	inline float CheckboxWidth(const char* label)
+	{
+		const ImGuiStyle& style = ImGui::GetStyle();
+		const float box = ImGui::GetFrameHeight();
+		return box + style.ItemInnerSpacing.x + ImGui::CalcTextSize(label, nullptr, true).x;
+	}
+
+	inline float ButtonWidth(const char* label)
+	{
+		const ImGuiStyle& style = ImGui::GetStyle();
+		return ImGui::CalcTextSize(label, nullptr, true).x + style.FramePadding.x * 2.f;
+	}
+
 	/* Pack chips onto wrapping rows (imgui_demo pattern: SameLine only when the
 	   next chip still fits on the current row). Pass first=true for the first
 	   chip in a group (or after Spacing / headers). */
 	inline bool WrapButton(const char* label, bool selected = false, bool first = false)
 	{
 		const ImGuiStyle& style = ImGui::GetStyle();
-		const ImVec2 labelSize = ImGui::CalcTextSize(label, nullptr, true);
-		const float btnW = labelSize.x + style.FramePadding.x * 2.f;
+		const float btnW = ButtonWidth(label);
 		if (!first)
 		{
-			const float wrapX = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 			const float lastX2 = ImGui::GetItemRectMax().x;
 			const float nextX2 = lastX2 + style.ItemSpacing.x + btnW;
-			if (nextX2 < wrapX)
+			if (nextX2 < WrapEdgeX() - 1.f)
 				ImGui::SameLine(0.f, style.ItemSpacing.x);
 		}
 
@@ -49,14 +89,11 @@ namespace PadNav
 
 	inline void WrapSlash()
 	{
-		const ImGuiStyle& style = ImGui::GetStyle();
 		const float slashW = ImGui::CalcTextSize("/").x;
-		const float wrapX = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 		const float lastX2 = ImGui::GetItemRectMax().x;
 		const float nextX2 = lastX2 + 4.f + slashW;
-		if (nextX2 < wrapX)
+		if (nextX2 < WrapEdgeX() - 1.f)
 			ImGui::SameLine(0.f, 4.f);
-		(void)style;
 		ImGui::TextDisabled("/");
 	}
 

@@ -5,6 +5,7 @@
 
 #include "EiRuntime.h"
 #include "Globals.h"
+#include "HelperTheme.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -37,7 +38,7 @@ namespace LogManagerDetail
 		}
 
 		ImGui::TextWrapped("%s", sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "%s", sel->fileName.c_str());
+		ImGui::TextColored(HelperTheme::Muted, "%s", sel->fileName.c_str());
 		ImGui::Text("Result: %s  Mode: %s  Duration: %s",
 			ResultLabel(sel->result),
 			sel->mode.empty() ? "Normal" : sel->mode.c_str(),
@@ -75,7 +76,7 @@ namespace LogManagerDetail
 		ImGui::Separator();
 		ImGui::TextUnformatted("Squad (DPS + boon uptimes %)");
 		if (sel->players.empty())
-			ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f),
+			ImGui::TextColored(HelperTheme::Muted,
 				"No player data — Parse, Upload, or Load DPS/boons.");
 		else if (!PlayersHaveDps(sel->players) && !PlayersHaveBoons(sel->players))
 		{
@@ -208,7 +209,7 @@ namespace LogManagerDetail
 		}
 
 		ImGui::TextUnformatted(sel->encounter.empty() ? sel->fileName.c_str() : sel->encounter.c_str());
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+		ImGui::TextColored(HelperTheme::Muted,
 			"%d players in this run", static_cast<int>(sel->players.size()));
 
 		if (sel->players.empty())

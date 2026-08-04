@@ -11,8 +11,9 @@ namespace HelperTheme
 	inline const ImVec4 Gold(0.941f, 0.776f, 0.353f, 1.f);       /* #f0c65a */
 	inline const ImVec4 GoldBright(1.f, 0.878f, 0.541f, 1.f);     /* #ffe08a */
 	inline const ImVec4 GoldDim(0.788f, 0.635f, 0.153f, 1.f);     /* #c9a227 */
-	inline const ImVec4 GoldMuted(0.75f, 0.62f, 0.32f, 0.88f);
-	inline const ImVec4 Muted(0.659f, 0.682f, 0.722f, 1.f);       /* #a8aeb8 */
+	inline const ImVec4 GoldMuted(0.82f, 0.70f, 0.40f, 1.f);
+	/* Secondary copy — bright enough on dark panels, still below body text. */
+	inline const ImVec4 Muted(0.82f, 0.84f, 0.88f, 1.f);          /* #d1d6e0 */
 	inline const ImVec4 Bg(0.024f, 0.027f, 0.039f, 1.f);          /* #06070a */
 	inline const ImVec4 Panel(0.071f, 0.078f, 0.102f, 1.f);       /* #12141a */
 	inline const ImVec4 Border(0.353f, 0.290f, 0.157f, 0.95f);    /* #5a4a28 */
@@ -23,7 +24,7 @@ namespace HelperTheme
 
 	inline void Push()
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.941f, 0.949f, 0.961f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.96f, 0.97f, 0.98f, 1.f));
 		ImGui::PushStyleColor(ImGuiCol_TextDisabled, Muted);
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, Bg);
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.047f, 0.051f, 0.067f, 0.92f));
@@ -70,8 +71,8 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, Gold);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.f, 12.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(9.f, 5.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.f, 7.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(9.f, 6.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.f, 8.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 3.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f);

@@ -5,6 +5,8 @@
 
 #include "EiRuntime.h"
 #include "Globals.h"
+#include "HelperTheme.h"
+#include "PadNav.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -93,11 +95,9 @@ namespace LogManagerDetail
 		ImGui::SameLine(0.f, 4.f);
 
 		if (ImGui::Button("Open folder###gw2igh_lm_openfolder"))
-		{
-			const std::wstring w = Utf8ToWide(G::LogFolder);
-			if (!w.empty())
-				ShellExecuteW(nullptr, L"explore", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-		}
+			OpenConfiguredLogFolder();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Open the ArcDPS combat-log folder in Explorer.");
 
 		if (!hasDotNet)
 		{
@@ -112,7 +112,7 @@ namespace LogManagerDetail
 		}
 
 		ImGui::SameLine(0.f, 10.f);
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "%d shown / %d",
+		ImGui::TextColored(HelperTheme::Muted, "%d shown / %d",
 			static_cast<int>(filtered.size()), static_cast<int>(gDraw.size()));
 		ImGui::SameLine(0.f, 10.f);
 		DrawBusyOrStatus();
@@ -125,46 +125,59 @@ namespace LogManagerDetail
 		ImGui::SetNextItemWidth(-1.f);
 		ImGui::InputTextWithHint("###gw2igh_lm_search", "Search file or encounter…",
 			gSearch, sizeof(gSearch));
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+			ImGui::SetTooltip("Match log file name or encounter name.");
 		ImGui::Spacing();
-		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Result");
+		ImGui::TextColored(HelperTheme::Muted, "Result");
 		ImGui::RadioButton("All###gw2igh_lm_res0", &gResultFilter, 0);
-		ImGui::SameLine();
 		ImGui::RadioButton("Kills###gw2igh_lm_res1", &gResultFilter, 1);
 		ImGui::RadioButton("Fails###gw2igh_lm_res2", &gResultFilter, 2);
-		ImGui::SameLine();
 		ImGui::RadioButton("Unknown###gw2igh_lm_res3", &gResultFilter, 3);
-		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Mode");
+		ImGui::TextColored(HelperTheme::Muted, "Mode");
 		ImGui::RadioButton("All###gw2igh_lm_mode0", &gModeFilter, 0);
-		ImGui::SameLine();
 		ImGui::RadioButton("Normal###gw2igh_lm_mode1", &gModeFilter, 1);
 		ImGui::RadioButton("CM###gw2igh_lm_mode2", &gModeFilter, 2);
-		ImGui::SameLine();
 		ImGui::RadioButton("LCM###gw2igh_lm_mode3", &gModeFilter, 3);
-		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Time");
+		ImGui::TextColored(HelperTheme::Muted, "Time");
 		ImGui::RadioButton("All###gw2igh_lm_day0", &gDaysCombo, 0);
 		ImGui::RadioButton("1 day###gw2igh_lm_day1", &gDaysCombo, 1);
-		ImGui::SameLine();
 		ImGui::RadioButton("3 days###gw2igh_lm_day2", &gDaysCombo, 2);
 		ImGui::RadioButton("7 days###gw2igh_lm_day3", &gDaysCombo, 3);
-		ImGui::SameLine();
 		ImGui::RadioButton("30 days###gw2igh_lm_day4", &gDaysCombo, 4);
 		ImGui::Spacing();
-		if (ImGui::Checkbox("Group by encounter###gw2igh_lm_groupby", &G::LogManagerGroupByEncounter))
+
+		/* Box + wrapping label — ImGui Checkbox clips long labels in a narrow pane. */
+		auto wrapCheck = [](const char* id, const char* label, bool* v) -> bool {
+			const bool changed = ImGui::Checkbox(id, v);
+			ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+			PadNav::PushWrap();
+			ImGui::AlignTextToFramePadding();
+			ImGui::TextUnformatted(label);
+			PadNav::PopWrap();
+			if (ImGui::IsItemClicked())
+			{
+				*v = !*v;
+				return true;
+			}
+			return changed;
+		};
+
+		if (wrapCheck("###gw2igh_lm_groupby", "Group by encounter", &G::LogManagerGroupByEncounter))
 		{
 			Settings::SetDirty();
 			if (G::LogManagerGroupByEncounter)
 				gExpandGroupsOnce = true;
 		}
-		if (ImGui::Checkbox("Auto-parse after scan###gw2igh_lm_autoparse", &G::LogManagerAutoParse))
+		if (wrapCheck("###gw2igh_lm_autoparse", "Auto-parse after scan", &G::LogManagerAutoParse))
 			Settings::SetDirty();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("After Rescan / open, parse pending logs with Elite Insights automatically.");
-		ImGui::PushTextWrapPos(0.f);
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted,
 			G::LogManagerGroupByEncounter
 				? "Collapsible sections · newest encounter first"
 				: "Flat list · use Search to narrow");
-		ImGui::PopTextWrapPos();
+		PadNav::PopWrap();
 		ImGui::Spacing();
 		if (ImGui::SmallButton("Clear filters###gw2igh_lm_clearf"))
 		{
@@ -206,7 +219,7 @@ namespace LogManagerDetail
 			if (!e->encounter.empty())
 				ImGui::TextUnformatted(e->encounter.c_str());
 			else
-				ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f), "%s", e->fileName.c_str());
+				ImGui::TextColored(HelperTheme::Muted, "%s", e->fileName.c_str());
 		}
 		ImGui::TableNextColumn();
 		if (e->result == 1)
@@ -362,7 +375,7 @@ namespace LogManagerDetail
 	{
 		if (filtered.empty())
 		{
-			ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.58f, 1.f), "No logs match filters.");
+			ImGui::TextColored(HelperTheme::Muted, "No logs match filters.");
 			return;
 		}
 

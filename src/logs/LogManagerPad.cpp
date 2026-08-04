@@ -8,10 +8,12 @@
 #include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -135,18 +137,26 @@ bool LogManagerPad::Render()
 
 	const float bodyH = ImGui::GetContentRegionAvail().y;
 	const float bodyW = ImGui::GetContentRegionAvail().x;
+	/* Fit longest filter label (font-scaled) — never let the % cap clip checkboxes. */
+	const float filterPad = ImGui::GetStyle().WindowPadding.x * 2.f + 12.f;
+	float filterNeed = PadNav::CheckboxWidth("Auto-parse after scan") + filterPad;
+	{
+		const float g = PadNav::CheckboxWidth("Group by encounter") + filterPad;
+		if (g > filterNeed) filterNeed = g;
+		const float s = ImGui::CalcTextSize("Search file or encounter…").x +
+			ImGui::GetStyle().FramePadding.x * 2.f + filterPad;
+		if (s > filterNeed) filterNeed = s;
+	}
 	float filterW = bodyW * kFilterFrac;
 	if (filterW < kFilterMinW) filterW = kFilterMinW;
+	if (filterW < filterNeed) filterW = filterNeed;
 	if (filterW > kFilterMaxW) filterW = kFilterMaxW;
-	/* Narrow / 1080p: keep filters readable — radios need ~210px. */
-	if (bodyW < 1100.f)
-	{
-		filterW = bodyW * 0.20f;
-		if (filterW < 210.f) filterW = 210.f;
-		if (filterW > 250.f) filterW = 250.f;
-	}
-	if (filterW > bodyW * 0.28f)
-		filterW = bodyW * 0.28f;
+	if (filterW > bodyW * 0.42f)
+		filterW = bodyW * 0.42f;
+	if (filterW < filterNeed && filterNeed <= bodyW * 0.48f)
+		filterW = filterNeed;
+	if (filterW > bodyW - 80.f)
+		filterW = std::max(120.f, bodyW - 80.f);
 
 	ImGui::BeginChild("###gw2igh_lm_filters", ImVec2(filterW, bodyH), true);
 	DrawFilterPane();

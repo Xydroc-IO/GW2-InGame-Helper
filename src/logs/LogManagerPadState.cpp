@@ -26,6 +26,7 @@
 
 #include <windows.h>
 #include <shellapi.h>
+#include <shlobj.h>
 
 namespace LogManagerDetail
 {
@@ -296,7 +297,32 @@ namespace LogManagerDetail
 		const auto slash = dir.find_last_of(L"\\/");
 		if (slash != std::wstring::npos)
 			dir.resize(slash);
+		if (dir.empty())
+			return;
+		SHCreateDirectoryExW(nullptr, dir.c_str(), nullptr);
 		ShellExecuteW(nullptr, L"explore", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+	}
+
+	bool OpenConfiguredLogFolder()
+	{
+		EnsureDefaultPaths();
+		std::wstring w = Utf8ToWide(G::LogFolder);
+		if (w.empty())
+			w = DefaultLogDirW();
+		if (w.empty())
+			return false;
+		/* Explorer fails silently when the folder is missing — create parents first. */
+		SHCreateDirectoryExW(nullptr, w.c_str(), nullptr);
+		const HINSTANCE r = ShellExecuteW(nullptr, L"explore", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		if (reinterpret_cast<INT_PTR>(r) > 32)
+			return true;
+		/* Stale saved path: fall back to the default ArcDPS log dir. */
+		const std::wstring def = DefaultLogDirW();
+		if (def.empty() || def == w)
+			return false;
+		SHCreateDirectoryExW(nullptr, def.c_str(), nullptr);
+		const HINSTANCE r2 = ShellExecuteW(nullptr, L"explore", def.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		return reinterpret_cast<INT_PTR>(r2) > 32;
 	}
 
 	void CollectFiltered(std::vector<const LogEntry*>& filtered)

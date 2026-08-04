@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
 
@@ -360,8 +361,10 @@ namespace
 
 void DirectionCompass::DrawControls()
 {
+	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"World N/E/S/W around your character. Reads Nexus FontBig; does not change Nexus fonts.");
+	PadNav::PopWrap();
 	if (ImGui::Checkbox("Enable direction compass###gw2igh_dircompass_pad", &G::ShowDirectionCompass))
 		Settings::SetDirty();
 	ImGui::SetNextItemWidth(-1.f);
@@ -390,11 +393,11 @@ bool DirectionCompass::RenderPad()
 	if (!G::ShowCompassPad)
 		return false;
 
-	constexpr float kPadW = 360.f;
-	constexpr float kPadH = 260.f;
+	constexpr float kPadW = 400.f;
+	constexpr float kPadH = 280.f;
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(280.f, 180.f),
-		ImVec2(PadDock::MaxW(420.f), PadDock::MaxH(220.f)));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(300.f, 200.f),
+		ImVec2(PadDock::MaxW(480.f), PadDock::MaxH(280.f)));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	PadDock::Place(G::PadCompass, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
 	if (!gRequestDock && G::PadCompass.w < 80.f)
@@ -418,7 +421,7 @@ bool DirectionCompass::RenderPad()
 		return hovered;
 	}
 
-	HelperTheme::ScopedFontScale fontScale(360.f, 260.f);
+	HelperTheme::ScopedFontScale fontScale(400.f, 280.f);
 	DrawControls();
 
 	if (PadDock::Capture(G::PadCompass))

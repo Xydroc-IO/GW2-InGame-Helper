@@ -70,12 +70,12 @@ namespace UiScale
 	inline float SideRailWidth(float design = 96.f, float /*refW*/ = 560.f, float /*refH*/ = 700.f)
 	{
 		const float base = (G::FontScale > 0.1f) ? G::FontScale : 1.f;
-		return Clampf(design * base, 72.f, 200.f);
+		return Clampf(design * base, 72.f, 260.f);
 	}
 
 	/* Widest visible label + frame/window padding (call after Begin + font scale). */
 	inline float FitSideRailWidth(const char* const* labels, int count,
-		float minW = 80.f, float maxW = 200.f)
+		float minW = 80.f, float maxW = 260.f)
 	{
 		const ImGuiStyle& style = ImGui::GetStyle();
 		float w = minW;

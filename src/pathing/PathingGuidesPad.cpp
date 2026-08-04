@@ -35,7 +35,7 @@ namespace
 	void DrawCredits()
 	{
 		ImGui::TextColored(HelperTheme::Gold, "PATHING");
-		ImGui::PushTextWrapPos(0.f);
+		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
 			"Curated packs auto-update. Drop extra .taco into pathing/ — yours are never deleted.");
 		ImGui::TextDisabled("Tekkit · Lady Elyssa · QuitarHero (hover)");
@@ -52,16 +52,18 @@ namespace
 			ImGui::TextUnformatted("https://github.com/QuitarHero/Heros-Marker-Pack");
 			ImGui::EndTooltip();
 		}
-		ImGui::PopTextWrapPos();
+		PadNav::PopWrap();
 	}
 
 	void DrawRouteTab()
 	{
 		ImGui::TextUnformatted("Route to nearest waypoint");
-		ImGui::TextDisabled(
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted,
 			"Uses public API waypoints — works with no pathing categories enabled. "
 			"With packs on, prefers trail start; otherwise your position. "
 			"Copy a chat code — no auto-teleport.");
+		PadNav::PopWrap();
 
 		/* Keep map trails warm when categories are on — Find itself does not wait on packs. */
 		uint32_t mapId = 0;
@@ -81,7 +83,7 @@ namespace
 		static bool sPendingRoute = false;
 		if (ImGui::Button("Find nearest waypoints###gw2igh_route_wp"))
 			sPendingRoute = true;
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("Clear orange guide"));
 		if (ImGui::Button("Clear orange guide###gw2igh_route_clear"))
 		{
 			RoutingSuggest::ClearGuide();
@@ -95,8 +97,10 @@ namespace
 			if (!WaypointsData::Ready())
 			{
 				WaypointsData::EnsureLoaded(false);
+				PadNav::PushWrap();
 				ImGui::TextColored(HelperTheme::Warn, "%s",
 					WaypointsData::Busy() ? WaypointsData::Status() : "Starting waypoint index…");
+				PadNav::PopWrap();
 			}
 			else
 			{
@@ -106,11 +110,16 @@ namespace
 		}
 		else if (WaypointsData::Busy())
 		{
-			ImGui::TextDisabled("%s", WaypointsData::Status());
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted, "%s", WaypointsData::Status());
+			PadNav::PopWrap();
 		}
 		else if (trailsBusy)
 		{
-			ImGui::TextDisabled("Indexing trail packs… (Find still works without categories)");
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted,
+				"Indexing trail packs… (Find still works without categories)");
+			PadNav::PopWrap();
 		}
 
 		if (ImGui::Button("Route from clipboard###gw2igh_route_clip"))
@@ -132,20 +141,31 @@ namespace
 					"When on, Find uses waypoints this character has walked near.\n"
 					"Confirmed locally from MumbleLink position + API coords.");
 			const int mapIdWp = WaypointsData::CurrentMapId();
-			ImGui::TextDisabled("Confirmed: %zu total · %zu on this map",
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted, "Confirmed: %zu total · %zu on this map",
 				ConfirmedWaypoints::CountForActive(),
 				ConfirmedWaypoints::CountOnMap(mapIdWp));
+			PadNav::PopWrap();
 		}
 
 		const RoutingSuggest::Result& route = RoutingSuggest::Last();
 		if (!route.status.empty() && !sPendingRoute)
 			ImGui::TextWrapped("%s", route.status.c_str());
 		if (route.trailLabel[0])
-			ImGui::TextDisabled("Anchor: %s (%.0f, %.0f)", route.trailLabel, route.trailX, route.trailY);
+		{
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted, "Anchor: %s (%.0f, %.0f)",
+				route.trailLabel, route.trailX, route.trailY);
+			PadNav::PopWrap();
+		}
 		if (PathingTrails::HasSearchGuide())
 			ImGui::TextColored(HelperTheme::Ok, "Orange in-world guide active.");
 		else if (PathingTrails::HasSearchGuideActive())
-			ImGui::TextDisabled("Orange guide loading trail geometry…");
+		{
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted, "Orange guide loading trail geometry…");
+			PadNav::PopWrap();
+		}
 
 		for (size_t i = 0; i < route.nearest.size(); ++i)
 		{
@@ -155,9 +175,10 @@ namespace
 				ImGui::BulletText("%s  (%.0f)  [confirmed]", c.name.c_str(), c.dist);
 			else
 				ImGui::BulletText("%s  (%.0f)", c.name.c_str(), c.dist);
-			ImGui::SameLine();
+			const float linkW = ImGui::CalcTextSize(c.chatLink.c_str()).x;
+			PadNav::WrapSameLine(linkW);
 			ImGui::TextDisabled("%s", c.chatLink.c_str());
-			ImGui::SameLine();
+			PadNav::WrapSameLine(PadNav::ButtonWidth("Copy"));
 			if (ImGui::SmallButton("Copy"))
 				RoutingSuggest::CopyChatLink(c.chatLink.c_str());
 			ImGui::PopID();

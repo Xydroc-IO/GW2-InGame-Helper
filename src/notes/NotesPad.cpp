@@ -4,6 +4,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
 
@@ -455,8 +456,10 @@ bool NotesPad::Render()
 	HelperTheme::ScopedFontScale fontScale;
 
 	ImGui::TextColored(HelperTheme::Gold, "NOTES & WAYPOINTS");
+	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"Local clipboard helpers + official map waypoints. No game injection.");
+	PadNav::PopWrap();
 	ImGui::Separator();
 
 	if (ImGui::BeginTabBar("###gw2igh_notes_tabs", ImGuiTabBarFlags_FittingPolicyScroll))

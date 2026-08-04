@@ -41,10 +41,10 @@ namespace LogManagerDetail
 	/* Default when display metrics unavailable — nearly full 1080p client. */
 	constexpr float kPadW = 1760.f;
 	constexpr float kPadH = 900.f;
-	/* Screenshot: filters slim | middle list ~half of remaining | detail/KP rest. */
-	constexpr float kFilterFrac = 0.18f;
-	constexpr float kFilterMinW = 220.f;
-	constexpr float kFilterMaxW = 280.f;
+	/* Filters column: wide enough for checkbox labels at font scale. */
+	constexpr float kFilterFrac = 0.24f;
+	constexpr float kFilterMinW = 300.f;
+	constexpr float kFilterMaxW = 400.f;
 	constexpr float kLogListFracDef = 0.55f; /* of space after filters → ~48% overall */
 	constexpr float kLogListMinW = 420.f;
 	constexpr float kRightPaneMinW = 360.f;
@@ -193,6 +193,7 @@ namespace LogManagerDetail
 	bool IsManagedEiPath(const char* path);
 	bool ApplyManagedCliPath();
 	void EnsureDefaultPaths();
+	bool OpenConfiguredLogFolder();
 	std::wstring EiConfPathW();
 	std::wstring CachePathW();
 	bool FileExistsW(const std::wstring& path);
