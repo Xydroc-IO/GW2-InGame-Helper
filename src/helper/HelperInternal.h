@@ -14,6 +14,7 @@
 #include "include/capi/cef_app_capi.h"
 #include "include/capi/cef_browser_capi.h"
 #include "include/capi/cef_client_capi.h"
+#include "include/capi/cef_command_line_capi.h"
 #include "include/capi/cef_display_handler_capi.h"
 #include "include/capi/cef_find_handler_capi.h"
 #include "include/capi/cef_frame_capi.h"
@@ -95,22 +96,70 @@ namespace HelperDetail
 	extern bool gSwallowPopupMouseUp;
 	extern cef_rect_t gPopupSwallowRect;
 
-	/* Shared helpers (defined in main.cpp) */
+	/* Shared helpers (HelperState.cpp) */
 	cef_browser_t* ActiveBrowser();
 	bool IsActiveBrowser(cef_browser_t* browser);
+	void UpdateTabMask();
 	void SetStatus(const char* text);
+	void PublishFencedString(char* dst, size_t dstCap, uint32_t* lenOut, uint32_t* seq, const char* text);
+	void SetTitleUtf8(const char* text);
+	void SetUrlUtf8(const char* text);
+	std::string WideToUtf8(const std::wstring& w);
+	bool LoadCef(const std::wstring& cefDir);
 	void MakeCefString(cef_string_t* out, const char* utf8);
 	void ClearCefString(cef_string_t* s);
 	std::string CefStringToUtf8(const cef_string_t* s);
+	void InitBase(cef_base_ref_counted_t* base, size_t size);
 	void NavigateTo(const char* url);
 	void NavigateSlot(int slot, const char* url);
 	std::string ResolveBuiltinUrl(const char* url);
 	bool ConsumeTpActionUrl(const std::string& url, std::string* outNavigate);
-	void ViewSize(int* outW, int* outH);
 	void RefreshNavFlags();
 	void UpdateUrlFromBrowser();
+	std::wstring HelperDir();
+	std::string WidePathToFileUrl(const std::wstring& path);
 
-	/* Nav policy (HelperNavPolicy.cpp) */
+	/* Tabs / lifespan (HelperTabs.cpp) */
+	cef_browser_host_t* Host();
+	void NotifyWasResized();
+	void ActivateSlot(int slot);
+	void AdjustCreateQueueForClose(int closedSlot);
+	bool EnqueueBrowserCreate(int slot, const char* url);
+	bool StartNextBrowserCreate();
+	bool CreateBrowserForSlot(int slot, const char* url);
+	void CloseSlot(int slot);
+	void ViewSize(int* outW, int* outH);
+	void CEF_CALLBACK OnAfterCreated(cef_life_span_handler_t*, cef_browser_t* browser);
+	void CEF_CALLBACK OnBeforeClose(cef_life_span_handler_t*, cef_browser_t* browser);
+
+	/* Load/display/resource + wiring (HelperHandlers.cpp) */
+	void InjectBootJs(cef_frame_t* frame);
+	void CEF_CALLBACK OnLoadingStateChange(
+		cef_load_handler_t*, cef_browser_t* browser, int isLoading, int canGoBack, int canGoForward);
+	void CEF_CALLBACK OnLoadError(
+		cef_load_handler_t*, cef_browser_t* browser, cef_frame_t* frame, cef_errorcode_t errorCode,
+		const cef_string_t* errorText, const cef_string_t* failedUrl);
+	void CEF_CALLBACK OnLoadEnd(
+		cef_load_handler_t*, cef_browser_t* browser, cef_frame_t* frame, int);
+	void CEF_CALLBACK OnAddressChange(
+		cef_display_handler_t*, cef_browser_t* browser, cef_frame_t* frame, const cef_string_t* url);
+	void CEF_CALLBACK OnTitleChange(
+		cef_display_handler_t*, cef_browser_t* browser, const cef_string_t* title);
+	void CEF_CALLBACK OnFindResult(
+		cef_find_handler_t*, cef_browser_t*, int, int count, const cef_rect_t*, int activeMatchOrdinal, int);
+	void CEF_CALLBACK OnBeforeCommandLine(
+		cef_app_t*, const cef_string_t*, cef_command_line_t* cmd);
+	void InitHandlers();
+
+	/* Input + IPC cmds (HelperCommands.cpp) */
+	void ProcessCommands();
+
+	/* Entry helpers (main.cpp) */
+	LRESULT CALLBACK HelperWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
+	bool CreateOsRBrowser();
+	std::wstring GetArg(const wchar_t* name, int argc, wchar_t** argv);
+
+	/* Nav policy (HelperNavPolicy.cpp / HelperNavPolicyHandlers.cpp) */
 	bool IsDiscordProtocolUrl(const std::string& url);
 	bool IsLaunchableExternalUrl(const std::string& url);
 	void NavLog(const char* fmt, ...);
@@ -118,8 +167,12 @@ namespace HelperDetail
 	void QueueOpenInAddonTab(const std::string& url);
 	bool ConsumeHelperNewTabUrl(const std::string& url);
 	bool IsMediaOrCdnUrl(const std::string& url);
+	bool IsExternalSignInUrl(const std::string& url);
 	bool IsPromotablePopupUrl(const std::string& url);
+	bool IsAdFrameUrl(const std::string& url);
 	bool IsAdOrConsentUrl(const std::string& url);
+	bool IsAdClickUrl(const std::string& url);
+	bool IsSameSite(const std::string& a, const std::string& b);
 	bool IsGuildjenUrl(const std::string& url);
 	bool IsYoutubeHostUrl(const std::string& url);
 	bool IsTwitchHostUrl(const std::string& url);
@@ -149,7 +202,4 @@ namespace HelperDetail
 	bool IsOverPopup(int x, int y);
 	void ApplyPopupMouseOffset(int& x, int& y);
 	void PublishCompositedFrame(int dirtyX, int dirtyY, int dirtyW, int dirtyH);
-
-	void InitHandlers();
-	void ProcessCommands();
 }

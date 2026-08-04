@@ -104,6 +104,7 @@ namespace WalletDetail
 	void Publish(const std::unordered_map<int, Entry>& byId, const char* status,
 		int charCount, int charBagsOk, bool ok);
 	void ResolveMissingNames(const std::unordered_map<int, Entry>& byId, const char* apiKey);
+	/* WalletFetchAcc.cpp */
 	DWORD WINAPI CharWorker(void* p);
 	DWORD WINAPI AccWallet(void* p);
 	DWORD WINAPI AccMats(void* p);

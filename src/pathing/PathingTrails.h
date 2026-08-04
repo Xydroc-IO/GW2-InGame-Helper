@@ -169,11 +169,9 @@ namespace PathingTrails
 	{
 		uint32_t color = 0xFFFFFFFFu;
 		char textureId[160]{};
+		char label[96]{}; /* stable key for sticky cache (trail type path) */
 		float alpha = 1.f;
 		float trailScale = 1.f;
-		/* Lady Barefoot/WP need ~4× and Mounts ~2× vs raw pack scale so GPS
-		   width 1.0 looks correct; slider then scales every edition evenly. */
-		float widthBias = 1.f;
 		float fadeNear = -1.f;
 		float fadeFar = -1.f;
 		std::vector<WorldPoint> points;

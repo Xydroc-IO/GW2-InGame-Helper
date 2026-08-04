@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <cstring>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -100,6 +101,45 @@ namespace PathingDetail
 	extern std::unordered_map<uint32_t, bool> gMapRectsReady;
 	extern std::unordered_map<uint32_t, Rects> gRects;
 
+	/* Shared zip reader for LoadMapTrails + QueueMapIcons (one pack in memory). */
+	struct OpenPack
+	{
+		std::vector<uint8_t> file;
+		mz_zip_archive zip{};
+		bool ok = false;
+
+		OpenPack() = default;
+		OpenPack(const OpenPack&) = delete;
+		OpenPack& operator=(const OpenPack&) = delete;
+
+		~OpenPack() { Close(); }
+
+		void Close()
+		{
+			if (ok)
+			{
+				mz_zip_reader_end(&zip);
+				ok = false;
+			}
+			file.clear();
+		}
+
+		bool Open(const std::wstring& path)
+		{
+			Close();
+			if (!ReadFileW(path, file, kMaxZipBytes))
+				return false;
+			std::memset(&zip, 0, sizeof(zip));
+			if (!mz_zip_reader_init_mem(&zip, file.data(), file.size(), 0))
+			{
+				file.clear();
+				return false;
+			}
+			ok = true;
+			return true;
+		}
+	};
+
 	void MergeCategoryTree(std::vector<PathingTrails::Category>& dest, PathingTrails::Category&& src);
 	void AddTypeCounts(const std::string& rawType, std::unordered_map<std::string, int>& counts);
 	void ApplyItemCounts(std::vector<PathingTrails::Category>& nodes,
@@ -110,16 +150,23 @@ namespace PathingDetail
 		uint32_t epoch, bool* openedOut = nullptr);
 	void DiscoverPackDirs(std::vector<std::wstring>& dirs);
 	bool IsOurPathingDir(const std::wstring& dir);
+	std::wstring LeafLower(const std::wstring& path);
+	std::string WideLeafUtf8(const std::wstring& path);
 	void ListTacoFiles(const std::wstring& dir, std::vector<std::wstring>& out, bool tekkitOnly);
+	void SuppressDuplicateTacoPacks(std::vector<std::wstring>& packs);
 	void WorkerLoop(uint32_t epoch, uint32_t firstMap);
 
-	/* PathingLoad.cpp */
+	/* PathingLoad*.cpp */
 	void AbortHttp();
+	bool FetchMapRects(uint32_t mapId, Rects& r);
+	void WorldToContinent(const Rects& r, float wxMeters, float wzMeters, float& cx, float& cy);
 	bool PrefixMatchesType(const std::string& typeLow, const std::string& prefixLow);
+	bool LadyMapRouteEdition(const std::string& typeLow, std::string& outEdition);
+	bool IsLadyWithMountsEdition(const std::string& seg);
+	bool TypeHasLadyMountShortcut(const std::string& typeLow);
 	bool TypeEnabledLocked(const std::string& type);
 	bool TypeCategoryEnabled(const std::string& type, const std::vector<std::string>& enabled);
 	bool TypeEnabledWithEnabled(const std::string& type, const std::vector<std::string>& enabled);
-	float LadyGpsWidthBias(const char* label);
 	bool MarkerShownInWorld(const PathingTrails::Marker& marker);
 	bool MarkerShownOnCompass(const PathingTrails::Marker& marker);
 	bool IsMountShortcutMarker(const PathingTrails::Marker& marker);
@@ -127,8 +174,11 @@ namespace PathingDetail
 	bool CategoryUiEnabledLocked(const std::string& path);
 	void InsertCatPath(std::vector<PathingTrails::Category>& roots, const std::string& type);
 	void MarkEnabled(std::vector<PathingTrails::Category>& nodes);
+	std::string IconTextureId(const std::string& iconFile);
+	void QueueMapIcons(std::unordered_map<std::string, std::wstring>& assetsNeeded,
+		const std::wstring& preferredPack, uint32_t epoch);
 	void LoadMapTrails(uint32_t mapId, uint32_t epoch);
 
-	/* PathingTrails.cpp */
+	/* PathingTrailsCore.cpp */
 	bool MarkerBehaviorVisible(const PathingTrails::Marker& m);
 }

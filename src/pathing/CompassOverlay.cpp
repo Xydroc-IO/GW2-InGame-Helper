@@ -245,7 +245,8 @@ void CompassOverlay::Render()
 		}
 		a = std::clamp(static_cast<int>(a * tr.alpha), 40, 230);
 		const ImU32 col = IM_COL32(r, g, b, a);
-		const float thickness = std::clamp(2.6f * tr.trailScale, 1.6f, 5.0f);
+		/* Pack trailScale only — same baseline as world GPS (no edition bias). */
+		const float thickness = std::clamp(2.6f * tr.trailScale * G::WorldTrailWidth, 1.6f, 6.0f);
 
 		const size_t step = (tr.points.size() > 160) ? 2u : 1u;
 		size_t start = 0;

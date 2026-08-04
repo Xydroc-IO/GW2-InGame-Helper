@@ -9,7 +9,9 @@
 
 #include "miniz/miniz.h"
 
-/* Zip / XML / .trl / .taco parsing helpers for PathingTrails (no overlay state). */
+/* Zip / XML / .trl / .taco parsing helpers for PathingTrails (no overlay state).
+   Implemented across PathingParse.cpp (style/attr), PathingParseXml.cpp,
+   and PathingParseZip.cpp (zip + .trl). */
 namespace PathingParse
 {
 	constexpr size_t kMaxZipBytes = 120u * 1024u * 1024u;

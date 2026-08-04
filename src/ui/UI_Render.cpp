@@ -1,0 +1,344 @@
+#include "UI.h"
+#include "UIInternal.h"
+#include "UI_Browse.h"
+
+#include "BrowserTabs.h"
+#include "CharacterProfiles.h"
+#include "ConfirmedWaypoints.h"
+#include "Globals.h"
+#include "HelperTheme.h"
+#include "LivePanels.h"
+#include "MumbleIdentity.h"
+#include "NotesPad.h"
+#include "TpWatchPad.h"
+#include "LookupPad.h"
+#include "WalletPad.h"
+#include "VaultPad.h"
+#include "AccountPad.h"
+#include "EventsPad.h"
+#include "LogManagerPad.h"
+#include "PathingGuidesPad.h"
+#include "PathingTrails.h"
+#include "PadNav.h"
+#include "CompassOverlay.h"
+#include "WorldOverlay.h"
+#include "DirectionCompass.h"
+#include "Settings.h"
+#include "Sites.h"
+#include "SyncQr.h"
+#include "UiScale.h"
+#include "WikiBrowser.h"
+#include "WikiIpc.h"
+#include "AddonPaths.h"
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <unordered_set>
+#include <vector>
+
+#include <windows.h>
+#include <shellapi.h>
+
+using namespace UIDetail;
+
+void UI_Render()
+{
+	/* Always poll first — must run while the helper is closed too. */
+	HelperHotkeys_Poll();
+	UiScale::TickAuto();
+	WikiBrowser::Tick();
+	MumbleIdentity::Tick();
+	CharacterProfiles::Tick();
+	ConfirmedWaypoints::Tick();
+	/* Tekkit overlays — always, even with the browser closed. */
+	CompassOverlay::Render();
+	WorldOverlay::Render();
+	PathingTrails::DrawMarkerBehaviorOverlay();
+	DirectionCompass::Render();
+	/* URL-index warm: heavier when closed; light drip while open so Browse stays snappy. */
+	if (!G::ShowWiki)
+		Sites::TickWarmUrlKeys(96);
+	else if (!Sites::UrlKeysReady())
+		Sites::TickWarmUrlKeys(16);
+
+	gUi.blockGameKeyboard = false;
+	gUi.blockGameMouse = false;
+	gUi.overBrowserPage = false;
+	gUi.wikiRectValid = false;
+	sHelperPopupHovered = false;
+
+	if (gUi.pendingDefocus)
+	{
+		gUi.pendingDefocus = false;
+		ImGui::SetWindowFocus(nullptr);
+	}
+
+	static bool sWasOpen = false;
+	if (!G::ShowWiki)
+	{
+		/* Do NOT clear WantTextInput / WantCaptureKeyboard here — those flags are
+		   shared with Nexus. Wiping them every frame breaks the library search field
+		   (keys fall through to GW2 hotkeys, e.g. G = guild). */
+
+		if (sWasOpen)
+		{
+			BrowserTabs::PrepareSave();
+			Settings::SetDirty();
+			UI_ReleaseGameInput();
+			sWasOpen = false;
+		}
+		BlurBrowser();
+		WikiBrowser::SetVisible(false);
+
+		/* Notes / TP / Lookup / Wallet can stay open while the helper browser is closed.
+		   Only block GW2 while the pointer is over those windows — do not
+		   force Capture*FromApp(false) every frame (breaks Nexus / open). */
+		const bool notesHover = NotesPad::Render();
+		const bool accountHover = AccountPad::Render();
+		const bool tpHover = TpWatchPad::Render();
+		const bool lookupHover = LookupPad::Render();
+		const bool walletHover = WalletPad::Render();
+		const bool vaultHover = VaultPad::Render();
+		const bool eventsHover = EventsPad::Render();
+		const bool logsHover = LogManagerPad::Render();
+		const bool tekkitHover = PathingGuidesPad::Render();
+		const bool compassHover = DirectionCompass::RenderPad();
+		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
+			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
+			compassHover);
+		NotesPad::Save(false);
+		Settings::Save(false);
+		return;
+	}
+
+	if (!sWasOpen)
+	{
+		gUi.forceHelperOnScreen = true; /* always verify visible on each open */
+		BrowserTabs::NavigateActive();
+		sWasOpen = true;
+	}
+
+	if (!G::HasSavedSize)
+	{
+		const ImGuiIO& dio = ImGui::GetIO();
+		if (dio.DisplaySize.x > 100.f && dio.DisplaySize.y > 100.f)
+		{
+			/* First open: ~32% of the display (clamped so it stays usable). */
+			G::WindowWidth = Clampf(dio.DisplaySize.x * 0.32f, 720.f, 1680.f);
+			G::WindowHeight = Clampf(dio.DisplaySize.y * 0.36f, 480.f, 1100.f);
+			G::HasSavedSize = true; /* apply once — ImGui FirstUseEver + persist */
+			Settings::SetDirty();
+		}
+	}
+	ClampHelperGeomToDisplay();
+	const ImGuiIO& sizeIo = ImGui::GetIO();
+	if (sizeIo.DisplaySize.x > 100.f && sizeIo.DisplaySize.y > 100.f)
+	{
+		ImGui::SetNextWindowSizeConstraints(
+			ImVec2(320.f, 240.f),
+			ImVec2(sizeIo.DisplaySize.x * 0.96f, sizeIo.DisplaySize.y * 0.96f));
+	}
+	const ImGuiCond geomCond = gUi.forceHelperOnScreen ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), geomCond);
+	ImGui::SetNextWindowPos(ImVec2(G::WindowPosX, G::WindowPosY), geomCond);
+	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	if (gUi.forceHelperOnScreen)
+		ImGui::SetNextWindowFocus();
+	gUi.forceHelperOnScreen = false;
+
+	PushWikiTheme();
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, G::Opacity);
+	ImGui::SetNextWindowBgAlpha(G::Opacity);
+
+	bool open = G::ShowWiki;
+	if (!ImGui::Begin("In-Game Helper##GW2InGameHelper", &open,
+		ImGuiWindowFlags_NoNavInputs))
+	{
+		/* Collapsed title bar — CEF must be was_hidden (0% viewability otherwise)
+		   but keep the process alive so expand does not hitch. */
+		const ImVec2 pos = ImGui::GetWindowPos();
+		const ImVec2 winSize = ImGui::GetWindowSize();
+		gUi.wikiMin = pos;
+		gUi.wikiMax = ImVec2(pos.x + winSize.x, pos.y + winSize.y);
+		gUi.wikiRectValid = true;
+		BlurBrowser();
+		WikiBrowser::SetVisible(false, /*keepProcessAlive=*/true);
+		const bool mouseOver =
+			ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+		gUi.blockGameMouse = mouseOver;
+		/* Collapsed bar: only eat keys while the pointer is on it. */
+		gUi.blockGameKeyboard = mouseOver;
+		if (mouseOver)
+		{
+			ImGui::GetIO().WantCaptureMouse = true;
+			ImGui::CaptureMouseFromApp(true);
+			ImGui::GetIO().WantCaptureKeyboard = true;
+			ImGui::CaptureKeyboardFromApp(true);
+		}
+		ImGui::End();
+		ImGui::PopStyleVar();
+		PopWikiTheme();
+		/* Still draw pads while the main window is collapsed. */
+		const bool notesHover = NotesPad::Render();
+		const bool accountHover = AccountPad::Render();
+		const bool tpHover = TpWatchPad::Render();
+		const bool lookupHover = LookupPad::Render();
+		const bool walletHover = WalletPad::Render();
+		const bool vaultHover = VaultPad::Render();
+		const bool eventsHover = EventsPad::Render();
+		const bool logsHover = LogManagerPad::Render();
+		const bool tekkitHover = PathingGuidesPad::Render();
+		const bool compassHover = DirectionCompass::RenderPad();
+		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
+			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
+			compassHover);
+		NotesPad::Save(false);
+		Settings::Save(false);
+		return;
+	}
+	if (!open)
+	{
+		G::ShowWiki = false;
+		Settings::SetDirty();
+		WikiBrowser::SetVisible(false);
+		UI_ReleaseGameInput();
+	}
+
+	ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(1100.f, 760.f));
+
+	BrowserTabs::EnsureDefault();
+	BrowserTabs::Tick();
+
+	ImGui::TextColored(kGold, "IN-GAME HELPER");
+	ImGui::SameLine(0.f, 12.f);
+	DrawToolbar();
+
+	/* Tab / find hotkeys — use ImGuiIO (Nexus-filled KeysDown), not GetAsyncKeyState. */
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		const bool typing = io.WantTextInput;
+		const bool ctrl = io.KeyCtrl;
+		const bool shift = io.KeyShift;
+		const bool alt = io.KeyAlt;
+		auto keyDown = [&](int vk) -> bool {
+			return vk >= 0 && vk < IM_ARRAYSIZE(io.KeysDown) && io.KeysDown[vk];
+		};
+		const bool keyF = keyDown('F');
+		const bool keyT = keyDown('T');
+		const bool keyW = keyDown('W');
+		const bool keyTab = ImGui::IsKeyDown(ImGuiKey_Tab);
+
+		static bool sCtrlFWasDown = false;
+		static bool sCtrlTWasDown = false;
+		static bool sCtrlWWasDown = false;
+		static bool sCtrlTabWasDown = false;
+
+		const bool ctrlF = !typing && ctrl && !shift && !alt && keyF;
+		const bool ctrlT = !typing && ctrl && !shift && !alt && keyT;
+		const bool ctrlW = !typing && ctrl && !shift && !alt && keyW;
+		const bool ctrlShiftT = !typing && ctrl && shift && !alt && keyT;
+		const bool ctrlTab = !typing && ctrl && !alt && keyTab;
+
+		if (ctrlF && !sCtrlFWasDown)
+		{
+			sShowFind = true;
+			sFocusFind = true;
+		}
+		if (ctrlT && !sCtrlTWasDown)
+			UI_Browse_RequestNewTabPicker();
+		if (ctrlW && !sCtrlWWasDown)
+		{
+			const int ai = BrowserTabs::ActiveIndex();
+			if (BrowserTabs::Count() > 1 && !BrowserTabs::At(ai).pinned)
+				BrowserTabs::Close(ai);
+		}
+		if (ctrlShiftT && !sCtrlTWasDown && BrowserTabs::CanReopenClosed())
+			BrowserTabs::ReopenClosed();
+		if (ctrlTab && !sCtrlTabWasDown)
+		{
+			const int n = BrowserTabs::Count();
+			if (n > 1)
+			{
+				int next = BrowserTabs::ActiveIndex() + (shift ? -1 : 1);
+				if (next < 0) next = n - 1;
+				if (next >= n) next = 0;
+				BrowserTabs::Activate(next);
+			}
+		}
+
+		sCtrlFWasDown = ctrlF;
+		sCtrlTWasDown = ctrlT || ctrlShiftT;
+		sCtrlWWasDown = ctrlW;
+		sCtrlTabWasDown = ctrlTab;
+
+		if (sShowFind && ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			sShowFind = false;
+			WikiBrowser::StopFind(true);
+		}
+	}
+
+	if (sShowFind)
+	{
+		ImGui::TextColored(kGoldDim, "Find");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(220.f);
+		if (sFocusFind)
+		{
+			ImGui::SetKeyboardFocusHere();
+			sFocusFind = false;
+		}
+		const bool findEnter = ImGui::InputTextWithHint("###gw2igh_find_q", "Find in page...", sFindQuery, sizeof(sFindQuery),
+			ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::SameLine();
+		ImGui::Checkbox("Aa###gw2igh_find_case", &sFindMatchCase);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Match case");
+		ImGui::SameLine();
+		if (ImGui::Button("Next###gw2igh_find_next") || findEnter)
+		{
+			if (sFindQuery[0])
+				WikiBrowser::Find(sFindQuery, true, sFindMatchCase, true);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Prev###gw2igh_find_prev"))
+		{
+			if (sFindQuery[0])
+				WikiBrowser::Find(sFindQuery, false, sFindMatchCase, true);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Clear###gw2igh_find_clear"))
+		{
+			WikiBrowser::StopFind(true);
+			sFindQuery[0] = 0;
+		}
+		ImGui::SameLine();
+		const uint32_t fc = WikiBrowser::FindCount();
+		const uint32_t fo = WikiBrowser::FindOrdinal();
+		if (fc > 0)
+			ImGui::TextColored(kGoldMuted, "%u / %u", fo, fc);
+		else if (sFindQuery[0])
+			ImGui::TextColored(kGoldMuted, "No matches");
+	}
+
+	DrawTabBar();
+
+	const char* url = WikiBrowser::CurrentUrlCStr();
+	if (url && url[0] && std::strncmp(url, "about:", 6) != 0)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
+		ImGui::TextUnformatted(url);
+		ImGui::PopStyleColor();
+	}
+
+	ImGui::Separator();
+
+	DrawHelperSideRail();
+
+	DrawWikiPageSlot(open);
+}

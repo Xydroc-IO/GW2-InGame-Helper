@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -23,7 +24,7 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		return out;
 	/* Nearby slice only — short range so GPS does not paint through walls/map. */
 	const float maxDist = std::clamp(maxDistMeters, 10.f, 120.f);
-	const float softDist = maxDist * 1.35f;
+	const float softDist = maxDist * 1.55f;
 	const float softDist2 = softDist * softDist;
 
 	if (!std::isfinite(avatarX) || !std::isfinite(avatarY) || !std::isfinite(avatarZ))
@@ -35,7 +36,7 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		const float dx = avatarX - x;
 		const float dy = avatarY - y;
 		const float dz = avatarZ - z;
-		const float d = dx * dx + dy * dy + dz * dz;
+		const float d = dx * dx + dy * dy * 0.25f + dz * dz;
 		return std::isfinite(d) ? d : 1.0e30f;
 	};
 
@@ -60,6 +61,8 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 	{
 		const Trail& tr = gCurrentAll[ti];
 		if (tr.worldPoints.size() < 2 || !TypeEnabledLocked(tr.label))
+			continue;
+		if (!tr.inGameVisible && !tr.minimapVisible)
 			continue;
 		const size_t n = tr.worldPoints.size();
 		size_t bestI = 0;
@@ -125,9 +128,9 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		WorldSnippet snip;
 		snip.color = tr.color;
 		std::snprintf(snip.textureId, sizeof(snip.textureId), "%s", tr.textureId);
+		std::snprintf(snip.label, sizeof(snip.label), "%s", tr.label);
 		snip.alpha = tr.alpha;
 		snip.trailScale = tr.trailScale;
-		snip.widthBias = LadyGpsWidthBias(tr.label);
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
 		/* Local slice — keep enough points for long HP sections near the player. */
@@ -173,27 +176,34 @@ bool PathingTrails::TryNearbyWorldGps(
 	if (!std::isfinite(avatarX) || !std::isfinite(avatarY) || !std::isfinite(avatarZ))
 		return true;
 
-	/* Activation + draw window — slightly generous so coarse sampling misses
-	   do not drop the route while walking between .trl vertices. */
-	float maxDist = std::clamp(maxDistMeters, 20.f, 160.f);
-	float activateDist = std::max(maxDist * 1.55f, 110.f);
-	float softDist = activateDist;
-	size_t maxPts = 192;
-	/* WP Only chains are long and sparse — pull a much longer window ahead. */
+	/* Activation + along-path window. Expand by path length from the nearest
+	   vertex (Blish shows the corridor ahead), not by avatar-sphere clipping
+	   which chopped trails that climbed/dived away from the player. */
+	float maxDist = std::clamp(maxDistMeters, 20.f, 220.f);
+	/* Slightly generous activate — edge trails used to flicker in/out of range. */
+	float activateDist = std::max(maxDist * 2.85f, 280.f);
+	float alongBudget = std::max(activateDist * 1.35f, 360.f);
+	size_t maxPts = 900;
 	if (G::LadyWpOnly)
 	{
-		maxDist = std::clamp(std::max(maxDistMeters, 180.f) * 1.85f, 160.f, 340.f);
-		activateDist = std::max(maxDist * 1.4f, 220.f);
-		softDist = activateDist * 1.35f;
-		maxPts = 420;
+		maxDist = std::clamp(std::max(maxDistMeters, 180.f) * 2.2f, 220.f, 450.f);
+		activateDist = std::max(maxDist * 2.15f, 430.f);
+		alongBudget = std::max(activateDist * 1.4f, 600.f);
+		maxPts = 1200;
 	}
 	const float activateDist2 = activateDist * activateDist;
-	const float softDist2 = softDist * softDist;
 	auto dist2 = [&](float x, float y, float z) {
 		const float dx = avatarX - x;
 		const float dy = avatarY - y;
 		const float dz = avatarZ - z;
-		return dx * dx + dy * dy + dz * dz;
+		return dx * dx + dy * dy * 0.25f + dz * dz;
+	};
+	auto segLen = [](const WorldPoint& p, const WorldPoint& q) -> float {
+		const float dx = p.x - q.x;
+		const float dy = p.y - q.y;
+		const float dz = p.z - q.z;
+		const float d = std::sqrt(dx * dx + dy * dy + dz * dz);
+		return std::isfinite(d) ? d : 1.0e30f;
 	};
 
 	struct Cand
@@ -203,19 +213,21 @@ bool PathingTrails::TryNearbyWorldGps(
 		float nearestD2 = 1.0e30f;
 	};
 	std::vector<Cand> cands;
-	cands.reserve(32);
+	cands.reserve(48);
 	int pointTests = 0;
-	constexpr int kMaxPointTests = 12000;
+	constexpr int kMaxPointTests = 48000;
 	for (size_t ti = 0; ti < gCurrentAll.size(); ++ti)
 	{
 		const Trail& tr = gCurrentAll[ti];
-		if (tr.worldPoints.size() < 2 || !tr.inGameVisible || !TypeEnabledLocked(tr.label))
+		if (tr.worldPoints.size() < 2 || !TypeEnabledLocked(tr.label))
+			continue;
+		if (!tr.inGameVisible && !tr.minimapVisible)
 			continue;
 		const size_t n = tr.worldPoints.size();
 		size_t bestI = 0;
 		float bestD = 1.0e30f;
-		/* Denser than n/40 — sparse samples missed the player between vertices. */
-		const size_t step = std::max<size_t>(1, n / 96);
+		/* Dense enough that long Lady/Tekkit polylines still catch the player. */
+		const size_t step = std::max<size_t>(1, n / 192);
 		for (size_t i = 0; i < n; i += step)
 		{
 			if (++pointTests > kMaxPointTests)
@@ -230,8 +242,7 @@ bool PathingTrails::TryNearbyWorldGps(
 				bestI = i;
 			}
 		}
-		/* Refine near the coarse hit (same section only). */
-		const size_t refine = std::max<size_t>(step, 8);
+		const size_t refine = std::max<size_t>(step * 2, 16);
 		const size_t lo = bestI > refine ? bestI - refine : 0;
 		const size_t hi = std::min(n, bestI + refine + 1);
 		for (size_t i = lo; i < hi; ++i)
@@ -244,6 +255,26 @@ bool PathingTrails::TryNearbyWorldGps(
 			{
 				bestD = d;
 				bestI = i;
+			}
+		}
+		/* Also accept if a segment straddles the player (vertex sample miss). */
+		if (bestD > activateDist2 && step > 1)
+		{
+			for (size_t i = 0; i + step < n; i += step)
+			{
+				const WorldPoint& p0 = tr.worldPoints[i];
+				const WorldPoint& p1 = tr.worldPoints[std::min(n - 1, i + step)];
+				if (!std::isfinite(p0.x) || !std::isfinite(p1.x))
+					continue;
+				const float mx = (p0.x + p1.x) * 0.5f;
+				const float my = (p0.y + p1.y) * 0.5f;
+				const float mz = (p0.z + p1.z) * 0.5f;
+				const float d = dist2(mx, my, mz);
+				if (d < bestD)
+				{
+					bestD = d;
+					bestI = i;
+				}
 			}
 		}
 		if (bestD <= activateDist2)
@@ -269,12 +300,16 @@ bool PathingTrails::TryNearbyWorldGps(
 		const float dz = p.z - q.z;
 		return dx * dx + dy * dy + dz * dz;
 	};
-	/* Same corridor = Foot/Griffon/pack clone. Mid samples catch parallels. */
+	/* Only collapse true duplicates (same corridor + same tint/tex). */
 	auto roughlySamePath = [&](const WorldSnippet& a, const WorldSnippet& b) -> bool
 	{
 		if (a.points.size() < 2 || b.points.size() < 2)
 			return false;
-		constexpr float r2 = 5.f * 5.f;
+		if (a.color != b.color)
+			return false;
+		if (std::strncmp(a.textureId, b.textureId, sizeof(a.textureId)) != 0)
+			return false;
+		constexpr float r2 = 3.0f * 3.0f;
 		int hits = 0;
 		for (float t = 0.f; t <= 1.001f; t += 0.25f)
 		{
@@ -285,47 +320,58 @@ bool PathingTrails::TryNearbyWorldGps(
 			if (best <= r2)
 				++hits;
 		}
-		return hits >= 3;
+		return hits >= 4;
 	};
 
-	outSnippets.reserve(5);
+	outSnippets.reserve(16);
 	for (const Cand& c : cands)
 	{
-		if (outSnippets.size() >= 5)
+		if (outSnippets.size() >= 16)
 			break;
 		const Trail& tr = gCurrentAll[c.idx];
 		const auto& pts = tr.worldPoints;
 		const size_t n = pts.size();
 		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
 			continue;
-		/* One TacO section only — expanding to index 0 across NaN breaks caused
-		   screen-long gold stretch lines on Lady HP (and similar) packs. */
+
+		/* Grow by along-path meters within one TacO section (NaN = break). */
 		size_t a = c.nearest;
 		size_t b = c.nearest;
+		float back = 0.f;
 		while (a > 0 &&
 			std::isfinite(pts[a - 1].x) && std::isfinite(pts[a - 1].y) &&
-			std::isfinite(pts[a - 1].z) &&
-			dist2(pts[a - 1].x, pts[a - 1].y, pts[a - 1].z) <= softDist2)
+			std::isfinite(pts[a - 1].z))
+		{
+			const float L = segLen(pts[a], pts[a - 1]);
+			if (!(L < 160.f) || back + L > alongBudget)
+				break;
+			back += L;
 			--a;
+		}
+		float fwd = 0.f;
 		while (b + 1 < n &&
 			std::isfinite(pts[b + 1].x) && std::isfinite(pts[b + 1].y) &&
-			std::isfinite(pts[b + 1].z) &&
-			dist2(pts[b + 1].x, pts[b + 1].y, pts[b + 1].z) <= softDist2)
+			std::isfinite(pts[b + 1].z))
+		{
+			const float L = segLen(pts[b], pts[b + 1]);
+			if (!(L < 160.f) || fwd + L > alongBudget)
+				break;
+			fwd += L;
 			++b;
+		}
 		if (b <= a)
 			continue;
 
 		WorldSnippet snip;
 		snip.color = tr.color;
 		std::snprintf(snip.textureId, sizeof(snip.textureId), "%s", tr.textureId);
+		std::snprintf(snip.label, sizeof(snip.label), "%s", tr.label);
 		snip.alpha = tr.alpha;
 		snip.trailScale = tr.trailScale;
-		snip.widthBias = LadyGpsWidthBias(tr.label);
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
-		/* ≥1 m spacing — Blish GPU strip hides micro-samples; ImGui cannot. */
-		constexpr float kMinSp2 = 1.0f * 1.0f;
-		constexpr float kMaxKeepGap2 = 40.f * 40.f;
+		constexpr float kMinSp2 = 0.35f * 0.35f;
+		constexpr float kMaxKeepGap2 = 160.f * 160.f;
 		snip.points.reserve(std::min(b - a + 1, maxPts));
 		WorldPoint lastKept{};
 		bool haveKept = false;
@@ -333,13 +379,12 @@ bool PathingTrails::TryNearbyWorldGps(
 		{
 			const WorldPoint& wp = pts[i];
 			if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z))
-				break; /* do not skip breaks and stitch sections */
+				break;
 			if (haveKept)
 			{
 				const float gap2 = distPts2(wp, lastKept);
 				if (gap2 < kMinSp2 && i != b)
 					continue;
-				/* Hard break — stitching across a big jump is the gold stretch. */
 				if (gap2 > kMaxKeepGap2)
 					break;
 			}
@@ -374,7 +419,8 @@ bool PathingTrails::TryNearbyWorldGps(
 	{
 		if (!TypeEnabledLocked(marker.label))
 			continue;
-		if (!MarkerShownInWorld(marker))
+		/* Match trail gate — compass-visible markers belong in world GPS too. */
+		if (!MarkerShownInWorld(marker) && !marker.minimapVisible)
 			continue;
 		if (!MarkerBehaviorVisible(marker))
 			continue;

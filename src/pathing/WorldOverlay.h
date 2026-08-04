@@ -1,9 +1,9 @@
 #pragma once
 
-/* In-world Tekkit trail breadcrumbs — MumbleLink camera → screen projection
-   drawn on ImGui's background list (same approach as Nexus Pathing / TacO). */
+/* In-world GPS: D3D world-space ribbons (Blish-style). Markers on ImGui. */
 
 namespace WorldOverlay
 {
 	void Render();
+	void Shutdown();
 }

@@ -1,10 +1,13 @@
 #pragma once
 
-/* Internal catalog storage shared by Sites.cpp / SitesLoad.cpp. */
+/* Internal catalog + runtime storage shared by Sites*.cpp / SitesLoad*.cpp. */
 
 #include "Sites.h"
 
 #include <cstddef>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace SitesDetail
 {
@@ -16,4 +19,48 @@ namespace SitesDetail
 	void ClearCatalog();
 
 	const char* const* BrowseSectionsFor(const char* category, size_t* outCount);
+}
+
+namespace SitesRuntimeDetail
+{
+	extern int gActive;
+
+	constexpr int kMaxCategories = 32;
+	extern const char* gCategories[kMaxCategories];
+	extern int gCategoryCounts[kMaxCategories];
+	extern int gCategoryCount;
+
+	void ResetCategoryCache();
+	void EnsureCategories();
+	bool ContainsIgnoreCase(const char* haystack, const char* needle);
+
+	constexpr int kMaxFavorites = 48;
+	extern char gFavoriteIds[kMaxFavorites][64];
+	extern int gFavoriteCount;
+	extern unsigned gFavoriteGeneration;
+
+	struct SiteUrlKey
+	{
+		std::string path;
+		std::string host;
+		std::string pathSlash; /* path + "/" */
+		bool http = false;
+	};
+
+	constexpr int kMaxUrlKeys = 4096;
+	extern SiteUrlKey gUrlKeys[kMaxUrlKeys];
+	extern std::unordered_map<std::string, std::vector<int>> gUrlKeysByHost;
+	extern std::unordered_map<std::string, int> gExactBuiltin; /* about:/file: homeUrl → index */
+	extern bool gUrlKeysReady;
+	extern bool gUrlKeysStarted;
+	extern int  gUrlKeysBuildIndex;
+
+	void ResetUrlKeys();
+	void FinalizeUrlKeys();
+	void StartUrlKeysBuild();
+	void TickUrlKeysBuild(int chunk);
+	void EnsureUrlKeys();
+	std::string UrlHostPath(const std::string& url, bool hostOnly);
+
+	void OnCatalogReloaded();
 }

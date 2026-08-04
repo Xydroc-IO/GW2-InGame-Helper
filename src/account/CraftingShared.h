@@ -102,6 +102,8 @@ namespace CraftingDetail
 	void FetchNames(std::unordered_map<int, std::string>& names, const std::vector<int>& ids);
 	int FirstValidItemId(const std::vector<int>& candidates, std::string* nameOut);
 	void FetchPrices(std::unordered_map<int, long long>& sells, const std::vector<int>& ids);
+
+	/* CraftingApiRecipe.cpp */
 	void AddOwnedCounts(std::unordered_map<int, int>& owned, const std::string& body);
 	void LoadOwned(std::unordered_map<int, int>& owned);
 	bool LoadApiRecipeForOutput(int outputId, int& outCount, std::vector<RecipeIng>& ings, int& recipeId);
@@ -137,6 +139,8 @@ namespace CraftingDetail
 	void ApplyPrices(IngNode& n, const std::unordered_map<int, long long>& sells,
 		long long& buyTotal, int& noTpMissing);
 	void ApplyOwnedCounts(IngNode& n, const std::unordered_map<int, int>& owned);
+
+	/* CraftingPlanResolve.cpp */
 	void TokenizeQuery(const char* q, std::vector<std::string>& tokens);
 	int ScoreTitleMatch(const std::string& title, const std::vector<std::string>& tokens,
 		const std::string& qLow);

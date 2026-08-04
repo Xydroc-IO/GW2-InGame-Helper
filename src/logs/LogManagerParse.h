@@ -52,6 +52,7 @@ namespace LogManagerParse
 	bool PlayersNeedCombatStats(const std::vector<PlayerInfo>& players);
 
 	void FillPlayerFromDpsReportObj(const char* obj, const std::string& fallbackName, PlayerInfo& pi);
+	const char* FindPlayersArray(const char* json);
 	void ParsePlayersFromJson(const char* json, std::vector<PlayerInfo>& out);
 	void ParseDpsReportPlayers(const char* json, std::vector<PlayerInfo>& out);
 

@@ -87,6 +87,9 @@ namespace TpWatchDetail
 	void SaveIds(const std::vector<int>& ids);
 	int ApplyAlerts(std::vector<Row>& rows);
 	int ParseItemInput(const char* text);
+	void SyncRowsFromSettings();
+
+	/* TpWatchResolve.cpp */
 	std::string UrlEncode(const char* s);
 	std::string ToLowerCopy(std::string s);
 	std::string ExpandNameAlias(const char* q);
@@ -96,6 +99,8 @@ namespace TpWatchDetail
 	bool CommitWatchId(int id, std::string* statusOut);
 	DWORD WINAPI AddNameProc(void*);
 	void StartNameResolve();
+
+	/* TpWatchFetch.cpp */
 	size_t JsonObjectEnd(const std::string& json, size_t openBrace);
 	std::string JsonStringAfterKey(const std::string& json, const char* key, size_t from = 0);
 	long long JsonIntAfterKey(const std::string& json, const char* key, size_t from = 0);
@@ -107,5 +112,4 @@ namespace TpWatchDetail
 	void FetchDelivery(DeliverySnap& d);
 	DWORD WINAPI FetchProc(void*);
 	void StartFetch();
-	void SyncRowsFromSettings();
 }
