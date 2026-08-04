@@ -224,6 +224,7 @@ test-css:
 # Host (Linux) parse golden tests — no Wine / GW2 required.
 TEST_PARSE_BIN = build/test_logmanager_parse
 TEST_IPC_BIN = build/test_wiki_ipc
+TEST_JSON_VIEW_BIN = build/test_json_view
 
 test-parse: $(TEST_PARSE_BIN)
 	./$(TEST_PARSE_BIN) tools/fixtures/ei_players_sample.json tools/fixtures/dpsreport_players_sample.json
@@ -232,6 +233,9 @@ test-parse: $(TEST_PARSE_BIN)
 test-ipc: $(TEST_IPC_BIN)
 	./$(TEST_IPC_BIN)
 
+test-json-view: $(TEST_JSON_VIEW_BIN)
+	./$(TEST_JSON_VIEW_BIN)
+
 $(TEST_PARSE_BIN): tools/test_logmanager_parse.cpp src/logs/LogManagerParse.cpp src/logs/LogManagerParsePlayers.cpp src/logs/LogManagerParse.h
 	@mkdir -p build
 	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -Isrc/logs -o $@ tools/test_logmanager_parse.cpp src/logs/LogManagerParse.cpp src/logs/LogManagerParsePlayers.cpp
@@ -239,6 +243,10 @@ $(TEST_PARSE_BIN): tools/test_logmanager_parse.cpp src/logs/LogManagerParse.cpp 
 $(TEST_IPC_BIN): tools/test_wiki_ipc.cpp src/browser/WikiIpc.h
 	@mkdir -p build
 	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -Isrc/browser -o $@ tools/test_wiki_ipc.cpp
+
+$(TEST_JSON_VIEW_BIN): tools/test_json_view.cpp src/api/JsonView.h
+	@mkdir -p build
+	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -o $@ tools/test_json_view.cpp
 
 # Local continuous integration. Also used by .githooks/pre-push and GitHub Actions.
 ci:

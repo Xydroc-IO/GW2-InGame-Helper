@@ -16,6 +16,9 @@ make test-parse
 echo "==> CI: WikiIpc layout smoke"
 make test-ipc
 
+echo "==> CI: JsonView bounds scrape smoke"
+make test-json-view
+
 echo "==> CI: MinGW smoke build (DLL + embedded helper)"
 make -j"$(nproc)" all
 
