@@ -1,6 +1,6 @@
 # Account — official API pads
 
-**Revision:** 2.2.0.6 · **Audience:** contributors and players configuring keys  
+**Revision:** 2.2.0.7 · **Audience:** contributors and players configuring keys  
 **Companions:** [`API_KEY.md`](API_KEY.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.1
 
 ---
@@ -46,7 +46,7 @@ Recommended scopes: `account`, `wallet`, `inventories`, `characters`, `progressi
 
 - HTTP via `Gw2Http` on **worker threads only** (never block `RT_Render`).
 - Respect **429** backoff; cache item names (`stash-names.cache`) where applicable.
-- Hand-rolled JSON helpers exist in Account/Pathing/Logs — consolidation is optional tech debt; do not pull JSON libs into the CEF helper.
+- Prefer **`JsonView.h`** (`src/api/`) for GW2 API scrapes — `string_view` / `Bytes` bounds checks, no JSON libs in the CEF helper. Remaining Wallet/TP/Logs copies should migrate onto it iteratively.
 - UI: wrapping chips / in-window radios (Nexus-safe; avoid fragile combo popups).
 
 ---

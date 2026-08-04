@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.0.6 |
+| Revision described | 2.2.0.7 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.0.7 | 2.2.0.7 | JsonView bounds-checked API scrapers (string_view / Bytes) |
 | 2.2.0.6 | 2.2.0.6 | Side-rail GW2 API Check; parallel official API probes |
 | 2.2.0.5 | 2.2.0.5 | Pad text wrap + DPS filter layout; Lady/Tekkit enable merge; MC presets |
 | 2.2.0.4 | 2.2.0.4 | Lady Features Hearts/HP Train; WP full GPS; marker soft-clear |
@@ -54,7 +55,7 @@ In-game overlays that surface the live web—wikis, build repositories, and comm
 
 This report documents the architecture of **GW2 In-Game Helper**, a Raidcore Nexus ImGui addon that embeds **stock CEF 150** as a **separate process**, renders via **windowless off-screen rendering (OSR)** into **PID-scoped shared memory**, and composites frames through the host’s existing Direct3D 11 device without Present hooks. We analyse the inter-process communication (IPC) contract, the adaptive CPU-to-GPU upload pipeline, navigation and advertisement click-through policy, the security posture (including intentional sandbox disablement under Wine), compliance boundaries relative to Guild Wars 2 and the Nexus ecosystem, and performance implications for constrained hardware.
 
-Beyond the browser kernel, revision **2.2.0.6** documents the **application layer**: Account pads on the official ArenaNet API; Pathing packs with Blish/TacO behaviors; **D3D world GPS** ribbons drawn exclusively via the Nexus SwapChain device; DPS Logs via Elite Insights; and Events/Notes. We argue that shared-memory OSR is not an optimal GPU path in the abstract, but that it constitutes a **rational engineering equilibrium** given Nexus API surfaces, coexistence with ArcDPS and ReShade, single-DLL distribution, and Proton viability. Likewise, world GPS uses host SwapChain drawing rather than Present hooks or process-memory camera reads, preserving the same coexistence invariants.
+Beyond the browser kernel, revision **2.2.0.7** documents the **application layer**: Account pads on the official ArenaNet API; Pathing packs with Blish/TacO behaviors; **D3D world GPS** ribbons drawn exclusively via the Nexus SwapChain device; DPS Logs via Elite Insights; and Events/Notes. We argue that shared-memory OSR is not an optimal GPU path in the abstract, but that it constitutes a **rational engineering equilibrium** given Nexus API surfaces, coexistence with ArcDPS and ReShade, single-DLL distribution, and Proton viability. Likewise, world GPS uses host SwapChain drawing rather than Present hooks or process-memory camera reads, preserving the same coexistence invariants.
 
 **Keywords:** Chromium Embedded Framework; off-screen rendering; game overlay; shared-memory IPC; Direct3D 11; Wine; Proton; advertisement attribution; process isolation; Guild Wars 2; Raidcore Nexus; TacO pathing; Blish-style trails.
 
@@ -632,7 +633,7 @@ Memory-safety tooling cannot fully validate this stack: the DLL loads into a non
 3. **Proton variance.** Steam/Wine versions change behaviour.
 4. **Advertisement attribution.** Network-side billability cannot be verified from the client alone.
 5. **Scope creep.** Application-layer pads evolve independently; kernel claims are not coverage of every pad feature.
-6. **Documentation lag.** This report tracks revision 2.2.0.6; future commits may land before the next sync.
+6. **Documentation lag.** This report tracks revision 2.2.0.7; future commits may land before the next sync.
 
 ---
 
@@ -651,7 +652,7 @@ Memory-safety tooling cannot fully validate this stack: the DLL loads into a non
 
 ### 15.1 Maintainability trajectory
 
-As of revision 2.2.0.6 the Browse catalog is data-driven (`data/sites.json`), and former monolithic translation units are split into focused units (prefer ≤500 lines per `.cpp`). This reduces merge-conflict surface for feature work but does **not** remove restricted ownership of the CEF, IPC, and present path. See [`MODULES.md`](MODULES.md), [`ARCHITECTURE.md`](ARCHITECTURE.md) §7, [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+As of revision 2.2.0.7 the Browse catalog is data-driven (`data/sites.json`), and former monolithic translation units are split into focused units (prefer ≤500 lines per `.cpp`). This reduces merge-conflict surface for feature work but does **not** remove restricted ownership of the CEF, IPC, and present path. See [`MODULES.md`](MODULES.md), [`ARCHITECTURE.md`](ARCHITECTURE.md) §7, [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ---
 
@@ -782,7 +783,7 @@ This report does not benchmark against Blish or TacO frame times; claims of “B
 
 ## 19. Methods note (how this report was produced)
 
-This report is a **design reconstruction** from the shipping codebase and maintainer operational knowledge at revision 2.2.0.6. It is not the output of a formal measurement campaign. Where quantitative figures appear (frame bytes, ring sizes, bandwidth upper bounds), they are derived from constants in [`WikiIpc.h`](../src/browser/WikiIpc.h) and elementary arithmetic unless otherwise stated.
+This report is a **design reconstruction** from the shipping codebase and maintainer operational knowledge at revision 2.2.0.7. It is not the output of a formal measurement campaign. Where quantitative figures appear (frame bytes, ring sizes, bandwidth upper bounds), they are derived from constants in [`WikiIpc.h`](../src/browser/WikiIpc.h) and elementary arithmetic unless otherwise stated.
 
 Claims about Proton behaviour are based on repeated smoke testing across Steam Proton / Wine configurations used by the maintainer and early users; they are **not** guaranteed for every Proton experimental build. Claims about advertisement billability are mechanistic (URL must be requested) rather than accounting audits against publisher invoices.
 
@@ -851,11 +852,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.2.0.6)
+## Appendix A — Quantitative constants (revision 2.2.0.7)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.2.0.6 |
+| Addon version | 2.2.0.7 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -871,7 +872,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2206 / 2206 / s2206 / c2206 |
+| Helper / home / sites / cheatsheets stamps | 2207 / 2207 / s2207 / c2207 |
 | OSR `device_scale_factor` | 1.0 |
 | User-Agent product token | `GW2-InGame-Helper` |
 | Browse catalog entries | ≈ 2718 |
@@ -945,6 +946,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.6 — side-rail GW2 API Check; parallel probes |
+| Last sync | 2.2.0.7 — JsonView bounds-checked API scrapers |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
-| How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.6, 2026. |
+| How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.7, 2026. |

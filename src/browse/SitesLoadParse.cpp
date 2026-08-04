@@ -6,7 +6,7 @@
 
 namespace SitesDetail
 {
-	const char* kSitesStamp = "s2206";
+	const char* kSitesStamp = "s2207";
 
 	std::vector<SiteOwned> gOwned;
 	std::vector<SiteDef> gDefs;

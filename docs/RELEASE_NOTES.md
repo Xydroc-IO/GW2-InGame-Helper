@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.6
+# GW2 In-Game Helper v2.2.0.7
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.7
+
+- **JsonView:** Shared bounds-checked GW2 JSON scrapers (`src/api/JsonView.h`) using
+  `std::string_view` and a C++17 `Bytes` span stand-in. LivePanels, Unlocks,
+  Inventory, Vault, and waypoints floor parsing no longer call `atoi`/`atoll`/`strtod`
+  on raw `c_str()` offsets. Host smoke: `make test-json-view` (wired into CI).
+- **Stamps:** Helper `2207` · homepage `2207` · sites `s2207` · cheatsheets `c2207`
 
 ## What’s new in 2.2.0.6
 

@@ -1,6 +1,6 @@
 # Module layout — ≤500-line convention
 
-**Revision:** 2.2.0.6 · **Audience:** contributors  
+**Revision:** 2.2.0.7 · **Audience:** contributors  
 **Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md) §7, [`CONTRIBUTING.md`](../CONTRIBUTING.md), [`WHITEPAPER.md`](WHITEPAPER.md) §18
 
 ---
@@ -22,7 +22,7 @@ Prefer **≤500 lines** per `.cpp` translation unit. Split by **concern** (pad U
 | `FooInternal.h` | Helpers visible only inside the domain’s TUs |
 | Exactly **one** `.cpp` | Defines Shared globals |
 
-Examples: `WikiBrowserShared.h`, `PathingIndex.h`, `LogManagerShared.h`, `LivePanelsBuildShared.h`, `CraftingShared.h`, `HelperInternal.h`.
+Examples: `WikiBrowserShared.h`, `PathingIndex.h`, `LogManagerShared.h`, `LivePanelsBuildShared.h`, `CraftingShared.h`, `HelperInternal.h`, `JsonView.h`.
 
 ---
 
@@ -35,7 +35,7 @@ Examples: `WikiBrowserShared.h`, `PathingIndex.h`, `LogManagerShared.h`, `LivePa
 | Entry | `src/entry*.cpp` | Load/unload/WndProc/hotkeys |
 | UI chrome | `src/ui/` | Side rail, Browse chrome, **SettingsPad**, Nexus Options stub |
 | App shared | `src/app/` | Settings, paths, theme, pad dock, Mumble, AspectLayout (16:9/21:9/32:9) |
-| API HTTP | `src/api/` | WinHTTP workers only |
+| API HTTP | `src/api/` | WinHTTP workers only; `JsonView.h` shared scrapers |
 | Browse data | `src/browse/` | Sites, homepage, live panels, sheets |
 | Account | `src/account/` | Official API pads |
 | Pathing | `src/pathing/` | Packs + GPS — [`PATHING.md`](PATHING.md) |

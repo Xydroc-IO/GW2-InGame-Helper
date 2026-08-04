@@ -1,6 +1,6 @@
 # Building GW2 In-Game Helper
 
-**Revision:** 2.2.0.6 · **Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`MODULES.md`](MODULES.md), [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
+**Revision:** 2.2.0.7 · **Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`MODULES.md`](MODULES.md), [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 
 ---
 
