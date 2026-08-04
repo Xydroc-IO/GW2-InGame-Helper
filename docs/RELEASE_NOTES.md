@@ -47,6 +47,8 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Marker clear:** Overview **Marker clear** (`WorldMarkerPlayerClear`, default **1**)
   soft-clears world markers ~2–5.5 m from you (independent of trail **Player clear**).
   **0** = no hole. Mount / Barefoot shortcut icons keep a smaller bubble.
+- **Pad layout:** Side-rail pad bodies keep a small right gutter so slider labels and
+  wrapped text sit clear of the scrollbar (`PadNav` + theme padding).
 - **Stamps:** Helper `2207` · homepage `2207` · sites `s2207` · cheatsheets `c2207`
 
 ## What’s new in 2.2.0.6

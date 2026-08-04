@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.0.7 | 2.2.0.7 | JsonView; World GPS range; marker/compass scales; marker clear |
+| 2.2.0.7 | 2.2.0.7 | JsonView; World GPS controls; marker clear; pad scrollbar gutter |
 | 2.2.0.6 | 2.2.0.6 | Side-rail GW2 API Check; parallel official API probes |
 | 2.2.0.5 | 2.2.0.5 | Pad text wrap + DPS filter layout; Lady/Tekkit enable merge; MC presets |
 | 2.2.0.4 | 2.2.0.4 | Lady Features Hearts/HP Train; WP full GPS; marker soft-clear |
@@ -946,6 +946,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.7 — JsonView; World GPS range; marker/compass scales; marker clear |
+| Last sync | 2.2.0.7 — JsonView; World GPS controls; marker clear; pad scrollbar gutter |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.7, 2026. |

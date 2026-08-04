@@ -34,7 +34,7 @@ Examples: `WikiBrowserShared.h`, `PathingIndex.h`, `LogManagerShared.h`, `LivePa
 | Kernel helper | `src/helper/` | Restricted — ads/nav freeze awareness |
 | Entry | `src/entry*.cpp` | Load/unload/WndProc/hotkeys |
 | UI chrome | `src/ui/` | Side rail, Browse chrome, **SettingsPad**, Nexus Options stub |
-| App shared | `src/app/` | Settings, paths, theme, pad dock, Mumble, AspectLayout (16:9/21:9/32:9) |
+| App shared | `src/app/` | Settings, paths, theme, pad dock, **`PadNav`** (wrap + scrollbar gutter), Mumble, AspectLayout (16:9/21:9/32:9) |
 | API HTTP | `src/api/` | WinHTTP workers only; `JsonView.h` shared scrapers |
 | Browse data | `src/browse/` | Sites, homepage, live panels, sheets |
 | Account | `src/account/` | Official API pads |
