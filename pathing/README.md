@@ -75,16 +75,25 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 Default Features edition is **Barefoot**. First run with an empty category list
 auto-enables Lady so Core routes show without hunting Categories.
 
-### In-world GPS width
+### In-world GPS
 
-Pathing **GPS width** (default **1.0×**) is a shared relative scale. Lady
-Barefoot / WP Only / With Mounts bake per-edition bias so 1.0 looks correct for
-each; moving the slider scales them evenly. Ribbons soft-hide near the character
-in world space and clear a screen-space bubble around the projected avatar/mount
-(ImGui has no depth test against the mesh). **Player clear** (default **1**)
-scales that hole; **0** shows the full path with no avatar clear. Range / width /
-Player clear are always under Overview In-world GPS. Long look-along segments
-subdivide so trails stay visible when the camera aims down the path (esp. Windows).
+Pathing **GPS width** (default **1.0×**) multiplies pack `trailScale` so **1.0**
+matches Blish / TacO at authored scale (no per-edition width bias). Compass
+thickness uses the same pack scale × slider.
+
+**Renderer:** Nexus SwapChain **D3D11** world-space ribbons (Blish-style upright
+strips + pack chevron textures, UV flow, soft player clear). Markers stay on
+ImGui. No Present / `d3d11.dll` hooks — device comes from `AddonAPI::SwapChain`
+only (see [`docs/COMPLIANCE.md`](../docs/COMPLIANCE.md)). If D3D init fails
+(missing `d3dcompiler_*.dll` under some Wine setups), world trails do not fall
+back to ImGui billboards.
+
+**Sampling:** Nearby snippets grow by **along-path** meters from the nearest
+vertex; sticky cache + hysteresis reduce blink at range edges. TacO `.trl`
+section breaks are honored (no map-wide stitches).
+
+**Player clear** (default **1**) fades the ribbon near you; **0** shows the full
+path. Range / width / Player clear sit under Overview → In-world GPS.
 
 **Skyscale routes:** Tekkit only ships a Skyscale Edition for **Heart of Thorns**,
 **Secrets of the Obscure**, and generic Routes in **Janthir Wilds**. Core Tyria,

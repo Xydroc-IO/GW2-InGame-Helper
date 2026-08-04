@@ -8,7 +8,8 @@ Current policy snapshot: **v2.2.0.1** — process/IPC notes: [`ARCHITECTURE.md`]
 ## Allowed
 
 - Nexus APIs only for host integration (`RT_Render`, WndProc, keybinds, QuickAccess, paths, swap chain)
-- **Read-only MumbleLink / Nexus DataLink** for display overlays (Tekkit compass trails + in-world GPS + direction compass) — never for automation
+- **Read-only MumbleLink / Nexus DataLink** for display overlays (Pathing compass trails + in-world GPS + direction compass) — never for automation
+- **In-world GPS** draws Blish-style ribbons via the Nexus **`SwapChain`** D3D11 device (runtime HLSL compile). No Present hooks, no game depth buffer / camera-matrix reads from process memory
 - Local IPC shared memory between the DLL and `GW2HelperBrowser.exe`
 - Official `api.guildwars2.com` reads from injected BootJs (credentials omitted; batched; 429 backoff) where pages use them
 - DLL WinHTTP reads to `api.guildwars2.com`, `guildwars2.com` news feed, and wiki MediaWiki API for **Live** Browse panels and ImGui pads (read-only; optional account API key stored only in local `settings.ini`)

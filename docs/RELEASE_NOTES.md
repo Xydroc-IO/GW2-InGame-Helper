@@ -34,25 +34,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ## What’s new in 2.2.0.1
 
+- **D3D world GPS:** In-world trails use Nexus SwapChain D3D11 upright ribbons
+  (Blish-style pack chevrons, fixed UV tile period, animspeed flow, soft player
+  clear). Markers stay on ImGui. No Present hooks. GPS width **1.0×** = pack
+  `trailScale` (Lady edition width bias removed). Along-path sampling, sticky
+  cache + hysteresis reduce missing/blinking ribbons; compass still ImGui 2D.
 - **Lady Features:** Barefoot / With Mounts / WP Only are **mutually exclusive**
   map-completion editions (no stacking). Enabling an edition turns on Lady
   categories when needed. Defaults: Barefoot on, With Mounts off.
-- **World GPS:** Sticky nearby-cache so sparse sampling / brief Mumble misses no
-  longer blank ribbons; denser trail sampling; longer WP Only activation and
-  draw distance with faster ahead refresh while moving.
-- **GPS width:** Slider scales screen ribbons near and far (no fixed px ceiling);
-  Lady Barefoot / WP / Mounts use per-edition bias so **1.0×** is the correct
-  baseline and editions scale together. Ribbons soft-hide in **world** (~5 m) and
-  **screen space** around the projected character/mount so ImGui trails do not
-  paint over the player (including Skyscale). Overview **Player clear** slider
-  scales that hole (**0** = full path, no clear; default **1**). Range / width /
-  Player clear sit under Overview In-world GPS (not nested under the checkbox).
-- **Look-along trails:** Long camera-aligned segments subdivide instead of
-  dropping (fixes missing ribbons / camera-angle gaps on high-res Windows);
-  denser draw steps and looser clip for far path.
-- **Trails / markers:** Screen-space textured ribbons; Lady trail PNGs prioritized;
-  mount shortcut icons draw with the same POI pipeline; tip labels limited to
-  mount glyphs.
+- **World GPS (earlier 2.2.0.1):** Sticky nearby-cache and denser sampling for
+  sparse / WP Only routes; Overview **Player clear** (default **1**, **0** = full
+  path).
+- **Code layout:** Prefer **≤500 lines** per `.cpp`. Pathing / account / browse /
+  logs / UI / entry / helper / browser megafiles split by concern (Shared +
+  focused TUs). Former `TekkitTrails*` modules renamed `PathingTrails*` (Tekkit
+  pack branding unchanged).
 - **First run:** Empty `PathingEnabled` (legacy `TekkitEnabled=`) auto-enables
   Lady categories so trails appear without hunting Categories.
 - **UI scale:** Per-panel font scale from Options × window size (`UiScale`);
@@ -61,9 +57,6 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Settings:** Longer enabled-category read buffer; persists as `PathingEnabled`
   (still loads legacy `TekkitEnabled` / `ShowTekkitTrails`); `SaveNow` on unload;
   Lady edition keys persist and normalize legacy multi-on configs.
-- **Code layout:** Pathing / Logs / Browse builders / Crafting·TP·Wallet megafiles
-  split into Shared + focused TUs; former `TekkitTrails*` modules renamed
-  `PathingTrails*` (Tekkit pack branding unchanged).
 - **Unload:** Nexus Disable allowed (`AF_None`) — pads close and CEF helper stops
   before deregister; prefer a full GW2 restart after replacing the DLL on disk.
 - **Stamps:** Helper `2201` · homepage `2201` · sites `s2201` · cheatsheets `c2201`

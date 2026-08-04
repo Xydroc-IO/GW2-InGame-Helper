@@ -24,7 +24,7 @@ feature work on Beta; merge to `master` only after in-game verification.
 
 | Zone | Path | Casual edits | Extra rules |
 |------|------|--------------|-------------|
-| Pads / feature data | `src/account/`, `src/pathing/`, `src/logs/`, `src/events/`, `src/notes/` | Yes | Prefer in-window chips/radios over ImGui popup combos |
+| Pads / feature data | `src/account/`, `src/pathing/`, `src/logs/`, `src/events/`, `src/notes/` | Yes | Prefer in-window chips/radios over ImGui popup combos; keep new `.cpp` TUs **≤500 lines** (split by concern) |
 | Catalog | `data/sites.json` + `src/browse/` | Yes | `make validate-sites` required; schema v2 + `browsePath` |
 | Cheat sheets | `data/cheatsheets/` | Yes | Edit HTML/CSS + `manifest.json`; bump pack stamp `c2201` in `src/browse/CheatSheets.cpp` when shipping extract changes |
 | LivePanels HTML builders | `src/browse/LivePanels*` | Careful | No secrets in HTML; bump panel version when caching |

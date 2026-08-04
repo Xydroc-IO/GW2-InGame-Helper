@@ -143,22 +143,26 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 
 `src/` is organized as **shared layers** (`app`, `ui`, `api`, `browse`, `browser`, `helper`) plus **feature domains** (`account`, `pathing`, `logs`, `events`, `notes`). Includes stay flat (`#include "Foo.h"`) via multiple `-Isrc/...` paths.
 
+**Module size:** Prefer **≤500 lines** per `.cpp` translation unit. Split by concern
+(pad vs data vs fetch vs parse), not arbitrary chops. Generated / blob headers
+(e.g. `BootJs.h`, icon embeds) are exempt.
+
 ### Kernel (high blast radius — paired review)
 
 See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 
 | Path | Responsibility |
 |------|----------------|
-| `src/entry.cpp` | Nexus load/unload, WndProc, version |
-| `src/browser/WikiBrowser.cpp` | Lifecycle, navigate/tabs/input, status |
-| `src/browser/WikiBrowserHelper.cpp` | Extract, launch, IPC maps, Open Ext/Tab drains |
+| `src/entry.cpp` (+ `entryLoad` / `entryUnload` / `entryWndProc` / `entryHotkeys`) | Nexus load/unload, WndProc, hotkeys, version |
+| `src/browser/WikiBrowser.cpp` (+ `WikiBrowserApi`) | Lifecycle, navigate/tabs/input, status |
+| `src/browser/WikiBrowserHelper.cpp` (+ Lifecycle / Launch) | Extract, launch, IPC maps, Open Ext/Tab drains |
 | `src/browser/WikiBrowserIpc.cpp` | Cmd/input rings, `about:` URL resolve |
 | `src/browser/WikiBrowserPresent.cpp` | D3D11 present / frame getters |
 | `src/browser/WikiBrowserShared.h` | Shared DLL host state |
 | `src/browser/WikiIpc.h` | Shared memory contract (`HLI5`) |
-| `src/browser/CefRuntime.*` | CEF zip download / verify / extract |
-| `src/helper/main.cpp` | CEF boot, tabs, IPC drain, resource handlers |
-| `src/helper/HelperNavPolicy.cpp` | Nav / ad / Open Ext policy |
+| `src/browser/CefRuntime.*` (+ Fs / Http / Verify) | CEF zip download / verify / extract |
+| `src/helper/main.cpp` (+ State / Tabs / Handlers / Commands) | CEF boot, tabs, IPC drain, resource handlers |
+| `src/helper/HelperNavPolicy.cpp` (+ Handlers) | Nav / ad / Open Ext policy |
 | `src/helper/HelperOsrRender.cpp` | OSR paint + popup composite |
 | `src/helper/HelperInternal.h` | Shared helper state |
 | `src/helper/BootJs.h` / `CssCompat.*` / `CssProxy.*` | Injected JS / CSS filters |
@@ -177,7 +181,7 @@ See [`KERNEL.md`](KERNEL.md) for stamps, playbooks, and in-game checks.
 | Path | Responsibility |
 |------|----------------|
 | `src/account/` | Account hub + unlocks/inventory/wallet/vault/TP/lookup/crafting/progress/history/profiles. Fat pads use Shared + focused TUs (`Crafting*`, `TpWatchData`, `WalletFetch`) |
-| `src/pathing/` | Tekkit/Pathing packs, trails, markers, compass/world overlays, routing, waypoints. Hub: `PathingTrails.cpp` + `PathingIndex.h` Shared; Load / Gps / Presets / Ui TUs |
+| `src/pathing/` | Packs, trails, markers, compass, **D3D world GPS**, routing, waypoints. Hub: `PathingTrails.cpp` + `PathingIndex.h`; Load / Gps / Presets / Ui / Parse* TUs. World GPS: `WorldOverlay` orchestrates `WorldGpsD3d*` (SwapChain ribbons) + `WorldGpsMath` + ImGui markers (`WorldGpsImgui`) |
 | `src/logs/` | DPS Logs (`LogManager*`) + Elite Insights runtime. `LogManagerShared.h` + Pad defs; Cache / KillProof / Scan / Stats / Ui / Parse / Upload / Ei |
 | `src/browse/` | Sites catalog, HomePage, CheatSheets, RaidFood, LivePanels. HTML builders: `LivePanelsBuildCommon` + Dailies / News / Fashion / Progress |
 | `src/events/` | World Events pad + schedule data |
