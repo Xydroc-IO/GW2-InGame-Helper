@@ -44,6 +44,9 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Marker size:** Separate Overview sliders — **World markers** (`WorldMarkerScale`,
   default **2.0×**) for in-world GPS icons, and **Compass icons** (`CompassMarkerScale`,
   default **1.0×**) for the stock compass / minimap.
+- **Marker clear:** Overview **Marker clear** (`WorldMarkerPlayerClear`, default **1**)
+  soft-clears world markers ~2–5.5 m from you (independent of trail **Player clear**).
+  **0** = no hole. Mount / Barefoot shortcut icons keep a smaller bubble.
 - **Stamps:** Helper `2207` · homepage `2207` · sites `s2207` · cheatsheets `c2207`
 
 ## What’s new in 2.2.0.6

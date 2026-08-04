@@ -116,6 +116,8 @@ Independent systems; both may use Mumble pose read-only.
 - Base half-width \(20''\) (`WorldGpsMath::kBlishHalfM`) × soft-clamped pack `trailScale` × user **GPS width** (default **1.0×** = authored scale; Lady width-bias removed).
 - Fixed UV tile period; animspeed flow **forward** along route (heart trails use the same scroll + pack yellow tint; **1.5×** ribbon width).
 - Soft **Player clear** (default 1; **0** = full path).
+- Soft **Marker clear** (default 1; **0** = keep icons at feet) — ~2–5.5 m hole for
+  world markers; Mount / Barefoot shortcuts use a smaller bubble.
 - **GPS range (m)** (default 120; Overview slider 40–200) is the real draw/activation
   radius — not floored to hundreds of meters.
 - **Marker size:** Separate Overview sliders —
