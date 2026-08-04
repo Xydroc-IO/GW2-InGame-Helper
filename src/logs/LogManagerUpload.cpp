@@ -286,10 +286,10 @@ bool UploadToDpsReport(const std::wstring& filePath, std::string& respOut, std::
 	}
 	LARGE_INTEGER sz{};
 	GetFileSizeEx(h, &sz);
-	if (sz.QuadPart <= 0 || sz.QuadPart > 120 * 1024 * 1024)
+	if (sz.QuadPart <= 0 || sz.QuadPart > 48 * 1024 * 1024)
 	{
 		CloseHandle(h);
-		err = "Log file size invalid.";
+		err = "Log too large for upload (max 48 MB). Use dps.report in a browser for huge files.";
 		return false;
 	}
 	std::string bodyFile(static_cast<size_t>(sz.QuadPart), '\0');

@@ -16,62 +16,87 @@ namespace LogManagerDetail
 {
 DWORD WINAPI UploadWorker(LPVOID)
 {
-	std::vector<std::string> queue;
+	int sessionDone = 0;
+	for (;;)
 	{
-		std::lock_guard<std::mutex> lock(gMu);
-		queue.swap(gUploadQueue);
-	}
-	gUploadTotal.store(static_cast<int>(queue.size()));
-	gUploadDone.store(0);
-
-	for (const std::string& path : queue)
-	{
-		if (gCancel.load())
-			break;
-		std::wstring pathW = Utf8ToWide(path.c_str());
+		std::vector<std::string> queue;
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			for (auto& e : gLogs)
+			queue.swap(gUploadQueue);
+			if (queue.empty())
 			{
-				if (e.pathUtf8 == path)
+				/* Release busy only while queue is still empty — else drain again. */
+				gUploadBusy.store(false);
+				std::snprintf(gStatus, sizeof(gStatus),
+					"Upload finished (%d) → dps.report.", sessionDone);
+				return 0;
+			}
+		}
+
+		gUploadTotal.store(sessionDone + static_cast<int>(queue.size()));
+		if (sessionDone == 0)
+			gUploadDone.store(0);
+
+		for (const std::string& path : queue)
+		{
+			if (gCancel.load())
+				break;
+			std::wstring pathW = Utf8ToWide(path.c_str());
+			{
+				std::lock_guard<std::mutex> lock(gMu);
+				for (auto& e : gLogs)
 				{
-					e.state = ParseState::Uploading;
+					if (e.pathUtf8 == path)
+					{
+						e.state = ParseState::Uploading;
+						break;
+					}
+				}
+				gGen.fetch_add(1);
+			}
+
+			std::snprintf(gStatus, sizeof(gStatus),
+				"Uploading to dps.report %d / %d…",
+				sessionDone + 1, gUploadTotal.load());
+
+			std::string resp, err;
+			const bool ok = UploadToDpsReport(pathW, resp, err);
+			{
+				std::lock_guard<std::mutex> lock(gMu);
+				for (auto& e : gLogs)
+				{
+					if (e.pathUtf8 != path)
+						continue;
+					if (ok)
+					{
+						e.state = ParseState::Uploaded;
+						ApplyDpsReportMeta(e, resp);
+						e.parseError.clear();
+					}
+					else
+					{
+						e.parseError = err;
+						if (e.state == ParseState::Uploading)
+							e.state = e.encounter.empty() ? ParseState::Pending : ParseState::Parsed;
+					}
 					break;
 				}
+				++sessionDone;
+				gUploadDone.store(sessionDone);
+				SaveCacheLocked();
+				gGen.fetch_add(1);
 			}
-			gGen.fetch_add(1);
 		}
 
-		std::string resp, err;
-		const bool ok = UploadToDpsReport(pathW, resp, err);
+		if (gCancel.load())
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			for (auto& e : gLogs)
-			{
-				if (e.pathUtf8 != path)
-					continue;
-				if (ok)
-				{
-					e.state = ParseState::Uploaded;
-					ApplyDpsReportMeta(e, resp);
-					e.parseError.clear();
-				}
-				else
-				{
-					e.parseError = err;
-					if (e.state == ParseState::Uploading)
-						e.state = e.encounter.empty() ? ParseState::Pending : ParseState::Parsed;
-				}
-				break;
-			}
-			gUploadDone.fetch_add(1);
-			SaveCacheLocked();
-			gGen.fetch_add(1);
+			gUploadQueue.clear();
+			gUploadBusy.store(false);
+			std::snprintf(gStatus, sizeof(gStatus), "Upload cancelled (%d).", sessionDone);
+			return 0;
 		}
 	}
-	std::snprintf(gStatus, sizeof(gStatus), "Upload finished (%d).", gUploadDone.load());
-	gUploadBusy.store(false);
-	return 0;
 }
 
 DWORD WINAPI HydrateWorker(LPVOID)
@@ -201,7 +226,8 @@ void BeginUpload(const std::vector<std::string>& paths)
 			gUploadQueue.push_back(p);
 	}
 	if (gUploadBusy.exchange(true))
-		return;
+		return; /* worker already draining — will pick up queued paths */
+	gCancel.store(false);
 	std::snprintf(gStatus, sizeof(gStatus), "Uploading to dps.report…");
 	if (gUploadThread)
 	{
