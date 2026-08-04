@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.0.4` |
+| Addon revision (shipping) | `2.2.0.5` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2204` / `2204` / `s2204` / `c2204` |
+| Helper / home / sites / cheatsheets stamps | `2205` / `2205` / `s2205` / `c2205` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
@@ -253,5 +253,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.4 — Lady Features Hearts/HP Train, WP full GPS, marker soft-clear |
+| Last architecture sync | 2.2.0.5 — pad wrap / DPS filters; Lady+Tekkit merge; MC presets |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

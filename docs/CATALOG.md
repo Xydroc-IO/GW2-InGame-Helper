@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.2.0.4 · Total entries: **2,718**
+**Revision:** 2.2.0.5 · Total entries: **2,718**
 
 Source of truth: `data/sites.json` (schema v2 with `browsePath` / `browseSections`).
 At runtime the DLL extracts it to `addons/<addon-name>/sites.json` (`Sites::Init` / `SitesLoad.cpp`).

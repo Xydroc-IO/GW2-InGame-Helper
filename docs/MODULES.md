@@ -1,6 +1,6 @@
 # Module layout — ≤500-line convention
 
-**Revision:** 2.2.0.4 · **Audience:** contributors  
+**Revision:** 2.2.0.5 · **Audience:** contributors  
 **Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md) §7, [`CONTRIBUTING.md`](../CONTRIBUTING.md), [`WHITEPAPER.md`](WHITEPAPER.md) §18
 
 ---

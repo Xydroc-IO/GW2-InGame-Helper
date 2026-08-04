@@ -184,10 +184,12 @@ Filters | log list | Detail / Players / **KillProof** / … — drag the vertica
 splitter between the list and the right pane to resize (saved).
 
 **Search** matches filename, encounter name, or path (one field). Result / Mode /
-Time filters use **in-window radios**. **Group by encounter** is **on by default**:
+Time filters use **stacked radios**. **Group by encounter** is **on by default**:
 collapsible sections per boss with count / kills / best kill / last time; newest
 encounters first. Uncheck for a flat list. **Auto-parse after scan** (default on)
-runs Elite Insights when a Rescan finishes if .NET 8 + EI are ready.
+runs Elite Insights when a Rescan finishes if .NET 8 + EI are ready. The filters
+column sizes from label width (font scale aware) so search and checkbox text are
+not clipped; long labels wrap beside the box.
 
 Window size and position are remembered; first-open size uses most of the game
 client (~92%×84%, e.g. ~1760×900 on 1080p) so filters | list | Detail/KillProof

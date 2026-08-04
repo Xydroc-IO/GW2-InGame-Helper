@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.4
+# GW2 In-Game Helper v2.2.0.5
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,20 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.5
+
+- **UI pads:** Help text wraps to the real content width after side rails (no more
+  clipped Categories blurbs). Muted theme colors are brighter for readability.
+  Notes / Compass / Pathing Features·Route share the same wrap helpers.
+- **DPS Logs filters:** Column width fits checkbox / search labels at font scale;
+  group-by and auto-parse labels wrap instead of clipping; Open folder creates the
+  log directory when missing.
+- **Pathing enables:** Lady Features toggles merge with Tekkit/Hero (no wipe).
+  Map Completion presets strip only MC paths and restore non-MC Tekkit siblings
+  when a broad `tw_guides` root was on. MC preset helpers live in
+  `PathingTrailsPresetsMc.cpp`.
+- **Stamps:** Helper `2205` · homepage `2205` · sites `s2205` · cheatsheets `c2205`
 
 ## What’s new in 2.2.0.4
 
