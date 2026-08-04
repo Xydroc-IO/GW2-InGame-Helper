@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.3
+# GW2 In-Game Helper v2.2.0.4
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,19 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.4
+
+- **Lady Features (current map):** Barefoot / WP Only / With Mounts stay exclusive
+  map routes. New independent toggles: **Hearts** (`heartpath`) and **Hero Point
+  Train** (`legs.hp` trails + icons only). WP Only is waypoint trails only (no
+  markers). Barefoot keeps `bfs` shortcuts; With Mounts is mount route + mount
+  markers. Features focus mode no longer spills the rest of the Lady pack.
+- **World GPS:** Edition switches clear sticky ribbons; WP/HP/heart paths draw
+  full TacO sections (minimap-complete routes no longer clipped in-world).
+  Mount/`bfs` guide icons use a smaller avatar soft-clear so they stay visible
+  on the path. Load ranking prefers the active Features edition.
+- **Stamps:** Helper `2204` · homepage `2204` · sites `s2204` · cheatsheets `c2204`
 
 ## What’s new in 2.2.0.3
 

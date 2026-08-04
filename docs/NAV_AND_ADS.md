@@ -1,6 +1,6 @@
 # Navigation and advertisement policy (operational)
 
-**Revision:** 2.2.0.3 · **Audience:** kernel contributors  
+**Revision:** 2.2.0.4 · **Audience:** kernel contributors  
 **Companions:** [`WHITEPAPER.md`](WHITEPAPER.md) §8, [`KERNEL.md`](KERNEL.md) playbook D, [`COMPLIANCE.md`](COMPLIANCE.md), [`HelperNavPolicy.cpp`](../src/helper/HelperNavPolicy.cpp)
 
 This document is the **do-not-break** checklist for ads, Open Ext, and related navigation. Analytical rationale lives in the whitepaper.

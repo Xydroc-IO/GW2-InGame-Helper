@@ -1,6 +1,6 @@
 # Account — official API pads
 
-**Revision:** 2.2.0.3 · **Audience:** contributors and players configuring keys  
+**Revision:** 2.2.0.4 · **Audience:** contributors and players configuring keys  
 **Companions:** [`API_KEY.md`](API_KEY.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.1
 
 ---
