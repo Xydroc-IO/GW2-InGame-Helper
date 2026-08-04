@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.1
+# GW2 In-Game Helper v2.2.0.2
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,23 +32,28 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
-## What’s new in 2.2.0.1
+## What’s new in 2.2.0.2
 
 - **D3D world GPS:** In-world trails use Nexus SwapChain D3D11 upright ribbons
-  (Blish-style pack chevrons, fixed UV tile period, animspeed flow, soft player
-  clear). Markers stay on ImGui. No Present hooks. GPS width **1.0×** = pack
-  `trailScale` (Lady edition width bias removed). Along-path sampling, sticky
-  cache + hysteresis reduce missing/blinking ribbons; compass still ImGui 2D.
+  (Blish-style pack chevrons, fixed UV tile period, animspeed flow toward the
+  route, soft player clear). Markers stay on ImGui. No Present hooks. GPS width
+  **1.0×** = pack `trailScale` (Lady edition width bias removed). Along-path
+  sampling, sticky cache + hysteresis reduce missing/blinking ribbons; compass
+  still ImGui 2D.
+- **Code layout:** Prefer **≤500 lines** per `.cpp`. Pathing / account / browse /
+  logs / UI / entry / helper / browser megafiles split by concern (Shared +
+  focused TUs). Former `TekkitTrails*` modules renamed `PathingTrails*` (Tekkit
+  pack branding unchanged).
+- **Stamps:** Helper `2202` · homepage `2202` · sites `s2202` · cheatsheets `c2202`
+
+## What’s new in 2.2.0.1
+
 - **Lady Features:** Barefoot / With Mounts / WP Only are **mutually exclusive**
   map-completion editions (no stacking). Enabling an edition turns on Lady
   categories when needed. Defaults: Barefoot on, With Mounts off.
 - **World GPS (earlier 2.2.0.1):** Sticky nearby-cache and denser sampling for
   sparse / WP Only routes; Overview **Player clear** (default **1**, **0** = full
   path).
-- **Code layout:** Prefer **≤500 lines** per `.cpp`. Pathing / account / browse /
-  logs / UI / entry / helper / browser megafiles split by concern (Shared +
-  focused TUs). Former `TekkitTrails*` modules renamed `PathingTrails*` (Tekkit
-  pack branding unchanged).
 - **First run:** Empty `PathingEnabled` (legacy `TekkitEnabled=`) auto-enables
   Lady categories so trails appear without hunting Categories.
 - **UI scale:** Per-panel font scale from Options × window size (`UiScale`);

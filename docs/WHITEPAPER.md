@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.0.1 |
+| Revision described | 2.2.0.2 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -424,7 +424,7 @@ Memory-safety tooling (ASan, TSan) cannot fully validate this stack: the DLL loa
 
 ### 15.1 Maintainability trajectory
 
-As of revision 2.2.0.1 the Browse catalog is data-driven (`data/sites.json` → embedded and runtime extract via `SitesLoad`), and former monolithic translation units (`UI`, LogManager, Tekkit/Pathing, LivePanels, CheatSheets, WikiBrowser, helper) are split into focused units. This reduces merge-conflict surface for feature work but does **not** remove the need for restricted ownership of the CEF, IPC, and present path. See [`ARCHITECTURE.md`](ARCHITECTURE.md) §7 and [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+As of revision 2.2.0.2 the Browse catalog is data-driven (`data/sites.json` → embedded and runtime extract via `SitesLoad`), and former monolithic translation units (`UI`, LogManager, Tekkit/Pathing, LivePanels, CheatSheets, WikiBrowser, helper) are split into focused units (prefer ≤500 lines per `.cpp`). This reduces merge-conflict surface for feature work but does **not** remove the need for restricted ownership of the CEF, IPC, and present path. See [`ARCHITECTURE.md`](ARCHITECTURE.md) §7 and [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ---
 
@@ -449,11 +449,11 @@ IPC rigidity, CPU upload cost, and sandbox gaps are correctly noted by critics. 
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.2.0.1)
+## Appendix A — Quantitative constants (revision 2.2.0.2)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.2.0.1 |
+| Addon version | 2.2.0.2 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -466,7 +466,7 @@ IPC rigidity, CPU upload cost, and sandbox gaps are correctly noted by critics. 
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites stamps | 2201 / 2201 / s2201 |
+| Helper / home / sites stamps | 2202 / 2202 / s2202 |
 | OSR `device_scale_factor` | 1.0 (view-pixel mouse and paint) |
 | User-Agent product token | `GW2-InGame-Helper` |
 | Browse catalog source | `data/sites.json` (≈ 2718 entries) |
@@ -498,6 +498,6 @@ Application-layer modules live under `src/account/`, `src/pathing/`, `src/logs/`
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.1 — Lady Features, GPS width bias + world/screen avatar soft-hide, sticky GPS, UI scale, Nexus disable unload |
+| Last sync | 2.2.0.2 — D3D Blish-style world GPS (SwapChain ribbons), ≤500-line module layout, Pathing* rename |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy change; advertisement-routing change; module-boundary change |
-| How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.1, 2026. |
+| How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.2, 2026. |
