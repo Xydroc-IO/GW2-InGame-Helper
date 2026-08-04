@@ -25,7 +25,7 @@ void UnlocksPad::RenderContents()
 
 	if (!G::Gw2ApiKey[0])
 	{
-		ImGui::TextColored(HelperTheme::Warn, "No API key — add one in Nexus Options.");
+		ImGui::TextColored(HelperTheme::Warn, "No API key — add one in Settings (helper side rail).");
 		return;
 	}
 

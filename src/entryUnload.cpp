@@ -40,6 +40,7 @@ void AddonUnload()
 	G::ShowLogManager = false;
 	G::ShowPathingGuides = false;
 	G::ShowCompassPad = false;
+	G::ShowSettings = false;
 	G::ShowDirectionCompass = false;
 	G::ShowOptions = false;
 

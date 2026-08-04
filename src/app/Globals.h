@@ -84,6 +84,7 @@ namespace G
 	extern bool  ShowWorldTrails; /* in-world GPS breadcrumbs */
 	extern bool  ShowDirectionCompass; /* world N/E/S/W around the character */
 	extern bool  ShowCompassPad; /* ImGui Compass settings pad (sliders) */
+	extern bool  ShowSettings; /* ImGui Settings pad (ex-Nexus Options body) */
 	extern float DirectionLetterScale; /* × Nexus FontBig */
 	extern float DirectionWorldRadiusScale; /* × hitbox-based radius */
 	extern bool  HideWhenMapOpen; /* hide compass/world overlays while map open */
@@ -134,6 +135,7 @@ namespace G
 	extern PadGeom PadEvents;
 	extern PadGeom PadNotes;
 	extern PadGeom PadCompass;
+	extern PadGeom PadSettings;
 	extern PadGeom PadTp;
 	extern PadGeom PadLookup;
 	extern PadGeom PadWallet;

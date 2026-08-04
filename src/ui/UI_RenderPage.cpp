@@ -23,9 +23,9 @@
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
 #include "DirectionCompass.h"
+#include "SettingsPad.h"
 #include "Settings.h"
 #include "Sites.h"
-#include "SyncQr.h"
 #include "UiScale.h"
 #include "WikiBrowser.h"
 #include "WikiIpc.h"
@@ -282,9 +282,10 @@ namespace UIDetail
 	const bool logsHover = LogManagerPad::Render();
 	const bool tekkitHover = PathingGuidesPad::Render();
 	const bool compassHover = DirectionCompass::RenderPad();
+	const bool settingsHover = SettingsPad::Render();
 	CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 		walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
-		compassHover);
+		compassHover || settingsHover);
 	NotesPad::Save(false);
 	Settings::Save(false);
 

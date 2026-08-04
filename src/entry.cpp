@@ -52,6 +52,7 @@ namespace G
 	bool  ShowWorldTrails = true;
 	bool  ShowDirectionCompass = false;
 	bool  ShowCompassPad = false;
+	bool  ShowSettings = false;
 	float DirectionLetterScale = 1.f;
 	float DirectionWorldRadiusScale = 1.f;
 	bool  HideWhenMapOpen = true;
@@ -92,6 +93,7 @@ namespace G
 	PadGeom PadEvents{};
 	PadGeom PadNotes{};
 	PadGeom PadCompass{};
+	PadGeom PadSettings{};
 	PadGeom PadTp{};
 	PadGeom PadLookup{};
 	PadGeom PadWallet{};

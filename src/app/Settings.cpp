@@ -88,6 +88,7 @@ void Settings::Load()
 		/* Pad open flags are session-only — never restore open pads. */
 		else if (std::strcmp(key, "ShowNotes") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowCompassPad") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowSettings") == 0) { /* ignore — session only */ }
 		else if (std::strcmp(key, "ShowTpWatch") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowLookup") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowWallet") == 0) { /* ignore */ }
@@ -232,6 +233,8 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadNotes);
 		else if (std::strcmp(key, "PadCompass") == 0)
 			PadDock::ParseGeom(val, G::PadCompass);
+		else if (std::strcmp(key, "PadSettings") == 0)
+			PadDock::ParseGeom(val, G::PadSettings);
 		else if (std::strcmp(key, "PadTp") == 0)
 			PadDock::ParseGeom(val, G::PadTp);
 		else if (std::strcmp(key, "PadLookup") == 0)
@@ -411,6 +414,7 @@ void Settings::Save(bool force)
 	PadDock::WriteGeom(f, "PadEvents", G::PadEvents);
 	PadDock::WriteGeom(f, "PadNotes", G::PadNotes);
 	PadDock::WriteGeom(f, "PadCompass", G::PadCompass);
+	PadDock::WriteGeom(f, "PadSettings", G::PadSettings);
 	PadDock::WriteGeom(f, "PadTp", G::PadTp);
 	PadDock::WriteGeom(f, "PadLookup", G::PadLookup);
 	PadDock::WriteGeom(f, "PadWallet", G::PadWallet);

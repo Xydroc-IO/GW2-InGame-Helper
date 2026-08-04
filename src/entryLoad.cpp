@@ -63,6 +63,7 @@ void AddonLoad(AddonAPI_t* api)
 	G::ShowLogManager = false;
 	G::ShowPathingGuides = false;
 	G::ShowCompassPad = false;
+	G::ShowSettings = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
 	Sites::Init();

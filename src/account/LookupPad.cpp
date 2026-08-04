@@ -3,6 +3,7 @@
 #include "LookupPadInternal.h"
 
 #include "BrowserTabs.h"
+#include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PadDock.h"
@@ -184,8 +185,10 @@ bool LookupPad::Render()
 		ImVec2(PadDock::MaxW(520.f), PadDock::MaxH(280.f)));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
-		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.42f : 120.f;
-		const float fy = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.18f : 100.f;
+		const float fx = (io.DisplaySize.x > 100.f)
+			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.42f) : 120.f;
+		const float fy = (io.DisplaySize.y > 100.f)
+			? AspectLayout::PadFallbackY(io.DisplaySize.y, 0.18f) : 100.f;
 		PadDock::Place(G::PadLookup, gPlaceOnce, 440.f, 420.f, ImVec2(fx, fy), /*applySize=*/true);
 	}
 	if (!gPlaceOnce && G::PadLookup.w < 80.f)

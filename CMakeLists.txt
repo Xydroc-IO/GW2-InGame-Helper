@@ -58,6 +58,7 @@ add_library(GW2-InGame-Helper SHARED
   src/app/Settings.cpp
   src/app/AddonPaths.cpp
   src/app/MumbleIdentity.cpp
+  src/app/AspectLayout.cpp
   src/api/Gw2Http.cpp
   src/browse/Sites.cpp
   src/browse/SitesState.cpp
@@ -189,8 +190,8 @@ add_library(GW2-InGame-Helper SHARED
   src/ui/UI_BrowseHelpers.cpp
   src/ui/UI_BrowsePanel.cpp
   src/ui/UI_Options.cpp
-  src/ui/SyncQr.cpp
-  deps/qrcodegen/qrcodegen.c
+  src/ui/SettingsPad.cpp
+  src/ui/SettingsPadBody.cpp
   deps/imgui/imgui.cpp
   deps/imgui/imgui_draw.cpp
   deps/imgui/imgui_tables.cpp

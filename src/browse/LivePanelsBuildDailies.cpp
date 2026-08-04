@@ -22,12 +22,12 @@ std::string BuildDailiesHtml(const std::wstring& addonDir, const char* apiKey)
 		body += "<div class=\"keybox ok\" id=\"apikey\"><h3>API key connected</h3>"
 			"<p>Showing <strong>live</strong> Wizard’s Vault progress for your account "
 			"(same read-only endpoints Discord bots use). "
-			"Change or clear the key in <strong>Nexus Options → GW2 In-Game Helper</strong>, then Reload.</p></div>";
+			"Change or clear the key in <strong>Settings</strong> (helper side rail), then Reload.</p></div>";
 	}
 	else
 	{
 		body += "<div class=\"keybox warn\" id=\"apikey\"><h3>Add your GW2 API key for live Vault</h3>"
-			"<p>1. Open <strong>Nexus → Options → GW2 In-Game Helper</strong><br/>"
+			"<p>1. Open <strong>Settings</strong> from the helper side rail<br/>"
 			"2. Paste a key from <strong>account.arena.net/applications</strong> with "
 			"<strong>account</strong> + <strong>progression</strong><br/>"
 			"3. Come back here and hit <strong>Reload</strong><br/>"
@@ -193,7 +193,7 @@ std::string BuildDailiesHtml(const std::wstring& addonDir, const char* apiKey)
 		"Dailies &amp; Wizard’s Vault",
 		hasKey
 			? "Live Vault progress from your API key, plus crafting and world-boss checklists."
-			: "Add your API key in Nexus Options for live Vault — crafting and bosses work now.",
+			: "Add your API key in Settings (helper side rail) for live Vault — crafting and bosses work now.",
 		"<a href=\"#apikey\">API key</a>\n<a href=\"#vault-daily\">Vault</a>\n"
 		"<a href=\"#craft\">Crafting</a>\n<a href=\"#bosses\">Bosses</a>\n<a href=\"#links\">Links</a>",
 		body);

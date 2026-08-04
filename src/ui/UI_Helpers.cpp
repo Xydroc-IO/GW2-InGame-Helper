@@ -25,7 +25,7 @@
 #include "DirectionCompass.h"
 #include "Settings.h"
 #include "Sites.h"
-#include "SyncQr.h"
+#include "AspectLayout.h"
 #include "UiScale.h"
 #include "WikiBrowser.h"
 #include "WikiIpc.h"
@@ -79,8 +79,9 @@ namespace UIDetail
 		if (dw < 100.f || dh < 100.f)
 			return;
 
-		const float maxW = Clampf(dw * 0.96f, 320.f, dw);
-		const float maxH = Clampf(dh * 0.96f, 240.f, dh);
+		const AspectLayout::HelperGeom lim = AspectLayout::DefaultHelper(dw, dh);
+		const float maxW = Clampf(lim.maxW, 320.f, dw * 0.98f);
+		const float maxH = Clampf(lim.maxH, 240.f, dh * 0.98f);
 		bool changed = false;
 		if (G::WindowWidth > maxW + 0.5f || G::WindowWidth < 320.f)
 		{
@@ -95,8 +96,8 @@ namespace UIDetail
 
 		if (HelperGeomOffscreen(dw, dh) || gUi.forceHelperOnScreen)
 		{
-			G::WindowPosX = Clampf(dw * 0.08f, 24.f, dw - 120.f);
-			G::WindowPosY = Clampf(dh * 0.10f, 24.f, dh - 120.f);
+			G::WindowPosX = lim.posX;
+			G::WindowPosY = lim.posY;
 			G::HasSavedPos = true;
 			gUi.forceHelperOnScreen = true;
 			changed = true;
@@ -240,7 +241,7 @@ namespace UIDetail
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowPathingGuides || G::ShowCompassPad;
+			G::ShowPathingGuides || G::ShowCompassPad || G::ShowSettings;
 	}
 
 	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves

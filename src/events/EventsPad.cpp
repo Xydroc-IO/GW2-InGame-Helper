@@ -2,6 +2,7 @@
 #include "EventsPadInternal.h"
 
 #include "EventsData.h"
+#include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PadDock.h"
@@ -42,8 +43,10 @@ bool EventsPad::Render()
 	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 300.f), ImVec2(PadDock::MaxW(620.f), maxH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
-		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.46f : 160.f;
-		const float fy = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.10f : 80.f;
+		const float fx = (io.DisplaySize.x > 100.f)
+			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.46f) : 160.f;
+		const float fy = (io.DisplaySize.y > 100.f)
+			? AspectLayout::PadFallbackY(io.DisplaySize.y, 0.1f) : 80.f;
 		PadDock::Place(G::PadEvents, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadEvents.w < 80.f)

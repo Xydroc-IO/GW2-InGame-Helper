@@ -2,6 +2,7 @@
 #include "UI_BrowseInternal.h"
 
 #include "UI.h"
+#include "AspectLayout.h"
 #include "BrowserTabs.h"
 #include "Globals.h"
 #include "HelperTheme.h"
@@ -240,7 +241,7 @@ void DrawFavoriteStar(const char* siteId)
 		Sites::ToggleFavorite(siteId);
 }
 
-/* Browse popup sized from the display — comfortable on 1080p, a bit roomier on 4K. */
+/* Browse popup sized from the display — aspect-aware (16:9 / 21:9 / 32:9). */
 BrowsePopupLayout CalcBrowsePopupLayout(bool withBanner, bool pickDefaultSite)
 {
 	const ImGuiIO& io = ImGui::GetIO();
@@ -260,12 +261,11 @@ BrowsePopupLayout CalcBrowsePopupLayout(bool withBanner, bool pickDefaultSite)
 		sCacheBanner == withBanner && sCacheDefault == pickDefaultSite)
 		return sCache;
 
-	/* Compact on 1080p (~540×390), a bit wider on 1440p/4K — never half the screen. */
-	const float width = Clampf(dispW * 0.28f, 480.f, 680.f);
-	const float maxOuter = Clampf(dispH * 0.36f, 300.f, 480.f);
-	const float listMax = pickDefaultSite
-		? Clampf(dispH * 0.20f, 160.f, 260.f)
-		: Clampf(dispH * 0.24f, 180.f, 300.f);
+	const AspectLayout::BrowsePopupSize spec =
+		AspectLayout::DefaultBrowsePopup(dispW, dispH);
+	const float width = spec.width;
+	const float maxOuter = spec.maxOuter;
+	const float listMax = pickDefaultSite ? spec.listMaxDefault : spec.listMaxPicker;
 
 	float chrome = st.WindowPadding.y * 2.f;
 	if (withBanner)
@@ -283,7 +283,7 @@ BrowsePopupLayout CalcBrowsePopupLayout(bool withBanner, bool pickDefaultSite)
 	lay.width = width;
 	lay.height = chrome + listH;
 	lay.listH = listH;
-	lay.leftW = Clampf(width * 0.26f, 140.f, 180.f);
+	lay.leftW = Clampf(width * 0.26f, spec.leftWMin, spec.leftWMax);
 
 	sCacheDispW = dispW;
 	sCacheDispH = dispH;

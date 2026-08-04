@@ -1,6 +1,7 @@
 #include "AccountPad.h"
 
 #include "CraftingData.h"
+#include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "LookupPad.h"
@@ -63,7 +64,7 @@ namespace
 			ImGui::TextColored(HelperTheme::Warn, "No API key yet");
 			ImGui::PushTextWrapPos(0.f);
 			ImGui::TextWrapped(
-				"Add one under Nexus → Options → GW2 In-Game Helper. "
+				"Add one under Settings (helper side rail). "
 				"Stash / Vault / delivery / unlocks need it; item lookup & TP prices work without.");
 			ImGui::PopTextWrapPos();
 		}
@@ -149,8 +150,10 @@ bool AccountPad::Render()
 	ImGui::SetNextWindowSizeConstraints(ImVec2(440.f, 360.f), ImVec2(PadDock::MaxW(720.f), maxH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
-		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.34f : 100.f;
-		const float fy = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.10f : 70.f;
+		const float fx = (io.DisplaySize.x > 100.f)
+			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.34f) : 100.f;
+		const float fy = (io.DisplaySize.y > 100.f)
+			? AspectLayout::PadFallbackY(io.DisplaySize.y, 0.1f) : 70.f;
 		PadDock::Place(G::PadAccount, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadAccount.w < 80.f)

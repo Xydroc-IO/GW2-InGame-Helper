@@ -23,9 +23,9 @@
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
 #include "DirectionCompass.h"
+#include "SettingsPad.h"
 #include "Settings.h"
 #include "Sites.h"
-#include "SyncQr.h"
 #include "UiScale.h"
 #include "WikiBrowser.h"
 #include "WikiIpc.h"
@@ -248,14 +248,15 @@ namespace UIDetail
 	{
 		const SiteDef& active = Sites::Active();
 		static const char* kRailLabels[] = {
-			"Browse", "Account", "Pathing", "Events", "DPS Logs", "Notes", "Compass"
+			"Browse", "Account", "Pathing", "Events", "DPS Logs", "Notes", "Compass", "Settings"
 		};
-		const float railW = UiScale::FitSideRailWidth(kRailLabels, 7);
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, 8);
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 8.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 5.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 6.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
+		/* Allow scroll if the rail is taller than the helper — Settings must stay reachable. */
 		ImGui::BeginChild("###gw2igh_helper_rail", ImVec2(railW, 0.f), true,
-			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened);
+			ImGuiWindowFlags_NavFlattened);
 
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false))
 			UI_Browse_OnMainButtonClicked();
@@ -349,6 +350,22 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Direction compass — enable + letter size + radius");
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		if (PadNav::SideToggle("Settings###gw2igh_settings", G::ShowSettings))
+		{
+			if (G::ShowSettings)
+			{
+				G::ShowSettings = false;
+				Settings::SetDirty();
+			}
+			else
+				SettingsPad::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Settings — opacity, font, API key, warm CEF");
 
 		ImGui::EndChild();
 		ImGui::PopStyleVar(2);

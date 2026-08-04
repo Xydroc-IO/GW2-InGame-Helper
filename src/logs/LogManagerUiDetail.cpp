@@ -53,6 +53,8 @@ namespace LogManagerDetail
 		ImGui::SameLine();
 		if (ImGui::Button("Upload###gw2igh_lm_upsel"))
 			BeginUpload({sel->pathUtf8});
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Upload this EVTC to dps.report (max 48 MB).");
 		ImGui::SameLine();
 		if (ImGui::Button("Folder###gw2igh_lm_folder"))
 			OpenFolderFor(sel->pathW);

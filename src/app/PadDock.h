@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AspectLayout.h"
 #include "Globals.h"
 
 #include "imgui/imgui.h"
@@ -49,13 +50,19 @@ namespace PadDock
 		return g.x >= 0.f && g.y >= 0.f;
 	}
 
-	/* Resize ceilings — prefer most of the display so users can grow pads freely. */
+	/* Resize ceilings — prefer most of the display so users can grow pads freely.
+	   On 32:9, still allow wide pads but keep a sane floor. */
 	inline float MaxW(float floorPx = 640.f)
 	{
 		const ImGuiIO& io = ImGui::GetIO();
 		if (io.DisplaySize.x <= 100.f)
 			return floorPx > 1200.f ? floorPx : 1200.f;
-		const float fromDisp = io.DisplaySize.x * 0.94f;
+		const AspectLayout::HelperGeom lim =
+			AspectLayout::DefaultHelper(io.DisplaySize.x, io.DisplaySize.y);
+		float fromDisp = io.DisplaySize.x * 0.94f;
+		if (AspectLayout::Classify(io.DisplaySize.x, io.DisplaySize.y) ==
+			AspectLayout::Class::Super_32_9)
+			fromDisp = std::fmin(fromDisp, lim.maxW * 1.35f);
 		return fromDisp > floorPx ? fromDisp : floorPx;
 	}
 
@@ -97,8 +104,8 @@ namespace PadDock
 
 		if (!G::ShowWiki || G::WindowWidth < 80.f)
 		{
-			const float x = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.55f : 80.f;
-			const float y = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.12f : 80.f;
+			const float x = AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.55f);
+			const float y = AspectLayout::PadFallbackY(io.DisplaySize.y, 0.12f);
 			return ClampPos(x, y, padW);
 		}
 

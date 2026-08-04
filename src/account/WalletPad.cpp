@@ -3,6 +3,7 @@
 #include "WalletShared.h"
 
 #include "AddonPaths.h"
+#include "AspectLayout.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "HelperTheme.h"
@@ -287,8 +288,10 @@ bool WalletPad::Render()
 	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(PadDock::MaxW(560.f), maxH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
-		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.52f : 160.f;
-		const float fy = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.14f : 80.f;
+		const float fx = (io.DisplaySize.x > 100.f)
+			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.52f) : 160.f;
+		const float fy = (io.DisplaySize.y > 100.f)
+			? AspectLayout::PadFallbackY(io.DisplaySize.y, 0.14f) : 80.f;
 		PadDock::Place(G::PadWallet, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadWallet.w < 80.f)

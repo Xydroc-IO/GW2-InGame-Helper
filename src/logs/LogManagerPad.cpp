@@ -5,6 +5,7 @@
 #include "LogManagerEi.h"
 
 #include "EiRuntime.h"
+#include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "Settings.h"
@@ -50,11 +51,16 @@ bool LogManagerPad::Render()
 	{
 		float winW = G::LogManagerWinW;
 		float winH = G::LogManagerWinH;
-		/* First open (no saved pos): nearly full client — screenshot three-pane fit. */
+		/* First open (no saved pos): nearly full client — screenshot three-pane fit.
+		   On 32:9 cap width so the pad does not span the entire desk. */
 		if (G::LogManagerWinX < 0.f || G::LogManagerWinY < 0.f)
 		{
 			winW = displayW * 0.92f;
 			winH = displayH * 0.84f;
+			if (AspectLayout::Classify(displayW, displayH) == AspectLayout::Class::Super_32_9)
+				winW = displayW * 0.48f;
+			else if (AspectLayout::Classify(displayW, displayH) == AspectLayout::Class::Ultrawide_21_9)
+				winW = displayW * 0.72f;
 			if (winW < 1100.f && displayW >= 1200.f) winW = 1100.f;
 			if (winH < 620.f && displayH >= 720.f) winH = 620.f;
 			if (winW > 2200.f) winW = 2200.f;

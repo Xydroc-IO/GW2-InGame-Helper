@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AspectLayout.h"
 #include "Globals.h"
 #include "Settings.h"
 
@@ -13,7 +14,9 @@
 
    Effective scale = FontScale (Options slider) × window factor (vs design size).
    Window factor tracks the live window size so content grows/shrinks as the
-   user resizes, clamped so tiny windows stay readable. */
+   user resizes, clamped so tiny windows stay readable.
+
+   Display / aspect defaults (16:9 · 21:9 · 32:9) live in AspectLayout. */
 namespace UiScale
 {
 	inline float Clampf(float v, float lo, float hi)
@@ -31,7 +34,7 @@ namespace UiScale
 			return 1.f;
 		const float sx = sz.x / refW;
 		const float sy = sz.y / refH;
-		return Clampf(std::sqrt(sx * sy), 0.85f, 1.35f);
+		return Clampf(std::sqrt(sx * sy), 0.82f, 1.42f);
 	}
 
 	/* FontScale slider × window factor. Call after Begin(). */
@@ -41,13 +44,10 @@ namespace UiScale
 		return Clampf(base * WindowFactor(refW, refH), 0.75f, 2.f);
 	}
 
-	/* Mild opt-in suggestion from display height only (no Nexus Scaling). */
-	inline float Suggest(float /*displayW*/, float displayH)
+	/* Opt-in suggestion — height + 16:9/21:9/32:9 awareness. */
+	inline float Suggest(float displayW, float displayH)
 	{
-		float s = 1.f;
-		if (displayH > 1600.f)
-			s = Clampf(displayH / 1440.f, 1.f, 1.25f);
-		return s;
+		return AspectLayout::SuggestFontScale(displayW, displayH);
 	}
 
 	inline void TickAuto()

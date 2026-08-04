@@ -25,7 +25,6 @@
 #include "DirectionCompass.h"
 #include "Settings.h"
 #include "Sites.h"
-#include "SyncQr.h"
 #include "UiScale.h"
 #include "WikiBrowser.h"
 #include "WikiIpc.h"

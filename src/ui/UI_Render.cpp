@@ -23,9 +23,10 @@
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
 #include "DirectionCompass.h"
+#include "SettingsPad.h"
 #include "Settings.h"
 #include "Sites.h"
-#include "SyncQr.h"
+#include "AspectLayout.h"
 #include "UiScale.h"
 #include "WikiBrowser.h"
 #include "WikiIpc.h"
@@ -108,9 +109,10 @@ void UI_Render()
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
+		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
-			compassHover);
+			compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
@@ -128,9 +130,17 @@ void UI_Render()
 		const ImGuiIO& dio = ImGui::GetIO();
 		if (dio.DisplaySize.x > 100.f && dio.DisplaySize.y > 100.f)
 		{
-			/* First open: ~32% of the display (clamped so it stays usable). */
-			G::WindowWidth = Clampf(dio.DisplaySize.x * 0.32f, 720.f, 1680.f);
-			G::WindowHeight = Clampf(dio.DisplaySize.y * 0.36f, 480.f, 1100.f);
+			/* First open: aspect-aware defaults (16:9 / 21:9 / 32:9). */
+			const AspectLayout::HelperGeom def =
+				AspectLayout::DefaultHelper(dio.DisplaySize.x, dio.DisplaySize.y);
+			G::WindowWidth = def.width;
+			G::WindowHeight = def.height;
+			if (!G::HasSavedPos)
+			{
+				G::WindowPosX = def.posX;
+				G::WindowPosY = def.posY;
+				G::HasSavedPos = true;
+			}
 			G::HasSavedSize = true; /* apply once — ImGui FirstUseEver + persist */
 			Settings::SetDirty();
 		}
@@ -139,9 +149,11 @@ void UI_Render()
 	const ImGuiIO& sizeIo = ImGui::GetIO();
 	if (sizeIo.DisplaySize.x > 100.f && sizeIo.DisplaySize.y > 100.f)
 	{
+		const AspectLayout::HelperGeom lim =
+			AspectLayout::DefaultHelper(sizeIo.DisplaySize.x, sizeIo.DisplaySize.y);
 		ImGui::SetNextWindowSizeConstraints(
 			ImVec2(320.f, 240.f),
-			ImVec2(sizeIo.DisplaySize.x * 0.96f, sizeIo.DisplaySize.y * 0.96f));
+			ImVec2(lim.maxW, lim.maxH));
 	}
 	const ImGuiCond geomCond = gUi.forceHelperOnScreen ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
 	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), geomCond);
@@ -194,9 +206,10 @@ void UI_Render()
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
+		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
-			compassHover);
+			compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
@@ -209,7 +222,9 @@ void UI_Render()
 		UI_ReleaseGameInput();
 	}
 
-	ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(1100.f, 760.f));
+	ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(
+		(G::WindowWidth > 200.f) ? G::WindowWidth : 1100.f,
+		(G::WindowHeight > 160.f) ? G::WindowHeight : 760.f));
 
 	BrowserTabs::EnsureDefault();
 	BrowserTabs::Tick();

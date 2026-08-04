@@ -35,7 +35,7 @@ namespace LogManagerDetail
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Parsing %d / %d…",
 				gParseDone.load(), gParseTotal.load());
 		else if (gUploadBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Uploading %d / %d…",
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "dps.report %d / %d…",
 				gUploadDone.load(), gUploadTotal.load());
 		else if (gHydrateBusy.load())
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
@@ -73,6 +73,10 @@ namespace LogManagerDetail
 				paths.push_back(e->pathUtf8);
 			BeginUpload(paths);
 		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"POST EVTC to https://dps.report/uploadContent (max 48 MB). "
+				"Permalink is saved on the log; open it from the detail pane.");
 		ImGui::SameLine(0.f, 4.f);
 
 		if (gHydrateBusy.load())

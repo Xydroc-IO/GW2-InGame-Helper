@@ -172,7 +172,7 @@ namespace WalletDetail
 		{
 			Snapshot s;
 			s.noKey = true;
-			s.status = "Add an API key in Nexus Options.";
+			s.status = "Add an API key in Settings (helper side rail).";
 			std::lock_guard<std::mutex> lock(gMu);
 			gSnap = std::move(s);
 			gGen.fetch_add(1);

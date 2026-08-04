@@ -86,7 +86,7 @@ void AppendVaultObjectives(std::string& body, const char* sectionId, const char*
 	body += "</h2><p>";
 	body += accountScoped
 		? "Live account progress from your API key — tick extras locally if you want."
-		: "Catalog checklist (add an API key in Options for live personal progress).";
+		: "Catalog checklist (add an API key in Settings for live personal progress).";
 	body += "</p></div><div class=\"body\">";
 
 	size_t pos = json.find('[');
@@ -94,7 +94,7 @@ void AppendVaultObjectives(std::string& body, const char* sectionId, const char*
 	{
 		body += "<p class=\"note\">No objectives in response.";
 		if (accountScoped)
-			body += " Check API key scopes (<strong>account</strong> + <strong>progression</strong>) in Nexus Options.";
+			body += " Check API key scopes (<strong>account</strong> + <strong>progression</strong>) in Settings.";
 		body += "</p></div></section>\n";
 		return;
 	}
@@ -194,7 +194,7 @@ std::string BuildTpHtml(const char* /*tpWatchIds*/, bool /*fetchApi*/)
 		"<p>Use the ImGui panel — it is instant and reliable</p></div><div class=\"body\">";
 	body += "<p class=\"note\">Your watchlist is managed in the <strong>TP Watchlist</strong> window "
 		"(opens automatically from Browse → Live → TP Watchlist, or use the <strong>TP</strong> "
-		"toolbar button / Nexus Options).</p>";
+		"toolbar button).</p>";
 	body += "<ul class=\"rows\">";
 	body += "<li><span class=\"t\">Add any item</span><span class=\"s\">"
 		"In GW2: Shift+click an item → copy <code>[&…]</code> → paste in the TP window → Add. "

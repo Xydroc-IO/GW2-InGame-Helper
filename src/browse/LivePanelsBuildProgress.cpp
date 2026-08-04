@@ -118,12 +118,12 @@ std::string BuildProgressHtml(const std::wstring& addonDir, const char* apiKey)
 		body += "<div class=\"keybox warn\"><h3>Need more API scopes</h3>"
 			"<p>Legendary progress needs <strong>account</strong> + <strong>inventories</strong> + "
 			"<strong>unlocks</strong>. Characters need <strong>characters</strong>. "
-			"Vault still uses <strong>progression</strong>. Create a key with those scopes in Options.</p></div>";
+			"Vault still uses <strong>progression</strong>. Create a key with those scopes in Settings (helper side rail).</p></div>";
 	}
 	else
 	{
 		body += "<div class=\"keybox warn\"><h3>Public catalog</h3>"
-			"<p>Showing the legendary armory list. Paste an API key in Nexus Options "
+			"<p>Showing the legendary armory list. Paste an API key in Settings (helper side rail) "
 			"(scopes: account, inventories, unlocks, characters) to fill unlocks + roster.</p></div>";
 	}
 

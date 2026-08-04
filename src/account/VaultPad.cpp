@@ -2,6 +2,7 @@
 
 #include "VaultPadInternal.h"
 
+#include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PadDock.h"
@@ -181,7 +182,7 @@ void VaultPad::RenderContents()
 	if (!snap.hasKey)
 	{
 		ImGui::PushTextWrapPos(0.f);
-		ImGui::TextWrapped("Add an API key in Nexus Options (account + progression) for live personal Vault.");
+		ImGui::TextWrapped("Add an API key in Settings (helper side rail; account + progression) for live personal Vault.");
 		ImGui::PopTextWrapPos();
 		DrawObjList("Easy Vault preview", snap.easyPreview);
 	}
@@ -211,8 +212,10 @@ bool VaultPad::Render()
 	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(PadDock::MaxW(560.f), maxH));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
-		const float fx = (io.DisplaySize.x > 100.f) ? io.DisplaySize.x * 0.38f : 100.f;
-		const float fy = (io.DisplaySize.y > 100.f) ? io.DisplaySize.y * 0.12f : 80.f;
+		const float fx = (io.DisplaySize.x > 100.f)
+			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.38f) : 100.f;
+		const float fy = (io.DisplaySize.y > 100.f)
+			? AspectLayout::PadFallbackY(io.DisplaySize.y, 0.12f) : 80.f;
 		PadDock::Place(G::PadVault, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadVault.w < 80.f)
