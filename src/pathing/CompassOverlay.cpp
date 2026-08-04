@@ -319,7 +319,7 @@ void CompassOverlay::Render()
 
 		/* Blish: drawScale = 1/scale for zoom; keep readable on small compass. */
 		float sz = m.mapDisplaySize * m.iconSize / std::max(1.f, scale * 0.15f);
-		sz *= std::clamp(G::WorldMarkerScale, 0.5f, 3.f);
+		sz *= std::clamp(G::CompassMarkerScale, 0.5f, 3.f);
 		sz = std::clamp(sz, 4.f, 28.f);
 
 		Texture_t* tex = nullptr;

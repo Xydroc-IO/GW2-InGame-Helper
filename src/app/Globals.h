@@ -95,7 +95,8 @@ namespace G
 	extern float WorldTrailWidth;
 	/* Soft fade / clear size around the player (0 = full path, no hole). */
 	extern float WorldTrailPlayerClear;
-	extern float WorldMarkerScale; /* × pack iconSize; default 2 = comfortable size */
+	extern float WorldMarkerScale; /* × pack iconSize in world GPS; default 2 */
+	extern float CompassMarkerScale; /* × pack iconSize on stock compass; default 1 */
 	extern float Opacity;
 	extern float FontScale;
 	extern bool  FontScaleAuto; /* true: derive FontScale from display / Nexus Scaling */
