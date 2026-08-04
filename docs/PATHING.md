@@ -116,6 +116,10 @@ Independent systems; both may use Mumble pose read-only.
 - Base half-width \(20''\) (`WorldGpsMath::kBlishHalfM`) × soft-clamped pack `trailScale` × user **GPS width** (default **1.0×** = authored scale; Lady width-bias removed).
 - Fixed UV tile period; animspeed flow **forward** along route (heart trails use the same scroll + pack yellow tint; **1.5×** ribbon width).
 - Soft **Player clear** (default 1; **0** = full path).
+- **GPS range (m)** (default 120; Overview slider 40–200) is the real draw/activation
+  radius — not floored to hundreds of meters.
+- **Marker size** (`WorldMarkerScale`, default **2.0×**) scales pack icons in the world
+  and on the compass.
 - Along-path sampling; sticky cache + hysteresis reduce blink / incomplete sparse routes (match by geometry; prefer full TacO sections for nearby hearts).
 - Trail textures (including `Line - Heart`) are prioritized in the icon queue; hearts without a loaded texture are skipped (no solid-color fallback).
 

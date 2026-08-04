@@ -38,6 +38,11 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   `std::string_view` and a C++17 `Bytes` span stand-in. LivePanels, Unlocks,
   Inventory, Vault, and waypoints floor parsing no longer call `atoi`/`atoll`/`strtod`
   on raw `c_str()` offsets. Host smoke: `make test-json-view` (wired into CI).
+- **World GPS range:** Overview **GPS range (m)** now drives draw/activation distance
+  (removed ~480m / ~320m floors that made the slider look broken). Shrinking range
+  refreshes the nearby cache immediately.
+- **Marker size:** Overview **Marker size** slider (`WorldMarkerScale`, default **2.0×**)
+  scales pack icons in the world and on the compass.
 - **Stamps:** Helper `2207` · homepage `2207` · sites `s2207` · cheatsheets `c2207`
 
 ## What’s new in 2.2.0.6

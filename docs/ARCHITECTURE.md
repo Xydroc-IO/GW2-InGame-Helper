@@ -253,5 +253,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.7 — JsonView bounds-checked API scrapers |
+| Last architecture sync | 2.2.0.7 — JsonView; World GPS range + marker size sliders |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |
