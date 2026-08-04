@@ -331,10 +331,10 @@ void PathingTrails::EnableAllLadyCategories()
 
 void PathingTrails::NotifyVisibilityFilterChanged()
 {
-	/* Draw-time only — editions are already loaded (category ranking). Forcing a
-	   pack reload here blanked trails while Barefoot/WP should have appeared. */
 	gContentRevision.fetch_add(1, std::memory_order_release);
 	gMenuRevision.fetch_add(1, std::memory_order_release);
+	/* Re-rank pack load so WP / Hearts / HP train are not starved by Barefoot fill. */
+	gForceReload.store(true, std::memory_order_release);
 }
 
 void PathingTrails::EnableAllHeroCategories()

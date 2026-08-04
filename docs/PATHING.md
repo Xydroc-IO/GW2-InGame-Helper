@@ -31,9 +31,24 @@ Repo notes: [`pathing/README.md`](../pathing/README.md)
 
 ## 3. Features and categories
 
-### Lady Features (mutually exclusive)
+### Lady Features (current map)
 
-Barefoot / With Mounts / WP Only — one edition at a time. Enabling an edition turns on Lady categories when needed. Default: **Barefoot**. Empty first-run `PathingEnabled` auto-enables Lady categories.
+**Map routes (one at a time):**
+
+| Toggle | Shows |
+|--------|--------|
+| **Barefoot** | Foot routes + Barefoot Shortcut (`bfs`) trails/markers |
+| **With Mounts** | Mount route + mount-guide markers |
+| **WP Only** | Waypoint trails only (no markers/icons) |
+
+**Extras (independent):**
+
+| Toggle | Shows |
+|--------|--------|
+| **Hearts** | Heart trails (`heartpath`) on this map |
+| **Hero Point Train** | Only `legs.hp.*` train trails + icons on this map |
+
+Enabling any of these turns on Lady categories when needed. Default: **Barefoot**. Empty first-run `PathingEnabled` auto-enables Lady categories.
 
 ### Map Completion presets
 

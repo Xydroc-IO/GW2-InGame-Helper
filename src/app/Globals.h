@@ -76,10 +76,12 @@ namespace G
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
-	/* Lady Elyssa route filters — mutually exclusive map-completion editions. */
-	extern bool  LadyBarefoot;   /* foot routes + bfs shortcuts */
-	extern bool  LadyWpOnly;     /* WP Only routes alone */
-	extern bool  LadyWithMounts; /* mount-optimized routes + mount icons */
+	/* Lady Elyssa Features — map-completion editions are exclusive; Hearts / HP Train are independent. */
+	extern bool  LadyBarefoot;   /* foot routes + bfs shortcuts (current map) */
+	extern bool  LadyWpOnly;     /* waypoint trails (current map) */
+	extern bool  LadyWithMounts; /* mount route + mount-guide markers (current map) */
+	extern bool  LadyHearts;     /* heartpath trails (current map) */
+	extern bool  LadyHeroPointTrain; /* legs.hp.* hero point train (current map) */
 	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
 	extern bool  ShowWorldTrails; /* in-world GPS breadcrumbs */
 	extern bool  ShowDirectionCompass; /* world N/E/S/W around the character */

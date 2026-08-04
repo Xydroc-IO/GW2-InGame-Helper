@@ -118,7 +118,7 @@ void WorldOverlay::Render()
 	ImDrawList* dl = ImGui::GetBackgroundDrawList();
 	PathingTrails::BeginFrame();
 
-	const float maxDist = G::LadyWpOnly
+	const float maxDist = (G::LadyWpOnly || G::LadyHeroPointTrain)
 		? std::clamp(std::max(G::WorldTrailMaxDist, 200.f), 160.f, 320.f)
 		: std::clamp(G::WorldTrailMaxDist, 40.f, 220.f);
 	const float thickness = std::clamp(G::WorldTrailWidth, 0.5f, 4.0f);
@@ -148,9 +148,18 @@ void WorldOverlay::Render()
 	const float mdy = ay - sCacheAy;
 	const float mdz = az - sCacheAz;
 	/* Refresh less often — frequent rebuilds made heart trails blink out. */
-	const float refreshM = G::LadyWpOnly ? 8.f : 12.f;
+	const float refreshM = (G::LadyWpOnly || G::LadyHeroPointTrain) ? 8.f : 12.f;
 	const bool movedFar = (mdx * mdx + mdy * mdy + mdz * mdz) > (refreshM * refreshM);
-	const bool needRefresh = (sGpsContent != content) || sNearCache.empty() || movedFar;
+	const bool contentChanged = (sGpsContent != content);
+	const bool needRefresh = contentChanged || sNearCache.empty() || movedFar;
+
+	/* Features Barefoot/WP/Mounts bump ContentRevision — drop prior edition
+	   immediately so a mutex miss cannot keep drawing the old ribbons. */
+	if (contentChanged)
+	{
+		sNearCache.clear();
+		sMarkerCache.clear();
+	}
 
 	if (G::ShowWorldTrails && needRefresh)
 	{
@@ -161,88 +170,96 @@ void WorldOverlay::Render()
 			const bool got = !snips.empty() || !marks.empty();
 			if (got)
 			{
-				/* Sticky merge — keep prior ribbons that briefly missed a sample
-				   so trails do not blink disappear/reappear at range edges. */
-				const float stickM = std::max(maxDist * 4.0f, 560.f);
-				const float stick2 = stickM * stickM;
-				auto nearD2 = [&](const PathingTrails::WorldSnippet& s) -> float {
-					float best = 1.0e30f;
-					const size_t n = s.points.size();
-					const size_t step = std::max<size_t>(1, n / 48);
-					for (size_t i = 0; i < n; i += step)
-					{
-						const auto& p = s.points[i];
-						if (!std::isfinite(p.x))
-							continue;
-						const float dx = ax - p.x;
-						const float dy = ay - p.y;
-						const float dz = az - p.z;
-						const float d = dx * dx + dy * dy * 0.25f + dz * dz;
-						if (d < best)
-							best = d;
-					}
-					return best;
-				};
-				/* Many Lady heart .trl share one type label — match by geometry,
-				   not label alone (label-only merge dropped neighboring hearts). */
-				auto sameTrail = [](const PathingTrails::WorldSnippet& a,
-					const PathingTrails::WorldSnippet& b) -> bool {
-					if (a.label[0] && b.label[0] &&
-						std::strncmp(a.label, b.label, sizeof(a.label)) != 0)
-						return false;
-					if (a.points.size() < 2 || b.points.size() < 2)
-						return a.color == b.color &&
-							std::strncmp(a.textureId, b.textureId, sizeof(a.textureId)) == 0;
-					auto d2 = [](const PathingTrails::WorldPoint& p,
-						const PathingTrails::WorldPoint& q) {
-						const float dx = p.x - q.x;
-						const float dy = p.y - q.y;
-						const float dz = p.z - q.z;
-						return dx * dx + dy * dy * 0.25f + dz * dz;
-					};
-					constexpr float kHit = 16.f * 16.f;
-					if (d2(a.points.front(), b.points.front()) <= kHit)
-						return true;
-					if (d2(a.points.back(), b.points.back()) <= kHit)
-						return true;
-					const auto& mid = a.points[a.points.size() / 2];
-					const size_t step = std::max<size_t>(1, b.points.size() / 20);
-					for (size_t i = 0; i < b.points.size(); i += step)
-					{
-						if (d2(mid, b.points[i]) <= kHit)
-							return true;
-					}
-					return false;
-				};
-
-				std::vector<PathingTrails::WorldSnippet> merged = std::move(snips);
-				for (const auto& old : sNearCache)
+				/* Sticky merge only for movement refreshes — never across
+				   Features edition changes (cache already cleared above). */
+				if (sNearCache.empty())
 				{
-					bool replaced = false;
-					for (const auto& n : merged)
-					{
-						if (sameTrail(old, n))
-						{
-							replaced = true;
-							break;
-						}
-					}
-					if (replaced)
-						continue;
-					if (nearD2(old) <= stick2)
-						merged.push_back(old);
-					if (merged.size() >= 40)
-						break;
+					sNearCache = std::move(snips);
 				}
-				sNearCache = std::move(merged);
+				else
+				{
+					const float stickM = std::max(maxDist * 4.0f, 560.f);
+					const float stick2 = stickM * stickM;
+					auto nearD2 = [&](const PathingTrails::WorldSnippet& s) -> float {
+						float best = 1.0e30f;
+						const size_t n = s.points.size();
+						const size_t step = std::max<size_t>(1, n / 48);
+						for (size_t i = 0; i < n; i += step)
+						{
+							const auto& p = s.points[i];
+							if (!std::isfinite(p.x))
+								continue;
+							const float dx = ax - p.x;
+							const float dy = ay - p.y;
+							const float dz = az - p.z;
+							const float d = dx * dx + dy * dy * 0.25f + dz * dz;
+							if (d < best)
+								best = d;
+						}
+						return best;
+					};
+					/* Many Lady heart .trl share one type label — match by geometry,
+					   not label alone (label-only merge dropped neighboring hearts). */
+					auto sameTrail = [](const PathingTrails::WorldSnippet& a,
+						const PathingTrails::WorldSnippet& b) -> bool {
+						if (a.label[0] && b.label[0] &&
+							std::strncmp(a.label, b.label, sizeof(a.label)) != 0)
+							return false;
+						if (a.points.size() < 2 || b.points.size() < 2)
+							return a.color == b.color &&
+								std::strncmp(a.textureId, b.textureId, sizeof(a.textureId)) == 0;
+						auto d2 = [](const PathingTrails::WorldPoint& p,
+							const PathingTrails::WorldPoint& q) {
+							const float dx = p.x - q.x;
+							const float dy = p.y - q.y;
+							const float dz = p.z - q.z;
+							return dx * dx + dy * dy * 0.25f + dz * dz;
+						};
+						constexpr float kHit = 16.f * 16.f;
+						if (d2(a.points.front(), b.points.front()) <= kHit)
+							return true;
+						if (d2(a.points.back(), b.points.back()) <= kHit)
+							return true;
+						const auto& mid = a.points[a.points.size() / 2];
+						const size_t step = std::max<size_t>(1, b.points.size() / 20);
+						for (size_t i = 0; i < b.points.size(); i += step)
+						{
+							if (d2(mid, b.points[i]) <= kHit)
+								return true;
+						}
+						return false;
+					};
+
+					std::vector<PathingTrails::WorldSnippet> merged = std::move(snips);
+					for (const auto& old : sNearCache)
+					{
+						bool replaced = false;
+						for (const auto& n : merged)
+						{
+							if (sameTrail(old, n))
+							{
+								replaced = true;
+								break;
+							}
+						}
+						if (replaced)
+							continue;
+						if (nearD2(old) <= stick2)
+							merged.push_back(old);
+						if (merged.size() >= 40)
+							break;
+					}
+					sNearCache = std::move(merged);
+				}
 				sMarkerCache = std::move(marks);
 				sCacheAx = ax;
 				sCacheAy = ay;
 				sCacheAz = az;
 				sGpsContent = content;
 			}
-			else if (!PathingTrails::HasDrawableWorldGps())
+			else if (!PathingTrails::HasDrawableWorldGps() || contentChanged)
 			{
+				/* Edition filter change with empty sample — drop stale ribbons. */
 				sNearCache.clear();
 				sMarkerCache.clear();
 				sCacheAx = ax;
@@ -259,7 +276,7 @@ void WorldOverlay::Render()
 				sGpsContent = content;
 			}
 		}
-		/* Lock miss (false): keep sNearCache as-is; retry next frames. */
+		/* Lock miss: cache already cleared on edition change; retry next frame. */
 	}
 
 	if (PathingTrails::HasSearchGuideActive())
@@ -275,7 +292,7 @@ void WorldOverlay::Render()
 		sGuideCache = {};
 
 	float drawDist = std::max(maxDist * 3.6f, 480.f);
-	if (G::LadyWpOnly)
+	if (G::LadyWpOnly || G::LadyHeroPointTrain)
 		drawDist = std::max(maxDist * 3.5f, 650.f);
 
 	const PathingTrails::WorldSnippet* guidePtr =

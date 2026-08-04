@@ -48,6 +48,8 @@ namespace G
 	bool  LadyBarefoot = true;  /* Lady map-completion foot routes */
 	bool  LadyWpOnly = false;   /* Lady Core WP Only routes */
 	bool  LadyWithMounts = false; /* off by default so Barefoot works out of the box */
+	bool  LadyHearts = false; /* heartpath trails — own Features toggle */
+	bool  LadyHeroPointTrain = false; /* legs.hp.* train — own Features toggle */
 	bool  ShowCompassOverlay = true;
 	bool  ShowWorldTrails = true;
 	bool  ShowDirectionCompass = false;

@@ -111,19 +111,34 @@ namespace PathingDetail
 			cands.push_back({&it, rank});
 		}
 
-		/* Prefer Lady barefoot / wp / mounts editions so a trail cap cannot drop
-		   the routes Features toggles need. Then pack path, then rank. */
+		/* Prefer active Features editions so the per-map trail cap cannot drop
+		   WP / Hearts / HP train while Barefoot/Main still fill the budget. */
 		auto ladyEdPrio = [](const std::string& type) -> int
 		{
-			std::string ed;
-			if (!LadyMapRouteEdition(ToLower(type), ed))
-				return 50;
-			if (ed == "barefoot")
+			const std::string low = ToLower(type);
+			if (G::LadyHeroPointTrain &&
+				(low == "legs.hp" || low == "leag.hp" ||
+					(low.size() > 8 && (low.compare(0, 8, "legs.hp.") == 0 ||
+						low.compare(0, 8, "leag.hp.") == 0))))
 				return 0;
+			if (G::LadyHearts && low.find("heartpath") != std::string::npos)
+				return 0;
+			std::string ed;
+			if (!LadyMapRouteEdition(low, ed))
+				return 50;
+			if (G::LadyWpOnly && ed == "wp")
+				return 0;
+			if (G::LadyBarefoot &&
+				(ed == "barefoot" || low.find(".bfs") != std::string::npos))
+				return 0;
+			if (G::LadyWithMounts && IsLadyWithMountsEdition(ed))
+				return 0;
+			if (ed == "barefoot")
+				return 10;
 			if (ed == "wp")
-				return 1;
+				return 11;
 			if (IsLadyWithMountsEdition(ed))
-				return 2;
+				return 12;
 			return 40;
 		};
 		std::stable_sort(cands.begin(), cands.end(),
@@ -292,6 +307,10 @@ namespace PathingDetail
 				if (typeLow.compare(0, 9, "legs.map.") == 0 ||
 					typeLow.compare(0, 9, "leag.map.") == 0)
 				{
+					/* Same as trails — Lady map POIs stay drawable in-world even when
+					   the pack zeroes map/minimap visibility on Mounts categories. */
+					if (!style.hasInGameVisible)
+						m.inGameVisible = true;
 					if (m.inGameVisible)
 						m.minimapVisible = true;
 				}

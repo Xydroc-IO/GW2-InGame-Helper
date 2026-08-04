@@ -1,6 +1,7 @@
 #include "WorldGpsImgui.h"
 
 #include "Globals.h"
+#include "PathingIndex.h"
 
 #include "imgui/imgui.h"
 
@@ -311,12 +312,18 @@ void WorldGpsImgui::DrawMarkers(
 
 		const float horiz = std::sqrt(dx * dx + dz * dz);
 		float nearFade = 1.f;
-		if (horiz <= WorldGpsMath::kAvatarMarkerHideM)
+		/* Soft-clear around the avatar — keep tiny to avoid z-fight only.
+		   Mount/bfs guide icons sit on the path; a large bubble made them
+		   look missing while following the route. */
+		const bool guideIcon = PathingDetail::IsMountShortcutMarker(marker) ||
+			(marker.label[0] && std::strstr(marker.label, ".bfs") != nullptr);
+		const float hideM = guideIcon ? 0.35f : WorldGpsMath::kAvatarMarkerHideM;
+		const float fadeM = guideIcon ? 1.1f : WorldGpsMath::kAvatarMarkerFadeM;
+		if (horiz <= hideM)
 			continue;
-		if (horiz < WorldGpsMath::kAvatarMarkerFadeM)
+		if (horiz < fadeM)
 		{
-			float t = (horiz - WorldGpsMath::kAvatarMarkerHideM) /
-				(WorldGpsMath::kAvatarMarkerFadeM - WorldGpsMath::kAvatarMarkerHideM);
+			float t = (horiz - hideM) / std::max(0.15f, fadeM - hideM);
 			t = std::clamp(t, 0.f, 1.f);
 			nearFade = t * t * (3.f - 2.f * t);
 		}

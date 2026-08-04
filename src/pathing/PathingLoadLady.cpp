@@ -117,12 +117,33 @@ namespace PathingDetail
 		return false;
 	}
 
+	bool IsLadyBfsPath(const std::string& typeLow)
+	{
+		if (typeLow.find(".bfs.") != std::string::npos)
+			return true;
+		/* Shortcut trails typed as legs.map.<region>.bfs (no trailing leaf). */
+		return typeLow.size() >= 4 &&
+			typeLow.compare(typeLow.size() - 4, 4, ".bfs") == 0;
+	}
+
+	bool IsLadyWpTrailOnly(const std::string& typeLow)
+	{
+		/* Exact waypoint trail: legs.map.<region>.<map>.wp — no .wp.wp markers,
+		   no .wp.skyscale / .wp.springer mount icons on the WP route. */
+		if (typeLow.size() < 3 ||
+			typeLow.compare(typeLow.size() - 3, 3, ".wp") != 0)
+			return false;
+		if (typeLow.find(".wp.") != std::string::npos)
+			return false;
+		return true;
+	}
+
 	bool IsLadyShortcutTypeLabel(const char* label)
 	{
 		if (!label || !label[0])
 			return false;
 		const std::string typeLow = ToLower(label);
-		if (typeLow.find(".bfs.") != std::string::npos)
+		if (IsLadyBfsPath(typeLow))
 			return true;
 		return TypeHasLadyMountShortcut(typeLow);
 	}
@@ -140,14 +161,31 @@ namespace PathingDetail
 		return false;
 	}
 
+	bool IsLadyHeartPath(const std::string& typeLow)
+	{
+		if (typeLow.find("heartpath") != std::string::npos)
+			return true;
+		if (typeLow.find(".heartinfo") != std::string::npos)
+			return true;
+		return typeLow.size() >= 10 &&
+			typeLow.compare(typeLow.size() - 10, 10, ".heartinfo") == 0;
+	}
+
+	bool IsLadyHeroPointTrainPath(const std::string& typeLow)
+	{
+		/* legs.hp.* / leag.hp.* — not map-completion …barefoot.hp markers. */
+		return typeLow == "legs.hp" || typeLow == "leag.hp" ||
+			(typeLow.size() > 8 && typeLow.compare(0, 8, "legs.hp.") == 0) ||
+			(typeLow.size() > 8 && typeLow.compare(0, 8, "leag.hp.") == 0);
+	}
+
 	bool TypeEnabledWithEnabled(const std::string& type, const std::vector<std::string>& enabled)
 	{
 		if (type.empty() || enabled.empty())
 			return false;
 		const std::string typeLow = ToLower(type);
 
-		/* Lady Elyssa map-completion Features: Barefoot | With Mounts | WP Only
-		   are mutually exclusive route editions (same idea as Tekkit Foot/Griffon). */
+		/* Lady Elyssa Features — current map content only via loaded map trails. */
 		const bool ladyPack =
 			typeLow == "legs" || typeLow == "leag" ||
 			(typeLow.size() > 5 && typeLow.compare(0, 5, "legs.") == 0) ||
@@ -157,53 +195,61 @@ namespace PathingDetail
 			const bool bareOn = G::LadyBarefoot;
 			const bool wpOn = G::LadyWpOnly;
 			const bool mountsOn = G::LadyWithMounts;
-			const bool anyEdition = bareOn || wpOn || mountsOn;
-			const bool barefootShortcut = typeLow.find(".bfs.") != std::string::npos;
+			const bool heartsOn = G::LadyHearts;
+			const bool hpTrainOn = G::LadyHeroPointTrain;
+			const bool anyMapEdition = bareOn || wpOn || mountsOn;
+			const bool bfs = IsLadyBfsPath(typeLow);
 			std::string mapEd;
-			if (LadyMapRouteEdition(typeLow, mapEd))
+			const bool onMapRoute = LadyMapRouteEdition(typeLow, mapEd);
+
+			/* Hero Point Train — only legs.hp.* trails/icons (not the rest of Lady). */
+			if (IsLadyHeroPointTrainPath(typeLow))
+				return hpTrainOn && TypeCategoryEnabled(type, enabled);
+
+			/* Heart trails/markers — own toggle (pulled out of Barefoot/Mounts). */
+			if (IsLadyHeartPath(typeLow))
+				return heartsOn && TypeCategoryEnabled(type, enabled);
+
+			if (onMapRoute || bfs)
 			{
-				/* No Features edition selected → hide all legs.map route content. */
-				if (!anyEdition)
+				if (!anyMapEdition)
 					return false;
 
-				/* Barefoot Shortcuts live at legs.map.*.bfs.<mount> — Barefoot only. */
-				if (barefootShortcut ||
-					(IsLadyMountShortcutSeg(mapEd) && !IsLadyRouteEditionSeg(mapEd)))
+				/* Barefoot Shortcuts (bfs): Barefoot only — not With Mounts. */
+				if (bfs)
 				{
 					if (!bareOn)
 						return false;
 				}
-				else if (mapEd == "wp")
-				{
-					if (!wpOn)
-						return false;
-				}
+				/* Barefoot foot routes (no heartpath — use Hearts). */
 				else if (mapEd == "barefoot")
 				{
 					if (!bareOn)
 						return false;
 				}
-				else if (IsLadyWithMountsEdition(mapEd))
+				/* WP Only: waypoint trails on this map only (no markers/icons). */
+				else if (mapEd == "wp")
 				{
-					if (!mountsOn)
-					{
-						/* Maps with no barefoot edition: Barefoot still needs a route. */
-						if (!(bareOn && gMapsWithLadyBarefoot.count(gActiveMap) == 0))
-							return false;
-					}
-				}
-				else if (IsLadyRouteEditionSeg(mapEd))
-					return false;
-			}
-			else if (TypeHasLadyMountShortcut(typeLow))
-			{
-				/* Non-map mount POIs (adventures/chests/…) follow With Mounts. */
-				if (barefootShortcut)
-				{
-					if (!bareOn)
+					if (!wpOn || !IsLadyWpTrailOnly(typeLow))
 						return false;
 				}
-				else if (!mountsOn)
+				/* With Mounts: mount route + mount-guide markers (…all.raptor, …). */
+				else if (IsLadyWithMountsEdition(mapEd) ||
+					(IsLadyMountShortcutSeg(mapEd) && !IsLadyRouteEditionSeg(mapEd)))
+				{
+					if (!mountsOn)
+						return false;
+				}
+				else
+					return false;
+			}
+			else
+			{
+				/* Features focus mode: do not spill adventures/chests/etc. when any
+				   Lady Features toggle is on (esp. Hero Point Train alone). */
+				const bool anyLadyFeature =
+					anyMapEdition || heartsOn || hpTrainOn;
+				if (anyLadyFeature)
 					return false;
 			}
 		}

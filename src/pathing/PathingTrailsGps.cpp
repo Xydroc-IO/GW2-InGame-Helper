@@ -207,7 +207,9 @@ bool PathingTrails::TryNearbyWorldGps(
 	float activateDist = std::max(maxDist * 3.2f, 320.f);
 	float alongBudget = std::max(activateDist * 1.75f, 520.f);
 	size_t maxPts = 1200;
-	if (G::LadyWpOnly)
+	const bool wpMode = G::LadyWpOnly;
+	const bool hpMode = G::LadyHeroPointTrain;
+	if (wpMode || hpMode)
 	{
 		maxDist = std::clamp(std::max(maxDistMeters, 180.f) * 2.2f, 220.f, 450.f);
 		activateDist = std::max(maxDist * 2.15f, 430.f);
@@ -307,10 +309,20 @@ bool PathingTrails::TryNearbyWorldGps(
 	}
 	std::sort(cands.begin(), cands.end(),
 		[&](const Cand& a, const Cand& b) {
-			const bool ah = std::strstr(gCurrentAll[a.idx].label, "heartpath") != nullptr;
-			const bool bh = std::strstr(gCurrentAll[b.idx].label, "heartpath") != nullptr;
-			if (a.nearestD2 <= activateDist2 && b.nearestD2 <= activateDist2 && ah != bh)
-				return ah && !bh;
+			auto prio = [&](size_t idx) -> int {
+				const char* lab = gCurrentAll[idx].label;
+				if (wpMode && std::strstr(lab, ".wp") != nullptr)
+					return 0;
+				if (hpMode && std::strstr(lab, "legs.hp") != nullptr)
+					return 0;
+				if (std::strstr(lab, "heartpath") != nullptr)
+					return 1;
+				return 2;
+			};
+			const int pa = prio(a.idx);
+			const int pb = prio(b.idx);
+			if (pa != pb && a.nearestD2 <= activateDist2 && b.nearestD2 <= activateDist2)
+				return pa < pb;
 			return a.nearestD2 < b.nearestD2;
 		});
 
@@ -363,10 +375,21 @@ bool PathingTrails::TryNearbyWorldGps(
 		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
 			continue;
 
-		/* Heartpath: full section; else along-budget. */
+		/* Heart / WP / HP train: full TacO section — sparse waypoint gaps break
+		   along-budget windows (compass showed full path; world GPS looked cut). */
+		const char* lab = tr.label;
+		const size_t labN = std::strlen(lab);
+		const bool isWpTrail =
+			(labN >= 3 && std::strcmp(lab + labN - 3, ".wp") == 0 &&
+				std::strstr(lab, ".wp.") == nullptr);
 		const bool fullSection =
-			std::strstr(tr.label, "heartpath") != nullptr ||
-			std::strstr(tr.textureId, "Heart") != nullptr;
+			std::strstr(lab, "heartpath") != nullptr ||
+			std::strstr(tr.textureId, "Heart") != nullptr ||
+			std::strstr(lab, "legs.hp.") != nullptr ||
+			std::strstr(lab, "leag.hp.") != nullptr ||
+			std::strcmp(lab, "legs.hp") == 0 ||
+			std::strcmp(lab, "leag.hp") == 0 ||
+			isWpTrail;
 		const float budget = fullSection ? 1.0e9f : alongBudget;
 		size_t a = c.nearest, b = c.nearest;
 		for (float used = 0.f; a > 0; )
@@ -403,8 +426,9 @@ bool PathingTrails::TryNearbyWorldGps(
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
 		constexpr float kMinSp2 = 0.35f * 0.35f;
-		const float maxGap2 = fullSection ? (400.f * 400.f) : (160.f * 160.f);
-		const size_t ptCap = fullSection ? std::max(maxPts, size_t{2000}) : maxPts;
+		/* WP segments can span hundreds of meters between waypoints. */
+		const float maxGap2 = fullSection ? (1200.f * 1200.f) : (160.f * 160.f);
+		const size_t ptCap = fullSection ? std::max(maxPts, size_t{2800}) : maxPts;
 		snip.points.reserve(std::min(b - a + 1, ptCap));
 		WorldPoint lastKept{};
 		bool haveKept = false;

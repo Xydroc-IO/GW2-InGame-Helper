@@ -141,6 +141,10 @@ void Settings::Load()
 		}
 		else if (std::strcmp(key, "LadyWithMounts") == 0)
 			G::LadyWithMounts = AsBool(val);
+		else if (std::strcmp(key, "LadyHearts") == 0)
+			G::LadyHearts = AsBool(val);
+		else if (std::strcmp(key, "LadyHeroPointTrain") == 0)
+			G::LadyHeroPointTrain = AsBool(val);
 		else if (std::strcmp(key, "ShowCompassOverlay") == 0) G::ShowCompassOverlay = AsBool(val);
 		else if (std::strcmp(key, "ShowWorldTrails") == 0) G::ShowWorldTrails = AsBool(val);
 		else if (std::strcmp(key, "ShowDirectionCompass") == 0) G::ShowDirectionCompass = AsBool(val);
@@ -372,6 +376,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "LadyBarefoot=%d\n", G::LadyBarefoot ? 1 : 0);
 	std::fprintf(f, "LadyWpOnly=%d\n", G::LadyWpOnly ? 1 : 0);
 	std::fprintf(f, "LadyWithMounts=%d\n", G::LadyWithMounts ? 1 : 0);
+	std::fprintf(f, "LadyHearts=%d\n", G::LadyHearts ? 1 : 0);
+	std::fprintf(f, "LadyHeroPointTrain=%d\n", G::LadyHeroPointTrain ? 1 : 0);
 	std::fprintf(f, "ShowCompassOverlay=%d\n", G::ShowCompassOverlay ? 1 : 0);
 	std::fprintf(f, "ShowWorldTrails=%d\n", G::ShowWorldTrails ? 1 : 0);
 	std::fprintf(f, "ShowDirectionCompass=%d\n", G::ShowDirectionCompass ? 1 : 0);

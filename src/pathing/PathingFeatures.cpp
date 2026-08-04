@@ -38,15 +38,44 @@ namespace
 			PathingTrails::EnableAllLadyCategories();
 	}
 
-	/* One map-completion edition at a time — stacking drew WP on top of mounts. */
+	/* Prefer a narrow enable so Hero Point Train does not need the whole pack. */
+	void EnsureLadyHpTrainCategories()
+	{
+		for (const std::string& p : PathingTrails::EnabledPaths())
+		{
+			const std::string l = LowerCopy(p);
+			if (l == "legs" || l == "legs.hp" ||
+				(l.size() > 8 && l.compare(0, 8, "legs.hp.") == 0))
+				return;
+		}
+		std::vector<std::string> paths = PathingTrails::EnabledPaths();
+		paths.push_back("legs.hp");
+		PathingTrails::SetEnabledPaths(paths);
+	}
+
+	/* Map-completion editions stay mutually exclusive. */
 	void SetLadyEdition(bool bare, bool mounts, bool wp)
 	{
 		G::LadyBarefoot = bare;
 		G::LadyWithMounts = mounts;
 		G::LadyWpOnly = wp;
-		if (bare || mounts || wp)
+		if (bare || mounts || wp || G::LadyHearts)
 			EnsureLadyCategories();
+		if (G::LadyHeroPointTrain)
+			EnsureLadyHpTrainCategories();
 		PathingTrails::NotifyVisibilityFilterChanged();
+		Settings::SetDirty();
+	}
+
+	void SetLadyExtra(bool& flag, bool on)
+	{
+		flag = on;
+		if (G::LadyBarefoot || G::LadyWithMounts || G::LadyWpOnly || G::LadyHearts)
+			EnsureLadyCategories();
+		if (G::LadyHeroPointTrain)
+			EnsureLadyHpTrainCategories();
+		PathingTrails::NotifyVisibilityFilterChanged();
+		Settings::SetDirty();
 	}
 }
 
@@ -100,17 +129,8 @@ bool PathingFeatures::RenderContents()
 
 	ImGui::Spacing();
 	ImGui::Separator();
-	ImGui::TextUnformatted("Lady Elyssa");
-	ImGui::TextDisabled("One map-completion route edition at a time.");
-	if (ImGui::Button("Enable Lady packs###gw2igh_feat_lady_on"))
-	{
-		PathingTrails::EnableAllLadyCategories();
-		dirty = true;
-	}
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip(
-			"Turns on Lady Elyssa Guides + Achievements under Categories.\n"
-			"Needed before Barefoot / WP Only / With Mounts show anything.");
+	ImGui::TextUnformatted("Lady Elyssa — map routes");
+	ImGui::TextDisabled("Current map only — one edition at a time.");
 
 	bool ladyBare = G::LadyBarefoot;
 	bool ladyMounts = G::LadyWithMounts;
@@ -125,9 +145,8 @@ bool PathingFeatures::RenderContents()
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Foot / no-mount map routes (footprint trails + number markers).\n"
-			"Barefoot Shortcuts (bfs mount icons) show here.\n"
-			"Hides With Mounts and WP Only.");
+			"Foot routes on this map plus Barefoot Shortcut (bfs) trails/markers.\n"
+			"Heart trails use the Hearts toggle.");
 	ImGui::SameLine();
 	if (ImGui::Checkbox("WP Only###gw2igh_feat_lady_wp", &ladyWp))
 	{
@@ -138,9 +157,7 @@ bool PathingFeatures::RenderContents()
 		dirty = true;
 	}
 	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip(
-			"Waypoint Only map routes only.\n"
-			"Does not stack on Barefoot / With Mounts trails.");
+		ImGui::SetTooltip("Waypoint trails on this map only — no markers or mount icons.");
 	ImGui::SameLine();
 	if (ImGui::Checkbox("With Mounts###gw2igh_feat_lady_mounts", &ladyMounts))
 	{
@@ -152,11 +169,31 @@ bool PathingFeatures::RenderContents()
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Mount-optimized routes (all / main / withmounts).\n"
-			"Shows mount shortcut icons (beetle, springer, …).\n"
-			"Hides Barefoot and WP Only.");
-	ImGui::TextDisabled("Barefoot = foot trails. With Mounts = mount trails + icons.");
-	ImGui::TextDisabled("WP Only = waypoint trails alone. Categories must include Lady.");
+			"Mount route on this map plus mount-guide markers (raptor/springer/…).\n"
+			"Barefoot Shortcuts stay on Barefoot. Hearts use the Hearts toggle.");
+
+	ImGui::Spacing();
+	ImGui::TextUnformatted("Lady Elyssa — extras");
+	ImGui::TextDisabled("Independent — current map only.");
+	bool ladyHearts = G::LadyHearts;
+	bool ladyHp = G::LadyHeroPointTrain;
+	if (ImGui::Checkbox("Hearts###gw2igh_feat_lady_hearts", &ladyHearts))
+	{
+		SetLadyExtra(G::LadyHearts, ladyHearts);
+		dirty = true;
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("Heart trails (and heart markers) on this map.");
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Hero Point Train###gw2igh_feat_lady_hp", &ladyHp))
+	{
+		SetLadyExtra(G::LadyHeroPointTrain, ladyHp);
+		dirty = true;
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Only Hero Point train trails and number/start/WP icons on this map\n"
+			"(legs.hp) — nothing else from the Lady pack.");
 
 	if (PathingTrails::IsLoading() || PathingPacks::IsUpdating())
 		ImGui::TextDisabled("Indexing packs…");
