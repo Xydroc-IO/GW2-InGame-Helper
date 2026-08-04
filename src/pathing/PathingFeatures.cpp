@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PathingPacks.h"
 #include "Settings.h"
 #include "PathingTrails.h"
@@ -53,13 +54,11 @@ namespace
 		PathingTrails::SetEnabledPaths(paths);
 	}
 
-	/* Map-completion editions stay mutually exclusive. */
-	void SetLadyEdition(bool bare, bool mounts, bool wp)
+	/* Map-completion editions are independent — each only gates its own trails. */
+	void SetLadyRouteFlag(bool& flag, bool on)
 	{
-		G::LadyBarefoot = bare;
-		G::LadyWithMounts = mounts;
-		G::LadyWpOnly = wp;
-		if (bare || mounts || wp || G::LadyHearts)
+		flag = on;
+		if (G::LadyBarefoot || G::LadyWithMounts || G::LadyWpOnly || G::LadyHearts)
 			EnsureLadyCategories();
 		if (G::LadyHeroPointTrain)
 			EnsureLadyHpTrainCategories();
@@ -69,11 +68,22 @@ namespace
 
 	void SetLadyExtra(bool& flag, bool on)
 	{
+		const bool isHpTrain = (&flag == &G::LadyHeroPointTrain);
 		flag = on;
-		if (G::LadyBarefoot || G::LadyWithMounts || G::LadyWpOnly || G::LadyHearts)
-			EnsureLadyCategories();
-		if (G::LadyHeroPointTrain)
-			EnsureLadyHpTrainCategories();
+		if (isHpTrain)
+		{
+			if (on)
+				EnsureLadyHpTrainCategories();
+			else
+				PathingTrails::SetCategoryEnabled("legs.hp", false);
+		}
+		else
+		{
+			if (G::LadyBarefoot || G::LadyWithMounts || G::LadyWpOnly || G::LadyHearts)
+				EnsureLadyCategories();
+			if (G::LadyHeroPointTrain)
+				EnsureLadyHpTrainCategories();
+		}
 		PathingTrails::NotifyVisibilityFilterChanged();
 		Settings::SetDirty();
 	}
@@ -93,7 +103,9 @@ bool PathingFeatures::RenderContents()
 	PathingTrails::Update(mapId ? mapId : 1u);
 
 	ImGui::TextUnformatted("Map Completion (Tekkit)");
-	ImGui::TextDisabled("One route edition at a time.");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted, "One route edition at a time.");
+	PadNav::PopWrap();
 	const auto activeMc = PathingTrails::ActiveMapCompletionRoutes();
 	using Mc = PathingTrails::MapCompletionRoutes;
 	bool bareOn = (activeMc == Mc::Barefoot);
@@ -107,7 +119,7 @@ bool PathingFeatures::RenderContents()
 			PathingTrails::ClearMapCompletionCategories();
 		dirty = true;
 	}
-	ImGui::SameLine();
+	PadNav::WrapSameLine(PadNav::CheckboxWidth("Griffon"));
 	if (ImGui::Checkbox("Griffon###gw2igh_feat_mc_griff", &griffOn))
 	{
 		if (griffOn)
@@ -116,7 +128,7 @@ bool PathingFeatures::RenderContents()
 			PathingTrails::ClearMapCompletionCategories();
 		dirty = true;
 	}
-	ImGui::SameLine();
+	PadNav::WrapSameLine(PadNav::CheckboxWidth("Skyscale"));
 	if (ImGui::Checkbox("Skyscale###gw2igh_feat_mc_sky", &skyOn))
 	{
 		if (skyOn)
@@ -125,46 +137,43 @@ bool PathingFeatures::RenderContents()
 			PathingTrails::ClearMapCompletionCategories();
 		dirty = true;
 	}
-	ImGui::TextDisabled("Skyscale routes: HoT + SotO only. Elsewhere use Foot/Griffon.");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Skyscale routes: HoT + SotO only. Elsewhere use Foot/Griffon.");
+	PadNav::PopWrap();
 
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::TextUnformatted("Lady Elyssa — map routes");
-	ImGui::TextDisabled("Current map only — one edition at a time.");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Current map — each toggle only its own trails (can combine).");
+	PadNav::PopWrap();
 
 	bool ladyBare = G::LadyBarefoot;
 	bool ladyMounts = G::LadyWithMounts;
 	bool ladyWp = G::LadyWpOnly;
 	if (ImGui::Checkbox("Barefoot###gw2igh_feat_lady_bare", &ladyBare))
 	{
-		if (ladyBare)
-			SetLadyEdition(true, false, false);
-		else
-			SetLadyEdition(false, false, false);
+		SetLadyRouteFlag(G::LadyBarefoot, ladyBare);
 		dirty = true;
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Foot routes on this map plus Barefoot Shortcut (bfs) trails/markers.\n"
-			"Heart trails use the Hearts toggle.");
-	ImGui::SameLine();
+			"Barefoot foot routes on this map, plus Barefoot Shortcut (bfs)\n"
+			"trails and shortcut markers. Hearts use the Hearts toggle.");
+	PadNav::WrapSameLine(PadNav::CheckboxWidth("WP Only"));
 	if (ImGui::Checkbox("WP Only###gw2igh_feat_lady_wp", &ladyWp))
 	{
-		if (ladyWp)
-			SetLadyEdition(false, false, true);
-		else
-			SetLadyEdition(false, false, false);
+		SetLadyRouteFlag(G::LadyWpOnly, ladyWp);
 		dirty = true;
 	}
 	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("Waypoint trails on this map only — no markers or mount icons.");
-	ImGui::SameLine();
+		ImGui::SetTooltip("Waypoint-only trails on this map (…map.<zone>.wp) — no markers.");
+	PadNav::WrapSameLine(PadNav::CheckboxWidth("With Mounts"));
 	if (ImGui::Checkbox("With Mounts###gw2igh_feat_lady_mounts", &ladyMounts))
 	{
-		if (ladyMounts)
-			SetLadyEdition(false, true, false);
-		else
-			SetLadyEdition(false, false, false);
+		SetLadyRouteFlag(G::LadyWithMounts, ladyMounts);
 		dirty = true;
 	}
 	if (ImGui::IsItemHovered())
@@ -174,7 +183,10 @@ bool PathingFeatures::RenderContents()
 
 	ImGui::Spacing();
 	ImGui::TextUnformatted("Lady Elyssa — extras");
-	ImGui::TextDisabled("Independent — current map only.");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Independent. Categories → Hero Points is the same tree as Hero Point Train.");
+	PadNav::PopWrap();
 	bool ladyHearts = G::LadyHearts;
 	bool ladyHp = G::LadyHeroPointTrain;
 	if (ImGui::Checkbox("Hearts###gw2igh_feat_lady_hearts", &ladyHearts))
@@ -184,7 +196,7 @@ bool PathingFeatures::RenderContents()
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip("Heart trails (and heart markers) on this map.");
-	ImGui::SameLine();
+	PadNav::WrapSameLine(PadNav::CheckboxWidth("Hero Point Train"));
 	if (ImGui::Checkbox("Hero Point Train###gw2igh_feat_lady_hp", &ladyHp))
 	{
 		SetLadyExtra(G::LadyHeroPointTrain, ladyHp);
@@ -192,11 +204,15 @@ bool PathingFeatures::RenderContents()
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Only Hero Point train trails and number/start/WP icons on this map\n"
-			"(legs.hp) — nothing else from the Lady pack.");
+			"Hero Point train (legs.hp) — same as Categories → Hero Points.\n"
+			"Number/start/WP icons along the HP train on this map.");
 
 	if (PathingTrails::IsLoading() || PathingPacks::IsUpdating())
-		ImGui::TextDisabled("Indexing packs…");
+	{
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted, "Indexing packs…");
+		PadNav::PopWrap();
+	}
 
 	ImGui::Spacing();
 	ImGui::Separator();
@@ -206,7 +222,9 @@ bool PathingFeatures::RenderContents()
 		ImGui::SetTooltip(
 			"Clear Blish/TacO activation data (weekly chests, auto-triggers).\n"
 			"Same idea as deleting Blish timers.txt.");
-	ImGui::TextDisabled("Lua script-* features still need Blish HUD Pathing.");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted, "Lua script-* features still need Blish HUD Pathing.");
+	PadNav::PopWrap();
 
 	return dirty;
 }

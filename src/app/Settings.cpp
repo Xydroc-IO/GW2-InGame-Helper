@@ -294,22 +294,6 @@ void Settings::Load()
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
 	if (G::WorldTrailPlayerClear < 0.f) G::WorldTrailPlayerClear = 0.f;
 	if (G::WorldTrailPlayerClear > 3.f) G::WorldTrailPlayerClear = 3.f;
-	/* Lady editions are exclusive — older settings could have several on at once. */
-	{
-		const int n = (G::LadyBarefoot ? 1 : 0) + (G::LadyWithMounts ? 1 : 0) +
-			(G::LadyWpOnly ? 1 : 0);
-		if (n > 1)
-		{
-			if (G::LadyWithMounts)
-			{
-				G::LadyBarefoot = false;
-				G::LadyWpOnly = false;
-			}
-			else if (G::LadyBarefoot)
-				G::LadyWpOnly = false;
-			gDirty = true;
-		}
-	}
 	if (G::DirectionLetterScale < 0.5f) G::DirectionLetterScale = 0.5f;
 	if (G::DirectionLetterScale > 2.5f) G::DirectionLetterScale = 2.5f;
 	if (G::DirectionWorldRadiusScale < 0.4f) G::DirectionWorldRadiusScale = 0.4f;

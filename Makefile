@@ -136,6 +136,7 @@ DLL_SRC = \
 	src/pathing/PathingLoadIcons.cpp \
 	src/pathing/PathingTrailsGps.cpp \
 	src/pathing/PathingTrailsPresets.cpp \
+	src/pathing/PathingTrailsPresetsMc.cpp \
 	src/pathing/PathingTrailsUi.cpp \
 	src/pathing/PathingIndex.cpp \
 	src/pathing/PathingIndexDiscover.cpp \

@@ -4,6 +4,7 @@
 #include "MarkerBehaviors.h"
 #include "MumbleIdentity.h"
 #include "PathingIndex.h"
+#include "Settings.h"
 
 #include <algorithm>
 #include <atomic>
@@ -289,6 +290,23 @@ void PathingTrails::SetCategoryEnabled(const std::string& path, bool enabled)
 	ApplyCategoryShowHide(
 		enabled ? std::vector<std::string>{path} : std::vector<std::string>{},
 		enabled ? std::vector<std::string>{} : std::vector<std::string>{path});
+
+	/* Categories → Hero Points is the same tree as Features → Hero Point Train.
+	   Sync the Features gate so the Categories checkbox actually shows/hides content
+	   when parent legs is still enabled. */
+	const std::string low = ToLower(path);
+	if (low == "legs.hp" || low == "leag.hp" ||
+		(low.size() > 8 && low.compare(0, 8, "legs.hp.") == 0) ||
+		(low.size() > 8 && low.compare(0, 8, "leag.hp.") == 0))
+	{
+		if (G::LadyHeroPointTrain != enabled)
+		{
+			G::LadyHeroPointTrain = enabled;
+			Settings::SetDirty();
+		}
+		gContentRevision.fetch_add(1, std::memory_order_release);
+		gForceReload.store(true, std::memory_order_release);
+	}
 }
 
 void PathingTrails::ApplyCategoryShowHide(

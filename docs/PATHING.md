@@ -39,20 +39,22 @@ Repo notes: [`pathing/README.md`](../pathing/README.md)
 |--------|--------|
 | **Barefoot** | Foot routes + Barefoot Shortcut (`bfs`) trails/markers |
 | **With Mounts** | Mount route + mount-guide markers |
-| **WP Only** | Waypoint trails only (no markers/icons) |
+| **WP Only** | Waypoint trails only (`…map.<zone>.wp`) — no markers |
+
+Toggles are **independent** (can combine). Enabling any turns on Lady categories when needed (merged — does **not** wipe Tekkit/Hero). Default: **Barefoot**. Empty first-run `PathingEnabled` auto-enables Lady categories.
 
 **Extras (independent):**
 
 | Toggle | Shows |
 |--------|--------|
 | **Hearts** | Heart trails (`heartpath`) on this map |
-| **Hero Point Train** | Only `legs.hp.*` train trails + icons on this map |
+| **Hero Point Train** | `legs.hp.*` train trails + icons — same tree as Categories → **Hero Points** |
 
-Enabling any of these turns on Lady categories when needed. Default: **Barefoot**. Empty first-run `PathingEnabled` auto-enables Lady categories.
+**Other Lady trees** (Bounty, Fishing, Map Traversal, Ranger Pets, Rift Hunting, Map Enhancements, …) are **not** gated by Features exclusivity — they follow **Categories** whenever `legs` / `leag` (or those subtrees) are enabled.
 
 ### Map Completion presets
 
-Foot / Griffon / Skyscale (mutually exclusive Tekkit route edition) + hearts/POIs/vistas. Skyscale editions exist only for some expansions (see pathing README).
+Foot / Griffon / Skyscale (mutually exclusive Tekkit route edition) + hearts/POIs/vistas. Skyscale editions exist only for some expansions (see pathing README). Enabling a preset strips only MC paths (and a broad `tw_guides` root, restoring non-MC siblings like Fishing / Map Enhancements when that root was on).
 
 ### Bulk toggles
 
@@ -66,6 +68,7 @@ Settings persist as `PathingEnabled` (still loads legacy `TekkitEnabled` / `Show
 
 Implemented: behaviors 0–7 and 101, AutoTrigger, hide=/show=, tips, info, copy clipboard.  
 **Not supported:** Lua `script-*` (use Blish HUD Pathing for those).  
+**Not supported yet:** Blish `schedule` / `schedule-duration` (UTC cron windows — Lady vendors / Hero strikes use these; attrs are ignored today). Planned as a small modular filter at draw/load time.  
 Interact: **Ctrl+Shift+F** (`KB_HELPER_MARKER_INTERACT`). State file: `marker_behaviors.txt`.
 
 ---

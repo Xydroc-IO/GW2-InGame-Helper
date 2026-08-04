@@ -265,7 +265,7 @@ namespace PathingDetail
 		{
 			if (poi.mapId != mapId)
 				continue;
-			if (!TypeCategoryEnabled(poi.type, enabledCopy))
+			if (!TypeEnabledWithEnabled(poi.type, enabledCopy))
 				continue;
 			poiCands.push_back(&poi);
 		}

@@ -70,9 +70,9 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 |---------|----------------|
 | **Map Completion – Foot / Griffon / Skyscale** | Hearts / POIs / vistas + one Tekkit route edition (mutually exclusive) |
 | **Lady – Barefoot / With Mounts / WP Only** | One Lady map-completion edition at a time (Features); enabling one turns Lady categories on when needed |
-| **All Tekkit** | Enables the whole Tekkit tree (`tw_guides`) |
-| **All Lady** | Enables Lady Elyssa Guides + Achievements (`legs` + `leag`) |
-| **All Hero** | Enables Hero's Marker Pack (`HMP` + `hmpSim`) |
+| **All Tekkit** | Enables the whole Tekkit tree (`tw_guides`) — merges with Lady/Hero |
+| **All Lady** | Enables Lady Elyssa Guides + Achievements (`legs` + `leag`) — merges with Tekkit/Hero |
+| **All Hero** | Enables Hero's Marker Pack (`HMP` + `hmpSim`) — merges |
 | **All off** | Clears every enabled category (Tekkit, Lady, Hero, MC presets) |
 
 Default Features edition is **Barefoot**. First run with an empty category list

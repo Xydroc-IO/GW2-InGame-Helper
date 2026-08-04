@@ -174,6 +174,9 @@ namespace PathingDetail
 	bool CategoryUiEnabledLocked(const std::string& path);
 	void InsertCatPath(std::vector<PathingTrails::Category>& roots, const std::string& type);
 	void MarkEnabled(std::vector<PathingTrails::Category>& nodes);
+	void EnsureRootEnabledLocked(const char* root); /* gMutex held */
+	bool IsTekkitMcPath(const std::string& p);
+	void RestoreNonMcTekkitSiblingsLocked(bool hadBroadTwGuides); /* gMutex held */
 	std::string IconTextureId(const std::string& iconFile);
 	void QueueMapIcons(std::unordered_map<std::string, std::wstring>& assetsNeeded,
 		const std::wstring& preferredPack, uint32_t epoch);

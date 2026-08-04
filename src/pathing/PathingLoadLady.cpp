@@ -197,12 +197,11 @@ namespace PathingDetail
 			const bool mountsOn = G::LadyWithMounts;
 			const bool heartsOn = G::LadyHearts;
 			const bool hpTrainOn = G::LadyHeroPointTrain;
-			const bool anyMapEdition = bareOn || wpOn || mountsOn;
 			const bool bfs = IsLadyBfsPath(typeLow);
 			std::string mapEd;
 			const bool onMapRoute = LadyMapRouteEdition(typeLow, mapEd);
 
-			/* Hero Point Train — only legs.hp.* trails/icons (not the rest of Lady). */
+			/* Hero Point Train / Categories → Hero Points (legs.hp.*). */
 			if (IsLadyHeroPointTrainPath(typeLow))
 				return hpTrainOn && TypeCategoryEnabled(type, enabled);
 
@@ -210,48 +209,43 @@ namespace PathingDetail
 			if (IsLadyHeartPath(typeLow))
 				return heartsOn && TypeCategoryEnabled(type, enabled);
 
-			if (onMapRoute || bfs)
+			/* Barefoot Shortcuts: trails + mount shortcut markers under …bfs… */
+			if (bfs)
 			{
-				if (!anyMapEdition)
+				if (!bareOn)
 					return false;
+				return TypeCategoryEnabled(type, enabled);
+			}
 
-				/* Barefoot Shortcuts (bfs): Barefoot only — not With Mounts. */
-				if (bfs)
+			if (onMapRoute)
+			{
+				/* Barefoot foot routes only (hearts/HP train handled above). */
+				if (mapEd == "barefoot")
 				{
 					if (!bareOn)
 						return false;
+					return TypeCategoryEnabled(type, enabled);
 				}
-				/* Barefoot foot routes (no heartpath — use Hearts). */
-				else if (mapEd == "barefoot")
-				{
-					if (!bareOn)
-						return false;
-				}
-				/* WP Only: waypoint trails on this map only (no markers/icons). */
-				else if (mapEd == "wp")
+				/* WP Only: waypoint trails (…map.<zone>.wp) — not …wp.mount icons. */
+				if (mapEd == "wp")
 				{
 					if (!wpOn || !IsLadyWpTrailOnly(typeLow))
 						return false;
+					return TypeCategoryEnabled(type, enabled);
 				}
-				/* With Mounts: mount route + mount-guide markers (…all.raptor, …). */
-				else if (IsLadyWithMountsEdition(mapEd) ||
+				/* With Mounts: mount route + mount-guide markers. */
+				if (IsLadyWithMountsEdition(mapEd) ||
 					(IsLadyMountShortcutSeg(mapEd) && !IsLadyRouteEditionSeg(mapEd)))
 				{
 					if (!mountsOn)
 						return false;
+					return TypeCategoryEnabled(type, enabled);
 				}
-				else
-					return false;
+				/* Other map-route leaves (lanterns, etc.) — Categories only. */
+				return TypeCategoryEnabled(type, enabled);
 			}
-			else
-			{
-				/* Features focus mode: do not spill adventures/chests/etc. when any
-				   Lady Features toggle is on (esp. Hero Point Train alone). */
-				const bool anyLadyFeature =
-					anyMapEdition || heartsOn || hpTrainOn;
-				if (anyLadyFeature)
-					return false;
-			}
+			/* Other Lady trees (bounty, fishing, mapt, ranger, rifts, mape, …)
+			   follow Categories — Features exclusivity is map-route / hearts / HP only. */
 		}
 
 		return TypeCategoryEnabled(type, enabled);
@@ -267,14 +261,26 @@ namespace PathingDetail
 		if (path.empty() || gEnabledPaths.empty())
 			return false;
 		const std::string low = ToLower(path);
+		bool covered = false;
 		for (const std::string& p : gEnabledPaths)
 		{
 			const std::string el = ToLower(p);
 			/* Ancestor covers this node, or this node covers an enabled child. */
 			if (PrefixMatchesType(low, el) || PrefixMatchesType(el, low) || low == el)
-				return true;
+			{
+				covered = true;
+				break;
+			}
 		}
-		return false;
+		if (!covered)
+			return false;
+		/* Hero Points / Hero Point Train share legs.hp — Features gate drives the checkbox
+		   so Categories toggles stay meaningful under an enabled Lady root. */
+		if (low == "legs.hp" || low == "leag.hp" ||
+			(low.size() > 8 && low.compare(0, 8, "legs.hp.") == 0) ||
+			(low.size() > 8 && low.compare(0, 8, "leag.hp.") == 0))
+			return G::LadyHeroPointTrain;
+		return true;
 	}
 
 	void InsertCatPath(std::vector<PathingTrails::Category>& roots, const std::string& type)
