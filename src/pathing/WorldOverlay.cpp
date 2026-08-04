@@ -120,7 +120,7 @@ void WorldOverlay::Render()
 
 	const float maxDist = G::LadyWpOnly
 		? std::clamp(std::max(G::WorldTrailMaxDist, 200.f), 160.f, 320.f)
-		: std::clamp(G::WorldTrailMaxDist, 40.f, 200.f);
+		: std::clamp(G::WorldTrailMaxDist, 40.f, 220.f);
 	const float thickness = std::clamp(G::WorldTrailWidth, 0.5f, 4.0f);
 	const Vec3 avatar{ax, ay, az};
 
@@ -147,7 +147,8 @@ void WorldOverlay::Render()
 	const float mdx = ax - sCacheAx;
 	const float mdy = ay - sCacheAy;
 	const float mdz = az - sCacheAz;
-	const float refreshM = G::LadyWpOnly ? 3.5f : 5.5f;
+	/* Refresh less often — frequent rebuilds made heart trails blink out. */
+	const float refreshM = G::LadyWpOnly ? 8.f : 12.f;
 	const bool movedFar = (mdx * mdx + mdy * mdy + mdz * mdz) > (refreshM * refreshM);
 	const bool needRefresh = (sGpsContent != content) || sNearCache.empty() || movedFar;
 
@@ -162,7 +163,7 @@ void WorldOverlay::Render()
 			{
 				/* Sticky merge — keep prior ribbons that briefly missed a sample
 				   so trails do not blink disappear/reappear at range edges. */
-				const float stickM = std::max(maxDist * 3.6f, 480.f);
+				const float stickM = std::max(maxDist * 4.0f, 560.f);
 				const float stick2 = stickM * stickM;
 				auto nearD2 = [&](const PathingTrails::WorldSnippet& s) -> float {
 					float best = 1.0e30f;
@@ -182,12 +183,36 @@ void WorldOverlay::Render()
 					}
 					return best;
 				};
-				auto sameKey = [](const PathingTrails::WorldSnippet& a,
+				/* Many Lady heart .trl share one type label — match by geometry,
+				   not label alone (label-only merge dropped neighboring hearts). */
+				auto sameTrail = [](const PathingTrails::WorldSnippet& a,
 					const PathingTrails::WorldSnippet& b) -> bool {
-					if (a.label[0] && b.label[0])
-						return std::strncmp(a.label, b.label, sizeof(a.label)) == 0;
-					return a.color == b.color &&
-						std::strncmp(a.textureId, b.textureId, sizeof(a.textureId)) == 0;
+					if (a.label[0] && b.label[0] &&
+						std::strncmp(a.label, b.label, sizeof(a.label)) != 0)
+						return false;
+					if (a.points.size() < 2 || b.points.size() < 2)
+						return a.color == b.color &&
+							std::strncmp(a.textureId, b.textureId, sizeof(a.textureId)) == 0;
+					auto d2 = [](const PathingTrails::WorldPoint& p,
+						const PathingTrails::WorldPoint& q) {
+						const float dx = p.x - q.x;
+						const float dy = p.y - q.y;
+						const float dz = p.z - q.z;
+						return dx * dx + dy * dy * 0.25f + dz * dz;
+					};
+					constexpr float kHit = 16.f * 16.f;
+					if (d2(a.points.front(), b.points.front()) <= kHit)
+						return true;
+					if (d2(a.points.back(), b.points.back()) <= kHit)
+						return true;
+					const auto& mid = a.points[a.points.size() / 2];
+					const size_t step = std::max<size_t>(1, b.points.size() / 20);
+					for (size_t i = 0; i < b.points.size(); i += step)
+					{
+						if (d2(mid, b.points[i]) <= kHit)
+							return true;
+					}
+					return false;
 				};
 
 				std::vector<PathingTrails::WorldSnippet> merged = std::move(snips);
@@ -196,7 +221,7 @@ void WorldOverlay::Render()
 					bool replaced = false;
 					for (const auto& n : merged)
 					{
-						if (sameKey(old, n))
+						if (sameTrail(old, n))
 						{
 							replaced = true;
 							break;
@@ -206,7 +231,7 @@ void WorldOverlay::Render()
 						continue;
 					if (nearD2(old) <= stick2)
 						merged.push_back(old);
-					if (merged.size() >= 20)
+					if (merged.size() >= 40)
 						break;
 				}
 				sNearCache = std::move(merged);
@@ -227,9 +252,14 @@ void WorldOverlay::Render()
 			}
 			else if (!sNearCache.empty())
 			{
+				/* Empty sample but packs still loaded — keep drawing prior ribbons. */
+				sCacheAx = ax;
+				sCacheAy = ay;
+				sCacheAz = az;
 				sGpsContent = content;
 			}
 		}
+		/* Lock miss (false): keep sNearCache as-is; retry next frames. */
 	}
 
 	if (PathingTrails::HasSearchGuideActive())
@@ -244,7 +274,7 @@ void WorldOverlay::Render()
 	else
 		sGuideCache = {};
 
-	float drawDist = std::max(maxDist * 3.2f, 420.f);
+	float drawDist = std::max(maxDist * 3.6f, 480.f);
 	if (G::LadyWpOnly)
 		drawDist = std::max(maxDist * 3.5f, 650.f);
 

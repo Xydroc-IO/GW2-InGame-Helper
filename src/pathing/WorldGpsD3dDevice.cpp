@@ -62,8 +62,7 @@ PSIn VSMain(VSIn i)
 {
 	PSIn o;
 	o.pos = mul(gViewProj, float4(i.pos, 1));
-	/* gCamPos.w = Blish-style animspeed flow scroll along the chevron. */
-	o.uv = float2(i.uv.x, i.uv.y + gCamPos.w);
+	o.uv = i.uv;
 	o.col = i.col;
 	o.wpos = i.pos;
 	return o;
@@ -114,7 +113,7 @@ float4 PSTextured(PSIn i) : SV_Target
 	/* Blish: tint × trail texture (alpha shapes the chevron). */
 	float4 t = gTex.Sample(gSamp, i.uv);
 	float a = t.a * i.col.a * SoftClear(i.wpos) * RangeFade(i.wpos);
-	if (a < 0.015) discard;
+	if (a < 0.04) discard;
 	return float4(t.rgb * i.col.rgb, a);
 }
 )";

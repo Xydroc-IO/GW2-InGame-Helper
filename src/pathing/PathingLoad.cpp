@@ -208,8 +208,8 @@ namespace PathingDetail
 			{
 				const std::string tid = IconTextureId(style.texture);
 				std::snprintf(trail.textureId, sizeof(trail.textureId), "%s", tid.c_str());
-				if (c.rank == 0)
-					assetsNeeded.emplace(style.texture, it.packPath);
+				/* Always queue trail textures (any rank) — missing → solid yellow ribbon. */
+				assetsNeeded.emplace(style.texture, it.packPath);
 			}
 			std::snprintf(trail.label, sizeof(trail.label), "%s",
 				it.type.empty() ? "trail" : it.type.c_str());

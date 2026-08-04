@@ -229,7 +229,7 @@ void PathingTrails::BeginFrame()
 		gIconRetain.erase(id);
 	}
 
-	for (int n = 0; n < 48; ++n)
+	for (int n = 0; n < 72; ++n)
 	{
 		PendingIcon icon;
 		{

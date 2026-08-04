@@ -20,18 +20,16 @@ namespace WorldGpsMath
 	constexpr float kBlishUvPeriodM = kBlishHalfM * 2.f;
 	constexpr int   kMaxSegments = 4000;
 
-	/* halfWidth = Blish base × pack trailScale × user slider (1.0 = TacO/Blish).
-	   Soft-clamp pack scale so outlier packs do not look wildly thick/thin. */
+	/* halfWidth = Blish TRAIL_WIDTH (20") × pack trailScale × user GPS width.
+	   No soft-clamp — Blish uses TrailScale as authored. */
 	inline float TrailHalfWidthM(float packTrailScale, float userMul)
 	{
 		float scale = packTrailScale;
 		if (!(scale >= 0.05f && scale <= 8.f))
 			scale = 1.f;
-		if (scale < 0.45f) scale = 0.45f;
-		if (scale > 1.85f) scale = 1.85f;
 		float mul = userMul;
-		if (mul < 0.5f) mul = 0.5f;
-		if (mul > 4.f) mul = 4.f;
+		if (!(mul >= 0.5f && mul <= 4.f))
+			mul = 1.f;
 		return kBlishHalfM * scale * mul;
 	}
 

@@ -40,51 +40,29 @@ namespace
 {
 	using WorldGpsMath::Vec3;
 
-	/* Blish-like upright strip: fixed UV period, smoothed sides, ~10m resample. */
-	void AppendRibbon(std::vector<Vertex>& out, const PathingTrails::WorldSnippet& snip,
-		float thickness, bool bright)
+	bool IsHeartTrail(const PathingTrails::WorldSnippet& snip)
 	{
-		if (snip.points.size() < 2)
-			return;
-		const float halfW = WorldGpsMath::TrailHalfWidthM(snip.trailScale, thickness);
-		const float baseA = (bright ? 0.98f : 0.92f) *
-			std::clamp(snip.alpha > 0.05f ? snip.alpha : 1.f, 0.f, 1.f);
+		if (snip.label[0] && std::strstr(snip.label, "heartpath"))
+			return true;
+		if (!snip.textureId[0])
+			return false;
+		return std::strstr(snip.textureId, "Line___Heart") != nullptr ||
+			std::strstr(snip.textureId, "Heart_png") != nullptr;
+	}
 
-		/* Blish verts are white; pack tint multiplies the texture sample. */
-		float cr = ((snip.color >> 16) & 0xFFu) / 255.f;
-		float cg = ((snip.color >> 8) & 0xFFu) / 255.f;
-		float cb = (snip.color & 0xFFu) / 255.f;
-		if (cr > 0.96f && cg > 0.96f && cb > 0.96f)
-		{
-			cr = 1.f; cg = 1.f; cb = 1.f;
-		}
-
-		const float uvPeriod = WorldGpsMath::kBlishUvPeriodM;
-
-		std::vector<Vec3> raw;
-		raw.reserve(snip.points.size());
-		for (const auto& wp : snip.points)
-		{
-			if (!WorldGpsMath::ReasonablePos(wp.x, wp.y, wp.z))
-			{
-				raw.clear();
-				continue;
-			}
-			raw.push_back({wp.x, wp.y + WorldGpsMath::kHeightBias, wp.z});
-		}
-		if (raw.size() < 2)
-			return;
-
-		/* Resample like Blish SetTrailResolution — denser than 20m for turns. */
+	bool ResamplePath(const std::vector<Vec3>& rawIn, std::vector<Vec3>& pts,
+		std::vector<Vec3>& sides)
+	{
+		pts.clear();
+		sides.clear();
+		if (rawIn.size() < 2)
+			return false;
 		constexpr float kResample = 10.f;
-		std::vector<Vec3> pts;
-		pts.reserve(raw.size() * 2);
-		pts.push_back(raw[0]);
-		for (size_t i = 0; i + 1 < raw.size(); ++i)
+		pts.reserve(rawIn.size() * 2);
+		pts.push_back(rawIn[0]);
+		for (size_t i = 0; i + 1 < rawIn.size(); ++i)
 		{
-			Vec3 a = raw[i];
-			Vec3 b = raw[i + 1];
-			Vec3 d = b - a;
+			Vec3 a = rawIn[i], b = rawIn[i + 1], d = b - a;
 			float len = std::sqrt(d.LengthSq());
 			if (!(len > 0.08f) || !std::isfinite(len) || len > 160.f)
 			{
@@ -93,27 +71,20 @@ namespace
 			}
 			const int steps = std::max(1, static_cast<int>(std::ceil(len / kResample)));
 			for (int s = 1; s <= steps; ++s)
-			{
-				const float t = static_cast<float>(s) / static_cast<float>(steps);
-				pts.push_back(WorldGpsMath::Lerp3(a, b, t));
-			}
+				pts.push_back(WorldGpsMath::Lerp3(a, b, static_cast<float>(s) / steps));
 		}
 		if (pts.size() < 2)
-			return;
-
-		std::vector<Vec3> sides(pts.size());
+			return false;
+		sides.resize(pts.size());
 		float flip = 1.f;
 		Vec3 lastSide{};
 		for (size_t i = 0; i < pts.size(); ++i)
 		{
-			Vec3 pathDir{};
-			if (i + 1 < pts.size())
-				pathDir = (pts[i + 1] - pts[i]).Normalised();
-			else
-				pathDir = (pts[i] - pts[i - 1]).Normalised();
+			Vec3 pathDir = (i + 1 < pts.size())
+				? (pts[i + 1] - pts[i]).Normalised()
+				: (pts[i] - pts[i - 1]).Normalised();
 			if (pathDir.LengthSq() < 0.5f)
 				pathDir = {1.f, 0.f, 0.f};
-
 			Vec3 side = pathDir.Cross(Vec3{0.f, 1.f, 0.f}).Normalised();
 			if (side.LengthSq() < 0.5f)
 			{
@@ -126,29 +97,34 @@ namespace
 			lastSide = side;
 			sides[i] = side * flip;
 		}
-		/* Smooth side vectors so corners do not diamond-pinch. */
 		for (size_t i = 1; i + 1 < sides.size(); ++i)
 		{
-			Vec3 s = sides[i - 1] + sides[i] + sides[i + 1];
-			s = s.Normalised();
+			Vec3 s = (sides[i - 1] + sides[i] + sides[i + 1]).Normalised();
 			if (s.LengthSq() > 0.5f)
 				sides[i] = (s.Dot(sides[i]) < 0.f) ? s * -1.f : s;
 		}
+		return true;
+	}
 
-		float along = 0.f;
+	void EmitRibbonRun(std::vector<Vertex>& out, const std::vector<Vec3>& rawIn,
+		float halfW, float uvPeriod, float flowScroll,
+		float cr, float cg, float cb, float baseA, float along0)
+	{
+		std::vector<Vec3> pts, sides;
+		if (!ResamplePath(rawIn, pts, sides))
+			return;
+		float along = along0;
 		for (size_t i = 0; i + 1 < pts.size(); ++i)
 		{
-			const Vec3& p0 = pts[i];
-			const Vec3& p1 = pts[i + 1];
-			const float segLen = std::sqrt((p1 - p0).LengthSq());
+			const float segLen = std::sqrt((pts[i + 1] - pts[i]).LengthSq());
 			if (!(segLen > 0.05f))
 				continue;
-			const float v0 = -(along / uvPeriod);
-			const float v1 = -((along + segLen) / uvPeriod);
-			const Vec3 l0 = p0 - sides[i] * halfW;
-			const Vec3 r0 = p0 + sides[i] * halfW;
-			const Vec3 l1 = p1 - sides[i + 1] * halfW;
-			const Vec3 r1 = p1 + sides[i + 1] * halfW;
+			const float v0 = -(along / uvPeriod) + flowScroll;
+			const float v1 = -((along + segLen) / uvPeriod) + flowScroll;
+			const Vec3 l0 = pts[i] - sides[i] * halfW;
+			const Vec3 r0 = pts[i] + sides[i] * halfW;
+			const Vec3 l1 = pts[i + 1] - sides[i + 1] * halfW;
+			const Vec3 r1 = pts[i + 1] + sides[i + 1] * halfW;
 			const Vertex verts[6] = {
 				{l0.x, l0.y, l0.z, 0.f, v0, cr, cg, cb, baseA},
 				{r0.x, r0.y, r0.z, 1.f, v0, cr, cg, cb, baseA},
@@ -162,6 +138,52 @@ namespace
 			if (out.size() > 120000)
 				return;
 		}
+	}
+
+	void AppendRibbon(std::vector<Vertex>& out, const PathingTrails::WorldSnippet& snip,
+		float thickness, bool bright, float flowScroll)
+	{
+		if (snip.points.size() < 2)
+			return;
+		const bool hearts = IsHeartTrail(snip);
+		/* Hearts keep pack yellow tint and flow with the same ribbon path as arrows. */
+		float halfW = WorldGpsMath::TrailHalfWidthM(snip.trailScale, thickness);
+		if (hearts)
+			halfW *= 1.5f;
+		const float baseA = (bright ? 0.98f : 0.92f) *
+			std::clamp(snip.alpha > 0.05f ? snip.alpha : 1.f, 0.f, 1.f);
+		float cr = ((snip.color >> 16) & 0xFFu) / 255.f;
+		float cg = ((snip.color >> 8) & 0xFFu) / 255.f;
+		float cb = (snip.color & 0xFFu) / 255.f;
+		if (cr > 0.96f && cg > 0.96f && cb > 0.96f)
+		{
+			cr = 1.f; cg = 1.f; cb = 1.f;
+		}
+		std::vector<Vec3> raw;
+		raw.reserve(snip.points.size());
+		float along = snip.uvAlong0;
+		auto flush = [&]() {
+			if (raw.size() < 2)
+			{
+				raw.clear();
+				return;
+			}
+			EmitRibbonRun(out, raw, halfW, WorldGpsMath::kBlishUvPeriodM, flowScroll,
+				cr, cg, cb, baseA, along);
+			for (size_t i = 0; i + 1 < raw.size(); ++i)
+				along += std::sqrt((raw[i + 1] - raw[i]).LengthSq());
+			raw.clear();
+		};
+		for (const auto& wp : snip.points)
+		{
+			if (!WorldGpsMath::ReasonablePos(wp.x, wp.y, wp.z))
+			{
+				flush();
+				continue;
+			}
+			raw.push_back({wp.x, wp.y + WorldGpsMath::kHeightBias, wp.z});
+		}
+		flush();
 	}
 
 	ID3D11ShaderResourceView* ResolveSrv(const PathingTrails::WorldSnippet& snip)
@@ -220,10 +242,31 @@ bool WorldGpsD3d::DrawTrails(
 	std::vector<Batch> batches;
 	batches.reserve(trails.size() + 1);
 
+	/* Bake Blish flow into ribbon UVs (same scroll for arrows + hearts). */
+	static LARGE_INTEGER sQpcFreq = {};
+	static LARGE_INTEGER sQpcStart = {};
+	static bool sQpcInit = false;
+	if (!sQpcInit)
+	{
+		QueryPerformanceFrequency(&sQpcFreq);
+		QueryPerformanceCounter(&sQpcStart);
+		sQpcInit = true;
+	}
+	LARGE_INTEGER qpcNow{};
+	QueryPerformanceCounter(&qpcNow);
+	const double sec = (sQpcFreq.QuadPart > 0)
+		? static_cast<double>(qpcNow.QuadPart - sQpcStart.QuadPart) /
+			static_cast<double>(sQpcFreq.QuadPart)
+		: 0.0;
+	const float flow = static_cast<float>(std::fmod(sec * 0.45, 1024.0));
+
 	auto addSnip = [&](const PathingTrails::WorldSnippet& snip, bool bright, float thick) {
 		Batch b;
 		b.srv = ResolveSrv(snip);
-		AppendRibbon(b.verts, snip, thick, bright);
+		/* Hearts without texture would fall back to a solid yellow ribbon — skip. */
+		if (IsHeartTrail(snip) && !b.srv)
+			return;
+		AppendRibbon(b.verts, snip, thick, bright, flow);
 		if (!b.verts.empty())
 			batches.push_back(std::move(b));
 	};
@@ -259,15 +302,12 @@ bool WorldGpsD3d::DrawTrails(
 	const float hideM = WorldGpsMath::kAvatarTrailHideAt1 * clearMul;
 	const float fadeM = hideM + WorldGpsMath::kAvatarTrailFadeExtraAt1 * clearMul;
 
-	/* Blish animspeed — chevrons flow forward along the path (not reverse). */
-	const float flow = static_cast<float>(GetTickCount64() % 1000000ull) * 0.00045f;
-
 	Constants cb{};
 	std::memcpy(cb.viewProj, viewProj.m, sizeof(cb.viewProj));
 	cb.avatar[0] = avatar.x; cb.avatar[1] = avatar.y; cb.avatar[2] = avatar.z;
 	cb.avatar[3] = clearMul;
 	cb.camPos[0] = avatar.x; cb.camPos[1] = avatar.y; cb.camPos[2] = avatar.z;
-	cb.camPos[3] = flow;
+	cb.camPos[3] = 0.f; /* flow baked into ribbon verts */
 	cb.fade[0] = fadeStart; cb.fade[1] = fadeEnd; cb.fade[2] = hideM; cb.fade[3] = fadeM;
 
 	D3D11_MAPPED_SUBRESOURCE mapped{};

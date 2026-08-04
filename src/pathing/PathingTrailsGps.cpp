@@ -133,22 +133,46 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		snip.trailScale = tr.trailScale;
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
-		/* Local slice — keep enough points for long HP sections near the player. */
 		constexpr size_t kMaxPts = 192;
 		snip.points.reserve(std::min(b - a + 1, kMaxPts));
 		const size_t span = b - a;
 		const size_t stride = (span > kMaxPts) ? (span / kMaxPts) : 1;
+		size_t firstIdx = a;
+		bool first = true;
 		for (size_t i = a; i <= b; i += std::max<size_t>(1, stride))
 		{
 			const WorldPoint& wp = pts[i];
 			if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z))
 				break; /* section end — do not skip and stitch */
+			if (first)
+			{
+				firstIdx = i;
+				first = false;
+			}
 			snip.points.push_back(wp);
 			if (snip.points.size() >= kMaxPts)
 				break;
 		}
 		if (snip.points.size() >= 2)
+		{
+			size_t sec0 = firstIdx;
+			while (sec0 > 0 &&
+				std::isfinite(pts[sec0 - 1].x) && std::isfinite(pts[sec0 - 1].y) &&
+				std::isfinite(pts[sec0 - 1].z))
+				--sec0;
+			float uv0 = 0.f;
+			for (size_t i = sec0; i < firstIdx; ++i)
+			{
+				const float dx = pts[i].x - pts[i + 1].x;
+				const float dy = pts[i].y - pts[i + 1].y;
+				const float dz = pts[i].z - pts[i + 1].z;
+				const float L = std::sqrt(dx * dx + dy * dy + dz * dz);
+				if (std::isfinite(L) && L < 160.f)
+					uv0 += L;
+			}
+			snip.uvAlong0 = uv0;
 			out.push_back(std::move(snip));
+		}
 		if (pointTests > maxPointTests)
 			break;
 	}
@@ -180,16 +204,15 @@ bool PathingTrails::TryNearbyWorldGps(
 	   vertex (Blish shows the corridor ahead), not by avatar-sphere clipping
 	   which chopped trails that climbed/dived away from the player. */
 	float maxDist = std::clamp(maxDistMeters, 20.f, 220.f);
-	/* Slightly generous activate — edge trails used to flicker in/out of range. */
-	float activateDist = std::max(maxDist * 2.85f, 280.f);
-	float alongBudget = std::max(activateDist * 1.35f, 360.f);
-	size_t maxPts = 900;
+	float activateDist = std::max(maxDist * 3.2f, 320.f);
+	float alongBudget = std::max(activateDist * 1.75f, 520.f);
+	size_t maxPts = 1200;
 	if (G::LadyWpOnly)
 	{
 		maxDist = std::clamp(std::max(maxDistMeters, 180.f) * 2.2f, 220.f, 450.f);
 		activateDist = std::max(maxDist * 2.15f, 430.f);
-		alongBudget = std::max(activateDist * 1.4f, 600.f);
-		maxPts = 1200;
+		alongBudget = std::max(activateDist * 1.6f, 700.f);
+		maxPts = 1400;
 	}
 	const float activateDist2 = activateDist * activateDist;
 	auto dist2 = [&](float x, float y, float z) {
@@ -283,7 +306,13 @@ bool PathingTrails::TryNearbyWorldGps(
 			break;
 	}
 	std::sort(cands.begin(), cands.end(),
-		[](const Cand& a, const Cand& b) { return a.nearestD2 < b.nearestD2; });
+		[&](const Cand& a, const Cand& b) {
+			const bool ah = std::strstr(gCurrentAll[a.idx].label, "heartpath") != nullptr;
+			const bool bh = std::strstr(gCurrentAll[b.idx].label, "heartpath") != nullptr;
+			if (a.nearestD2 <= activateDist2 && b.nearestD2 <= activateDist2 && ah != bh)
+				return ah && !bh;
+			return a.nearestD2 < b.nearestD2;
+		});
 
 	auto samplePt = [](const std::vector<WorldPoint>& pts, float t) -> WorldPoint
 	{
@@ -323,10 +352,10 @@ bool PathingTrails::TryNearbyWorldGps(
 		return hits >= 4;
 	};
 
-	outSnippets.reserve(16);
+	outSnippets.reserve(40);
 	for (const Cand& c : cands)
 	{
-		if (outSnippets.size() >= 16)
+		if (outSnippets.size() >= 40)
 			break;
 		const Trail& tr = gCurrentAll[c.idx];
 		const auto& pts = tr.worldPoints;
@@ -334,29 +363,32 @@ bool PathingTrails::TryNearbyWorldGps(
 		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
 			continue;
 
-		/* Grow by along-path meters within one TacO section (NaN = break). */
-		size_t a = c.nearest;
-		size_t b = c.nearest;
-		float back = 0.f;
-		while (a > 0 &&
-			std::isfinite(pts[a - 1].x) && std::isfinite(pts[a - 1].y) &&
-			std::isfinite(pts[a - 1].z))
+		/* Heartpath: full section; else along-budget. */
+		const bool fullSection =
+			std::strstr(tr.label, "heartpath") != nullptr ||
+			std::strstr(tr.textureId, "Heart") != nullptr;
+		const float budget = fullSection ? 1.0e9f : alongBudget;
+		size_t a = c.nearest, b = c.nearest;
+		for (float used = 0.f; a > 0; )
 		{
-			const float L = segLen(pts[a], pts[a - 1]);
-			if (!(L < 160.f) || back + L > alongBudget)
+			if (!std::isfinite(pts[a - 1].x) || !std::isfinite(pts[a - 1].y) ||
+				!std::isfinite(pts[a - 1].z))
 				break;
-			back += L;
+			const float L = segLen(pts[a], pts[a - 1]);
+			if (!(L < 160.f) || used + L > budget)
+				break;
+			used += L;
 			--a;
 		}
-		float fwd = 0.f;
-		while (b + 1 < n &&
-			std::isfinite(pts[b + 1].x) && std::isfinite(pts[b + 1].y) &&
-			std::isfinite(pts[b + 1].z))
+		for (float used = 0.f; b + 1 < n; )
 		{
-			const float L = segLen(pts[b], pts[b + 1]);
-			if (!(L < 160.f) || fwd + L > alongBudget)
+			if (!std::isfinite(pts[b + 1].x) || !std::isfinite(pts[b + 1].y) ||
+				!std::isfinite(pts[b + 1].z))
 				break;
-			fwd += L;
+			const float L = segLen(pts[b], pts[b + 1]);
+			if (!(L < 160.f) || used + L > budget)
+				break;
+			used += L;
 			++b;
 		}
 		if (b <= a)
@@ -371,10 +403,12 @@ bool PathingTrails::TryNearbyWorldGps(
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
 		constexpr float kMinSp2 = 0.35f * 0.35f;
-		constexpr float kMaxKeepGap2 = 160.f * 160.f;
-		snip.points.reserve(std::min(b - a + 1, maxPts));
+		const float maxGap2 = fullSection ? (400.f * 400.f) : (160.f * 160.f);
+		const size_t ptCap = fullSection ? std::max(maxPts, size_t{2000}) : maxPts;
+		snip.points.reserve(std::min(b - a + 1, ptCap));
 		WorldPoint lastKept{};
 		bool haveKept = false;
+		size_t firstIdx = a;
 		for (size_t i = a; i <= b; ++i)
 		{
 			const WorldPoint& wp = pts[i];
@@ -385,17 +419,33 @@ bool PathingTrails::TryNearbyWorldGps(
 				const float gap2 = distPts2(wp, lastKept);
 				if (gap2 < kMinSp2 && i != b)
 					continue;
-				if (gap2 > kMaxKeepGap2)
+				if (gap2 > maxGap2)
 					break;
 			}
+			else
+				firstIdx = i;
 			snip.points.push_back(wp);
 			lastKept = wp;
 			haveKept = true;
-			if (snip.points.size() >= maxPts)
+			if (snip.points.size() >= ptCap)
 				break;
 		}
 		if (snip.points.size() < 2)
 			continue;
+		/* UV along0 from section start. */
+		size_t sec0 = firstIdx;
+		while (sec0 > 0 &&
+			std::isfinite(pts[sec0 - 1].x) && std::isfinite(pts[sec0 - 1].y) &&
+			std::isfinite(pts[sec0 - 1].z))
+			--sec0;
+		float uv0 = 0.f;
+		for (size_t i = sec0; i < firstIdx; ++i)
+		{
+			const float L = segLen(pts[i], pts[i + 1]);
+			if (L < 160.f)
+				uv0 += L;
+		}
+		snip.uvAlong0 = uv0;
 		bool dupPath = false;
 		for (const WorldSnippet& prev : outSnippets)
 		{

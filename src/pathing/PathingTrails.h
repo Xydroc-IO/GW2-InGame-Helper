@@ -174,6 +174,9 @@ namespace PathingTrails
 		float trailScale = 1.f;
 		float fadeNear = -1.f;
 		float fadeFar = -1.f;
+		/* Meters along the TacO section to points[0] — keeps UV world-locked when
+		   the nearby window slides (avoids scroll pops while moving). */
+		float uvAlong0 = 0.f;
 		std::vector<WorldPoint> points;
 	};
 	std::vector<WorldSnippet> NearbyWorldSnippets(
