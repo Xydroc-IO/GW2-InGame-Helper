@@ -23,7 +23,7 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 	if (maxTrails < 1 || maxPointTests < 1)
 		return out;
 	/* Nearby slice only — short range so GPS does not paint through walls/map. */
-	const float maxDist = std::clamp(maxDistMeters, 10.f, 120.f);
+	const float maxDist = std::clamp(maxDistMeters, 10.f, 200.f);
 	const float softDist = maxDist * 1.55f;
 	const float softDist2 = softDist * softDist;
 
@@ -200,20 +200,20 @@ bool PathingTrails::TryNearbyWorldGps(
 	if (!std::isfinite(avatarX) || !std::isfinite(avatarY) || !std::isfinite(avatarZ))
 		return true;
 
-	/* Activation + along-path window. Expand by path length from the nearest
-	   vertex (Blish shows the corridor ahead), not by avatar-sphere clipping
-	   which chopped trails that climbed/dived away from the player. */
-	float maxDist = std::clamp(maxDistMeters, 20.f, 220.f);
-	float activateDist = std::max(maxDist * 3.2f, 320.f);
-	float alongBudget = std::max(activateDist * 1.75f, 520.f);
+	/* Activation + along-path window track the Overview “GPS range” slider.
+	   Earlier floors (320m / 520m) made 40–200m adjustments look broken. */
+	float maxDist = std::clamp(maxDistMeters, 40.f, 200.f);
+	float activateDist = maxDist * 1.35f;
+	float alongBudget = maxDist * 2.25f;
 	size_t maxPts = 1200;
 	const bool wpMode = G::LadyWpOnly;
 	const bool hpMode = G::LadyHeroPointTrain;
 	if (wpMode || hpMode)
 	{
-		maxDist = std::clamp(std::max(maxDistMeters, 180.f) * 2.2f, 220.f, 450.f);
-		activateDist = std::max(maxDist * 2.15f, 430.f);
-		alongBudget = std::max(activateDist * 1.6f, 700.f);
+		/* Sparse WP/HP corridors need a bit more reach, still slider-scaled. */
+		maxDist = std::clamp(maxDistMeters * 1.35f, 55.f, 280.f);
+		activateDist = maxDist * 1.55f;
+		alongBudget = maxDist * 2.75f;
 		maxPts = 1400;
 	}
 	const float activateDist2 = activateDist * activateDist;

@@ -118,9 +118,10 @@ void WorldOverlay::Render()
 	ImDrawList* dl = ImGui::GetBackgroundDrawList();
 	PathingTrails::BeginFrame();
 
+	/* Slider is the real draw/activation radius — do not floor to hundreds of meters. */
 	const float maxDist = (G::LadyWpOnly || G::LadyHeroPointTrain)
-		? std::clamp(std::max(G::WorldTrailMaxDist, 200.f), 160.f, 320.f)
-		: std::clamp(G::WorldTrailMaxDist, 40.f, 220.f);
+		? std::clamp(G::WorldTrailMaxDist * 1.35f, 55.f, 280.f)
+		: std::clamp(G::WorldTrailMaxDist, 40.f, 200.f);
 	const float thickness = std::clamp(G::WorldTrailWidth, 0.5f, 4.0f);
 	const Vec3 avatar{ax, ay, az};
 
@@ -128,6 +129,7 @@ void WorldOverlay::Render()
 	static std::vector<PathingTrails::Marker> sMarkerCache;
 	static PathingTrails::WorldSnippet sGuideCache;
 	static float sCacheAx = 0.f, sCacheAy = 0.f, sCacheAz = 0.f;
+	static float sCacheMaxDist = -1.f;
 	static uint32_t sGpsMap = 0;
 	static uint64_t sGpsContent = 0;
 
@@ -142,6 +144,7 @@ void WorldOverlay::Render()
 		sCacheAx = ax;
 		sCacheAy = ay;
 		sCacheAz = az;
+		sCacheMaxDist = -1.f;
 	}
 
 	const float mdx = ax - sCacheAx;
@@ -151,7 +154,15 @@ void WorldOverlay::Render()
 	const float refreshM = (G::LadyWpOnly || G::LadyHeroPointTrain) ? 8.f : 12.f;
 	const bool movedFar = (mdx * mdx + mdy * mdy + mdz * mdz) > (refreshM * refreshM);
 	const bool contentChanged = (sGpsContent != content);
-	const bool needRefresh = contentChanged || sNearCache.empty() || movedFar;
+	const bool rangeChanged = (sCacheMaxDist < 0.f) ||
+		(std::fabs(sCacheMaxDist - maxDist) > 0.5f);
+	/* Shrinking range must drop sticky far ribbons immediately. */
+	if (rangeChanged && sCacheMaxDist > 0.f && maxDist + 0.5f < sCacheMaxDist)
+	{
+		sNearCache.clear();
+		sMarkerCache.clear();
+	}
+	const bool needRefresh = contentChanged || sNearCache.empty() || movedFar || rangeChanged;
 
 	/* Features Barefoot/WP/Mounts bump ContentRevision — drop prior edition
 	   immediately so a mutex miss cannot keep drawing the old ribbons. */
@@ -178,7 +189,8 @@ void WorldOverlay::Render()
 				}
 				else
 				{
-					const float stickM = std::max(maxDist * 4.0f, 560.f);
+					/* Keep sticky merge inside the user range (was floored at 560m). */
+					const float stickM = maxDist * 1.75f;
 					const float stick2 = stickM * stickM;
 					auto nearD2 = [&](const PathingTrails::WorldSnippet& s) -> float {
 						float best = 1.0e30f;
@@ -255,6 +267,7 @@ void WorldOverlay::Render()
 				sCacheAx = ax;
 				sCacheAy = ay;
 				sCacheAz = az;
+				sCacheMaxDist = maxDist;
 				sGpsContent = content;
 			}
 			else if (!PathingTrails::HasDrawableWorldGps() || contentChanged)
@@ -265,6 +278,7 @@ void WorldOverlay::Render()
 				sCacheAx = ax;
 				sCacheAy = ay;
 				sCacheAz = az;
+				sCacheMaxDist = maxDist;
 				sGpsContent = content;
 			}
 			else if (!sNearCache.empty())
@@ -273,6 +287,7 @@ void WorldOverlay::Render()
 				sCacheAx = ax;
 				sCacheAy = ay;
 				sCacheAz = az;
+				sCacheMaxDist = maxDist;
 				sGpsContent = content;
 			}
 		}
@@ -291,9 +306,9 @@ void WorldOverlay::Render()
 	else
 		sGuideCache = {};
 
-	float drawDist = std::max(maxDist * 3.6f, 480.f);
-	if (G::LadyWpOnly || G::LadyHeroPointTrain)
-		drawDist = std::max(maxDist * 3.5f, 650.f);
+	/* Fade soft-edge is TrailFadeRange(maxDist) (~0.92×–1.85×). Pass the
+	   slider distance directly — a 480m floor made the range control inert. */
+	const float drawDist = maxDist;
 
 	const PathingTrails::WorldSnippet* guidePtr =
 		(sGuideCache.points.size() >= 2) ? &sGuideCache : nullptr;

@@ -57,6 +57,10 @@ bool PathingTrails::DrawOverlaySettings()
 			PadNav::PopWrap();
 		}
 		dirty |= ImGui::SliderFloat("GPS range (m)", &G::WorldTrailMaxDist, 40.f, 200.f, "%.0f");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"How far in-world GPS ribbons stay visible around you.\n"
+				"Lower = shorter trails; higher = longer corridors.");
 		dirty |= ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f×");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
