@@ -118,8 +118,9 @@ Independent systems; both may use Mumble pose read-only.
 - Soft **Player clear** (default 1; **0** = full path).
 - **GPS range (m)** (default 120; Overview slider 40–200) is the real draw/activation
   radius — not floored to hundreds of meters.
-- **Marker size** (`WorldMarkerScale`, default **2.0×**) scales pack icons in the world
-  and on the compass.
+- **Marker size:** Separate Overview sliders —
+  **World markers** (`WorldMarkerScale`, default **2.0×**) for in-world GPS icons, and
+  **Compass icons** (`CompassMarkerScale`, default **1.0×**) for the stock compass.
 - Along-path sampling; sticky cache + hysteresis reduce blink / incomplete sparse routes (match by geometry; prefer full TacO sections for nearby hearts).
 - Trail textures (including `Line - Heart`) are prioritized in the icon queue; hearts without a loaded texture are skipped (no solid-color fallback).
 

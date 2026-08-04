@@ -41,8 +41,9 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **World GPS range:** Overview **GPS range (m)** now drives draw/activation distance
   (removed ~480m / ~320m floors that made the slider look broken). Shrinking range
   refreshes the nearby cache immediately.
-- **Marker size:** Overview **Marker size** slider (`WorldMarkerScale`, default **2.0×**)
-  scales pack icons in the world and on the compass.
+- **Marker size:** Separate Overview sliders — **World markers** (`WorldMarkerScale`,
+  default **2.0×**) for in-world GPS icons, and **Compass icons** (`CompassMarkerScale`,
+  default **1.0×**) for the stock compass / minimap.
 - **Stamps:** Helper `2207` · homepage `2207` · sites `s2207` · cheatsheets `c2207`
 
 ## What’s new in 2.2.0.6
