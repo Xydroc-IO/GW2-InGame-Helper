@@ -62,6 +62,7 @@ namespace G
 	float WorldTrailMaxDist = 120.f;
 	float WorldTrailWidth = 1.f;
 	float WorldTrailPlayerClear = 1.f; /* 0 = full path; 1 = default clear bubble */
+	float WorldMarkerScale = 1.f; /* 1 = pack default icon/marker size */
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
 	bool  FontScaleAuto = false; /* opt-in only — default stays 1.0 */

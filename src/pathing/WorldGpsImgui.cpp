@@ -344,9 +344,11 @@ void WorldGpsImgui::DrawMarkers(
 		float sx = 0.f, sy = 0.f;
 		if (!WorldGpsMath::WorldToScreen(world, viewProj, screenW, screenH, sx, sy))
 			continue;
-		const float size = std::clamp(
+		const float iconMul = std::clamp(G::WorldMarkerScale, 0.5f, 3.f);
+		float size = std::clamp(
 			marker.iconSize * 700.f / std::max(1.f, distance),
 			marker.minSize, std::min(marker.maxSize, 128.f));
+		size = std::clamp(size * iconMul, 4.f, 256.f);
 		const int alpha = static_cast<int>(
 			std::clamp(marker.alpha * fade, 0.f, 1.f) * 255.f);
 		if (alpha < 5)

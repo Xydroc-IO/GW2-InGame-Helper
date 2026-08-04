@@ -65,6 +65,11 @@ bool PathingTrails::DrawOverlaySettings()
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
 				"Multiplier on pack trailScale (1.0 = Blish/TacO default).");
+		dirty |= ImGui::SliderFloat("Marker / icon size", &G::WorldMarkerScale, 0.5f, 3.0f, "%.1f×");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Scale pack marker icons in the world and on the compass.\n"
+				"1.0 = pack default.");
 		dirty |= ImGui::SliderFloat("Player clear", &G::WorldTrailPlayerClear, 0.f, 3.0f, "%.1f×");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(

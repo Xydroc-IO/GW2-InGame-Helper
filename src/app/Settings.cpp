@@ -160,6 +160,8 @@ void Settings::Load()
 			G::WorldTrailWidth = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WorldTrailPlayerClear") == 0)
 			G::WorldTrailPlayerClear = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WorldMarkerScale") == 0)
+			G::WorldMarkerScale = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "Opacity") == 0) G::Opacity = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "FontScale") == 0)
 			G::FontScale = static_cast<float>(std::atof(val));
@@ -294,6 +296,8 @@ void Settings::Load()
 	if (G::WorldTrailWidth > 4.f) G::WorldTrailWidth = 4.f;
 	if (G::WorldTrailPlayerClear < 0.f) G::WorldTrailPlayerClear = 0.f;
 	if (G::WorldTrailPlayerClear > 3.f) G::WorldTrailPlayerClear = 3.f;
+	if (G::WorldMarkerScale < 0.5f) G::WorldMarkerScale = 0.5f;
+	if (G::WorldMarkerScale > 3.f) G::WorldMarkerScale = 3.f;
 	if (G::DirectionLetterScale < 0.5f) G::DirectionLetterScale = 0.5f;
 	if (G::DirectionLetterScale > 2.5f) G::DirectionLetterScale = 2.5f;
 	if (G::DirectionWorldRadiusScale < 0.4f) G::DirectionWorldRadiusScale = 0.4f;
@@ -372,6 +376,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "WorldTrailMaxDist=%.1f\n", G::WorldTrailMaxDist);
 	std::fprintf(f, "WorldTrailWidth=%.2f\n", G::WorldTrailWidth);
 	std::fprintf(f, "WorldTrailPlayerClear=%.2f\n", G::WorldTrailPlayerClear);
+	std::fprintf(f, "WorldMarkerScale=%.2f\n", G::WorldMarkerScale);
 	PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
 	std::fprintf(f, "PathingEnabled=%s\n", G::PathingEnabled);
 	std::fprintf(f, "Opacity=%.4f\n", G::Opacity);
