@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "JsonView.h"
 
 #include <algorithm>
 #include <atomic>
@@ -53,67 +54,17 @@ namespace UnlocksDetail
 
 	std::string JsonStringAfterKey(const std::string& json, const char* key, size_t from)
 	{
-		std::string pat = "\"";
-		pat += key;
-		pat += "\"";
-		size_t k = json.find(pat, from);
-		if (k == std::string::npos)
-			return {};
-		k = json.find(':', k + pat.size());
-		if (k == std::string::npos)
-			return {};
-		++k;
-		while (k < json.size() && (json[k] == ' ' || json[k] == '\t'))
-			++k;
-		if (k >= json.size() || json[k] != '"')
-			return {};
-		++k;
-		std::string out;
-		while (k < json.size())
-		{
-			const char c = json[k++];
-			if (c == '\\' && k < json.size())
-			{
-				out.push_back(json[k++]);
-				continue;
-			}
-			if (c == '"')
-				break;
-			out.push_back(c);
-		}
-		return out;
+		return JsonView::StringAfterKey(json, key, from);
 	}
 
 	long long JsonIntAfterKey(const std::string& json, const char* key, size_t from)
 	{
-		std::string pat = "\"";
-		pat += key;
-		pat += "\"";
-		size_t k = json.find(pat, from);
-		if (k == std::string::npos)
-			return -1;
-		k = json.find(':', k + pat.size());
-		if (k == std::string::npos)
-			return -1;
-		++k;
-		while (k < json.size() && (json[k] == ' ' || json[k] == '\t'))
-			++k;
-		return std::atoll(json.c_str() + k);
+		return JsonView::IntAfterKey(json, key, from);
 	}
 
 	void ParseIdArray(const std::string& body, std::unordered_set<int>& out)
 	{
-		out.clear();
-		for (size_t i = 0; i < body.size(); ++i)
-		{
-			if (body[i] < '0' || body[i] > '9')
-				continue;
-			const int id = std::atoi(body.c_str() + i);
-			if (id > 0)
-				out.insert(id);
-			while (i < body.size() && body[i] >= '0' && body[i] <= '9')
-				++i;
-		}
+		JsonView::ParseIdArray(body, out);
 	}
 
 	/* Finishers arrive as [{"id":N,"permanent":true},…] — collect id fields. */
@@ -212,8 +163,8 @@ namespace UnlocksDetail
 			if (line.empty() || line[0] == '#')
 				continue;
 			const size_t tab = line.find('\t');
-			const int id = std::atoi(line.c_str());
-			if (id <= 0)
+			int id = 0;
+			if (!JsonView::ParseInt32(JsonView::AsView(line), 0, &id, nullptr) || id <= 0)
 				continue;
 			ids.insert(id);
 			if (tab != std::string::npos && tab + 1 < line.size())

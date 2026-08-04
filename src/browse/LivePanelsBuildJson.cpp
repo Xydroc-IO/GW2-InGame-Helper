@@ -1,5 +1,7 @@
 #include "LivePanelsBuildShared.h"
 
+#include "JsonView.h"
+
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -45,99 +47,20 @@ std::string NowLocalStamp()
 	return buf;
 }
 
-/* Minimal JSON helpers (GW2 API shapes only). */
+/* Minimal JSON helpers (GW2 API shapes only) — bounds-checked via JsonView. */
 std::string JsonStringAfterKey(const std::string& json, const char* key, size_t from)
 {
-	std::string pat = "\"";
-	pat += key;
-	pat += "\"";
-	size_t k = json.find(pat, from);
-	if (k == std::string::npos)
-		return {};
-	k = json.find(':', k + pat.size());
-	if (k == std::string::npos)
-		return {};
-	++k;
-	while (k < json.size() && (json[k] == ' ' || json[k] == '\t' || json[k] == '\r' || json[k] == '\n'))
-		++k;
-	if (k >= json.size() || json[k] != '"')
-		return {};
-	++k;
-	std::string out;
-	while (k < json.size())
-	{
-		char c = json[k++];
-		if (c == '\\' && k < json.size())
-		{
-			char e = json[k++];
-			if (e == 'n') out.push_back('\n');
-			else if (e == 't') out.push_back('\t');
-			else if (e == '"' || e == '\\' || e == '/') out.push_back(e);
-			else if (e == 'u' && k + 3 < json.size())
-			{
-				/* skip \uXXXX — keep ASCII approximation */
-				k += 4;
-				out.push_back('?');
-			}
-			else
-				out.push_back(e);
-			continue;
-		}
-		if (c == '"')
-			break;
-		out.push_back(c);
-	}
-	return out;
+	return JsonView::StringAfterKey(json, key, from);
 }
 
 long long JsonIntAfterKey(const std::string& json, const char* key, size_t from)
 {
-	std::string pat = "\"";
-	pat += key;
-	pat += "\"";
-	size_t k = json.find(pat, from);
-	if (k == std::string::npos)
-		return -1;
-	k = json.find(':', k + pat.size());
-	if (k == std::string::npos)
-		return -1;
-	++k;
-	while (k < json.size() && (json[k] == ' ' || json[k] == '\t'))
-		++k;
-	bool neg = false;
-	if (k < json.size() && json[k] == '-')
-	{
-		neg = true;
-		++k;
-	}
-	long long v = 0;
-	bool any = false;
-	while (k < json.size() && json[k] >= '0' && json[k] <= '9')
-	{
-		any = true;
-		v = v * 10 + (json[k] - '0');
-		++k;
-	}
-	if (!any)
-		return -1;
-	return neg ? -v : v;
+	return JsonView::IntAfterKey(json, key, from);
 }
 
 bool JsonBoolAfterKey(const std::string& json, const char* key, size_t from)
 {
-	std::string pat = "\"";
-	pat += key;
-	pat += "\"";
-	size_t k = json.find(pat, from);
-	if (k == std::string::npos)
-		return false;
-	k = json.find(':', k + pat.size());
-	if (k == std::string::npos)
-		return false;
-	++k;
-	while (k < json.size() && (json[k] == ' ' || json[k] == '\t'))
-		++k;
-	return k + 4 <= json.size() && json.compare(k, 4, "true") == 0;
+	return JsonView::BoolAfterKey(json, key, from);
 }
 
 std::string ExtractTagInner(const std::string& xml, const char* tag, size_t from, size_t* nextOut)
@@ -178,59 +101,14 @@ std::string ExtractTagInner(const std::string& xml, const char* tag, size_t from
 	return inner;
 }
 
-/* Find end of a JSON object starting at '{' — handles nested {} and strings. */
 size_t JsonObjectEnd(const std::string& json, size_t openBrace)
 {
-	if (openBrace >= json.size() || json[openBrace] != '{')
-		return std::string::npos;
-	int depth = 0;
-	bool inStr = false;
-	bool esc = false;
-	for (size_t i = openBrace; i < json.size(); ++i)
-	{
-		char c = json[i];
-		if (inStr)
-		{
-			if (esc) esc = false;
-			else if (c == '\\') esc = true;
-			else if (c == '"') inStr = false;
-			continue;
-		}
-		if (c == '"') inStr = true;
-		else if (c == '{') ++depth;
-		else if (c == '}')
-		{
-			--depth;
-			if (depth == 0)
-				return i;
-		}
-	}
-	return std::string::npos;
+	return JsonView::ObjectEnd(json, openBrace);
 }
 
 std::string ReadJsonQuoted(const std::string& s, size_t openQuote, size_t* after)
 {
-	if (openQuote >= s.size() || s[openQuote] != '"')
-	{
-		if (after) *after = openQuote;
-		return {};
-	}
-	size_t a = openQuote + 1;
-	std::string val;
-	while (a < s.size())
-	{
-		char c = s[a++];
-		if (c == '\\' && a < s.size())
-		{
-			val.push_back(s[a++]);
-			continue;
-		}
-		if (c == '"')
-			break;
-		val.push_back(c);
-	}
-	if (after) *after = a;
-	return val;
+	return JsonView::ReadQuoted(s, openQuote, after);
 }
 
 std::string FormatIsoDateUtc(const std::string& iso)

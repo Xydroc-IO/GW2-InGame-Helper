@@ -1,5 +1,7 @@
 #include "WaypointsDataInternal.h"
 
+#include "JsonView.h"
+
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -9,105 +11,23 @@ namespace WaypointsDataDetail
 {
 size_t JsonObjectEnd(const std::string& json, size_t openBrace)
 {
-	if (openBrace >= json.size() || json[openBrace] != '{')
-		return std::string::npos;
-	int depth = 0;
-	bool inStr = false, esc = false;
-	for (size_t i = openBrace; i < json.size(); ++i)
-	{
-		char c = json[i];
-		if (inStr)
-		{
-			if (esc) esc = false;
-			else if (c == '\\') esc = true;
-			else if (c == '"') inStr = false;
-			continue;
-		}
-		if (c == '"') inStr = true;
-		else if (c == '{') ++depth;
-		else if (c == '}')
-		{
-			--depth;
-			if (depth == 0) return i;
-		}
-	}
-	return std::string::npos;
+	return JsonView::ObjectEnd(json, openBrace);
 }
 
 std::string JsonStringAfterKey(const std::string& json, const char* key, size_t from)
 {
-	std::string pat = "\"";
-	pat += key;
-	pat += "\"";
-	size_t k = json.find(pat, from);
-	if (k == std::string::npos) return {};
-	k = json.find(':', k + pat.size());
-	if (k == std::string::npos) return {};
-	++k;
-	while (k < json.size() && (json[k] == ' ' || json[k] == '\t')) ++k;
-	if (k >= json.size() || json[k] != '"') return {};
-	++k;
-	std::string out;
-	while (k < json.size())
-	{
-		char c = json[k++];
-		if (c == '\\' && k < json.size()) { out.push_back(json[k++]); continue; }
-		if (c == '"') break;
-		out.push_back(c);
-	}
-	return out;
+	return JsonView::StringAfterKey(json, key, from);
 }
 
 bool JsonCoordAfterKey(const std::string& json, const char* key, size_t from,
 	float& outX, float& outY)
 {
-	std::string pat = "\"";
-	pat += key;
-	pat += "\"";
-	size_t k = json.find(pat, from);
-	if (k == std::string::npos) return false;
-	k = json.find(':', k + pat.size());
-	if (k == std::string::npos) return false;
-	++k;
-	while (k < json.size() && (json[k] == ' ' || json[k] == '\t')) ++k;
-	if (k >= json.size() || json[k] != '[') return false;
-	++k;
-	char* end1 = nullptr;
-	const float x = static_cast<float>(std::strtod(json.c_str() + k, &end1));
-	if (!end1 || end1 == json.c_str() + k) return false;
-	k = static_cast<size_t>(end1 - json.c_str());
-	while (k < json.size() && (json[k] == ' ' || json[k] == '\t' || json[k] == ',')) ++k;
-	char* end2 = nullptr;
-	const float y = static_cast<float>(std::strtod(json.c_str() + k, &end2));
-	if (!end2 || end2 == json.c_str() + k) return false;
-	outX = x;
-	outY = y;
-	return true;
+	return JsonView::CoordAfterKey(json, key, from, outX, outY);
 }
 
 long long JsonIntAfterKey(const std::string& json, const char* key, size_t from)
 {
-	std::string pat = "\"";
-	pat += key;
-	pat += "\"";
-	size_t k = json.find(pat, from);
-	if (k == std::string::npos) return -1;
-	k = json.find(':', k + pat.size());
-	if (k == std::string::npos) return -1;
-	++k;
-	while (k < json.size() && (json[k] == ' ' || json[k] == '\t')) ++k;
-	bool neg = false;
-	if (k < json.size() && json[k] == '-') { neg = true; ++k; }
-	long long v = 0;
-	bool any = false;
-	while (k < json.size() && json[k] >= '0' && json[k] <= '9')
-	{
-		any = true;
-		v = v * 10 + (json[k] - '0');
-		++k;
-	}
-	if (!any) return -1;
-	return neg ? -v : v;
+	return JsonView::IntAfterKey(json, key, from);
 }
 
 void ParseFloorJson(const std::string& body, std::vector<WaypointsData::Poi>& pois)
@@ -169,11 +89,9 @@ void ParseFloorJson(const std::string& body, std::vector<WaypointsData::Poi>& po
 							if (q1 != std::string::npos)
 							{
 								std::string key = chunk.substr(q1 + 1, q2 - q1 - 1);
-								bool digits = !key.empty();
-								for (char ch : key)
-									if (ch < '0' || ch > '9') { digits = false; break; }
-								if (digits)
-									mapId = std::atoll(key.c_str());
+								long long id = 0;
+								if (JsonView::ParseInt64(JsonView::AsView(key), 0, &id, nullptr) && id > 0)
+									mapId = id;
 							}
 						}
 						break;

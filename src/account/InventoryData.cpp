@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "JsonView.h"
 
 #include <algorithm>
 #include <atomic>
@@ -50,43 +51,12 @@ namespace
 
 	size_t JsonObjectEnd(const std::string& json, size_t openBrace)
 	{
-		if (openBrace >= json.size() || json[openBrace] != '{')
-			return std::string::npos;
-		int depth = 0;
-		bool inStr = false, esc = false;
-		for (size_t i = openBrace; i < json.size(); ++i)
-		{
-			char c = json[i];
-			if (inStr)
-			{
-				if (esc) esc = false;
-				else if (c == '\\') esc = true;
-				else if (c == '"') inStr = false;
-				continue;
-			}
-			if (c == '"') inStr = true;
-			else if (c == '{') ++depth;
-			else if (c == '}')
-			{
-				--depth;
-				if (depth == 0) return i;
-			}
-		}
-		return std::string::npos;
+		return JsonView::ObjectEnd(json, openBrace);
 	}
 
 	long long JsonIntAfterKey(const std::string& json, const char* key, size_t from)
 	{
-		std::string pat = "\"";
-		pat += key;
-		pat += "\"";
-		size_t k = json.find(pat, from);
-		if (k == std::string::npos) return -1;
-		k = json.find(':', k + pat.size());
-		if (k == std::string::npos) return -1;
-		++k;
-		while (k < json.size() && (json[k] == ' ' || json[k] == '\t')) ++k;
-		return std::atoll(json.c_str() + k);
+		return JsonView::IntAfterKey(json, key, from);
 	}
 
 	void MergeLoc(std::unordered_map<int, Entry>& byId, int id,
