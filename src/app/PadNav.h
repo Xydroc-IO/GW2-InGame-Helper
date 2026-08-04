@@ -11,23 +11,41 @@
    chrome — a fixed left column instead of wrapping rows or ImGui ◀ ▶ tabs. */
 namespace PadNav
 {
+	/* Breathing room between content / slider labels and the scrollbar gutter. */
+	constexpr float kScrollGutterPad = 10.f;
+
 	/* Visible right edge in screen space. Prefer ContentRegionMax over
 	   WindowContentRegionMax — the latter can overshoot the clip rect after a
 	   side-rail SameLine + BeginChild, so text never wraps and just clips. */
 	inline float WrapEdgeX()
 	{
-		return ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x;
+		return ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x - kScrollGutterPad;
 	}
 
 	/* Word-wrap to the remaining content width (not WorkRect-0, which can lie). */
 	inline void PushWrap()
 	{
-		ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x);
+		float avail = ImGui::GetContentRegionAvail().x - kScrollGutterPad;
+		if (avail < 48.f)
+			avail = 48.f;
+		ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + avail);
 	}
 
 	inline void PopWrap()
 	{
 		ImGui::PopTextWrapPos();
+	}
+
+	/* Leave room for right-side labels + gutter (SliderFloat / DragFloat). */
+	inline void PushLabeledItemWidth()
+	{
+		const float reserve = ImGui::GetFontSize() * 12.f + kScrollGutterPad;
+		ImGui::PushItemWidth(-reserve);
+	}
+
+	inline void PopLabeledItemWidth()
+	{
+		ImGui::PopItemWidth();
 	}
 
 	/* SameLine only when next item still fits (Account-style flow). */

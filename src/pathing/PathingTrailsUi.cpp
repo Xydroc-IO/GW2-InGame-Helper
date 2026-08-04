@@ -56,6 +56,7 @@ bool PathingTrails::DrawOverlaySettings()
 				"Enable “In-world GPS trails” above to apply.");
 			PadNav::PopWrap();
 		}
+		PadNav::PushLabeledItemWidth();
 		dirty |= ImGui::SliderFloat("GPS range (m)", &G::WorldTrailMaxDist, 40.f, 200.f, "%.0f");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
@@ -88,6 +89,7 @@ bool PathingTrails::DrawOverlaySettings()
 				"0 = keep icons at your feet.\n"
 				"1 ≈ 2–5.5 m · higher = larger hole.\n"
 				"Mount / Barefoot shortcut icons use a smaller bubble.");
+		PadNav::PopLabeledItemWidth();
 		ImGui::Unindent();
 
 		dirty |= ImGui::Checkbox("Hide when world map open", &G::HideWhenMapOpen);

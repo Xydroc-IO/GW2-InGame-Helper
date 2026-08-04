@@ -70,13 +70,14 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(0.55f, 0.42f, 0.15f, 0.45f));
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, Gold);
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.f, 12.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16.f, 12.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(9.f, 6.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.f, 8.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 3.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 15.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 4.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 3.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_TabRounding, 3.f);
@@ -88,7 +89,7 @@ namespace HelperTheme
 
 	inline void Pop()
 	{
-		ImGui::PopStyleVar(14);
+		ImGui::PopStyleVar(15);
 		ImGui::PopStyleColor(45);
 	}
 
