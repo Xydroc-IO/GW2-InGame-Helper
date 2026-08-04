@@ -253,5 +253,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.4 — Settings pad, AspectLayout, heart GPS, DPS upload |
+| Last architecture sync | 2.2.0.4 — Lady Features Hearts/HP Train, WP full GPS, marker soft-clear |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |
