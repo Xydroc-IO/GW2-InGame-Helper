@@ -2,6 +2,9 @@
 
 Put TacO / BlishHUD **`.taco`** files in this folder. The addon loads all of them.
 
+**Full contributor reference:** [`docs/PATHING.md`](../docs/PATHING.md) (Features, GPS module map, compliance).
+Engineering systems map: [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) · design rationale: [`docs/WHITEPAPER.md`](../docs/WHITEPAPER.md) §17.2.
+
 ## Curated packs (auto-updated)
 
 On first Pathing load (and when you click **Update curated**), the addon downloads

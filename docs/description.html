@@ -69,7 +69,7 @@
       </div>
 
       <div class="meta">
-        <strong>Version</strong> 2.2.0.2 ·
+        <strong>Version</strong> 2.2.0.3 ·
         <strong>Signature</strong> 0x48454C50 ·
         <strong>Author</strong> xydroc ·
         <strong>License</strong> MIT ·
@@ -105,9 +105,10 @@
       <ul>
         <li><strong>In-game browser</strong> — full CEF pages inside Guild Wars 2 (private CEF 150 under <code>addons/.../cef/</code>)</li>
         <li><strong>Browse panel</strong> — search + categories; collapsible sections; clipped large Wiki lists</li>
-        <li><strong>Compact toolbar</strong> — side-rail Browse · Account / Pathing / Events / DPS Logs / Notes / Compass ·
+        <li><strong>Compact toolbar</strong> — side-rail Browse · Account / Pathing / Events / DPS Logs / Notes / Compass / Settings ·
           nav · Find · Web · <code>...</code> menu (Find / Copy URL / Open Ext)</li>
         <li><strong>Account</strong> — tabbed stash, vault, TP, item lookup, crafting, and legendary / character progress (official API)</li>
+        <li><strong>Settings</strong> — landing site, opacity, font scale, warm CEF, API key (Nexus Options opens this pad)</li>
         <li><strong>DPS Logs</strong> — ArcDPS EVTC browser via Elite Insights + optional dps.report; KillProof tab (killproof.me); group-by-encounter (see <code>docs/DPS_LOGS.md</code>)</li>
         <li><strong>Help setup</strong> — offline DPS Log Setup + API Key Setup under Browse → Help (see <code>docs/DPS_LOGS.md</code> / <code>docs/API_KEY.md</code>)</li>
         <li><strong>GW2-themed chrome</strong> — gold / bronze panels, gold tabs, muted status line</li>
@@ -120,7 +121,7 @@
         <li><strong>Find in page</strong> — toolbar Enter or <kbd>Ctrl</kbd>+<kbd>F</kbd></li>
         <li><strong>Favorites</strong> — star sites; drag-reorder; pinned under Favorites in Browse</li>
         <li><strong>Keep browser warm</strong> — optional hide without killing CEF (title-bar collapse also keeps the helper alive)</li>
-        <li><strong>Default landing site</strong> — Options picker; used by Home and when no tabs are saved</li>
+        <li><strong>Default landing site</strong> — Settings picker; used by Home and when no tabs are saved</li>
         <li><strong>QuickAccess</strong> — Nexus icon at the top of the screen</li>
         <li><strong>Hotkeys</strong> — <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> helper ·
           <kbd>A</kbd> Account · <kbd>G</kbd> Pathing · <kbd>E</kbd> Events · <kbd>N</kbd> Notes (rebind in Nexus)</li>
@@ -159,6 +160,13 @@
         <li>Click outside the window (on the game) to return movement / skills to Guild Wars 2.</li>
       </ol>
 
+      <h2>What’s new in 2.2.0.3</h2>
+      <ul>
+        <li><strong>Settings pad:</strong> Side-rail Settings for landing site, opacity, font scale, warm CEF, API key; Nexus Options opens the pad.</li>
+        <li><strong>DPS Logs:</strong> Upload queue drain race fixed; clearer dps.report status; ~48&nbsp;MB cap.</li>
+        <li><strong>World GPS hearts:</strong> Yellow flowing heart ribbons at 1.5× width; trail textures prioritized (no solid fallback).</li>
+        <li>Stamps <code>2203</code> / <code>s2203</code> / <code>c2203</code>. Full changelog: <code>docs/RELEASE_NOTES.md</code>.</li>
+      </ul>
       <h2>What’s new in 2.2.0.2</h2>
       <ul>
         <li><strong>D3D world GPS:</strong> Blish-style upright SwapChain ribbons (pack chevrons, fixed UV, forward animspeed flow, soft player clear). Markers stay ImGui. No Present hooks. Width 1.0× = pack <code>trailScale</code>.</li>

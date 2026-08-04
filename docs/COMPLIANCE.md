@@ -3,7 +3,9 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.2.0.2** — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.2.0.3** — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+
+This file is **normative** (allowed / forbidden). Analysis belongs in the whitepaper.
 
 ## Allowed
 
@@ -20,7 +22,7 @@ Current policy snapshot: **v2.2.0.2** — process/IPC notes: [`ARCHITECTURE.md`]
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
 - Optional **Elite Insights CLI** under `addons/GW2-InGame-Helper/ei/` (on-demand download of upstream `GW2EICLI.zip` + SHA-256 verify; MIT, baaron4; requires user-installed .NET 8)
-- Site ads / consent / analytics loads in CEF (do not re-strip without review)
+- Site ads / consent / analytics loads in CEF (do not re-strip without review) — see [`NAV_AND_ADS.md`](NAV_AND_ADS.md)
 - Deep links to third-party sites as Browse hyperlinks
 - Stable User-Agent product token `GW2-InGame-Helper` so publishers can allow/deny
   this client (instructions: [`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md))
@@ -32,6 +34,7 @@ Current policy snapshot: **v2.2.0.2** — process/IPC notes: [`ARCHITECTURE.md`]
 - `SendInput` / keybd_event into Guild Wars 2 (1-to-many input / bots)
 - Combat automation or account-action automation via BootJs
 - **Writing into `bin64/cef`** (private tree stays under the addon data folder)
+- Truncating advertisement click tracker URLs in Open Ext (refuse if too long instead)
 
 ## Hot-reload
 

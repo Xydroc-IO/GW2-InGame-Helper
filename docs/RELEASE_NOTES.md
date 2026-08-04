@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.2
+# GW2 In-Game Helper v2.2.0.3
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,23 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.3
+
+- **Settings pad:** Side-rail **Settings** holds default landing site, opacity,
+  font scale / auto, warm CEF, and API key. Nexus Options is a short stub that
+  opens the pad. Pathing / compass / TP / phone-companion toggles stay on their
+  own pads (Sync QR removed from the shipping build).
+- **Aspect layouts:** First-open window defaults for 16:9 / 21:9 / 32:9
+  (`AspectLayout`); pads use shared dock helpers.
+- **DPS Logs upload:** Queue drain race fixed (keep uploading while more files
+  arrive); clearer dps.report status / tooltips; ~48 MB upload cap.
+- **World GPS hearts:** Lady heart trails keep pack yellow tint, 1.5× ribbon
+  width, and the same UV flow as arrow trails. Trail textures prioritize in the
+  icon queue (no solid-yellow fallback when the PNG is missing). Sticky cache
+  matches by geometry; nearby hearts prefer full TacO sections.
+- **Docs:** Contributor refs for Pathing / Account / Modules / Nav+ads expanded.
+- **Stamps:** Helper `2203` · homepage `2203` · sites `s2203` · cheatsheets `c2203`
 
 ## What’s new in 2.2.0.2
 

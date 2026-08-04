@@ -39,12 +39,12 @@ need these scopes.
 
 ## Add it to the addon
 
-1. Open **Nexus Options** → **GW2-InGame-Helper**.
+1. Open the helper side rail → **Settings** (or Nexus Options → **Open Settings**).
 2. Find **GW2 API key (Live panels)**.
 3. Paste the key (masked field). It is saved only in this addon’s `settings.ini`.
 4. Reload Live / Account tabs if they were already open.
 
-Options also has **Create key on account.arena.net** (opens the applications page)
+Settings also has **Create key on account.arena.net** (opens the applications page)
 and **Clear API key**.
 
 ---

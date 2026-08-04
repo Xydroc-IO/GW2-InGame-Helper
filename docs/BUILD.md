@@ -1,23 +1,30 @@
 # Building GW2 In-Game Helper
 
+**Revision:** 2.2.0.3 · **Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`MODULES.md`](MODULES.md), [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
+
+---
+
 ## Prerequisites
 
-- Git
+- Git (submodules as required by the repo)
 - Make
 - MinGW-w64 C++ toolchain (`x86_64-w64-mingw32-g++`, `x86_64-w64-mingw32-gcc`)
 - `curl`, `tar`, `zip`, `sha256sum` (for `make pack-cef`)
+- Python 3 (sites validate / enrich / some tests)
 
 ### Arch / Manjaro
 
 ```bash
-sudo pacman -S --needed mingw-w64-gcc make git zip curl
+sudo pacman -S --needed mingw-w64-gcc make git zip curl python
 ```
 
 ### Debian / Ubuntu
 
 ```bash
-sudo apt install -y mingw-w64 make git zip curl
+sudo apt install -y mingw-w64 make git zip curl python3
 ```
+
+---
 
 ## Build
 
@@ -32,7 +39,7 @@ Output DLL:
 build/bin/GW2-InGame-Helper.dll
 ```
 
-`GW2HelperBrowser.exe` is built and embedded into the DLL automatically.
+`GW2HelperBrowser.exe` is built and embedded into the DLL automatically. Hybrid `src/**/*.cpp` layout — see [`MODULES.md`](MODULES.md).
 
 ### Install into a local Guild Wars 2 tree
 
@@ -42,8 +49,7 @@ make install
 make install GW2_ROOT="/path/to/Guild Wars 2"
 ```
 
-`make install` refreshes helper/HTML stamps but **keeps** `settings.ini` and the
-private `cef/` runtime tree.
+`make install` refreshes helper/HTML stamps but **keeps** `settings.ini` and the private `cef/` runtime tree.
 
 ### Pack private CEF runtime zip
 
@@ -51,9 +57,8 @@ private `cef/` runtime tree.
 make pack-cef
 ```
 
-Writes `build/cef-runtime/cef-runtime-150-windows64.zip` + `SHA256SUMS`.
-Upload the zip to a GitHub Release, then set `kDownloadUrl` / `kSha256Hex` in
-[`src/browser/CefRuntime.h`](../src/browser/CefRuntime.h).
+Writes `build/cef-runtime/cef-runtime-150-windows64.zip` + `SHA256SUMS`.  
+Upload, then sync `kDownloadUrl` / `kSha256Hex` in [`src/browser/CefRuntime.h`](../src/browser/CefRuntime.h). Details: [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 ### Clean
 
@@ -61,10 +66,11 @@ Upload the zip to a GitHub Release, then set `kDownloadUrl` / `kSha256Hex` in
 make clean
 ```
 
-### Continuous integration
+---
 
-**GitHub Actions** (public repo — free on standard runners) runs `make ci` on
-push/PR to `master` and `GW2-InGame-Helper-Beta` (`.github/workflows/ci.yml`).
+## Continuous integration
+
+**GitHub Actions** runs `make ci` on push/PR to `master` and `GW2-InGame-Helper-Beta` (`.github/workflows/ci.yml`).
 
 Locally:
 
@@ -72,12 +78,24 @@ Locally:
 make ci
 ```
 
-Runs sites validate/check, CSS tests, **parse golden fixtures**, and a MinGW smoke build.
+Typical gates: sites validate/check, CSS tests, **parse golden fixtures**, IPC sizeof/magic smoke, MinGW smoke build.
+
 Optional push gate (once per clone):
 
 ```bash
 git config core.hooksPath .githooks
 ```
+
+Useful singles:
+
+| Target | Purpose |
+|--------|---------|
+| `make validate-sites` | Catalog integrity |
+| `make enrich-sites` | Optional browsePath derivation |
+| `make test-parse` | LogManager / EI JSON fixtures |
+| `make test-ipc` | Packed IPC layout constants |
+
+---
 
 ## What gets compiled
 
@@ -85,6 +103,8 @@ git config core.hooksPath .githooks
 |--------|---------|
 | `GW2HelperBrowser.exe` | `src/helper/*.cpp` against `deps/cef` **150** headers |
 | Host DLL | `src/**/*.cpp` (hybrid layers + domains) + Dear ImGui + miniz + embedded helper blob + `sites.json` + cheatsheets zip |
+
+When adding a `.cpp`, update **both** Makefile and CMakeLists if both are maintained.
 
 ### Browse catalog (runtime JSON)
 
@@ -94,8 +114,7 @@ make validate-sites
 make   # embeds catalog into the DLL
 ```
 
-Canonical catalog is `data/sites.json`. At runtime it is extracted to
-`addons/<addon-name>/sites.json` (edit there for no-rebuild tweaks; restart GW2).
+Canonical catalog: `data/sites.json`. Runtime extract: `addons/<addon-name>/sites.json` (edit + full GW2 restart for no-rebuild tweaks).
 
 ### Offline cheat sheets
 
@@ -104,18 +123,31 @@ Canonical catalog is `data/sites.json`. At runtime it is extracted to
 make   # packs + embeds build/cheatsheets.zip
 ```
 
-Runtime extract: `addons/<addon-name>/cheatsheets/` (`manifest.json`, `shared.css`, `*.html`).
+Runtime extract: `addons/<addon-name>/cheatsheets/`.
 
-Player install layout (shipping):
+---
+
+## Player install layout (shipping)
 
 ```text
 addons/GW2-InGame-Helper.dll   # only file players copy
 addons/GW2-InGame-Helper/      # runtime data + sites.json + cef/ after first open
 ```
 
-The experimental `GW2-InGame-Helper-Beta` branch uses a parallel DLL/folder name; see [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
+Experimental `GW2-InGame-Helper-Beta` uses a parallel DLL/folder name; see [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
 
-Runtime CEF is **not** embedded in the DLL. First helper open downloads it into
-the addon data folder. Do **not** use or write game `bin64/cef`.
+Runtime CEF is **not** embedded in the DLL. Do **not** use or write game `bin64/cef`.
 
-Further reading: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`WHITEPAPER.md`](WHITEPAPER.md).
+---
+
+## Common failures
+
+| Failure | Likely cause |
+|---------|--------------|
+| Missing `x86_64-w64-mingw32-g++` | Install mingw-w64 |
+| Link errors after split | New `.cpp` not listed in Makefile/CMake |
+| Sites CI red | `make validate-sites` locally |
+| Helper not updating in-game | Stamp unchanged or GW2 not fully restarted |
+| CMake vs Make drift | Prefer the path CI uses (`make ci`) |
+
+Further reading: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`WHITEPAPER.md`](WHITEPAPER.md), [`KERNEL.md`](KERNEL.md).

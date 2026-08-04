@@ -1,7 +1,7 @@
 # Contributing to GW2 In-Game Helper
 
 **Audience:** engineers extending or maintaining the addon.  
-**Normative companions:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md), [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md), [`docs/BUILD.md`](docs/BUILD.md).
+**Normative companions:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) (index), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md), [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md), [`docs/KERNEL.md`](docs/KERNEL.md), [`docs/NAV_AND_ADS.md`](docs/NAV_AND_ADS.md), [`docs/MODULES.md`](docs/MODULES.md), [`docs/BUILD.md`](docs/BUILD.md).
 
 This guide states how a second maintainer can change the codebase **without** silently breaking the CEF/IPC kernel, Browse catalog integrity, or Nexus input ownership.
 
@@ -26,7 +26,7 @@ feature work on Beta; merge to `master` only after in-game verification.
 |------|------|--------------|-------------|
 | Pads / feature data | `src/account/`, `src/pathing/`, `src/logs/`, `src/events/`, `src/notes/` | Yes | Prefer in-window chips/radios over ImGui popup combos; keep new `.cpp` TUs **≤500 lines** (split by concern) |
 | Catalog | `data/sites.json` + `src/browse/` | Yes | `make validate-sites` required; schema v2 + `browsePath` |
-| Cheat sheets | `data/cheatsheets/` | Yes | Edit HTML/CSS + `manifest.json`; bump pack stamp `c2202` in `src/browse/CheatSheets.cpp` when shipping extract changes |
+| Cheat sheets | `data/cheatsheets/` | Yes | Edit HTML/CSS + `manifest.json`; bump pack stamp `c2203` in `src/browse/CheatSheets.cpp` when shipping extract changes |
 | LivePanels HTML builders | `src/browse/LivePanels*` | Careful | No secrets in HTML; bump panel version when caching |
 | Browser kernel | `src/browser/`, `src/helper/` | **Restricted** | Follow [`docs/KERNEL.md`](docs/KERNEL.md); stamp bump + coordinated DLL+helper; pair review |
 | Nexus entry / WndProc | `src/entry.cpp` | **Restricted** | Autorun / focus regressions — test in GW2 |

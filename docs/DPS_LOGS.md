@@ -154,7 +154,7 @@ Some Steam Deck setups use Discover / flatpak `com.github.Matoking.protontricks`
 | **Rescan** | Finds logs under the log folder; may auto **Load DPS/boons** for linked uploads |
 | **Parse** | Runs Elite Insights CLI → JSON (needs .NET 8). With **Auto-parse after scan** (default on), this also runs when a scan finishes |
 | **Install / Update EI** | Refreshes EI from GitHub latest |
-| **Upload** / **Upload filtered** | Uploads to dps.report; stores permalink + basic encounter info |
+| **Upload** / **Upload filtered** | Uploads to dps.report (`uploadContent?json=1`); stores permalink + basic encounter info. Queue drains until empty (files enqueued mid-run still upload). Soft cap ~48 MB per file; status line reports progress / errors. |
 | **Load DPS/boons** | Fills encounter, squad DPS, and boon uptimes from dps.report (`getJson`) for existing links |
 | Optional **dps.report user token** | Associates uploads with your dps.report account (treat like a password) |
 
