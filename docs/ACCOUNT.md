@@ -1,6 +1,6 @@
 # Account — official API pads
 
-**Revision:** 2.2.0.5 · **Audience:** contributors and players configuring keys  
+**Revision:** 2.2.0.6 · **Audience:** contributors and players configuring keys  
 **Companions:** [`API_KEY.md`](API_KEY.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.1
 
 ---
@@ -37,6 +37,8 @@ Exact UI labels follow the side-rail Account chrome in-game.
 Create at [account.arena.net/applications](https://account.arena.net/applications). Paste under **Nexus Options → GW2-InGame-Helper**. Stored only in local `settings.ini`.
 
 Recommended scopes: `account`, `wallet`, `inventories`, `characters`, `progression`, `unlocks`, `tradingpost`. Full table: [`API_KEY.md`](API_KEY.md). Also Browse → Help → API Key Setup (`about:api-key-setup`).
+
+**GW2 API Check:** Side-rail button under Settings opens `about:gw2-api-check` — a local LivePanels page that probes official `api.guildwars2.com` endpoints in parallel (public routes always; account routes use the saved key). Use it to confirm ArenaNet reachability and key scopes from inside the game. Not a third-party status mirror.
 
 ---
 

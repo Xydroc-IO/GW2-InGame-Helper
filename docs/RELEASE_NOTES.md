@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.5
+# GW2 In-Game Helper v2.2.0.6
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,15 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.6
+
+- **GW2 API Check:** New helper side-rail button (under Settings) opens a local
+  diagnostic page that probes official `api.guildwars2.com` endpoints (public +
+  saved API key). Requests run in parallel so a full check finishes in about one
+  round-trip instead of summing every timeout. Not affiliated with third-party
+  status sites.
+- **Stamps:** Helper `2206` · homepage `2206` · sites `s2206` · cheatsheets `c2206`
 
 ## What’s new in 2.2.0.5
 

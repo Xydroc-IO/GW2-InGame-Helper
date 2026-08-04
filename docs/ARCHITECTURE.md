@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.0.5` |
+| Addon revision (shipping) | `2.2.0.6` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2205` / `2205` / `s2205` / `c2205` |
+| Helper / home / sites / cheatsheets stamps | `2206` / `2206` / `s2206` / `c2206` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
@@ -202,7 +202,7 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 | `src/app/` | `Globals`, `Settings`, `AddonPaths`, `HelperTheme`, `PadDock`, `PadNav`, `MumbleIdentity`, **`AspectLayout`** (16:9 / 21:9 / 32:9 UI defaults) |
 | `src/ui/` | Helper chrome (`UI*`), QuickAccess, **SettingsPad** (Nexus Options stub) |
 | `src/api/` | `Gw2Http` (blocking WinHTTP — worker threads only) |
-| `src/browse/` | Sites catalog, HomePage, CheatSheets, RaidFood, LivePanels (+ Build* TUs) |
+| `src/browse/` | Sites catalog, HomePage, CheatSheets, RaidFood, LivePanels (+ Build* TUs; `LivePanelsBuildApiCheck` → `about:gw2-api-check`) |
 
 ### Feature domains
 
@@ -253,5 +253,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.5 — pad wrap / DPS filters; Lady+Tekkit merge; MC presets |
+| Last architecture sync | 2.2.0.6 — side-rail GW2 API Check (parallel probes) |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

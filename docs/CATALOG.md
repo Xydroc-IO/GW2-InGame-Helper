@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.2.0.5 · Total entries: **2,718**
+**Revision:** 2.2.0.6 · Total entries: **2,718**
 
 Source of truth: `data/sites.json` (schema v2 with `browsePath` / `browseSections`).
 At runtime the DLL extracts it to `addons/<addon-name>/sites.json` (`Sites::Init` / `SitesLoad.cpp`).
@@ -15,6 +15,7 @@ See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full doc map.
 - **New Player Guide** — [https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide](https://wiki.guildwars2.com/wiki/User:Dak393/New_player_Guide)
 - **DPS Log Setup Help** — `about:dps-log-setup` (same material as [`DPS_LOGS.md`](DPS_LOGS.md))
 - **API Key Setup** — `about:api-key-setup` (same material as [`API_KEY.md`](API_KEY.md))
+- **GW2 API Check** — `about:gw2-api-check` (side-rail under Settings; parallel official API probes)
 
 ### ArenaNet
 
