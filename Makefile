@@ -70,6 +70,7 @@ DLL_SRC = \
 	src/browse/LivePanelsBuildFashion.cpp \
 	src/browse/LivePanelsBuildProgress.cpp \
 	src/browse/LivePanelsBuildProgressArmory.cpp \
+	src/browse/LivePanelsBuildApiCheck.cpp \
 	src/browse/LivePanels_Html.cpp \
 	src/notes/NotesPad.cpp \
 	src/notes/NotesPadWaypoints.cpp \

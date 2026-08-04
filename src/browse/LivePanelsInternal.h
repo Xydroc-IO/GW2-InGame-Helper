@@ -14,6 +14,7 @@ namespace LivePanelsDetail
 	constexpr const char* kPanelVer = "19";
 	constexpr DWORD kHtmlTtlSec = 10u * 60u;       /* avoid rebuild storms */
 	constexpr DWORD kTpHtmlTtlSec = 60u;
+	constexpr DWORD kApiCheckTtlSec = 45u;         /* diagnostics should re-probe often */
 	constexpr int kMaxLiveWorkers = 3;
 
 	std::string WideToUtf8(const std::wstring& w);
@@ -38,7 +39,7 @@ namespace LivePanelsDetail
 		std::string apiKey;
 		std::string tpWatchIds;
 		unsigned generation = 0;
-		enum Kind { Dailies, News, Fashion, Tp, Progress } kind = Dailies;
+		enum Kind { Dailies, News, Fashion, Tp, Progress, ApiCheck } kind = Dailies;
 	};
 
 	struct LiveReadyNav

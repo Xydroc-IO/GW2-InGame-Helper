@@ -84,6 +84,7 @@ add_library(GW2-InGame-Helper SHARED
   src/browse/LivePanelsBuildFashion.cpp
   src/browse/LivePanelsBuildProgress.cpp
   src/browse/LivePanelsBuildProgressArmory.cpp
+  src/browse/LivePanelsBuildApiCheck.cpp
   src/browse/LivePanels_Html.cpp
   src/notes/NotesPad.cpp
   src/notes/NotesPadWaypoints.cpp

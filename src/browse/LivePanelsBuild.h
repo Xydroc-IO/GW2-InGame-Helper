@@ -14,4 +14,5 @@ namespace LivePanelsBuild
 	std::string BuildFashionHtml(const std::wstring& addonDir);
 	std::string BuildTpHtml(const char* tpWatchIds, bool fetchApi);
 	std::string BuildProgressHtml(const std::wstring& addonDir, const char* apiKey);
+	std::string BuildApiCheckHtml(const char* apiKey);
 }

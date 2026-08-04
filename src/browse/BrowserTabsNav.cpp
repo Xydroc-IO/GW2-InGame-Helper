@@ -151,6 +151,8 @@ void BrowserTabs::Reload()
 		else if (url.find("live-progress") != std::string::npos ||
 			std::strcmp(gTabs[gActive].tab.siteId, "live_progress") == 0)
 			about = "about:live-progress";
+		else if (url.find("gw2-api-check") != std::string::npos)
+			about = "about:gw2-api-check";
 		else
 		{
 			const std::string resolved = Sites::ResolveUrl(Sites::Active());

@@ -265,6 +265,8 @@ namespace WikiBrowserDetail
 			return "about:live-tp";
 		if (hasStem("live-progress.html"))
 			return "about:live-progress";
+		if (hasStem("gw2-api-check.html"))
+			return "about:gw2-api-check";
 		return url;
 	}
 

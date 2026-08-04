@@ -317,6 +317,8 @@ DWORD WINAPI LiveWorkerProc(void* param)
 		html = LivePanelsBuild::BuildFashionHtml(job->addonDir);
 	else if (job->kind == LiveAsyncJob::Tp)
 		html = LivePanelsBuild::BuildTpHtml(job->tpWatchIds.c_str(), true);
+	else if (job->kind == LiveAsyncJob::ApiCheck)
+		html = LivePanelsBuild::BuildApiCheckHtml(job->apiKey.c_str());
 	else
 		html = LivePanelsBuild::BuildProgressHtml(job->addonDir, job->apiKey.c_str());
 
@@ -431,7 +433,11 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 {
 	const std::wstring path = StemPath(addonDir, stem, L".html");
 	const std::wstring verPath = StemPath(addonDir, stem, L".ver");
-	const DWORD ttl = (kind == LiveAsyncJob::Tp) ? kTpHtmlTtlSec : kHtmlTtlSec;
+	DWORD ttl = kHtmlTtlSec;
+	if (kind == LiveAsyncJob::Tp)
+		ttl = kTpHtmlTtlSec;
+	else if (kind == LiveAsyncJob::ApiCheck)
+		ttl = kApiCheckTtlSec;
 	if (VerMatches(verPath) && FileFresh(path, ttl) && PanelReady(addonDir, stem))
 		return PathToFileUrl(path);
 
@@ -445,8 +451,10 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 	}
 
 	const std::string shell = OfflineShellHtml(offlineTitle, offlineHeading,
-		"Fetching Live data in the background. This page will refresh when ready. "
-		"You can keep playing — the game should not freeze.");
+		kind == LiveAsyncJob::ApiCheck
+			? "Probing api.guildwars2.com in the background. This page will refresh when ready."
+			: "Fetching Live data in the background. This page will refresh when ready. "
+			  "You can keep playing — the game should not freeze.");
 	WriteUtf8File(path, shell);
 	DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 

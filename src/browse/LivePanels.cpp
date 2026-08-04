@@ -25,7 +25,8 @@ bool LivePanels::IsLiveAbout(const char* url)
 		std::strcmp(url, "about:live-news") == 0 ||
 		std::strcmp(url, "about:live-fashion") == 0 ||
 		std::strcmp(url, "about:live-tp") == 0 ||
-		std::strcmp(url, "about:live-progress") == 0;
+		std::strcmp(url, "about:live-progress") == 0 ||
+		std::strcmp(url, "about:gw2-api-check") == 0;
 }
 
 bool LivePanels::IsLiveUrl(const char* url)
@@ -38,7 +39,8 @@ bool LivePanels::IsLiveUrl(const char* url)
 		std::strstr(url, "live-news.html") != nullptr ||
 		std::strstr(url, "live-fashion.html") != nullptr ||
 		std::strstr(url, "live-tp.html") != nullptr ||
-		std::strstr(url, "live-progress.html") != nullptr;
+		std::strstr(url, "live-progress.html") != nullptr ||
+		std::strstr(url, "gw2-api-check.html") != nullptr;
 }
 
 std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std::string& url)
@@ -68,6 +70,9 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 	if (url == "about:live-progress")
 		return EnsurePanel(addonDir, "live-progress", LiveAsyncJob::Progress,
 			"Live — Legendaries &amp; Characters", "Legendaries &amp; Characters");
+	if (url == "about:gw2-api-check")
+		return EnsurePanel(addonDir, "gw2-api-check", LiveAsyncJob::ApiCheck,
+			"GW2 API Check", "GW2 API Check");
 	return {};
 }
 
@@ -103,7 +108,8 @@ void LivePanels::Tick()
 			(nav.stem == "live-news" && std::strstr(cur, "about:live-news")) ||
 			(nav.stem == "live-fashion" && std::strstr(cur, "about:live-fashion")) ||
 			(nav.stem == "live-tp" && std::strstr(cur, "about:live-tp")) ||
-			(nav.stem == "live-progress" && std::strstr(cur, "about:live-progress"));
+			(nav.stem == "live-progress" && std::strstr(cur, "about:live-progress")) ||
+			(nav.stem == "gw2-api-check" && std::strstr(cur, "about:gw2-api-check"));
 		if (onPanel)
 			WikiBrowser::Navigate(nav.fileUrl);
 	}
@@ -142,6 +148,7 @@ void LivePanels::InvalidateCaches(const std::wstring& addonDir)
 		return;
 	const char* stems[] = {
 		"live-dailies", "live-news", "live-fashion", "live-tp", "live-progress",
+		"gw2-api-check",
 		"live-colors", "live-armory", "live-armory-names",
 		"live-season", "live-craft", "live-bosses", "live-vault-obj",
 		"live-vault-daily", "live-vault-weekly", "live-vault-special",

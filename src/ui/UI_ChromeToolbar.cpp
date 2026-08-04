@@ -248,9 +248,10 @@ namespace UIDetail
 	{
 		const SiteDef& active = Sites::Active();
 		static const char* kRailLabels[] = {
-			"Browse", "Account", "Pathing", "Events", "DPS Logs", "Notes", "Compass", "Settings"
+			"Browse", "Account", "Pathing", "Events", "DPS Logs", "Notes", "Compass",
+			"Settings", "GW2 API Check"
 		};
-		const float railW = UiScale::FitSideRailWidth(kRailLabels, 8);
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, 9);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 6.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
@@ -366,6 +367,32 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Settings — opacity, font, API key, warm CEF");
+
+		if (PadNav::SideToggle("GW2 API Check###gw2igh_api_check", false))
+		{
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			const std::wstring dir = AddonPaths::DataDir();
+			if (!dir.empty())
+			{
+				auto kill = [&](const wchar_t* ext) {
+					std::wstring p = dir;
+					if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
+						p.push_back(L'\\');
+					p += L"gw2-api-check";
+					p += ext;
+					DeleteFileW(p.c_str());
+				};
+				kill(L".html");
+				kill(L".ver");
+				kill(L".ok");
+			}
+			WikiBrowser::Navigate("about:gw2-api-check");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Probe official api.guildwars2.com endpoints (public + your key).\n"
+				"Local page — not a third-party status site.");
 
 		ImGui::EndChild();
 		ImGui::PopStyleVar(2);

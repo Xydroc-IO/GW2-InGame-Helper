@@ -402,6 +402,8 @@ namespace HelperDetail
 			fileNameW = L"live-tp.html";
 		else if (std::strcmp(url, "about:live-progress") == 0)
 			fileNameW = L"live-progress.html";
+		else if (std::strcmp(url, "about:gw2-api-check") == 0)
+			fileNameW = L"gw2-api-check.html";
 		else if (std::strcmp(url, "about:currency-sinks") == 0)
 			fileNameW = L"currency-sinks.html";
 		else if (std::strcmp(url, "about:ascended-start") == 0)
