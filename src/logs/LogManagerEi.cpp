@@ -80,7 +80,7 @@ void BeginEiEnsure(bool force)
 
 std::wstring EiConfPathW()
 {
-	return AddonPaths::DataDir() + L"\\ei-helper.conf";
+	return AddonPaths::ConfigDir() + L"\\ei-helper.conf";
 }
 
 /* ---------- Elite Insights ---------- */

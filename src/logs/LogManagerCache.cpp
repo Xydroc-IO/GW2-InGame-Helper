@@ -44,7 +44,7 @@ namespace LogManagerDetail
 
 	std::wstring CachePathW()
 	{
-		return AddonPaths::DataDir() + L"\\log-index.json";
+		return AddonPaths::ConfigDir() + L"\\log-index.json";
 	}
 
 	bool FileExistsW(const std::wstring& path)

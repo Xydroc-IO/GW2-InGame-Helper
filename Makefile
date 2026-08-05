@@ -348,7 +348,8 @@ install: $(DLL_OUT)
 	# Clear cached offline pages so version bumps rewrite on next open.
 	# Wipe *.ver too — leaving helper-home.ver with no .html made CEF open
 	# a restored file:///…/helper-home.html → ERR_FILE_NOT_FOUND.
-	# Keep settings.ini and private cef/ runtime — never wipe the CEF tree.
+	# Keep settings.ini, config/ (notes/profiles/etc), and private cef/ —
+	# never wipe the CEF tree or user state under config/.
 	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/"*.ver "$(INSTALL_DIR)/"*.ok \
 		"$(INSTALL_DIR)/GW2HelperBrowser.exe.ver" \
 		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg" \

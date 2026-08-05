@@ -40,7 +40,7 @@ namespace MarkerBehaviorsDetail
 
 std::wstring PathW()
 {
-	return AddonPaths::DataDir() + L"\\marker_behaviors.txt";
+	return AddonPaths::ConfigDir() + L"\\marker_behaviors.txt";
 }
 
 bool WriteUtf8File(const std::wstring& path, const std::string& data)

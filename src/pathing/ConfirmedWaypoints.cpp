@@ -35,7 +35,7 @@ namespace
 
 	std::wstring PathW()
 	{
-		return AddonPaths::DataDir() + L"\\confirmed_waypoints.json";
+		return AddonPaths::ConfigDir() + L"\\confirmed_waypoints.json";
 	}
 
 	bool WriteUtf8File(const std::wstring& path, const std::string& data)
@@ -221,7 +221,7 @@ void ConfirmedWaypoints::Save(bool force)
 		payload = SerializeLocked();
 		gDirty = false;
 	}
-	CreateDirectoryW(AddonPaths::DataDir().c_str(), nullptr);
+	AddonPaths::ConfigDir();
 	WriteUtf8File(PathW(), payload);
 }
 

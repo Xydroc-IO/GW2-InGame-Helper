@@ -129,3 +129,8 @@ std::wstring AddonPaths::CmdsDir()
 {
 	return EnsureUnder(DataDir(), L"cmds");
 }
+
+std::wstring AddonPaths::ConfigDir()
+{
+	return EnsureUnder(DataDir(), L"config");
+}

@@ -37,7 +37,7 @@ namespace NotesPadDetail
 
 	std::wstring NotesPathW()
 	{
-		return AddonPaths::DataDir() + L"\\notes.json";
+		return AddonPaths::ConfigDir() + L"\\notes.json";
 	}
 
 	std::string HtmlEscapeJson(const char* s)
@@ -375,7 +375,7 @@ void NotesPad::Save(bool force)
 	if (!force && gLastSaveMs != 0 && (now - gLastSaveMs) < 2500u)
 		return;
 
-	AddonPaths::DataDir();
+	AddonPaths::ConfigDir();
 	std::string out = "{\n  \"snippets\": [\n";
 	for (size_t i = 0; i < gSnips.size(); ++i)
 	{

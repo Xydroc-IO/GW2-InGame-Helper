@@ -46,7 +46,7 @@ namespace
 
 	std::wstring PathW()
 	{
-		return AddonPaths::DataDir() + L"\\session_history.json";
+		return AddonPaths::ConfigDir() + L"\\session_history.json";
 	}
 
 	bool WriteUtf8File(const std::wstring& path, const std::string& data)
@@ -234,7 +234,7 @@ void SessionHistoryData::Save(bool force)
 		payload = SerializeLocked();
 		gDirty = false;
 	}
-	CreateDirectoryW(AddonPaths::DataDir().c_str(), nullptr);
+	AddonPaths::ConfigDir();
 	WriteUtf8File(PathW(), payload);
 }
 

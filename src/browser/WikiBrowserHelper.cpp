@@ -46,12 +46,51 @@ namespace WikiBrowserDetail
 		FindClose(h);
 	}
 
-	/* One-time upgrade: generated HTML / cmd / caches moved out of data root. */
+	bool PathExistsW(const std::wstring& path)
+	{
+		return GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES;
+	}
+
+	/* Move root file into config/ when dest is missing; drop root orphan if dest exists. */
+	void MigrateRootFileToConfig(const std::wstring& data, const wchar_t* fileName)
+	{
+		if (!fileName || !fileName[0])
+			return;
+		const std::wstring src = data + L"\\" + fileName;
+		if (!PathExistsW(src))
+			return;
+		const std::wstring cfg = AddonPaths::ConfigDir();
+		const std::wstring dst = cfg + L"\\" + fileName;
+		if (PathExistsW(dst))
+		{
+			DeleteFileW(src.c_str());
+			return;
+		}
+		if (!MoveFileW(src.c_str(), dst.c_str()))
+		{
+			/* Fallback: leave src if move fails (e.g. cross-volume / lock). */
+		}
+	}
+
+	/* One-time upgrade: generated HTML / cmd / caches moved out of data root;
+	   small state files into config/. */
 	void MigrateLegacyAddonDataLayout()
 	{
 		const std::wstring data = AddonDir();
 		if (data.empty())
 			return;
+
+		static const wchar_t* kConfigFiles[] = {
+			L"notes.json",
+			L"profiles.json",
+			L"session_history.json",
+			L"confirmed_waypoints.json",
+			L"log-index.json",
+			L"marker_behaviors.txt",
+			L"ei-helper.conf",
+		};
+		for (const wchar_t* name : kConfigFiles)
+			MigrateRootFileToConfig(data, name);
 
 		const wchar_t* rootOrphans[] = {
 			L"\\helper-home.html",
