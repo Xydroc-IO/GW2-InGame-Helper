@@ -1,4 +1,5 @@
 #include "TrailToolsShared.h"
+#include "TrailToolsBinds.h"
 
 #include "AddonPaths.h"
 #include "Globals.h"
@@ -22,6 +23,8 @@ namespace TrailToolsDetail
 	bool      gPlaceOnce = false;
 	bool      gFocus = false;
 	int       gTab = 0;
+	bool      gPopoutTrails = false;
+	bool      gPopoutMarkers = false;
 	bool      gPlaceOnceTrails = false;
 	bool      gFocusTrails = false;
 	bool      gPlaceOnceMarkers = false;
@@ -29,7 +32,7 @@ namespace TrailToolsDetail
 
 	bool AnyAuthoringPadOpen()
 	{
-		return G::ShowTrailTools || G::ShowTrailEditor || G::ShowMarkerEditor;
+		return G::ShowTrailTools || gPopoutTrails || gPopoutMarkers;
 	}
 
 	void SetStatus(const char* fmt, ...)
@@ -523,7 +526,11 @@ namespace
 {
 	struct SeedOnce
 	{
-		SeedOnce() { TrailToolsDetail::SeedDefaultCategories(); }
+		SeedOnce()
+		{
+			TrailToolsDetail::SeedDefaultCategories();
+			TrailToolsBinds::SetDefaults();
+		}
 	};
 	SeedOnce gSeed;
 }

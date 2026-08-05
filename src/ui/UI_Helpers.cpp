@@ -19,6 +19,7 @@
 #include "LogManagerPad.h"
 #include "PathingGuidesPad.h"
 #include "PathingTrails.h"
+#include "TrailToolsPad.h"
 #include "PadNav.h"
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
@@ -271,8 +272,8 @@ namespace UIDetail
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowPathingGuides || G::ShowTrailTools || G::ShowTrailEditor ||
-			G::ShowMarkerEditor || G::ShowCompassPad || G::ShowSettings;
+			G::ShowPathingGuides || TrailToolsPad::AnyOpen() ||
+			G::ShowCompassPad || G::ShowSettings;
 	}
 
 	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves

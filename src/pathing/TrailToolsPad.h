@@ -1,16 +1,12 @@
 #pragma once
 
-/* ImGui Trail Tools — separate windows so Trails + Markers can stay open together
-   (place markers along a trail). Shared draft state in TrailToolsDetail::gDraft. */
+/* ImGui Trail Tools — hub tabs, with Trails / Markers optionally popped out
+   into their own collapsible windows (title bar remains when minimized). */
 namespace TrailToolsPad
 {
-	void Open();          /* hub: Live + Pack */
-	void OpenTrails();    /* trail recorder */
-	void OpenMarkers();   /* marker drop / edit */
-
-	bool Render();        /* hub */
-	bool RenderTrails();
-	bool RenderMarkers();
-
+	void Open();
+	void OpenTrailsWindow();
+	void OpenMarkersWindow();
+	bool Render(); /* hub + any pop-outs; true while pointer over any of them */
 	bool AnyOpen();
 }

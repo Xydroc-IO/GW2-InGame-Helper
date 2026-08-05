@@ -2,6 +2,7 @@
 #include "TrailToolsShared.h"
 #include "TrailToolsTrl.h"
 #include "TrailToolsXml.h"
+#include "TrailToolsBinds.h"
 
 #include "HelperTheme.h"
 #include "PadNav.h"
@@ -456,6 +457,31 @@ void TrailToolsDetail::DrawTrailTab()
 	uint32_t mapId = 0;
 	float x = 0.f, y = 0.f, z = 0.f;
 	const bool pose = ReadMumblePose(mapId, x, y, z);
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Recording");
+	{
+		auto& kb = TrailToolsBinds::Get();
+		if (kb.trailRecording)
+			ImGui::TextColored(kb.trailPaused ? HelperTheme::Muted : HelperTheme::Ok,
+				kb.trailPaused ? "Paused — %s" : "Recording — %s",
+				TrailToolsBinds::FormatChord(kb.trailStart).c_str());
+		else
+			ImGui::TextDisabled("Idle — Start: %s",
+				TrailToolsBinds::FormatChord(kb.trailStart).c_str());
+		if (ImGui::Button("Start / resume###gw2igh_tt_rec"))
+			TrailToolsBinds::ActionTrailStart();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("Pause"));
+		if (ImGui::Button("Pause###gw2igh_tt_recpause"))
+			TrailToolsBinds::ActionTrailPause();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("Stop"));
+		if (ImGui::Button("Stop###gw2igh_tt_recstop"))
+		{
+			kb.trailRecording = false;
+			kb.trailPaused = false;
+			SetStatus("Recording stopped.");
+		}
+	}
 
 	ImGui::Separator();
 	ImGui::TextUnformatted("Segments");

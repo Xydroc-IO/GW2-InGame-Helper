@@ -125,6 +125,27 @@ namespace PadDock
 		return ClampPos(x, y, padW);
 	}
 
+	inline ImVec2 ForTrailPopout(float padW, float /*defH*/ = 560.f)
+	{
+		constexpr float kGap = 8.f;
+		if (G::ShowTrailTools && HasSavedPos(G::PadTrailTools) && G::PadTrailTools.h >= 60.f)
+			return ClampPos(G::PadTrailTools.x + G::PadTrailTools.w + kGap, G::PadTrailTools.y, padW);
+		const ImVec2 base = BesideHelper(padW);
+		return ClampPos(base.x + 24.f, base.y + 48.f, padW);
+	}
+
+	inline ImVec2 ForMarkerPopout(float padW, float /*defH*/ = 560.f)
+	{
+		constexpr float kGap = 8.f;
+		if (HasSavedPos(G::PadTrailEditor) && G::PadTrailEditor.h >= 60.f)
+			return ClampPos(G::PadTrailEditor.x, G::PadTrailEditor.y + G::PadTrailEditor.h + kGap, padW);
+		if (G::ShowTrailTools && HasSavedPos(G::PadTrailTools) && G::PadTrailTools.h >= 60.f)
+			return ClampPos(G::PadTrailTools.x + G::PadTrailTools.w + kGap,
+				G::PadTrailTools.y + 80.f, padW);
+		const ImVec2 base = BesideHelper(padW);
+		return ClampPos(base.x + 48.f, base.y + 96.f, padW);
+	}
+
 	/* Open Notes: below TP if TP is showing, else beside the helper. */
 	inline ImVec2 ForNotes(float padW, float fallbackOtherH = 320.f)
 	{

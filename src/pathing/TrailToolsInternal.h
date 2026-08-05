@@ -9,6 +9,7 @@ namespace TrailToolsDetail
 	void DrawTrailTab();
 	void DrawMarkersTab();
 	void DrawPackTab();
+	void DrawKeybindsTab();
 	void DrawPoiScriptAttrs(DraftPoi& p);
 	void DrawLuaFilesUi();
 }

@@ -13,6 +13,7 @@
 #include "NotesPad.h"
 #include "SessionHistoryData.h"
 #include "PathingTrails.h"
+#include "TrailToolsShared.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "UI.h"
@@ -40,8 +41,8 @@ void AddonUnload()
 	G::ShowLogManager = false;
 	G::ShowPathingGuides = false;
 	G::ShowTrailTools = false;
-	G::ShowTrailEditor = false;
-	G::ShowMarkerEditor = false;
+	TrailToolsDetail::gPopoutTrails = false;
+	TrailToolsDetail::gPopoutMarkers = false;
 	G::ShowCompassPad = false;
 	G::ShowSettings = false;
 	G::ShowDirectionCompass = false;

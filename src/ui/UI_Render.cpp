@@ -32,6 +32,7 @@
 #include "WikiBrowser.h"
 #include "WikiIpc.h"
 #include "AddonPaths.h"
+#include "TrailToolsBinds.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -52,6 +53,7 @@ void UI_Render()
 {
 	/* Always poll first — must run while the helper is closed too. */
 	HelperHotkeys_Poll();
+	TrailToolsBinds::Poll();
 	UiScale::TickAuto();
 	WikiBrowser::Tick();
 	MumbleIdentity::Tick();
@@ -109,8 +111,7 @@ void UI_Render()
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
-		const bool trailToolsHover = TrailToolsPad::Render() || TrailToolsPad::RenderTrails() ||
-			TrailToolsPad::RenderMarkers();
+		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
@@ -208,8 +209,7 @@ void UI_Render()
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
-		const bool trailToolsHover = TrailToolsPad::Render() || TrailToolsPad::RenderTrails() ||
-			TrailToolsPad::RenderMarkers();
+		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||

@@ -76,9 +76,7 @@ namespace G
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
-	extern bool  ShowTrailTools; /* ImGui Trail Tools hub (Live + Pack/build) */
-	extern bool  ShowTrailEditor; /* separate Trails recorder pad */
-	extern bool  ShowMarkerEditor; /* separate Markers pad — open with Trails to place along path */
+	extern bool  ShowTrailTools; /* ImGui Trail Tools authoring pad */
 	extern bool  EnablePathingLua; /* opt-in subset of Blish script-* Lua */
 	/* Lady Elyssa Features — map-completion editions are exclusive; Hearts / HP Train are independent. */
 	extern bool  LadyBarefoot;   /* foot routes + bfs shortcuts (current map) */
@@ -142,8 +140,8 @@ namespace G
 	extern PadGeom PadAccount;
 	extern PadGeom PadPathing;
 	extern PadGeom PadTrailTools;
-	extern PadGeom PadTrailEditor;
-	extern PadGeom PadMarkerEditor;
+	extern PadGeom PadTrailEditor;  /* Trails pop-out */
+	extern PadGeom PadMarkerEditor; /* Markers pop-out */
 	extern PadGeom PadEvents;
 	extern PadGeom PadNotes;
 	extern PadGeom PadCompass;

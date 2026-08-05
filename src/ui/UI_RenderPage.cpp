@@ -301,8 +301,7 @@ namespace UIDetail
 	const bool eventsHover = EventsPad::Render();
 	const bool logsHover = LogManagerPad::Render();
 	const bool tekkitHover = PathingGuidesPad::Render();
-	const bool trailToolsHover = TrailToolsPad::Render() || TrailToolsPad::RenderTrails() ||
-		TrailToolsPad::RenderMarkers();
+	const bool trailToolsHover = TrailToolsPad::Render();
 	const bool compassHover = DirectionCompass::RenderPad();
 	const bool settingsHover = SettingsPad::Render();
 	CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||

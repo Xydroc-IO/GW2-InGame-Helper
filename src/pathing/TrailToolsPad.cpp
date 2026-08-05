@@ -10,6 +10,7 @@
 
 #include "imgui/imgui.h"
 
+#include <cmath>
 #include <cstdio>
 #include <functional>
 
@@ -20,7 +21,8 @@ namespace
 	constexpr float kEditW = 480.f;
 	constexpr float kEditH = 560.f;
 
-	bool RenderPadWindow(
+	/* Collapsible pop-out — title bar stays when minimized (ImGui collapse). */
+	bool RenderCollapsiblePad(
 		const char* title,
 		bool& showFlag,
 		G::PadGeom& geom,
@@ -28,15 +30,17 @@ namespace
 		bool& focus,
 		float defW,
 		float defH,
+		ImVec2 fallbackPos,
 		const std::function<void()>& body)
 	{
 		if (!showFlag)
 			return false;
 
 		const float maxH = PadDock::MaxH(320.f);
-		ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(PadDock::MaxW(780.f), maxH));
+		ImGui::SetNextWindowSizeConstraints(ImVec2(320.f, 120.f), ImVec2(PadDock::MaxW(780.f), maxH));
+		/* Only un-collapse on first appear — user may minimize to the title bar. */
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-		PadDock::Place(geom, placeOnce, defW, defH, PadDock::BesideHelper(defW));
+		PadDock::Place(geom, placeOnce, defW, defH, fallbackPos);
 		if (!placeOnce && geom.w < 80.f)
 			ImGui::SetNextWindowSize(ImVec2(defW, defH), ImGuiCond_FirstUseEver);
 		if (focus)
@@ -49,8 +53,14 @@ namespace
 		HelperTheme::ScopedWindow theme(G::Opacity);
 		if (!ImGui::Begin(title, &open, ImGuiWindowFlags_NoNavInputs))
 		{
-			if (PadDock::Capture(geom))
+			/* Collapsed to title bar — still capture pos; keep last non-collapsed size. */
+			const ImVec2 p = ImGui::GetWindowPos();
+			if (std::fabs(p.x - geom.x) > 0.5f || std::fabs(p.y - geom.y) > 0.5f)
+			{
+				geom.x = p.x;
+				geom.y = p.y;
 				Settings::SetDirty();
+			}
 			const bool hovered = ImGui::IsWindowHovered(
 				ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 			const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
@@ -67,7 +77,7 @@ namespace
 			showFlag = false;
 			Settings::SetDirty();
 		}
-		if (PadDock::Capture(geom))
+		if (!ImGui::IsWindowCollapsed() && PadDock::Capture(geom))
 			Settings::SetDirty();
 
 		HelperTheme::ScopedFontScale fontScale;
@@ -79,6 +89,21 @@ namespace
 		const bool typingHere = focusedWin && ImGui::GetIO().WantTextInput;
 		ImGui::End();
 		return hovered || typingHere;
+	}
+
+	void DrawPopoutStub(const char* name, bool& popout, bool& focus)
+	{
+		ImGui::TextColored(HelperTheme::Muted,
+			"%s is open in its own window. Collapse its title-bar arrow to shrink to a bar.",
+			name);
+		if (ImGui::Button("Focus window###gw2igh_tt_focus_po"))
+			focus = true;
+		ImGui::SameLine();
+		if (ImGui::Button("Dock back here###gw2igh_tt_dock_po"))
+		{
+			popout = false;
+			Settings::SetDirty();
+		}
 	}
 }
 
@@ -95,111 +120,199 @@ void TrailToolsPad::Open()
 	Settings::SetDirty();
 }
 
-void TrailToolsPad::OpenTrails()
+void TrailToolsPad::OpenTrailsWindow()
 {
-	G::ShowTrailEditor = true;
-	TrailToolsDetail::gPlaceOnceTrails = true;
-	TrailToolsDetail::gFocusTrails = true;
+	using namespace TrailToolsDetail;
+	gPopoutTrails = true;
+	gPlaceOnceTrails = true;
+	gFocusTrails = true;
 	Settings::SetDirty();
 }
 
-void TrailToolsPad::OpenMarkers()
+void TrailToolsPad::OpenMarkersWindow()
 {
-	G::ShowMarkerEditor = true;
-	TrailToolsDetail::gPlaceOnceMarkers = true;
-	TrailToolsDetail::gFocusMarkers = true;
+	using namespace TrailToolsDetail;
+	gPopoutMarkers = true;
+	gPlaceOnceMarkers = true;
+	gFocusMarkers = true;
 	Settings::SetDirty();
 }
 
 bool TrailToolsPad::Render()
 {
 	using namespace TrailToolsDetail;
-	return RenderPadWindow(
-		"Trail Tools##GW2InGameHelperTrailTools",
-		G::ShowTrailTools,
-		G::PadTrailTools,
-		gPlaceOnce,
-		gFocus,
-		kHubW,
-		kHubH,
-		[]() {
+	bool hover = false;
+
+	if (G::ShowTrailTools)
+	{
+		const float maxH = PadDock::MaxH(320.f);
+		ImGui::SetNextWindowSizeConstraints(ImVec2(420.f, 120.f), ImVec2(PadDock::MaxW(780.f), maxH));
+		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+		PadDock::Place(G::PadTrailTools, gPlaceOnce, kHubW, kHubH, PadDock::BesideHelper(kHubW));
+		if (!gPlaceOnce && G::PadTrailTools.w < 80.f)
+			ImGui::SetNextWindowSize(ImVec2(kHubW, kHubH), ImGuiCond_FirstUseEver);
+		if (gFocus)
+		{
+			ImGui::SetNextWindowFocus();
+			gFocus = false;
+		}
+
+		char title[280]{};
+		const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
+		std::snprintf(title, sizeof(title), "Trail Tools — %s.trl%s###GW2InGameHelperTrailTools",
+			stem, gDraft.trailDirty ? " *" : "");
+
+		bool open = G::ShowTrailTools;
+		HelperTheme::ScopedWindow theme(G::Opacity);
+		if (!ImGui::Begin(title, &open, ImGuiWindowFlags_NoNavInputs))
+		{
+			const ImVec2 p = ImGui::GetWindowPos();
+			if (std::fabs(p.x - G::PadTrailTools.x) > 0.5f ||
+				std::fabs(p.y - G::PadTrailTools.y) > 0.5f)
+			{
+				G::PadTrailTools.x = p.x;
+				G::PadTrailTools.y = p.y;
+				Settings::SetDirty();
+			}
+			hover = ImGui::IsWindowHovered(
+				ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) ||
+				(ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+					ImGui::GetIO().WantTextInput);
+			ImGui::End();
+			if (!open)
+			{
+				G::ShowTrailTools = false;
+				Settings::SetDirty();
+			}
+		}
+		else
+		{
+			if (!open)
+			{
+				G::ShowTrailTools = false;
+				Settings::SetDirty();
+			}
+			if (!ImGui::IsWindowCollapsed() && PadDock::Capture(G::PadTrailTools))
+				Settings::SetDirty();
+
+			HelperTheme::ScopedFontScale fontScale;
+
 			ImGui::TextColored(HelperTheme::Gold, "TRAIL TOOLS");
 			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted,
-				"Pack hub — Live coords + build. Open Trails and Markers as separate windows "
-				"so you can place markers along a trail.");
+				"Author packs here, or Open Trails / Markers in their own windows "
+				"(collapse the title-bar arrow to leave only a bar).");
 			PadNav::PopWrap();
 
-			if (ImGui::Button("Open Trails###gw2igh_tt_open_trails"))
-				TrailToolsPad::OpenTrails();
-			PadNav::WrapSameLine(PadNav::ButtonWidth("Open Markers"));
-			if (ImGui::Button("Open Markers###gw2igh_tt_open_marks"))
-				TrailToolsPad::OpenMarkers();
-
-			static const char* kTabs[] = { "Live", "Pack" };
-			gTab = PadNav::DrawSideRail("###gw2igh_tt_nav", kTabs, 2, gTab > 1 ? 0 : gTab);
+			static const char* kTabs[] = { "Live", "Trails", "Markers", "Pack", "Keybinds" };
+			gTab = PadNav::DrawSideRail("###gw2igh_tt_nav", kTabs, 5, gTab < 0 || gTab > 4 ? 0 : gTab);
 
 			ImGui::BeginChild("###gw2igh_tt_body", ImVec2(0.f, 0.f), true);
 			if (gTab == 0)
 				DrawLiveTab();
-			else
+			else if (gTab == 1)
+			{
+				if (gPopoutTrails)
+					DrawPopoutStub("Trails", gPopoutTrails, gFocusTrails);
+				else
+				{
+					if (ImGui::Button("Open in window###gw2igh_tt_pop_trails"))
+						TrailToolsPad::OpenTrailsWindow();
+					ImGui::SameLine();
+					ImGui::TextDisabled("Minimizable to title bar");
+					ImGui::Separator();
+					DrawTrailTab();
+				}
+			}
+			else if (gTab == 2)
+			{
+				if (gPopoutMarkers)
+					DrawPopoutStub("Markers", gPopoutMarkers, gFocusMarkers);
+				else
+				{
+					if (ImGui::Button("Open in window###gw2igh_tt_pop_marks"))
+						TrailToolsPad::OpenMarkersWindow();
+					ImGui::SameLine();
+					ImGui::TextDisabled("Minimizable to title bar");
+					ImGui::Separator();
+					DrawMarkersTab();
+				}
+			}
+			else if (gTab == 3)
 				DrawPackTab();
+			else
+				DrawKeybindsTab();
 			ImGui::EndChild();
-		});
-}
 
-bool TrailToolsPad::RenderTrails()
-{
-	using namespace TrailToolsDetail;
-	char title[280]{};
-	const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
-	std::snprintf(title, sizeof(title), "Trails — %s.trl%s###GW2InGameHelperTrailEditor",
-		stem, gDraft.trailDirty ? " *" : "");
-	return RenderPadWindow(
-		title,
-		G::ShowTrailEditor,
-		G::PadTrailEditor,
-		gPlaceOnceTrails,
-		gFocusTrails,
-		kEditW,
-		kEditH,
-		[]() {
-			ImGui::TextColored(HelperTheme::Gold, "TRAILS");
-			PadNav::PushWrap();
-			ImGui::TextColored(HelperTheme::Muted,
-				"Record path points. Keep Markers open beside this to drop POIs along the route.");
-			PadNav::PopWrap();
-			if (ImGui::SmallButton("Open Markers###gw2igh_te_open_m"))
-				TrailToolsPad::OpenMarkers();
-			ImGui::Separator();
-			ImGui::BeginChild("###gw2igh_te_body", ImVec2(0.f, 0.f), true);
-			DrawTrailTab();
-			ImGui::EndChild();
-		});
-}
+			hover = ImGui::IsWindowHovered(
+				ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) ||
+				(ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+					ImGui::GetIO().WantTextInput);
+			ImGui::End();
+		}
+	}
 
-bool TrailToolsPad::RenderMarkers()
-{
-	using namespace TrailToolsDetail;
-	return RenderPadWindow(
-		"Markers##GW2InGameHelperMarkerEditor",
-		G::ShowMarkerEditor,
-		G::PadMarkerEditor,
-		gPlaceOnceMarkers,
-		gFocusMarkers,
-		kEditW,
-		kEditH,
-		[]() {
-			ImGui::TextColored(HelperTheme::Gold, "MARKERS");
-			PadNav::PushWrap();
-			ImGui::TextColored(HelperTheme::Muted,
-				"Drop POIs at your feet. Open Trails beside this to follow the path while placing.");
-			PadNav::PopWrap();
-			if (ImGui::SmallButton("Open Trails###gw2igh_me_open_t"))
-				TrailToolsPad::OpenTrails();
-			ImGui::Separator();
-			ImGui::BeginChild("###gw2igh_me_body", ImVec2(0.f, 0.f), true);
-			DrawMarkersTab();
-			ImGui::EndChild();
-		});
+	if (gPopoutTrails)
+	{
+		char title[280]{};
+		const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
+		std::snprintf(title, sizeof(title), "Trails — %s.trl%s###GW2InGameHelperTrailPopout",
+			stem, gDraft.trailDirty ? " *" : "");
+		hover = RenderCollapsiblePad(
+			title,
+			gPopoutTrails,
+			G::PadTrailEditor,
+			gPlaceOnceTrails,
+			gFocusTrails,
+			kEditW,
+			kEditH,
+			PadDock::ForTrailPopout(kEditW, kEditH),
+			[]() {
+				ImGui::TextColored(HelperTheme::Gold, "TRAILS");
+				if (ImGui::SmallButton("Dock into Trail Tools###gw2igh_tr_dock"))
+				{
+					gPopoutTrails = false;
+					G::ShowTrailTools = true;
+					gTab = 1;
+					Settings::SetDirty();
+				}
+				ImGui::SameLine();
+				ImGui::TextDisabled("Collapse ▸ title bar to free space");
+				ImGui::Separator();
+				ImGui::BeginChild("###gw2igh_tr_po_body", ImVec2(0.f, 0.f), true);
+				DrawTrailTab();
+				ImGui::EndChild();
+			}) || hover;
+	}
+
+	if (gPopoutMarkers)
+	{
+		hover = RenderCollapsiblePad(
+			"Markers###GW2InGameHelperMarkerPopout",
+			gPopoutMarkers,
+			G::PadMarkerEditor,
+			gPlaceOnceMarkers,
+			gFocusMarkers,
+			kEditW,
+			kEditH,
+			PadDock::ForMarkerPopout(kEditW, kEditH),
+			[]() {
+				ImGui::TextColored(HelperTheme::Gold, "MARKERS");
+				if (ImGui::SmallButton("Dock into Trail Tools###gw2igh_mk_dock"))
+				{
+					gPopoutMarkers = false;
+					G::ShowTrailTools = true;
+					gTab = 2;
+					Settings::SetDirty();
+				}
+				ImGui::SameLine();
+				ImGui::TextDisabled("Collapse ▸ title bar to free space");
+				ImGui::Separator();
+				ImGui::BeginChild("###gw2igh_mk_po_body", ImVec2(0.f, 0.f), true);
+				DrawMarkersTab();
+				ImGui::EndChild();
+			}) || hover;
+	}
+
+	return hover;
 }

@@ -63,8 +63,6 @@ void AddonLoad(AddonAPI_t* api)
 	G::ShowLogManager = false;
 	G::ShowPathingGuides = false;
 	G::ShowTrailTools = false;
-	G::ShowTrailEditor = false;
-	G::ShowMarkerEditor = false;
 	G::ShowCompassPad = false;
 	G::ShowSettings = false;
 	gPollToggleHeld = false;

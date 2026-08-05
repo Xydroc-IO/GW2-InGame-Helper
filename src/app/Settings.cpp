@@ -7,6 +7,7 @@
 #include "Sites.h"
 #include "PathingTrails.h"
 #include "TrailToolsShared.h"
+#include "TrailToolsBinds.h"
 #include "UI.h"
 
 #include <cstdio>
@@ -100,8 +101,8 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowPathingGuides") == 0 ||
 			std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore — session only */ }
 		else if (std::strcmp(key, "ShowTrailTools") == 0) { /* ignore — session only */ }
-		else if (std::strcmp(key, "ShowTrailEditor") == 0) { /* ignore — session only */ }
-		else if (std::strcmp(key, "ShowMarkerEditor") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowTrailEditor") == 0) { /* ignore — legacy */ }
+		else if (std::strcmp(key, "ShowMarkerEditor") == 0) { /* ignore — legacy */ }
 		else if (std::strcmp(key, "TrailToolsLastTrlDir") == 0)
 		{
 			std::snprintf(TrailToolsDetail::gDraft.lastTrlDir,
@@ -109,6 +110,8 @@ void Settings::Load()
 		}
 		else if (std::strcmp(key, "TrailToolsXmlLayout") == 0)
 			TrailToolsDetail::gDraft.xmlLayout = std::atoi(val) != 0 ? 1 : 0;
+		else if (std::strcmp(key, "TrailToolsBinds") == 0)
+			TrailToolsBinds::Deserialize(val);
 		else if (std::strcmp(key, "ShowPathingTrails") == 0 ||
 			std::strcmp(key, "ShowTekkitTrails") == 0)
 			G::ShowPathingTrails = AsBool(val);
@@ -391,10 +394,9 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowLogManager=0\n");
 	std::fprintf(f, "ShowPathingGuides=0\n");
 	std::fprintf(f, "ShowTrailTools=0\n");
-	std::fprintf(f, "ShowTrailEditor=0\n");
-	std::fprintf(f, "ShowMarkerEditor=0\n");
 	std::fprintf(f, "TrailToolsLastTrlDir=%s\n", TrailToolsDetail::gDraft.lastTrlDir);
 	std::fprintf(f, "TrailToolsXmlLayout=%d\n", TrailToolsDetail::gDraft.xmlLayout != 0 ? 1 : 0);
+	std::fprintf(f, "TrailToolsBinds=%s\n", TrailToolsBinds::Serialize().c_str());
 	std::fprintf(f, "ShowPathingTrails=%d\n", G::ShowPathingTrails ? 1 : 0);
 	std::fprintf(f, "EnablePathingLua=%d\n", G::EnablePathingLua ? 1 : 0);
 	std::fprintf(f, "LadyBarefoot=%d\n", G::LadyBarefoot ? 1 : 0);

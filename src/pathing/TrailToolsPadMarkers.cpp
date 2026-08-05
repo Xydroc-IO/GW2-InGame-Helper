@@ -1,6 +1,7 @@
 #include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
 #include "TrailToolsXml.h"
+#include "TrailToolsBinds.h"
 
 #include "HelperTheme.h"
 #include "PadNav.h"
@@ -159,7 +160,7 @@ void TrailToolsDetail::DrawMarkersTab()
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"POIs live under <POIs> and reference a MarkerCategory path via type= "
-		"(e.g. test.circle). Categories themselves are the menu — edit them in Pack. "
+		"(e.g. test.circle). Categories themselves are the menu — edit them on the Pack tab. "
 		"Trails also go in <POIs> as <Trail …/>.");
 	PadNav::PopWrap();
 
@@ -222,35 +223,10 @@ void TrailToolsDetail::DrawMarkersTab()
 	ImGui::Checkbox("List this map only###gw2igh_tt_mmap", &sThisMapOnly);
 
 	if (ImGui::Button("Drop marker here###gw2igh_tt_drop"))
-	{
-		if (!pose)
-			SetStatus("No Mumble pose.");
-		else if (!gDraft.markerType[0])
-			SetStatus("Set a marker type path.");
-		else
-		{
-			EnsureWorkspace();
-			DraftPoi p;
-			p.mapId = mapId;
-			p.x = x;
-			p.y = y;
-			p.z = z;
-			p.type = gDraft.markerType;
-			p.guid = MakeGuidBase64();
-			gDraft.pois.push_back(std::move(p));
-			gDraft.selectedPoi = static_cast<int>(gDraft.pois.size()) - 1;
-			SetStatus("Dropped marker #%zu.", gDraft.pois.size());
-		}
-	}
+		TrailToolsBinds::ActionPlaceMarker(-1);
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Delete selected"));
-	if (ImGui::Button("Delete selected###gw2igh_tt_mdel") &&
-		gDraft.selectedPoi >= 0 &&
-		gDraft.selectedPoi < static_cast<int>(gDraft.pois.size()))
-	{
-		gDraft.pois.erase(gDraft.pois.begin() + gDraft.selectedPoi);
-		gDraft.selectedPoi = -1;
-		SetStatus("Deleted marker.");
-	}
+	if (ImGui::Button("Delete selected###gw2igh_tt_mdel"))
+		TrailToolsBinds::ActionDeleteMarker();
 
 	size_t shown = 0;
 	for (const DraftPoi& p : gDraft.pois)

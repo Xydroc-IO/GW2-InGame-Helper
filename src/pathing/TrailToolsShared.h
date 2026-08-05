@@ -98,13 +98,15 @@ namespace TrailToolsDetail
 	extern DraftPack gDraft;
 	extern bool      gPlaceOnce;
 	extern bool      gFocus;
-	extern int       gTab;
+	extern int       gTab; /* 0 Live, 1 Trails, 2 Markers, 3 Pack, 4 Keybinds */
+	extern bool      gPopoutTrails;
+	extern bool      gPopoutMarkers;
 	extern bool      gPlaceOnceTrails;
 	extern bool      gFocusTrails;
 	extern bool      gPlaceOnceMarkers;
 	extern bool      gFocusMarkers;
 
-	/* True if hub, Trails, or Markers pad is open (draft preview). */
+	/* Hub or a Trails/Markers pop-out is open (draft preview). */
 	bool AnyAuthoringPadOpen();
 
 	void SetStatus(const char* fmt, ...);

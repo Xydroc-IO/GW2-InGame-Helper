@@ -170,26 +170,6 @@ namespace UIDetail
 				else
 					TrailToolsPad::Open();
 			}
-			if (ImGui::MenuItem(G::ShowTrailEditor ? "Hide Trails" : "Show Trails"))
-			{
-				if (G::ShowTrailEditor)
-				{
-					G::ShowTrailEditor = false;
-					Settings::SetDirty();
-				}
-				else
-					TrailToolsPad::OpenTrails();
-			}
-			if (ImGui::MenuItem(G::ShowMarkerEditor ? "Hide Markers" : "Show Markers"))
-			{
-				if (G::ShowMarkerEditor)
-				{
-					G::ShowMarkerEditor = false;
-					Settings::SetDirty();
-				}
-				else
-					TrailToolsPad::OpenMarkers();
-			}
 			ImGui::Separator();
 			if (ImGui::MenuItem(G::ShowCompassPad ? "Hide Compass" : "Show Compass"))
 			{
@@ -407,33 +387,7 @@ namespace UIDetail
 				TrailToolsPad::Open();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Trail Tools — pack hub (Live + build). Open Trails/Markers beside it.");
-
-		if (PadNav::SideToggle("Trails###gw2igh_trail_ed", G::ShowTrailEditor))
-		{
-			if (G::ShowTrailEditor)
-			{
-				G::ShowTrailEditor = false;
-				Settings::SetDirty();
-			}
-			else
-				TrailToolsPad::OpenTrails();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Trails — record path points (keep Markers open to place along the route)");
-
-		if (PadNav::SideToggle("Markers###gw2igh_mark_ed", G::ShowMarkerEditor))
-		{
-			if (G::ShowMarkerEditor)
-			{
-				G::ShowMarkerEditor = false;
-				Settings::SetDirty();
-			}
-			else
-				TrailToolsPad::OpenMarkers();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Markers — drop/edit POIs (open Trails beside this while following a path)");
+			ImGui::SetTooltip("Trail Tools — author packs (trails, markers, XML, build .taco)");
 
 		if (PadNav::SideToggle("Events###gw2igh_events", G::ShowEvents))
 		{
