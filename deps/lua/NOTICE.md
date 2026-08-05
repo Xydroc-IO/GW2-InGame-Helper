@@ -1,6 +1,6 @@
 # Lua 5.4.7 (PUC-Rio)
 
-Vendored for the opt-in PathingLua runtime (`src/pathing/PathingLua*`).
+Vendored for the opt-in PathingLua runtime (`src/pathing/lua/PathingLua*`).
 
 Website: https://www.lua.org/
 

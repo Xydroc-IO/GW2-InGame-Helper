@@ -903,7 +903,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Path | Role |
 |------|------|
 | `src/entry*.cpp` | Nexus entry, version, WndProc, hotkeys, load/unload |
-| `src/ui/UI*.cpp` | ImGui chrome, Browse, options, render |
+| `src/ui/UI*.cpp` | ImGui chrome / Browse / options / render (under `src/ui/chrome/`, `browse/`, …) |
 | `src/browser/WikiBrowser*.cpp` | Host lifecycle, helper launch, IPC, present |
 | `src/helper/main.cpp` + State/Tabs/Handlers/Commands | CEF boot, tabs, IPC drain |
 | `src/helper/HelperNavPolicy*.cpp` | Navigation and advertisement policy |
@@ -919,10 +919,10 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 | Path | Role |
 |------|------|
-| `src/account/*` | Account hub pads + API fetch/parse |
-| `src/pathing/*` | Packs, trails, markers, compass, world GPS |
-| `src/pathing/WorldGps*` / `WorldOverlay*` | D3D ribbons + ImGui markers |
-| `src/logs/*` | DPS Logs + EI runtime |
+| `src/account/*` | Account hub pads + API fetch/parse (feature subfolders under `src/account/`) |
+| `src/pathing/*` | Packs, trails, markers, compass, world GPS (feature subfolders under `src/pathing/`) |
+| `src/pathing/world/WorldGps*` / `WorldOverlay*` | D3D ribbons + ImGui markers |
+| `src/logs/*` | DPS Logs + EI runtime (`logmanager/`, `ei/`) |
 | `src/events/*` | World Events |
 | `src/notes/*` | Notes + waypoints |
 | `src/app/*` | Settings, paths, theme, pad dock, Mumble identity |
