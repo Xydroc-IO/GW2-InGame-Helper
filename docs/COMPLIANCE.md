@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.2.0.16** — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.2.0.18** — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 This file is **normative** (allowed / forbidden). Analysis belongs in the whitepaper.
 
@@ -19,6 +19,7 @@ This file is **normative** (allowed / forbidden). Analysis belongs in the whitep
 - Local Notes pad (`notes.json` under the addon folder) with clipboard copy helpers — no game injection
 - Item Lookup pad (public `/v2/items` + wiki search), Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories), and Vault pad (Wizard’s Vault / dailies — same Live panel API) — read-only; item name cache in `stash-names.cache`
 - Tekkit’s All-In-One `.taco` (© Tekkit's Workshop, used with permission), Lady Elyssa Guides / Achievements packs, and Hero's Marker Pack (QuitarHero) — curated downloads into `pathing/` for local display; user `.taco` files kept
+- Opt-in PathingLua (`EnablePathingLua`, default off) for Blish-shaped pack `script-*` — display/scripting only; never game input or memory automation
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)
 - Optional **Elite Insights CLI** under `addons/GW2-InGame-Helper/ei/` (on-demand download of upstream `GW2EICLI.zip` + SHA-256 verify; MIT, baaron4; requires user-installed .NET 8)

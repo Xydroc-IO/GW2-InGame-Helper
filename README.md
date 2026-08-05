@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.0.17` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.0.18` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·

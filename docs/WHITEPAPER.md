@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.0.16 |
+| Revision described | 2.2.0.18 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,8 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.0.18 | 2.2.0.18 | Trail Tools Looks/schedules/import; opt-in PathingLua |
+| 2.2.0.17 | 2.2.0.17 | Trail Tools in-addon pack authoring |
 | 2.2.0.16 | 2.2.0.16 | Favorite folders in Browse |
 | 2.2.0.15 | 2.2.0.15 | Favorites without Wiki category rebuild race |
 | 2.2.0.14 | 2.2.0.14 | config/ state dir; favorites persist fix; side-rail brand title |
@@ -63,7 +65,7 @@ In-game overlays that surface the live web—wikis, build repositories, and comm
 
 This report documents the architecture of **GW2 In-Game Helper**, a Raidcore Nexus ImGui addon that embeds **stock CEF 150** as a **separate process**, renders via **windowless off-screen rendering (OSR)** into **PID-scoped shared memory**, and composites frames through the host’s existing Direct3D 11 device without Present hooks. We analyse the inter-process communication (IPC) contract, the adaptive CPU-to-GPU upload pipeline, navigation and advertisement click-through policy, the security posture (including intentional sandbox disablement under Wine), compliance boundaries relative to Guild Wars 2 and the Nexus ecosystem, and performance implications for constrained hardware.
 
-Beyond the browser kernel, revision **2.2.0.16** documents the **application layer**: Account pads on the official ArenaNet API; Pathing packs with Blish/TacO behaviors; **D3D world GPS** ribbons drawn exclusively via the Nexus SwapChain device; DPS Logs via Elite Insights; and Events/Notes. We argue that shared-memory OSR is not an optimal GPU path in the abstract, but that it constitutes a **rational engineering equilibrium** given Nexus API surfaces, coexistence with ArcDPS and ReShade, single-DLL distribution, and Proton viability. Likewise, world GPS uses host SwapChain drawing rather than Present hooks or process-memory camera reads, preserving the same coexistence invariants.
+Beyond the browser kernel, revision **2.2.0.18** documents the **application layer**: Account pads on the official ArenaNet API; Pathing packs with Blish/TacO behaviors and opt-in PathingLua; **D3D world GPS** ribbons drawn exclusively via the Nexus SwapChain device; DPS Logs via Elite Insights; and Events/Notes. We argue that shared-memory OSR is not an optimal GPU path in the abstract, but that it constitutes a **rational engineering equilibrium** given Nexus API surfaces, coexistence with ArcDPS and ReShade, single-DLL distribution, and Proton viability. Likewise, world GPS uses host SwapChain drawing rather than Present hooks or process-memory camera reads, preserving the same coexistence invariants.
 
 **Keywords:** Chromium Embedded Framework; off-screen rendering; game overlay; shared-memory IPC; Direct3D 11; Wine; Proton; advertisement attribution; process isolation; Guild Wars 2; Raidcore Nexus; TacO pathing; Blish-style trails.
 
@@ -107,7 +109,7 @@ This document contributes:
 
 ### 1.4 Non-goals
 
-We do not claim: combat automation; reading player or entity memory for advantage; bypassing Cloudflare or Google OAuth in embedded contexts; AAA-grade zero-copy GPU compositing; a rebuilt or forked Chromium; Lua `script-*` Blish Pathing feature parity; proprietary video codecs in stock CEF; or peer-reviewed empirical HCI studies.
+We do not claim: combat automation; reading player or entity memory for advantage; bypassing Cloudflare or Google OAuth in embedded contexts; AAA-grade zero-copy GPU compositing; a rebuilt or forked Chromium; full Blish Pathing Lua libdef parity (Storage/Instance/GameTime and related host services remain out of scope); proprietary video codecs in stock CEF; or peer-reviewed empirical HCI studies.
 
 Feature pads are *application layer* atop the browser kernel. This report describes them where they affect IPC, present, compliance, or player-facing architecture—not as exhaustive product manuals (see [`PATHING.md`](PATHING.md), [`ACCOUNT.md`](ACCOUNT.md), [`DPS_LOGS.md`](DPS_LOGS.md)).
 
@@ -647,7 +649,7 @@ Memory-safety tooling cannot fully validate this stack: the DLL loads into a non
 3. **Proton variance.** Steam/Wine versions change behaviour.
 4. **Advertisement attribution.** Network-side billability cannot be verified from the client alone.
 5. **Scope creep.** Application-layer pads evolve independently; kernel claims are not coverage of every pad feature.
-6. **Documentation lag.** This report tracks revision 2.2.0.16; future commits may land before the next sync.
+6. **Documentation lag.** This report tracks revision 2.2.0.18; future commits may land before the next sync.
 
 ---
 
@@ -666,7 +668,7 @@ Memory-safety tooling cannot fully validate this stack: the DLL loads into a non
 
 ### 15.1 Maintainability trajectory
 
-As of revision 2.2.0.16 the Browse catalog is data-driven (`data/sites.json`), and former monolithic translation units are split into focused units (prefer ≤500 lines per `.cpp`). This reduces merge-conflict surface for feature work but does **not** remove restricted ownership of the CEF, IPC, and present path. See [`MODULES.md`](MODULES.md), [`ARCHITECTURE.md`](ARCHITECTURE.md) §7, [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+As of revision 2.2.0.18 the Browse catalog is data-driven (`data/sites.json`), and former monolithic translation units are split into focused units (prefer ≤500 lines per `.cpp`). This reduces merge-conflict surface for feature work but does **not** remove restricted ownership of the CEF, IPC, and present path. See [`MODULES.md`](MODULES.md), [`ARCHITECTURE.md`](ARCHITECTURE.md) §7, [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ---
 
@@ -694,9 +696,9 @@ See [`ACCOUNT.md`](ACCOUNT.md), [`API_KEY.md`](API_KEY.md).
 
 ### 17.2 Pathing and D3D world GPS
 
-**Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, and Hero's Marker Pack download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy—not Lua `script-*`.
+**Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, and Hero's Marker Pack download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy. Opt-in **PathingLua** (default off) covers a Blish-shaped `script-*` subset — not the full Pathing libdef host.
 
-**Trail Tools.** Side-rail authoring pad (Live / Trail / Markers / Pack) records `.trl` from Mumble pose, drops POIs, edits category XML, and builds `.taco` into `pathing/` with draft preview on compass/world GPS—display-first pack creation without TacO/TrlTool embedding.
+**Trail Tools.** Side-rail authoring pad (Live / Trail / Markers / Pack) records `.trl` from Mumble pose, drops POIs, edits category XML / Looks, imports packs, and builds `.taco` into `pathing/` with textured draft preview on compass/world GPS—display-first pack creation without TacO/TrlTool embedding.
 
 **Lady Features.** Barefoot / With Mounts / WP Only are mutually exclusive map-completion editions.
 
@@ -799,7 +801,7 @@ This report does not benchmark against Blish or TacO frame times; claims of “B
 
 ## 19. Methods note (how this report was produced)
 
-This report is a **design reconstruction** from the shipping codebase and maintainer operational knowledge at revision 2.2.0.16. It is not the output of a formal measurement campaign. Where quantitative figures appear (frame bytes, ring sizes, bandwidth upper bounds), they are derived from constants in [`WikiIpc.h`](../src/browser/WikiIpc.h) and elementary arithmetic unless otherwise stated.
+This report is a **design reconstruction** from the shipping codebase and maintainer operational knowledge at revision 2.2.0.18. It is not the output of a formal measurement campaign. Where quantitative figures appear (frame bytes, ring sizes, bandwidth upper bounds), they are derived from constants in [`WikiIpc.h`](../src/browser/WikiIpc.h) and elementary arithmetic unless otherwise stated.
 
 Claims about Proton behaviour are based on repeated smoke testing across Steam Proton / Wine configurations used by the maintainer and early users; they are **not** guaranteed for every Proton experimental build. Claims about advertisement billability are mechanistic (URL must be requested) rather than accounting audits against publisher invoices.
 
@@ -868,11 +870,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.2.0.16)
+## Appendix A — Quantitative constants (revision 2.2.0.18)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.2.0.16 |
+| Addon version | 2.2.0.18 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -962,6 +964,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.16 — Favorite folders in Browse |
+| Last sync | 2.2.0.18 — Trail Tools Looks/schedules; opt-in PathingLua |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
-| How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.16, 2026. |
+| How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.18, 2026. |

@@ -30,11 +30,14 @@ The addon implements TacO/Blish marker **behaviors** (0–7, 101), **AutoTrigger
 **hide=/show=** category flips, **tips**, **info** popups, and **copy** clipboard —
 enough for Hero's raid/strike tracking and most interactive markers.
 
-**Not supported:** Lua `script-*` features (HTcm simulation scripts, combatFade,
-script-trigger practices, etc.). Those still need [Blish HUD Pathing](https://blishhud.com/modules/?module=bh.community.pathing).
+**Not supported by default:** Lua is **opt-in** (Pathing → Features → Enable Lua scripts,
+default off). When enabled, a Blish-shaped subset runs (`script-*` attrs, Marker/Trail,
+Menu, CDN textures, Pack:CreateMarker). Full Blish libdef hosts (Storage, Instance,
+GameTime, achievement auto-hide, etc.) still need
+[Blish HUD Pathing](https://blishhud.com/modules/?module=bh.community.pathing).
 
 Interact default: **Ctrl+Shift+F** (`KB_HELPER_MARKER_INTERACT`) — rebind in Nexus.
-States persist in `marker_behaviors.txt` (Pathing → **Reset marker states** to clear).
+States persist in `config/marker_behaviors.txt` (Pathing → **Reset marker states** to clear).
 
 Do **not** keep a second copy of Tekkit under another name (e.g. both
 `tw_ALL_IN_ONE.taco` and `Tekkit's All-In-One.taco`). That loads every route
@@ -70,11 +73,12 @@ Side-rail **Trail Tools** creates packs without TacO/TrlTool:
 
 1. **Live** — Map ID + XYZ from Mumble (copy helpers).
 2. **Trail** — Insert Map / Vector at your feet, section breaks `(0,0,0)`, save `.trl`.
-3. **Markers** — Drop POIs, nudge XYZ, assign category types.
-4. **Pack** — Edit categories, preview XML, **Build .taco** → writes here and reloads Pathing.
+3. **Markers** — Drop POIs, nudge XYZ, assign category types, behavior/tips/script-*.
+4. **Pack** — Categories, **Looks** presets (trail/marker textures + tint/scale/fade),
+   texture browser, import `.taco`, preview XML, **Build .taco** → writes here and reloads Pathing.
 
 Workspace: `pathing/authoring/<PackName>/` under the addon data folder. Drop PNG icons into
-`Data/<PackName>/Markers/` yourself. Magenta draft preview shows on compass + world GPS while
+`Data/<PackName>/Markers/` yourself. Textured draft preview shows on compass + world GPS while
 the pad is open. Details: [`docs/PATHING.md`](../docs/PATHING.md) §8b.
 
 ### Quick presets

@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.17
+# GW2 In-Game Helper v2.2.0.18
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,6 +32,20 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
+## What’s new in 2.2.0.18
+
+- **Trail Tools Looks + Blish parity:** Pack-tab look presets (chevron/ribbon/dashed/heart;
+  disc/pin/star/square) with tint, trailScale/iconSize, fade. WYSIWYG textured draft
+  preview on compass/world GPS. UTC `schedule` / `schedule-duration` filter at draw time.
+  Texture browser, import `.taco`, multi-trail editing, richer POI attrs (behavior, tips,
+  script-*, hide/show), draft session persist.
+- **PathingLua (opt-in, default off):** Blish-shaped subset under Pathing → Features —
+  `script-once/trigger/filter/tick/focus`, Marker/Trail mutators, `Menu.Add`, CDN
+  `SetTexture(id)` via `assets.gw2dat.com`, `GetBehavior`, World marker/trail lookups,
+  Pack:CreateMarker, Mumble/Event/User. Vendored Lua 5.4.7 (`deps/lua`).
+- **Stamps:** Helper `2221` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+  · live panel `38` (helper stamp unchanged)
+
 ## What’s new in 2.2.0.17
 
 - **Trail Tools:** New Tools side-rail pad to author TacO/Blish marker packs in-addon —
@@ -39,7 +53,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   category tree + XML, build `.taco` into `pathing/`, then reload Pathing. Magenta draft
   preview on compass + world GPS while the pad is open. Workspace under
   `pathing/authoring/<PackName>/`.
-- **Stamps:** Helper `2220` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+- **Stamps:** Helper `2221` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
   · live panel `38` (unchanged from 2.2.0.16)
 
 ## What’s new in 2.2.0.16
