@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <vector>
 
 namespace
 {
@@ -104,7 +105,43 @@ void TrailToolsDetail::DrawTrailTab()
 
 	ImGui::InputText("Trail file stem###gw2igh_tt_trlstem", gDraft.trailFileStem,
 		sizeof(gDraft.trailFileStem));
-	ImGui::InputText("Trail type###gw2igh_tt_trltype", gDraft.trailType, sizeof(gDraft.trailType));
+	{
+		std::vector<std::string> leaves;
+		CollectLeafPaths(gDraft.root, "", leaves, true);
+		if (leaves.empty() && gDraft.trailType[0])
+			leaves.push_back(gDraft.trailType);
+		int cur = 0;
+		for (size_t i = 0; i < leaves.size(); ++i)
+		{
+			if (leaves[i] == gDraft.trailType)
+			{
+				cur = static_cast<int>(i);
+				break;
+			}
+		}
+		const char* preview = leaves.empty() ? (gDraft.trailType[0] ? gDraft.trailType : "(none)")
+			: leaves[static_cast<size_t>(cur)].c_str();
+		if (ImGui::BeginCombo("Trail type###gw2igh_tt_trltype", preview))
+		{
+			for (size_t i = 0; i < leaves.size(); ++i)
+			{
+				const bool sel = static_cast<int>(i) == cur;
+				if (ImGui::Selectable(leaves[i].c_str(), sel))
+				{
+					std::snprintf(gDraft.trailType, sizeof(gDraft.trailType), "%s",
+						leaves[i].c_str());
+					gDraft.active.type = gDraft.trailType;
+				}
+				if (sel)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+	}
+	ImGui::InputText("Or type path###gw2igh_tt_trltype_edit", gDraft.trailType,
+		sizeof(gDraft.trailType));
+	if (ImGui::IsItemDeactivatedAfterEdit() && gDraft.trailType[0])
+		gDraft.active.type = gDraft.trailType;
 	ImGui::TextDisabled("%s", gDraft.active.fileRel.c_str());
 
 	uint32_t mapId = 0;

@@ -9,10 +9,12 @@
 #include "imgui/imgui.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 /* Compass overlay math mirrors TacO GetMinimapRectangle + Blish Pathing
@@ -305,7 +307,26 @@ void CompassOverlay::Render()
 				haveRects = true;
 			}
 		}
-		if (haveRects)
+		if (!haveRects)
+		{
+			/* Pathing may not have loaded this map yet — fetch rects once async. */
+			static std::atomic<uint32_t> sRectFetchMap{0};
+			const uint32_t want = ctx->mapId;
+			uint32_t expected = 0;
+			if (sRectFetchMap.compare_exchange_strong(expected, want))
+			{
+				std::thread([want]() {
+					PathingDetail::Rects r{};
+					if (PathingDetail::FetchMapRects(want, r) && r.valid)
+					{
+						std::lock_guard<std::mutex> lock(PathingDetail::gMutex);
+						PathingDetail::gRects[want] = r;
+					}
+					sRectFetchMap.store(0, std::memory_order_release);
+				}).detach();
+			}
+		}
+		else
 		{
 			TrailToolsPreviewCompass::Draw(ctx->mapId, dl,
 				[&](float wx, float wz, float& cx, float& cy) -> bool {

@@ -26,14 +26,32 @@ namespace
 		return p;
 	}
 
-	std::wstring ActiveTrlPath()
+	std::wstring RelToPackPath(const std::string& rel)
 	{
 		std::wstring p = TrailToolsDetail::PackDir();
 		p.push_back(L'\\');
-		const std::string& rel = TrailToolsDetail::gDraft.active.fileRel;
 		for (char c : rel)
 			p.push_back(c == '/' ? L'\\' : static_cast<wchar_t>(static_cast<unsigned char>(c)));
 		return p;
+	}
+
+	bool EnsureParentDirs(const std::wstring& filePath)
+	{
+		const size_t slash = filePath.find_last_of(L"\\/");
+		if (slash == std::wstring::npos || slash == 0)
+			return true;
+		std::wstring cur;
+		for (size_t i = 0; i < slash; ++i)
+		{
+			cur.push_back(filePath[i]);
+			if (filePath[i] == L'\\' || filePath[i] == L'/' || i + 1 == slash)
+			{
+				if (cur.size() >= 3 && cur.back() != L':' &&
+					!(cur.size() == 2 && cur[1] == L':'))
+					CreateDirectoryW(cur.c_str(), nullptr);
+			}
+		}
+		return true;
 	}
 
 	std::string WideToUtf8(const std::wstring& w)
@@ -82,10 +100,21 @@ namespace
 		return entry;
 	}
 
+	bool SkipZipEntry(const std::string& entry)
+	{
+		/* Authoring sidecars must not ship — Pathing indexes every .xml in the taco. */
+		if (entry == "_draft_session.xml")
+			return true;
+		if (entry.size() >= 18 &&
+			entry.compare(entry.size() - 18, 18, "/_draft_session.xml") == 0)
+			return true;
+		return false;
+	}
+
 	bool AddFileToZip(mz_zip_archive& zip, const std::wstring& packRoot, const std::wstring& filePath)
 	{
 		const std::string entry = ZipEntryName(packRoot, filePath);
-		if (entry.empty())
+		if (entry.empty() || SkipZipEntry(entry))
 			return true;
 		HANDLE h = CreateFileW(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -179,12 +208,7 @@ bool TrailToolsBuild::BuildTaco(std::string& errOut)
 		}
 		if (gDraft.active.type.empty() && gDraft.trailType[0])
 			gDraft.active.type = gDraft.trailType;
-		if (!TrailToolsTrl::Write(ActiveTrlPath(), gDraft.active.mapId, gDraft.active.points))
-		{
-			errOut = "Failed to write active .trl.";
-			return false;
-		}
-		/* Upsert into trails list. */
+		/* Upsert into trails list before flushing all .trl files. */
 		bool found = false;
 		for (auto& t : gDraft.trails)
 		{
@@ -197,6 +221,19 @@ bool TrailToolsBuild::BuildTaco(std::string& errOut)
 		}
 		if (!found)
 			gDraft.trails.push_back(gDraft.active);
+	}
+
+	for (const auto& t : gDraft.trails)
+	{
+		if (t.points.size() < 2 || t.mapId == 0 || t.fileRel.empty())
+			continue;
+		const std::wstring trlPath = RelToPackPath(t.fileRel);
+		EnsureParentDirs(trlPath);
+		if (!TrailToolsTrl::Write(trlPath, t.mapId, t.points))
+		{
+			errOut = "Failed to write .trl: " + t.fileRel;
+			return false;
+		}
 	}
 
 	const std::wstring xmlPath = PackXmlPath();

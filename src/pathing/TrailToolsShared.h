@@ -113,6 +113,8 @@ namespace TrailToolsDetail
 	bool HasDraftPreview(); /* trail pts or POIs on current map */
 	CategoryNode* FindCategoryByPath(CategoryNode& node, const std::string& wantPath,
 		const std::string& parentPath = {});
+	/* After pack rename: remap category paths, POI types, trail types, Data/ paths. */
+	void RemapDraftAfterPackRename(const std::string& oldPackName, const std::string& oldRoot);
 	void ApplyTrailLookPreset(int presetIndex);
 	void ApplyMarkerLookPreset(int presetIndex);
 	const char* const* TrailLookPresetNames(int* count);

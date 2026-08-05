@@ -110,16 +110,101 @@ namespace TrailToolsDetail
 		const bool isLeaf = node.children.empty();
 		if (isLeaf)
 		{
-			const bool looksTrail = !node.texture.empty() ||
-				(!parentPath.empty() && parentPath.find(".t") != std::string::npos) ||
-				node.name.find("trail") != std::string::npos;
-			const bool looksMarker = !node.iconFile.empty() || !looksTrail;
+			const bool hasIcon = !node.iconFile.empty();
+			const bool hasTex = !node.texture.empty();
+			const bool underT = parentPath.find(".t") != std::string::npos ||
+				node.name.find("trail") != std::string::npos ||
+				node.name.find("extrail") != std::string::npos;
+			const bool underM = parentPath.find(".m") != std::string::npos ||
+				node.name.find("exm") != std::string::npos;
+			bool looksTrail = false;
+			bool looksMarker = false;
+			if (underT && !underM)
+				looksTrail = true;
+			else if (underM && !underT)
+				looksMarker = true;
+			else if (hasTex && !hasIcon)
+				looksTrail = true;
+			else if (hasIcon && !hasTex)
+				looksMarker = true;
+			else if (hasTex && hasIcon)
+			{
+				/* Both assets: exclusive — trail list vs marker list, never both. */
+				looksTrail = trailLeaves;
+				looksMarker = !trailLeaves;
+			}
+			else
+				looksMarker = !trailLeaves; /* bare leaf → marker picker */
 			if (trailLeaves ? looksTrail : looksMarker)
 				out.push_back(path);
 			return;
 		}
 		for (const CategoryNode& ch : node.children)
 			CollectLeafPaths(ch, path, out, trailLeaves);
+	}
+
+	void RemapPrefix(std::string& s, const std::string& oldP, const std::string& newP)
+	{
+		if (oldP.empty() || oldP == newP || s.empty())
+			return;
+		if (s == oldP)
+		{
+			s = newP;
+			return;
+		}
+		if (s.size() > oldP.size() && s.compare(0, oldP.size(), oldP) == 0 &&
+			s[oldP.size()] == '.')
+			s = newP + s.substr(oldP.size());
+	}
+
+	void RemapDataFolder(std::string& s, const std::string& oldPack, const std::string& newPack)
+	{
+		if (oldPack.empty() || oldPack == newPack || s.empty())
+			return;
+		const std::string a = std::string("Data/") + oldPack + "/";
+		const std::string b = std::string("Data/") + newPack + "/";
+		if (s.size() >= a.size() && s.compare(0, a.size(), a) == 0)
+			s = b + s.substr(a.size());
+	}
+
+	void RemapCategoryNode(CategoryNode& n, const std::string& oldPack, const std::string& newPack)
+	{
+		RemapDataFolder(n.iconFile, oldPack, newPack);
+		RemapDataFolder(n.texture, oldPack, newPack);
+		for (auto& ch : n.children)
+			RemapCategoryNode(ch, oldPack, newPack);
+	}
+
+	void RemapDraftAfterPackRename(const std::string& oldPackName, const std::string& oldRoot)
+	{
+		const std::string newPack = gDraft.packName;
+		const std::string newRoot = RootCategoryName();
+		if (oldRoot != newRoot)
+		{
+			RemapPrefix(gDraft.root.name, oldRoot, newRoot);
+			gDraft.root.name = newRoot;
+			auto remapChar = [&](char* buf, size_t len) {
+				std::string s = buf;
+				RemapPrefix(s, oldRoot, newRoot);
+				std::snprintf(buf, len, "%s", s.c_str());
+			};
+			remapChar(gDraft.markerType, sizeof(gDraft.markerType));
+			remapChar(gDraft.trailType, sizeof(gDraft.trailType));
+			for (auto& p : gDraft.pois)
+				RemapPrefix(p.type, oldRoot, newRoot);
+			for (auto& t : gDraft.trails)
+				RemapPrefix(t.type, oldRoot, newRoot);
+			RemapPrefix(gDraft.active.type, oldRoot, newRoot);
+		}
+		if (oldPackName != newPack)
+		{
+			RemapCategoryNode(gDraft.root, oldPackName, newPack);
+			for (auto& p : gDraft.pois)
+				RemapDataFolder(p.iconFile, oldPackName, newPack);
+			for (auto& t : gDraft.trails)
+				RemapDataFolder(t.fileRel, oldPackName, newPack);
+			RemapDataFolder(gDraft.active.fileRel, oldPackName, newPack);
+		}
 	}
 
 	std::wstring AuthoringRoot()

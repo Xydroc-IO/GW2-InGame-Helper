@@ -14,6 +14,7 @@
 #include "imgui/imgui.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -205,13 +206,31 @@ void TrailToolsDetail::DrawPackTab()
 		"Workspace under pathing/authoring/<PackName>/. Build writes <PackName>.taco into pathing/.");
 	PadNav::PopWrap();
 
-	if (ImGui::InputText("Pack name###gw2igh_tt_pname", gDraft.packName, sizeof(gDraft.packName)))
+	static char sPrevPack[64] = {};
+	if (!sPrevPack[0])
+		std::snprintf(sPrevPack, sizeof(sPrevPack), "%s", gDraft.packName);
+	ImGui::InputText("Pack name###gw2igh_tt_pname", gDraft.packName, sizeof(gDraft.packName));
+	if (ImGui::IsItemDeactivatedAfterEdit())
 	{
+		const std::string oldPack = sPrevPack[0] ? sPrevPack : "ExamplePack";
+		std::string oldRoot = oldPack;
+		for (char& ch : oldRoot)
+			ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
 		SanitizePackName(gDraft.packName, sizeof(gDraft.packName));
+		RemapDraftAfterPackRename(oldPack, oldRoot);
 		gDraft.root.name = RootCategoryName();
-		gDraft.active.fileRel = std::string("Data/") + gDraft.packName + "/Trails/" +
-			(gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail") + ".trl";
+		const std::string wantPrefix = std::string("Data/") + gDraft.packName + "/";
+		if (gDraft.active.fileRel.empty() ||
+			gDraft.active.fileRel.compare(0, wantPrefix.size(), wantPrefix) != 0)
+		{
+			gDraft.active.fileRel = wantPrefix + "Trails/" +
+				(gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail") + ".trl";
+		}
+		std::snprintf(sPrevPack, sizeof(sPrevPack), "%s", gDraft.packName);
+		SetStatus("Pack renamed — category paths remapped.");
 	}
+	else if (!ImGui::IsItemActive())
+		std::snprintf(sPrevPack, sizeof(sPrevPack), "%s", gDraft.packName);
 	ImGui::InputText("Display name###gw2igh_tt_pdname", gDraft.displayName, sizeof(gDraft.displayName));
 	if (ImGui::Button("Reseed Example categories###gw2igh_tt_reseed"))
 	{
@@ -244,6 +263,8 @@ void TrailToolsDetail::DrawPackTab()
 		std::string err;
 		if (!ImportTacoToDraft(path, err))
 			SetStatus("%s", err.c_str());
+		else
+			SetStatus("Imported %s into draft.", sImportName);
 	}
 
 	ImGui::Separator();
@@ -287,10 +308,11 @@ void TrailToolsDetail::DrawPackTab()
 		else
 		{
 			const std::string root = RootCategoryName();
-			PathingTrails::ReloadPacks();
+			/* Enable first so gEnabledPaths is ready when the async reindex finishes. */
 			PathingTrails::SetCategoryEnabled(root, true);
 			PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
 			Settings::SaveNow();
+			PathingTrails::ReloadPacks();
 			SetStatus("Built %s.taco, enabled \"%s\", reloaded Pathing.",
 				gDraft.packName, root.c_str());
 		}

@@ -13,11 +13,6 @@
 #include <cmath>
 #include <vector>
 
-void TrailToolsPreview::RenderCompass()
-{
-	/* Compass draft lives in CompassOverlay (shared continent layout). */
-}
-
 void TrailToolsPreview::RenderWorld()
 {
 	using namespace TrailToolsDetail;
