@@ -85,6 +85,21 @@ a.jump:hover{color:var(--gold-bright);border-color:var(--gold)}
   margin:1rem 0 .55rem;font-size:.88rem;letter-spacing:.04em;
   color:var(--muted);font-weight:600;
 }
+.fav-fold-head{
+  display:flex;align-items:baseline;gap:.65rem;flex-wrap:wrap;
+  margin:1.1rem 0 .45rem;
+}
+.fav-fold-head h3{
+  margin:0;flex:1;min-width:8rem;font-size:.88rem;letter-spacing:.04em;
+  color:var(--muted);font-weight:600;
+}
+a.fold-del{
+  font-size:.72rem;color:var(--muted);text-decoration:none;
+  padding:.15rem .4rem;border:1px solid transparent;border-radius:3px;
+}
+a.fold-del:hover{
+  color:#e8a0a0;border-color:rgba(180,80,80,.45);background:rgba(80,20,20,.25);
+}
 button.btn-plus{
   appearance:none;cursor:pointer;margin:0;padding:.28rem .7rem;
   font:inherit;font-size:.78rem;font-weight:650;letter-spacing:.02em;
@@ -427,7 +442,8 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		"<h1>Browse</h1>"
 		"<p class=\"tag\">Pick a category, or open a favorite in a new tab. "
 		"Star sites to pin them, create folders with <strong>+ Folder</strong>, "
-		"then tap <strong>⇄</strong> on a favorite to move it.</p>"
+		"tap <strong>⇄</strong> to move a favorite, or <strong>Delete</strong> on a folder "
+		"header to remove a mistaken folder (sites return to Unfiled).</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter favorites &amp; categories…\" "
 		"autocomplete=\"off\"/>"
 		"</header>";
@@ -456,11 +472,20 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 			if (count <= 0 && folderId == 0)
 				return;
 			const char* fname = Sites::FavoriteFolderName(folderId);
-			html += "<h3>";
+			html += "<div class=\"fav-fold-head\"><h3>";
 			html += Esc(fname ? fname : "Folder");
 			html += " (";
 			html += std::to_string(count);
-			html += ")</h3><div class=\"grid\">";
+			html += ")</h3>";
+			if (folderId != 0)
+			{
+				html += "<a class=\"fold-del\" href=\"?gw2igh-fav-folder-delete=";
+				html += std::to_string(folderId);
+				html += "\" title=\"Delete folder — favorites in it return to Unfiled\" "
+					"onclick=\"return confirm('Delete this folder? Favorites inside move to Unfiled.');\">"
+					"Delete</a>";
+			}
+			html += "</div><div class=\"grid\">";
 			for (int i = 0; i < count; ++i)
 			{
 				const int idx = Sites::FavoriteSiteIndexInFolder(folderId, i);

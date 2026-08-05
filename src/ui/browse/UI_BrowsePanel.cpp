@@ -406,6 +406,19 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 		auto DrawFolderBlock = [&](int folderId) {
 			const int n = Sites::FavoriteCountInFolder(folderId);
 			const char* name = Sites::FavoriteFolderName(folderId);
+			if (folderId != 0)
+			{
+				char delId[48];
+				std::snprintf(delId, sizeof(delId), "Del###gw2igh_favdel_%d", folderId);
+				if (ImGui::SmallButton(delId))
+				{
+					if (Sites::DeleteFavoriteFolder(folderId))
+						LivePanels::NotifyFavoritesChanged();
+				}
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("Delete folder — favorites inside return to Unfiled");
+				ImGui::SameLine(0.f, 6.f);
+			}
 			char header[96];
 			std::snprintf(header, sizeof(header), "%s (%d)###gw2igh_favfold_%d",
 				name ? name : "Folder", n, folderId);
@@ -418,7 +431,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 					sRenameFolderId = folderId;
 					std::snprintf(sRenameBuf, sizeof(sRenameBuf), "%s", name ? name : "");
 				}
-				if (ImGui::MenuItem("Delete folder"))
+				if (ImGui::MenuItem("Delete folder (items → Unfiled)"))
 				{
 					if (Sites::DeleteFavoriteFolder(folderId))
 						LivePanels::NotifyFavoritesChanged();

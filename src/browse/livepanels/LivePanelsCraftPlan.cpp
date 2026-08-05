@@ -333,6 +333,19 @@ bool ProcessFavCmdFile(const std::wstring& addonDir)
 				changed = true;
 			continue;
 		}
+		if (line.rfind("folder-delete ", 0) == 0)
+		{
+			const char* p = line.c_str() + 14;
+			while (*p == ' ' || *p == '\t')
+				++p;
+			char* end = nullptr;
+			const long folderId = std::strtol(p, &end, 10);
+			if (end == p || folderId <= 0 || folderId > 1000000)
+				continue;
+			if (Sites::DeleteFavoriteFolder(static_cast<int>(folderId)))
+				changed = true;
+			continue;
+		}
 		const char* id = nullptr;
 		if (line.rfind("toggle ", 0) == 0)
 			id = line.c_str() + 7;

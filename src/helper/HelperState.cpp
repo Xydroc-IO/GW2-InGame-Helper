@@ -781,8 +781,9 @@ namespace HelperDetail
 		const std::string folderCreateEnc = ParseQueryValue(query, "gw2igh-fav-folder-create");
 		const std::string folderMoveId = ParseQueryValue(query, "gw2igh-fav-folder-move");
 		const std::string folderMoveTo = ParseQueryValue(query, "to");
+		const std::string folderDeleteId = ParseQueryValue(query, "gw2igh-fav-folder-delete");
 		if (openSite.empty() && aboutKey.empty() && favId.empty() &&
-			folderCreateEnc.empty() && folderMoveId.empty())
+			folderCreateEnc.empty() && folderMoveId.empty() && folderDeleteId.empty())
 			return false;
 
 		if (!openSite.empty())
@@ -891,6 +892,42 @@ namespace HelperDetail
 			AppendCmdLine(L"fav-cmd.txt",
 				std::string("folder-move ") + folderMoveId + " " + std::to_string(toFolder) + "\n");
 			SetStatus("Moving favorite…");
+			return true;
+		}
+		if (!folderDeleteId.empty())
+		{
+			int folderId = 0;
+			for (char c : folderDeleteId)
+			{
+				if (c < '0' || c > '9')
+				{
+					folderId = -1;
+					break;
+				}
+				folderId = folderId * 10 + (c - '0');
+				if (folderId > 1000000)
+				{
+					folderId = -1;
+					break;
+				}
+			}
+			if (folderId <= 0)
+			{
+				SetStatus("Invalid folder");
+				return true;
+			}
+			{
+				static int sLastDelId = -1;
+				static DWORD sLastDelMs = 0;
+				const DWORD now = GetTickCount();
+				if (folderId == sLastDelId && sLastDelMs != 0 && (now - sLastDelMs) < 400u)
+					return true;
+				sLastDelId = folderId;
+				sLastDelMs = now;
+			}
+			AppendCmdLine(L"fav-cmd.txt",
+				std::string("folder-delete ") + std::to_string(folderId) + "\n");
+			SetStatus("Deleting folder…");
 			return true;
 		}
 		/* fav toggle — queue DLL only; do NOT delete/rebuild the open page.
