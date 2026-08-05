@@ -5,6 +5,7 @@
 #include "BrowserTabs.h"
 #include "CraftingData.h"
 #include "Globals.h"
+#include "LivePanels.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "WikiBrowser.h"
@@ -312,8 +313,9 @@ bool ProcessFavCmdFile(const std::wstring& addonDir)
 	if (changed)
 	{
 		Settings::SaveNow();
-		/* Wipe hub cache only — avoid rebuild of open browse-cat pages (Wiki is huge). */
-		InvalidateBrowseFavCaches(addonDir.empty() ? AddonPaths::DataDir() : addonDir, nullptr);
+		/* Rebuild Browse hub if open so unfavorited tiles disappear without a
+		   manual Reload. Category pages keep in-page star JS only. */
+		LivePanels::NotifyFavoritesChanged();
 	}
 	return changed;
 }

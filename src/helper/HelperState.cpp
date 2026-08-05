@@ -832,12 +832,16 @@ namespace HelperDetail
 			cef_frame_t* frame = gBrowsers[gActiveSlot]->get_main_frame(gBrowsers[gActiveSlot]);
 			if (frame && frame->execute_java_script)
 			{
-				char js[512];
+				char js[768];
 				std::snprintf(js, sizeof(js),
-					"(function(){var a=document.querySelector('a.star[href*=\"gw2igh-fav-toggle=%s\"]');"
-					"if(!a)return;var on=a.classList.toggle('on');"
+					"(function(){"
+					"var a=document.querySelector('a.star[href*=\"gw2igh-fav-toggle=%s\"]');"
+					"if(!a)return;"
+					"var on=a.classList.toggle('on');"
 					"a.textContent=on?'\\u2605':'\\u2606';"
-					"a.title=on?'Remove favorite':'Add favorite';})();",
+					"a.title=on?'Remove favorite':'Add favorite';"
+					"if(!on){var w=a.closest('.tile-wrap');if(w)w.remove();}"
+					"})();",
 					favId.c_str());
 				cef_string_t code{};
 				MakeCefString(&code, js);
