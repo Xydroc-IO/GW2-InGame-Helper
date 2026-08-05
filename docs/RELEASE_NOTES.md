@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.14
+# GW2 In-Game Helper v2.2.0.15
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,16 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.15
+
+- **Favorites on Browse pages:** Starring no longer deletes and rebuilds the open
+  category HTML (Wiki is ~1MB / 2k+ sites). That race caused Nexus
+  `Failed to write Live panel HTML` when adding a second favorite. Stars update
+  in-page; the Browse hub still refreshes when open. Duplicate CEF click events
+  are debounced.
+- **Stamps:** Helper `2219` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+  · live panel `37`
 
 ## What’s new in 2.2.0.14
 
