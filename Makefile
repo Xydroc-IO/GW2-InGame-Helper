@@ -8,7 +8,7 @@ CXXFLAGS += -DCEF_API_VERSION=15000
 CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/api -Isrc/browse -Isrc/browser \
 	-Isrc/account -Isrc/pathing -Isrc/logs -Isrc/events -Isrc/notes -Isrc/helper
 CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen
-CXXFLAGS += -MMD -MP
+# Dependency files: emit only from the build/%.o rule via -MF (never beside sources).
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
 LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
@@ -309,13 +309,13 @@ $(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(S
 
 build/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -MMD -MP -MF $(@:.o=.d) -MT $@ -c -o $@ $<
 
 -include $(DLL_OBJ:.o=.d)
 
 build/%.o: %.c
 	@mkdir -p $(dir $@)
-	x86_64-w64-mingw32-gcc -std=c11 -O2 -Wall -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz -c -o $@ $<
+	x86_64-w64-mingw32-gcc -std=c11 -O2 -Wall -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz -MMD -MP -MF $(@:.o=.d) -MT $@ -c -o $@ $<
 
 install: $(DLL_OUT)
 	@mkdir -p "$(INSTALL_DIR)" "$(INSTALL_DIR)/pathing"
