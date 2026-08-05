@@ -30374,18 +30374,6 @@
       ]
     },
     {
-      "id": "legvault",
-      "category": "Tools",
-      "label": "Legendary Vault Hub",
-      "title": "The Complete GW2 Legendaries Collection",
-      "homeUrl": "about:legendary-vault",
-      "searchUrlPrefix": null,
-      "searchUrlSuffix": null,
-      "browsePath": [
-        "Account"
-      ]
-    },
-    {
       "id": "blishhud",
       "category": "Tools",
       "label": "Blish HUD",
@@ -30895,6 +30883,18 @@
       "label": "Legendary Paths",
       "title": "Legendary Short Paths",
       "homeUrl": "about:legendary-paths",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Account"
+      ]
+    },
+    {
+      "id": "legvault",
+      "category": "Cheat Sheets",
+      "label": "GW2 Legendary Ledger",
+      "title": "The Complete GW2 Legendaries Collection",
+      "homeUrl": "about:legendary-vault",
       "searchUrlPrefix": null,
       "searchUrlSuffix": null,
       "browsePath": [

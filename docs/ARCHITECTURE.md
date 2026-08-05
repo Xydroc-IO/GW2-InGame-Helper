@@ -253,5 +253,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.8 — Legendary Vault Hub; Crafting Ledger catalog |
+| Last architecture sync | 2.2.0.8 — GW2 Legendary Ledger; Crafting Ledger catalog |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

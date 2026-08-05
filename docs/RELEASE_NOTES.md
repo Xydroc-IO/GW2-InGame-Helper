@@ -34,10 +34,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ## What’s new in 2.2.0.8
 
-- **Legendary Vault Hub:** Offline `about:legendary-vault` sheet — alphabetical GW2
+- **GW2 Legendary Ledger:** Offline `about:legendary-vault` sheet — alphabetical GW2
   legendaries collection (search, type filters, A–Z jump, acquisition notes). No
   in-page API Settings; uses the helper’s existing API key slot for account features.
-  Idea credit: **Dark Sorcerer.6420**. Browse: Tools → Account.
+  Idea credit: **Dark Sorcerer.6420**. Browse: Cheat Sheets → Account.
 - **Legendary Crafting Ledger:** Tools → Account link to
   [forge-legend-track.base44.app](https://forge-legend-track.base44.app/).
 - **Stamps:** Helper `2208` · homepage `2208` · sites `s2208` · cheatsheets `c2208`
