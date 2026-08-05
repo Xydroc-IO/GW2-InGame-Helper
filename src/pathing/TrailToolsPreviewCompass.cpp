@@ -16,7 +16,7 @@ void TrailToolsPreviewCompass::Draw(
 	float mapScale)
 {
 	using namespace TrailToolsDetail;
-	if (!G::ShowTrailTools || !gDraft.previewEnabled || !dl)
+	if (!TrailToolsDetail::AnyAuthoringPadOpen() || !gDraft.previewEnabled || !dl)
 		return;
 
 	TrailToolsDraftStyle::BeginFrame();

@@ -294,7 +294,7 @@ void CompassOverlay::Render()
 	}
 
 	/* Trail Tools draft — WYSIWYG Looks (texture/tint/scale). */
-	if (G::ShowTrailTools && TrailToolsDetail::gDraft.previewEnabled)
+	if (TrailToolsDetail::AnyAuthoringPadOpen() && TrailToolsDetail::gDraft.previewEnabled)
 	{
 		PathingDetail::Rects rects{};
 		bool haveRects = false;

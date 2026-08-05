@@ -16,7 +16,7 @@
 void TrailToolsPreview::RenderWorld()
 {
 	using namespace TrailToolsDetail;
-	if (!G::ShowTrailTools || !gDraft.previewEnabled)
+	if (!TrailToolsDetail::AnyAuthoringPadOpen() || !gDraft.previewEnabled)
 		return;
 	if (!G::Mumble || G::Mumble->uiTick == 0)
 		return;

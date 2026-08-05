@@ -6,6 +6,7 @@
 #include "PadDock.h"
 #include "Sites.h"
 #include "PathingTrails.h"
+#include "TrailToolsShared.h"
 #include "UI.h"
 
 #include <cstdio>
@@ -99,6 +100,15 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowPathingGuides") == 0 ||
 			std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore — session only */ }
 		else if (std::strcmp(key, "ShowTrailTools") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowTrailEditor") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowMarkerEditor") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "TrailToolsLastTrlDir") == 0)
+		{
+			std::snprintf(TrailToolsDetail::gDraft.lastTrlDir,
+				sizeof(TrailToolsDetail::gDraft.lastTrlDir), "%s", val);
+		}
+		else if (std::strcmp(key, "TrailToolsXmlLayout") == 0)
+			TrailToolsDetail::gDraft.xmlLayout = std::atoi(val) != 0 ? 1 : 0;
 		else if (std::strcmp(key, "ShowPathingTrails") == 0 ||
 			std::strcmp(key, "ShowTekkitTrails") == 0)
 			G::ShowPathingTrails = AsBool(val);
@@ -242,6 +252,10 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadPathing);
 		else if (std::strcmp(key, "PadTrailTools") == 0)
 			PadDock::ParseGeom(val, G::PadTrailTools);
+		else if (std::strcmp(key, "PadTrailEditor") == 0)
+			PadDock::ParseGeom(val, G::PadTrailEditor);
+		else if (std::strcmp(key, "PadMarkerEditor") == 0)
+			PadDock::ParseGeom(val, G::PadMarkerEditor);
 		else if (std::strcmp(key, "PadEvents") == 0)
 			PadDock::ParseGeom(val, G::PadEvents);
 		else if (std::strcmp(key, "PadNotes") == 0)
@@ -377,6 +391,10 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowLogManager=0\n");
 	std::fprintf(f, "ShowPathingGuides=0\n");
 	std::fprintf(f, "ShowTrailTools=0\n");
+	std::fprintf(f, "ShowTrailEditor=0\n");
+	std::fprintf(f, "ShowMarkerEditor=0\n");
+	std::fprintf(f, "TrailToolsLastTrlDir=%s\n", TrailToolsDetail::gDraft.lastTrlDir);
+	std::fprintf(f, "TrailToolsXmlLayout=%d\n", TrailToolsDetail::gDraft.xmlLayout != 0 ? 1 : 0);
 	std::fprintf(f, "ShowPathingTrails=%d\n", G::ShowPathingTrails ? 1 : 0);
 	std::fprintf(f, "EnablePathingLua=%d\n", G::EnablePathingLua ? 1 : 0);
 	std::fprintf(f, "LadyBarefoot=%d\n", G::LadyBarefoot ? 1 : 0);
@@ -427,6 +445,8 @@ void Settings::Save(bool force)
 	PadDock::WriteGeom(f, "PadAccount", G::PadAccount);
 	PadDock::WriteGeom(f, "PadPathing", G::PadPathing);
 	PadDock::WriteGeom(f, "PadTrailTools", G::PadTrailTools);
+	PadDock::WriteGeom(f, "PadTrailEditor", G::PadTrailEditor);
+	PadDock::WriteGeom(f, "PadMarkerEditor", G::PadMarkerEditor);
 	PadDock::WriteGeom(f, "PadEvents", G::PadEvents);
 	PadDock::WriteGeom(f, "PadNotes", G::PadNotes);
 	PadDock::WriteGeom(f, "PadCompass", G::PadCompass);

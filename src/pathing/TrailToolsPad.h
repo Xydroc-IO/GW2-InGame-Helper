@@ -1,10 +1,16 @@
 #pragma once
 
-/* ImGui Trail Tools — author TacO/Blish marker packs (trails, markers, XML, .taco). */
+/* ImGui Trail Tools — separate windows so Trails + Markers can stay open together
+   (place markers along a trail). Shared draft state in TrailToolsDetail::gDraft. */
 namespace TrailToolsPad
 {
-	void Open();
+	void Open();          /* hub: Live + Pack */
+	void OpenTrails();    /* trail recorder */
+	void OpenMarkers();   /* marker drop / edit */
 
-	/* Draw when G::ShowTrailTools. Returns true if pointer is over the window. */
-	bool Render();
+	bool Render();        /* hub */
+	bool RenderTrails();
+	bool RenderMarkers();
+
+	bool AnyOpen();
 }

@@ -59,6 +59,10 @@ void TrailToolsDetail::DrawLiveTab()
 	ImGui::Separator();
 	ImGui::Checkbox("Live draft preview (compass + world)###gw2igh_tt_prev",
 		&gDraft.previewEnabled);
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Preview draws while Trail Tools, Trails, or Markers is open.");
+	PadNav::PopWrap();
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
 }

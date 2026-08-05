@@ -82,18 +82,30 @@ namespace TrailToolsDetail
 		std::vector<DraftTrail> trails;
 		DraftTrail    active; /* currently recording */
 		char          markerType[160] = {};
-		char          trailType[160] = {};
+		char          trailType[160] = {}; /* default category for new/active trail */
 		char          trailFileStem[64] = "Trail";
+		char          lastTrlDir[260] = {}; /* last Load/Save As folder */
 		char          status[384] = {};
 		bool          previewEnabled = true;
+		bool          trailDirty = false;
+		/* 0 = one OverlayData (categories + POIs); 1 = Menu XML + Data XML. */
+		int           xmlLayout = 0;
 		int           selectedPoi = -1;
 		int           selectedTrail = -1;
+		int           selectedPoint = -1; /* index in active.points */
 	};
 
 	extern DraftPack gDraft;
 	extern bool      gPlaceOnce;
 	extern bool      gFocus;
 	extern int       gTab;
+	extern bool      gPlaceOnceTrails;
+	extern bool      gFocusTrails;
+	extern bool      gPlaceOnceMarkers;
+	extern bool      gFocusMarkers;
+
+	/* True if hub, Trails, or Markers pad is open (draft preview). */
+	bool AnyAuthoringPadOpen();
 
 	void SetStatus(const char* fmt, ...);
 	void SeedDefaultCategories();

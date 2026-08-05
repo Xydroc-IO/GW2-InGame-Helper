@@ -252,6 +252,53 @@ void TrailToolsDetail::DrawPackTab()
 	if (ImGui::Button("Load draft###gw2igh_tt_loaddraft"))
 		LoadDraftSession();
 
+	ImGui::Separator();
+	ImGui::TextUnformatted("Active trail");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"%s%s  ·  map %u  ·  %zu pts  ·  category %s",
+		gDraft.active.fileRel.empty() ? "(none)" : gDraft.active.fileRel.c_str(),
+		gDraft.trailDirty ? " *" : "",
+		gDraft.active.mapId,
+		gDraft.active.points.size(),
+		gDraft.trailType[0] ? gDraft.trailType : "(unset)");
+	PadNav::PopWrap();
+	{
+		const std::string line = TrailToolsXml::EmitTrailElement(gDraft.active);
+		if (!line.empty())
+		{
+			ImGui::PushTextWrapPos(0.f);
+			ImGui::TextUnformatted(line.c_str());
+			ImGui::PopTextWrapPos();
+		}
+		else
+			ImGui::TextDisabled("<Trail type=\"…\" trailData=\"…\"/>");
+	}
+	if (gDraft.lastTrlDir[0])
+		ImGui::TextDisabled("Last .trl folder: %s", gDraft.lastTrlDir);
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("XML layout");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"MarkerCategory tree = menu. <POIs> = Trail + POI data. Combined keeps both in one "
+		"file; Split writes Pack_Menu.xml + Pack_Data.xml (Pathing merges every .xml in the taco).");
+	PadNav::PopWrap();
+	if (ImGui::RadioButton("Combined (one OverlayData)###gw2igh_tt_xml_comb", gDraft.xmlLayout == 0))
+	{
+		gDraft.xmlLayout = 0;
+		Settings::SetDirty();
+	}
+	if (ImGui::RadioButton("Split menu + data###gw2igh_tt_xml_split", gDraft.xmlLayout == 1))
+	{
+		gDraft.xmlLayout = 1;
+		Settings::SetDirty();
+	}
+	if (gDraft.xmlLayout == 1)
+		ImGui::TextDisabled("%s_Menu.xml  +  %s_Data.xml", gDraft.packName, gDraft.packName);
+	else
+		ImGui::TextDisabled("%s.xml", gDraft.packName);
+
 	static char sImportName[96] = "Hero.Blish.Pack.taco";
 	ImGui::InputText("Import .taco name###gw2igh_tt_impname", sImportName, sizeof(sImportName));
 	if (ImGui::Button("Import installed .taco###gw2igh_tt_import"))
@@ -288,15 +335,42 @@ void TrailToolsDetail::DrawPackTab()
 
 	if (ImGui::CollapsingHeader("XML preview###gw2igh_tt_xmlprev"))
 	{
-		static std::string sXml;
-		sXml = TrailToolsXml::EmitOverlayData(gDraft);
-		ImGui::BeginChild("###gw2igh_tt_xmlscroll", ImVec2(0.f, 140.f), true);
-		ImGui::TextUnformatted(sXml.c_str());
-		ImGui::EndChild();
-		if (ImGui::Button("Copy XML###gw2igh_tt_copyxml"))
+		if (gDraft.xmlLayout == 1)
 		{
-			CopyClipboard(sXml.c_str());
-			SetStatus("Copied XML.");
+			static std::string sMenu, sData;
+			sMenu = TrailToolsXml::EmitMenuOverlay(gDraft);
+			sData = TrailToolsXml::EmitDataOverlay(gDraft);
+			ImGui::TextUnformatted("Menu");
+			ImGui::BeginChild("###gw2igh_tt_xmlmenu", ImVec2(0.f, 90.f), true);
+			ImGui::TextUnformatted(sMenu.c_str());
+			ImGui::EndChild();
+			if (ImGui::Button("Copy menu XML###gw2igh_tt_copymenu"))
+			{
+				CopyClipboard(sMenu.c_str());
+				SetStatus("Copied menu XML.");
+			}
+			ImGui::TextUnformatted("Data");
+			ImGui::BeginChild("###gw2igh_tt_xmldata", ImVec2(0.f, 90.f), true);
+			ImGui::TextUnformatted(sData.c_str());
+			ImGui::EndChild();
+			if (ImGui::Button("Copy data XML###gw2igh_tt_copydata"))
+			{
+				CopyClipboard(sData.c_str());
+				SetStatus("Copied data XML.");
+			}
+		}
+		else
+		{
+			static std::string sXml;
+			sXml = TrailToolsXml::EmitOverlayData(gDraft);
+			ImGui::BeginChild("###gw2igh_tt_xmlscroll", ImVec2(0.f, 140.f), true);
+			ImGui::TextUnformatted(sXml.c_str());
+			ImGui::EndChild();
+			if (ImGui::Button("Copy XML###gw2igh_tt_copyxml"))
+			{
+				CopyClipboard(sXml.c_str());
+				SetStatus("Copied XML.");
+			}
 		}
 	}
 

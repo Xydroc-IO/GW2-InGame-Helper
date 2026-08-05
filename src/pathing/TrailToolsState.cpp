@@ -22,6 +22,15 @@ namespace TrailToolsDetail
 	bool      gPlaceOnce = false;
 	bool      gFocus = false;
 	int       gTab = 0;
+	bool      gPlaceOnceTrails = false;
+	bool      gFocusTrails = false;
+	bool      gPlaceOnceMarkers = false;
+	bool      gFocusMarkers = false;
+
+	bool AnyAuthoringPadOpen()
+	{
+		return G::ShowTrailTools || G::ShowTrailEditor || G::ShowMarkerEditor;
+	}
 
 	void SetStatus(const char* fmt, ...)
 	{

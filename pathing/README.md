@@ -69,17 +69,16 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 
 ### Trail Tools (author packs)
 
-Side-rail **Trail Tools** creates packs without TacO/TrlTool:
+Side-rail **Trail Tools** creates packs without TacO/TrlTool. Trails and Markers are
+**separate windows** so you can keep both open while placing POIs along a route:
 
-1. **Live** — Map ID + XYZ from Mumble (copy helpers).
-2. **Trail** — Insert Map / Vector at your feet, section breaks `(0,0,0)`, save `.trl`.
-3. **Markers** — Drop POIs, nudge XYZ, assign category types, behavior/tips/script-*.
-4. **Pack** — Categories, **Looks** presets (trail/marker textures + tint/scale/fade),
-   texture browser, import `.taco`, preview XML, **Build .taco** → writes here and reloads Pathing.
+1. **Trail Tools** — Live coords + Pack (Looks, import, Build `.taco`).
+2. **Trails** — Insert Map / Vector, section breaks, save `.trl`.
+3. **Markers** — Drop POIs, nudge XYZ, type/behavior (open beside Trails).
 
 Workspace: `pathing/authoring/<PackName>/` under the addon data folder. Drop PNG icons into
 `Data/<PackName>/Markers/` yourself. Textured draft preview shows on compass + world GPS while
-the pad is open. Details: [`docs/PATHING.md`](../docs/PATHING.md) §8b.
+any of those pads is open. Details: [`docs/PATHING.md`](../docs/PATHING.md) §8b.
 
 ### Quick presets
 

@@ -16,16 +16,6 @@
 
 namespace
 {
-	std::wstring PackXmlPath()
-	{
-		std::wstring p = TrailToolsDetail::PackDir();
-		p.push_back(L'\\');
-		for (const char* c = TrailToolsDetail::gDraft.packName; *c; ++c)
-			p.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*c)));
-		p += L".xml";
-		return p;
-	}
-
 	std::wstring RelToPackPath(const std::string& rel)
 	{
 		std::wstring p = TrailToolsDetail::PackDir();
@@ -236,8 +226,7 @@ bool TrailToolsBuild::BuildTaco(std::string& errOut)
 		}
 	}
 
-	const std::wstring xmlPath = PackXmlPath();
-	if (!TrailToolsXml::WriteOverlayFile(xmlPath, gDraft))
+	if (!TrailToolsXml::WritePackXmlLayout(gDraft))
 	{
 		errOut = "Failed to write pack XML.";
 		return false;

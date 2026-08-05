@@ -5,6 +5,7 @@
 #include "HelperTheme.h"
 #include "PadNav.h"
 #include "PathingTrails.h"
+#include "Settings.h"
 
 #include "imgui/imgui.h"
 
@@ -82,19 +83,16 @@ namespace
 
 		DrawPoiScriptAttrs(p);
 
-		if (ImGui::Button("Copy POI XML###gw2igh_tt_mcopy"))
+		ImGui::TextUnformatted("POI XML");
 		{
-			/* Emit via XML helper for full attrs. */
-			DraftPack tmp{};
-			tmp.pois.push_back(p);
-			std::string xml = TrailToolsXml::EmitOverlayData(tmp);
-			/* Extract first POI line roughly */
-			const size_t a = xml.find("<POI ");
-			const size_t b = xml.find("/>", a);
-			if (a != std::string::npos && b != std::string::npos)
+			const std::string line = TrailToolsXml::EmitPoiElement(p);
+			ImGui::PushTextWrapPos(0.f);
+			ImGui::TextColored(HelperTheme::Muted, "%s", line.c_str());
+			ImGui::PopTextWrapPos();
+			if (ImGui::Button("Copy POI XML###gw2igh_tt_mcopy"))
 			{
-				CopyClipboard(xml.substr(a, b - a + 2).c_str());
-				SetStatus("Copied full POI XML.");
+				CopyClipboard(line.c_str());
+				SetStatus("Copied POI XML.");
 			}
 		}
 	}
@@ -158,12 +156,32 @@ namespace
 
 void TrailToolsDetail::DrawMarkersTab()
 {
-	ImGui::TextUnformatted("Markers");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Drop a POI at your feet. Preview uses Looks textures while this pad is open.");
+		"POIs live under <POIs> and reference a MarkerCategory path via type= "
+		"(e.g. test.circle). Categories themselves are the menu — edit them in Pack. "
+		"Trails also go in <POIs> as <Trail …/>.");
 	PadNav::PopWrap();
 
+	ImGui::TextUnformatted("XML layout (same as Pack)");
+	if (ImGui::RadioButton("Combined###gw2igh_mk_xml_comb", gDraft.xmlLayout == 0))
+	{
+		gDraft.xmlLayout = 0;
+		Settings::SetDirty();
+	}
+	ImGui::SameLine();
+	if (ImGui::RadioButton("Split menu + data###gw2igh_mk_xml_split", gDraft.xmlLayout == 1))
+	{
+		gDraft.xmlLayout = 1;
+		Settings::SetDirty();
+	}
+	if (gDraft.xmlLayout == 1)
+		ImGui::TextDisabled("Build → %s_Menu.xml + %s_Data.xml", gDraft.packName, gDraft.packName);
+	else
+		ImGui::TextDisabled("Build → %s.xml (categories + POIs)", gDraft.packName);
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Default marker type");
 	std::vector<std::string> leaves;
 	CollectLeafPaths(gDraft.root, "", leaves, false);
 	if (leaves.empty())
@@ -178,7 +196,7 @@ void TrailToolsDetail::DrawMarkersTab()
 			break;
 		}
 	}
-	if (ImGui::BeginCombo("Marker type###gw2igh_tt_mtype", leaves[static_cast<size_t>(cur)].c_str()))
+	if (ImGui::BeginCombo("###gw2igh_tt_mtype", leaves[static_cast<size_t>(cur)].c_str()))
 	{
 		for (size_t i = 0; i < leaves.size(); ++i)
 		{
@@ -194,6 +212,7 @@ void TrailToolsDetail::DrawMarkersTab()
 		ImGui::EndCombo();
 	}
 	ImGui::InputText("Or type path###gw2igh_tt_mtype_edit", gDraft.markerType, sizeof(gDraft.markerType));
+	ImGui::TextDisabled("Becomes type=\"…\" on each new POI — must match a leaf category.");
 
 	uint32_t mapId = 0;
 	float x = 0.f, y = 0.f, z = 0.f;
@@ -261,6 +280,20 @@ void TrailToolsDetail::DrawMarkersTab()
 
 	if (gDraft.selectedPoi >= 0 && gDraft.selectedPoi < static_cast<int>(gDraft.pois.size()))
 		DrawSelectedPoiEditor(gDraft.pois[static_cast<size_t>(gDraft.selectedPoi)]);
+
+	if (ImGui::CollapsingHeader("Data XML preview (<POIs>)###gw2igh_mk_dataprev"))
+	{
+		static std::string sData;
+		sData = TrailToolsXml::EmitDataOverlay(gDraft);
+		ImGui::BeginChild("###gw2igh_mk_datascroll", ImVec2(0.f, 120.f), true);
+		ImGui::TextUnformatted(sData.c_str());
+		ImGui::EndChild();
+		if (ImGui::Button("Copy data XML###gw2igh_mk_copydata"))
+		{
+			CopyClipboard(sData.c_str());
+			SetStatus("Copied data OverlayData.");
+		}
+	}
 
 	DrawCopyFromLoaded();
 

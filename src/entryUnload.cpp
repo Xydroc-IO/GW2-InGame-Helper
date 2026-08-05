@@ -40,6 +40,8 @@ void AddonUnload()
 	G::ShowLogManager = false;
 	G::ShowPathingGuides = false;
 	G::ShowTrailTools = false;
+	G::ShowTrailEditor = false;
+	G::ShowMarkerEditor = false;
 	G::ShowCompassPad = false;
 	G::ShowSettings = false;
 	G::ShowDirectionCompass = false;
