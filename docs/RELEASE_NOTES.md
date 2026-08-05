@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.13
+# GW2 In-Game Helper v2.2.0.14
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.14
+
+- **`config/` data folder:** Notes, profiles, session history, confirmed waypoints,
+  log-index, marker behaviors, and `ei-helper.conf` live under
+  `addons/GW2-InGame-Helper/config/`. Existing root copies migrate automatically on
+  first open (dest wins if both exist). `make install` preserves `config/` and
+  `settings.ini`.
+- **Favorites persist:** Favorites are no longer pruned before the Browse catalog
+  loads (which wiped them on every startup). Star / reorder saves immediately;
+  favorite ID buffer raised to 4096.
+- **Side rail title:** Gold **IN-GAME HELPER** label moved from the top chrome into
+  the side rail above Browse.
+- **Stamps:** Helper `2218` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+  · live panel `37`
 
 ## What’s new in 2.2.0.13
 
