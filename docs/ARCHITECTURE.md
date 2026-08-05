@@ -5,7 +5,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.0.11` |
+| Addon revision (shipping) | `2.2.0.12` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2216` / `2210` / `s2213` / `c2211` |
@@ -261,5 +261,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.11 — Browse hub landing; desktop ad viewport allowlist + letterbox |
+| Last architecture sync | 2.2.0.12 — Browse hub landing; desktop ad viewport allowlist + letterbox |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

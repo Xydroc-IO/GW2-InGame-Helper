@@ -1,6 +1,6 @@
 # Private CEF runtime — DLL-owned setup
 
-**Revision:** 2.2.0.11 · CEF Stable **150.0.14** / Chromium **150.0.7871.129**  
+**Revision:** 2.2.0.12 · CEF Stable **150.0.14** / Chromium **150.0.7871.129**  
 **Companions:** [`ARCHITECTURE.md`](ARCHITECTURE.md), [`BUILD.md`](BUILD.md), [`WHITEPAPER.md`](WHITEPAPER.md), [`CefRuntime.h`](../src/browser/CefRuntime.h)
 
 Players only install **`GW2-InGame-Helper.dll`**. On first helper open the DLL sets up everything under `addons/GW2-InGame-Helper/`. **Never** writes into game `bin64/cef`.

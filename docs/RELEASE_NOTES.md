@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.11
+# GW2 In-Game Helper v2.2.0.12
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,7 +32,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
-## What’s new in 2.2.0.11
+## What’s new in 2.2.0.12
 
 - **Browse HTML hub:** Side rail **Browse** opens themed `about:browse-hub`
   (Favorites + category index, client-side filter). Each category is its own
@@ -69,6 +69,23 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   with the panel.
 - **Stamps:** Helper `2216` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
   · live panel `36`
+
+## What’s new in 2.2.0.11
+
+- **Legendary Ledger armory:** Opening the Ledger (or clicking the brand / All
+  legendaries) always re-fetches `/v2/account/legendaryarmory` so Owned / Missing
+  stays current. Vault HTML TTL is 45s. Badges show **Owned ×N** (and piece counts
+  for multi-id sets).
+- **Auto craft tree:** Opening a legendary always rebuilds the gifts → mats tree
+  (even when already owned, so you can plan a second copy). No Sync button required.
+- **Open in Wiki / Account Crafting:** Matching purple CTAs at the top of each
+  detail page — Wiki opens `wiki.guildwars2.com` in a **new helper tab**; Account
+  Crafting opens the Account pad on the Crafting tab and queues the plan.
+- **Faster craft sync:** Wiki-first for gifts/legendaries (skip failed station
+  searches), up to 16 parallel recipe lookups per depth, parallel wiki fallbacks,
+  and inventory fetch overlapped with the root recipe lookup.
+- **Stamps:** Helper `2213` · homepage `2210` · sites `s2211` · cheatsheets `c2211`
+  · live panel `31`
 
 ## What’s new in 2.2.0.10
 
