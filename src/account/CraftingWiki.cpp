@@ -181,7 +181,9 @@ namespace CraftingDetail
 		}
 		{
 			std::lock_guard<std::mutex> lock(gWikiMu);
-			gWikiTextCache[key] = wt;
+			/* Never cache misses — a timeout would poison Sync forever. */
+			if (!wt.empty())
+				gWikiTextCache[key] = wt;
 		}
 		return wt;
 	}
@@ -235,17 +237,60 @@ namespace CraftingDetail
 				{
 					const std::string key = ToLowerCopy(title);
 					std::lock_guard<std::mutex> lock(gWikiMu);
-					gWikiTextCache[key] = wt;
+					if (!wt.empty())
+						gWikiTextCache[key] = wt;
 					outByKey[key] = wt;
 				}
 				p = titleKey + 7;
 			}
-			/* Alias requested spellings + fill empties for missing pages. */
+			/* Alias requested spellings — fetch misses in parallel. */
+			std::vector<std::string> stillMiss;
 			for (size_t i = 0; i < n; ++i)
 			{
 				const std::string reqKey = ToLowerCopy(miss[off + i]);
-				if (outByKey.find(reqKey) != outByKey.end()) continue;
-				outByKey[reqKey] = FetchWikiWikitext(miss[off + i].c_str());
+				if (outByKey.find(reqKey) != outByKey.end() && !outByKey[reqKey].empty())
+					continue;
+				stillMiss.push_back(miss[off + i]);
+			}
+			struct WikiJob
+			{
+				std::string title;
+				std::string wt;
+				static DWORD WINAPI Thunk(void* p)
+				{
+					auto* j = static_cast<WikiJob*>(p);
+					j->wt = FetchWikiWikitext(j->title.c_str());
+					return 0;
+				}
+			};
+			std::vector<WikiJob> wjobs(stillMiss.size());
+			std::vector<HANDLE> whs;
+			whs.reserve(stillMiss.size());
+			for (size_t i = 0; i < stillMiss.size(); ++i)
+			{
+				wjobs[i].title = stillMiss[i];
+				HANDLE h = CreateThread(nullptr, 0, WikiJob::Thunk, &wjobs[i], 0, nullptr);
+				if (h) whs.push_back(h);
+				else WikiJob::Thunk(&wjobs[i]);
+			}
+			if (!whs.empty())
+			{
+				size_t woff = 0;
+				while (woff < whs.size())
+				{
+					const DWORD chunk = static_cast<DWORD>(
+						(whs.size() - woff > 64) ? 64 : (whs.size() - woff));
+					WaitForMultipleObjects(chunk, whs.data() + woff, TRUE,
+						static_cast<DWORD>(kHttpTimeoutMs + 4000));
+					woff += chunk;
+				}
+				for (HANDLE h : whs)
+					CloseHandle(h);
+			}
+			for (WikiJob& wj : wjobs)
+			{
+				const std::string reqKey = ToLowerCopy(wj.title);
+				outByKey[reqKey] = wj.wt;
 			}
 		}
 	}

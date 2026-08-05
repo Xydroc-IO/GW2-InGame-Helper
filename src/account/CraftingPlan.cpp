@@ -79,7 +79,8 @@ namespace CraftingDetail
 	/* Expand one frontier of leaves in parallel (keeps legendary gift trees snappy). */
 	void ExpandFrontier(Plan& plan, std::unordered_map<int, int>& owned,
 		std::unordered_map<int, std::string>& names,
-		std::unordered_map<int, RecipeCacheEntry>& recipeCache, int childDepth)
+		std::unordered_map<int, RecipeCacheEntry>& recipeCache, int childDepth,
+		bool expandEvenIfOwned)
 	{
 		struct Front
 		{
@@ -101,14 +102,15 @@ namespace CraftingDetail
 				continue;
 			}
 			if (n->depth != childDepth - 1) continue;
-			if (n->have >= n->need) continue;
+			/* Ledger wants the full bill even when the account already owns a copy. */
+			if (!expandEvenIfOwned && n->have >= n->need) continue;
 			if (IsTerminalMaterial(n->name)) continue;
 			fronts.push_back({ n, false, 1, {} });
 		}
 		if (fronts.empty()) return;
 
 		/* Cap parallelism — wall clock ≈ slowest call (API Check style), not the sum. */
-		constexpr size_t kMaxParallel = 8;
+		constexpr size_t kMaxParallel = 16;
 		for (size_t off = 0; off < fronts.size(); off += kMaxParallel)
 		{
 			const size_t batch = (std::min)(fronts.size() - off, kMaxParallel);
@@ -153,7 +155,11 @@ namespace CraftingDetail
 			if (!f.ok || f.ings.empty()) continue;
 			f.node->crafted = true;
 			const int deficit = f.node->need - f.node->have;
-			const int crafts = (deficit + f.outCount - 1) / f.outCount;
+			int crafts = expandEvenIfOwned
+				? ((f.node->need + f.outCount - 1) / f.outCount)
+				: ((deficit + f.outCount - 1) / f.outCount);
+			if (crafts <= 0)
+				crafts = 1;
 			for (const RecipeIng& ri : f.ings)
 			{
 				if (!ri.name.empty())

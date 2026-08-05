@@ -13,8 +13,8 @@
 
 namespace CraftingDetail
 {
-	constexpr int kHttpTimeoutMs = 2000;
-	constexpr int kBulkTimeoutMs = 5000;
+	constexpr int kHttpTimeoutMs = 6000;
+	constexpr int kBulkTimeoutMs = 10000;
 	/* Deep enough for legendary → gift → sub-gift → mats. */
 	constexpr int kMaxDepth = 5;
 	constexpr DWORD kDailyTtlMs = 10 * 60 * 1000;
@@ -141,7 +141,8 @@ namespace CraftingDetail
 	void FinishPrices(Plan& plan, std::unordered_map<int, std::string>& names);
 	void ExpandFrontier(Plan& plan, std::unordered_map<int, int>& owned,
 		std::unordered_map<int, std::string>& names,
-		std::unordered_map<int, RecipeCacheEntry>& recipeCache, int childDepth);
+		std::unordered_map<int, RecipeCacheEntry>& recipeCache, int childDepth,
+		bool expandEvenIfOwned = false);
 	void BuildTree(IngNode& node, int depth, std::unordered_map<int, int>& owned,
 		std::unordered_map<int, std::string>& names,
 		std::unordered_map<int, RecipeCacheEntry>& cache);

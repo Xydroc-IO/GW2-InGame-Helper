@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <windows.h>
+
 namespace CraftingPlanSnapshot
 {
 	using namespace CraftingDetail;
@@ -104,6 +106,23 @@ namespace CraftingPlanSnapshot
 			return out;
 		}
 
+		std::unordered_map<int, int> owned;
+		/* Overlap inventory fetch with root recipe lookup (API Check style). */
+		struct OwnedJob
+		{
+			std::unordered_map<int, int>* owned = nullptr;
+			static DWORD WINAPI Thunk(void* p)
+			{
+				auto* j = static_cast<OwnedJob*>(p);
+				if (j && j->owned)
+					LoadOwned(*j->owned);
+				return 0;
+			}
+		} ownedJob{ &owned };
+		HANDLE ownedTh = CreateThread(nullptr, 0, OwnedJob::Thunk, &ownedJob, 0, nullptr);
+		if (!ownedTh)
+			LoadOwned(owned);
+
 		std::unordered_map<int, RecipeCacheEntry> recipeCache;
 		int outCount = 1;
 		std::vector<RecipeIng> ings;
@@ -112,12 +131,22 @@ namespace CraftingPlanSnapshot
 		if (!TryLoadRecipe(itemId, out.outputName, outCount, ings, recipeId, recipeCache,
 				&recipeSource))
 		{
+			if (ownedTh)
+			{
+				WaitForSingleObject(ownedTh, 12000);
+				CloseHandle(ownedTh);
+			}
 			char buf[256];
 			std::snprintf(buf, sizeof(buf),
 				"No station, wiki forge, or acquisition bill for %s (#%d).",
 				out.outputName.c_str(), itemId);
 			out.status = buf;
 			return out;
+		}
+		if (ownedTh)
+		{
+			WaitForSingleObject(ownedTh, 12000);
+			CloseHandle(ownedTh);
 		}
 
 		Plan plan;
@@ -148,12 +177,11 @@ namespace CraftingPlanSnapshot
 			plan.root.kids.push_back(std::move(kid));
 		}
 
-		std::unordered_map<int, int> owned;
-		LoadOwned(owned);
 		ApplyOwnedCounts(plan.root, owned);
 
+		/* Always expand full bill — owned gifts still expand for a second craft. */
 		for (int depth = 2; depth <= kMaxDepth; ++depth)
-			ExpandFrontier(plan, owned, names, recipeCache, depth);
+			ExpandFrontier(plan, owned, names, recipeCache, depth, true);
 
 		ApplyOwnedCounts(plan.root, owned);
 

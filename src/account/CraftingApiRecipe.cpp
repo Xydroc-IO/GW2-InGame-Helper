@@ -171,7 +171,20 @@ namespace CraftingDetail
 		return false;
 	}
 
-	/* Station API first; wiki forge/gifts when API has none. Never wiki-expand raw mats. */
+	/* Gifts / tributes almost never have station recipes — skip failed API search. */
+	bool PreferWikiRecipe(const std::string& nameHint)
+	{
+		if (nameHint.empty()) return false;
+		const std::string n = ToLowerCopy(nameHint);
+		if (n.rfind("gift of ", 0) == 0) return true;
+		if (n.find("tribute") != std::string::npos) return true;
+		if (n.find("legendary") != std::string::npos) return true;
+		if (n.find("aurene") != std::string::npos) return true;
+		if (n.find("draconic") != std::string::npos) return true;
+		return false;
+	}
+
+	/* Station API first (or wiki-first for gifts); never wiki-expand raw mats. */
 	bool TryLoadRecipe(int outputId, const std::string& nameHint, int& outCount,
 		std::vector<RecipeIng>& ings, int& recipeId,
 		std::unordered_map<int, RecipeCacheEntry>& cache, std::string* sourceOut)
@@ -186,6 +199,34 @@ namespace CraftingDetail
 			if (sourceOut) *sourceOut = e.source;
 			return true;
 		}
+
+		auto tryWiki = [&]() -> bool {
+			RecipeCacheEntry& ew = cache[outputId];
+			if (ew.wikiTried || nameHint.empty())
+				return false;
+			ew.wikiTried = true;
+			if (IsTerminalMaterial(nameHint))
+				return false;
+			std::string src;
+			cacheLock.unlock();
+			const bool wikiOk = LoadWikiRecipeForName(nameHint.c_str(), outCount, ings, &src);
+			cacheLock.lock();
+			RecipeCacheEntry& eWiki = cache[outputId];
+			if (!wikiOk)
+				return false;
+			eWiki.ok = true;
+			eWiki.outCount = outCount;
+			eWiki.recipeId = 0;
+			eWiki.ings = ings;
+			eWiki.source = src.empty() ? "Wiki recipe" : src;
+			if (sourceOut) *sourceOut = eWiki.source;
+			recipeId = 0;
+			return true;
+		};
+
+		const bool wikiFirst = PreferWikiRecipe(nameHint);
+		if (wikiFirst && tryWiki())
+			return true;
 
 		if (!e.apiTried)
 		{
@@ -206,35 +247,9 @@ namespace CraftingDetail
 			}
 		}
 
-		RecipeCacheEntry& eWikiGate = cache[outputId];
-		if (!eWikiGate.wikiTried && !nameHint.empty())
-		{
-			eWikiGate.wikiTried = true;
-			if (IsTerminalMaterial(nameHint))
-			{
-				/* Ore/dust/T6 mats: wiki lists mystic-forge promotions — ignore. */
-			}
-			else
-			{
-				std::string src;
-				cacheLock.unlock();
-				const bool wikiOk = LoadWikiRecipeForName(nameHint.c_str(), outCount, ings, &src);
-				cacheLock.lock();
-				RecipeCacheEntry& eWiki = cache[outputId];
-				if (wikiOk)
-				{
-					eWiki.ok = true;
-					eWiki.outCount = outCount;
-					eWiki.recipeId = 0;
-					eWiki.ings = ings;
-					eWiki.source = src.empty() ? "Wiki recipe" : src;
-					if (sourceOut) *sourceOut = eWiki.source;
-					return true;
-				}
-			}
-		}
+		if (!wikiFirst && tryWiki())
+			return true;
 
-		/* Hardcoded bills first (gift trees expand better than flat vendor mats). */
 		RecipeCacheEntry& eCurGate = cache[outputId];
 		if (!eCurGate.curatedTried)
 		{
@@ -256,7 +271,6 @@ namespace CraftingDetail
 			}
 		}
 
-		/* Vendor / Contained-in legendaries: wiki material cost lists (no {{recipe}}). */
 		RecipeCacheEntry& eAcqGate = cache[outputId];
 		if (!eAcqGate.acquireTried && !nameHint.empty() && !IsTerminalMaterial(nameHint))
 		{

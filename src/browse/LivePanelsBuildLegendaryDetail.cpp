@@ -68,6 +68,7 @@ h1{margin:0;font-size:1.35rem;font-weight:600;letter-spacing:-.025em;color:var(-
 .note{margin:0 0 1rem;font-size:.8rem;color:var(--zinc-500)}
 .cta{display:inline-block;margin-top:.5rem;margin-right:.5rem;padding:.55rem 1rem;border-radius:.375rem;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.45);color:var(--purple-200);text-decoration:none;font-size:.875rem;font-weight:600}
 .cta:hover{background:rgba(168,85,247,.3)}.cta.ghost{background:transparent;border-color:var(--border);color:var(--zinc-200)}.cta.ghost:hover{border-color:rgba(168,85,247,.4);color:var(--purple-200)}
+.cta-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.25rem}
 .card-title{margin:0 0 .75rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--zinc-500)}
 ul.craft-tree,ul.craft-tree ul{list-style:none;margin:.35rem 0 0;padding-left:1rem}
 ul.craft-tree{padding-left:0}
@@ -149,9 +150,9 @@ std::string BuildLegendaryDetailShellHtml(int itemId)
 	html += Esc(title);
 	html += "</h1><p class=\"detail-sub\">Building craft tree in the background</p></div></div>";
 	html += "<div class=\"load-box\"><h2><span class=\"pulse\" aria-hidden=\"true\"></span>"
-		"Syncing gifts → mats</h2>"
-		"<p class=\"note\" style=\"margin:0\">Matching materials, bank, and shared inventory. "
-		"This page refreshes when the tree is ready — keep playing.</p></div>";
+		"Building craft tree</h2>"
+		"<p class=\"note\" style=\"margin:0\">Looking up mystic forge gifts → mats against "
+		"materials, bank, and shared inventory. This page refreshes when ready.</p></div>";
 	html += LedgerChromeClose();
 	return html;
 }
@@ -226,21 +227,37 @@ std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* a
 		html += " · ";
 		html += Esc(snap.recipeSource);
 	}
-	html += "</p></div></div><div class=\"detail-card\">";
+	html += "</p></div></div>";
+
+	html += "<div class=\"cta-row\">";
+	const std::string wikiHref = WikiNewTabHref(title);
+	if (!wikiHref.empty())
+	{
+		html += "<a class=\"cta\" href=\"";
+		html += wikiHref;
+		html += "\">Open in Wiki</a>";
+	}
+	html += "<a class=\"cta\" href=\"?gw2igh-craft-plan=";
+	html += std::to_string(itemId);
+	html += "\">Open in Account Crafting</a></div>";
+
+	html += "<div class=\"detail-card\">";
 
 	if (armoryHave >= 0)
 	{
 		html += "<div class=\"field\"><p class=\"lbl\">Armory</p><p class=\"val\">";
-		html += armoryHave >= armoryMax
-			? "<span class=\"badge owned\">Owned</span>"
-			: "<span class=\"badge missing\">Missing</span>";
-		html += " · #";
+		html += armoryHave > 0
+			? "<span class=\"badge owned\">Owned ×"
+			: "<span class=\"badge missing\">Missing";
+		if (armoryHave > 0)
+			html += std::to_string(armoryHave);
+		html += "</span> · #";
 		html += std::to_string(itemId);
-		html += " ";
+		html += " ×";
 		html += std::to_string(armoryHave);
-		html += "/";
+		html += " (max ";
 		html += std::to_string(armoryMax);
-		html += "</p></div>";
+		html += ")</p></div>";
 	}
 
 	if (snap.ok)
@@ -262,26 +279,13 @@ std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* a
 		html += Esc(snap.status);
 		html += "</p>";
 	}
-
-	const std::string wikiHref = WikiNewTabHref(title);
-	if (!wikiHref.empty())
-	{
-		html += "<a class=\"cta ghost\" href=\"";
-		html += wikiHref;
-		html += "\">Wiki</a>";
-	}
-	html += "<a class=\"cta\" href=\"?gw2igh-leg-sync=";
-	html += std::to_string(itemId);
-	html += "\">Sync craft tree</a>";
-	html += "<a class=\"cta\" href=\"?gw2igh-craft-plan=";
-	html += std::to_string(itemId);
-	html += "\">Open in Account Crafting</a></div>";
+	html += "</div>";
 
 	html += "<div class=\"detail-card\"><p class=\"card-title\">Craft tree (have / need)</p>";
 	if (snap.ok && !snap.treeHtml.empty())
 		html += snap.treeHtml;
 	else
-		html += "<p class=\"note\">No craft tree yet.</p>";
+		html += "<p class=\"note\">No craft tree yet — reopen this legendary to retry the wiki forge lookup.</p>";
 	html += "</div>";
 	html += LedgerChromeClose();
 	return html;

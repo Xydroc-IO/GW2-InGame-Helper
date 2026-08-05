@@ -120,6 +120,7 @@ a.card:hover{border-color:rgba(168,85,247,.35)}.avatar{width:2.25rem;height:2.25
 .detail-card{border:1px solid var(--border);border-radius:.5rem;background:var(--panel);padding:1rem}.field{margin-bottom:.85rem}.lbl{margin:0 0 .25rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--zinc-500)}.val{margin:0;color:var(--zinc-200);font-size:.875rem}
 .cta{display:inline-block;margin-top:.75rem;margin-right:.5rem;padding:.55rem 1rem;border-radius:.375rem;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.45);color:var(--purple-200);text-decoration:none;font-size:.875rem;font-weight:600}
 .cta:hover{background:rgba(168,85,247,.3)}.cta.ghost{background:transparent;border-color:var(--border);color:var(--zinc-200)}.cta.ghost:hover{border-color:rgba(168,85,247,.4);color:var(--purple-200)}
+.cta-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
 .note{margin:0 0 1rem;font-size:.8rem;color:var(--zinc-500)}.empty{color:var(--zinc-500);padding:2rem 0;text-align:center}.hidden{display:none!important}
 .space-y-3>*+*{margin-top:.75rem}.space-y-7>*+*{margin-top:1.75rem}.space-y-8>*+*{margin-top:2rem}
 )CSS";
@@ -137,27 +138,39 @@ var state={q:"",cat:"All",missingOnly:false};
 var elList=document.getElementById("view-list");
 var elDetail=document.getElementById("view-detail");
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function ownStatus(it){
+function ownTotals(it){
   var ids=it.itemIds||[];
-  if(!ids.length) return hasKey?"unknown":"unknown";
-  if(!hasKey) return "unknown";
-  var got=0,need=0;
+  var got=0,slots=0,raw=0;
   for(var i=0;i<ids.length;i++){
     var id=ids[i];
     var max=(it.maxCounts&&it.maxCounts[i])||1;
-    need+=max;
+    slots+=max;
     var c=owned[id];
     if(c==null) c=0;
+    raw+=c;
     got+=Math.min(c,max);
   }
-  if(got<=0) return "missing";
-  if(got>=need) return "owned";
+  return {got:got,slots:slots,raw:raw};
+}
+function ownStatus(it){
+  var ids=it.itemIds||[];
+  if(!ids.length||!hasKey) return "unknown";
+  var t=ownTotals(it);
+  if(t.raw<=0) return "missing";
+  if(t.got>=t.slots) return "owned";
   return "partial";
 }
-function badgeHtml(st){
-  if(st==="owned") return '<span class="badge owned">Owned</span>';
+function badgeHtml(st,it){
+  if(st==="owned"){
+    var t=ownTotals(it);
+    var n=t.raw>0?t.raw:t.got;
+    return '<span class="badge owned">Owned ×'+n+"</span>";
+  }
   if(st==="missing") return '<span class="badge missing">Missing</span>';
-  if(st==="partial") return '<span class="badge partial">Partial</span>';
+  if(st==="partial"){
+    var t=ownTotals(it);
+    return '<span class="badge partial">'+t.got+"/"+t.slots+"</span>";
+  }
   return hasKey?'<span class="badge unknown">—</span>':'<span class="badge unknown">API</span>';
 }
 function subLine(it){var p=[];if(it.item_type)p.push(it.item_type);else if(it.category)p.push(it.category);if(it.generation&&it.generation!=="Other")p.push(it.generation);return p.join(" · ");}
@@ -217,11 +230,13 @@ function renderList(){
         return '<section class="letter-sec" id="letter-'+esc(g.letter)+'"><div class="letter-head"><h2>'+esc(g.letter)+'</h2><div class="rule"></div><span class="n">'+g.items.length+'</span></div><div class="grid">'+
           g.items.map(function(it){
             var st=ownStatus(it);
-            return '<a class="card" href="#/legendary/'+encodeURIComponent(it.id)+'"><div class="avatar">'+esc((it.name||"?")[0])+'</div><div class="meta"><p class="name">'+esc(it.name)+'</p><p class="sub">'+esc(subLine(it))+'</p></div>'+pctBadge(it)+badgeHtml(st)+'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></a>';
+            var cid=craftId(it);
+            var href=cid?('?gw2igh-leg-open='+cid):('#/legendary/'+encodeURIComponent(it.id));
+            return '<a class="card" href="'+href+'"><div class="avatar">'+esc((it.name||"?")[0])+'</div><div class="meta"><p class="name">'+esc(it.name)+'</p><p class="sub">'+esc(subLine(it))+'</p></div>'+pctBadge(it)+badgeHtml(st,it)+'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></a>';
           }).join("")+"</div></section>";
       }).join("")+"</div>";
   }
-  var keyNote=hasKey?'<p class="note">Owned / Missing refreshes automatically when you open the Ledger. Use <strong>Sync craft tree</strong> for gifts → mats have/need and %. <strong>Wiki</strong> opens the item page in a new helper tab.</p>':'<p class="note">Add a GW2 API key in Settings (unlocks + inventories) for Owned / Missing and craft have/need.</p>';
+  var keyNote=hasKey?'<p class="note">Owned / Missing refreshes when you open the Ledger. Open a legendary to auto-build its craft tree. <strong>Wiki</strong> and <strong>Open in Account Crafting</strong> are on each detail page.</p>':'<p class="note">Add a GW2 API key in Settings (unlocks + inventories) for Owned / Missing and craft have/need.</p>';
   elList.innerHTML="<div><h1>The Complete GW2 Legendary Collection</h1></div>"+keyNote+'<div class="space-y-3"><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input class="search" id="q" type="search" placeholder="Search legendaries…" value="'+esc(state.q)+'"/></div><div class="cats">'+catsHtml+"</div></div>"+body;
   var q=document.getElementById("q");
   if(q){q.addEventListener("input",function(){state.q=q.value;renderList();var a=document.getElementById("q");if(a){a.focus();try{a.setSelectionRange(a.value.length,a.value.length);}catch(e){}}});}
@@ -236,30 +251,31 @@ function renderDetail(id){
   var cid=craftId(it);
   var p=craftPct(it);
   var fields="";
-  fields+='<div class="field"><p class="lbl">Armory</p><p class="val">'+badgeHtml(st);
+  fields+='<div class="field"><p class="lbl">Armory</p><p class="val">'+badgeHtml(st,it);
   if((it.itemIds||[]).length){
     var bits=[];
     for(var j=0;j<it.itemIds.length;j++){
       var iid=it.itemIds[j],max=(it.maxCounts&&it.maxCounts[j])||1,c=owned[iid];
       if(c==null)c=hasKey?0:"?";
-      bits.push("#"+iid+" "+c+"/"+max);
+      bits.push("#"+iid+" ×"+c+(max>1?("/"+max):""));
     }
     fields+=" · "+esc(bits.join(", "));
   }
   fields+="</p></div>";
-  if(p>=0)fields+='<div class="field"><p class="lbl">Craft progress</p><p class="val">'+p+"% (from last Sync)</p></div>";
+  if(p>=0)fields+='<div class="field"><p class="lbl">Craft progress</p><p class="val">'+p+"% (from last open)</p></div>";
   if(it.acquisition)fields+='<div class="field"><p class="lbl">How to obtain</p><p class="val">'+esc(it.acquisition)+"</p></div>";
   if(it.notes)fields+='<div class="field"><p class="lbl">Notes</p><p class="val">'+esc(it.notes)+"</p></div>";
-  var ctas="";
+  var ctas='<div class="cta-row">';
   var wiki=wikiNewTabHref(it.name);
-  if(wiki) ctas+='<a class="cta ghost" href="'+wiki+'">Wiki</a>';
+  if(wiki) ctas+='<a class="cta" href="'+wiki+'">Open in Wiki</a>';
   if(cid){
-    ctas+='<a class="cta" href="?gw2igh-leg-open='+cid+'">Sync craft tree</a>';
     ctas+='<a class="cta" href="?gw2igh-craft-plan='+cid+'">Open in Account Crafting</a>';
+    ctas+='<a class="cta ghost" href="?gw2igh-leg-open='+cid+'">Open craft tree</a>';
   }else{
-    ctas+='<p class="note">No GW2 item id mapped — cannot sync craft tree yet.</p>';
+    ctas+='<p class="note">No GW2 item id mapped — cannot open craft tree yet.</p>';
   }
-  elDetail.innerHTML='<a class="back" href="#/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m15 18-6-6 6-6"/></svg> All legendaries</a><div class="detail-head"><div class="avatar lg">'+esc((it.name||"?")[0])+'</div><div><h1>'+esc(it.name)+'</h1><p class="detail-sub">'+esc(detailMeta(it))+"</p></div></div><div class=\"detail-card\">"+fields+ctas+"</div>";
+  ctas+="</div>";
+  elDetail.innerHTML='<a class="back" href="#/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m15 18-6-6 6-6"/></svg> All legendaries</a><div class="detail-head"><div class="avatar lg">'+esc((it.name||"?")[0])+'</div><div><h1>'+esc(it.name)+'</h1><p class="detail-sub">'+esc(detailMeta(it))+"</p></div></div>"+ctas+'<div class="detail-card">'+fields+"</div>";
 }
 function route(){
   var hash=(location.hash||"#/").replace(/^#/,"");

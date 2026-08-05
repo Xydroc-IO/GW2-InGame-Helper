@@ -1,5 +1,6 @@
 #include "LivePanelsInternal.h"
 
+#include "AccountPad.h"
 #include "AddonPaths.h"
 #include "CraftingData.h"
 #include "Globals.h"
@@ -58,7 +59,7 @@ bool ProcessCraftPlanCmdFile(const std::wstring& addonDir)
 		return false;
 	char buf[32];
 	std::snprintf(buf, sizeof(buf), "%d", id);
-	G::ShowAccount = true;
+	AccountPad::OpenAndRefresh();
 	CraftingData::QueuePlan(buf);
 	return true;
 }
@@ -123,15 +124,16 @@ bool ProcessLegendaryDetailCmdFile(const std::wstring& addonDir)
 
 		char stem[64];
 		std::snprintf(stem, sizeof(stem), "live-legendary-detail-%d", id);
+		/* Always rebuild — open and sync both auto-sync the craft tree. */
+		char craftStem[64];
+		std::snprintf(craftStem, sizeof(craftStem), "live-leg-craft-%d", id);
+		DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
+		DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
+		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
+		DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
+		DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
 		if (sync)
 		{
-			char craftStem[64];
-			std::snprintf(craftStem, sizeof(craftStem), "live-leg-craft-%d", id);
-			DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
-			DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
-			DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
-			DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
-			DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
 			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ver").c_str());
 			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ok").c_str());
 		}
