@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.12
+# GW2 In-Game Helper v2.2.0.13
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,7 +32,32 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
+## What’s new in 2.2.0.13
+
+- **Side rail layout:** Browse → Legendary Ledger → Cheat Sheets → GW2 API Check,
+  then a **Tools** section (Account, Compass, Pathing, Events, Notes, DPS Logs),
+  then Settings.
+- **Favorites stay current:** Toolbar / Browse-row stars and reorder invalidate the
+  Browse hub and reload it when open. Hub HTML always rebuilds on open so the
+  Favorites list cannot go stale.
+- **Legendary icons:** Ledger list and detail pages show each item’s official
+  in-game icon from the GW2 API (cached ~7 days), with letter fallback if missing.
+- **Stamps:** Helper `2217` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+  · live panel `37`
+
 ## What’s new in 2.2.0.12
+
+- **Browse is Home:** Home button, empty-tab landing, and restored How-to-use
+  landing tabs open **Browse** (`about:browse-hub`). Saved `ActiveSiteId=home` /
+  `DefaultSiteId=home` migrate to `browse`. How to use stays in the catalog.
+- **Ledger Armory line:** Shows the legendary **name** (e.g. Ad Infinitum), not `#id`.
+- **Instant craft tree reopen:** Opening a legendary no longer wipes the craft-tree
+  cache every time. Ready detail pages load from disk immediately; Sync still forces
+  a full rebuild. Detail HTML TTL is 2 hours.
+- **Stamps:** Helper `2216` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+  · live panel `36`
+
+## What’s new in 2.2.0.11
 
 - **Browse HTML hub:** Side rail **Browse** opens themed `about:browse-hub`
   (Favorites + category index, client-side filter). Each category is its own
@@ -41,51 +66,25 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   with multiple sections get sticky jump buttons at the top (esp. Wiki). Tab bar
   **+** and Settings default-site picker keep the ImGui Browse popup. Cheat Sheets
   stay on their own side-rail hub.
-- **Browse is Home:** Home button, empty-tab landing, and restored How-to-use
-  landing tabs open **Browse** (`about:browse-hub`). Saved `ActiveSiteId=home` /
-  `DefaultSiteId=home` migrate to `browse`. How to use stays in the catalog.
 - **Legendary Ledger:** Gold/dark helper theme (matched to Browse / Cheat Sheets).
   Own side-rail button under Notes (`about:legendary-vault`); removed from the
   Cheat Sheets hub. Cheat sheet tiles open in a **new helper tab**.
 - **Legendary Ledger armory:** Opening the Ledger (or clicking the brand / All
   legendaries) always re-fetches `/v2/account/legendaryarmory` so Owned / Missing
   stays current. Vault HTML TTL is 45s. Badges show **Owned ×N** (and piece counts
-  for multi-id sets). Armory line shows the legendary **name**, not `#id`.
+  for multi-id sets).
 - **Auto craft tree:** Opening a legendary always rebuilds the gifts → mats tree
   (even when already owned, so you can plan a second copy). No Sync button required.
-- **Instant craft tree reopen:** Opening a legendary no longer wipes the craft-tree
-  cache every time. Ready detail pages load from disk immediately; Sync still forces
-  a full rebuild. Detail HTML TTL is 2 hours.
 - **Open in Wiki / Account Crafting:** Matching gold CTAs at the top of each
   detail page — Wiki opens `wiki.guildwars2.com` in a **new helper tab**; Account
   Crafting opens the Account pad on the Crafting tab and queues the plan.
 - **Faster craft sync:** Wiki-first for gifts/legendaries (skip failed station
   searches), up to 16 parallel recipe lookups per depth, parallel wiki fallbacks,
   and inventory fetch overlapped with the root recipe lookup.
-- **Desktop ad viewport:** Snow Crows, gw2efficiency, MetaBattle, and Guildjen lay
-  out at a full-desktop CEF size (1920× panel-aspect, clamped) so NitroPay-style
-  wide `matchMedia` slots unlock, then **letterbox** into the addon window (uniform
-  scale — no stretch). Clicks map into the fitted area only. Other sites stay 1:1
-  with the panel.
-- **Stamps:** Helper `2216` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
-  · live panel `36`
-
-## What’s new in 2.2.0.11
-
-- **Legendary Ledger armory:** Opening the Ledger (or clicking the brand / All
-  legendaries) always re-fetches `/v2/account/legendaryarmory` so Owned / Missing
-  stays current. Vault HTML TTL is 45s. Badges show **Owned ×N** (and piece counts
-  for multi-id sets).
-- **Auto craft tree:** Opening a legendary always rebuilds the gifts → mats tree
-  (even when already owned, so you can plan a second copy). No Sync button required.
-- **Open in Wiki / Account Crafting:** Matching purple CTAs at the top of each
-  detail page — Wiki opens `wiki.guildwars2.com` in a **new helper tab**; Account
-  Crafting opens the Account pad on the Crafting tab and queues the plan.
-- **Faster craft sync:** Wiki-first for gifts/legendaries (skip failed station
-  searches), up to 16 parallel recipe lookups per depth, parallel wiki fallbacks,
-  and inventory fetch overlapped with the root recipe lookup.
-- **Stamps:** Helper `2213` · homepage `2210` · sites `s2211` · cheatsheets `c2211`
-  · live panel `31`
+- **Default landing:** Home / first tab uses **Browse** (`about:browse-hub`) instead of
+  How to use. How to use remains under Help → Getting Started.
+- **Stamps:** Helper `2215` · homepage `2210` · sites `s2212` · cheatsheets `c2211`
+  · live panel `35`
 
 ## What’s new in 2.2.0.10
 
