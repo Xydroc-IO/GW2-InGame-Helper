@@ -150,6 +150,7 @@ add_library(GW2-InGame-Helper SHARED
   src/pathing/PathingLoadGuide.cpp
   src/pathing/PathingLoadIcons.cpp
   src/pathing/PathingTrailsGps.cpp
+  src/pathing/PathingTrailsGpsNearby.cpp
   src/pathing/PathingTrailsPresets.cpp
   src/pathing/PathingTrailsUi.cpp
   src/pathing/PathingIndex.cpp
