@@ -1,7 +1,7 @@
 {
   "version": 2,
   "source": "data/sites.json",
-  "count": 2718,
+  "count": 2719,
   "sites": [
     {
       "id": "home",
@@ -30355,6 +30355,18 @@
       "label": "Legendary Tracker",
       "title": "gw2efficiency — Legendaries",
       "homeUrl": "https://gw2efficiency.com/account/legendaries",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Account"
+      ]
+    },
+    {
+      "id": "legendary_crafting_ledger",
+      "category": "Tools",
+      "label": "Legendary Crafting Ledger",
+      "title": "Legendary Crafting Ledger — Forge Legend Track",
+      "homeUrl": "https://forge-legend-track.base44.app/",
       "searchUrlPrefix": null,
       "searchUrlSuffix": null,
       "browsePath": [

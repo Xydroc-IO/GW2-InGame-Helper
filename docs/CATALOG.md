@@ -252,6 +252,7 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 
 - **gw2efficiency** — [https://gw2efficiency.com/](https://gw2efficiency.com/)
 - **Legendary Tracker** — [https://gw2efficiency.com/account/legendaries](https://gw2efficiency.com/account/legendaries)
+- **Legendary Crafting Ledger** — [https://forge-legend-track.base44.app/](https://forge-legend-track.base44.app/)
 
 ### Overlay
 
