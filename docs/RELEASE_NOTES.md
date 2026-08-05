@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.10
+# GW2 In-Game Helper v2.2.0.11
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.11
+
+- **Legendary Ledger armory:** Opening the Ledger (or clicking the brand / All
+  legendaries) always re-fetches `/v2/account/legendaryarmory` so Owned / Missing
+  stays current without Sync craft tree. Vault HTML TTL is 45s; Sync also refreshes
+  armory as a side effect.
+- **Wiki button:** Each legendary detail page has **Wiki** — opens the matching
+  `wiki.guildwars2.com` page in a **new helper tab**.
+- **Stamps:** Helper `2211` · homepage `2210` · sites `s2211` · cheatsheets `c2211`
+  · live panel `29`
 
 ## What’s new in 2.2.0.10
 
