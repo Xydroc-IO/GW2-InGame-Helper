@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.0.9` |
+| Addon revision (shipping) | `2.2.0.10` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2209` / `2209` / `s2210` / `c2210` |
+| Helper / home / sites / cheatsheets stamps | `2210` / `2210` / `s2211` / `c2211` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
@@ -86,10 +86,18 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
 <GW2>/addons/GW2-InGame-Helper.dll     # only file players copy
 <GW2>/addons/GW2-InGame-Helper/        # runtime data
   GW2HelperBrowser.exe (+ .ver)
-  cef/                     # private CEF 150 (downloaded)
   settings.ini
-  helper-home.html (+ .ver)
   sites.json (+ .ver)
+  profiles.json, notes.json, session_history.json, …
+  confirmed_waypoints.json, log-index.json, marker_behaviors.txt
+  ei-helper.conf
+  pages/                   # generated HTML + home assets
+    helper-home.html (+ .ver), home-logo.png, home-cover.jpg
+    raid-food.html, live-*.html / .ver / .ok, gw2-api-check.*
+  live/cache/              # live-*.json API caches + live-leg-craft-*.json
+  cache/                   # unlocks-*.cache, stash-names.cache, waypoints-index.cache
+  cmds/                    # *-cmd.txt (helper ↔ DLL IPC)
+  cef/                     # private CEF 150 (downloaded)
   cheatsheets/
   pathing/                 # curated Tekkit + Lady + Hero .taco (+ user packs)
   ei/                      # Elite Insights CLI (optional)
@@ -253,5 +261,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.9 — Live Legendary Ledger; Cheat Sheets hub; craft Sync |
+| Last architecture sync | 2.2.0.10 — Nested pages/live/cache/cmds data layout |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

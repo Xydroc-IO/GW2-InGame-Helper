@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.9
+# GW2 In-Game Helper v2.2.0.10
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,18 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.10
+
+- **Addon data layout:** Generated HTML and home assets live under `pages/`; live API
+  JSON under `live/cache/`; unlocks/waypoints/stash under `cache/`; helper↔DLL
+  `*-cmd.txt` under `cmds/`. Config, helper exe, `cef/`, `pathing/`, `ei/`, and
+  `cheatsheets/` stay at the data root.
+- **Upgrade migration:** On load, legacy root copies of moved files are deleted;
+  stamps force regenerate into the new folders. `make install` wipes the nested
+  trees as well as root orphans.
+- **Stamps:** Helper `2210` · homepage `2210` · sites `s2211` · cheatsheets `c2211`
+  · live panel `28`
 
 ## What’s new in 2.2.0.9
 

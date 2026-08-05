@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.0.9` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.0.10` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
@@ -17,7 +17,8 @@ CEF Stable 150** runtime downloaded on first open into
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
-Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`.
+Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
+(`pages/` for generated HTML; see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 
 **Changelog:** [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) (version history lives there, not in this README).
 
@@ -424,7 +425,7 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
 5. YouTube on guides becomes a Watch card / Open Ext (in-page play is not reliable under windowless OSR).
    Twitch does the same — official CEF builds omit the H.264 / AAC codecs its player needs (Error #4000).
 6. Chromium profile / cache lives under `%LOCALAPPDATA%\GW2-InGame-Helper\cef-cache` (not under `addons`).
-7. Runtime data (helper exe, homepage, cheat sheets, settings) lives under `addons/GW2-InGame-Helper/`.
+7. Runtime data (helper exe, `pages/` HTML, cheat sheets, settings, caches) lives under `addons/GW2-InGame-Helper/`.
 8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); offline sheets in `data/cheatsheets/` (and `src/browse/RaidFood.cpp` for raid food).
 
 Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md).
