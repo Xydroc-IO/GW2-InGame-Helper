@@ -260,43 +260,63 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 			}
 		}
 
-		/* Drag-reorder favorites */
+		/* Drag-reorder favorites within a folder */
 		if (showFavorites && !pickDefaultSite && !pickNewTab)
 		{
+			const int folderId = Sites::FavoriteFolderOf(site.id);
+			const int favSlot = [&]() {
+				const int favN = Sites::FavoriteCountInFolder(folderId);
+				for (int f = 0; f < favN; ++f)
+				{
+					if (Sites::FavoriteSiteIndexInFolder(folderId, f) == siteIndex)
+						return f;
+				}
+				return -1;
+			}();
+			struct FavDrag
+			{
+				int folderId;
+				int slot;
+			};
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 			{
-				const int favSlot = [&]() {
-					const int favN = Sites::FavoriteCount();
-					for (int f = 0; f < favN; ++f)
-					{
-						if (Sites::FavoriteSiteIndex(f) == siteIndex)
-							return f;
-					}
-					return -1;
-				}();
-				ImGui::SetDragDropPayload("FAV_REORDER", &favSlot, sizeof(favSlot));
+				FavDrag drag{ folderId, favSlot };
+				ImGui::SetDragDropPayload("FAV_FOLDER_REORDER", &drag, sizeof(drag));
 				ImGui::TextUnformatted(site.label ? site.label : "Favorite");
 				ImGui::EndDragDropSource();
 			}
 			if (ImGui::BeginDragDropTarget())
 			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FAV_REORDER"))
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FAV_FOLDER_REORDER"))
 				{
-					const int from = *static_cast<const int*>(payload->Data);
-					const int favN = Sites::FavoriteCount();
-					int to = -1;
-					for (int f = 0; f < favN; ++f)
-					{
-						if (Sites::FavoriteSiteIndex(f) == siteIndex)
-						{
-							to = f;
-							break;
-						}
-					}
-					if (from >= 0 && to >= 0 && Sites::MoveFavorite(from, to))
+					const FavDrag from = *static_cast<const FavDrag*>(payload->Data);
+					if (from.folderId == folderId && from.slot >= 0 && favSlot >= 0 &&
+						Sites::MoveFavoriteInFolder(folderId, from.slot, favSlot))
 						LivePanels::NotifyFavoritesChanged();
 				}
 				ImGui::EndDragDropTarget();
+			}
+			if (ImGui::BeginPopupContextItem("##gw2igh_fav_ctx"))
+			{
+				ImGui::TextDisabled("Move to folder");
+				ImGui::Separator();
+				if (ImGui::MenuItem("Unfiled", nullptr, folderId == 0))
+				{
+					if (Sites::SetFavoriteFolder(site.id, 0))
+						LivePanels::NotifyFavoritesChanged();
+				}
+				const int folderN = Sites::FavoriteFolderCount();
+				for (int fi = 0; fi < folderN; ++fi)
+				{
+					const int fid = Sites::FavoriteFolderIdAt(fi);
+					const char* fname = Sites::FavoriteFolderName(fid);
+					if (ImGui::MenuItem(fname ? fname : "Folder", nullptr, folderId == fid))
+					{
+						if (Sites::SetFavoriteFolder(site.id, fid))
+							LivePanels::NotifyFavoritesChanged();
+					}
+				}
+				ImGui::EndPopup();
 			}
 		}
 		if (selected)
@@ -331,23 +351,112 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 
 	if (showFavorites)
 	{
-		static unsigned sFavGen = 0;
-		static std::vector<int> sFavIdx;
-		const unsigned gen = Sites::FavoritesGeneration();
-		if (sFavGen != gen)
+		static char sNewFolder[48]{};
+		static int sRenameFolderId = -1;
+		static char sRenameBuf[48]{};
+
+		const float folderFieldW = ImGui::GetContentRegionAvail().x - 56.f;
+		ImGui::PushItemWidth(folderFieldW > 80.f ? folderFieldW : 80.f);
+		const bool addFolder = ImGui::InputTextWithHint("##gw2igh_new_fav_folder",
+			"New folder name…", sNewFolder, sizeof(sNewFolder),
+			ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PopItemWidth();
+		ImGui::SameLine(0.f, 6.f);
+		if ((ImGui::SmallButton("Add") || addFolder) && sNewFolder[0])
 		{
-			sFavGen = gen;
-			sFavIdx.clear();
-			const int favN = Sites::FavoriteCount();
-			sFavIdx.reserve(static_cast<size_t>(favN));
-			for (int f = 0; f < favN; ++f)
+			if (Sites::CreateFavoriteFolder(sNewFolder))
 			{
-				const int si = Sites::FavoriteSiteIndex(f);
-				if (si >= 0)
-					sFavIdx.push_back(si);
+				sNewFolder[0] = 0;
+				LivePanels::NotifyFavoritesChanged();
 			}
 		}
-		DrawClippedRows(sFavIdx, true);
+		ImGui::Spacing();
+
+		auto DrawFolderBlock = [&](int folderId) {
+			const int n = Sites::FavoriteCountInFolder(folderId);
+			const char* name = Sites::FavoriteFolderName(folderId);
+			char header[96];
+			std::snprintf(header, sizeof(header), "%s (%d)###gw2igh_favfold_%d",
+				name ? name : "Folder", n, folderId);
+			const bool open = ImGui::CollapsingHeader(header,
+				ImGuiTreeNodeFlags_DefaultOpen);
+			if (folderId != 0 && ImGui::BeginPopupContextItem())
+			{
+				if (ImGui::MenuItem("Rename…"))
+				{
+					sRenameFolderId = folderId;
+					std::snprintf(sRenameBuf, sizeof(sRenameBuf), "%s", name ? name : "");
+				}
+				if (ImGui::MenuItem("Delete folder"))
+				{
+					if (Sites::DeleteFavoriteFolder(folderId))
+						LivePanels::NotifyFavoritesChanged();
+				}
+				ImGui::EndPopup();
+			}
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FAV_FOLDER_REORDER"))
+				{
+					struct FavDrag { int folderId; int slot; };
+					const FavDrag from = *static_cast<const FavDrag*>(payload->Data);
+					/* Drop on header: move that item into this folder. */
+					const int si = Sites::FavoriteSiteIndexInFolder(from.folderId, from.slot);
+					if (si >= 0 && sites)
+					{
+						const char* id = sites[si].id;
+						if (id && Sites::SetFavoriteFolder(id, folderId))
+							LivePanels::NotifyFavoritesChanged();
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+			if (!open || n <= 0)
+				return;
+			std::vector<int> idxs;
+			idxs.reserve(static_cast<size_t>(n));
+			for (int f = 0; f < n; ++f)
+			{
+				const int si = Sites::FavoriteSiteIndexInFolder(folderId, f);
+				if (si >= 0)
+					idxs.push_back(si);
+			}
+			DrawClippedRows(idxs, true);
+		};
+
+		if (sRenameFolderId > 0)
+		{
+			ImGui::OpenPopup("##gw2igh_rename_fav_folder");
+			if (ImGui::BeginPopupModal("##gw2igh_rename_fav_folder", nullptr,
+				ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				ImGui::TextUnformatted("Rename folder");
+				ImGui::InputText("##gw2igh_ren_fav", sRenameBuf, sizeof(sRenameBuf));
+				if (ImGui::Button("Save") && sRenameBuf[0])
+				{
+					if (Sites::RenameFavoriteFolder(sRenameFolderId, sRenameBuf))
+						LivePanels::NotifyFavoritesChanged();
+					sRenameFolderId = -1;
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Cancel"))
+				{
+					sRenameFolderId = -1;
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
+		}
+
+		/* Unfiled first, then user folders. */
+		DrawFolderBlock(0);
+		const int folderN = Sites::FavoriteFolderCount();
+		for (int fi = 0; fi < folderN; ++fi)
+			DrawFolderBlock(Sites::FavoriteFolderIdAt(fi));
+
+		if (Sites::FavoriteCount() == 0)
+			ImGui::TextDisabled("No favorites yet — star a site to pin it here.");
 	}
 	else if (filtering)
 	{

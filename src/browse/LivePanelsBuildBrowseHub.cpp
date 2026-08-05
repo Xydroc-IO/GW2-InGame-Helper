@@ -264,43 +264,58 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		"<p class=\"eyebrow\">GW2 In-Game Helper</p>"
 		"<h1>Browse</h1>"
 		"<p class=\"tag\">Pick a category, or open a favorite in a new tab. "
-		"Use the star to pin sites here.</p>"
+		"Use the star to pin sites here — organize folders in the Browse panel.</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter favorites &amp; categories…\" "
 		"autocomplete=\"off\"/>"
 		"</header>";
 
-	/* Favorites */
+	/* Favorites (folder sections) */
 	html += "<section class=\"sec\" data-sec=\"1\"><h2>Favorites</h2>";
 	const int favCount = Sites::FavoriteCount();
 	if (favCount <= 0)
 	{
-		html += "<p class=\"empty\">No favorites yet — open a category and tap ☆ on a site.</p>";
+		html += "<p class=\"empty\">No favorites yet — open a category and tap ☆ on a site. "
+			"Organize them into folders from the Browse panel.</p>";
 	}
 	else
 	{
-		html += "<div class=\"grid\">";
 		size_t n = 0;
 		const SiteDef* sites = Sites::All(&n);
-		for (int i = 0; i < favCount; ++i)
-		{
-			const int idx = Sites::FavoriteSiteIndex(i);
-			if (idx < 0 || idx >= static_cast<int>(n))
-				continue;
-			const SiteDef& s = sites[idx];
-			std::string path;
-			if (s.browsePath && s.browsePathCount > 0)
+		auto AppendFolder = [&](int folderId) {
+			const int count = Sites::FavoriteCountInFolder(folderId);
+			if (count <= 0 && folderId != 0)
+				return;
+			if (count <= 0)
+				return;
+			const char* fname = Sites::FavoriteFolderName(folderId);
+			html += "<h3>";
+			html += Esc(fname ? fname : "Folder");
+			html += "</h3><div class=\"grid\">";
+			for (int i = 0; i < count; ++i)
 			{
-				for (int p = 0; p < s.browsePathCount; ++p)
+				const int idx = Sites::FavoriteSiteIndexInFolder(folderId, i);
+				if (idx < 0 || idx >= static_cast<int>(n))
+					continue;
+				const SiteDef& s = sites[idx];
+				std::string path;
+				if (s.browsePath && s.browsePathCount > 0)
 				{
-					if (p)
-						path += " / ";
-					if (s.browsePath[p])
-						path += s.browsePath[p];
+					for (int p = 0; p < s.browsePathCount; ++p)
+					{
+						if (p)
+							path += " / ";
+						if (s.browsePath[p])
+							path += s.browsePath[p];
+					}
 				}
+				AppendTile(html, s, path);
 			}
-			AppendTile(html, s, path);
-		}
-		html += "</div>";
+			html += "</div>";
+		};
+		AppendFolder(0);
+		const int folderN = Sites::FavoriteFolderCount();
+		for (int fi = 0; fi < folderN; ++fi)
+			AppendFolder(Sites::FavoriteFolderIdAt(fi));
 	}
 	html += "</section>";
 

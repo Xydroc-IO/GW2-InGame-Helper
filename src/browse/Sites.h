@@ -59,7 +59,7 @@ namespace Sites
 	/* Resolve the URL to open for a site (help page or homeUrl). */
 	std::string ResolveUrl(const SiteDef& site);
 
-	/* Favorites — persisted site ids (order preserved). */
+	/* Favorites — persisted site ids (order preserved) + optional folders. */
 	bool IsFavorite(const char* id);
 	bool ToggleFavorite(const char* id); /* returns true if now favorited */
 	int  FavoriteCount();
@@ -80,4 +80,19 @@ namespace Sites
 	void SerializeFavorites(char* out, size_t outLen);
 	void PruneFavorites(); /* drop unknown / empty ids */
 	bool MoveFavorite(int fromSlot, int toSlot); /* reorder; returns true if moved */
+
+	/* Favorite folders (id 0 = Unfiled). Stored in config/favorites.json. */
+	int  FavoriteFolderCount(); /* user folders only (excludes Unfiled) */
+	int  FavoriteFolderIdAt(int index);
+	const char* FavoriteFolderName(int folderId);
+	int  FavoriteFolderOf(const char* siteId);
+	int  FavoriteCountInFolder(int folderId);
+	int  FavoriteSiteIndexInFolder(int folderId, int slotInFolder);
+	bool CreateFavoriteFolder(const char* name);
+	bool RenameFavoriteFolder(int folderId, const char* name);
+	bool DeleteFavoriteFolder(int folderId); /* items move to Unfiled */
+	bool SetFavoriteFolder(const char* siteId, int folderId);
+	bool MoveFavoriteInFolder(int folderId, int fromSlot, int toSlot);
+	void LoadFavoritesStore();
+	void SaveFavoritesStore();
 }

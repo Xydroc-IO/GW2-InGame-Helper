@@ -16,7 +16,11 @@ namespace SitesRuntimeDetail
 	int gCategoryCount = -1;
 
 	char gFavoriteIds[kMaxFavorites][64] = {};
+	int gFavoriteFolderIds[kMaxFavorites] = {};
 	int gFavoriteCount = 0;
+	FavoriteFolder gFavoriteFolders[kMaxFavoriteFolders] = {};
+	int gFavoriteFolderCount = 0;
+	int gFavoriteNextFolderId = 1;
 	unsigned gFavoriteGeneration = 1;
 
 	SiteUrlKey gUrlKeys[kMaxUrlKeys];

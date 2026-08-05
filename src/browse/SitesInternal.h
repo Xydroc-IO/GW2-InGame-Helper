@@ -35,8 +35,21 @@ namespace SitesRuntimeDetail
 	bool ContainsIgnoreCase(const char* haystack, const char* needle);
 
 	constexpr int kMaxFavorites = 48;
+	constexpr int kMaxFavoriteFolders = 16;
+	constexpr int kUnfiledFavoriteFolderId = 0;
+
+	struct FavoriteFolder
+	{
+		int id = 0;
+		char name[48] = {};
+	};
+
 	extern char gFavoriteIds[kMaxFavorites][64];
+	extern int gFavoriteFolderIds[kMaxFavorites];
 	extern int gFavoriteCount;
+	extern FavoriteFolder gFavoriteFolders[kMaxFavoriteFolders];
+	extern int gFavoriteFolderCount;
+	extern int gFavoriteNextFolderId;
 	extern unsigned gFavoriteGeneration;
 
 	struct SiteUrlKey

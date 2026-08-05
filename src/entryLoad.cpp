@@ -67,12 +67,17 @@ void AddonLoad(AddonAPI_t* api)
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
 	Sites::Init();
+	/* Settings::Load may have parsed legacy FavoriteIds=; json wins / migrates. */
+	Sites::LoadFavoritesStore();
 	/* Settings::Load parses FavoriteIds before the catalog exists; prune now. */
 	{
 		const int before = Sites::FavoriteCount();
 		Sites::PruneFavorites();
 		if (Sites::FavoriteCount() != before)
+		{
+			Sites::SaveFavoritesStore();
 			Settings::SetDirty();
+		}
 	}
 	WikiBrowser::Init();
 

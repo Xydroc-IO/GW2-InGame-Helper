@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.15
+# GW2 In-Game Helper v2.2.0.16
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,15 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.16
+
+- **Favorite folders:** Create named folders in the Browse panel Favorites view.
+  Right-click a favorite to move it; drag onto a folder header to refile. Delete a
+  folder to send its sites back to Unfiled. Stored in `config/favorites.json`
+  (migrates from legacy `FavoriteIds=`). Browse hub shows folder sections.
+- **Stamps:** Helper `2220` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+  · live panel `38`
 
 ## What’s new in 2.2.0.15
 
