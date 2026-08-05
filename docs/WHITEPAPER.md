@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.0.11 | 2.2.0.11 | Legendary Ledger auto armory refresh; Wiki opens in new helper tab |
+| 2.2.0.11 | 2.2.0.11 | Ledger auto craft tree; Owned ×N; Open in Wiki/Crafting; faster parallel sync |
 | 2.2.0.10 | 2.2.0.10 | Nested pages/live/cache/cmds addon data layout + upgrade migration |
 | 2.2.0.9 | 2.2.0.9 | Live Legendary Ledger; Cheat Sheets hub; craft-tree Sync; about: nav hardening |
 | 2.2.0.8 | 2.2.0.8 | GW2 Legendary Ledger sheet; Crafting Ledger Tools link |
@@ -954,6 +954,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.11 — Legendary Ledger auto armory + Wiki new-tab |
+| Last sync | 2.2.0.11 — Ledger auto craft tree, owned ×N, faster wiki sync |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.11, 2026. |
