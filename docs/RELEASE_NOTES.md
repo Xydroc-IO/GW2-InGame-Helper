@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.7
+# GW2 In-Game Helper v2.2.0.8
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,16 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.8
+
+- **Legendary Vault Hub:** Offline `about:legendary-vault` sheet — alphabetical GW2
+  legendaries collection (search, type filters, A–Z jump, acquisition notes). No
+  in-page API Settings; uses the helper’s existing API key slot for account features.
+  Idea credit: **Dark Sorcerer.6420**. Browse: Tools → Account.
+- **Legendary Crafting Ledger:** Tools → Account link to
+  [forge-legend-track.base44.app](https://forge-legend-track.base44.app/).
+- **Stamps:** Helper `2208` · homepage `2208` · sites `s2208` · cheatsheets `c2208`
 
 ## What’s new in 2.2.0.7
 

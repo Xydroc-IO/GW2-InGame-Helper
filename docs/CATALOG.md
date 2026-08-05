@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.2.0.7 · Total entries: **2,718**
+**Revision:** 2.2.0.8 · Total entries: **2,720**
 
 Source of truth: `data/sites.json` (schema v2 with `browsePath` / `browseSections`).
 At runtime the DLL extracts it to `addons/<addon-name>/sites.json` (`Sites::Init` / `SitesLoad.cpp`).
@@ -253,6 +253,7 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 - **gw2efficiency** — [https://gw2efficiency.com/](https://gw2efficiency.com/)
 - **Legendary Tracker** — [https://gw2efficiency.com/account/legendaries](https://gw2efficiency.com/account/legendaries)
 - **Legendary Crafting Ledger** — [https://forge-legend-track.base44.app/](https://forge-legend-track.base44.app/)
+- **Legendary Vault Hub** — `about:legendary-vault`
 
 ### Overlay
 
