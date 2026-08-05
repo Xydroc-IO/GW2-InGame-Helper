@@ -10,7 +10,7 @@ CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/ui/browse -Isrc/ui/settings -Isrc/ui/
 	-Isrc/browse/tabs -Isrc/account -Isrc/account/crafting -Isrc/account/tpwatch -Isrc/account/unlocks \
 	-Isrc/account/wallet -Isrc/account/vault -Isrc/account/lookup -Isrc/account/progress -Isrc/pathing \
 	-Isrc/pathing/trailtools -Isrc/pathing/world -Isrc/pathing/lua -Isrc/pathing/packs \
-	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/logs -Isrc/logs/logmanager -Isrc/logs/ei \
+	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/logs -Isrc/logs/logmanager -Isrc/logs/eiruntime \
 	-Isrc/events -Isrc/notes -Isrc/helper
 CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/lua
 # Dependency files: emit only from the build/%.o rule via -MF (never beside sources).
@@ -139,9 +139,9 @@ DLL_SRC = \
 	src/logs/logmanager/LogManagerUi.cpp \
 	src/logs/logmanager/LogManagerUiDetail.cpp \
 	src/logs/logmanager/LogManagerUiTabs.cpp \
-	src/logs/ei/EiRuntime.cpp \
-	src/logs/ei/EiRuntimeFs.cpp \
-	src/logs/ei/EiRuntimeHttp.cpp \
+	src/logs/eiruntime/EiRuntime.cpp \
+	src/logs/eiruntime/EiRuntimeFs.cpp \
+	src/logs/eiruntime/EiRuntimeHttp.cpp \
 	src/pathing/waypoints/PathingGuidesPad.cpp \
 	src/pathing/trailtools/TrailToolsPad.cpp \
 	src/pathing/trailtools/TrailToolsPadLive.cpp \

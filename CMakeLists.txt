@@ -36,7 +36,7 @@ set(SRC_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pathing/waypoints
   ${CMAKE_CURRENT_SOURCE_DIR}/src/logs
   ${CMAKE_CURRENT_SOURCE_DIR}/src/logs/logmanager
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/logs/ei
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/logs/eiruntime
   ${CMAKE_CURRENT_SOURCE_DIR}/src/events
   ${CMAKE_CURRENT_SOURCE_DIR}/src/notes
   ${CMAKE_CURRENT_SOURCE_DIR}/src/helper
@@ -168,9 +168,9 @@ add_library(GW2-InGame-Helper SHARED
   src/logs/logmanager/LogManagerUi.cpp
   src/logs/logmanager/LogManagerUiDetail.cpp
   src/logs/logmanager/LogManagerUiTabs.cpp
-  src/logs/ei/EiRuntime.cpp
-  src/logs/ei/EiRuntimeFs.cpp
-  src/logs/ei/EiRuntimeHttp.cpp
+  src/logs/eiruntime/EiRuntime.cpp
+  src/logs/eiruntime/EiRuntimeFs.cpp
+  src/logs/eiruntime/EiRuntimeHttp.cpp
   src/pathing/waypoints/PathingGuidesPad.cpp
   src/pathing/trailtools/TrailToolsPad.cpp
   src/pathing/trailtools/TrailToolsPadLive.cpp

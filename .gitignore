@@ -101,6 +101,7 @@ GW2HelperBrowser.exe.ver
 # Elite Insights / CEF drop-ins (runtime downloads)
 ei-out/
 ei/
+# (addon sources are src/logs/eiruntime/ — do not name that folder ei/)
 cef/
 cef-runtime*/
 cef-runtime*.zip

@@ -538,7 +538,7 @@ This is a **conscious downgrade** from desktop Chrome, not an accidental flag fo
 - CEF zip SHA-256 verified before extract.
 - Runtime kept out of the DLL blob (reduces Defender ML packing heuristics).
 - Unsigned MinGW builds may still be quarantined; code signing remains future work.
-- Elite Insights CLI similarly SHA-verified when downloaded into `ei/`.
+- Elite Insights CLI similarly SHA-verified when downloaded into `eiruntime/`.
 
 ### 9.5 Video codecs
 
@@ -717,7 +717,7 @@ Module map: `WorldOverlay` orchestrates `WorldGpsMath`, `WorldGpsD3dDevice` / `W
 
 ### 17.3 DPS Logs
 
-ArcDPS EVTC browsing via optional Elite Insights CLI under `ei/` (SHA-verified download; requires user .NET 8). Upload to dps.report; KillProof.me public profiles. Parse fixtures gated in `make test-parse`. See [`DPS_LOGS.md`](DPS_LOGS.md).
+ArcDPS EVTC browsing via optional Elite Insights CLI under `eiruntime/` (SHA-verified download; requires user .NET 8). Upload to dps.report; KillProof.me public profiles. Parse fixtures gated in `make test-parse`. See [`DPS_LOGS.md`](DPS_LOGS.md).
 
 ### 17.4 Events and Notes
 
@@ -922,7 +922,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | `src/account/*` | Account hub pads + API fetch/parse (feature subfolders under `src/account/`) |
 | `src/pathing/*` | Packs, trails, markers, compass, world GPS (feature subfolders under `src/pathing/`) |
 | `src/pathing/world/WorldGps*` / `WorldOverlay*` | D3D ribbons + ImGui markers |
-| `src/logs/*` | DPS Logs + EI runtime (`logmanager/`, `ei/`) |
+| `src/logs/*` | DPS Logs + EI runtime (`logmanager/`, `eiruntime/`) |
 | `src/events/*` | World Events |
 | `src/notes/*` | Notes + waypoints |
 | `src/app/*` | Settings, paths, theme, pad dock, Mumble identity |
