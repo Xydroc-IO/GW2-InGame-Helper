@@ -149,11 +149,30 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	ImGui::SameLine();
 
 	ImGui::BeginChild("##gw2igh_browse_sites", ImVec2(0.f, listH), true);
+
+	static char sNewFolder[48]{};
+	static bool sFocusNewFolder = false;
+	static int sRenameFolderId = -1;
+	static char sRenameBuf[48]{};
+
 	ImGui::PushStyleColor(ImGuiCol_Text, kGold);
 	if (filtering)
 		ImGui::TextUnformatted("Matching sites");
 	else if (showFavorites)
+	{
 		ImGui::TextUnformatted("Favorites");
+		ImGui::SameLine(0.f, 10.f);
+		ImGui::PopStyleColor();
+		if (ImGui::SmallButton("+ Folder###gw2igh_fav_add_folder"))
+		{
+			sNewFolder[0] = 0;
+			sFocusNewFolder = true;
+			ImGui::OpenPopup("##gw2igh_new_fav_folder");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Create a folder to organize favorites");
+		ImGui::PushStyleColor(ImGuiCol_Text, kGold);
+	}
 	else
 		ImGui::TextUnformatted(selectedCat);
 	ImGui::PopStyleColor();
@@ -351,26 +370,38 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 
 	if (showFavorites)
 	{
-		static char sNewFolder[48]{};
-		static int sRenameFolderId = -1;
-		static char sRenameBuf[48]{};
-
-		const float folderFieldW = ImGui::GetContentRegionAvail().x - 56.f;
-		ImGui::PushItemWidth(folderFieldW > 80.f ? folderFieldW : 80.f);
-		const bool addFolder = ImGui::InputTextWithHint("##gw2igh_new_fav_folder",
-			"New folder name…", sNewFolder, sizeof(sNewFolder),
-			ImGuiInputTextFlags_EnterReturnsTrue);
-		ImGui::PopItemWidth();
-		ImGui::SameLine(0.f, 6.f);
-		if ((ImGui::SmallButton("Add") || addFolder) && sNewFolder[0])
+		if (ImGui::BeginPopupModal("##gw2igh_new_fav_folder", nullptr,
+			ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			if (Sites::CreateFavoriteFolder(sNewFolder))
+			ImGui::TextUnformatted("New favorites folder");
+			ImGui::Spacing();
+			if (sFocusNewFolder)
+			{
+				ImGui::SetKeyboardFocusHere();
+				sFocusNewFolder = false;
+			}
+			const bool enter = ImGui::InputTextWithHint("##gw2igh_new_fav_name",
+				"Folder name…", sNewFolder, sizeof(sNewFolder),
+				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::Spacing();
+			const bool canSave = sNewFolder[0] != 0;
+			if ((ImGui::Button("Create", ImVec2(96.f, 0.f)) || enter) && canSave)
+			{
+				if (Sites::CreateFavoriteFolder(sNewFolder))
+				{
+					sNewFolder[0] = 0;
+					LivePanels::NotifyFavoritesChanged();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", ImVec2(96.f, 0.f)))
 			{
 				sNewFolder[0] = 0;
-				LivePanels::NotifyFavoritesChanged();
+				ImGui::CloseCurrentPopup();
 			}
+			ImGui::EndPopup();
 		}
-		ImGui::Spacing();
 
 		auto DrawFolderBlock = [&](int folderId) {
 			const int n = Sites::FavoriteCountInFolder(folderId);
