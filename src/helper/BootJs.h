@@ -17,7 +17,8 @@ var isSearchHost = isGoogleHost || isDdgHost;
 var needsCssFix = false;
 var isSnowcrows = /(^|\.)snowcrows\.com$/.test(host);
 /* Forced wide viewport helps MediaWiki-style layouts. Skip Snow Crows — Livewire
-   + width=1280 inside a narrower overlay causes nested scroll / overflow jank. */
+   + width=1280 causes nested scroll / overflow jank, and that host already gets a
+   desktop-sized CEF view (HostWantsDesktopAdViewport) for ad rails. */
 var clampViewport = !isSearchHost && !isSnowcrows && (isGw2App ||
   /(^|\.)metabattle\.com$|(^|\.)gw2efficiency\.com$|(^|\.)hardstuck\.gg$|(^|\.)guildjen\.com$/.test(host));
 /* Response filter already downlevels same-origin CSS for these hosts. */

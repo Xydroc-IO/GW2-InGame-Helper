@@ -40,6 +40,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <algorithm>
 
 #include <windows.h>
 #include <shellapi.h>
@@ -96,12 +97,26 @@ namespace UIDetail
 	if (WikiBrowser::HasFrame())
 	{
 		const ImVec2 cursor = ImGui::GetCursorScreenPos();
+		float uvU = 1.f, uvV = 1.f;
+		WikiBrowser::FrameUvMax(&uvU, &uvV);
+
+		/* Desktop-ad hosts: letterbox the CEF frame so resize stays uniform
+		   (no anamorphic stretch). Other sites still fill the slot 1:1. */
+		float drawX = 0.f, drawY = 0.f, drawW = imageSize.x, drawH = imageSize.y;
+		const bool desktopAd = HostWantsDesktopAdViewport(WikiBrowser::CurrentUrlCStr());
+		if (desktopAd)
 		{
-			float uvU = 1.f, uvV = 1.f;
-			WikiBrowser::FrameUvMax(&uvU, &uvV);
-			ImGui::Image(reinterpret_cast<ImTextureID>(WikiBrowser::FrameSrv()), imageSize,
-				ImVec2(0.f, 0.f), ImVec2(uvU, uvV));
+			const float fw = static_cast<float>(std::max(1, WikiBrowser::FrameWidth()));
+			const float fh = static_cast<float>(std::max(1, WikiBrowser::FrameHeight()));
+			FitContentInPanel(imageSize.x, imageSize.y, fw, fh, &drawX, &drawY, &drawW, &drawH);
+			ImDrawList* dl = ImGui::GetWindowDrawList();
+			dl->AddRectFilled(cursor, ImVec2(cursor.x + imageSize.x, cursor.y + imageSize.y),
+				IM_COL32(11, 10, 16, 255));
 		}
+
+		ImGui::SetCursorScreenPos(ImVec2(cursor.x + drawX, cursor.y + drawY));
+		ImGui::Image(reinterpret_cast<ImTextureID>(WikiBrowser::FrameSrv()),
+			ImVec2(drawW, drawH), ImVec2(0.f, 0.f), ImVec2(uvU, uvV));
 
 		ImGui::SetCursorScreenPos(cursor);
 		ImGui::InvisibleButton("##gw2igh_wiki_hit", imageSize,
@@ -123,42 +138,46 @@ namespace UIDetail
 			FocusBrowser();
 
 			const ImVec2 mouse = io.MousePos;
-			const float localX = mouse.x - cursor.x;
-			const float localY = mouse.y - cursor.y;
-			int cx = 0, cy = 0;
-			MapToCef(localX, localY, imageSize.x, imageSize.y, &cx, &cy);
-
-			WikiBrowser::FeedMouseMove(cx, cy, false, mods);
-
-			auto click = [&](ImGuiMouseButton btn, int cefBtn) {
-				if (ImGui::IsMouseClicked(btn))
-				{
-					/* Re-assert focus on click so the text caret appears (OSR). */
-					FocusBrowserForce();
-					WikiBrowser::FeedMouseClick(cx, cy, cefBtn, false,
-						ImGui::IsMouseDoubleClicked(btn) ? 2 : 1, mods);
-				}
-				if (ImGui::IsMouseReleased(btn))
-					WikiBrowser::FeedMouseClick(cx, cy, cefBtn, true, 1, mods);
-			};
-			click(ImGuiMouseButton_Left, 0);
-			click(ImGuiMouseButton_Right, 2);
-			click(ImGuiMouseButton_Middle, 1);
-
-			if (io.MouseWheel != 0.f || io.MouseWheelH != 0.f)
+			const float localX = mouse.x - cursor.x - drawX;
+			const float localY = mouse.y - cursor.y - drawY;
+			/* Ignore pointer over letterbox bars. */
+			if (localX >= 0.f && localY >= 0.f && localX < drawW && localY < drawH)
 			{
-				/* Accumulate fractional trackpad deltas so smooth scroll isn't
-				   quantized away by int(wheel*120). Discrete notches still land as ±120. */
-				sWheelAccX += io.MouseWheelH * 120.f;
-				sWheelAccY += io.MouseWheel * 120.f;
-				const int dx = static_cast<int>(sWheelAccX);
-				const int dy = static_cast<int>(sWheelAccY);
-				if (dx != 0 || dy != 0)
+				int cx = 0, cy = 0;
+				MapToCef(localX, localY, drawW, drawH, &cx, &cy);
+
+				WikiBrowser::FeedMouseMove(cx, cy, false, mods);
+
+				auto click = [&](ImGuiMouseButton btn, int cefBtn) {
+					if (ImGui::IsMouseClicked(btn))
+					{
+						/* Re-assert focus on click so the text caret appears (OSR). */
+						FocusBrowserForce();
+						WikiBrowser::FeedMouseClick(cx, cy, cefBtn, false,
+							ImGui::IsMouseDoubleClicked(btn) ? 2 : 1, mods);
+					}
+					if (ImGui::IsMouseReleased(btn))
+						WikiBrowser::FeedMouseClick(cx, cy, cefBtn, true, 1, mods);
+				};
+				click(ImGuiMouseButton_Left, 0);
+				click(ImGuiMouseButton_Right, 2);
+				click(ImGuiMouseButton_Middle, 1);
+
+				if (io.MouseWheel != 0.f || io.MouseWheelH != 0.f)
 				{
-					sWheelAccX -= static_cast<float>(dx);
-					sWheelAccY -= static_cast<float>(dy);
-					FocusBrowser();
-					WikiBrowser::FeedMouseWheel(cx, cy, dx, dy, mods);
+					/* Accumulate fractional trackpad deltas so smooth scroll isn't
+					   quantized away by int(wheel*120). Discrete notches still land as ±120. */
+					sWheelAccX += io.MouseWheelH * 120.f;
+					sWheelAccY += io.MouseWheel * 120.f;
+					const int dx = static_cast<int>(sWheelAccX);
+					const int dy = static_cast<int>(sWheelAccY);
+					if (dx != 0 || dy != 0)
+					{
+						sWheelAccX -= static_cast<float>(dx);
+						sWheelAccY -= static_cast<float>(dy);
+						FocusBrowser();
+						WikiBrowser::FeedMouseWheel(cx, cy, dx, dy, mods);
+					}
 				}
 			}
 		}

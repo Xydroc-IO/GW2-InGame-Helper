@@ -34,6 +34,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -207,25 +208,54 @@ namespace UIDetail
 		*outY = y;
 	}
 
-	/* gw2efficiency NitroPay gates slots with matchMedia min-width up to 1840px.
-	   OSR innerWidth is the ImGui panel, so a normal helper window never unlocks
-	   desktop rails. Only this host needs a desktop-sized CEF view (scaled into
-	   the panel). Do not apply to Snow Crows / others — their ads already show. */
+	/* NitroPay gates slots with matchMedia min-width up to 1840px. OSR innerWidth is
+	   the ImGui panel, so a normal helper window never unlocks desktop rails. These
+	   hosts get a desktop-sized CEF view (scaled into the panel) so side rails and
+	   large footers lay out like a normal browser. */
 	bool HostWantsDesktopAdViewport(const char* url)
 	{
-		return url && url[0] && std::strstr(url, "gw2efficiency.com") != nullptr;
+		if (!url || !url[0])
+			return false;
+		return std::strstr(url, "gw2efficiency.com") != nullptr ||
+			std::strstr(url, "snowcrows.com") != nullptr ||
+			std::strstr(url, "metabattle.com") != nullptr ||
+			std::strstr(url, "guildjen.com") != nullptr;
 	}
 
-	void DesktopAdCefSize(float /*panelW*/, float panelH, float* outW, float* outH)
+	void DesktopAdCefSize(float panelW, float panelH, float* outW, float* outH)
 	{
-		/* Full HD layout width so (min-width: 1840px) / footer / video queries pass. */
-		*outW = static_cast<float>(kWikiFrameMaxW);
-		float h = panelH;
-		if (h < 900.f)
-			h = 900.f;
-		if (h > static_cast<float>(kWikiFrameMaxH))
-			h = static_cast<float>(kWikiFrameMaxH);
+		/* Full HD layout width so (min-width: 1840px) / footer / video queries pass.
+		   Height tracks the panel's aspect ratio so the bitmap scales uniformly into
+		   the slot (same feel as resizing a normal browser window) instead of
+		   stretching 1920×fixed-H into a mismatched panel. */
+		const float maxW = static_cast<float>(kWikiFrameMaxW);
+		const float maxH = static_cast<float>(kWikiFrameMaxH);
+		const float minH = 900.f;
+		*outW = maxW;
+		float h = (panelW > 1.f) ? (panelH * (maxW / panelW)) : panelH;
+		if (h < minH)
+			h = minH;
+		if (h > maxH)
+			h = maxH;
 		*outH = h;
+	}
+
+	void FitContentInPanel(float panelW, float panelH, float contentW, float contentH,
+		float* outX, float* outY, float* outW, float* outH)
+	{
+		if (panelW < 1.f || panelH < 1.f || contentW < 1.f || contentH < 1.f)
+		{
+			*outX = 0.f;
+			*outY = 0.f;
+			*outW = panelW;
+			*outH = panelH;
+			return;
+		}
+		const float scale = std::min(panelW / contentW, panelH / contentH);
+		*outW = contentW * scale;
+		*outH = contentH * scale;
+		*outX = (panelW - *outW) * 0.5f;
+		*outY = (panelH - *outH) * 0.5f;
 	}
 
 	bool sShowFind = false;
