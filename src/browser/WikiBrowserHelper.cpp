@@ -248,7 +248,10 @@ namespace WikiBrowserDetail
 		gLastOpenExtSeq = 0;
 		gIpc->open_tab_seq = 0;
 		gIpc->open_tab_url[0] = 0;
+		gIpc->open_site_seq = 0;
+		gIpc->open_site_id[0] = 0;
 		gLastOpenTabSeq = 0;
+		gLastOpenSiteSeq = 0;
 		gUrlCache[0] = 0;
 		gUrlCacheSeq = 0xFFFFFFFFu;
 		gTitleCache[0] = 0;
@@ -266,7 +269,7 @@ namespace WikiBrowserDetail
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2213";
+		static constexpr const char* kHelperStamp = "2216";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;

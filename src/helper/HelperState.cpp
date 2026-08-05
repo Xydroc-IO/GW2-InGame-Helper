@@ -449,10 +449,10 @@ namespace HelperDetail
 			static const char kShell[] =
 				"<!DOCTYPE html><html><head><meta charset=\"utf-8\"/>"
 				"<title>Loading craft tree…</title></head>"
-				"<body style=\"margin:0;background:#0b0a10;color:#a1a1aa;"
+				"<body style=\"margin:0;background:#06070a;color:#a8aeb8;"
 				"font-family:Segoe UI,sans-serif;padding:2rem\">"
 				"<p>Building craft tree (gifts → mats)…</p>"
-				"<p style=\"font-size:.85rem;color:#52525b\">This page refreshes when ready.</p>"
+				"<p style=\"font-size:.85rem;color:#c9a227\">This page refreshes when ready.</p>"
 				"</body></html>";
 			HANDLE hf = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 				FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -467,6 +467,7 @@ namespace HelperDetail
 			return WidePathToFileUrl(path);
 		}
 		const wchar_t* fileNameW = nullptr;
+		std::wstring dynamicFileName;
 		if (std::strcmp(url, "about:helper-home") == 0)
 			fileNameW = L"helper-home.html";
 		else if (std::strcmp(url, "about:raid-food") == 0)
@@ -505,6 +506,21 @@ namespace HelperDetail
 			fileNameW = L"live-legendary-vault.html";
 		else if (std::strcmp(url, "about:cheatsheets-hub") == 0)
 			fileNameW = L"live-cheatsheets-hub.html";
+		else if (std::strcmp(url, "about:browse-hub") == 0)
+			fileNameW = L"live-browse-hub.html";
+		else if (std::strncmp(url, "about:browse-cat-", 17) == 0)
+		{
+			dynamicFileName = L"live-browse-cat-";
+			for (const char* p = url + 17; *p; ++p)
+			{
+				if ((*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9') || *p == '-')
+					dynamicFileName.push_back(static_cast<wchar_t>(*p));
+			}
+			if (dynamicFileName.size() <= 16) /* "live-browse-cat-" only */
+				return {};
+			dynamicFileName += L".html";
+			fileNameW = dynamicFileName.c_str();
+		}
 		else if (std::strcmp(url, "about:mount-unlock") == 0)
 			fileNameW = L"mount-unlock.html";
 		else if (std::strcmp(url, "about:daily-weekly") == 0)
@@ -657,6 +673,152 @@ namespace HelperDetail
 		else
 			std::snprintf(about, sizeof(about), "about:legendary-vault-item-%d", openId);
 		*outNavigate = ResolveBuiltinUrl(about);
+		return true;
+	}
+
+	void AppendCmdLine(const std::wstring& fileName, const std::string& line)
+	{
+		const std::wstring cmds = HelperCmdsDir();
+		if (cmds.empty() || line.empty())
+			return;
+		const std::wstring path = cmds + L"\\" + fileName;
+		HANDLE h = CreateFileW(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr,
+			OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (h == INVALID_HANDLE_VALUE)
+			return;
+		DWORD written = 0;
+		WriteFile(h, line.c_str(), static_cast<DWORD>(line.size()), &written, nullptr);
+		CloseHandle(h);
+	}
+
+	std::string ParseQueryValue(const std::string& query, const char* key)
+	{
+		std::string pat = key;
+		pat += '=';
+		size_t p = query.find(pat);
+		if (p == std::string::npos)
+			return {};
+		p += pat.size();
+		size_t end = p;
+		while (end < query.size() && query[end] != '&' && query[end] != '#')
+			++end;
+		return query.substr(p, end - p);
+	}
+
+	/* Map live-browse-*.html file URL → about: for DLL EnsurePanel refresh. */
+	std::string AboutFromBrowseFileUrl(const std::string& url)
+	{
+		const size_t hub = url.find("live-browse-hub.html");
+		if (hub != std::string::npos)
+			return "about:browse-hub";
+		const size_t cat = url.find("live-browse-cat-");
+		if (cat == std::string::npos)
+			return {};
+		size_t start = cat + 15; /* strlen("live-browse-cat-") */
+		size_t end = start;
+		while (end < url.size())
+		{
+			const char c = url[end];
+			if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-')
+				++end;
+			else
+				break;
+		}
+		if (end <= start)
+			return {};
+		return std::string("about:browse-cat-") + url.substr(start, end - start);
+	}
+
+	void InvalidateHelperBrowseCaches()
+	{
+		const std::wstring pages = HelperPagesDir();
+		if (pages.empty())
+			return;
+		DeleteFileW((pages + L"\\live-browse-hub.ok").c_str());
+		DeleteFileW((pages + L"\\live-browse-hub.ver").c_str());
+		DeleteFileW((pages + L"\\live-browse-hub.html").c_str());
+	}
+
+	void InvalidateHelperBrowsePage(const std::string& fileUrl)
+	{
+		InvalidateHelperBrowseCaches();
+		const std::wstring pages = HelperPagesDir();
+		if (pages.empty())
+			return;
+		const std::string about = AboutFromBrowseFileUrl(fileUrl);
+		if (about.rfind("about:browse-cat-", 0) != 0)
+			return;
+		const std::string stem = std::string("live-browse-cat-") + about.substr(17);
+		std::wstring wstem;
+		wstem.reserve(stem.size());
+		for (char c : stem)
+			wstem.push_back(static_cast<wchar_t>(c));
+		DeleteFileW((pages + L"\\" + wstem + L".html").c_str());
+		DeleteFileW((pages + L"\\" + wstem + L".ok").c_str());
+		DeleteFileW((pages + L"\\" + wstem + L".ver").c_str());
+	}
+
+	/* Browse hub: open site / about drill-down / favorite toggle (file:// query IPC). */
+	bool ConsumeBrowseHubActionUrl(const std::string& url, std::string* outNavigate)
+	{
+		if (!outNavigate)
+			return false;
+		outNavigate->clear();
+		if (url.find("live-browse-") == std::string::npos &&
+			url.find("live-cheatsheets-hub") == std::string::npos)
+			return false;
+		size_t q = url.find('?');
+		if (q == std::string::npos)
+			return false;
+		std::string query = url.substr(q + 1);
+		const size_t hash = query.find('#');
+		if (hash != std::string::npos)
+			query.resize(hash);
+
+		const std::string openSite = ParseQueryValue(query, "gw2igh-open-site");
+		const std::string aboutKey = ParseQueryValue(query, "gw2igh-about");
+		const std::string favId = ParseQueryValue(query, "gw2igh-fav-toggle");
+		if (openSite.empty() && aboutKey.empty() && favId.empty())
+			return false;
+
+		if (!openSite.empty())
+		{
+			/* Catalog id only — alphanumeric / - _ */
+			for (char c : openSite)
+			{
+				if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+					(c >= '0' && c <= '9') || c == '-' || c == '_'))
+					return false;
+			}
+			QueueOpenSiteInAddonTab(openSite);
+			return true;
+		}
+		if (!aboutKey.empty())
+		{
+			for (char c : aboutKey)
+			{
+				if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-'))
+					return false;
+			}
+			if (aboutKey != "browse-hub" && aboutKey.rfind("browse-cat-", 0) != 0)
+				return false;
+			AppendCmdLine(L"open-about-cmd.txt", std::string("about:") + aboutKey + "\n");
+			SetStatus("Opening…");
+			return true;
+		}
+		/* fav toggle */
+		for (char c : favId)
+		{
+			if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+				(c >= '0' && c <= '9') || c == '-' || c == '_'))
+				return false;
+		}
+		AppendCmdLine(L"fav-cmd.txt", std::string("toggle ") + favId + "\n");
+		InvalidateHelperBrowsePage(url);
+		const std::string about = AboutFromBrowseFileUrl(url);
+		if (!about.empty())
+			AppendCmdLine(L"open-about-cmd.txt", about + "\n");
+		SetStatus("Updating favorites…");
 		return true;
 	}
 

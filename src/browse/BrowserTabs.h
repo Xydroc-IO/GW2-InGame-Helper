@@ -50,6 +50,6 @@ namespace BrowserTabs
 	bool CanGoForward();
 	void GoBack();
 	void GoForward();
-	void GoHome();   /* DefaultSiteId (or home) in the active tab */
+	void GoHome();   /* always Browse hub (about:browse-hub) in the active tab */
 	void Reload();
 }

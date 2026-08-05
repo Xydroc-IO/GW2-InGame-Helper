@@ -7,6 +7,7 @@
 #include "HelperTheme.h"
 #include "Settings.h"
 #include "Sites.h"
+#include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
 
@@ -65,25 +66,14 @@ void UI_WriteBrowseOpen(FILE* f)
 
 void UI_Browse_OnMainButtonClicked()
 {
-	sSyncCategory = true;
-	sFocusFilter = true;
-	ImGui::OpenPopup("##gw2igh_site_browse");
+	G::ShowWiki = true;
+	Settings::SetDirty();
+	WikiBrowser::Navigate("about:browse-hub");
 }
 
 void UI_Browse_DrawMainPopup()
 {
-	sBrowseAnchor = CaptureAnchorBelowItem();
-	const BrowsePopupLayout browseLay = CalcBrowsePopupLayout(false, false);
-	PrepareBrowsePopup(sBrowseAnchor, browseLay);
-	if (ImGui::BeginPopup("##gw2igh_site_browse", kBrowsePopupFlags))
-	{
-		bool closePanel = false;
-		DrawBrowsePanelContents(true, &closePanel, false, false, browseLay.listH, browseLay.leftW);
-		if (closePanel || ImGui::IsKeyPressed(ImGuiKey_Escape))
-			ImGui::CloseCurrentPopup();
-		UI_NoteHelperPopupHover();
-		ImGui::EndPopup();
-	}
+	/* Side-rail Browse opens the HTML hub; ImGui popup retained unused. */
 }
 
 void UI_Browse_OnNewTabButtonClicked()

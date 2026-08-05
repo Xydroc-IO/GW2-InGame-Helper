@@ -33,8 +33,8 @@ namespace BrowserTabsDetail
 		t.tab = BrowserTabs::Tab{};
 
 		if (!siteId || !siteId[0])
-			siteId = "home";
-		if (!Sites::SetActiveById(siteId))
+			siteId = "browse";
+		if (!Sites::SetActiveById(siteId) && !Sites::SetActiveById("browse"))
 			Sites::SetActiveById("home");
 
 		const SiteDef& site = Sites::Active();

@@ -1,6 +1,7 @@
 #include "LivePanels.h"
 
 #include "LivePanelsInternal.h"
+#include "LivePanelsBuild.h"
 
 #include "AddonPaths.h"
 #include "WikiBrowser.h"
@@ -23,7 +24,8 @@ bool LivePanels::IsLiveAbout(const char* url)
 		std::strncmp(url, "about:live-tp-remove-", 21) == 0 ||
 		std::strncmp(url, "about:craft-plan-", 17) == 0 ||
 		std::strncmp(url, "about:legendary-vault-item-", 27) == 0 ||
-		std::strncmp(url, "about:legendary-vault-sync-", 27) == 0)
+		std::strncmp(url, "about:legendary-vault-sync-", 27) == 0 ||
+		std::strncmp(url, "about:browse-cat-", 17) == 0)
 		return true;
 	return std::strcmp(url, "about:live-dailies") == 0 ||
 		std::strcmp(url, "about:live-news") == 0 ||
@@ -32,6 +34,7 @@ bool LivePanels::IsLiveAbout(const char* url)
 		std::strcmp(url, "about:live-progress") == 0 ||
 		std::strcmp(url, "about:legendary-vault") == 0 ||
 		std::strcmp(url, "about:cheatsheets-hub") == 0 ||
+		std::strcmp(url, "about:browse-hub") == 0 ||
 		std::strcmp(url, "about:gw2-api-check") == 0;
 }
 
@@ -49,6 +52,8 @@ bool LivePanels::IsLiveUrl(const char* url)
 		std::strstr(url, "live-legendary-vault.html") != nullptr ||
 		std::strstr(url, "live-legendary-detail-") != nullptr ||
 		std::strstr(url, "live-cheatsheets-hub.html") != nullptr ||
+		std::strstr(url, "live-browse-hub.html") != nullptr ||
+		std::strstr(url, "live-browse-cat-") != nullptr ||
 		std::strstr(url, "gw2-api-check.html") != nullptr;
 }
 
@@ -79,19 +84,22 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 	{
 		char stem[64];
 		std::snprintf(stem, sizeof(stem), "live-legendary-detail-%d", id);
-		/* Always rebuild craft tree on open — no manual Sync required. */
-		char craftStem[64];
-		std::snprintf(craftStem, sizeof(craftStem), "live-leg-craft-%d", id);
-		DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
-		DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
-		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
-		DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
-		DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
+		/* Sync forces a full rebuild; normal open serves the cached craft tree
+		   instantly when the panel is ready (wiki forge expand is expensive). */
 		if (sync)
 		{
+			char craftStem[64];
+			std::snprintf(craftStem, sizeof(craftStem), "live-leg-craft-%d", id);
+			DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
+			DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
+			DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
+			DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
+			DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
 			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ver").c_str());
 			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ok").c_str());
 		}
+		else if (PanelReady(addonDir, stem))
+			return PathToFileUrl(StemPath(addonDir, stem, L".html"));
 		char title[96];
 		std::snprintf(title, sizeof(title), "Legendary craft #%d", id);
 		return EnsurePanel(addonDir, stem, LiveAsyncJob::LegendaryDetail,
@@ -125,6 +133,19 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 	if (url == "about:cheatsheets-hub")
 		return EnsurePanel(addonDir, "live-cheatsheets-hub", LiveAsyncJob::CheatSheetsHub,
 			"Cheat Sheets", "Cheat Sheets");
+	if (url == "about:browse-hub")
+		return EnsurePanel(addonDir, "live-browse-hub", LiveAsyncJob::BrowseHub,
+			"Browse", "Browse");
+	if (url.rfind("about:browse-cat-", 0) == 0)
+	{
+		const std::string slug = url.substr(17);
+		const char* cat = LivePanelsBuild::BrowseCategoryFromSlug(slug.c_str());
+		if (!cat || !cat[0] || std::strcmp(cat, "Cheat Sheets") == 0)
+			return {};
+		const std::string stem = std::string("live-browse-cat-") + slug;
+		return EnsurePanel(addonDir, stem.c_str(), LiveAsyncJob::BrowseCategory,
+			"Browse", cat);
+	}
 	if (url == "about:gw2-api-check")
 		return EnsurePanel(addonDir, "gw2-api-check", LiveAsyncJob::ApiCheck,
 			"GW2 API Check", "GW2 API Check");
@@ -141,6 +162,8 @@ void LivePanels::Tick()
 			ProcessTpWatchCmdFile(dir);
 			ProcessCraftPlanCmdFile(dir);
 			ProcessLegendaryDetailCmdFile(dir);
+			ProcessFavCmdFile(dir);
+			ProcessOpenSiteCmdFile(dir);
 			ProcessOpenAboutCmdFile(dir);
 		}
 	}
@@ -175,6 +198,11 @@ void LivePanels::Tick()
 			(nav.stem == "live-cheatsheets-hub" &&
 				(std::strstr(cur, "about:cheatsheets-hub") ||
 					std::strstr(cur, "live-cheatsheets-hub"))) ||
+			(nav.stem == "live-browse-hub" &&
+				(std::strstr(cur, "about:browse-hub") ||
+					std::strstr(cur, "live-browse-hub"))) ||
+			(nav.stem.rfind("live-browse-cat-", 0) == 0 &&
+				std::strstr(cur, nav.stem.c_str())) ||
 			(nav.stem.rfind("live-legendary-detail-", 0) == 0 &&
 				(std::strstr(cur, nav.stem.c_str()) ||
 					std::strstr(cur, "about:legendary-vault-item-") ||
@@ -225,7 +253,7 @@ void LivePanels::InvalidateCaches(const std::wstring& addonDir)
 		return;
 	const char* stems[] = {
 		"live-dailies", "live-news", "live-fashion", "live-tp", "live-progress",
-		"live-legendary-vault", "live-cheatsheets-hub", "gw2-api-check",
+		"live-legendary-vault", "live-cheatsheets-hub", "live-browse-hub", "gw2-api-check",
 		"live-colors", "live-armory", "live-armory-names",
 		"live-season", "live-craft", "live-bosses", "live-vault-obj",
 		"live-vault-daily", "live-vault-weekly", "live-vault-special",
@@ -238,6 +266,7 @@ void LivePanels::InvalidateCaches(const std::wstring& addonDir)
 		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 		DeleteFileW(StemPath(addonDir, stem, L".json").c_str());
 	}
+	InvalidateBrowseHubCaches(addonDir);
 }
 
 void LivePanels::Shutdown()

@@ -69,6 +69,7 @@ namespace WikiBrowserDetail
 	extern uint32_t gTitleCacheSeq;
 	extern uint32_t gLastOpenExtSeq;
 	extern uint32_t gLastOpenTabSeq;
+	extern uint32_t gLastOpenSiteSeq;
 
 	/* D3D / present */
 	extern bool gTexHasContent;
@@ -141,6 +142,7 @@ namespace WikiBrowserDetail
 	void RequestStopHelper();
 	void DrainOpenExtRequests();
 	void DrainOpenTabRequests();
+	void DrainOpenSiteRequests();
 	void TickQuitPending();
 	void StopHelper();
 	HANDLE EnsureJob();

@@ -16,8 +16,19 @@ void BrowserTabs::EnsureDefault()
 {
 	if (gCount > 0)
 		return;
-	const char* land = (G::DefaultSiteId[0] ? G::DefaultSiteId : "home");
+	const char* land = "browse";
+	if (G::DefaultSiteId[0] && Sites::IndexOfId(G::DefaultSiteId) >= 0)
+		land = G::DefaultSiteId;
+	if (Sites::IndexOfId(land) < 0)
+		land = "browse";
 	FillFromSite(gTabs[0], land);
+	if (Sites::IndexOfId("browse") < 0 &&
+		(std::strcmp(land, "browse") == 0 || gTabs[0].tab.url.empty()))
+	{
+		std::snprintf(gTabs[0].tab.siteId, sizeof(gTabs[0].tab.siteId), "browse");
+		std::snprintf(gTabs[0].tab.title, sizeof(gTabs[0].tab.title), "Browse");
+		gTabs[0].tab.url = "about:browse-hub";
+	}
 	gCount = 1;
 	gActive = 0;
 	Settings::SetDirty();
@@ -105,6 +116,19 @@ void BrowserTabs::FinalizeLoad()
 	int w = 0;
 	for (int i = 0; i < gCount && i < kMaxTabs; ++i)
 	{
+		/* Migrate former How-to-use landing tabs → Browse hub. */
+		const bool wasHome = std::strcmp(gTabs[i].tab.siteId, "home") == 0;
+		const bool wasHelperHome =
+			gTabs[i].tab.url.find("helper-home") != std::string::npos ||
+			gTabs[i].tab.url == "about:helper-home";
+		if (wasHome && (wasHelperHome || gTabs[i].tab.url.empty()) &&
+			Sites::IndexOfId("browse") >= 0)
+		{
+			std::snprintf(gTabs[i].tab.siteId, sizeof(gTabs[i].tab.siteId), "browse");
+			gTabs[i].tab.url = "about:browse-hub";
+			std::snprintf(gTabs[i].tab.title, sizeof(gTabs[i].tab.title), "Browse");
+		}
+
 		if (!gTabs[i].tab.siteId[0] || Sites::IndexOfId(gTabs[i].tab.siteId) < 0)
 			continue;
 		if (gTabs[i].tab.url.empty())
@@ -299,7 +323,7 @@ int BrowserTabs::ReopenClosed()
 	--gClosedCount;
 
 	StashActiveUrl();
-	FillFromSite(gTabs[gCount], c.siteId[0] ? c.siteId : "home");
+	FillFromSite(gTabs[gCount], c.siteId[0] ? c.siteId : "browse");
 	if (c.title[0])
 		std::snprintf(gTabs[gCount].tab.title, sizeof(gTabs[gCount].tab.title), "%s", c.title);
 	if (!c.url.empty())

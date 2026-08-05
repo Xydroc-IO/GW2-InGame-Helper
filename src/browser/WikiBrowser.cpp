@@ -84,6 +84,7 @@ namespace WikiBrowserDetail
 	char gPaintWaitReason[192]{};
 	uint32_t gLastOpenExtSeq = 0;
 	uint32_t gLastOpenTabSeq = 0;
+	uint32_t gLastOpenSiteSeq = 0;
 
 	/* Local status mirror for StatusCStr (avoids std::string every frame). */
 	char gStatusCache[256] = "Closed — press Ctrl+Shift+H to open";
@@ -130,6 +131,7 @@ void WikiBrowser::Tick()
 	TickLaunchPending();
 	DrainOpenExtRequests();
 	DrainOpenTabRequests();
+	DrainOpenSiteRequests();
 	LivePanels::Tick();
 }
 

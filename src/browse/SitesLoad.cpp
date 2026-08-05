@@ -23,11 +23,11 @@ namespace SitesDetail
 	{
 		ClearCatalog();
 		gFallbackOwned = SiteOwned{};
-		gFallbackOwned.id = "home";
+		gFallbackOwned.id = "browse";
 		gFallbackOwned.category = "Help";
-		gFallbackOwned.label = "How to use";
-		gFallbackOwned.title = "How to use";
-		gFallbackOwned.homeUrl = "about:helper-home";
+		gFallbackOwned.label = "Browse";
+		gFallbackOwned.title = "Browse sites — categories & favorites";
+		gFallbackOwned.homeUrl = "about:browse-hub";
 		gFallbackOwned.browsePath[0] = "Getting Started";
 		gFallbackOwned.browsePathCount = 1;
 		gFallbackBrowse[0] = gFallbackOwned.browsePath[0].c_str();

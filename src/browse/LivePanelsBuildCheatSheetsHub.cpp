@@ -1,8 +1,5 @@
 #include "LivePanelsBuildShared.h"
 
-#include "CheatSheets.h"
-#include "LivePanels.h"
-#include "RaidFood.h"
 #include "Sites.h"
 
 #include <algorithm>
@@ -18,9 +15,9 @@ namespace
 {
 	struct HubEntry
 	{
+		std::string id;
 		std::string label;
 		std::string title;
-		std::string href; /* file:/// only — CEF blocks unknown about: before rewrite */
 		std::string section;
 	};
 
@@ -104,28 +101,9 @@ a.tile .blurb{font-size:.8rem;color:var(--muted);line-height:1.35}
 	}
 
 	std::string Esc(const std::string& s) { return HtmlEscape(s); }
-
-	/* Resolve about: → file:/// while building so CEF never sees raw about: clicks. */
-	std::string ResolveTileHref(const std::wstring& addonDir, const char* about)
-	{
-		if (!about || !about[0] || addonDir.empty())
-			return {};
-		if (std::strcmp(about, "about:raid-food") == 0)
-			return RaidFood::EnsureFileUrl(addonDir);
-		if (std::strcmp(about, "about:legendary-vault") == 0)
-			return LivePanels::ResolveAboutUrl(addonDir, about);
-		{
-			const std::string fileUrl = CheatSheets::ResolveAboutUrl(addonDir, about);
-			if (!fileUrl.empty())
-				return fileUrl;
-		}
-		if (LivePanels::IsLiveAbout(about))
-			return LivePanels::ResolveAboutUrl(addonDir, about);
-		return {};
-	}
 } // namespace
 
-std::string BuildCheatSheetsHubHtml(const std::wstring& addonDir, const char* /*apiKey*/)
+std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char* /*apiKey*/)
 {
 	size_t n = 0;
 	const SiteDef* sites = Sites::All(&n);
@@ -136,15 +114,17 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& addonDir, const char* /*
 		const SiteDef& s = sites[i];
 		if (!s.category || std::strcmp(s.category, "Cheat Sheets") != 0)
 			continue;
-		if (!s.homeUrl || !s.homeUrl[0] || !s.label || !s.label[0])
+		/* Legendary Ledger has its own side-rail button. */
+		if (s.id && std::strcmp(s.id, "legvault") == 0)
 			continue;
-		const std::string href = ResolveTileHref(addonDir, s.homeUrl);
-		if (href.empty())
+		if (s.homeUrl && std::strcmp(s.homeUrl, "about:legendary-vault") == 0)
+			continue;
+		if (!s.id || !s.id[0] || !s.label || !s.label[0])
 			continue;
 		HubEntry e;
+		e.id = s.id;
 		e.label = s.label;
 		e.title = (s.title && s.title[0]) ? s.title : s.label;
-		e.href = href;
 		if (s.browsePath && s.browsePath[0] && s.browsePath[0][0])
 			e.section = s.browsePath[0];
 		else
@@ -169,7 +149,7 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& addonDir, const char* /*
 		"<p class=\"eyebrow\">GW2 In-Game Helper</p>"
 		"<h1>Cheat Sheets</h1>"
 		"<p class=\"tag\">Offline reference pages — food, fractals, legendaries, "
-		"squad tools, and more. Pick a sheet below.</p>"
+		"squad tools, and more. Each sheet opens in a new tab.</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter cheat sheets…\" "
 		"autocomplete=\"off\"/>"
 		"</header>";
@@ -194,11 +174,11 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& addonDir, const char* /*
 				html += "</h2><div class=\"grid\">";
 				open = true;
 			}
-			std::string q = e.label + " " + e.title + " " + e.section;
+			std::string q = e.label + " " + e.title + " " + e.section + " " + e.id;
 			for (char& c : q)
 				c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-			html += "<a class=\"tile\" href=\"";
-			html += Esc(e.href);
+			html += "<a class=\"tile\" href=\"?gw2igh-open-site=";
+			html += Esc(e.id);
 			html += "\" data-q=\"";
 			html += Esc(q);
 			html += "\"><span class=\"name\">";
@@ -211,8 +191,8 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& addonDir, const char* /*
 			html += "</div></section>";
 	}
 
-	html += "<p class=\"foot\">Also available via Browse search. Idea: use the side rail "
-		"<strong>Cheat Sheets</strong> button anytime.</p>"
+	html += "<p class=\"foot\">Legendary Ledger is on the side rail under Notes. "
+		"Sheets open in a <strong>new helper tab</strong>.</p>"
 		"</div><script>";
 	html += HubJs();
 	html += "</script></body></html>";

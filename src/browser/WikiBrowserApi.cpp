@@ -134,10 +134,11 @@ void WikiBrowser::Navigate(const std::string& url)
 
 void WikiBrowser::NavigateHome()
 {
-	Sites::SetActiveById("home");
+	if (!Sites::SetActiveById("browse"))
+		Sites::SetActiveById("home");
 	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
 	Settings::SetDirty();
-	Navigate("about:helper-home");
+	Navigate(Sites::IndexOfId("browse") >= 0 ? "about:browse-hub" : "about:helper-home");
 }
 
 void WikiBrowser::NavigateActiveSite()

@@ -112,12 +112,23 @@ void BrowserTabs::GoHome()
 {
 	EnsureDefault();
 	StashActiveUrl();
-	const char* land = (G::DefaultSiteId[0] ? G::DefaultSiteId : "home");
-	if (Sites::IndexOfId(land) < 0)
-		land = "home";
+	/* Home always lands on the Browse hub (factory default). Settings
+	   DefaultSiteId still seeds empty-tab / first-run via EnsureDefault. */
+	const char* land = "browse";
+	if (Sites::IndexOfId(land) < 0 && G::DefaultSiteId[0] &&
+		Sites::IndexOfId(G::DefaultSiteId) >= 0)
+		land = G::DefaultSiteId;
 	const bool keepPin = gTabs[gActive].tab.pinned;
 	FillFromSite(gTabs[gActive], land);
 	gTabs[gActive].tab.pinned = keepPin;
+	/* If catalog lacked browse, still force the hub URL. */
+	if (std::strcmp(gTabs[gActive].tab.siteId, "browse") != 0 &&
+		Sites::IndexOfId("browse") < 0)
+	{
+		std::snprintf(gTabs[gActive].tab.siteId, sizeof(gTabs[gActive].tab.siteId), "browse");
+		std::snprintf(gTabs[gActive].tab.title, sizeof(gTabs[gActive].tab.title), "Browse");
+		gTabs[gActive].tab.url = "about:browse-hub";
+	}
 	Settings::SetDirty();
 	SyncSitesFromTab(gTabs[gActive].tab);
 	SyncSlotToHelper(gActive, true);

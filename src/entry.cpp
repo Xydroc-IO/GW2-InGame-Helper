@@ -76,8 +76,8 @@ namespace G
 	bool  HasSavedSize = false;
 	bool  KeepHelperWarm = false;
 	char  LastQuery[128] = "";
-	char  ActiveSiteId[64] = "home";
-	char  DefaultSiteId[64] = "home";
+	char  ActiveSiteId[64] = "browse";
+	char  DefaultSiteId[64] = "browse";
 	char  Gw2ApiKey[128] = "";
 	char  TpWatchIds[1024] = "";
 	char  TpWatchAlerts[2048] = "";

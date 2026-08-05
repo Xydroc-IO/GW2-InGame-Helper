@@ -146,7 +146,7 @@ std::string Sites::ResolveUrl(const SiteDef& site)
 		return "about:helper-home";
 	if (site.homeUrl && site.homeUrl[0])
 		return site.homeUrl;
-	return "about:helper-home";
+	return "about:browse-hub";
 }
 
 int Sites::IndexOfId(const char* id)

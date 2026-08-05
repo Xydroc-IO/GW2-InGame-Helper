@@ -114,6 +114,24 @@ namespace HelperDetail
 		SetStatus("Opening in a new tab…");
 	}
 
+	/* Browse hub: open catalog site by id in a new addon tab (works for about: homes). */
+	void QueueOpenSiteInAddonTab(const std::string& siteId)
+	{
+		if (!gIpc || siteId.empty() || siteId.size() >= sizeof(gIpc->open_site_id))
+			return;
+		for (char c : siteId)
+		{
+			if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+				(c >= '0' && c <= '9') || c == '-' || c == '_'))
+				return;
+		}
+		NavLog("  -> ADDON-SITE %s", siteId.c_str());
+		std::snprintf(gIpc->open_site_id, sizeof(gIpc->open_site_id), "%s", siteId.c_str());
+		MemoryBarrier();
+		++gIpc->open_site_seq;
+		SetStatus("Opening in a new tab…");
+	}
+
 	std::string UrlDecodeQueryValue(const std::string& in)
 	{
 		std::string out;

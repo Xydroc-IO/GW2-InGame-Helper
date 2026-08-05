@@ -19,7 +19,7 @@ namespace WikiBrowser
 	void SetBounds(float screenX, float screenY, float width, float height);
 
 	void Navigate(const std::string& url);
-	void NavigateHome();       /* always the how-to homepage */
+	void NavigateHome();       /* Browse hub (about:browse-hub) */
 	void NavigateActiveSite(); /* active site's home / help URL */
 	void Search(const std::string& query);
 	void GoBack();

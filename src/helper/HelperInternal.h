@@ -115,6 +115,7 @@ namespace HelperDetail
 	std::string ResolveBuiltinUrl(const char* url);
 	bool ConsumeTpActionUrl(const std::string& url, std::string* outNavigate);
 	bool ConsumeLedgerActionUrl(const std::string& url, std::string* outNavigate);
+	bool ConsumeBrowseHubActionUrl(const std::string& url, std::string* outNavigate);
 	void RefreshNavFlags();
 	void UpdateUrlFromBrowser();
 	std::wstring HelperDir();
@@ -166,6 +167,7 @@ namespace HelperDetail
 	void NavLog(const char* fmt, ...);
 	void OpenExternalUrl(const std::string& url);
 	void QueueOpenInAddonTab(const std::string& url);
+	void QueueOpenSiteInAddonTab(const std::string& siteId);
 	bool ConsumeHelperNewTabUrl(const std::string& url);
 	bool IsMediaOrCdnUrl(const std::string& url);
 	bool IsExternalSignInUrl(const std::string& url);

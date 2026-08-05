@@ -16,6 +16,18 @@
       ]
     },
     {
+      "id": "browse",
+      "category": "Help",
+      "label": "Browse",
+      "title": "Browse sites — categories & favorites",
+      "homeUrl": "about:browse-hub",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Getting Started"
+      ]
+    },
+    {
       "id": "dak393_new_player",
       "category": "Help",
       "label": "New Player Guide",

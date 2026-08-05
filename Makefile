@@ -76,6 +76,7 @@ DLL_SRC = \
 	src/browse/LivePanelsBuildLegendaryLedger.cpp \
 	src/browse/LivePanelsBuildLegendaryDetail.cpp \
 	src/browse/LivePanelsBuildCheatSheetsHub.cpp \
+	src/browse/LivePanelsBuildBrowseHub.cpp \
 	src/browse/LivePanelsBuildApiCheck.cpp \
 	src/browse/LivePanels_Html.cpp \
 	src/notes/NotesPad.cpp \

@@ -2,9 +2,14 @@
 
 #include "AccountPad.h"
 #include "AddonPaths.h"
+#include "BrowserTabs.h"
 #include "CraftingData.h"
 #include "Globals.h"
+#include "Settings.h"
+#include "Sites.h"
 #include "WikiBrowser.h"
+
+#include "WikiBrowserShared.h"
 
 #include <cstdio>
 #include <cstring>
@@ -124,18 +129,28 @@ bool ProcessLegendaryDetailCmdFile(const std::wstring& addonDir)
 
 		char stem[64];
 		std::snprintf(stem, sizeof(stem), "live-legendary-detail-%d", id);
-		/* Always rebuild — open and sync both auto-sync the craft tree. */
-		char craftStem[64];
-		std::snprintf(craftStem, sizeof(craftStem), "live-leg-craft-%d", id);
-		DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
-		DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
-		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
-		DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
-		DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
+		/* Sync rebuilds; open reuses the cached craft tree when ready. */
 		if (sync)
 		{
+			char craftStem[64];
+			std::snprintf(craftStem, sizeof(craftStem), "live-leg-craft-%d", id);
+			DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
+			DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
+			DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
+			DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
+			DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
 			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ver").c_str());
 			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ok").c_str());
+		}
+		else if (PanelReady(addonDir, stem))
+		{
+			const std::string fileUrl = PathToFileUrl(StemPath(addonDir, stem, L".html"));
+			if (!fileUrl.empty())
+			{
+				WikiBrowser::Navigate(fileUrl);
+				any = true;
+			}
+			continue;
 		}
 		char title[96];
 		std::snprintf(title, sizeof(title), "Legendary craft #%d", id);
@@ -178,5 +193,128 @@ bool ProcessOpenAboutCmdFile(const std::wstring& addonDir)
 		any = true;
 	}
 	return any;
+}
+
+void InvalidateBrowseHubCaches(const std::wstring& addonDir)
+{
+	if (addonDir.empty())
+		return;
+	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".html").c_str());
+	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".ver").c_str());
+	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".ok").c_str());
+	const std::wstring pages = AddonPaths::EnsureUnder(addonDir, L"pages");
+	const std::wstring pattern = pages + L"\\live-browse-cat-*";
+	WIN32_FIND_DATAW fd = {};
+	HANDLE h = FindFirstFileW(pattern.c_str(), &fd);
+	if (h == INVALID_HANDLE_VALUE)
+		return;
+	do
+	{
+		if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			continue;
+		DeleteFileW((pages + L"\\" + fd.cFileName).c_str());
+	} while (FindNextFileW(h, &fd));
+	FindClose(h);
+}
+
+void InvalidateBrowseFavCaches(const std::wstring& addonDir, const char* categoryStem)
+{
+	if (addonDir.empty())
+		return;
+	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".html").c_str());
+	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".ver").c_str());
+	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".ok").c_str());
+	if (!categoryStem || !categoryStem[0])
+		return;
+	if (std::strncmp(categoryStem, "live-browse-cat-", 16) != 0)
+		return;
+	DeleteFileW(StemPath(addonDir, categoryStem, L".html").c_str());
+	DeleteFileW(StemPath(addonDir, categoryStem, L".ver").c_str());
+	DeleteFileW(StemPath(addonDir, categoryStem, L".ok").c_str());
+}
+
+bool ProcessOpenSiteCmdFile(const std::wstring& addonDir)
+{
+	const std::wstring path = AddonPaths::EnsureUnder(
+		addonDir.empty() ? AddonPaths::DataDir() : addonDir, L"cmds") +
+		L"\\open-site-cmd.txt";
+	const std::string raw = ReadUtf8File(path);
+	if (raw.empty())
+		return false;
+	DeleteFileW(path.c_str());
+
+	bool any = false;
+	size_t i = 0;
+	while (i < raw.size())
+	{
+		while (i < raw.size() && (raw[i] == ' ' || raw[i] == '\r' || raw[i] == '\n' || raw[i] == '\t'))
+			++i;
+		if (i >= raw.size())
+			break;
+		size_t start = i;
+		while (i < raw.size() && raw[i] != '\r' && raw[i] != '\n')
+			++i;
+		std::string line = raw.substr(start, i - start);
+		while (!line.empty() && (line.back() == ' ' || line.back() == '\t'))
+			line.pop_back();
+		const char* id = nullptr;
+		if (line.rfind("open ", 0) == 0)
+			id = line.c_str() + 5;
+		else if (!line.empty() && line.find(' ') == std::string::npos)
+			id = line.c_str();
+		if (!id || !id[0] || Sites::IndexOfId(id) < 0)
+			continue;
+		if (BrowserTabs::OpenNew(id, true) < 0)
+		{
+			BrowserTabs::OpenInActive(id, true);
+			WikiBrowserDetail::SetLocalStatus("Tab limit reached — opened in this tab");
+		}
+		else
+			WikiBrowserDetail::SetLocalStatus("Opened in a new tab");
+		any = true;
+	}
+	return any;
+}
+
+bool ProcessFavCmdFile(const std::wstring& addonDir)
+{
+	const std::wstring path = AddonPaths::EnsureUnder(addonDir.empty() ? AddonPaths::DataDir() : addonDir,
+		L"cmds") + L"\\fav-cmd.txt";
+	const std::string raw = ReadUtf8File(path);
+	if (raw.empty())
+		return false;
+	DeleteFileW(path.c_str());
+
+	bool changed = false;
+	size_t i = 0;
+	while (i < raw.size())
+	{
+		while (i < raw.size() && (raw[i] == ' ' || raw[i] == '\r' || raw[i] == '\n' || raw[i] == '\t'))
+			++i;
+		if (i >= raw.size())
+			break;
+		size_t start = i;
+		while (i < raw.size() && raw[i] != '\r' && raw[i] != '\n')
+			++i;
+		std::string line = raw.substr(start, i - start);
+		while (!line.empty() && (line.back() == ' ' || line.back() == '\t'))
+			line.pop_back();
+		const char* id = nullptr;
+		if (line.rfind("toggle ", 0) == 0)
+			id = line.c_str() + 7;
+		if (!id || !id[0])
+			continue;
+		if (Sites::IndexOfId(id) < 0)
+			continue;
+		(void)Sites::ToggleFavorite(id);
+		changed = true;
+	}
+	if (changed)
+	{
+		Settings::SetDirty();
+		/* Hub only — category pages keep cache; helper deletes + rebuilds the open page. */
+		InvalidateBrowseFavCaches(addonDir.empty() ? AddonPaths::DataDir() : addonDir, nullptr);
+	}
+	return changed;
 }
 } // namespace LivePanelsDetail

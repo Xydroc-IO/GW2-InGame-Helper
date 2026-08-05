@@ -58,7 +58,9 @@ int Sites::BestMatchForUrl(const std::string& url)
 				return IndexOfId(id);
 			return -1;
 		};
-		int hit = fileHit("helper-home", "home");
+		int hit = fileHit("live-browse-hub", "browse");
+		if (hit >= 0) return hit;
+		hit = fileHit("helper-home", "home");
 		if (hit >= 0) return hit;
 		hit = fileHit("dps-log-setup", "dpsloghelp");
 		if (hit >= 0) return hit;

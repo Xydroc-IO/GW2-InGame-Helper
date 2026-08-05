@@ -20,4 +20,10 @@ namespace LivePanelsBuild
 	/* Instant Ledger-themed loading page (meta-refresh) while the craft tree builds. */
 	std::string BuildLegendaryDetailShellHtml(int itemId);
 	std::string BuildCheatSheetsHubHtml(const std::wstring& addonDir, const char* apiKey);
+	std::string BuildBrowseHubHtml(const std::wstring& addonDir, const char* apiKey);
+	std::string BuildBrowseCategoryHtml(const std::wstring& addonDir, const char* category);
+	std::string BuildBrowseCategoryShellHtml(const char* category);
+	/* Stable slug for about:browse-cat-<slug> / live-browse-cat-<slug>.html */
+	std::string BrowseCategorySlug(const char* category);
+	const char* BrowseCategoryFromSlug(const char* slug);
 }

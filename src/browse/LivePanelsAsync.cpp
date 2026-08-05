@@ -329,6 +329,17 @@ DWORD WINAPI LiveWorkerProc(void* param)
 			job->itemId);
 	else if (job->kind == LiveAsyncJob::CheatSheetsHub)
 		html = LivePanelsBuild::BuildCheatSheetsHubHtml(job->addonDir, job->apiKey.c_str());
+	else if (job->kind == LiveAsyncJob::BrowseHub)
+		html = LivePanelsBuild::BuildBrowseHubHtml(job->addonDir, job->apiKey.c_str());
+	else if (job->kind == LiveAsyncJob::BrowseCategory)
+	{
+		const char* slug = nullptr;
+		static const char kPrefix[] = "live-browse-cat-";
+		if (job->stem.rfind(kPrefix, 0) == 0)
+			slug = job->stem.c_str() + (sizeof(kPrefix) - 1);
+		const char* cat = LivePanelsBuild::BrowseCategoryFromSlug(slug);
+		html = LivePanelsBuild::BuildBrowseCategoryHtml(job->addonDir, cat ? cat : "");
+	}
 	else
 		html = LivePanelsBuild::BuildProgressHtml(job->addonDir, job->apiKey.c_str());
 
@@ -454,7 +465,9 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 	else if (kind == LiveAsyncJob::LegendaryLedger)
 		ttl = kLegendaryVaultTtlSec;
 	else if (kind == LiveAsyncJob::LegendaryDetail)
-		ttl = 3u * 60u; /* refresh with inventory often */
+		ttl = 2u * 60u * 60u; /* craft tree is expensive — reuse until Sync */
+	else if (kind == LiveAsyncJob::BrowseHub || kind == LiveAsyncJob::BrowseCategory)
+		ttl = 7u * 24u * 60u * 60u; /* catalog — version stamp is the real invalidator */
 	if (VerMatches(verPath) && FileFresh(path, ttl) && PanelReady(addonDir, stem))
 		return PathToFileUrl(path);
 
@@ -472,6 +485,27 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		WriteUtf8File(path, LivePanelsBuild::BuildCheatSheetsHubHtml(addonDir, nullptr));
 		WriteUtf8File(verPath, kPanelVer);
 		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
+		return PathToFileUrl(path);
+	}
+	/* Browse hub — small; sync so favorites are current immediately. */
+	if (kind == LiveAsyncJob::BrowseHub)
+	{
+		WriteUtf8File(path, LivePanelsBuild::BuildBrowseHubHtml(addonDir, nullptr));
+		WriteUtf8File(verPath, kPanelVer);
+		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
+		return PathToFileUrl(path);
+	}
+	/* Browse category (Wiki is huge) — shell now, build on worker, then Reload. */
+	if (kind == LiveAsyncJob::BrowseCategory)
+	{
+		const char* slug = nullptr;
+		static const char kPrefix[] = "live-browse-cat-";
+		if (stem && std::strncmp(stem, kPrefix, sizeof(kPrefix) - 1) == 0)
+			slug = stem + (sizeof(kPrefix) - 1);
+		const char* cat = LivePanelsBuild::BrowseCategoryFromSlug(slug);
+		WriteUtf8File(path, LivePanelsBuild::BuildBrowseCategoryShellHtml(cat ? cat : "Browse"));
+		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
+		StartLiveWorker(addonDir, stem, kind, itemId);
 		return PathToFileUrl(path);
 	}
 

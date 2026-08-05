@@ -11,7 +11,7 @@
 
 namespace LivePanelsDetail
 {
-	constexpr const char* kPanelVer = "31";
+	constexpr const char* kPanelVer = "36";
 	constexpr DWORD kHtmlTtlSec = 10u * 60u;       /* avoid rebuild storms */
 	constexpr DWORD kTpHtmlTtlSec = 60u;
 	constexpr DWORD kApiCheckTtlSec = 45u;         /* diagnostics should re-probe often */
@@ -30,6 +30,11 @@ namespace LivePanelsDetail
 	bool ProcessCraftPlanCmdFile(const std::wstring& addonDir);
 	bool ProcessLegendaryDetailCmdFile(const std::wstring& addonDir);
 	bool ProcessOpenAboutCmdFile(const std::wstring& addonDir);
+	bool ProcessOpenSiteCmdFile(const std::wstring& addonDir);
+	bool ProcessFavCmdFile(const std::wstring& addonDir);
+	void InvalidateBrowseHubCaches(const std::wstring& addonDir);
+	/* Favorites change: refresh hub (+ optional category stem). Does not wipe other cats. */
+	void InvalidateBrowseFavCaches(const std::wstring& addonDir, const char* categoryStem);
 	bool ParseTpWatchMutateUrl(const std::string& url, const char** opOut, int* idOut);
 	bool ParseCraftPlanUrl(const std::string& url, int* idOut);
 	bool ParseLegendaryItemUrl(const std::string& url, int* idOut, bool* syncOut);
@@ -48,7 +53,7 @@ namespace LivePanelsDetail
 		unsigned generation = 0;
 		int itemId = 0; /* LegendaryDetail / sync */
 		enum Kind { Dailies, News, Fashion, Tp, Progress, ApiCheck, LegendaryLedger,
-			LegendaryDetail, CheatSheetsHub } kind = Dailies;
+			LegendaryDetail, CheatSheetsHub, BrowseHub, BrowseCategory } kind = Dailies;
 	};
 
 	struct LiveReadyNav

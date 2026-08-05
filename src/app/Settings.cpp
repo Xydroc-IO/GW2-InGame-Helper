@@ -49,7 +49,7 @@ void Settings::Load()
 	FILE* f = std::fopen(path, "r");
 	if (!f)
 	{
-		Sites::SetActiveById(G::DefaultSiteId[0] ? G::DefaultSiteId : "home");
+		Sites::SetActiveById(G::DefaultSiteId[0] ? G::DefaultSiteId : "browse");
 		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
 		BrowserTabs::FinalizeLoad();
 		return;
@@ -281,12 +281,15 @@ void Settings::Load()
 	if (G::WindowHeight < 240.f) G::WindowHeight = 240.f;
 
 	if (Sites::IndexOfId(G::DefaultSiteId) < 0 ||
-		std::strcmp(G::DefaultSiteId, "gw2lunchbox") == 0)
+		std::strcmp(G::DefaultSiteId, "gw2lunchbox") == 0 ||
+		std::strcmp(G::DefaultSiteId, "home") == 0)
 	{
-		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "home");
+		/* Former factory default was How to use (home); Browse hub is the landing now. */
+		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "browse");
 	}
 	if (!Sites::SetActiveById(G::ActiveSiteId) ||
-		std::strcmp(G::ActiveSiteId, "gw2lunchbox") == 0)
+		std::strcmp(G::ActiveSiteId, "gw2lunchbox") == 0 ||
+		std::strcmp(G::ActiveSiteId, "home") == 0)
 	{
 		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", G::DefaultSiteId);
 		Sites::SetActiveById(G::ActiveSiteId);
@@ -355,7 +358,7 @@ void Settings::Save(bool force)
 
 	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
 	if (!G::DefaultSiteId[0])
-		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "home");
+		std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "browse");
 
 	std::fprintf(f, "ShowWiki=%d\n", G::ShowWiki ? 1 : 0);
 	std::fprintf(f, "ShowOptions=%d\n", G::ShowOptions ? 1 : 0);

@@ -180,6 +180,12 @@ namespace HelperDetail
 					NavigateTo(navTo.c_str());
 				return 1;
 			}
+			if (ConsumeBrowseHubActionUrl(url, &navTo))
+			{
+				if (!navTo.empty())
+					NavigateTo(navTo.c_str());
+				return 1;
+			}
 			if (url.rfind("about:", 0) == 0 && url != "about:blank")
 			{
 				const std::string resolved = ResolveBuiltinUrl(url.c_str());

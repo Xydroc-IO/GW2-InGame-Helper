@@ -115,6 +115,12 @@ namespace HelperDetail
 					NavigateTo(navTo.c_str());
 				return;
 			}
+			if (ConsumeBrowseHubActionUrl(u, &navTo))
+			{
+				if (!navTo.empty())
+					NavigateTo(navTo.c_str());
+				return;
+			}
 		}
 		if (u.rfind("about:", 0) == 0 && u != "about:blank")
 		{

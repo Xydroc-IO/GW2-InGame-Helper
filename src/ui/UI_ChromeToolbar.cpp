@@ -246,12 +246,12 @@ namespace UIDetail
 
 	void DrawHelperSideRail()
 	{
-		const SiteDef& active = Sites::Active();
 		static const char* kRailLabels[] = {
-			"Browse", "Account", "Pathing", "Events", "DPS Logs", "Notes", "Cheat Sheets",
-			"Compass", "Settings", "GW2 API Check"
+			"Browse", "Legendary Ledger", "Cheat Sheets", "GW2 API Check",
+			"Account", "Compass", "Pathing", "Events", "Notes", "DPS Logs",
+			"Settings"
 		};
-		const float railW = UiScale::FitSideRailWidth(kRailLabels, 10);
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, 11);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 6.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
@@ -260,13 +260,62 @@ namespace UIDetail
 			ImGuiWindowFlags_NavFlattened);
 
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false))
-			UI_Browse_OnMainButtonClicked();
+		{
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			WikiBrowser::Navigate("about:browse-hub");
+		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("%s - %s",
-				active.category ? active.category : "",
-				active.label ? active.label : "");
-		UI_Browse_DrawMainPopup();
+			ImGui::SetTooltip("Browse sites — categories, favorites, open in a new tab");
 
+		if (PadNav::SideToggle("Legendary Ledger###gw2igh_ledger", false))
+		{
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			WikiBrowser::Navigate("about:legendary-vault");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("GW2 Legendary Ledger — owned / missing / craft tree");
+
+		if (PadNav::SideToggle("Cheat Sheets###gw2igh_cheatsheets", false))
+		{
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			WikiBrowser::Navigate("about:cheatsheets-hub");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Offline cheat sheets — food, fractals, squad tools, …");
+
+		if (PadNav::SideToggle("GW2 API Check###gw2igh_api_check", false))
+		{
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			const std::wstring dir = AddonPaths::DataDir();
+			if (!dir.empty())
+			{
+				auto kill = [&](const wchar_t* ext) {
+					std::wstring p = dir;
+					if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
+						p.push_back(L'\\');
+					p += L"gw2-api-check";
+					p += ext;
+					DeleteFileW(p.c_str());
+				};
+				kill(L".html");
+				kill(L".ver");
+				kill(L".ok");
+			}
+			WikiBrowser::Navigate("about:gw2-api-check");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Probe official api.guildwars2.com endpoints (public + your key).\n"
+				"Local page — not a third-party status site.");
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		ImGui::TextDisabled("Tools");
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
@@ -283,6 +332,19 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Account — stash, vault, TP, item lookup");
+
+		if (PadNav::SideToggle("Compass###gw2igh_dircompass", G::ShowCompassPad))
+		{
+			if (G::ShowCompassPad)
+			{
+				G::ShowCompassPad = false;
+				Settings::SetDirty();
+			}
+			else
+				DirectionCompass::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Direction compass — enable + letter size + radius");
 
 		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides))
 		{
@@ -310,19 +372,6 @@ namespace UIDetail
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("World events — UTC timers + track list");
 
-		if (PadNav::SideToggle("DPS Logs###gw2igh_logs", G::ShowLogManager))
-		{
-			if (G::ShowLogManager)
-			{
-				G::ShowLogManager = false;
-				Settings::SetDirty();
-			}
-			else
-				LogManagerPad::OpenAndRefresh();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("DPS Logs — ArcDPS EVTC via Elite Insights");
-
 		if (PadNav::SideToggle("Notes###gw2igh_notes", G::ShowNotes))
 		{
 			if (G::ShowNotes)
@@ -336,34 +385,23 @@ namespace UIDetail
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Snippets + Waypoints search");
 
-		if (PadNav::SideToggle("Cheat Sheets###gw2igh_cheatsheets", false))
+		if (PadNav::SideToggle("DPS Logs###gw2igh_logs", G::ShowLogManager))
 		{
-			G::ShowWiki = true;
-			Settings::SetDirty();
-			WikiBrowser::Navigate("about:cheatsheets-hub");
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Offline cheat sheets hub — food, fractals, legendaries, …");
-
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-		if (PadNav::SideToggle("Compass###gw2igh_dircompass", G::ShowCompassPad))
-		{
-			if (G::ShowCompassPad)
+			if (G::ShowLogManager)
 			{
-				G::ShowCompassPad = false;
+				G::ShowLogManager = false;
 				Settings::SetDirty();
 			}
 			else
-				DirectionCompass::Open();
+				LogManagerPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Direction compass — enable + letter size + radius");
+			ImGui::SetTooltip("DPS Logs — ArcDPS EVTC via Elite Insights");
 
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
+
 		if (PadNav::SideToggle("Settings###gw2igh_settings", G::ShowSettings))
 		{
 			if (G::ShowSettings)
@@ -376,32 +414,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Settings — opacity, font, API key, warm CEF");
-
-		if (PadNav::SideToggle("GW2 API Check###gw2igh_api_check", false))
-		{
-			G::ShowWiki = true;
-			Settings::SetDirty();
-			const std::wstring dir = AddonPaths::DataDir();
-			if (!dir.empty())
-			{
-				auto kill = [&](const wchar_t* ext) {
-					std::wstring p = dir;
-					if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
-						p.push_back(L'\\');
-					p += L"gw2-api-check";
-					p += ext;
-					DeleteFileW(p.c_str());
-				};
-				kill(L".html");
-				kill(L".ver");
-				kill(L".ok");
-			}
-			WikiBrowser::Navigate("about:gw2-api-check");
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(
-				"Probe official api.guildwars2.com endpoints (public + your key).\n"
-				"Local page — not a third-party status site.");
 
 		ImGui::EndChild();
 		ImGui::PopStyleVar(2);

@@ -137,6 +137,28 @@ namespace WikiBrowserDetail
 			SetLocalStatus("Opened in a new tab");
 	}
 
+	/* Browse hub → catalog site id in a new addon tab. */
+	void DrainOpenSiteRequests()
+	{
+		if (!gIpc)
+			return;
+		const uint32_t seq = gIpc->open_site_seq;
+		if (seq == gLastOpenSiteSeq)
+			return;
+		gLastOpenSiteSeq = seq;
+		char id[sizeof(gIpc->open_site_id)];
+		std::snprintf(id, sizeof(id), "%s", gIpc->open_site_id);
+		if (!id[0] || Sites::IndexOfId(id) < 0)
+			return;
+		if (BrowserTabs::OpenNew(id, true) < 0)
+		{
+			BrowserTabs::OpenInActive(id, true);
+			SetLocalStatus("Tab limit reached — opened in this tab");
+		}
+		else
+			SetLocalStatus("Opened in a new tab");
+	}
+
 	/* Complete a pending QUIT across frames — never Sleep/Terminate mid-SetVisible. */
 	void TickQuitPending()
 	{

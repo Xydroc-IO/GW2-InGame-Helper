@@ -39,15 +39,15 @@ namespace
 		}
 	}
 
-	/* Match Legendary Ledger SPA chrome (purple glow, sticky brand bar). */
+	/* Match helper gold/dark chrome (Browse / Cheat Sheets hubs). */
 	const char* LedgerDetailCss()
 	{
 		return R"CSS(
-:root{--bg:#0b0a10;--text:#e4e4e7;--muted:#71717a;--muted-2:#52525b;--zinc-100:#f4f4f5;--zinc-200:#e4e4e7;--zinc-500:#71717a;--zinc-600:#52525b;--purple-200:#e9d5ff;--purple-300:#d8b4fe;--purple:#a855f7;--border:rgba(255,255,255,0.05);--panel:rgba(255,255,255,0.03);--ok:#4ade80;--miss:#f87171;--part:#fbbf24}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{font-family:ui-sans-serif,system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
-.glow{pointer-events:none;position:fixed;inset:0;background:radial-gradient(ellipse at top,rgba(139,92,246,.14),transparent 55%);z-index:0}
+:root{--bg:#06070a;--text:#f0f2f5;--muted:#a8aeb8;--muted-2:#8a9099;--zinc-100:#f0f2f5;--zinc-200:#e8eaed;--zinc-500:#a8aeb8;--zinc-600:#8a9099;--purple-200:#ffe08a;--purple-300:#f0c65a;--purple:#c9a227;--border:rgba(235,192,71,.22);--panel:rgba(16,18,24,.94);--ok:#4ade80;--miss:#f87171;--part:#fbbf24}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{font-family:"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+.glow{pointer-events:none;position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(235,192,71,.16),transparent 55%);z-index:0}
 .shell{position:relative;z-index:1;min-height:100vh}
-header.top{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border);background:rgba(11,10,16,.8);backdrop-filter:blur(20px)}
+header.top{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border);background:rgba(6,7,10,.88);backdrop-filter:blur(20px)}
 .top-inner,main{max-width:56rem;margin:0 auto;padding-left:1.25rem;padding-right:1.25rem}
 .top-inner{display:flex;align-items:center;gap:.625rem;padding-top:1rem;padding-bottom:1rem}
 .brand{display:inline-flex;align-items:center;gap:.5rem;color:var(--zinc-100);text-decoration:none;font-size:.8125rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
@@ -55,8 +55,8 @@ header.top{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border
 footer.credit{max-width:56rem;margin:0 auto;padding:0 1.25rem 2.5rem;font-size:.75rem;color:var(--zinc-600)}footer.credit strong{color:var(--zinc-500)}
 .back{display:inline-flex;align-items:center;gap:.35rem;color:var(--purple-300);text-decoration:none;font-size:.875rem;margin-bottom:1rem}
 .detail-head{display:flex;gap:1rem;align-items:center;margin-bottom:1.25rem}
-.avatar{width:3rem;height:3rem;border-radius:.375rem;background:rgba(168,85,247,.15);color:var(--purple-300);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.25rem;flex-shrink:0}
-h1{margin:0;font-size:1.35rem;font-weight:600;letter-spacing:-.025em;color:var(--zinc-100)}
+.avatar{width:3rem;height:3rem;border-radius:.375rem;background:rgba(235,192,71,.15);color:var(--purple-300);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.25rem;flex-shrink:0}
+h1{margin:0;font-size:1.35rem;font-weight:600;letter-spacing:-.025em;color:#f0c65a}
 .detail-sub{margin:.25rem 0 0;color:var(--zinc-500);font-size:.875rem}
 .detail-card{border:1px solid var(--border);border-radius:.5rem;background:var(--panel);padding:1rem;margin-bottom:1rem}
 .field{margin-bottom:.85rem}.lbl{margin:0 0 .25rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--zinc-500)}.val{margin:0;color:var(--zinc-200);font-size:.875rem}
@@ -66,8 +66,8 @@ h1{margin:0;font-size:1.35rem;font-weight:600;letter-spacing:-.025em;color:var(-
 .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--ok));border-radius:999px}
 .pct{font-size:1.15rem;font-weight:700;color:var(--purple-200);margin:0}
 .note{margin:0 0 1rem;font-size:.8rem;color:var(--zinc-500)}
-.cta{display:inline-block;margin-top:.5rem;margin-right:.5rem;padding:.55rem 1rem;border-radius:.375rem;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.45);color:var(--purple-200);text-decoration:none;font-size:.875rem;font-weight:600}
-.cta:hover{background:rgba(168,85,247,.3)}.cta.ghost{background:transparent;border-color:var(--border);color:var(--zinc-200)}.cta.ghost:hover{border-color:rgba(168,85,247,.4);color:var(--purple-200)}
+.cta{display:inline-block;margin-top:.5rem;margin-right:.5rem;padding:.55rem 1rem;border-radius:.375rem;background:rgba(235,192,71,.18);border:1px solid rgba(235,192,71,.45);color:var(--purple-200);text-decoration:none;font-size:.875rem;font-weight:600}
+.cta:hover{background:rgba(235,192,71,.28)}.cta.ghost{background:transparent;border-color:var(--border);color:var(--zinc-200)}.cta.ghost:hover{border-color:rgba(235,192,71,.5);color:var(--purple-200)}
 .cta-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.25rem}
 .card-title{margin:0 0 .75rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--zinc-500)}
 ul.craft-tree,ul.craft-tree ul{list-style:none;margin:.35rem 0 0;padding-left:1rem}
@@ -77,7 +77,7 @@ li.done .nm{color:var(--ok)}li.mat .nm{color:var(--zinc-200)}li.craft .nm{color:
 .qty{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .pulse{display:inline-block;width:.55rem;height:.55rem;border-radius:999px;background:var(--purple);margin-right:.45rem;animation:p 1.1s ease-in-out infinite}
 @keyframes p{0%,100%{opacity:.35}50%{opacity:1}}
-.load-box{border:1px solid rgba(168,85,247,.35);border-radius:.5rem;background:rgba(168,85,247,.08);padding:1.25rem}
+.load-box{border:1px solid rgba(235,192,71,.35);border-radius:.5rem;background:rgba(235,192,71,.08);padding:1.25rem}
 .load-box h2{margin:0 0 .5rem;font-size:1rem;color:var(--purple-200)}
 )CSS";
 	}
@@ -251,8 +251,8 @@ std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* a
 			: "<span class=\"badge missing\">Missing";
 		if (armoryHave > 0)
 			html += std::to_string(armoryHave);
-		html += "</span> · #";
-		html += std::to_string(itemId);
+		html += "</span> · ";
+		html += Esc(title);
 		html += " ×";
 		html += std::to_string(armoryHave);
 		html += " (max ";
