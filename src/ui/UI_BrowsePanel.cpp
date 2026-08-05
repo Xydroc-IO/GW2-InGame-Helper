@@ -279,8 +279,8 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 			}
 		}
 
-		/* Drag-reorder favorites within a folder */
-		if (showFavorites && !pickDefaultSite && !pickNewTab)
+		/* Drag-reorder favorites within a folder (full Browse panel only). */
+		if (showFavorites && !pickDefaultSite)
 		{
 			const int folderId = Sites::FavoriteFolderOf(site.id);
 			const int favSlot = [&]() {
@@ -297,14 +297,14 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 				int folderId;
 				int slot;
 			};
-			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+			if (!pickNewTab && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 			{
 				FavDrag drag{ folderId, favSlot };
 				ImGui::SetDragDropPayload("FAV_FOLDER_REORDER", &drag, sizeof(drag));
 				ImGui::TextUnformatted(site.label ? site.label : "Favorite");
 				ImGui::EndDragDropSource();
 			}
-			if (ImGui::BeginDragDropTarget())
+			if (!pickNewTab && ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FAV_FOLDER_REORDER"))
 				{

@@ -778,7 +778,11 @@ namespace HelperDetail
 		const std::string openSite = ParseQueryValue(query, "gw2igh-open-site");
 		const std::string aboutKey = ParseQueryValue(query, "gw2igh-about");
 		const std::string favId = ParseQueryValue(query, "gw2igh-fav-toggle");
-		if (openSite.empty() && aboutKey.empty() && favId.empty())
+		const std::string folderCreateEnc = ParseQueryValue(query, "gw2igh-fav-folder-create");
+		const std::string folderMoveId = ParseQueryValue(query, "gw2igh-fav-folder-move");
+		const std::string folderMoveTo = ParseQueryValue(query, "to");
+		if (openSite.empty() && aboutKey.empty() && favId.empty() &&
+			folderCreateEnc.empty() && folderMoveId.empty())
 			return false;
 
 		if (!openSite.empty())
@@ -804,6 +808,89 @@ namespace HelperDetail
 				return false;
 			AppendCmdLine(L"open-about-cmd.txt", std::string("about:") + aboutKey + "\n");
 			SetStatus("Opening…");
+			return true;
+		}
+		if (!folderCreateEnc.empty())
+		{
+			std::string name = UrlDecodeQueryValue(folderCreateEnc);
+			/* Fold printable name; reject control / path separators. */
+			std::string cleaned;
+			cleaned.reserve(name.size());
+			for (unsigned char c : name)
+			{
+				if (c < 0x20 || c == 0x7f || c == '/' || c == '\\' || c == '\'' || c == '"')
+					continue;
+				cleaned.push_back(static_cast<char>(c));
+				if (cleaned.size() >= 47)
+					break;
+			}
+			while (!cleaned.empty() && (cleaned.front() == ' ' || cleaned.front() == '\t'))
+				cleaned.erase(cleaned.begin());
+			while (!cleaned.empty() && (cleaned.back() == ' ' || cleaned.back() == '\t'))
+				cleaned.pop_back();
+			if (cleaned.empty())
+			{
+				SetStatus("Folder name required");
+				return true;
+			}
+			{
+				static std::string sLastFolderName;
+				static DWORD sLastFolderMs = 0;
+				const DWORD now = GetTickCount();
+				if (cleaned == sLastFolderName && sLastFolderMs != 0 && (now - sLastFolderMs) < 400u)
+					return true;
+				sLastFolderName = cleaned;
+				sLastFolderMs = now;
+			}
+			AppendCmdLine(L"fav-cmd.txt", std::string("folder-create ") + cleaned + "\n");
+			SetStatus("Creating folder…");
+			return true;
+		}
+		if (!folderMoveId.empty())
+		{
+			for (char c : folderMoveId)
+			{
+				if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+					(c >= '0' && c <= '9') || c == '-' || c == '_'))
+					return false;
+			}
+			int toFolder = -1;
+			if (!folderMoveTo.empty())
+			{
+				toFolder = 0;
+				for (char c : folderMoveTo)
+				{
+					if (c < '0' || c > '9')
+					{
+						toFolder = -1;
+						break;
+					}
+					toFolder = toFolder * 10 + (c - '0');
+					if (toFolder > 1000000)
+					{
+						toFolder = -1;
+						break;
+					}
+				}
+			}
+			if (toFolder < 0)
+			{
+				SetStatus("Invalid folder");
+				return true;
+			}
+			{
+				static std::string sLastMoveKey;
+				static DWORD sLastMoveMs = 0;
+				const DWORD now = GetTickCount();
+				const std::string key = folderMoveId + ":" + std::to_string(toFolder);
+				if (key == sLastMoveKey && sLastMoveMs != 0 && (now - sLastMoveMs) < 400u)
+					return true;
+				sLastMoveKey = key;
+				sLastMoveMs = now;
+			}
+			AppendCmdLine(L"fav-cmd.txt",
+				std::string("folder-move ") + folderMoveId + " " + std::to_string(toFolder) + "\n");
+			SetStatus("Moving favorite…");
 			return true;
 		}
 		/* fav toggle — queue DLL only; do NOT delete/rebuild the open page.

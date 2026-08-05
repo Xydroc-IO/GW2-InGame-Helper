@@ -116,6 +116,7 @@ namespace HelperDetail
 	bool ConsumeTpActionUrl(const std::string& url, std::string* outNavigate);
 	bool ConsumeLedgerActionUrl(const std::string& url, std::string* outNavigate);
 	bool ConsumeBrowseHubActionUrl(const std::string& url, std::string* outNavigate);
+	std::string UrlDecodeQueryValue(const std::string& in);
 	void RefreshNavFlags();
 	void UpdateUrlFromBrowser();
 	std::wstring HelperDir();

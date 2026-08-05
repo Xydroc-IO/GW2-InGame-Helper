@@ -13,6 +13,7 @@
 #include "WikiBrowserShared.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 
@@ -300,6 +301,38 @@ bool ProcessFavCmdFile(const std::wstring& addonDir)
 		std::string line = raw.substr(start, i - start);
 		while (!line.empty() && (line.back() == ' ' || line.back() == '\t'))
 			line.pop_back();
+		if (line.rfind("folder-create ", 0) == 0)
+		{
+			const char* name = line.c_str() + 14;
+			if (name[0] && Sites::CreateFavoriteFolder(name))
+				changed = true;
+			continue;
+		}
+		if (line.rfind("folder-move ", 0) == 0)
+		{
+			const char* p = line.c_str() + 12;
+			while (*p == ' ' || *p == '\t')
+				++p;
+			const char* idStart = p;
+			while (*p && *p != ' ' && *p != '\t')
+				++p;
+			std::string siteId(idStart, p);
+			while (*p == ' ' || *p == '\t')
+				++p;
+			if (siteId.empty() || !*p)
+				continue;
+			char* end = nullptr;
+			const long folderId = std::strtol(p, &end, 10);
+			if (end == p || folderId < 0 || folderId > 1000000)
+				continue;
+			if (Sites::IndexOfId(siteId.c_str()) < 0)
+				continue;
+			if (!Sites::IsFavorite(siteId.c_str()))
+				continue;
+			if (Sites::SetFavoriteFolder(siteId.c_str(), static_cast<int>(folderId)))
+				changed = true;
+			continue;
+		}
 		const char* id = nullptr;
 		if (line.rfind("toggle ", 0) == 0)
 			id = line.c_str() + 7;

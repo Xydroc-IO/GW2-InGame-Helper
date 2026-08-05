@@ -309,7 +309,7 @@ namespace WikiBrowserDetail
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2221";
+		static constexpr const char* kHelperStamp = "2223";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;
