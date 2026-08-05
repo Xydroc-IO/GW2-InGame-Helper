@@ -34,15 +34,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ## What’s new in 2.2.0.19
 
-- **Trail Tools pads:** **Trails** and **Markers** are separate side-rail windows (hub keeps
-  Live + Pack) so you can place POIs along a trail. Draft preview while any authoring pad is open.
+- **Trail Tools pads:** Live / Trails / Markers / Pack / Keybinds in one side-rail window;
+  Trails and Markers can optionally **Open in window** (collapse to title bar). Draft preview
+  while the pad is open.
 - **Trail authoring:** New / Load… / Save / Save As… for `.trl`; window title shows the file stem;
   map-only vs map+vector segments; select nearest / move to feet / delete; default category + Trail
   XML line; last `.trl` folder remembered in settings.
 - **XML layout:** Combined one-file OverlayData, or **Split** `Pack_Menu.xml` + `Pack_Data.xml`
   (MarkerCategory menu vs `<POIs>` data). Pathing already merges every `.xml` in the taco.
-- **Stamps:** Helper `2221` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
-  · live panel `38` (unchanged from 2.2.0.18)
+- **Trail Tools keybinds:** Addon-polled chords for trail start/pause/section/delete and marker
+  delete, plus **10 place-marker slots** (category + chord) for mount/route markers along a trail.
+- **Browse favorite folders (hub):** Side-rail Browse hub has **+ Folder** and **⇄** on each
+  favorite to move it into Unfiled or a named folder (`config/favorites.json`). Tab-bar **+**
+  picker also right-click → Move to folder.
+- **Stamps:** Helper `2223` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+  · live panel `38`
 
 ## What’s new in 2.2.0.18
 
@@ -70,10 +76,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ## What’s new in 2.2.0.16
 
-- **Favorite folders:** Create named folders in the Browse panel Favorites view.
-  Right-click a favorite to move it; drag onto a folder header to refile. Delete a
-  folder to send its sites back to Unfiled. Stored in `config/favorites.json`
-  (migrates from legacy `FavoriteIds=`). Browse hub shows folder sections.
+- **Favorite folders:** Create named folders from the Browse hub (**+ Folder**). Tap **⇄** on a
+  favorite to move it into a folder (or Unfiled). ImGui tab-bar picker: right-click → Move to
+  folder; drag onto a folder header to refile. Delete a folder to send its sites back to Unfiled.
+  Stored in `config/favorites.json` (migrates from legacy `FavoriteIds=`).
 - **Stamps:** Helper `2220` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
   · live panel `38`
 

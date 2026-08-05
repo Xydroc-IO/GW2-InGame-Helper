@@ -23,7 +23,7 @@
 | 2.2.0.19 | 2.2.0.19 | Trail Tools pad split; trail file ops; Combined/Split XML |
 | 2.2.0.18 | 2.2.0.18 | Trail Tools Looks/schedules/import; opt-in PathingLua |
 | 2.2.0.17 | 2.2.0.17 | Trail Tools in-addon pack authoring |
-| 2.2.0.16 | 2.2.0.16 | Favorite folders in Browse |
+| 2.2.0.16 | 2.2.0.16 | Favorite folders (`config/favorites.json`; hub + Folder / ⇄ move) |
 | 2.2.0.15 | 2.2.0.15 | Favorites without Wiki category rebuild race |
 | 2.2.0.14 | 2.2.0.14 | config/ state dir; favorites persist fix; side-rail brand title |
 | 2.2.0.13 | 2.2.0.13 | Side rail Tools; favorites hub refresh; legendary in-game icons |
@@ -965,6 +965,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.19 — Trail Tools pad split; Combined/Split XML |
+| Last sync | 2.2.0.19 — Trail Tools keybinds; Browse hub favorite folders |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.19, 2026. |

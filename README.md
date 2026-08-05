@@ -44,7 +44,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | DPS Logs (side-rail **DPS Logs**) | ImGui |
 | World Events (side-rail **Events**) | ImGui |
 | Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
-| Trail Tools / Trails / Markers (side-rail) | Author packs — separate Trails + Markers pads, XML layout, build `.taco` |
+| Trail Tools (side-rail) | Author packs — trails, markers, XML, build `.taco` |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
 | Settings (side-rail **Settings**) | ImGui — landing site, opacity, font scale, warm CEF, API key |
@@ -151,7 +151,7 @@ Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`d
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
-- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Trails · Markers · Events · DPS Logs · Notes · Settings) · `...` menu
+- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Events · DPS Logs · Notes · Settings) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
 - **Settings** — landing site, opacity, font scale / auto, warm CEF, API key (Nexus Options opens this pad)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
@@ -160,7 +160,7 @@ Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`d
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
 - **Find in page** — toolbar Enter or Ctrl+F; **Web** for site/DuckDuckGo search
 - **Notes** — snippets + waypoint / POI search; **TP** / **Item** / **Wallet** / **Vault** pads
-- **Favorites** — star + drag-reorder
+- **Favorites** — star, folders (**+ Folder** / **⇄** on Browse hub), drag-reorder
 - **Keep browser warm** — optional hide without killing CEF (collapse also keeps the helper alive)
 - **Default landing site** — Settings picker; used by the Home button and when no tabs are saved
 - Nexus **QuickAccess** icon at the top of the screen
