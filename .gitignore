@@ -16,6 +16,7 @@ __cmake_systeminformation/
 # Compiled / linked artifacts (anywhere)
 *.o
 *.obj
+*.d
 *.a
 *.lib
 *.dll
