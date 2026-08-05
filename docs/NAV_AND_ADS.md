@@ -50,6 +50,17 @@ A PR **must not** merge if it:
 5. Relies solely on helper-process `ShellExecute` with no DLL drain (breaks Proton).
 6. Sets `GetScreenInfo` / `window.screen` to the tiny panel size (hurts viewability fingerprint hygiene).
 
+### Desktop ad viewport (allowlist)
+
+Some partners gate NitroPay / wide slots on `matchMedia` min-width (~1840px). For
+those hosts only, CEF lays out at **1920×(panel aspect)** (height clamped
+900–1200), then the OSR bitmap **letterboxes** into the ImGui slot with uniform
+scale. Clicks map into the fitted rect only.
+
+Allowlist today: `gw2efficiency.com`, `snowcrows.com`, `metabattle.com`,
+`guildjen.com` (`HostWantsDesktopAdViewport` in `UI_Helpers.cpp`). Do **not**
+enable for all sites — most pages should stay 1:1 with the panel.
+
 ---
 
 ## 5. Maintainer tracing

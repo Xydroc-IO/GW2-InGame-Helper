@@ -475,6 +475,8 @@ OnBeforeBrowse / OnBeforePopup
 
 `GetViewRect` reports the ImGui panel. `GetScreenInfo` reports the primary monitor and work area with `device_scale_factor` = **1.0** (IPC mouse and paint are view pixels). Matching `window.screen` to the tiny panel is an easy non-human signal for impression filters. Separating them improves fingerprint hygiene; it does **not** claim desktop-Chrome viewability.
 
+**Desktop ad viewport (allowlist):** For a few publisher hosts (gw2efficiency, Snow Crows, MetaBattle, Guildjen), `GetViewRect` is temporarily a full-desktop layout size so wide `matchMedia` ad slots unlock; the DLL then letterboxes that frame into the panel with uniform scale. See [`NAV_AND_ADS.md`](NAV_AND_ADS.md).
+
 ### 8.4 Attribution honesty
 
 **Billable publisher clicks** generally require the ad network’s tracker URL to be *requested*. Opening a final landing that already contains `gclid` is necessary but not always sufficient if `aclk` never ran. Empirical `navlog` traces on Proton showed both gold-standard `aclk` handoffs and landing-only paths. Mixed in-tab versus external UX is acceptable when the tracker (or a completed redirect chain) ran; **truncated URLs are not**.
