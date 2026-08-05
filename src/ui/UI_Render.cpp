@@ -229,8 +229,6 @@ void UI_Render()
 	BrowserTabs::EnsureDefault();
 	BrowserTabs::Tick();
 
-	ImGui::TextColored(kGold, "IN-GAME HELPER");
-	ImGui::SameLine(0.f, 12.f);
 	DrawToolbar();
 
 	/* Tab / find hotkeys — use ImGuiIO (Nexus-filled KeysDown), not GetAsyncKeyState. */

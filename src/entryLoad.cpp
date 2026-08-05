@@ -67,6 +67,13 @@ void AddonLoad(AddonAPI_t* api)
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
 	Sites::Init();
+	/* Settings::Load parses FavoriteIds before the catalog exists; prune now. */
+	{
+		const int before = Sites::FavoriteCount();
+		Sites::PruneFavorites();
+		if (Sites::FavoriteCount() != before)
+			Settings::SetDirty();
+	}
 	WikiBrowser::Init();
 
 	api->GUI_Register(RT_Render, UI_Render);

@@ -294,7 +294,7 @@ void Settings::Load()
 		std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", G::DefaultSiteId);
 		Sites::SetActiveById(G::ActiveSiteId);
 	}
-	Sites::PruneFavorites();
+	/* Favorites pruned after Sites::Init() in AddonLoad — catalog is empty here. */
 	BrowserTabs::FinalizeLoad();
 
 	if (G::WorldTrailMaxDist < 40.f) G::WorldTrailMaxDist = 40.f;
@@ -427,7 +427,7 @@ void Settings::Save(bool force)
 	PadDock::WriteGeom(f, "PadLookup", G::PadLookup);
 	PadDock::WriteGeom(f, "PadWallet", G::PadWallet);
 	PadDock::WriteGeom(f, "PadVault", G::PadVault);
-	char favBuf[640]{};
+	char favBuf[4096]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);
 	UI_WriteBrowseOpen(f);

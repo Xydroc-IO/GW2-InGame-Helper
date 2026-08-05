@@ -37,7 +37,7 @@ bool Sites::ToggleFavorite(const char* id)
 			gFavoriteIds[gFavoriteCount - 1][0] = 0;
 			--gFavoriteCount;
 			++gFavoriteGeneration;
-			Settings::SetDirty();
+			Settings::SaveNow();
 			return false;
 		}
 	}
@@ -47,7 +47,7 @@ bool Sites::ToggleFavorite(const char* id)
 	std::snprintf(gFavoriteIds[gFavoriteCount], sizeof(gFavoriteIds[gFavoriteCount]), "%s", id);
 	++gFavoriteCount;
 	++gFavoriteGeneration;
-	Settings::SetDirty();
+	Settings::SaveNow();
 	return true;
 }
 
@@ -94,7 +94,8 @@ void Sites::ParseFavorites(const char* csv)
 		gFavoriteIds[gFavoriteCount][len] = 0;
 		++gFavoriteCount;
 	}
-	PruneFavorites();
+	/* Do not prune here — Settings::Load runs before Sites::Init(), and pruning
+	   against an empty catalog would wipe every saved favorite on startup. */
 }
 
 void Sites::SerializeFavorites(char* out, size_t outLen)
@@ -171,6 +172,6 @@ bool Sites::MoveFavorite(int fromSlot, int toSlot)
 	}
 	std::snprintf(gFavoriteIds[toSlot], sizeof(gFavoriteIds[toSlot]), "%s", tmp);
 	++gFavoriteGeneration;
-	Settings::SetDirty();
+	Settings::SaveNow();
 	return true;
 }

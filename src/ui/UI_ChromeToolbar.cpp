@@ -247,17 +247,23 @@ namespace UIDetail
 	void DrawHelperSideRail()
 	{
 		static const char* kRailLabels[] = {
+			"IN-GAME HELPER",
 			"Browse", "Legendary Ledger", "Cheat Sheets", "GW2 API Check",
 			"Account", "Compass", "Pathing", "Events", "Notes", "DPS Logs",
 			"Settings"
 		};
-		const float railW = UiScale::FitSideRailWidth(kRailLabels, 11);
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, 12);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 6.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
 		/* Allow scroll if the rail is taller than the helper — Settings must stay reachable. */
 		ImGui::BeginChild("###gw2igh_helper_rail", ImVec2(railW, 0.f), true,
 			ImGuiWindowFlags_NavFlattened);
+
+		ImGui::TextColored(kGold, "IN-GAME HELPER");
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
 
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false))
 		{
