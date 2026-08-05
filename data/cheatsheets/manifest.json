@@ -130,6 +130,14 @@
       "browseTitle": "Legendary Short Paths"
     },
     {
+      "id": "legvault",
+      "about": "about:legendary-vault",
+      "file": "legendary-vault.html",
+      "version": "1",
+      "browseLabel": "Legendary Vault Hub",
+      "browseTitle": "The Complete GW2 Legendaries Collection"
+    },
+    {
       "id": "mounts",
       "about": "about:mount-unlock",
       "file": "mount-unlock.html",

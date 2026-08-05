@@ -1,7 +1,7 @@
 {
   "version": 2,
   "source": "data/sites.json",
-  "count": 2719,
+  "count": 2720,
   "sites": [
     {
       "id": "home",
@@ -30367,6 +30367,18 @@
       "label": "Legendary Crafting Ledger",
       "title": "Legendary Crafting Ledger — Forge Legend Track",
       "homeUrl": "https://forge-legend-track.base44.app/",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Account"
+      ]
+    },
+    {
+      "id": "legvault",
+      "category": "Tools",
+      "label": "Legendary Vault Hub",
+      "title": "The Complete GW2 Legendaries Collection",
+      "homeUrl": "about:legendary-vault",
       "searchUrlPrefix": null,
       "searchUrlSuffix": null,
       "browsePath": [

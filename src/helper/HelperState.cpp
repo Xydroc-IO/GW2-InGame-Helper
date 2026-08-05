@@ -388,6 +388,8 @@ namespace HelperDetail
 			fileNameW = L"material-conversions.html";
 		else if (std::strcmp(url, "about:legendary-paths") == 0)
 			fileNameW = L"legendary-paths.html";
+		else if (std::strcmp(url, "about:legendary-vault") == 0)
+			fileNameW = L"legendary-vault.html";
 		else if (std::strcmp(url, "about:mount-unlock") == 0)
 			fileNameW = L"mount-unlock.html";
 		else if (std::strcmp(url, "about:daily-weekly") == 0)
