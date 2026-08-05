@@ -24,7 +24,7 @@ namespace WalletDetail
 {
 	std::wstring NamesPathW()
 	{
-		return AddonPaths::DataDir() + L"\\stash-names.cache";
+		return AddonPaths::CacheDir() + L"\\stash-names.cache";
 	}
 
 	void LoadNames()

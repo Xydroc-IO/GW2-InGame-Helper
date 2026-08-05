@@ -275,6 +275,39 @@ namespace HelperDetail
 		return full.substr(0, slash);
 	}
 
+	/* Mirror AddonPaths::EnsureUnder — helper exe cannot link Nexus AddonPaths. */
+	std::wstring EnsureHelperUnder(const std::wstring& root, const wchar_t* relative)
+	{
+		if (root.empty() || !relative || !relative[0])
+			return {};
+		std::wstring cur = root;
+		const wchar_t* p = relative;
+		while (*p)
+		{
+			while (*p == L'\\' || *p == L'/')
+				++p;
+			if (!*p)
+				break;
+			const wchar_t* start = p;
+			while (*p && *p != L'\\' && *p != L'/')
+				++p;
+			cur.push_back(L'\\');
+			cur.append(start, p);
+			CreateDirectoryW(cur.c_str(), nullptr);
+		}
+		return cur;
+	}
+
+	std::wstring HelperPagesDir()
+	{
+		return EnsureHelperUnder(HelperDir(), L"pages");
+	}
+
+	std::wstring HelperCmdsDir()
+	{
+		return EnsureHelperUnder(HelperDir(), L"cmds");
+	}
+
 	std::string WidePathToFileUrl(const std::wstring& path)
 	{
 		std::string utf8 = WideToUtf8(path);
@@ -295,10 +328,11 @@ namespace HelperDetail
 	{
 		if (!op || id <= 0)
 			return;
-		const std::wstring dir = HelperDir();
-		if (dir.empty())
+		const std::wstring cmds = HelperCmdsDir();
+		const std::wstring pages = HelperPagesDir();
+		if (cmds.empty())
 			return;
-		const std::wstring path = dir + L"\\live-tp-cmd.txt";
+		const std::wstring path = cmds + L"\\live-tp-cmd.txt";
 		char line[64];
 		std::snprintf(line, sizeof(line), "%s %d\n", op, id);
 		HANDLE h = CreateFileW(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr,
@@ -309,8 +343,11 @@ namespace HelperDetail
 		WriteFile(h, line, static_cast<DWORD>(std::strlen(line)), &written, nullptr);
 		CloseHandle(h);
 		/* Drop ready stamp so DLL rebuilds the list after applying the cmd. */
-		DeleteFileW((dir + L"\\live-tp.ok").c_str());
-		DeleteFileW((dir + L"\\live-tp.ver").c_str());
+		if (!pages.empty())
+		{
+			DeleteFileW((pages + L"\\live-tp.ok").c_str());
+			DeleteFileW((pages + L"\\live-tp.ver").c_str());
+		}
 	}
 
 	int ParseQueryInt(const std::string& query, const char* key)
@@ -360,10 +397,10 @@ namespace HelperDetail
 				id = id * 10 + (*p - '0');
 			if (id > 0)
 			{
-				const std::wstring dir = HelperDir();
-				if (!dir.empty())
+				const std::wstring cmds = HelperCmdsDir();
+				if (!cmds.empty())
 				{
-					const std::wstring path = dir + L"\\craft-plan-cmd.txt";
+					const std::wstring path = cmds + L"\\craft-plan-cmd.txt";
 					char line[48];
 					std::snprintf(line, sizeof(line), "%d\n", id);
 					HANDLE h = CreateFileW(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ,
@@ -388,12 +425,13 @@ namespace HelperDetail
 			int id = 0;
 			for (const char* p = url + 27; *p >= '0' && *p <= '9'; ++p)
 				id = id * 10 + (*p - '0');
-			const std::wstring dir = HelperDir();
-			if (id <= 0 || dir.empty())
+			const std::wstring cmds = HelperCmdsDir();
+			const std::wstring pages = HelperPagesDir();
+			if (id <= 0 || cmds.empty() || pages.empty())
 				return {};
 			/* Queue DLL worker; write a dark loading shell so CEF never sees raw about:. */
 			{
-				const std::wstring cmdPath = dir + L"\\legendary-detail-cmd.txt";
+				const std::wstring cmdPath = cmds + L"\\legendary-detail-cmd.txt";
 				char line[64];
 				std::snprintf(line, sizeof(line), "%s %d\n", sync ? "sync" : "open", id);
 				HANDLE h = CreateFileW(cmdPath.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ,
@@ -407,7 +445,7 @@ namespace HelperDetail
 			}
 			wchar_t name[80];
 			std::swprintf(name, 80, L"live-legendary-detail-%d.html", id);
-			const std::wstring path = dir + L"\\" + name;
+			const std::wstring path = pages + L"\\" + name;
 			static const char kShell[] =
 				"<!DOCTYPE html><html><head><meta charset=\"utf-8\"/>"
 				"<title>Loading craft tree…</title></head>"
@@ -424,8 +462,8 @@ namespace HelperDetail
 				WriteFile(hf, kShell, static_cast<DWORD>(sizeof(kShell) - 1), &written, nullptr);
 				CloseHandle(hf);
 			}
-			DeleteFileW((dir + L"\\live-legendary-detail-" + std::to_wstring(id) + L".ok").c_str());
-			DeleteFileW((dir + L"\\live-legendary-detail-" + std::to_wstring(id) + L".ver").c_str());
+			DeleteFileW((pages + L"\\live-legendary-detail-" + std::to_wstring(id) + L".ok").c_str());
+			DeleteFileW((pages + L"\\live-legendary-detail-" + std::to_wstring(id) + L".ver").c_str());
 			return WidePathToFileUrl(path);
 		}
 		const wchar_t* fileNameW = nullptr;
@@ -497,21 +535,24 @@ namespace HelperDetail
 			return url;
 
 		const std::wstring dir = HelperDir();
-		if (dir.empty())
+		const std::wstring pages = HelperPagesDir();
+		const std::wstring cmds = HelperCmdsDir();
+		if (dir.empty() || pages.empty())
 			return {};
-		/* Pack sheets live under cheatsheets\; live panels / raid-food at root.
-		   Prefer the pack path so a stale loading shell in root cannot win. */
+		/* Pack sheets live under cheatsheets\; generated HTML under pages/.
+		   Prefer the pack path so a stale loading shell cannot win. */
 		const std::wstring pathSheets = dir + L"\\cheatsheets\\" + fileNameW;
-		const std::wstring pathRoot = dir + L"\\" + fileNameW;
+		const std::wstring pathPages = pages + L"\\" + fileNameW;
 		if (GetFileAttributesW(pathSheets.c_str()) != INVALID_FILE_ATTRIBUTES)
 			return WidePathToFileUrl(pathSheets);
-		if (GetFileAttributesW(pathRoot.c_str()) != INVALID_FILE_ATTRIBUTES)
-			return WidePathToFileUrl(pathRoot);
+		if (GetFileAttributesW(pathPages.c_str()) != INVALID_FILE_ATTRIBUTES)
+			return WidePathToFileUrl(pathPages);
 
 		/* Ask the DLL to Ensure* + Navigate — never hand CEF a raw about:
 		   (blocked → white page). Show a dark loading shell until then. */
+		if (!cmds.empty())
 		{
-			const std::wstring cmdPath = dir + L"\\open-about-cmd.txt";
+			const std::wstring cmdPath = cmds + L"\\open-about-cmd.txt";
 			const std::string line = std::string(url) + "\n";
 			HANDLE h = CreateFileW(cmdPath.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ,
 				nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -529,7 +570,7 @@ namespace HelperDetail
 			"font-family:Segoe UI,sans-serif;padding:2rem\">"
 			"<p>Opening cheat sheet…</p>"
 			"</body></html>";
-		HANDLE hf = CreateFileW(pathRoot.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+		HANDLE hf = CreateFileW(pathPages.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hf != INVALID_HANDLE_VALUE)
 		{
@@ -537,9 +578,9 @@ namespace HelperDetail
 			WriteFile(hf, kShell, static_cast<DWORD>(sizeof(kShell) - 1), &written, nullptr);
 			CloseHandle(hf);
 		}
-		if (GetFileAttributesW(pathRoot.c_str()) == INVALID_FILE_ATTRIBUTES)
+		if (GetFileAttributesW(pathPages.c_str()) == INVALID_FILE_ATTRIBUTES)
 			return {};
-		return WidePathToFileUrl(pathRoot);
+		return WidePathToFileUrl(pathPages);
 	}
 
 	/* Handle TP add/remove from about: or file://?gw2igh-tp-add=N before CEF sees them. */

@@ -350,8 +350,10 @@ install: $(DLL_OUT)
 	# Keep settings.ini and private cef/ runtime — never wipe the CEF tree.
 	/bin/rm -f "$(INSTALL_DIR)/"*.html "$(INSTALL_DIR)/"*.ver "$(INSTALL_DIR)/"*.ok \
 		"$(INSTALL_DIR)/GW2HelperBrowser.exe.ver" \
-		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg"
-	/bin/rm -rf "$(INSTALL_DIR)/cef-cache" "$(INSTALL_DIR)/cheatsheets"
+		"$(INSTALL_DIR)/home-logo.png" "$(INSTALL_DIR)/home-cover.jpg" \
+		"$(INSTALL_DIR)/"*-cmd.txt "$(INSTALL_DIR)/"*.cache "$(INSTALL_DIR)/"live-*.json
+	/bin/rm -rf "$(INSTALL_DIR)/pages" "$(INSTALL_DIR)/live" "$(INSTALL_DIR)/cache" \
+		"$(INSTALL_DIR)/cmds" "$(INSTALL_DIR)/cef-cache" "$(INSTALL_DIR)/cheatsheets"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"

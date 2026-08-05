@@ -21,9 +21,9 @@ namespace ProgressDetail
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 		Snapshot snap;
 		snap.hasKey = G::Gw2ApiKey[0] != '\0';
-		const std::wstring dir = AddonPaths::DataDir();
-		const std::wstring catPath = dir + L"\\live-armory.json";
-		const std::wstring namesPath = dir + L"\\live-armory-names.json";
+		const std::wstring cache = AddonPaths::LiveCacheDir();
+		const std::wstring catPath = cache + L"\\live-armory.json";
+		const std::wstring namesPath = cache + L"\\live-armory-names.json";
 
 		std::string catalog;
 		if (FileFresh(catPath, kArmoryTtlMs))

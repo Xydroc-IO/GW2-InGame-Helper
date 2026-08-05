@@ -127,6 +127,7 @@ namespace WikiBrowserDetail
 
 	/* WikiBrowserHelper.cpp */
 	void CleanupStaleAddonRootFiles();
+	void MigrateLegacyAddonDataLayout();
 	void KillHelperByPid(DWORD pid);
 	void ResetIpcQueues();
 	bool ExtractHelper();

@@ -1,5 +1,7 @@
 #include "HomePage.h"
 
+#include "AddonPaths.h"
+
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -16,7 +18,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "2209";
+	static constexpr const char* kHomePageVersion = "2210";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -61,10 +63,11 @@ std::string HomePage::EnsureFileUrl(const std::wstring& addonDir)
 		return {};
 
 	CreateDirectoryW(addonDir.c_str(), nullptr);
-	const std::wstring path = addonDir + L"\\helper-home.html";
-	const std::wstring verPath = addonDir + L"\\helper-home.ver";
-	const std::wstring logoPath = addonDir + L"\\home-logo.png";
-	const std::wstring coverPath = addonDir + L"\\home-cover.jpg";
+	const std::wstring pages = AddonPaths::EnsureUnder(addonDir, L"pages");
+	const std::wstring path = pages + L"\\helper-home.html";
+	const std::wstring verPath = pages + L"\\helper-home.ver";
+	const std::wstring logoPath = pages + L"\\home-logo.png";
+	const std::wstring coverPath = pages + L"\\home-cover.jpg";
 
 	bool assetsCurrent = false;
 	HANDLE verFile = CreateFileW(verPath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,

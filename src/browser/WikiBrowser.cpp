@@ -108,6 +108,7 @@ void WikiBrowser::Init()
 	CleanupStaleAddonRootFiles();
 	/* Ensure addon data folder exists before first open (CEF + helper land here). */
 	(void)AddonPaths::DataDir();
+	MigrateLegacyAddonDataLayout();
 	gLaunchDisabled.store(false);
 	gStarting.store(false);
 	gLaunchRequested.store(false);

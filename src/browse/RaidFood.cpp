@@ -1,5 +1,7 @@
 #include "RaidFood.h"
 
+#include "AddonPaths.h"
+
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -40,8 +42,9 @@ std::string RaidFood::EnsureFileUrl(const std::wstring& addonDir)
 	if (addonDir.empty())
 		return {};
 
-	const std::wstring path = addonDir + L"\\raid-food.html";
-	const std::wstring verPath = addonDir + L"\\raid-food.ver";
+	const std::wstring pages = AddonPaths::EnsureUnder(addonDir, L"pages");
+	const std::wstring path = pages + L"\\raid-food.html";
+	const std::wstring verPath = pages + L"\\raid-food.ver";
 
 	char buf[64] = {};
 	HANDLE vin = CreateFileW(verPath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,

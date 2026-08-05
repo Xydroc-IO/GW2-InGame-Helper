@@ -44,7 +44,10 @@ std::string PathToFileUrl(const std::wstring& path)
 
 std::wstring StemPath(const std::wstring& addonDir, const char* stem, const wchar_t* ext)
 {
-	std::wstring p = addonDir + L"\\";
+	const std::wstring base = (ext && wcscmp(ext, L".json") == 0)
+		? AddonPaths::EnsureUnder(addonDir, L"live\\cache")
+		: AddonPaths::EnsureUnder(addonDir, L"pages");
+	std::wstring p = base + L"\\";
 	for (const char* s = stem; *s; ++s)
 		p.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*s)));
 	p += ext;
@@ -204,7 +207,7 @@ bool MutateTpWatchlist(const char* op, int id)
 
 bool ProcessTpWatchCmdFile(const std::wstring& addonDir)
 {
-	const std::wstring path = addonDir + L"\\live-tp-cmd.txt";
+	const std::wstring path = AddonPaths::EnsureUnder(addonDir, L"cmds") + L"\\live-tp-cmd.txt";
 	const std::string raw = ReadUtf8File(path);
 	if (raw.empty())
 		return false;

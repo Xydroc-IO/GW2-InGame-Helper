@@ -87,3 +87,45 @@ std::string AddonPaths::DataDirUtf8()
 	WideCharToMultiByte(CP_UTF8, 0, w.c_str(), -1, out.data(), n, nullptr, nullptr);
 	return out;
 }
+
+std::wstring AddonPaths::EnsureUnder(const std::wstring& root, const wchar_t* relative)
+{
+	if (root.empty() || !relative || !relative[0])
+		return {};
+	std::wstring cur = root;
+	const wchar_t* p = relative;
+	while (*p)
+	{
+		while (*p == L'\\' || *p == L'/')
+			++p;
+		if (!*p)
+			break;
+		const wchar_t* start = p;
+		while (*p && *p != L'\\' && *p != L'/')
+			++p;
+		cur.push_back(L'\\');
+		cur.append(start, p);
+		EnsureDir(cur);
+	}
+	return cur;
+}
+
+std::wstring AddonPaths::PagesDir()
+{
+	return EnsureUnder(DataDir(), L"pages");
+}
+
+std::wstring AddonPaths::LiveCacheDir()
+{
+	return EnsureUnder(DataDir(), L"live\\cache");
+}
+
+std::wstring AddonPaths::CacheDir()
+{
+	return EnsureUnder(DataDir(), L"cache");
+}
+
+std::wstring AddonPaths::CmdsDir()
+{
+	return EnsureUnder(DataDir(), L"cmds");
+}

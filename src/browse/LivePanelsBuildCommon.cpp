@@ -1,5 +1,6 @@
 #include "LivePanelsBuildShared.h"
 
+#include "AddonPaths.h"
 #include "Gw2Http.h"
 
 #include <cstdio>
@@ -38,7 +39,11 @@ std::string PathToFileUrl(const std::wstring& path)
 
 std::wstring StemPath(const std::wstring& addonDir, const char* stem, const wchar_t* ext)
 {
-	std::wstring p = addonDir + L"\\";
+	/* .json live caches → live/cache/; HTML/.ver/.ok → pages/ */
+	const std::wstring base = (ext && wcscmp(ext, L".json") == 0)
+		? AddonPaths::EnsureUnder(addonDir, L"live\\cache")
+		: AddonPaths::EnsureUnder(addonDir, L"pages");
+	std::wstring p = base + L"\\";
 	for (const char* s = stem; *s; ++s)
 		p.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*s)));
 	p += ext;

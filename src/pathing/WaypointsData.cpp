@@ -36,7 +36,7 @@ namespace WaypointsDataDetail
 
 std::wstring CachePath()
 {
-	return AddonPaths::DataDir() + L"\\waypoints-index.cache";
+	return AddonPaths::CacheDir() + L"\\waypoints-index.cache";
 }
 
 std::string ToLowerCopy(std::string s)

@@ -75,7 +75,7 @@ namespace UnlocksDetail
 	{
 		wchar_t name[64]{};
 		MultiByteToWideChar(CP_UTF8, 0, kCacheNames[KindIndex(k)], -1, name, 64);
-		return AddonPaths::DataDir() + L"\\" + name;
+		return AddonPaths::CacheDir() + L"\\" + name;
 	}
 
 	std::string ToLowerCopy(std::string s)

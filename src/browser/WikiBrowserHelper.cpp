@@ -23,6 +23,76 @@ extern "C" {
 
 namespace WikiBrowserDetail
 {
+	void DeleteIfExists(const std::wstring& path)
+	{
+		DeleteFileW(path.c_str());
+	}
+
+	void DeleteGlobInDir(const std::wstring& dir, const wchar_t* pattern)
+	{
+		if (dir.empty() || !pattern)
+			return;
+		WIN32_FIND_DATAW fd{};
+		const std::wstring glob = dir + L"\\" + pattern;
+		HANDLE h = FindFirstFileW(glob.c_str(), &fd);
+		if (h == INVALID_HANDLE_VALUE)
+			return;
+		do
+		{
+			if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+				continue;
+			DeleteFileW((dir + L"\\" + fd.cFileName).c_str());
+		} while (FindNextFileW(h, &fd));
+		FindClose(h);
+	}
+
+	/* One-time upgrade: generated HTML / cmd / caches moved out of data root. */
+	void MigrateLegacyAddonDataLayout()
+	{
+		const std::wstring data = AddonDir();
+		if (data.empty())
+			return;
+
+		const wchar_t* rootOrphans[] = {
+			L"\\helper-home.html",
+			L"\\helper-home.ver",
+			L"\\home-logo.png",
+			L"\\home-cover.jpg",
+			L"\\raid-food.html",
+			L"\\raid-food.ver",
+			L"\\live-tp-cmd.txt",
+			L"\\craft-plan-cmd.txt",
+			L"\\legendary-detail-cmd.txt",
+			L"\\open-about-cmd.txt",
+			L"\\waypoints-index.cache",
+			L"\\stash-names.cache",
+			L"\\unlocks-skins.cache",
+			L"\\unlocks-dyes.cache",
+			L"\\unlocks-minis.cache",
+			L"\\unlocks-finishers.cache",
+			L"\\unlocks-outfits.cache",
+			L"\\unlocks-gliders.cache",
+			L"\\unlocks-mailcarriers.cache",
+			L"\\unlocks-novelties.cache",
+			L"\\unlocks-titles.cache",
+			L"\\live-armory.json",
+			L"\\live-armory-names.json",
+			L"\\live-colors.json",
+			L"\\gw2-api-check.html",
+			L"\\gw2-api-check.ver",
+			L"\\gw2-api-check.ok",
+		};
+		for (const wchar_t* name : rootOrphans)
+			DeleteIfExists(data + name);
+
+		DeleteGlobInDir(data, L"live-*.html");
+		DeleteGlobInDir(data, L"live-*.ver");
+		DeleteGlobInDir(data, L"live-*.ok");
+		DeleteGlobInDir(data, L"live-*.json");
+		DeleteGlobInDir(data, L"live-leg-craft-*.json");
+		DeleteGlobInDir(data, L"*-cmd.txt");
+	}
+
 	void CleanupStaleAddonRootFiles()
 	{
 		const std::wstring data = AddonDir();
@@ -105,6 +175,8 @@ namespace WikiBrowserDetail
 			L"\\live-progress.ver",
 			L"\\live-progress.ok",
 			L"\\live-colors.json",
+			L"\\live-armory.json",
+			L"\\live-armory-names.json",
 			L"\\currency-sinks.html",
 			L"\\currency-sinks.ver",
 			L"\\ascended-start.html",
@@ -119,6 +191,8 @@ namespace WikiBrowserDetail
 			L"\\dps-log-setup.ver",
 			L"\\api-key-setup.html",
 			L"\\api-key-setup.ver",
+			L"\\waypoints-index.cache",
+			L"\\stash-names.cache",
 			L"\\settings.ini",
 		};
 		for (const wchar_t* name : stale)
@@ -126,6 +200,12 @@ namespace WikiBrowserDetail
 			const std::wstring p = root + name;
 			DeleteFileW(p.c_str());
 		}
+		DeleteGlobInDir(root, L"live-*.html");
+		DeleteGlobInDir(root, L"live-*.ver");
+		DeleteGlobInDir(root, L"live-*.ok");
+		DeleteGlobInDir(root, L"live-*.json");
+		DeleteGlobInDir(root, L"*-cmd.txt");
+		DeleteGlobInDir(root, L"unlocks-*.cache");
 	}
 	void KillHelperByPid(DWORD pid)
 	{
@@ -186,7 +266,7 @@ namespace WikiBrowserDetail
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2209";
+		static constexpr const char* kHelperStamp = "2210";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;

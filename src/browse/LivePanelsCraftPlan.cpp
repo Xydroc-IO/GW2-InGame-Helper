@@ -1,5 +1,6 @@
 #include "LivePanelsInternal.h"
 
+#include "AddonPaths.h"
 #include "CraftingData.h"
 #include "Globals.h"
 #include "WikiBrowser.h"
@@ -26,7 +27,7 @@ void QueueCraftPlanCmd(const std::wstring& addonDir, int itemId)
 {
 	if (addonDir.empty() || itemId <= 0)
 		return;
-	const std::wstring path = addonDir + L"\\craft-plan-cmd.txt";
+	const std::wstring path = AddonPaths::EnsureUnder(addonDir, L"cmds") + L"\\craft-plan-cmd.txt";
 	char line[48];
 	std::snprintf(line, sizeof(line), "%d\n", itemId);
 	HANDLE h = CreateFileW(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr,
@@ -40,7 +41,7 @@ void QueueCraftPlanCmd(const std::wstring& addonDir, int itemId)
 
 bool ProcessCraftPlanCmdFile(const std::wstring& addonDir)
 {
-	const std::wstring path = addonDir + L"\\craft-plan-cmd.txt";
+	const std::wstring path = AddonPaths::EnsureUnder(addonDir, L"cmds") + L"\\craft-plan-cmd.txt";
 	const std::string raw = ReadUtf8File(path);
 	if (raw.empty())
 		return false;
@@ -87,7 +88,7 @@ bool ParseLegendaryItemUrl(const std::string& url, int* idOut, bool* syncOut)
 
 bool ProcessLegendaryDetailCmdFile(const std::wstring& addonDir)
 {
-	const std::wstring path = addonDir + L"\\legendary-detail-cmd.txt";
+	const std::wstring path = AddonPaths::EnsureUnder(addonDir, L"cmds") + L"\\legendary-detail-cmd.txt";
 	const std::string raw = ReadUtf8File(path);
 	if (raw.empty())
 		return false;
@@ -146,7 +147,7 @@ bool ProcessLegendaryDetailCmdFile(const std::wstring& addonDir)
 
 bool ProcessOpenAboutCmdFile(const std::wstring& addonDir)
 {
-	const std::wstring path = addonDir + L"\\open-about-cmd.txt";
+	const std::wstring path = AddonPaths::EnsureUnder(addonDir, L"cmds") + L"\\open-about-cmd.txt";
 	const std::string raw = ReadUtf8File(path);
 	if (raw.empty())
 		return false;
