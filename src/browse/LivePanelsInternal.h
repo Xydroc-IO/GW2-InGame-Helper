@@ -11,10 +11,11 @@
 
 namespace LivePanelsDetail
 {
-	constexpr const char* kPanelVer = "28";
+	constexpr const char* kPanelVer = "29";
 	constexpr DWORD kHtmlTtlSec = 10u * 60u;       /* avoid rebuild storms */
 	constexpr DWORD kTpHtmlTtlSec = 60u;
 	constexpr DWORD kApiCheckTtlSec = 45u;         /* diagnostics should re-probe often */
+	constexpr DWORD kLegendaryVaultTtlSec = 45u;   /* Owned/Missing should stay near-live */
 	constexpr int kMaxLiveWorkers = 3;
 
 	std::string WideToUtf8(const std::wstring& w);

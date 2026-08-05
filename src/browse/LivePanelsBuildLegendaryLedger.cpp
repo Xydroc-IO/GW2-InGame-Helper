@@ -119,7 +119,8 @@ a.card:hover{border-color:rgba(168,85,247,.35)}.avatar{width:2.25rem;height:2.25
 .detail-head{display:flex;gap:1rem;align-items:center;margin-bottom:1.25rem}.detail-sub{margin:.25rem 0 0;color:var(--zinc-500);font-size:.875rem}
 .detail-card{border:1px solid var(--border);border-radius:.5rem;background:var(--panel);padding:1rem}.field{margin-bottom:.85rem}.lbl{margin:0 0 .25rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--zinc-500)}.val{margin:0;color:var(--zinc-200);font-size:.875rem}
 .cta{display:inline-block;margin-top:.75rem;margin-right:.5rem;padding:.55rem 1rem;border-radius:.375rem;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.45);color:var(--purple-200);text-decoration:none;font-size:.875rem;font-weight:600}
-.cta:hover{background:rgba(168,85,247,.3)}.note{margin:0 0 1rem;font-size:.8rem;color:var(--zinc-500)}.empty{color:var(--zinc-500);padding:2rem 0;text-align:center}.hidden{display:none!important}
+.cta:hover{background:rgba(168,85,247,.3)}.cta.ghost{background:transparent;border-color:var(--border);color:var(--zinc-200)}.cta.ghost:hover{border-color:rgba(168,85,247,.4);color:var(--purple-200)}
+.note{margin:0 0 1rem;font-size:.8rem;color:var(--zinc-500)}.empty{color:var(--zinc-500);padding:2rem 0;text-align:center}.hidden{display:none!important}
 .space-y-3>*+*{margin-top:.75rem}.space-y-7>*+*{margin-top:1.75rem}.space-y-8>*+*{margin-top:2rem}
 )CSS";
 	}
@@ -175,6 +176,17 @@ function groupByLetter(list){
   return Object.keys(map).sort().map(function(L){return{letter:L,items:map[L]};});
 }
 function craftId(it){var ids=it.itemIds||[];return ids.length?ids[0]:0;}
+function wikiNewTabHref(name){
+  if(!name) return "";
+  var path="";
+  for(var i=0;i<name.length;i++){
+    var c=name.charAt(i);
+    if(c===" ") path+="_";
+    else if(c==="'") path+="%27";
+    else path+=c;
+  }
+  return "?gw2igh-newtab="+encodeURIComponent("https://wiki.guildwars2.com/wiki/"+path);
+}
 function craftPct(it){
   var ids=it.itemIds||[];
   var pcts=window.CRAFT_PCT||{};
@@ -209,7 +221,7 @@ function renderList(){
           }).join("")+"</div></section>";
       }).join("")+"</div>";
   }
-  var keyNote=hasKey?'<p class="note">Open a legendary for notes and armory status. Use <strong>Sync craft tree</strong> for gifts → mats have/need and %. Open in Account Crafting uses the same plan engine.</p>':'<p class="note">Add a GW2 API key in Settings (unlocks + inventories) for Owned / Missing and craft have/need.</p>';
+  var keyNote=hasKey?'<p class="note">Owned / Missing refreshes automatically when you open the Ledger. Use <strong>Sync craft tree</strong> for gifts → mats have/need and %. <strong>Wiki</strong> opens the item page in a new helper tab.</p>':'<p class="note">Add a GW2 API key in Settings (unlocks + inventories) for Owned / Missing and craft have/need.</p>';
   elList.innerHTML="<div><h1>The Complete GW2 Legendary Collection</h1></div>"+keyNote+'<div class="space-y-3"><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input class="search" id="q" type="search" placeholder="Search legendaries…" value="'+esc(state.q)+'"/></div><div class="cats">'+catsHtml+"</div></div>"+body;
   var q=document.getElementById("q");
   if(q){q.addEventListener("input",function(){state.q=q.value;renderList();var a=document.getElementById("q");if(a){a.focus();try{a.setSelectionRange(a.value.length,a.value.length);}catch(e){}}});}
@@ -239,6 +251,8 @@ function renderDetail(id){
   if(it.acquisition)fields+='<div class="field"><p class="lbl">How to obtain</p><p class="val">'+esc(it.acquisition)+"</p></div>";
   if(it.notes)fields+='<div class="field"><p class="lbl">Notes</p><p class="val">'+esc(it.notes)+"</p></div>";
   var ctas="";
+  var wiki=wikiNewTabHref(it.name);
+  if(wiki) ctas+='<a class="cta ghost" href="'+wiki+'">Wiki</a>';
   if(cid){
     ctas+='<a class="cta" href="?gw2igh-leg-open='+cid+'">Sync craft tree</a>';
     ctas+='<a class="cta" href="?gw2igh-craft-plan='+cid+'">Open in Account Crafting</a>';
@@ -266,13 +280,10 @@ std::string BuildLegendaryLedgerHtml(const std::wstring& addonDir, const char* a
 	std::unordered_map<int, int> owned;
 	if (hasKey)
 	{
-		Gw2Http::Result acc;
-		if (!TryCacheHit(addonDir, "live-acc-armory", kAccountTtlSec, acc))
-		{
-			acc = Gw2Http::Api("/v2/account/legendaryarmory", apiKey, kLiveHttpTimeoutMs);
-			StoreCache(addonDir, "live-acc-armory", acc);
-			PreferStaleCache(addonDir, "live-acc-armory", acc);
-		}
+		/* Always hit the live armory endpoint — Owned/Missing must not wait on Sync. */
+		Gw2Http::Result acc = Gw2Http::Api("/v2/account/legendaryarmory", apiKey, kLiveHttpTimeoutMs);
+		StoreCache(addonDir, "live-acc-armory", acc);
+		PreferStaleCache(addonDir, "live-acc-armory", acc);
 		if (acc.ok)
 			ParseOwnedArmory(acc.body, owned);
 	}
@@ -338,7 +349,7 @@ std::string BuildLegendaryLedgerHtml(const std::wstring& addonDir, const char* a
 	html += LedgerCss();
 	html += "</style></head><body><div class=\"glow\" aria-hidden=\"true\"></div>"
 		"<div class=\"shell\"><header class=\"top\"><div class=\"top-inner\">"
-		"<a class=\"brand\" href=\"live-legendary-vault.html\" title=\"GW2 Legendary Ledger\">"
+		"<a class=\"brand\" href=\"?gw2igh-leg-vault=1\" title=\"Refresh Legendary Ledger\">"
 		"<span>GW2 Legendary Ledger</span></a></div></header>"
 		"<main><div id=\"view-list\" class=\"space-y-7\"></div>"
 		"<div id=\"view-detail\" class=\"hidden\"></div></main>"

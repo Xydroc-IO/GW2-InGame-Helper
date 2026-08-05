@@ -131,6 +131,9 @@ bool ProcessLegendaryDetailCmdFile(const std::wstring& addonDir)
 			DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
 			DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 			DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
+			DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
+			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ver").c_str());
+			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ok").c_str());
 		}
 		char title[96];
 		std::snprintf(title, sizeof(title), "Legendary craft #%d", id);

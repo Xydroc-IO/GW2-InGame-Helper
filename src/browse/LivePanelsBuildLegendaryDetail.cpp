@@ -67,7 +67,7 @@ h1{margin:0;font-size:1.35rem;font-weight:600;letter-spacing:-.025em;color:var(-
 .pct{font-size:1.15rem;font-weight:700;color:var(--purple-200);margin:0}
 .note{margin:0 0 1rem;font-size:.8rem;color:var(--zinc-500)}
 .cta{display:inline-block;margin-top:.5rem;margin-right:.5rem;padding:.55rem 1rem;border-radius:.375rem;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.45);color:var(--purple-200);text-decoration:none;font-size:.875rem;font-weight:600}
-.cta:hover{background:rgba(168,85,247,.3)}
+.cta:hover{background:rgba(168,85,247,.3)}.cta.ghost{background:transparent;border-color:var(--border);color:var(--zinc-200)}.cta.ghost:hover{border-color:rgba(168,85,247,.4);color:var(--purple-200)}
 .card-title{margin:0 0 .75rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--zinc-500)}
 ul.craft-tree,ul.craft-tree ul{list-style:none;margin:.35rem 0 0;padding-left:1rem}
 ul.craft-tree{padding-left:0}
@@ -92,9 +92,39 @@ li.done .nm{color:var(--ok)}li.mat .nm{color:var(--zinc-200)}li.craft .nm{color:
 		html += LedgerDetailCss();
 		html += "</style></head><body><div class=\"glow\" aria-hidden=\"true\"></div>"
 			"<div class=\"shell\"><header class=\"top\"><div class=\"top-inner\">"
-			"<a class=\"brand\" href=\"live-legendary-vault.html\" title=\"GW2 Legendary Ledger\">"
+			"<a class=\"brand\" href=\"?gw2igh-leg-vault=1\" title=\"Refresh Legendary Ledger\">"
 			"<span>GW2 Legendary Ledger</span></a></div></header><main>";
 		return html;
+	}
+
+	std::string WikiNewTabHref(const std::string& name)
+	{
+		if (name.empty())
+			return {};
+		std::string wiki = "https://wiki.guildwars2.com/wiki/";
+		for (unsigned char c : name)
+		{
+			if (c == ' ')
+				wiki += '_';
+			else if (c == '\'')
+				wiki += "%27";
+			else
+				wiki.push_back(static_cast<char>(c));
+		}
+		std::string href = "?gw2igh-newtab=";
+		for (unsigned char c : wiki)
+		{
+			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+				c == '-' || c == '_' || c == '.' || c == '~')
+				href.push_back(static_cast<char>(c));
+			else
+			{
+				char buf[8];
+				std::snprintf(buf, sizeof(buf), "%%%02X", c);
+				href += buf;
+			}
+		}
+		return href;
 	}
 
 	std::string LedgerChromeClose()
@@ -112,7 +142,7 @@ std::string BuildLegendaryDetailShellHtml(int itemId)
 	/* Auto-refresh so finishing the worker reloads even if CEF ignores same-URL Navigate. */
 	html.insert(html.find("</title>") + 8,
 		"<meta http-equiv=\"refresh\" content=\"2\"/>");
-	html += "<a class=\"back\" href=\"live-legendary-vault.html\">"
+	html += "<a class=\"back\" href=\"?gw2igh-leg-vault=1\">"
 		"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
 		"width=\"16\" height=\"16\"><path d=\"m15 18-6-6 6-6\"/></svg> All legendaries</a>";
 	html += "<div class=\"detail-head\"><div class=\"avatar\">…</div><div><h1>";
@@ -134,13 +164,9 @@ std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* a
 
 	if (hasKey)
 	{
-		Gw2Http::Result acc;
-		if (!TryCacheHit(addonDir, "live-acc-armory", kAccountTtlSec, acc))
-		{
-			acc = Gw2Http::Api("/v2/account/legendaryarmory", apiKey, kLiveHttpTimeoutMs);
-			StoreCache(addonDir, "live-acc-armory", acc);
-			PreferStaleCache(addonDir, "live-acc-armory", acc);
-		}
+		Gw2Http::Result acc = Gw2Http::Api("/v2/account/legendaryarmory", apiKey, kLiveHttpTimeoutMs);
+		StoreCache(addonDir, "live-acc-armory", acc);
+		PreferStaleCache(addonDir, "live-acc-armory", acc);
 		if (acc.ok)
 		{
 			std::unordered_map<int, int> owned;
@@ -186,7 +212,7 @@ std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* a
 	const char initial = title.empty() ? '?' : title[0];
 
 	std::string html = LedgerChromeOpen(title.c_str());
-	html += "<a class=\"back\" href=\"live-legendary-vault.html\">"
+	html += "<a class=\"back\" href=\"?gw2igh-leg-vault=1\">"
 		"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
 		"width=\"16\" height=\"16\"><path d=\"m15 18-6-6 6-6\"/></svg> All legendaries</a>";
 	html += "<div class=\"detail-head\"><div class=\"avatar\">";
@@ -237,6 +263,13 @@ std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* a
 		html += "</p>";
 	}
 
+	const std::string wikiHref = WikiNewTabHref(title);
+	if (!wikiHref.empty())
+	{
+		html += "<a class=\"cta ghost\" href=\"";
+		html += wikiHref;
+		html += "\">Wiki</a>";
+	}
 	html += "<a class=\"cta\" href=\"?gw2igh-leg-sync=";
 	html += std::to_string(itemId);
 	html += "\">Sync craft tree</a>";

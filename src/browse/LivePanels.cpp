@@ -87,6 +87,10 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 			DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
 			DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 			DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
+			/* Sync also refreshes armory ownership for the detail badge. */
+			DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
+			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ver").c_str());
+			DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ok").c_str());
 		}
 		char title[96];
 		std::snprintf(title, sizeof(title), "Legendary craft #%d", id);
@@ -109,8 +113,15 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 		return EnsurePanel(addonDir, "live-progress", LiveAsyncJob::Progress,
 			"Live — Legendaries &amp; Characters", "Legendaries &amp; Characters");
 	if (url == "about:legendary-vault")
+	{
+		/* Always re-fetch /v2/account/legendaryarmory so Owned/Missing stays current
+		   without requiring Sync craft tree. */
+		DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
+		DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ver").c_str());
+		DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ok").c_str());
 		return EnsurePanel(addonDir, "live-legendary-vault", LiveAsyncJob::LegendaryLedger,
 			"GW2 Legendary Ledger", "The Complete GW2 Legendary Collection");
+	}
 	if (url == "about:cheatsheets-hub")
 		return EnsurePanel(addonDir, "live-cheatsheets-hub", LiveAsyncJob::CheatSheetsHub,
 			"Cheat Sheets", "Cheat Sheets");

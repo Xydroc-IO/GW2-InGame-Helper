@@ -637,9 +637,15 @@ namespace HelperDetail
 		const int openId = ParseQueryInt(query, "gw2igh-leg-open");
 		const int syncId = ParseQueryInt(query, "gw2igh-leg-sync");
 		const int craftId = ParseQueryInt(query, "gw2igh-craft-plan");
-		if (openId <= 0 && syncId <= 0 && craftId <= 0)
+		const bool vaultRefresh = query.find("gw2igh-leg-vault=") != std::string::npos;
+		if (openId <= 0 && syncId <= 0 && craftId <= 0 && !vaultRefresh)
 			return false;
 		char about[64];
+		if (vaultRefresh)
+		{
+			*outNavigate = ResolveBuiltinUrl("about:legendary-vault");
+			return true;
+		}
 		if (craftId > 0)
 		{
 			std::snprintf(about, sizeof(about), "about:craft-plan-%d", craftId);

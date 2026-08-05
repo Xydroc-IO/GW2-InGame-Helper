@@ -451,6 +451,8 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		ttl = kTpHtmlTtlSec;
 	else if (kind == LiveAsyncJob::ApiCheck)
 		ttl = kApiCheckTtlSec;
+	else if (kind == LiveAsyncJob::LegendaryLedger)
+		ttl = kLegendaryVaultTtlSec;
 	else if (kind == LiveAsyncJob::LegendaryDetail)
 		ttl = 3u * 60u; /* refresh with inventory often */
 	if (VerMatches(verPath) && FileFresh(path, ttl) && PanelReady(addonDir, stem))
