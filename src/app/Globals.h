@@ -77,6 +77,7 @@ namespace G
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
 	extern bool  ShowTrailTools; /* ImGui Trail Tools pack authoring pad */
+	extern bool  EnablePathingLua; /* opt-in subset of Blish script-* Lua */
 	/* Lady Elyssa Features — map-completion editions are exclusive; Hearts / HP Train are independent. */
 	extern bool  LadyBarefoot;   /* foot routes + bfs shortcuts (current map) */
 	extern bool  LadyWpOnly;     /* waypoint trails (current map) */

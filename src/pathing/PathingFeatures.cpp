@@ -3,6 +3,7 @@
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
+#include "PathingLua.h"
 #include "PathingPacks.h"
 #include "Settings.h"
 #include "PathingTrails.h"
@@ -223,7 +224,18 @@ bool PathingFeatures::RenderContents()
 			"Clear Blish/TacO activation data (weekly chests, auto-triggers).\n"
 			"Same idea as deleting Blish timers.txt.");
 	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted, "Lua script-* features still need Blish HUD Pathing.");
+	ImGui::Checkbox("Enable Lua scripts (Blish-shaped subset)###gw2igh_path_lua",
+		&G::EnablePathingLua);
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Opt-in. Packs may execute .lua + script-* attrs.\n"
+			"API: Marker/World/Pack/Mumble/Event/Vector3 (libdef-shaped).\n"
+			"Leave OFF unless you trust the pack.");
+	ImGui::TextColored(HelperTheme::Muted,
+		"Supported: Marker/Trail mutators, Menu.Add, CDN SetTexture(id), "
+		"GetBehavior, World:TrailByGuid/GetClosestTrail(s), Pack:CreateMarker, "
+		"Mumble/Event/User. Opt-in only.");
+	PathingLua::DrawScriptMenus();
 	PadNav::PopWrap();
 
 	return dirty;

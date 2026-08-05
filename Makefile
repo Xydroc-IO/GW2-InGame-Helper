@@ -7,7 +7,7 @@ CXXFLAGS += -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS
 CXXFLAGS += -DCEF_API_VERSION=15000
 CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/api -Isrc/browse -Isrc/browser \
 	-Isrc/account -Isrc/pathing -Isrc/logs -Isrc/events -Isrc/notes -Isrc/helper
-CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen
+CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/lua
 # Dependency files: emit only from the build/%.o rule via -MF (never beside sources).
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
@@ -142,12 +142,31 @@ DLL_SRC = \
 	src/pathing/TrailToolsPadLive.cpp \
 	src/pathing/TrailToolsPadTrail.cpp \
 	src/pathing/TrailToolsPadMarkers.cpp \
+	src/pathing/TrailToolsPadMarkersScript.cpp \
+	src/pathing/TrailToolsPadLua.cpp \
 	src/pathing/TrailToolsPadPack.cpp \
 	src/pathing/TrailToolsState.cpp \
 	src/pathing/TrailToolsTrl.cpp \
 	src/pathing/TrailToolsXml.cpp \
 	src/pathing/TrailToolsBuild.cpp \
 	src/pathing/TrailToolsPreview.cpp \
+	src/pathing/TrailToolsPreviewCompass.cpp \
+	src/pathing/TrailToolsDraftStyle.cpp \
+	src/pathing/TrailToolsAssets.cpp \
+	src/pathing/TrailToolsPersist.cpp \
+	src/pathing/TrailToolsImport.cpp \
+	src/pathing/PathingSchedule.cpp \
+	src/pathing/PathingLua.cpp \
+	src/pathing/PathingLuaApi.cpp \
+	src/pathing/PathingLuaTypes.cpp \
+	src/pathing/PathingLuaMarker.cpp \
+	src/pathing/PathingLuaWorld.cpp \
+	src/pathing/PathingLuaPack.cpp \
+	src/pathing/PathingLuaMumble.cpp \
+	src/pathing/PathingLuaMenu.cpp \
+	src/pathing/PathingLuaCdn.cpp \
+	src/pathing/PathingLuaTrail.cpp \
+	src/pathing/PathingLuaLoad.cpp \
 	src/pathing/PathingTrails.cpp \
 	src/pathing/PathingTrailsCore.cpp \
 	src/pathing/PathingLoad.cpp \
@@ -207,7 +226,39 @@ DLL_SRC = \
 	deps/miniz/miniz.c \
 	deps/miniz/miniz_tdef.c \
 	deps/miniz/miniz_tinfl.c \
-	deps/miniz/miniz_zip.c
+	deps/miniz/miniz_zip.c \
+	deps/lua/lapi.c \
+	deps/lua/lauxlib.c \
+	deps/lua/lbaselib.c \
+	deps/lua/lcode.c \
+	deps/lua/lcorolib.c \
+	deps/lua/lctype.c \
+	deps/lua/ldblib.c \
+	deps/lua/ldebug.c \
+	deps/lua/ldo.c \
+	deps/lua/ldump.c \
+	deps/lua/lfunc.c \
+	deps/lua/lgc.c \
+	deps/lua/linit.c \
+	deps/lua/liolib.c \
+	deps/lua/llex.c \
+	deps/lua/lmathlib.c \
+	deps/lua/lmem.c \
+	deps/lua/loadlib.c \
+	deps/lua/lobject.c \
+	deps/lua/lopcodes.c \
+	deps/lua/loslib.c \
+	deps/lua/lparser.c \
+	deps/lua/lstate.c \
+	deps/lua/lstring.c \
+	deps/lua/lstrlib.c \
+	deps/lua/ltable.c \
+	deps/lua/ltablib.c \
+	deps/lua/ltm.c \
+	deps/lua/lundump.c \
+	deps/lua/lutf8lib.c \
+	deps/lua/lvm.c \
+	deps/lua/lzio.c
 
 DLL_OBJ = $(patsubst %.cpp,build/%.o,$(filter %.cpp,$(DLL_SRC))) \
 	$(patsubst %.c,build/%.o,$(filter %.c,$(DLL_SRC)))
@@ -264,6 +315,46 @@ $(TEST_TRAILTOOLS_BIN): tools/test_trailtools_roundtrip.cpp \
 		src/pathing/TrailToolsTrl.cpp \
 		src/pathing/TrailToolsXml.cpp \
 		-lole32 -luuid -lshell32 -lcrypt32
+
+TEST_PATHING_LUA_BIN = build/test_pathing_lua.exe
+.PHONY: test-pathing-lua
+test-pathing-lua: $(TEST_PATHING_LUA_BIN)
+	wine $(TEST_PATHING_LUA_BIN)
+
+LUA_TEST_CPP = \
+	tools/test_pathing_lua.cpp \
+	src/pathing/PathingLua.cpp \
+	src/pathing/PathingLuaApi.cpp \
+	src/pathing/PathingLuaTypes.cpp \
+	src/pathing/PathingLuaMarker.cpp \
+	src/pathing/PathingLuaWorld.cpp \
+	src/pathing/PathingLuaPack.cpp \
+	src/pathing/PathingLuaMumble.cpp \
+	src/pathing/PathingLuaCdn.cpp \
+	src/pathing/PathingLuaTrail.cpp
+
+LUA_TEST_C = \
+	deps/lua/lapi.c deps/lua/lauxlib.c deps/lua/lbaselib.c deps/lua/lcode.c \
+	deps/lua/lcorolib.c deps/lua/lctype.c deps/lua/ldblib.c deps/lua/ldebug.c \
+	deps/lua/ldo.c deps/lua/ldump.c deps/lua/lfunc.c deps/lua/lgc.c deps/lua/linit.c \
+	deps/lua/liolib.c deps/lua/llex.c deps/lua/lmathlib.c deps/lua/lmem.c \
+	deps/lua/loadlib.c deps/lua/lobject.c deps/lua/lopcodes.c deps/lua/loslib.c \
+	deps/lua/lparser.c deps/lua/lstate.c deps/lua/lstring.c deps/lua/lstrlib.c \
+	deps/lua/ltable.c deps/lua/ltablib.c deps/lua/ltm.c deps/lua/lundump.c \
+	deps/lua/lutf8lib.c deps/lua/lvm.c deps/lua/lzio.c
+
+LUA_TEST_COBJ = $(patsubst deps/lua/%.c,build/test_lua/%.o,$(LUA_TEST_C))
+
+build/test_lua/%.o: deps/lua/%.c
+	@mkdir -p build/test_lua
+	x86_64-w64-mingw32-gcc -std=c11 -O2 -Ideps/lua -c -o $@ $<
+
+$(TEST_PATHING_LUA_BIN): $(LUA_TEST_CPP) $(LUA_TEST_COBJ) \
+	src/pathing/PathingLua.h src/pathing/PathingLuaInternal.h
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -static -static-libgcc -static-libstdc++ -o $@ \
+		$(LUA_TEST_CPP) $(LUA_TEST_COBJ) \
+		-lole32 -luuid -lshell32 -lcrypt32 -lwinhttp
 
 test-ipc: $(TEST_IPC_BIN)
 	./$(TEST_IPC_BIN)
@@ -357,7 +448,7 @@ build/%.o: %.cpp
 
 build/%.o: %.c
 	@mkdir -p $(dir $@)
-	x86_64-w64-mingw32-gcc -std=c11 -O2 -Wall -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz -MMD -MP -MF $(@:.o=.d) -MT $@ -c -o $@ $<
+	x86_64-w64-mingw32-gcc -std=c11 -O2 -Wall -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz -Ideps/lua -MMD -MP -MF $(@:.o=.d) -MT $@ -c -o $@ $<
 
 install: $(DLL_OUT)
 	@mkdir -p "$(INSTALL_DIR)" "$(INSTALL_DIR)/pathing"

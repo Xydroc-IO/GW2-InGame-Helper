@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "PathingIndex.h"
+#include "PathingSchedule.h"
 
 #include <algorithm>
 #include <cmath>
@@ -62,7 +63,12 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		const Trail& tr = gCurrentAll[ti];
 		if (tr.worldPoints.size() < 2 || !TypeEnabledLocked(tr.label))
 			continue;
+		if (tr.luaHidden || tr.luaRemoved)
+			continue;
 		if (!tr.inGameVisible && !tr.minimapVisible)
+			continue;
+		if (!PathingSchedule::MarkerActive(tr.schedule, tr.scheduleDuration,
+			PathingSchedule::NowUnixUtc()))
 			continue;
 		const size_t n = tr.worldPoints.size();
 		size_t bestI = 0;
@@ -246,7 +252,12 @@ bool PathingTrails::TryNearbyWorldGps(
 		const Trail& tr = gCurrentAll[ti];
 		if (tr.worldPoints.size() < 2 || !TypeEnabledLocked(tr.label))
 			continue;
+		if (tr.luaHidden || tr.luaRemoved)
+			continue;
 		if (!tr.inGameVisible && !tr.minimapVisible)
+			continue;
+		if (!PathingSchedule::MarkerActive(tr.schedule, tr.scheduleDuration,
+			PathingSchedule::NowUnixUtc()))
 			continue;
 		const size_t n = tr.worldPoints.size();
 		size_t bestI = 0;

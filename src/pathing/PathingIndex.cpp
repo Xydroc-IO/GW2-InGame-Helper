@@ -2,6 +2,8 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "PathingLua.h"
+#include "PathingLuaLoad.h"
 #include "PathingPacks.h"
 
 #include <algorithm>
@@ -98,6 +100,8 @@ void IndexPack(const std::wstring& packPath, std::vector<IndexedTrail>& out,
 		out[i].mapId = PeekTrlMapId(zip, out[i].fileIndex);
 	}
 
+	PathingLuaLoad::FromZip(zip);
+
 	mz_zip_reader_end(&zip);
 }
 
@@ -187,6 +191,8 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 			gIconRetain.clear();
 		}
 		gPackCount.store(0, std::memory_order_release);
+
+		PathingLua::ClearScripts();
 
 		/* Download / refresh curated packs into our pathing/ first (worker only).
 		   User-dropped .taco files are never removed. */

@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "PathingIndex.h"
+#include "PathingLua.h"
 #include "PathingParse.h"
 
 #include <algorithm>
@@ -219,6 +220,11 @@ namespace PathingDetail
 			trail.trailScale = std::clamp(style.trailScale, 0.1f, 8.f);
 			trail.fadeNear = style.fadeNear;
 			trail.fadeFar = style.fadeFar;
+			if (style.hasSchedule)
+				std::snprintf(trail.schedule, sizeof(trail.schedule), "%s",
+					style.schedule.c_str());
+			if (style.hasScheduleDuration)
+				trail.scheduleDuration = style.scheduleDuration;
 			if (style.hasTexture && !style.texture.empty())
 			{
 				const std::string tid = IconTextureId(style.texture);
@@ -347,6 +353,20 @@ namespace PathingDetail
 			if (style.hasCopyMessage)
 				std::snprintf(m.copyMessage, sizeof(m.copyMessage), "%s",
 					style.copyMessage.c_str());
+			if (style.hasSchedule)
+				std::snprintf(m.schedule, sizeof(m.schedule), "%s", style.schedule.c_str());
+			if (style.hasScheduleDuration)
+				m.scheduleDuration = style.scheduleDuration;
+			if (style.hasScriptOnce)
+				m.scriptOnce = style.scriptOnce;
+			if (style.hasScriptTrigger)
+				m.scriptTrigger = style.scriptTrigger;
+			if (style.hasScriptFilter)
+				m.scriptFilter = style.scriptFilter;
+			if (style.hasScriptTick)
+				m.scriptTick = style.scriptTick;
+			if (style.hasScriptFocus)
+				m.scriptFocus = style.scriptFocus;
 			const std::string& icon = style.iconFile;
 			if (!icon.empty())
 			{
@@ -424,6 +444,7 @@ namespace PathingDetail
 		gLoadedEnabledGen = gEnabledGen.load(std::memory_order_acquire);
 		gCurrentAll = std::move(loaded);
 		gCurrentMarkers = std::move(markers);
+		PathingLua::OnMarkersLoaded(gCurrentMarkers);
 		if (mapHasBarefoot)
 			gMapsWithLadyBarefoot.insert(mapId);
 		else

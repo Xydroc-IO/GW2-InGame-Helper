@@ -17,6 +17,12 @@ namespace TrailToolsDetail
 		std::string texture;
 		float       fadeNear = -1.f;
 		float       fadeFar = -1.f;
+		float       trailScale = 1.f;
+		float       iconSize = 1.f;
+		float       alpha = 1.f;
+		uint32_t    color = 0; /* 0 = omit; else AARRGGBB */
+		std::string schedule; /* Blish UTC cron; empty = always */
+		float       scheduleDuration = 0.f;
 		std::vector<CategoryNode> children;
 	};
 
@@ -28,6 +34,34 @@ namespace TrailToolsDetail
 		float       z = 0.f;
 		std::string type;
 		std::string guid;
+		int         behavior = 0;
+		bool        autoTrigger = false;
+		float       triggerRange = 2.f;
+		float       resetLength = 0.f;
+		bool        invertBehavior = false;
+		float       fadeNear = -1.f;
+		float       fadeFar = -1.f;
+		float       alpha = 1.f;
+		float       iconSize = 1.f;
+		float       heightOffset = 1.5f;
+		float       mapDisplaySize = 20.f;
+		bool        minimapVisible = true;
+		bool        inGameVisible = true;
+		std::string tipName;
+		std::string tipDescription;
+		std::string info;
+		std::string copy;
+		std::string copyMessage;
+		std::string schedule;
+		float       scheduleDuration = 0.f;
+		std::string iconFile;
+		std::string hide;
+		std::string show;
+		std::string scriptOnce;
+		std::string scriptTrigger;
+		std::string scriptFilter;
+		std::string scriptTick;
+		std::string scriptFocus;
 	};
 
 	struct DraftTrail
@@ -77,4 +111,15 @@ namespace TrailToolsDetail
 	bool ReadMumblePose(uint32_t& mapId, float& x, float& y, float& z);
 	std::string MakeGuidBase64();
 	bool HasDraftPreview(); /* trail pts or POIs on current map */
+	CategoryNode* FindCategoryByPath(CategoryNode& node, const std::string& wantPath,
+		const std::string& parentPath = {});
+	void ApplyTrailLookPreset(int presetIndex);
+	void ApplyMarkerLookPreset(int presetIndex);
+	const char* const* TrailLookPresetNames(int* count);
+	const char* const* MarkerLookPresetNames(int* count);
+
+	/* Session + import (TrailToolsPersist / TrailToolsImport). */
+	bool SaveDraftSession();
+	bool LoadDraftSession();
+	bool ImportTacoToDraft(const std::wstring& tacoPath, std::string& err);
 }

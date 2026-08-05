@@ -76,6 +76,24 @@ namespace PathingParse
 		bool hasCopy = false;
 		std::string copyMessage;
 		bool hasCopyMessage = false;
+
+		/* Blish schedule (UTC cron + duration minutes). */
+		std::string schedule;
+		bool hasSchedule = false;
+		float scheduleDuration = 0.f;
+		bool hasScheduleDuration = false;
+
+		/* Blish script-* (Lua). Stored even when runtime disabled. */
+		std::string scriptOnce;
+		bool hasScriptOnce = false;
+		std::string scriptTrigger;
+		bool hasScriptTrigger = false;
+		std::string scriptFilter;
+		bool hasScriptFilter = false;
+		std::string scriptTick;
+		bool hasScriptTick = false;
+		std::string scriptFocus;
+		bool hasScriptFocus = false;
 	};
 
 	struct IndexedTrail

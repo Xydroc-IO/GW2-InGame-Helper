@@ -158,6 +158,17 @@ void MergeStyle(MarkerStyle& dst, const MarkerStyle& src)
 	if (src.hasInfo) { dst.info = src.info; dst.hasInfo = true; }
 	if (src.hasCopy) { dst.copy = src.copy; dst.hasCopy = true; }
 	if (src.hasCopyMessage) { dst.copyMessage = src.copyMessage; dst.hasCopyMessage = true; }
+	if (src.hasSchedule) { dst.schedule = src.schedule; dst.hasSchedule = true; }
+	if (src.hasScheduleDuration)
+	{
+		dst.scheduleDuration = src.scheduleDuration;
+		dst.hasScheduleDuration = true;
+	}
+	if (src.hasScriptOnce) { dst.scriptOnce = src.scriptOnce; dst.hasScriptOnce = true; }
+	if (src.hasScriptTrigger) { dst.scriptTrigger = src.scriptTrigger; dst.hasScriptTrigger = true; }
+	if (src.hasScriptFilter) { dst.scriptFilter = src.scriptFilter; dst.hasScriptFilter = true; }
+	if (src.hasScriptTick) { dst.scriptTick = src.scriptTick; dst.hasScriptTick = true; }
+	if (src.hasScriptFocus) { dst.scriptFocus = src.scriptFocus; dst.hasScriptFocus = true; }
 }
 
 MarkerStyle ParseStyle(const std::string& tag)
@@ -351,6 +362,34 @@ MarkerStyle ParseStyle(const std::string& tag)
 		out.copyMessage = std::move(value);
 		out.hasCopyMessage = true;
 	}
+	value = compatible("schedule");
+	if (!value.empty())
+	{
+		out.schedule = std::move(value);
+		out.hasSchedule = true;
+	}
+	value = compatible("schedule-duration");
+	if (value.empty()) value = compatible("scheduleDuration");
+	if (!value.empty())
+	{
+		out.scheduleDuration = static_cast<float>(std::atof(value.c_str()));
+		out.hasScheduleDuration = std::isfinite(out.scheduleDuration);
+	}
+	value = compatible("script-once");
+	if (value.empty()) value = compatible("scriptOnce");
+	if (!value.empty()) { out.scriptOnce = std::move(value); out.hasScriptOnce = true; }
+	value = compatible("script-trigger");
+	if (value.empty()) value = compatible("scriptTrigger");
+	if (!value.empty()) { out.scriptTrigger = std::move(value); out.hasScriptTrigger = true; }
+	value = compatible("script-filter");
+	if (value.empty()) value = compatible("scriptFilter");
+	if (!value.empty()) { out.scriptFilter = std::move(value); out.hasScriptFilter = true; }
+	value = compatible("script-tick");
+	if (value.empty()) value = compatible("scriptTick");
+	if (!value.empty()) { out.scriptTick = std::move(value); out.hasScriptTick = true; }
+	value = compatible("script-focus");
+	if (value.empty()) value = compatible("scriptFocus");
+	if (!value.empty()) { out.scriptFocus = std::move(value); out.hasScriptFocus = true; }
 	return out;
 }
 

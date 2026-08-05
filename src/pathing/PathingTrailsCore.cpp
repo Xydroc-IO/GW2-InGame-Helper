@@ -4,6 +4,9 @@
 #include "MarkerBehaviors.h"
 #include "MumbleIdentity.h"
 #include "PathingIndex.h"
+#include "PathingLua.h"
+#include "PathingLuaInternal.h"
+#include "PathingSchedule.h"
 #include "Settings.h"
 
 #include <algorithm>
@@ -32,6 +35,8 @@ bool PathingTrails::HasDrawableWorldGps()
 	for (const Trail& t : gCurrentAll)
 	{
 		/* Match CurrentTrails / compass: either visibility flag is enough. */
+		if (t.luaHidden || t.luaRemoved)
+			continue;
 		if (t.worldPoints.size() >= 2 && TypeEnabledLocked(t.label) &&
 			(t.inGameVisible || t.minimapVisible))
 			return true;
@@ -98,6 +103,11 @@ std::vector<PathingTrails::Trail> PathingTrails::CurrentTrails()
 		   miniMapVisibility=0 (common for Lady map-completion / WP Only). */
 		if (!t.minimapVisible && !t.inGameVisible)
 			continue;
+		if (t.luaHidden || t.luaRemoved)
+			continue;
+		if (!PathingSchedule::MarkerActive(t.schedule, t.scheduleDuration,
+			PathingSchedule::NowUnixUtc()))
+			continue;
 		Trail slim{};
 		slim.mapId = t.mapId;
 		slim.color = t.color;
@@ -108,6 +118,8 @@ std::vector<PathingTrails::Trail> PathingTrails::CurrentTrails()
 		slim.trailScale = t.trailScale;
 		slim.fadeNear = t.fadeNear;
 		slim.fadeFar = t.fadeFar;
+		std::snprintf(slim.schedule, sizeof(slim.schedule), "%s", t.schedule);
+		slim.scheduleDuration = t.scheduleDuration;
 		std::snprintf(slim.label, sizeof(slim.label), "%s", t.label);
 		slim.points = t.points;
 		out.push_back(std::move(slim));
@@ -168,6 +180,7 @@ std::vector<PathingTrails::Marker> PathingTrails::CurrentMarkersInBounds(
 		if (out.size() >= kMaxMinimapMarkers)
 			break;
 	}
+	PathingLua::AppendDynamicMarkers(gActiveMap, out);
 	sLast = out;
 	sLastMap = gActiveMap;
 	sMinX = minX; sMinY = minY; sMaxX = maxX; sMaxY = maxY;
@@ -204,6 +217,7 @@ std::vector<PathingTrails::Marker> PathingTrails::NearbyWorldMarkers(
 		if (out.size() >= maxMarkers)
 			break;
 	}
+	PathingLua::AppendDynamicMarkers(0, out);
 	return out;
 }
 
@@ -373,6 +387,7 @@ void PathingTrails::TickMarkerBehaviors()
 		if (!lock.owns_lock())
 			return;
 		markers = gCurrentMarkers;
+		PathingLuaDetail::gTickTrails = &gCurrentAll;
 	}
 	MarkerBehaviors::Tick(
 		ctx->mapId, ctx->shardId, ctx->instance,
@@ -381,12 +396,49 @@ void PathingTrails::TickMarkerBehaviors()
 		G::Mumble->fAvatarPosition[2],
 		MumbleIdentity::CharacterName(),
 		markers);
+	PathingLua::Tick(markers);
+	/* Write back Lua mutations. */
+	{
+		std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
+		if (lock.owns_lock())
+		{
+			PathingLuaDetail::gTickTrails = nullptr;
+			if (markers.size() == gCurrentMarkers.size())
+			{
+				for (size_t i = 0; i < markers.size(); ++i)
+				{
+					gCurrentMarkers[i].color = markers[i].color;
+					gCurrentMarkers[i].luaHidden = markers[i].luaHidden;
+					gCurrentMarkers[i].luaRemoved = markers[i].luaRemoved;
+					gCurrentMarkers[i].world = markers[i].world;
+					gCurrentMarkers[i].alpha = markers[i].alpha;
+					gCurrentMarkers[i].iconSize = markers[i].iconSize;
+					gCurrentMarkers[i].heightOffset = markers[i].heightOffset;
+					gCurrentMarkers[i].triggerRange = markers[i].triggerRange;
+					gCurrentMarkers[i].autoTrigger = markers[i].autoTrigger;
+					std::memcpy(gCurrentMarkers[i].tipName, markers[i].tipName,
+						sizeof(gCurrentMarkers[i].tipName));
+					std::memcpy(gCurrentMarkers[i].tipDescription, markers[i].tipDescription,
+						sizeof(gCurrentMarkers[i].tipDescription));
+					std::memcpy(gCurrentMarkers[i].iconId, markers[i].iconId,
+						sizeof(gCurrentMarkers[i].iconId));
+				}
+			}
+		}
+		else
+			PathingLuaDetail::gTickTrails = nullptr;
+	}
 }
 
 namespace PathingDetail
 {
 bool MarkerBehaviorVisible(const PathingTrails::Marker& m)
 {
+	if (m.luaHidden || m.luaRemoved)
+		return false;
+	if (!PathingSchedule::MarkerActive(m.schedule, m.scheduleDuration,
+		PathingSchedule::NowUnixUtc()))
+		return false;
 	uint32_t mapId = 0, shard = 0, inst = 0;
 	if (G::Mumble && G::Mumble->uiTick != 0)
 	{

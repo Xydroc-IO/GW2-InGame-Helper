@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "MarkerBehaviors.h"
+#include "PathingLua.h"
 #include "PathingPacks.h"
 #include "PathingIndex.h"
 
@@ -74,6 +75,7 @@ using namespace PathingDetail;
 void PathingTrails::Init()
 {
 	MarkerBehaviors::Init();
+	PathingLua::Init();
 	gEpoch.fetch_add(1, std::memory_order_acq_rel);
 	gLoadGen.fetch_add(1, std::memory_order_acq_rel);
 	AbortHttp();
@@ -109,6 +111,7 @@ void PathingTrails::Init()
 
 void PathingTrails::Shutdown()
 {
+	PathingLua::Shutdown();
 	MarkerBehaviors::Shutdown();
 	gEpoch.fetch_add(1, std::memory_order_acq_rel);
 	gLoadGen.fetch_add(1, std::memory_order_acq_rel);

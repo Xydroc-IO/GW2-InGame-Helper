@@ -30,13 +30,19 @@ namespace PathingTrails
 		uint32_t mapId = 0;
 		uint32_t color = 0xFFFFFFFFu; /* ARGB — white; cyan was the missing-texture fallback */
 		char     label[96]{};
+		char     guid[96]{}; /* optional; Lua TrailByGuid also accepts label */
 		char     textureId[160]{}; /* pack trail texture, uploaded through Nexus */
 		bool     minimapVisible = true;
 		bool     inGameVisible = true;
 		float    alpha = 1.f;
 		float    trailScale = 1.f;
+		float    animSpeed = 1.f;
 		float    fadeNear = -1.f; /* pack units (inches) */
 		float    fadeFar = -1.f;
+		char     schedule[96]{};
+		float    scheduleDuration = 0.f;
+		bool     luaHidden = false;
+		bool     luaRemoved = false;
 		std::vector<Point> points;           /* continent coords, decimated */
 		std::vector<WorldPoint> worldPoints; /* meters (Mumble / .trl space) */
 	};
@@ -75,6 +81,20 @@ namespace PathingTrails
 		char     info[768]{};
 		char     copy[256]{};
 		char     copyMessage[128]{};
+
+		/* Blish schedule — empty = always visible. */
+		char     schedule[96]{};
+		float    scheduleDuration = 0.f; /* minutes */
+
+		/* Lua script-* expressions (pack attrs) — std::string for long Blish calls. */
+		std::string scriptOnce;
+		std::string scriptTrigger;
+		std::string scriptFilter;
+		std::string scriptTick;
+		std::string scriptFocus;
+		bool     luaHidden = false; /* set by script-filter / scripts */
+		bool     luaRemoved = false; /* Marker:Remove() */
+		bool     luaDynamic = false; /* Pack:CreateMarker */
 	};
 
 	struct Category

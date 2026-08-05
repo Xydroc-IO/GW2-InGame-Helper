@@ -102,6 +102,8 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowPathingTrails") == 0 ||
 			std::strcmp(key, "ShowTekkitTrails") == 0)
 			G::ShowPathingTrails = AsBool(val);
+		else if (std::strcmp(key, "EnablePathingLua") == 0)
+			G::EnablePathingLua = AsBool(val);
 		else if (std::strcmp(key, "LadyBarefoot") == 0)
 		{
 			G::LadyBarefoot = AsBool(val);
@@ -376,6 +378,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowPathingGuides=0\n");
 	std::fprintf(f, "ShowTrailTools=0\n");
 	std::fprintf(f, "ShowPathingTrails=%d\n", G::ShowPathingTrails ? 1 : 0);
+	std::fprintf(f, "EnablePathingLua=%d\n", G::EnablePathingLua ? 1 : 0);
 	std::fprintf(f, "LadyBarefoot=%d\n", G::LadyBarefoot ? 1 : 0);
 	std::fprintf(f, "LadyWpOnly=%d\n", G::LadyWpOnly ? 1 : 0);
 	std::fprintf(f, "LadyWithMounts=%d\n", G::LadyWithMounts ? 1 : 0);

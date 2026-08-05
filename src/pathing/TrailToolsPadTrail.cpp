@@ -32,6 +32,60 @@ namespace
 			gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail");
 		gDraft.active.fileRel = std::string("Data/") + gDraft.packName + "/Trails/" + stem + ".trl";
 	}
+
+	void DrawTrailList()
+	{
+		using namespace TrailToolsDetail;
+		ImGui::TextUnformatted("Trails in pack");
+		if (ImGui::BeginChild("###gw2igh_tt_tlist", ImVec2(0.f, 90.f), true))
+		{
+			for (int i = 0; i < static_cast<int>(gDraft.trails.size()); ++i)
+			{
+				const DraftTrail& t = gDraft.trails[static_cast<size_t>(i)];
+				ImGui::PushID(i);
+				char lab[200]{};
+				std::snprintf(lab, sizeof(lab), "%s  map %u  %zu pts",
+					t.fileRel.c_str(), t.mapId, t.points.size());
+				if (ImGui::Selectable(lab, gDraft.selectedTrail == i))
+				{
+					gDraft.selectedTrail = i;
+					gDraft.active = t;
+					std::snprintf(gDraft.trailType, sizeof(gDraft.trailType), "%s", t.type.c_str());
+					/* stem from file name */
+					const size_t slash = t.fileRel.find_last_of('/');
+					std::string stem = slash == std::string::npos ? t.fileRel
+						: t.fileRel.substr(slash + 1);
+					if (stem.size() > 4 && stem.substr(stem.size() - 4) == ".trl")
+						stem.resize(stem.size() - 4);
+					std::snprintf(gDraft.trailFileStem, sizeof(gDraft.trailFileStem), "%s",
+						stem.c_str());
+					SetStatus("Editing trail %s", t.fileRel.c_str());
+				}
+				ImGui::SameLine();
+				if (ImGui::SmallButton("Del"))
+				{
+					gDraft.trails.erase(gDraft.trails.begin() + i);
+					if (gDraft.selectedTrail == i)
+						gDraft.selectedTrail = -1;
+					ImGui::PopID();
+					break;
+				}
+				ImGui::PopID();
+			}
+		}
+		ImGui::EndChild();
+		if (ImGui::Button("New trail###gw2igh_tt_newtrl"))
+		{
+			SyncActiveMeta();
+			gDraft.active = {};
+			gDraft.active.type = gDraft.trailType[0] ? gDraft.trailType
+				: (RootCategoryName() + ".t.extrail");
+			gDraft.active.fileRel = std::string("Data/") + gDraft.packName + "/Trails/" +
+				(gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail") + ".trl";
+			gDraft.selectedTrail = -1;
+			SetStatus("New empty trail — Insert Vector then Save.");
+		}
+	}
 }
 
 void TrailToolsDetail::DrawTrailTab()
@@ -42,9 +96,11 @@ void TrailToolsDetail::DrawTrailTab()
 	ImGui::TextUnformatted("Trail recorder");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Insert Vector drops a point at your feet. New section inserts a (0,0,0) break. "
-		"One map per .trl file.");
+		"Insert Vector drops a point at your feet. New section inserts a (0,0,0) break.");
 	PadNav::PopWrap();
+
+	DrawTrailList();
+	ImGui::Separator();
 
 	ImGui::InputText("Trail file stem###gw2igh_tt_trlstem", gDraft.trailFileStem,
 		sizeof(gDraft.trailFileStem));
@@ -150,19 +206,39 @@ void TrailToolsDetail::DrawTrailTab()
 
 	ImGui::Separator();
 	ImGui::Text("Active: map %u · %zu points", gDraft.active.mapId, gDraft.active.points.size());
-	if (ImGui::BeginChild("###gw2igh_tt_pts", ImVec2(0.f, 180.f), true))
+	static int sSelPt = -1;
+	if (ImGui::BeginChild("###gw2igh_tt_pts", ImVec2(0.f, 120.f), true))
 	{
-		for (size_t i = 0; i < gDraft.active.points.size(); ++i)
+		for (int i = 0; i < static_cast<int>(gDraft.active.points.size()); ++i)
 		{
-			const auto& p = gDraft.active.points[i];
+			const auto& p = gDraft.active.points[static_cast<size_t>(i)];
 			const bool brk = p.x == 0.f && p.y == 0.f && p.z == 0.f;
+			char lab[96]{};
 			if (brk)
-				ImGui::TextDisabled("%4zu  [section break]", i);
+				std::snprintf(lab, sizeof(lab), "%4d  [section break]", i);
 			else
-				ImGui::Text("%4zu  %.3f  %.3f  %.3f", i, p.x, p.y, p.z);
+				std::snprintf(lab, sizeof(lab), "%4d  %.3f  %.3f  %.3f", i, p.x, p.y, p.z);
+			if (ImGui::Selectable(lab, sSelPt == i))
+				sSelPt = i;
 		}
 	}
 	ImGui::EndChild();
+	if (sSelPt >= 0 && sSelPt < static_cast<int>(gDraft.active.points.size()))
+	{
+		auto& pt = gDraft.active.points[static_cast<size_t>(sSelPt)];
+		ImGui::DragFloat3("Edit point XYZ###gw2igh_tt_ptedit", &pt.x, 0.05f);
+		if (ImGui::SmallButton("Delete point###gw2igh_tt_ptdel"))
+		{
+			gDraft.active.points.erase(gDraft.active.points.begin() + sSelPt);
+			sSelPt = -1;
+		}
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Insert after###gw2igh_tt_ptins"))
+		{
+			gDraft.active.points.insert(gDraft.active.points.begin() + sSelPt + 1, pt);
+			++sSelPt;
+		}
+	}
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);

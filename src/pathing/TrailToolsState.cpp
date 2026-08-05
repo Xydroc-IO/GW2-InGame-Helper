@@ -14,6 +14,8 @@
 #include <objbase.h>
 #include <wincrypt.h>
 
+#include "TrailToolsLooks.inc"
+
 namespace TrailToolsDetail
 {
 	DraftPack gDraft{};
@@ -68,7 +70,9 @@ namespace TrailToolsDetail
 		CategoryNode exm;
 		exm.name = "exm";
 		exm.displayName = "Example Marker";
-		exm.iconFile = std::string("Data/") + gDraft.packName + "/Markers/ExampleMarker.png";
+		exm.iconFile = std::string("Data/") + gDraft.packName + "/Markers/Marker_Disc.png";
+		exm.iconSize = 1.f;
+		exm.color = 0xFFFFC828u;
 		markers.children.push_back(exm);
 		gDraft.root.children.push_back(markers);
 
@@ -78,9 +82,11 @@ namespace TrailToolsDetail
 		CategoryNode extrail;
 		extrail.name = "extrail";
 		extrail.displayName = "Example Trail";
-		extrail.texture = std::string("Data/") + gDraft.packName + "/Markers/Trail.png";
+		extrail.texture = std::string("Data/") + gDraft.packName + "/Markers/Trail_Chevron.png";
 		extrail.fadeNear = 3000.f;
 		extrail.fadeFar = 3500.f;
+		extrail.trailScale = 1.f;
+		extrail.color = 0xFFFFFFFFu;
 		trails.children.push_back(extrail);
 		gDraft.root.children.push_back(trails);
 
@@ -168,35 +174,8 @@ namespace TrailToolsDetail
 
 	bool WriteDefaultAssets()
 	{
-		/* Minimal 32×32 PNGs so packs have icons without a manual drop. */
-		static const unsigned char kMarkerPng[] = {
-			0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-			0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x20,
-			0x08, 0x06, 0x00, 0x00, 0x00, 0x73, 0x7a, 0x7a, 0xf4, 0x00, 0x00, 0x00,
-			0x76, 0x49, 0x44, 0x41, 0x54, 0x78, 0xda, 0x63, 0x60, 0x18, 0x05, 0x43,
-			0x0d, 0x6c, 0xa9, 0x10, 0xb9, 0x83, 0x0f, 0xd3, 0xc5, 0xe2, 0xff, 0x27,
-			0x34, 0xfe, 0x63, 0xc3, 0x34, 0x71, 0x08, 0x21, 0x4b, 0x09, 0x39, 0x66,
-			0x40, 0x2c, 0xa7, 0x8a, 0x23, 0x28, 0xb5, 0x9c, 0x22, 0x47, 0x50, 0xcb,
-			0x72, 0xb2, 0x1d, 0x41, 0x4d, 0xcb, 0x91, 0x1d, 0x31, 0x60, 0x96, 0x93,
-			0xe4, 0x88, 0x01, 0x75, 0x00, 0xb5, 0xe3, 0x9e, 0xe4, 0xb4, 0x40, 0x4b,
-			0xcb, 0x89, 0x0a, 0x85, 0x51, 0x07, 0x8c, 0x3a, 0x60, 0x50, 0x38, 0x60,
-			0x40, 0xb3, 0xe1, 0x68, 0x49, 0x38, 0x28, 0x2a, 0xa3, 0x41, 0x51, 0x1d,
-			0x0f, 0x78, 0x83, 0x64, 0x50, 0x34, 0xc9, 0x06, 0x45, 0xa3, 0x74, 0x50,
-			0x34, 0xcb, 0x07, 0x4d, 0xc7, 0x64, 0x14, 0xd0, 0x0a, 0x00, 0x00, 0x09,
-			0x72, 0xe2, 0xdc, 0xbd, 0x02, 0x72, 0xc1, 0x00, 0x00, 0x00, 0x00, 0x49,
-			0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
-		};
-		static const unsigned char kTrailPng[] = {
-			0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-			0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x20,
-			0x08, 0x06, 0x00, 0x00, 0x00, 0x73, 0x7a, 0x7a, 0xf4, 0x00, 0x00, 0x00,
-			0x32, 0x49, 0x44, 0x41, 0x54, 0x78, 0xda, 0xed, 0xce, 0xb1, 0x0d, 0x00,
-			0x30, 0x08, 0xc0, 0x30, 0x4e, 0xe4, 0x7f, 0x75, 0xe6, 0x0d, 0x78, 0xa1,
-			0xac, 0xc8, 0x91, 0xb2, 0x3b, 0x42, 0xfa, 0x2c, 0x5f, 0xd7, 0x66, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x7b, 0x00,
-			0x9d, 0x6d, 0x00, 0xd2, 0x80, 0x73, 0x4e, 0x5a, 0xfe, 0x47, 0x8e, 0x00,
-			0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
-		};
+		size_t n = 0;
+		const TrailToolsLooks::EmbeddedPng* all = TrailToolsLooks::All(&n);
 
 		std::wstring base = PackDir();
 		base.push_back(L'\\');
@@ -205,14 +184,153 @@ namespace TrailToolsDetail
 			base.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*p)));
 		base += L"\\Markers\\";
 
-		const std::wstring markerPath = base + L"ExampleMarker.png";
-		const std::wstring trailPath = base + L"Trail.png";
 		bool ok = true;
-		if (GetFileAttributesW(markerPath.c_str()) == INVALID_FILE_ATTRIBUTES)
-			ok = WriteBytesW(markerPath, kMarkerPng, sizeof(kMarkerPng)) && ok;
-		if (GetFileAttributesW(trailPath.c_str()) == INVALID_FILE_ATTRIBUTES)
-			ok = WriteBytesW(trailPath, kTrailPng, sizeof(kTrailPng)) && ok;
+		for (size_t i = 0; i < n; ++i)
+		{
+			std::wstring path = base;
+			for (const char* c = all[i].file; *c; ++c)
+				path.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*c)));
+			if (GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
+				ok = WriteBytesW(path, all[i].data, all[i].len) && ok;
+		}
+		/* Compat aliases used by older drafts. */
+		const std::wstring disc = base + L"Marker_Disc.png";
+		const std::wstring chev = base + L"Trail_Chevron.png";
+		const std::wstring aliasM = base + L"ExampleMarker.png";
+		const std::wstring aliasT = base + L"Trail.png";
+		if (GetFileAttributesW(aliasM.c_str()) == INVALID_FILE_ATTRIBUTES &&
+			GetFileAttributesW(disc.c_str()) != INVALID_FILE_ATTRIBUTES)
+			CopyFileW(disc.c_str(), aliasM.c_str(), FALSE);
+		if (GetFileAttributesW(aliasT.c_str()) == INVALID_FILE_ATTRIBUTES &&
+			GetFileAttributesW(chev.c_str()) != INVALID_FILE_ATTRIBUTES)
+			CopyFileW(chev.c_str(), aliasT.c_str(), FALSE);
 		return ok;
+	}
+
+	CategoryNode* FindCategoryByPath(CategoryNode& node, const std::string& wantPath,
+		const std::string& parentPath)
+	{
+		const std::string path = CategoryPath(node, parentPath);
+		if (path == wantPath)
+			return &node;
+		for (CategoryNode& ch : node.children)
+		{
+			if (CategoryNode* hit = FindCategoryByPath(ch, wantPath, path))
+				return hit;
+		}
+		return nullptr;
+	}
+
+	const char* const* TrailLookPresetNames(int* count)
+	{
+		static const char* kNames[] = {
+			"Blish Chevron", "Cyan Ribbon", "Dashed", "Heart Yellow", "Custom path"
+		};
+		if (count) *count = 5;
+		return kNames;
+	}
+
+	const char* const* MarkerLookPresetNames(int* count)
+	{
+		static const char* kNames[] = {
+			"Gold Disc", "Red Pin", "Star", "Square", "Custom path"
+		};
+		if (count) *count = 5;
+		return kNames;
+	}
+
+	void ApplyTrailLookPreset(int presetIndex)
+	{
+		EnsureWorkspace();
+		const std::string want = gDraft.trailType[0]
+			? std::string(gDraft.trailType) : (RootCategoryName() + ".t.extrail");
+		CategoryNode* leaf = FindCategoryByPath(gDraft.root, want);
+		if (!leaf)
+		{
+			SetStatus("No trail category for type %s.", want.c_str());
+			return;
+		}
+		const std::string prefix = std::string("Data/") + gDraft.packName + "/Markers/";
+		switch (presetIndex)
+		{
+		case 0:
+			leaf->texture = prefix + "Trail_Chevron.png";
+			leaf->color = 0xFFFFFFFFu;
+			leaf->trailScale = 1.f;
+			leaf->fadeNear = 3000.f;
+			leaf->fadeFar = 3500.f;
+			break;
+		case 1:
+			leaf->texture = prefix + "Trail_Ribbon.png";
+			leaf->color = 0xFF50DCFF;
+			leaf->trailScale = 1.15f;
+			leaf->fadeNear = 2800.f;
+			leaf->fadeFar = 3400.f;
+			break;
+		case 2:
+			leaf->texture = prefix + "Trail_Dashed.png";
+			leaf->color = 0xFFFFFFFFu;
+			leaf->trailScale = 1.f;
+			leaf->fadeNear = 3000.f;
+			leaf->fadeFar = 3500.f;
+			break;
+		case 3:
+			leaf->texture = prefix + "Trail_Heart.png";
+			leaf->color = 0xFFFFD228u;
+			leaf->trailScale = 1.35f;
+			leaf->fadeNear = 2500.f;
+			leaf->fadeFar = 3200.f;
+			break;
+		default:
+			SetStatus("Custom — edit texture path on the category below.");
+			return;
+		}
+		leaf->iconFile.clear();
+		SetStatus("Trail look → %s", TrailLookPresetNames(nullptr)[presetIndex]);
+	}
+
+	void ApplyMarkerLookPreset(int presetIndex)
+	{
+		EnsureWorkspace();
+		const std::string want = gDraft.markerType[0]
+			? std::string(gDraft.markerType) : (RootCategoryName() + ".m.exm");
+		CategoryNode* leaf = FindCategoryByPath(gDraft.root, want);
+		if (!leaf)
+		{
+			SetStatus("No marker category for type %s.", want.c_str());
+			return;
+		}
+		const std::string prefix = std::string("Data/") + gDraft.packName + "/Markers/";
+		switch (presetIndex)
+		{
+		case 0:
+			leaf->iconFile = prefix + "Marker_Disc.png";
+			leaf->color = 0xFFFFC828u;
+			leaf->iconSize = 1.f;
+			break;
+		case 1:
+			leaf->iconFile = prefix + "Marker_Pin.png";
+			leaf->color = 0xFFFF5050u;
+			leaf->iconSize = 1.1f;
+			break;
+		case 2:
+			leaf->iconFile = prefix + "Marker_Star.png";
+			leaf->color = 0xFFFFE650u;
+			leaf->iconSize = 1.15f;
+			break;
+		case 3:
+			leaf->iconFile = prefix + "Marker_Square.png";
+			leaf->color = 0xFF78C8FFu;
+			leaf->iconSize = 1.f;
+			break;
+		default:
+			SetStatus("Custom — edit iconFile on the category below.");
+			return;
+		}
+		leaf->texture.clear();
+		leaf->fadeNear = -1.f;
+		leaf->fadeFar = 3500.f;
+		SetStatus("Marker look → %s", MarkerLookPresetNames(nullptr)[presetIndex]);
 	}
 
 	bool HasDraftPreview()
