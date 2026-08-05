@@ -74,8 +74,7 @@ void WorldOverlay::Render()
 	PathingTrails::TickMarkerBehaviors();
 
 	if (!G::ShowWorldTrails && !PathingTrails::HasSearchGuideActive() &&
-		!(G::ShowTrailTools && TrailToolsDetail::gDraft.previewEnabled &&
-			TrailToolsDetail::gDraft.active.points.size() >= 2))
+		!(G::ShowTrailTools && TrailToolsDetail::HasDraftPreview()))
 		return;
 	if (G::HideWhenMapOpen && (ctx->uiState & static_cast<uint32_t>(UiStateBits::MapOpen)))
 		return;

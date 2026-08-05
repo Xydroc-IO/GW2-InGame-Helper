@@ -250,6 +250,21 @@ test-parse: $(TEST_PARSE_BIN)
 	./$(TEST_PARSE_BIN) tools/fixtures/ei_players_sample.json tools/fixtures/dpsreport_players_sample.json
 	python3 tools/test_trl_parse.py
 
+TEST_TRAILTOOLS_BIN = build/test_trailtools_roundtrip.exe
+test-trailtools: $(TEST_TRAILTOOLS_BIN)
+	wine $(TEST_TRAILTOOLS_BIN)
+
+$(TEST_TRAILTOOLS_BIN): tools/test_trailtools_roundtrip.cpp \
+	src/pathing/TrailToolsTrl.cpp src/pathing/TrailToolsXml.cpp \
+	src/pathing/TrailToolsTrl.h src/pathing/TrailToolsXml.h \
+	src/pathing/TrailToolsShared.h
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -static -static-libgcc -static-libstdc++ -o $@ \
+		tools/test_trailtools_roundtrip.cpp \
+		src/pathing/TrailToolsTrl.cpp \
+		src/pathing/TrailToolsXml.cpp \
+		-lole32 -luuid -lshell32 -lcrypt32
+
 test-ipc: $(TEST_IPC_BIN)
 	./$(TEST_IPC_BIN)
 

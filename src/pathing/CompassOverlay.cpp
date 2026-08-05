@@ -290,10 +290,8 @@ void CompassOverlay::Render()
 		}
 	}
 
-	/* Trail Tools draft — magenta, distinct from pack trails. */
-	if (G::ShowTrailTools && TrailToolsDetail::gDraft.previewEnabled &&
-		TrailToolsDetail::gDraft.active.points.size() >= 2 &&
-		TrailToolsDetail::gDraft.active.mapId == ctx->mapId)
+	/* Trail Tools draft — magenta trails + gold marker dots. */
+	if (G::ShowTrailTools && TrailToolsDetail::gDraft.previewEnabled)
 	{
 		PathingDetail::Rects rects{};
 		bool haveRects = false;
@@ -309,27 +307,46 @@ void CompassOverlay::Render()
 		if (haveRects)
 		{
 			const ImU32 draftCol = IM_COL32(255, 64, 220, 220);
-			bool prevOk = false;
-			ImVec2 prev{};
-			for (const auto& w : TrailToolsDetail::gDraft.active.points)
+			const ImU32 markerCol = IM_COL32(255, 200, 40, 240);
+			if (TrailToolsDetail::gDraft.active.points.size() >= 2 &&
+				TrailToolsDetail::gDraft.active.mapId == ctx->mapId)
 			{
-				if (w.x == 0.f && w.y == 0.f && w.z == 0.f)
+				bool prevOk = false;
+				ImVec2 prev{};
+				for (const auto& w : TrailToolsDetail::gDraft.active.points)
 				{
-					prevOk = false;
-					continue;
+					if (w.x == 0.f && w.y == 0.f && w.z == 0.f)
+					{
+						prevOk = false;
+						continue;
+					}
+					if (!std::isfinite(w.x) || !std::isfinite(w.z))
+					{
+						prevOk = false;
+						continue;
+					}
+					float cx = 0.f, cy = 0.f;
+					PathingDetail::WorldToContinent(rects, w.x, w.z, cx, cy);
+					ImVec2 cur = ToScreen(cx, cy);
+					if (prevOk && InCompass(prev) && InCompass(cur))
+						dl->AddLine(prev, cur, draftCol, 3.2f);
+					prev = cur;
+					prevOk = true;
 				}
-				if (!std::isfinite(w.x) || !std::isfinite(w.z))
-				{
-					prevOk = false;
+			}
+			for (const auto& poi : TrailToolsDetail::gDraft.pois)
+			{
+				if (poi.mapId != ctx->mapId)
 					continue;
-				}
+				if (!std::isfinite(poi.x) || !std::isfinite(poi.z))
+					continue;
 				float cx = 0.f, cy = 0.f;
-				PathingDetail::WorldToContinent(rects, w.x, w.z, cx, cy);
-				ImVec2 cur = ToScreen(cx, cy);
-				if (prevOk && InCompass(prev) && InCompass(cur))
-					dl->AddLine(prev, cur, draftCol, 3.2f);
-				prev = cur;
-				prevOk = true;
+				PathingDetail::WorldToContinent(rects, poi.x, poi.z, cx, cy);
+				ImVec2 p = ToScreen(cx, cy);
+				if (!InCompass(p))
+					continue;
+				dl->AddCircleFilled(p, 4.5f, markerCol, 10);
+				dl->AddCircle(p, 4.5f, IM_COL32(40, 20, 0, 220), 10, 1.2f);
 			}
 		}
 	}

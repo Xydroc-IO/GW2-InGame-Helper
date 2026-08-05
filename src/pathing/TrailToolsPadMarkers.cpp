@@ -16,13 +16,14 @@ void TrailToolsDetail::DrawMarkersTab()
 	ImGui::TextUnformatted("Markers");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Drop a POI at your feet into the draft. Assign a leaf category type path.");
+		"Drop a POI at your feet. Gold dots preview on compass + world GPS while this pad is open "
+		"(Live → draft preview). After Build, enable the pack under Pathing if needed.");
 	PadNav::PopWrap();
 
 	std::vector<std::string> leaves;
 	CollectLeafPaths(gDraft.root, "", leaves, false);
 	if (leaves.empty())
-		leaves.push_back(gDraft.markerType[0] ? gDraft.markerType : "pack.m.exm");
+		leaves.push_back(gDraft.markerType[0] ? gDraft.markerType : "examplepack.m.exm");
 
 	int cur = 0;
 	for (size_t i = 0; i < leaves.size(); ++i)
@@ -54,6 +55,9 @@ void TrailToolsDetail::DrawMarkersTab()
 	float x = 0.f, y = 0.f, z = 0.f;
 	const bool pose = ReadMumblePose(mapId, x, y, z);
 
+	static bool sThisMapOnly = true;
+	ImGui::Checkbox("List this map only###gw2igh_tt_mmap", &sThisMapOnly);
+
 	if (ImGui::Button("Drop marker here###gw2igh_tt_drop"))
 	{
 		if (!pose)
@@ -62,6 +66,7 @@ void TrailToolsDetail::DrawMarkersTab()
 			SetStatus("Set a marker type path.");
 		else
 		{
+			EnsureWorkspace();
 			DraftPoi p;
 			p.mapId = mapId;
 			p.x = x;
@@ -71,7 +76,7 @@ void TrailToolsDetail::DrawMarkersTab()
 			p.guid = MakeGuidBase64();
 			gDraft.pois.push_back(std::move(p));
 			gDraft.selectedPoi = static_cast<int>(gDraft.pois.size()) - 1;
-			SetStatus("Dropped marker #%zu.", gDraft.pois.size());
+			SetStatus("Dropped marker #%zu — gold preview on compass/world.", gDraft.pois.size());
 		}
 	}
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Delete selected"));
@@ -84,13 +89,23 @@ void TrailToolsDetail::DrawMarkersTab()
 		SetStatus("Deleted marker.");
 	}
 
+	size_t shown = 0;
+	for (const DraftPoi& p : gDraft.pois)
+	{
+		if (sThisMapOnly && pose && p.mapId != mapId)
+			continue;
+		++shown;
+	}
+
 	ImGui::Separator();
-	ImGui::Text("%zu markers in draft", gDraft.pois.size());
+	ImGui::Text("%zu shown / %zu total", shown, gDraft.pois.size());
 	if (ImGui::BeginChild("###gw2igh_tt_mlist", ImVec2(0.f, 200.f), true))
 	{
 		for (int i = 0; i < static_cast<int>(gDraft.pois.size()); ++i)
 		{
 			const DraftPoi& p = gDraft.pois[static_cast<size_t>(i)];
+			if (sThisMapOnly && pose && p.mapId != mapId)
+				continue;
 			char label[256]{};
 			std::snprintf(label, sizeof(label), "%d  map %u  %s###gw2igh_tt_mi%d",
 				i, p.mapId, p.type.c_str(), i);
@@ -106,7 +121,6 @@ void TrailToolsDetail::DrawMarkersTab()
 		ImGui::Separator();
 		ImGui::Text("Edit selected");
 		ImGui::DragFloat3("XYZ###gw2igh_tt_mnudge", &p.x, 0.05f);
-		PadNav::WrapSameLine(PadNav::ButtonWidth("+X"));
 		if (ImGui::SmallButton("+X")) p.x += 0.5f;
 		ImGui::SameLine();
 		if (ImGui::SmallButton("-X")) p.x -= 0.5f;

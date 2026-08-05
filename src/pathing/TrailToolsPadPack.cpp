@@ -3,9 +3,11 @@
 #include "TrailToolsBuild.h"
 #include "TrailToolsXml.h"
 
+#include "Globals.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
 #include "PathingTrails.h"
+#include "Settings.h"
 
 #include "imgui/imgui.h"
 
@@ -133,8 +135,14 @@ void TrailToolsDetail::DrawPackTab()
 			SetStatus("%s", err.c_str());
 		else
 		{
+			const std::string root = RootCategoryName();
 			PathingTrails::ReloadPacks();
-			SetStatus("Built %s.taco and reloaded Pathing.", gDraft.packName);
+			/* Categories default OFF — enable this pack so markers/trails draw. */
+			PathingTrails::SetCategoryEnabled(root, true);
+			PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
+			Settings::SaveNow();
+			SetStatus("Built %s.taco, enabled \"%s\", reloaded Pathing.",
+				gDraft.packName, root.c_str());
 		}
 	}
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Reload Pathing"));

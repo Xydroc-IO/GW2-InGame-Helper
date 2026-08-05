@@ -71,8 +71,10 @@ namespace TrailToolsDetail
 	std::wstring AuthoringRoot();
 	std::wstring PackDir();
 	bool EnsureWorkspace();
+	bool WriteDefaultAssets(); /* ExampleMarker.png + Trail.png if missing */
 	bool OpenAuthoringFolder();
 	void CopyClipboard(const char* text);
 	bool ReadMumblePose(uint32_t& mapId, float& x, float& y, float& z);
 	std::string MakeGuidBase64();
+	bool HasDraftPreview(); /* trail pts or POIs on current map */
 }

@@ -159,6 +159,11 @@ bool TrailToolsBuild::BuildTaco(std::string& errOut)
 		errOut = "Could not create authoring workspace.";
 		return false;
 	}
+	if (gDraft.pois.empty() && gDraft.active.points.size() < 2 && gDraft.trails.empty())
+	{
+		errOut = "Nothing to build — drop markers or record a trail first.";
+		return false;
+	}
 
 	/* Sync root category names from pack fields. */
 	gDraft.root.name = RootCategoryName();
