@@ -72,9 +72,9 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 Side-rail **Trail Tools** creates packs without TacO/TrlTool. Trails and Markers are
 **separate windows** so you can keep both open while placing POIs along a route:
 
-1. **Trail Tools** — Live coords + Pack (Looks, import, Build `.taco`).
-2. **Trails** — Insert Map / Vector, section breaks, save `.trl`.
-3. **Markers** — Drop POIs, nudge XYZ, type/behavior (open beside Trails).
+1. **Trail Tools** — Live coords + Pack (Looks, Combined/Split XML, import, Build `.taco`).
+2. **Trails** — New/Load/Save/Save As `.trl`, map-only vs map+vector, nearest-point edit.
+3. **Markers** — Drop POIs, nudge XYZ, type/behavior, POI XML (open beside Trails).
 
 Workspace: `pathing/authoring/<PackName>/` under the addon data folder. Drop PNG icons into
 `Data/<PackName>/Markers/` yourself. Textured draft preview shows on compass + world GPS while

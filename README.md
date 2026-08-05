@@ -8,9 +8,9 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.0.18` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.0.19` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
-**Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
+**Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) ·
 [`docs/PATHING.md`](docs/PATHING.md) · [`docs/MODULES.md`](docs/MODULES.md)
@@ -44,7 +44,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | DPS Logs (side-rail **DPS Logs**) | ImGui |
 | World Events (side-rail **Events**) | ImGui |
 | Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
-| Trail Tools (side-rail) | Author packs — trails, markers, XML, build `.taco` |
+| Trail Tools / Trails / Markers (side-rail) | Author packs — separate Trails + Markers pads, XML layout, build `.taco` |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
 | Settings (side-rail **Settings**) | ImGui — landing site, opacity, font scale, warm CEF, API key |
@@ -151,7 +151,7 @@ Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`d
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
-- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Events · DPS Logs · Notes · Settings) · `...` menu
+- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Trails · Markers · Events · DPS Logs · Notes · Settings) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
 - **Settings** — landing site, opacity, font scale / auto, warm CEF, API key (Nexus Options opens this pad)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
@@ -429,7 +429,7 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
 7. Runtime data (helper exe, `pages/` HTML, cheat sheets, settings, caches) lives under `addons/GW2-InGame-Helper/`.
 8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); offline sheets in `data/cheatsheets/` (and `src/browse/RaidFood.cpp` for raid food).
 
-Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor start: [`docs/ONBOARDING.md`](docs/ONBOARDING.md).
 Architecture / design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
 Local drafts (gitignored): `docs/CODE_AUDIT.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`.
 

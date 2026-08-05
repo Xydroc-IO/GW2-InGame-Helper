@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.18
+# GW2 In-Game Helper v2.2.0.19
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,18 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.19
+
+- **Trail Tools pads:** **Trails** and **Markers** are separate side-rail windows (hub keeps
+  Live + Pack) so you can place POIs along a trail. Draft preview while any authoring pad is open.
+- **Trail authoring:** New / Load… / Save / Save As… for `.trl`; window title shows the file stem;
+  map-only vs map+vector segments; select nearest / move to feet / delete; default category + Trail
+  XML line; last `.trl` folder remembered in settings.
+- **XML layout:** Combined one-file OverlayData, or **Split** `Pack_Menu.xml` + `Pack_Data.xml`
+  (MarkerCategory menu vs `<POIs>` data). Pathing already merges every `.xml` in the taco.
+- **Stamps:** Helper `2221` · homepage `2210` · sites `s2213` · cheatsheets `c2211`
+  · live panel `38` (unchanged from 2.2.0.18)
 
 ## What’s new in 2.2.0.18
 

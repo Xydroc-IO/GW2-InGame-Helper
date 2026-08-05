@@ -127,7 +127,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 2;
 	G::AddonDef.Version.Build    = 0;
-	G::AddonDef.Version.Revision = 18;
+	G::AddonDef.Version.Revision = 19;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";
