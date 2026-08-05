@@ -27,4 +27,7 @@ namespace LivePanels
 
 	/* True if URL is a live panel about: or its live-*.html file. */
 	bool IsLiveUrl(const char* url);
+
+	/* Favorites add/remove/reorder — wipe Browse hub cache and reload if open. */
+	void NotifyFavoritesChanged();
 }

@@ -291,3 +291,52 @@ void LivePanels::Shutdown()
 		CloseHandle(th);
 	}
 }
+
+void LivePanels::NotifyFavoritesChanged()
+{
+	const std::wstring dir = AddonPaths::DataDir();
+	if (dir.empty())
+		return;
+
+	char catStem[96] = {};
+	std::string reloadAbout;
+	const char* cur = WikiBrowser::CurrentUrlCStr();
+	if (cur && cur[0])
+	{
+		if (std::strstr(cur, "live-browse-hub") || std::strstr(cur, "about:browse-hub"))
+			reloadAbout = "about:browse-hub";
+		else
+		{
+			const char* p = std::strstr(cur, "live-browse-cat-");
+			const char* about = std::strstr(cur, "about:browse-cat-");
+			const char* slug = nullptr;
+			if (p)
+				slug = p + 15; /* strlen("live-browse-cat-") */
+			else if (about)
+				slug = about + 17; /* strlen("about:browse-cat-") */
+			if (slug)
+			{
+				size_t n = 0;
+				while (slug[n] && n + 1 < sizeof(catStem) - 16)
+				{
+					const char c = slug[n];
+					if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-')
+						++n;
+					else
+						break;
+				}
+				if (n > 0)
+				{
+					std::snprintf(catStem, sizeof(catStem), "live-browse-cat-%.*s",
+						static_cast<int>(n), slug);
+					reloadAbout.assign("about:browse-cat-");
+					reloadAbout.append(slug, n);
+				}
+			}
+		}
+	}
+
+	InvalidateBrowseFavCaches(dir, catStem[0] ? catStem : nullptr);
+	if (!reloadAbout.empty())
+		WikiBrowser::Navigate(reloadAbout);
+}

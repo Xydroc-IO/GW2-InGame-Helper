@@ -466,9 +466,11 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		ttl = kLegendaryVaultTtlSec;
 	else if (kind == LiveAsyncJob::LegendaryDetail)
 		ttl = 2u * 60u * 60u; /* craft tree is expensive — reuse until Sync */
-	else if (kind == LiveAsyncJob::BrowseHub || kind == LiveAsyncJob::BrowseCategory)
+	else if (kind == LiveAsyncJob::BrowseCategory)
 		ttl = 7u * 24u * 60u * 60u; /* catalog — version stamp is the real invalidator */
-	if (VerMatches(verPath) && FileFresh(path, ttl) && PanelReady(addonDir, stem))
+	/* Browse hub: never serve a stale favorites list (cheap sync rebuild). */
+	if (kind != LiveAsyncJob::BrowseHub &&
+		VerMatches(verPath) && FileFresh(path, ttl) && PanelReady(addonDir, stem))
 		return PathToFileUrl(path);
 
 	/* TP tip page — no network; ImGui TpWatchPad owns the real watchlist. */

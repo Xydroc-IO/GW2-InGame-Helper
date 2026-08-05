@@ -55,7 +55,8 @@ header.top{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border
 footer.credit{max-width:56rem;margin:0 auto;padding:0 1.25rem 2.5rem;font-size:.75rem;color:var(--zinc-600)}footer.credit strong{color:var(--zinc-500)}
 .back{display:inline-flex;align-items:center;gap:.35rem;color:var(--purple-300);text-decoration:none;font-size:.875rem;margin-bottom:1rem}
 .detail-head{display:flex;gap:1rem;align-items:center;margin-bottom:1.25rem}
-.avatar{width:3rem;height:3rem;border-radius:.375rem;background:rgba(235,192,71,.15);color:var(--purple-300);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.25rem;flex-shrink:0}
+.avatar{width:3rem;height:3rem;border-radius:.375rem;background:rgba(235,192,71,.15);color:var(--purple-300);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.25rem;flex-shrink:0;overflow:hidden;padding:0}
+.avatar img{width:100%;height:100%;object-fit:contain;display:block}
 h1{margin:0;font-size:1.35rem;font-weight:600;letter-spacing:-.025em;color:#f0c65a}
 .detail-sub{margin:.25rem 0 0;color:var(--zinc-500);font-size:.875rem}
 .detail-card{border:1px solid var(--border);border-radius:.5rem;background:var(--panel);padding:1rem;margin-bottom:1rem}
@@ -212,12 +213,54 @@ std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* a
 		: snap.outputName;
 	const char initial = title.empty() ? '?' : title[0];
 
+	std::string iconUrl;
+	{
+		const std::string cached = ReadUtf8File(StemPath(addonDir, "live-leg-icons", L".json"));
+		if (!cached.empty())
+		{
+			const std::string key = "\"" + std::to_string(itemId) + "\":\"";
+			size_t pos = cached.find(key);
+			if (pos != std::string::npos)
+			{
+				pos += key.size();
+				size_t end = pos;
+				while (end < cached.size() && cached[end] != '"')
+				{
+					if (cached[end] == '\\' && end + 1 < cached.size())
+						end += 2;
+					else
+						++end;
+				}
+				if (end > pos)
+					iconUrl = cached.substr(pos, end - pos);
+			}
+		}
+		if (iconUrl.empty())
+		{
+			const std::string path = "/v2/items/" + std::to_string(itemId);
+			Gw2Http::Result item = Gw2Http::Api(path.c_str(), nullptr, kLiveHttpTimeoutMs);
+			if (item.ok)
+			{
+				iconUrl = JsonStringAfterKey(item.body, "icon", 0);
+				if (iconUrl.rfind("https://", 0) != 0)
+					iconUrl.clear();
+			}
+		}
+	}
+
 	std::string html = LedgerChromeOpen(title.c_str());
 	html += "<a class=\"back\" href=\"?gw2igh-leg-vault=1\">"
 		"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
 		"width=\"16\" height=\"16\"><path d=\"m15 18-6-6 6-6\"/></svg> All legendaries</a>";
 	html += "<div class=\"detail-head\"><div class=\"avatar\">";
-	html += Esc(std::string(1, initial));
+	if (!iconUrl.empty())
+	{
+		html += "<img src=\"";
+		html += Esc(iconUrl);
+		html += "\" alt=\"\"/>";
+	}
+	else
+		html += Esc(std::string(1, initial));
 	html += "</div><div><h1>";
 	html += Esc(title);
 	html += "</h1><p class=\"detail-sub\">#";

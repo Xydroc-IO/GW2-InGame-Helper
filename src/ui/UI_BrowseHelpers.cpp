@@ -8,6 +8,7 @@
 #include "HelperTheme.h"
 #include "Settings.h"
 #include "Sites.h"
+#include "LivePanels.h"
 
 #include "imgui/imgui.h"
 
@@ -238,7 +239,10 @@ void DrawFavoriteStar(const char* siteId)
 		return;
 	const bool fav = Sites::IsFavorite(siteId);
 	if (FavoriteToggleButton("row", fav, true))
+	{
 		Sites::ToggleFavorite(siteId);
+		LivePanels::NotifyFavoritesChanged();
+	}
 }
 
 /* Browse popup sized from the display — aspect-aware (16:9 / 21:9 / 32:9). */

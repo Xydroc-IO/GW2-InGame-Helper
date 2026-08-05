@@ -7,6 +7,7 @@
 #include "HelperTheme.h"
 #include "Settings.h"
 #include "Sites.h"
+#include "LivePanels.h"
 #include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
@@ -152,6 +153,7 @@ bool UI_Browse_ToolbarFavoriteToggle()
 	if (FavoriteToggleButton("toolbar", fav, false))
 	{
 		Sites::ToggleFavorite(Sites::ActiveId());
+		LivePanels::NotifyFavoritesChanged();
 		return true;
 	}
 	return false;

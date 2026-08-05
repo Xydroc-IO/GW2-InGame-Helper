@@ -7,6 +7,7 @@
 #include "HelperTheme.h"
 #include "Settings.h"
 #include "Sites.h"
+#include "LivePanels.h"
 
 #include "imgui/imgui.h"
 
@@ -292,8 +293,8 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 							break;
 						}
 					}
-					if (from >= 0 && to >= 0)
-						Sites::MoveFavorite(from, to);
+					if (from >= 0 && to >= 0 && Sites::MoveFavorite(from, to))
+						LivePanels::NotifyFavoritesChanged();
 				}
 				ImGui::EndDragDropTarget();
 			}
