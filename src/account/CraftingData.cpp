@@ -168,6 +168,7 @@ void CraftingData::RenderContents()
 	if (ImGui::Button("Plan###gw2igh_craft_go", ImVec2(btnW, 0.f)))
 		StartPlan();
 
+	ImGui::PushTextWrapPos(0.f);
 	if (gBusy && !plan.ok)
 		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
 			plan.status.empty() ? "Planning…" : plan.status.c_str());
@@ -175,6 +176,7 @@ void CraftingData::RenderContents()
 		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s", plan.status.c_str());
 	else if (!plan.status.empty())
 		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", plan.status.c_str());
+	ImGui::PopTextWrapPos();
 
 	ImGui::Separator();
 	ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.35f, 1.f), "Daily crafting");

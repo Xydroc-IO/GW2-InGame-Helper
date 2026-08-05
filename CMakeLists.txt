@@ -76,6 +76,7 @@ add_library(GW2-InGame-Helper SHARED
   src/browse/CheatSheets.cpp
   src/browse/LivePanels.cpp
   src/browse/LivePanelsAsync.cpp
+  src/browse/LivePanelsCraftPlan.cpp
   src/browse/LivePanelsBuildCommon.cpp
   src/browse/LivePanelsBuildJson.cpp
   src/browse/LivePanelsBuildPage.cpp
@@ -84,6 +85,9 @@ add_library(GW2-InGame-Helper SHARED
   src/browse/LivePanelsBuildFashion.cpp
   src/browse/LivePanelsBuildProgress.cpp
   src/browse/LivePanelsBuildProgressArmory.cpp
+  src/browse/LivePanelsBuildLegendaryLedger.cpp
+  src/browse/LivePanelsBuildLegendaryDetail.cpp
+  src/browse/LivePanelsBuildCheatSheetsHub.cpp
   src/browse/LivePanelsBuildApiCheck.cpp
   src/browse/LivePanels_Html.cpp
   src/notes/NotesPad.cpp
@@ -118,8 +122,11 @@ add_library(GW2-InGame-Helper SHARED
   src/account/CraftingApi.cpp
   src/account/CraftingApiRecipe.cpp
   src/account/CraftingWiki.cpp
+  src/account/CraftingWikiAcquire.cpp
+  src/account/CraftingCurated.cpp
   src/account/CraftingPlan.cpp
   src/account/CraftingPlanResolve.cpp
+  src/account/CraftingPlanSnapshot.cpp
   src/account/CraftingDailies.cpp
   src/events/EventsPad.cpp
   src/events/EventsPadState.cpp

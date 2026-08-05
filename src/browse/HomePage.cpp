@@ -16,7 +16,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "2208";
+	static constexpr const char* kHomePageVersion = "2209";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{

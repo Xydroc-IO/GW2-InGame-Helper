@@ -353,6 +353,81 @@ namespace HelperDetail
 			QueueTpWatchCmd("remove", id);
 			url = "about:live-tp";
 		}
+		else if (std::strncmp(url, "about:craft-plan-", 17) == 0)
+		{
+			int id = 0;
+			for (const char* p = url + 17; *p >= '0' && *p <= '9'; ++p)
+				id = id * 10 + (*p - '0');
+			if (id > 0)
+			{
+				const std::wstring dir = HelperDir();
+				if (!dir.empty())
+				{
+					const std::wstring path = dir + L"\\craft-plan-cmd.txt";
+					char line[48];
+					std::snprintf(line, sizeof(line), "%d\n", id);
+					HANDLE h = CreateFileW(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ,
+						nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+					if (h != INVALID_HANDLE_VALUE)
+					{
+						DWORD written = 0;
+						WriteFile(h, line, static_cast<DWORD>(std::strlen(line)), &written, nullptr);
+						CloseHandle(h);
+					}
+				}
+			}
+			/* Stay on the current page — DLL Tick opens Account Crafting.
+			   Returning about:legendary-vault caused a white page when the
+			   vault HTML was missing. */
+			return {};
+		}
+		else if (std::strncmp(url, "about:legendary-vault-item-", 27) == 0 ||
+			std::strncmp(url, "about:legendary-vault-sync-", 27) == 0)
+		{
+			const bool sync = std::strncmp(url, "about:legendary-vault-sync-", 27) == 0;
+			int id = 0;
+			for (const char* p = url + 27; *p >= '0' && *p <= '9'; ++p)
+				id = id * 10 + (*p - '0');
+			const std::wstring dir = HelperDir();
+			if (id <= 0 || dir.empty())
+				return {};
+			/* Queue DLL worker; write a dark loading shell so CEF never sees raw about:. */
+			{
+				const std::wstring cmdPath = dir + L"\\legendary-detail-cmd.txt";
+				char line[64];
+				std::snprintf(line, sizeof(line), "%s %d\n", sync ? "sync" : "open", id);
+				HANDLE h = CreateFileW(cmdPath.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ,
+					nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+				if (h != INVALID_HANDLE_VALUE)
+				{
+					DWORD written = 0;
+					WriteFile(h, line, static_cast<DWORD>(std::strlen(line)), &written, nullptr);
+					CloseHandle(h);
+				}
+			}
+			wchar_t name[80];
+			std::swprintf(name, 80, L"live-legendary-detail-%d.html", id);
+			const std::wstring path = dir + L"\\" + name;
+			static const char kShell[] =
+				"<!DOCTYPE html><html><head><meta charset=\"utf-8\"/>"
+				"<title>Loading craft tree…</title></head>"
+				"<body style=\"margin:0;background:#0b0a10;color:#a1a1aa;"
+				"font-family:Segoe UI,sans-serif;padding:2rem\">"
+				"<p>Building craft tree (gifts → mats)…</p>"
+				"<p style=\"font-size:.85rem;color:#52525b\">This page refreshes when ready.</p>"
+				"</body></html>";
+			HANDLE hf = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+				FILE_ATTRIBUTE_NORMAL, nullptr);
+			if (hf != INVALID_HANDLE_VALUE)
+			{
+				DWORD written = 0;
+				WriteFile(hf, kShell, static_cast<DWORD>(sizeof(kShell) - 1), &written, nullptr);
+				CloseHandle(hf);
+			}
+			DeleteFileW((dir + L"\\live-legendary-detail-" + std::to_wstring(id) + L".ok").c_str());
+			DeleteFileW((dir + L"\\live-legendary-detail-" + std::to_wstring(id) + L".ver").c_str());
+			return WidePathToFileUrl(path);
+		}
 		const wchar_t* fileNameW = nullptr;
 		if (std::strcmp(url, "about:helper-home") == 0)
 			fileNameW = L"helper-home.html";
@@ -389,7 +464,9 @@ namespace HelperDetail
 		else if (std::strcmp(url, "about:legendary-paths") == 0)
 			fileNameW = L"legendary-paths.html";
 		else if (std::strcmp(url, "about:legendary-vault") == 0)
-			fileNameW = L"legendary-vault.html";
+			fileNameW = L"live-legendary-vault.html";
+		else if (std::strcmp(url, "about:cheatsheets-hub") == 0)
+			fileNameW = L"live-cheatsheets-hub.html";
 		else if (std::strcmp(url, "about:mount-unlock") == 0)
 			fileNameW = L"mount-unlock.html";
 		else if (std::strcmp(url, "about:daily-weekly") == 0)
@@ -421,11 +498,48 @@ namespace HelperDetail
 
 		const std::wstring dir = HelperDir();
 		if (dir.empty())
-			return url;
-		const std::wstring path = dir + L"\\" + fileNameW;
-		if (GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
-			return url;
-		return WidePathToFileUrl(path);
+			return {};
+		/* Pack sheets live under cheatsheets\; live panels / raid-food at root.
+		   Prefer the pack path so a stale loading shell in root cannot win. */
+		const std::wstring pathSheets = dir + L"\\cheatsheets\\" + fileNameW;
+		const std::wstring pathRoot = dir + L"\\" + fileNameW;
+		if (GetFileAttributesW(pathSheets.c_str()) != INVALID_FILE_ATTRIBUTES)
+			return WidePathToFileUrl(pathSheets);
+		if (GetFileAttributesW(pathRoot.c_str()) != INVALID_FILE_ATTRIBUTES)
+			return WidePathToFileUrl(pathRoot);
+
+		/* Ask the DLL to Ensure* + Navigate — never hand CEF a raw about:
+		   (blocked → white page). Show a dark loading shell until then. */
+		{
+			const std::wstring cmdPath = dir + L"\\open-about-cmd.txt";
+			const std::string line = std::string(url) + "\n";
+			HANDLE h = CreateFileW(cmdPath.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ,
+				nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+			if (h != INVALID_HANDLE_VALUE)
+			{
+				DWORD written = 0;
+				WriteFile(h, line.c_str(), static_cast<DWORD>(line.size()), &written, nullptr);
+				CloseHandle(h);
+			}
+		}
+		static const char kShell[] =
+			"<!DOCTYPE html><html><head><meta charset=\"utf-8\"/>"
+			"<title>Loading…</title></head>"
+			"<body style=\"margin:0;background:#0b0a10;color:#a1a1aa;"
+			"font-family:Segoe UI,sans-serif;padding:2rem\">"
+			"<p>Opening cheat sheet…</p>"
+			"</body></html>";
+		HANDLE hf = CreateFileW(pathRoot.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+			FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (hf != INVALID_HANDLE_VALUE)
+		{
+			DWORD written = 0;
+			WriteFile(hf, kShell, static_cast<DWORD>(sizeof(kShell) - 1), &written, nullptr);
+			CloseHandle(hf);
+		}
+		if (GetFileAttributesW(pathRoot.c_str()) == INVALID_FILE_ATTRIBUTES)
+			return {};
+		return WidePathToFileUrl(pathRoot);
 	}
 
 	/* Handle TP add/remove from about: or file://?gw2igh-tp-add=N before CEF sees them. */
@@ -461,6 +575,41 @@ namespace HelperDetail
 		if (remId > 0)
 			QueueTpWatchCmd("remove", remId);
 		*outNavigate = url.substr(0, q);
+		return true;
+	}
+
+	/* Ledger CTAs use ?gw2igh-* on file:// pages — CEF blocks unknown about: before rewrite. */
+	bool ConsumeLedgerActionUrl(const std::string& url, std::string* outNavigate)
+	{
+		if (!outNavigate)
+			return false;
+		outNavigate->clear();
+		if (url.find("live-legendary") == std::string::npos)
+			return false;
+		size_t q = url.find('?');
+		if (q == std::string::npos)
+			return false;
+		std::string query = url.substr(q + 1);
+		const size_t hash = query.find('#');
+		if (hash != std::string::npos)
+			query.resize(hash);
+		const int openId = ParseQueryInt(query, "gw2igh-leg-open");
+		const int syncId = ParseQueryInt(query, "gw2igh-leg-sync");
+		const int craftId = ParseQueryInt(query, "gw2igh-craft-plan");
+		if (openId <= 0 && syncId <= 0 && craftId <= 0)
+			return false;
+		char about[64];
+		if (craftId > 0)
+		{
+			std::snprintf(about, sizeof(about), "about:craft-plan-%d", craftId);
+			(void)ResolveBuiltinUrl(about); /* queues DLL cmd; stay on page */
+			return true;
+		}
+		if (syncId > 0)
+			std::snprintf(about, sizeof(about), "about:legendary-vault-sync-%d", syncId);
+		else
+			std::snprintf(about, sizeof(about), "about:legendary-vault-item-%d", openId);
+		*outNavigate = ResolveBuiltinUrl(about);
 		return true;
 	}
 

@@ -265,9 +265,9 @@ namespace CraftingDetail
 					if (!TryLoadRecipe(itemId, plan.outputName, outCount, ings, recipeId,
 							recipeCache, &recipeSource))
 					{
-						char buf[192];
+						char buf[256];
 						std::snprintf(buf, sizeof(buf),
-							"Found %s (#%d) — no station or wiki forge recipe.",
+							"Found %s (#%d) — no station, wiki forge, or acquisition bill.",
 							plan.outputName.empty() ? "item" : plan.outputName.c_str(),
 							itemId);
 						plan.status = buf;

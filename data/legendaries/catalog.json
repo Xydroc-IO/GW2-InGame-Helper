@@ -1,0 +1,1688 @@
+{
+  "version": 2,
+  "items": [
+    {
+      "id": "6a714e7816fdb6540c2d55b3",
+      "name": "Ad Infinitum",
+      "category": "Back Item",
+      "item_type": "Back Item",
+      "generation": "Other",
+      "acquisition": "Complete the Fractal Attunement collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55b3",
+      "itemIds": [
+        74155
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55ab",
+      "name": "Ardent Glorious Armor (PvP)",
+      "category": "Armor",
+      "item_type": "Full Set",
+      "generation": "Other",
+      "acquisition": "Earned through PvP: Ascended Glorious Hero's armor upgraded to Ardent Glorious, then Legendary.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55ab",
+      "itemIds": [
+        83162,
+        89094,
+        84546,
+        83921,
+        82670,
+        84748,
+        89101,
+        83595,
+        82268,
+        89158,
+        82410,
+        84643,
+        89134,
+        83729,
+        82401,
+        89245,
+        83113,
+        84561,
+        89167,
+        83323,
+        84341,
+        89234,
+        83676,
+        82272,
+        84427,
+        89266,
+        89126,
+        82465,
+        83957,
+        89209,
+        83348,
+        89093,
+        89260,
+        82245,
+        89235,
+        84461,
+        89174,
+        84633,
+        82423,
+        89183,
+        83929,
+        83240,
+        84723,
+        89252,
+        83127,
+        82334,
+        82214,
+        84655,
+        82519,
+        82698,
+        89117,
+        82098,
+        82512,
+        89152
+      ],
+      "maxCounts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5581",
+      "name": "Astralaria",
+      "category": "Weapon",
+      "item_type": "Axe",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Astralaria collections, starting from The Mechanism, and craft the precursor Zap-like Astralaria I chain.",
+      "notes": "An orrery of orbiting planets and constellations.",
+      "slug": "6a714e7816fdb6540c2d5581",
+      "itemIds": [
+        76158
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5591",
+      "name": "Aurene's Argument",
+      "category": "Weapon",
+      "item_type": "Pistol",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5591",
+      "itemIds": [
+        95808
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5592",
+      "name": "Aurene's Bite",
+      "category": "Weapon",
+      "item_type": "Axe",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5592",
+      "itemIds": [
+        96356
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5593",
+      "name": "Aurene's Breath",
+      "category": "Weapon",
+      "item_type": "Torch",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5593",
+      "itemIds": [
+        97099
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5594",
+      "name": "Aurene's Claw",
+      "category": "Weapon",
+      "item_type": "Dagger",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5594",
+      "itemIds": [
+        96203
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a3",
+      "name": "Aurene's Facet",
+      "category": "Weapon",
+      "item_type": "Harpoon Gun",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a3",
+      "itemIds": [],
+      "maxCounts": []
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5595",
+      "name": "Aurene's Fang",
+      "category": "Weapon",
+      "item_type": "Greatsword",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5595",
+      "itemIds": [
+        95675
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5596",
+      "name": "Aurene's Flight",
+      "category": "Weapon",
+      "item_type": "Short Bow",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5596",
+      "itemIds": [
+        97590
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5597",
+      "name": "Aurene's Gaze",
+      "category": "Weapon",
+      "item_type": "Longbow",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5597",
+      "itemIds": [
+        97165
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5598",
+      "name": "Aurene's Grasp",
+      "category": "Weapon",
+      "item_type": "Sword",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5598",
+      "itemIds": [],
+      "maxCounts": []
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5599",
+      "name": "Aurene's Insight",
+      "category": "Weapon",
+      "item_type": "Staff",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5599",
+      "itemIds": [
+        96652
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d559a",
+      "name": "Aurene's Persuasion",
+      "category": "Weapon",
+      "item_type": "Rifle",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d559a",
+      "itemIds": [
+        97377
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d559b",
+      "name": "Aurene's Rending",
+      "category": "Weapon",
+      "item_type": "Spear",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d559b",
+      "itemIds": [
+        96937
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d559c",
+      "name": "Aurene's Scale",
+      "category": "Weapon",
+      "item_type": "Shield",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d559c",
+      "itemIds": [
+        96028
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d559d",
+      "name": "Aurene's Tail",
+      "category": "Weapon",
+      "item_type": "Mace",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d559d",
+      "itemIds": [
+        95612
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d559e",
+      "name": "Aurene's Voice",
+      "category": "Weapon",
+      "item_type": "Warhorn",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d559e",
+      "itemIds": [
+        97783
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d559f",
+      "name": "Aurene's Weight",
+      "category": "Weapon",
+      "item_type": "Hammer",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d559f",
+      "itemIds": [
+        95684
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a2",
+      "name": "Aurene's Whisper",
+      "category": "Weapon",
+      "item_type": "Trident",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a2",
+      "itemIds": [],
+      "maxCounts": []
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a1",
+      "name": "Aurene's Wing",
+      "category": "Weapon",
+      "item_type": "Focus",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a1",
+      "itemIds": [
+        97077
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a0",
+      "name": "Aurene's Wisdom",
+      "category": "Weapon",
+      "item_type": "Scepter",
+      "generation": "Gen 3",
+      "acquisition": "Craft the Aurene variant using a Legendary Weapon Core, Vision Crystals and Draconic Tribute.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a0",
+      "itemIds": [
+        96221
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55ad",
+      "name": "Aurora",
+      "category": "Trinket",
+      "item_type": "Accessory",
+      "generation": "Other",
+      "acquisition": "Complete the Living World Season 3 collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55ad",
+      "itemIds": [
+        81908
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d556d",
+      "name": "Bolt",
+      "category": "Weapon",
+      "item_type": "Sword",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Bolt, Gift of Fortune, Gift of Mastery and Zap (precursor).",
+      "notes": "Crackles with lightning and shocks nearby foes visually.",
+      "slug": "6a714e7816fdb6540c2d556d",
+      "itemIds": [
+        30699
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5582",
+      "name": "Chuka and Champawat",
+      "category": "Weapon",
+      "item_type": "Short Bow",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Chuka and Champawat collections and craft the precursor The Hunter's Bow line.",
+      "notes": "Summons spectral tigers on kill.",
+      "slug": "6a714e7816fdb6540c2d5582",
+      "itemIds": [
+        78556
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5583",
+      "name": "Claw of the Khan-Ur",
+      "category": "Weapon",
+      "item_type": "Dagger",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Claw of the Khan-Ur collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5583",
+      "itemIds": [
+        87109
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55af",
+      "name": "Coalescence",
+      "category": "Trinket",
+      "item_type": "Amulet",
+      "generation": "Other",
+      "acquisition": "Complete the Coalescence collections, including the Whisper in the Dark raid wing.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55af",
+      "itemIds": [
+        91234
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55b1",
+      "name": "Conflux",
+      "category": "Trinket",
+      "item_type": "Ring",
+      "generation": "Other",
+      "acquisition": "WvW reward: purchase with Skirmish Claim Tickets and Memories of Battle.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55b1",
+      "itemIds": [
+        93105
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d557f",
+      "name": "Eternity",
+      "category": "Weapon",
+      "item_type": "Greatsword",
+      "generation": "Gen 1",
+      "acquisition": "Combine Sunrise and Twilight in the Mystic Forge.",
+      "notes": "Swaps between day and night appearances on demand.",
+      "slug": "6a714e7816fdb6540c2d557f",
+      "itemIds": [
+        30689
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5584",
+      "name": "Eureka",
+      "category": "Weapon",
+      "item_type": "Mace",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Eureka collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5584",
+      "itemIds": [
+        79562
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5585",
+      "name": "Exordium",
+      "category": "Weapon",
+      "item_type": "Greatsword",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Exordium collections and craft the precursor The Anomaly line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5585",
+      "itemIds": [
+        90551
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5586",
+      "name": "Flames of War",
+      "category": "Weapon",
+      "item_type": "Torch",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Flames of War collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5586",
+      "itemIds": [
+        81206
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d556f",
+      "name": "Frenzy",
+      "category": "Weapon",
+      "item_type": "Harpoon Gun",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Frenzy, Gift of Fortune, Gift of Mastery and Rage (precursor).",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d556f",
+      "itemIds": [
+        30697
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5570",
+      "name": "Frostfang",
+      "category": "Weapon",
+      "item_type": "Axe",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Frostfang, Gift of Fortune, Gift of Mastery and Tooth of Frostfang (precursor).",
+      "notes": "Trails frost and leaves icy footprints.",
+      "slug": "6a714e7816fdb6540c2d5570",
+      "itemIds": [
+        30684
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5587",
+      "name": "H.O.P.E.",
+      "category": "Weapon",
+      "item_type": "Pistol",
+      "generation": "Gen 2",
+      "acquisition": "Complete the H.O.P.E. collections and craft the precursor The Hope line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5587",
+      "itemIds": [
+        72713
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5588",
+      "name": "HMS Divinity",
+      "category": "Weapon",
+      "item_type": "Harpoon Gun",
+      "generation": "Gen 2",
+      "acquisition": "Complete the HMS Divinity collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5588",
+      "itemIds": [
+        80488
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5571",
+      "name": "Howler",
+      "category": "Weapon",
+      "item_type": "Warhorn",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Howler, Gift of Fortune, Gift of Mastery and Howl (precursor).",
+      "notes": "Summons a spectral wolf howl when played.",
+      "slug": "6a714e7816fdb6540c2d5571",
+      "itemIds": [
+        30702
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5572",
+      "name": "Incinerator",
+      "category": "Weapon",
+      "item_type": "Dagger",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Incinerator, Gift of Fortune, Gift of Mastery and Spark (precursor).",
+      "notes": "Blade of living flame.",
+      "slug": "6a714e7816fdb6540c2d5572",
+      "itemIds": [
+        30687
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5574",
+      "name": "Kamohoali'i Kotaki",
+      "category": "Weapon",
+      "item_type": "Spear",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Kamohoali'i Kotaki, Gift of Fortune, Gift of Mastery and Venom (precursor).",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5574",
+      "itemIds": [
+        30691
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5575",
+      "name": "Kraitkin",
+      "category": "Weapon",
+      "item_type": "Trident",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Kraitkin, Gift of Fortune, Gift of Mastery and Venom (precursor).",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5575",
+      "itemIds": [
+        30701
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5576",
+      "name": "Kudzu",
+      "category": "Weapon",
+      "item_type": "Longbow",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Kudzu, Gift of Fortune, Gift of Mastery and Leaf of Kudzu (precursor).",
+      "notes": "Living bow of vines that sprouts flowers as you walk.",
+      "slug": "6a714e7816fdb6540c2d5576",
+      "itemIds": [
+        30685
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55aa",
+      "name": "Legendary Mist Shard Armor (WvW)",
+      "category": "Armor",
+      "item_type": "Full Set",
+      "generation": "Other",
+      "acquisition": "Earned through WvW: Mist Shard armor pieces upgraded to Perfected Mist Shard, then Legendary.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55aa",
+      "itemIds": [
+        89094,
+        82180,
+        83482,
+        89101,
+        89158,
+        83087,
+        89134,
+        89245,
+        83308,
+        84181,
+        89167,
+        83862,
+        82552,
+        89234,
+        83094,
+        89266,
+        83702,
+        89126,
+        89209,
+        89093,
+        89260,
+        84508,
+        82925,
+        89235,
+        82348,
+        89174,
+        84301,
+        84481,
+        82109,
+        89183,
+        82102,
+        89252,
+        83699,
+        89117,
+        89152,
+        82502
+      ],
+      "maxCounts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55b7",
+      "name": "Legendary Rune",
+      "category": "Rune",
+      "item_type": "Rune",
+      "generation": "Other",
+      "acquisition": "Craft with Gift of Runes, Mystic Runestones and Superior Runes.",
+      "notes": "Swap rune sets freely out of combat.",
+      "slug": "6a714e7816fdb6540c2d55b7",
+      "itemIds": [
+        91536
+      ],
+      "maxCounts": [
+        7
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55b6",
+      "name": "Legendary Sigil",
+      "category": "Sigil",
+      "item_type": "Sigil",
+      "generation": "Other",
+      "acquisition": "Craft with Gift of Sigils, Mystic Runestones and Superior Sigils.",
+      "notes": "Swap sigil stats freely out of combat.",
+      "slug": "6a714e7816fdb6540c2d55b6",
+      "itemIds": [
+        91505
+      ],
+      "maxCounts": [
+        8
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5577",
+      "name": "Meteorlogicus",
+      "category": "Weapon",
+      "item_type": "Scepter",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Meteorlogicus, Gift of Fortune, Gift of Mastery and Storm (precursor).",
+      "notes": "A stormy orb with tiny lightning and snow effects.",
+      "slug": "6a714e7816fdb6540c2d5577",
+      "itemIds": [
+        30695
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5589",
+      "name": "Nevermore",
+      "category": "Weapon",
+      "item_type": "Staff",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Nevermore collections and craft the precursor Chorben's Staff line.",
+      "notes": "Summons a raven companion effect.",
+      "slug": "6a714e7816fdb6540c2d5589",
+      "itemIds": [
+        71383
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55ac",
+      "name": "Obsidian Armor",
+      "category": "Armor",
+      "item_type": "Full Set",
+      "generation": "Other",
+      "acquisition": "Open-world legendary armor from Secrets of the Obscure, crafted with Obsidian Shards and Lucky Rare Draconic Tributes.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55ac",
+      "itemIds": [
+        101570,
+        101536,
+        101535,
+        101609,
+        101568,
+        101602,
+        101516,
+        101462,
+        101556,
+        101544,
+        101521,
+        101551,
+        101579,
+        101645,
+        101501,
+        101614,
+        101499,
+        101460
+      ],
+      "maxCounts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "31128071aeb64a19405079d8",
+      "name": "Perfected Envoy Boots",
+      "category": "Armor",
+      "item_type": "Medium Boots",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "31128071aeb64a19405079d8",
+      "itemIds": [
+        80281
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a6",
+      "name": "Perfected Envoy Breastplate",
+      "category": "Armor",
+      "item_type": "Heavy Chest",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a6",
+      "itemIds": [
+        80254
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "f78406dd58340e302d8f841e",
+      "name": "Perfected Envoy Cowl",
+      "category": "Armor",
+      "item_type": "Light Helm",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "f78406dd58340e302d8f841e",
+      "itemIds": [
+        80248
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "2e7970d51a08b28be45805f5",
+      "name": "Perfected Envoy Gauntlets",
+      "category": "Armor",
+      "item_type": "Heavy Gloves",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "2e7970d51a08b28be45805f5",
+      "itemIds": [
+        80205
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "febad9ba7bd1343d83d48c3f",
+      "name": "Perfected Envoy Gloves",
+      "category": "Armor",
+      "item_type": "Light Gloves",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "febad9ba7bd1343d83d48c3f",
+      "itemIds": [
+        80111
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a9",
+      "name": "Perfected Envoy Greaves",
+      "category": "Armor",
+      "item_type": "Heavy Boots",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a9",
+      "itemIds": [
+        80557
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a4",
+      "name": "Perfected Envoy Helmet",
+      "category": "Armor",
+      "item_type": "Heavy Helm",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a4",
+      "itemIds": [
+        80384
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "c54aed434e4e1fb8749814c2",
+      "name": "Perfected Envoy Jerkin",
+      "category": "Armor",
+      "item_type": "Medium Chest",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "c54aed434e4e1fb8749814c2",
+      "itemIds": [
+        80578
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "76f276bb578b6818a0e85ee0",
+      "name": "Perfected Envoy Leggings",
+      "category": "Armor",
+      "item_type": "Medium Leggings",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "76f276bb578b6818a0e85ee0",
+      "itemIds": [
+        80252
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "bb0ad9c374176c0e02e71015",
+      "name": "Perfected Envoy Mantle",
+      "category": "Armor",
+      "item_type": "Light Shoulders",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "bb0ad9c374176c0e02e71015",
+      "itemIds": [
+        80131
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "9bf960a1e9e429543bcd1c10",
+      "name": "Perfected Envoy Mask",
+      "category": "Armor",
+      "item_type": "Medium Helm",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "9bf960a1e9e429543bcd1c10",
+      "itemIds": [
+        80296
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "ce027b69a85aff1824848b02",
+      "name": "Perfected Envoy Pants",
+      "category": "Armor",
+      "item_type": "Light Leggings",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "ce027b69a85aff1824848b02",
+      "itemIds": [
+        80356
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a5",
+      "name": "Perfected Envoy Pauldrons",
+      "category": "Armor",
+      "item_type": "Heavy Shoulders",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a5",
+      "itemIds": [
+        80435
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "64fd81fdac6c259edd44ce77",
+      "name": "Perfected Envoy Shoes",
+      "category": "Armor",
+      "item_type": "Light Boots",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "64fd81fdac6c259edd44ce77",
+      "itemIds": [
+        80399
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "00d0d23445c7996de3b7c2ea",
+      "name": "Perfected Envoy Shoulderpads",
+      "category": "Armor",
+      "item_type": "Medium Shoulders",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "00d0d23445c7996de3b7c2ea",
+      "itemIds": [
+        80145
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a8",
+      "name": "Perfected Envoy Tassets",
+      "category": "Armor",
+      "item_type": "Heavy Leggings",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a8",
+      "itemIds": [
+        80277
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55a7",
+      "name": "Perfected Envoy Vambraces",
+      "category": "Armor",
+      "item_type": "Medium Gloves",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55a7",
+      "itemIds": [
+        80161
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "35c6da7785c81bcaef17b1f5",
+      "name": "Perfected Envoy Vestments",
+      "category": "Armor",
+      "item_type": "Light Chest",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "35c6da7785c81bcaef17b1f5",
+      "itemIds": [
+        80190
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5590",
+      "name": "Pharus",
+      "category": "Weapon",
+      "item_type": "Warhorn",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Pharus collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5590",
+      "itemIds": [
+        89854
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55b0",
+      "name": "Prismatic Champion's Regalia",
+      "category": "Trinket",
+      "item_type": "Amulet",
+      "generation": "Other",
+      "acquisition": "Complete the Return to achievements from the Icebrood Saga.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55b0",
+      "itemIds": [
+        95380
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d557b",
+      "name": "Quip",
+      "category": "Weapon",
+      "item_type": "Pistol",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Quip, Gift of Fortune, Gift of Mastery and Chaos Gun (precursor).",
+      "notes": "Fires confetti and clown-themed effects.",
+      "slug": "6a714e7816fdb6540c2d557b",
+      "itemIds": [
+        30693
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d557c",
+      "name": "Rodgort",
+      "category": "Weapon",
+      "item_type": "Torch",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Rodgort, Gift of Fortune, Gift of Mastery and Rodgort's Flame (precursor).",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d557c",
+      "itemIds": [
+        30700
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d558a",
+      "name": "Sharur",
+      "category": "Weapon",
+      "item_type": "Hammer",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Sharur collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d558a",
+      "itemIds": [
+        81839
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d558b",
+      "name": "Shooshadoo",
+      "category": "Weapon",
+      "item_type": "Shield",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Shooshadoo collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d558b",
+      "itemIds": [
+        79802
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d557d",
+      "name": "Sunrise",
+      "category": "Weapon",
+      "item_type": "Greatsword",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Sunrise, Gift of Fortune, Gift of Mastery and Dawn (precursor).",
+      "notes": "Combines with Twilight to create Eternity.",
+      "slug": "6a714e7816fdb6540c2d557d",
+      "itemIds": [
+        30703
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55b4",
+      "name": "The Ascension",
+      "category": "Back Item",
+      "item_type": "Back Item",
+      "generation": "Other",
+      "acquisition": "PvP reward track and collections, crafted with Ascended Shards of Glory.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55b4",
+      "itemIds": [
+        77474
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d556c",
+      "name": "The Bifrost",
+      "category": "Weapon",
+      "item_type": "Staff",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of the Bifrost, Gift of Fortune, Gift of Mastery and The Legend (precursor).",
+      "notes": "Leaves a trail of rainbow colours as you walk.",
+      "slug": "6a714e7816fdb6540c2d556c",
+      "itemIds": [
+        30698
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d558c",
+      "name": "The Binding of Ipos",
+      "category": "Weapon",
+      "item_type": "Focus",
+      "generation": "Gen 2",
+      "acquisition": "Complete The Binding of Ipos collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d558c",
+      "itemIds": [
+        86098
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5580",
+      "name": "The Dreamer",
+      "category": "Weapon",
+      "item_type": "Short Bow",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of The Dreamer, Gift of Fortune, Gift of Mastery and The Lover (precursor).",
+      "notes": "Fires rainbow unicorns.",
+      "slug": "6a714e7816fdb6540c2d5580",
+      "itemIds": [
+        30686
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d556e",
+      "name": "The Flameseeker Prophecies",
+      "category": "Weapon",
+      "item_type": "Shield",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of the Flameseeker Prophecies, Gift of Fortune, Gift of Mastery and The Chosen (precursor).",
+      "notes": "Projects glowing pages of the Flameseeker Prophecies.",
+      "slug": "6a714e7816fdb6540c2d556e",
+      "itemIds": [
+        30696
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5573",
+      "name": "The Juggernaut",
+      "category": "Weapon",
+      "item_type": "Hammer",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of The Juggernaut, Gift of Fortune, Gift of Mastery and The Colossus (precursor).",
+      "notes": "Coats the wielder in shifting liquid mist.",
+      "slug": "6a714e7816fdb6540c2d5573",
+      "itemIds": [
+        30690
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5578",
+      "name": "The Minstrel",
+      "category": "Weapon",
+      "item_type": "Focus",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of The Minstrel, Gift of Fortune, Gift of Mastery and The Bard (precursor).",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d5578",
+      "itemIds": [
+        30688
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d5579",
+      "name": "The Moot",
+      "category": "Weapon",
+      "item_type": "Mace",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of The Moot, Gift of Fortune, Gift of Mastery and The Energizer (precursor).",
+      "notes": "Plays party music and spawns a disco ball.",
+      "slug": "6a714e7816fdb6540c2d5579",
+      "itemIds": [
+        30692
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d557a",
+      "name": "The Predator",
+      "category": "Weapon",
+      "item_type": "Rifle",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of The Predator, Gift of Fortune, Gift of Mastery and The Hunter (precursor).",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d557a",
+      "itemIds": [
+        30694
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d558d",
+      "name": "The Shining Blade",
+      "category": "Weapon",
+      "item_type": "Sword",
+      "generation": "Gen 2",
+      "acquisition": "Complete The Shining Blade collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d558d",
+      "itemIds": [
+        81957
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55b2",
+      "name": "Transcendence",
+      "category": "Trinket",
+      "item_type": "Ring",
+      "generation": "Other",
+      "acquisition": "PvP reward: purchase with Ascended Shards of Glory and PvP currencies.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55b2",
+      "itemIds": [
+        92991
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d557e",
+      "name": "Twilight",
+      "category": "Weapon",
+      "item_type": "Greatsword",
+      "generation": "Gen 1",
+      "acquisition": "Craft with Gift of Twilight, Gift of Fortune, Gift of Mastery and Dusk (precursor).",
+      "notes": "Combines with Sunrise to create Eternity.",
+      "slug": "6a714e7816fdb6540c2d557e",
+      "itemIds": [
+        30704
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d558e",
+      "name": "Verdarach",
+      "category": "Weapon",
+      "item_type": "Sword",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Verdarach collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d558e",
+      "itemIds": [
+        87687
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55ae",
+      "name": "Vision",
+      "category": "Trinket",
+      "item_type": "Accessory",
+      "generation": "Other",
+      "acquisition": "Complete the Living World Season 4 collections and craft in the Mystic Forge.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55ae",
+      "itemIds": [
+        91048
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d55b5",
+      "name": "Warbringer",
+      "category": "Back Item",
+      "item_type": "Back Item",
+      "generation": "Other",
+      "acquisition": "WvW reward: collections plus Memories of Battle and Skirmish Claim Tickets.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d55b5",
+      "itemIds": [
+        81462
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "6a714e7816fdb6540c2d558f",
+      "name": "Xiuquatl",
+      "category": "Weapon",
+      "item_type": "Scepter",
+      "generation": "Gen 2",
+      "acquisition": "Complete the Xiuquatl collections and craft the precursor line.",
+      "notes": "",
+      "slug": "6a714e7816fdb6540c2d558f",
+      "itemIds": [
+        88576
+      ],
+      "maxCounts": [
+        2
+      ]
+    }
+  ],
+  "curatedBills": {
+    "105317": {
+      "source": "Vendor / wiki acquisition",
+      "materials": [
+        {
+          "itemId": 100512,
+          "need": 1,
+          "name": "Gift of Magical Prosperity"
+        },
+        {
+          "itemId": 100933,
+          "need": 1,
+          "name": "Gift of Mighty Prosperity"
+        },
+        {
+          "itemId": 19676,
+          "need": 200,
+          "name": "Icy Runestone"
+        },
+        {
+          "itemId": 105196,
+          "need": 1,
+          "name": "Fractalline Spark"
+        }
+      ]
+    },
+    "105171": {
+      "source": "Vendor / wiki acquisition",
+      "materials": [
+        {
+          "itemId": 100512,
+          "need": 1,
+          "name": "Gift of Magical Prosperity"
+        },
+        {
+          "itemId": 100933,
+          "need": 1,
+          "name": "Gift of Mighty Prosperity"
+        },
+        {
+          "itemId": 19676,
+          "need": 200,
+          "name": "Icy Runestone"
+        },
+        {
+          "itemId": 105196,
+          "need": 1,
+          "name": "Fractalline Spark"
+        }
+      ]
+    },
+    "105293": {
+      "source": "Vendor / wiki acquisition",
+      "materials": [
+        {
+          "itemId": 100512,
+          "need": 1,
+          "name": "Gift of Magical Prosperity"
+        },
+        {
+          "itemId": 100933,
+          "need": 1,
+          "name": "Gift of Mighty Prosperity"
+        },
+        {
+          "itemId": 19676,
+          "need": 200,
+          "name": "Icy Runestone"
+        },
+        {
+          "itemId": 105196,
+          "need": 1,
+          "name": "Fractalline Spark"
+        }
+      ]
+    }
+  }
+}

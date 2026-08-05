@@ -114,6 +114,7 @@ namespace HelperDetail
 	void NavigateSlot(int slot, const char* url);
 	std::string ResolveBuiltinUrl(const char* url);
 	bool ConsumeTpActionUrl(const std::string& url, std::string* outNavigate);
+	bool ConsumeLedgerActionUrl(const std::string& url, std::string* outNavigate);
 	void RefreshNavFlags();
 	void UpdateUrlFromBrowser();
 	std::wstring HelperDir();

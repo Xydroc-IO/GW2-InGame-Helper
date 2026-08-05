@@ -75,6 +75,15 @@ namespace WikiBrowserDetail
 			L"\\material-conversions.ver",
 			L"\\legendary-paths.html",
 			L"\\legendary-paths.ver",
+			L"\\live-legendary-vault.html",
+			L"\\live-legendary-vault.ver",
+			L"\\live-legendary-vault.ok",
+			L"\\craft-plan-cmd.txt",
+			L"\\open-about-cmd.txt",
+			L"\\live-cheatsheets-hub.html",
+			L"\\live-cheatsheets-hub.ver",
+			L"\\live-cheatsheets-hub.ok",
+			L"\\legendary-detail-cmd.txt",
 			L"\\mount-unlock.html",
 			L"\\mount-unlock.ver",
 			L"\\daily-weekly.html",
@@ -177,7 +186,7 @@ namespace WikiBrowserDetail
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2208";
+		static constexpr const char* kHelperStamp = "2209";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;

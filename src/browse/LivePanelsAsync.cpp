@@ -319,6 +319,13 @@ DWORD WINAPI LiveWorkerProc(void* param)
 		html = LivePanelsBuild::BuildTpHtml(job->tpWatchIds.c_str(), true);
 	else if (job->kind == LiveAsyncJob::ApiCheck)
 		html = LivePanelsBuild::BuildApiCheckHtml(job->apiKey.c_str());
+	else if (job->kind == LiveAsyncJob::LegendaryLedger)
+		html = LivePanelsBuild::BuildLegendaryLedgerHtml(job->addonDir, job->apiKey.c_str());
+	else if (job->kind == LiveAsyncJob::LegendaryDetail)
+		html = LivePanelsBuild::BuildLegendaryDetailHtml(job->addonDir, job->apiKey.c_str(),
+			job->itemId);
+	else if (job->kind == LiveAsyncJob::CheatSheetsHub)
+		html = LivePanelsBuild::BuildCheatSheetsHubHtml(job->addonDir, job->apiKey.c_str());
 	else
 		html = LivePanelsBuild::BuildProgressHtml(job->addonDir, job->apiKey.c_str());
 
@@ -408,7 +415,8 @@ void ReapJoinableUnlocked()
 	gAsync.joinable.swap(keep);
 }
 
-void StartLiveWorker(const std::wstring& addonDir, const char* stem, LiveAsyncJob::Kind kind)
+void StartLiveWorker(const std::wstring& addonDir, const char* stem, LiveAsyncJob::Kind kind,
+	int itemId)
 {
 	if (!stem || !stem[0])
 		return;
@@ -424,12 +432,14 @@ void StartLiveWorker(const std::wstring& addonDir, const char* stem, LiveAsyncJo
 	job->tpWatchIds = G::TpWatchIds;
 	job->generation = gAsync.generation;
 	job->kind = kind;
+	job->itemId = itemId;
 	gAsync.queue.push_back(job);
 	PumpLiveQueueUnlocked();
 }
 
 std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
-	LiveAsyncJob::Kind kind, const char* offlineTitle, const char* offlineHeading)
+	LiveAsyncJob::Kind kind, const char* offlineTitle, const char* offlineHeading,
+	int itemId)
 {
 	const std::wstring path = StemPath(addonDir, stem, L".html");
 	const std::wstring verPath = StemPath(addonDir, stem, L".ver");
@@ -438,6 +448,8 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		ttl = kTpHtmlTtlSec;
 	else if (kind == LiveAsyncJob::ApiCheck)
 		ttl = kApiCheckTtlSec;
+	else if (kind == LiveAsyncJob::LegendaryDetail)
+		ttl = 3u * 60u; /* refresh with inventory often */
 	if (VerMatches(verPath) && FileFresh(path, ttl) && PanelReady(addonDir, stem))
 		return PathToFileUrl(path);
 
@@ -449,16 +461,26 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
 		return PathToFileUrl(path);
 	}
+	/* Cheat sheets hub — catalog only, no network. */
+	if (kind == LiveAsyncJob::CheatSheetsHub)
+	{
+		WriteUtf8File(path, LivePanelsBuild::BuildCheatSheetsHubHtml(addonDir, nullptr));
+		WriteUtf8File(verPath, kPanelVer);
+		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
+		return PathToFileUrl(path);
+	}
 
-	const std::string shell = OfflineShellHtml(offlineTitle, offlineHeading,
-		kind == LiveAsyncJob::ApiCheck
-			? "Probing api.guildwars2.com in the background. This page will refresh when ready."
-			: "Fetching Live data in the background. This page will refresh when ready. "
-			  "You can keep playing — the game should not freeze.");
+	const std::string shell = kind == LiveAsyncJob::LegendaryDetail
+		? LivePanelsBuild::BuildLegendaryDetailShellHtml(itemId)
+		: OfflineShellHtml(offlineTitle, offlineHeading,
+			kind == LiveAsyncJob::ApiCheck
+				? "Probing api.guildwars2.com in the background. This page will refresh when ready."
+				: "Fetching Live data in the background. This page will refresh when ready. "
+				  "You can keep playing — the game should not freeze.");
 	WriteUtf8File(path, shell);
 	DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 
-	StartLiveWorker(addonDir, stem, kind);
+	StartLiveWorker(addonDir, stem, kind, itemId);
 	return PathToFileUrl(path);
 }
 

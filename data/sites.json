@@ -30362,18 +30362,6 @@
       ]
     },
     {
-      "id": "legendary_crafting_ledger",
-      "category": "Tools",
-      "label": "Legendary Crafting Ledger",
-      "title": "Legendary Crafting Ledger — Forge Legend Track",
-      "homeUrl": "https://forge-legend-track.base44.app/",
-      "searchUrlPrefix": null,
-      "searchUrlSuffix": null,
-      "browsePath": [
-        "Account"
-      ]
-    },
-    {
       "id": "blishhud",
       "category": "Tools",
       "label": "Blish HUD",
@@ -30893,7 +30881,7 @@
       "id": "legvault",
       "category": "Cheat Sheets",
       "label": "GW2 Legendary Ledger",
-      "title": "The Complete GW2 Legendaries Collection",
+      "title": "The Complete GW2 Legendary Collection",
       "homeUrl": "about:legendary-vault",
       "searchUrlPrefix": null,
       "searchUrlSuffix": null,

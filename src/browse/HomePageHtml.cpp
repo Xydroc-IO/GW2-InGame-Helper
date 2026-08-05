@@ -417,7 +417,7 @@ const char* HomePage::Html()
             <div class="card"><span class="cat">Wiki</span><span>Wiki, Updates, Legendaries, Legendary Armor, Legendary Weapons (+ Gen 3 Variants), Cosmetic Infusions, Lifestyle, Crafting, Food, Ascended Food, Utility, Minis, Upgrades, Mounts</span></div>
             <div class="card"><span class="cat">Builds</span><span>MetaBattle Raid Builds (per profession), Accessibility Wars, OW / PvP / WvW, Gw2Skills</span></div>
             <div class="card"><span class="cat">Tools</span><span>Efficiency, KillProof, Wingman, BLTC, Treasures, Timers, Crafts, Music Box, Peu, GW2.app (lists / database / vault)</span></div>
-            <div class="card"><span class="cat">Cheat Sheets</span><span>Food, Utilities, Fractals, Squad, Wings, Strikes, Dailies, Currencies, Ascended, Portals, Homestead, WvW, …</span></div>
+            <div class="card"><span class="cat">Cheat Sheets</span><span>Side rail hub — food, utilities, fractals, legendaries, squad tools, …</span></div>
             <div class="card"><span class="cat">Guides</span><span>Living World, Progress, Mounts, Fractals, Raids (Wings / Boss), Strikes, Rifts, Achievements, Jumping Puzzles, Crafting (GW2 Crafts), PvP, WvW, TLDR</span></div>
             <div class="card"><span class="cat">Farming</span><span>Fast Farming Community</span></div>
             <div class="card"><span class="cat">Discord</span><span>Official, Community, builds, training, PvP, WvW, trading, Raidcore</span></div>

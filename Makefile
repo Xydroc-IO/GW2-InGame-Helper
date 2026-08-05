@@ -32,6 +32,8 @@ HOME_LOGO_OBJ  = build/home_logo.o
 HOME_COVER_OBJ = build/home_cover.o
 SITES_JSON_SRC = build/sites.json
 SITES_JSON_OBJ = build/sites_json.o
+LEGENDARIES_CATALOG_SRC = build/legendaries_catalog.json
+LEGENDARIES_CATALOG_OBJ = build/legendaries_catalog_json.o
 CHEATSHEETS_ZIP_SRC = build/cheatsheets.zip
 CHEATSHEETS_ZIP_OBJ = build/cheatsheets_zip.o
 
@@ -62,6 +64,7 @@ DLL_SRC = \
 	src/browse/CheatSheets.cpp \
 	src/browse/LivePanels.cpp \
 	src/browse/LivePanelsAsync.cpp \
+	src/browse/LivePanelsCraftPlan.cpp \
 	src/browse/LivePanelsBuildCommon.cpp \
 	src/browse/LivePanelsBuildJson.cpp \
 	src/browse/LivePanelsBuildPage.cpp \
@@ -70,6 +73,9 @@ DLL_SRC = \
 	src/browse/LivePanelsBuildFashion.cpp \
 	src/browse/LivePanelsBuildProgress.cpp \
 	src/browse/LivePanelsBuildProgressArmory.cpp \
+	src/browse/LivePanelsBuildLegendaryLedger.cpp \
+	src/browse/LivePanelsBuildLegendaryDetail.cpp \
+	src/browse/LivePanelsBuildCheatSheetsHub.cpp \
 	src/browse/LivePanelsBuildApiCheck.cpp \
 	src/browse/LivePanels_Html.cpp \
 	src/notes/NotesPad.cpp \
@@ -104,8 +110,11 @@ DLL_SRC = \
 	src/account/CraftingApi.cpp \
 	src/account/CraftingApiRecipe.cpp \
 	src/account/CraftingWiki.cpp \
+	src/account/CraftingWikiAcquire.cpp \
+	src/account/CraftingCurated.cpp \
 	src/account/CraftingPlan.cpp \
 	src/account/CraftingPlanResolve.cpp \
+	src/account/CraftingPlanSnapshot.cpp \
 	src/account/CraftingDailies.cpp \
 	src/events/EventsPad.cpp \
 	src/events/EventsPadState.cpp \
@@ -294,6 +303,14 @@ $(SITES_JSON_OBJ): $(SITES_JSON_SRC)
 	$(LD) -r -b binary -o $@ $(SITES_JSON_SRC)
 	@echo "Embedded sites catalog $@"
 
+$(LEGENDARIES_CATALOG_SRC): data/legendaries/catalog.min.json
+	@mkdir -p $(dir $@)
+	/bin/cp -f $< $@
+
+$(LEGENDARIES_CATALOG_OBJ): $(LEGENDARIES_CATALOG_SRC)
+	$(LD) -r -b binary -o $@ $(LEGENDARIES_CATALOG_SRC)
+	@echo "Embedded legendaries catalog $@"
+
 $(CHEATSHEETS_ZIP_SRC): $(CHEATSHEETS_DIR)/manifest.json $(CHEATSHEETS_DIR)/shared.css $(wildcard $(CHEATSHEETS_DIR)/*.html)
 	python3 tools/pack_cheatsheets.py
 
@@ -301,10 +318,10 @@ $(CHEATSHEETS_ZIP_OBJ): $(CHEATSHEETS_ZIP_SRC)
 	$(LD) -r -b binary -o $@ $(CHEATSHEETS_ZIP_SRC)
 	@echo "Embedded cheatsheets pack $@"
 
-$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(CHEATSHEETS_ZIP_OBJ)
+$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ)
 	@mkdir -p $(dir $@)
-	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(LIBS_DLL)
-	@echo "Built $@ (CEF helper + homepage + sites.json + cheatsheets embedded)"
+	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(LIBS_DLL)
+	@echo "Built $@ (CEF helper + homepage + sites.json + legendaries + cheatsheets embedded)"
 
 build/%.o: %.cpp
 	@mkdir -p $(dir $@)

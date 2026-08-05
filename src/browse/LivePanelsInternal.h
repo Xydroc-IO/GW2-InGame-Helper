@@ -11,7 +11,7 @@
 
 namespace LivePanelsDetail
 {
-	constexpr const char* kPanelVer = "19";
+	constexpr const char* kPanelVer = "27";
 	constexpr DWORD kHtmlTtlSec = 10u * 60u;       /* avoid rebuild storms */
 	constexpr DWORD kTpHtmlTtlSec = 60u;
 	constexpr DWORD kApiCheckTtlSec = 45u;         /* diagnostics should re-probe often */
@@ -26,7 +26,13 @@ namespace LivePanelsDetail
 
 	bool MutateTpWatchlist(const char* op, int id);
 	bool ProcessTpWatchCmdFile(const std::wstring& addonDir);
+	bool ProcessCraftPlanCmdFile(const std::wstring& addonDir);
+	bool ProcessLegendaryDetailCmdFile(const std::wstring& addonDir);
+	bool ProcessOpenAboutCmdFile(const std::wstring& addonDir);
 	bool ParseTpWatchMutateUrl(const std::string& url, const char** opOut, int* idOut);
+	bool ParseCraftPlanUrl(const std::string& url, int* idOut);
+	bool ParseLegendaryItemUrl(const std::string& url, int* idOut, bool* syncOut);
+	void QueueCraftPlanCmd(const std::wstring& addonDir, int itemId);
 
 	std::string OfflineShellHtml(const char* title, const char* heading, const char* note);
 	bool VerMatches(const std::wstring& verPath);
@@ -39,7 +45,9 @@ namespace LivePanelsDetail
 		std::string apiKey;
 		std::string tpWatchIds;
 		unsigned generation = 0;
-		enum Kind { Dailies, News, Fashion, Tp, Progress, ApiCheck } kind = Dailies;
+		int itemId = 0; /* LegendaryDetail / sync */
+		enum Kind { Dailies, News, Fashion, Tp, Progress, ApiCheck, LegendaryLedger,
+			LegendaryDetail, CheatSheetsHub } kind = Dailies;
 	};
 
 	struct LiveReadyNav
@@ -64,7 +72,9 @@ namespace LivePanelsDetail
 	void PumpLiveQueueUnlocked();
 	DWORD WINAPI LiveWorkerProc(void* param);
 	void ReapJoinableUnlocked();
-	void StartLiveWorker(const std::wstring& addonDir, const char* stem, LiveAsyncJob::Kind kind);
+	void StartLiveWorker(const std::wstring& addonDir, const char* stem, LiveAsyncJob::Kind kind,
+		int itemId = 0);
 	std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
-		LiveAsyncJob::Kind kind, const char* offlineTitle, const char* offlineHeading);
+		LiveAsyncJob::Kind kind, const char* offlineTitle, const char* offlineHeading,
+		int itemId = 0);
 }

@@ -42,6 +42,8 @@ namespace CraftingDetail
 	{
 		bool apiTried = false;
 		bool wikiTried = false;
+		bool acquireTried = false;
+		bool curatedTried = false;
 		bool ok = false;
 		int outCount = 1;
 		int recipeId = 0;
@@ -125,6 +127,14 @@ namespace CraftingDetail
 	std::string CleanWikiLinkName(std::string s);
 	bool LoadWikiRecipeForName(const char* pageTitle, int& outCount,
 		std::vector<RecipeIng>& ings, std::string* sourceOut);
+
+	/* CraftingWikiAcquire.cpp — Sold by / tp-placeholder material lists */
+	bool LoadWikiAcquisitionBill(const char* pageTitle, int& outCount,
+		std::vector<RecipeIng>& ings, std::string* sourceOut);
+
+	/* CraftingCurated.cpp — hardcoded bills when wiki has no {{recipe}} */
+	bool LoadCuratedBill(int outputId, int& outCount, std::vector<RecipeIng>& ings,
+		std::string* sourceOut);
 
 	/* CraftingPlan.cpp */
 	void PublishLivePlan(const Plan& plan);

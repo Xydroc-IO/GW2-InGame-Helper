@@ -15,4 +15,9 @@ namespace LivePanelsBuild
 	std::string BuildTpHtml(const char* tpWatchIds, bool fetchApi);
 	std::string BuildProgressHtml(const std::wstring& addonDir, const char* apiKey);
 	std::string BuildApiCheckHtml(const char* apiKey);
+	std::string BuildLegendaryLedgerHtml(const std::wstring& addonDir, const char* apiKey);
+	std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* apiKey, int itemId);
+	/* Instant Ledger-themed loading page (meta-refresh) while the craft tree builds. */
+	std::string BuildLegendaryDetailShellHtml(int itemId);
+	std::string BuildCheatSheetsHubHtml(const std::wstring& addonDir, const char* apiKey);
 }

@@ -5,6 +5,7 @@
 #include "AddonPaths.h"
 #include "WikiBrowser.h"
 
+#include <cstdio>
 #include <cstring>
 #include <mutex>
 #include <string>
@@ -19,13 +20,18 @@ bool LivePanels::IsLiveAbout(const char* url)
 	if (!url)
 		return false;
 	if (std::strncmp(url, "about:live-tp-add-", 18) == 0 ||
-		std::strncmp(url, "about:live-tp-remove-", 21) == 0)
+		std::strncmp(url, "about:live-tp-remove-", 21) == 0 ||
+		std::strncmp(url, "about:craft-plan-", 17) == 0 ||
+		std::strncmp(url, "about:legendary-vault-item-", 27) == 0 ||
+		std::strncmp(url, "about:legendary-vault-sync-", 27) == 0)
 		return true;
 	return std::strcmp(url, "about:live-dailies") == 0 ||
 		std::strcmp(url, "about:live-news") == 0 ||
 		std::strcmp(url, "about:live-fashion") == 0 ||
 		std::strcmp(url, "about:live-tp") == 0 ||
 		std::strcmp(url, "about:live-progress") == 0 ||
+		std::strcmp(url, "about:legendary-vault") == 0 ||
+		std::strcmp(url, "about:cheatsheets-hub") == 0 ||
 		std::strcmp(url, "about:gw2-api-check") == 0;
 }
 
@@ -40,6 +46,9 @@ bool LivePanels::IsLiveUrl(const char* url)
 		std::strstr(url, "live-fashion.html") != nullptr ||
 		std::strstr(url, "live-tp.html") != nullptr ||
 		std::strstr(url, "live-progress.html") != nullptr ||
+		std::strstr(url, "live-legendary-vault.html") != nullptr ||
+		std::strstr(url, "live-legendary-detail-") != nullptr ||
+		std::strstr(url, "live-cheatsheets-hub.html") != nullptr ||
 		std::strstr(url, "gw2-api-check.html") != nullptr;
 }
 
@@ -54,6 +63,35 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 		MutateTpWatchlist(op, id); /* InvalidateTpCache inside */
 		return EnsurePanel(addonDir, "live-tp", LiveAsyncJob::Tp,
 			"Live — Trading Post Watchlist", "My TP Watchlist");
+	}
+	if (ParseCraftPlanUrl(url, &id))
+	{
+		QueueCraftPlanCmd(addonDir, id);
+		char stem[64];
+		std::snprintf(stem, sizeof(stem), "live-legendary-detail-%d", id);
+		if (PanelReady(addonDir, stem))
+			return PathToFileUrl(StemPath(addonDir, stem, L".html"));
+		return EnsurePanel(addonDir, "live-legendary-vault", LiveAsyncJob::LegendaryLedger,
+			"GW2 Legendary Ledger", "The Complete GW2 Legendary Collection");
+	}
+	bool sync = false;
+	if (ParseLegendaryItemUrl(url, &id, &sync))
+	{
+		char stem[64];
+		std::snprintf(stem, sizeof(stem), "live-legendary-detail-%d", id);
+		if (sync)
+		{
+			char craftStem[64];
+			std::snprintf(craftStem, sizeof(craftStem), "live-leg-craft-%d", id);
+			DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
+			DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
+			DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
+			DeleteFileW(StemPath(addonDir, craftStem, L".json").c_str());
+		}
+		char title[96];
+		std::snprintf(title, sizeof(title), "Legendary craft #%d", id);
+		return EnsurePanel(addonDir, stem, LiveAsyncJob::LegendaryDetail,
+			"GW2 Legendary Ledger", title, id);
 	}
 	if (url == "about:live-dailies")
 		return EnsurePanel(addonDir, "live-dailies", LiveAsyncJob::Dailies,
@@ -70,6 +108,12 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 	if (url == "about:live-progress")
 		return EnsurePanel(addonDir, "live-progress", LiveAsyncJob::Progress,
 			"Live — Legendaries &amp; Characters", "Legendaries &amp; Characters");
+	if (url == "about:legendary-vault")
+		return EnsurePanel(addonDir, "live-legendary-vault", LiveAsyncJob::LegendaryLedger,
+			"GW2 Legendary Ledger", "The Complete GW2 Legendary Collection");
+	if (url == "about:cheatsheets-hub")
+		return EnsurePanel(addonDir, "live-cheatsheets-hub", LiveAsyncJob::CheatSheetsHub,
+			"Cheat Sheets", "Cheat Sheets");
 	if (url == "about:gw2-api-check")
 		return EnsurePanel(addonDir, "gw2-api-check", LiveAsyncJob::ApiCheck,
 			"GW2 API Check", "GW2 API Check");
@@ -82,7 +126,12 @@ void LivePanels::Tick()
 	{
 		const std::wstring dir = AddonPaths::DataDir();
 		if (!dir.empty())
+		{
 			ProcessTpWatchCmdFile(dir);
+			ProcessCraftPlanCmdFile(dir);
+			ProcessLegendaryDetailCmdFile(dir);
+			ProcessOpenAboutCmdFile(dir);
+		}
 	}
 
 	std::vector<LiveReadyNav> ready;
@@ -109,9 +158,26 @@ void LivePanels::Tick()
 			(nav.stem == "live-fashion" && std::strstr(cur, "about:live-fashion")) ||
 			(nav.stem == "live-tp" && std::strstr(cur, "about:live-tp")) ||
 			(nav.stem == "live-progress" && std::strstr(cur, "about:live-progress")) ||
+			(nav.stem == "live-legendary-vault" &&
+				(std::strstr(cur, "about:legendary-vault") ||
+					std::strstr(cur, "live-legendary-vault"))) ||
+			(nav.stem == "live-cheatsheets-hub" &&
+				(std::strstr(cur, "about:cheatsheets-hub") ||
+					std::strstr(cur, "live-cheatsheets-hub"))) ||
+			(nav.stem.rfind("live-legendary-detail-", 0) == 0 &&
+				(std::strstr(cur, nav.stem.c_str()) ||
+					std::strstr(cur, "about:legendary-vault-item-") ||
+					std::strstr(cur, "about:legendary-vault-sync-"))) ||
 			(nav.stem == "gw2-api-check" && std::strstr(cur, "about:gw2-api-check"));
 		if (onPanel)
-			WikiBrowser::Navigate(nav.fileUrl);
+		{
+			/* Same file:// path as the loading shell — Navigate is a no-op in CEF;
+			   Reload (or cache-bust) is required, same lesson as API Check waits. */
+			if (std::strstr(cur, (nav.stem + ".html").c_str()) != nullptr)
+				WikiBrowser::Reload();
+			else
+				WikiBrowser::Navigate(nav.fileUrl);
+		}
 	}
 }
 
@@ -148,7 +214,7 @@ void LivePanels::InvalidateCaches(const std::wstring& addonDir)
 		return;
 	const char* stems[] = {
 		"live-dailies", "live-news", "live-fashion", "live-tp", "live-progress",
-		"gw2-api-check",
+		"live-legendary-vault", "live-cheatsheets-hub", "gw2-api-check",
 		"live-colors", "live-armory", "live-armory-names",
 		"live-season", "live-craft", "live-bosses", "live-vault-obj",
 		"live-vault-daily", "live-vault-weekly", "live-vault-special",

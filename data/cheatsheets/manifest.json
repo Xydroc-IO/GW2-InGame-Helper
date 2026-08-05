@@ -7,7 +7,7 @@
       "file": "dps-log-setup.html",
       "version": "3",
       "browseLabel": "DPS Log Setup Help",
-      "browseTitle": "DPS Log Setup — ArcDPS, Elite Insights & .NET"
+      "browseTitle": "DPS Log Setup \u2014 ArcDPS, Elite Insights & .NET"
     },
     {
       "id": "apikeyhelp",
@@ -15,7 +15,7 @@
       "file": "api-key-setup.html",
       "version": "1",
       "browseLabel": "API Key Setup",
-      "browseTitle": "GW2 API Key Setup — Scopes & Options"
+      "browseTitle": "GW2 API Key Setup \u2014 Scopes & Options"
     },
     {
       "id": "ubersaio",
@@ -23,7 +23,7 @@
       "file": "ubers-all-in-one.html",
       "version": "7",
       "browseLabel": "Uber's All-In-One",
-      "browseTitle": "Uber's All-In-One — Waypoints"
+      "browseTitle": "Uber's All-In-One \u2014 Waypoints"
     },
     {
       "id": "raidutils",
@@ -31,7 +31,7 @@
       "file": "raid-utilities.html",
       "version": "3",
       "browseLabel": "Raid Utilities",
-      "browseTitle": "Raid Utilities — Oils, Stones & Crystals"
+      "browseTitle": "Raid Utilities \u2014 Oils, Stones & Crystals"
     },
     {
       "id": "fractalcons",
@@ -39,7 +39,7 @@
       "file": "fractal-consumables.html",
       "version": "12",
       "browseLabel": "Fractal Consumables",
-      "browseTitle": "Fractal Consumables — Potions & Agony"
+      "browseTitle": "Fractal Consumables \u2014 Potions & Agony"
     },
     {
       "id": "fractalcm",
@@ -55,7 +55,7 @@
       "file": "sigils-runes.html",
       "version": "3",
       "browseLabel": "Sigils & Runes",
-      "browseTitle": "Sigils & Runes — Common Role Picks"
+      "browseTitle": "Sigils & Runes \u2014 Common Role Picks"
     },
     {
       "id": "relics",
@@ -63,7 +63,7 @@
       "file": "relics-guide.html",
       "version": "3",
       "browseLabel": "Relics",
-      "browseTitle": "Relics — Picks by Role"
+      "browseTitle": "Relics \u2014 Picks by Role"
     },
     {
       "id": "booncheck",
@@ -71,7 +71,7 @@
       "file": "boon-checklist.html",
       "version": "3",
       "browseLabel": "Boon Checklist",
-      "browseTitle": "Boon Checklist — Squad Coverage"
+      "browseTitle": "Boon Checklist \u2014 Squad Coverage"
     },
     {
       "id": "squadtmpl",
@@ -79,7 +79,7 @@
       "file": "squad-template.html",
       "version": "4",
       "browseLabel": "Squad Template",
-      "browseTitle": "Squad Template — 10-Man Roles"
+      "browseTitle": "Squad Template \u2014 10-Man Roles"
     },
     {
       "id": "stabcleanse",
@@ -87,7 +87,7 @@
       "file": "stability-cleanse.html",
       "version": "4",
       "browseLabel": "Stability / Cleanse",
-      "browseTitle": "Stability / Cleanse — Squad Utility"
+      "browseTitle": "Stability / Cleanse \u2014 Squad Utility"
     },
     {
       "id": "ccdefiance",
@@ -95,7 +95,7 @@
       "file": "cc-defiance.html",
       "version": "3",
       "browseLabel": "CC / Defiance",
-      "browseTitle": "CC / Defiance — Breakbar by Profession"
+      "browseTitle": "CC / Defiance \u2014 Breakbar by Profession"
     },
     {
       "id": "raidwings",
@@ -130,14 +130,6 @@
       "browseTitle": "Legendary Short Paths"
     },
     {
-      "id": "legvault",
-      "about": "about:legendary-vault",
-      "file": "legendary-vault.html",
-      "version": "1",
-      "browseLabel": "GW2 Legendary Ledger",
-      "browseTitle": "The Complete GW2 Legendaries Collection"
-    },
-    {
       "id": "mounts",
       "about": "about:mount-unlock",
       "file": "mount-unlock.html",
@@ -151,7 +143,7 @@
       "file": "home-garden.html",
       "version": "3",
       "browseLabel": "Home Garden",
-      "browseTitle": "Home Garden — Cultivated Herbs"
+      "browseTitle": "Home Garden \u2014 Cultivated Herbs"
     },
     {
       "id": "dailyweekly",
@@ -175,7 +167,7 @@
       "file": "ascended-start.html",
       "version": "3",
       "browseLabel": "Ascended Start",
-      "browseTitle": "Ascended Start — Gearing Path"
+      "browseTitle": "Ascended Start \u2014 Gearing Path"
     },
     {
       "id": "portalspulls",
@@ -199,7 +191,7 @@
       "file": "wvw-consumables.html",
       "version": "3",
       "browseLabel": "WvW Consumables",
-      "browseTitle": "WvW Consumables — Siege & Utility"
+      "browseTitle": "WvW Consumables \u2014 Siege & Utility"
     }
   ]
 }

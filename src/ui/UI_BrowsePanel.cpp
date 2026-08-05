@@ -89,6 +89,20 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 		const int catIdx = pickDefaultSite ? sCategoryIndex : (sCategoryIndex - 1);
 		if (catIdx >= 0 && catIdx < static_cast<int>(catCount))
 			selectedCat = cats[catIdx] ? cats[catIdx] : "";
+		/* Remap if Browse was left on the retired Cheat Sheets category. */
+		if (selectedCat && std::strcmp(selectedCat, "Cheat Sheets") == 0)
+		{
+			sCategoryIndex = pickDefaultSite ? 0 : 1;
+			for (int i = 0; i < static_cast<int>(catCount); ++i)
+			{
+				if (cats[i] && std::strcmp(cats[i], "Cheat Sheets") != 0)
+				{
+					sCategoryIndex = pickDefaultSite ? i : (i + 1);
+					selectedCat = cats[i];
+					break;
+				}
+			}
+		}
 	}
 
 	const float listH = (listHArg > 0.f) ? listHArg : (pickDefaultSite ? 300.f : 320.f);
@@ -113,6 +127,8 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	for (int i = 0; i < static_cast<int>(catCount); ++i)
 	{
 		const char* cat = cats[i] ? cats[i] : "";
+		if (std::strcmp(cat, "Cheat Sheets") == 0)
+			continue; /* Side rail hub — about:cheatsheets-hub */
 		const int uiIndex = pickDefaultSite ? i : (i + 1);
 		const bool selected = (uiIndex == sCategoryIndex);
 		char label[96];
@@ -344,6 +360,9 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 			for (int i = 0; i < static_cast<int>(siteCount); ++i)
 			{
 				if (!Sites::MatchesFilter(sites[i], sFilter))
+					continue;
+				const char* cat = sites[i].category ? sites[i].category : "";
+				if (std::strcmp(cat, "Cheat Sheets") == 0)
 					continue;
 				sFilterMatches.push_back(i);
 			}

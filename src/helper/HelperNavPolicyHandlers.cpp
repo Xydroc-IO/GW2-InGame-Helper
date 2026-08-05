@@ -174,15 +174,26 @@ namespace HelperDetail
 					NavigateTo(navTo.c_str());
 				return 1;
 			}
+			if (ConsumeLedgerActionUrl(url, &navTo))
+			{
+				if (!navTo.empty())
+					NavigateTo(navTo.c_str());
+				return 1;
+			}
 			if (url.rfind("about:", 0) == 0 && url != "about:blank")
 			{
 				const std::string resolved = ResolveBuiltinUrl(url.c_str());
-				if (!resolved.empty() && resolved != url)
+				NavLog("  about-rewrite in=%s out=%s", url.c_str(),
+					resolved.empty() ? "(empty)" : resolved.c_str());
+				if (!resolved.empty() && resolved != url &&
+					resolved.rfind("about:", 0) != 0)
 				{
 					NavigateTo(resolved.c_str());
 					return 1;
 				}
-				/* Never let Chromium show its white “blocked about:” page. */
+				/* Never let Chromium show its white “blocked about:” page.
+				   Unknown about: is rewritten to about:blank#blocked by CEF
+				   before this runs — cancel and stay put. */
 				return 1;
 			}
 		}

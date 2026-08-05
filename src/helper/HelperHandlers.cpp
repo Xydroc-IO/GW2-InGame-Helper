@@ -109,6 +109,12 @@ namespace HelperDetail
 					NavigateTo(navTo.c_str());
 				return;
 			}
+			if (ConsumeLedgerActionUrl(u, &navTo))
+			{
+				if (!navTo.empty())
+					NavigateTo(navTo.c_str());
+				return;
+			}
 		}
 		if (u.rfind("about:", 0) == 0 && u != "about:blank")
 		{

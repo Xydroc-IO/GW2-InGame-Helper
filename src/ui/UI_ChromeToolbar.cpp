@@ -248,10 +248,10 @@ namespace UIDetail
 	{
 		const SiteDef& active = Sites::Active();
 		static const char* kRailLabels[] = {
-			"Browse", "Account", "Pathing", "Events", "DPS Logs", "Notes", "Compass",
-			"Settings", "GW2 API Check"
+			"Browse", "Account", "Pathing", "Events", "DPS Logs", "Notes", "Cheat Sheets",
+			"Compass", "Settings", "GW2 API Check"
 		};
-		const float railW = UiScale::FitSideRailWidth(kRailLabels, 9);
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, 10);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 6.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
@@ -335,6 +335,15 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Snippets + Waypoints search");
+
+		if (PadNav::SideToggle("Cheat Sheets###gw2igh_cheatsheets", false))
+		{
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			WikiBrowser::Navigate("about:cheatsheets-hub");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Offline cheat sheets hub — food, fractals, legendaries, …");
 
 		ImGui::Spacing();
 		ImGui::Separator();

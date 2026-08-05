@@ -107,8 +107,8 @@ namespace CraftingDetail
 		}
 		if (fronts.empty()) return;
 
-		/* Cap parallelism — fewer threads, less crash surface under WinHTTP. */
-		constexpr size_t kMaxParallel = 4;
+		/* Cap parallelism — wall clock ≈ slowest call (API Check style), not the sum. */
+		constexpr size_t kMaxParallel = 8;
 		for (size_t off = 0; off < fronts.size(); off += kMaxParallel)
 		{
 			const size_t batch = (std::min)(fronts.size() - off, kMaxParallel);
@@ -139,7 +139,8 @@ namespace CraftingDetail
 				else Job::Thunk(&jobs[i]);
 			}
 			if (!hs.empty())
-				WaitForMultipleObjects(static_cast<DWORD>(hs.size()), hs.data(), TRUE, 60000);
+				WaitForMultipleObjects(static_cast<DWORD>(hs.size()), hs.data(), TRUE,
+					static_cast<DWORD>(kHttpTimeoutMs + 4000));
 			for (HANDLE h : hs)
 			{
 				WaitForSingleObject(h, 1000);

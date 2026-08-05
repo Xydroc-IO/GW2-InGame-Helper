@@ -213,21 +213,67 @@ namespace CraftingDetail
 			if (IsTerminalMaterial(nameHint))
 			{
 				/* Ore/dust/T6 mats: wiki lists mystic-forge promotions — ignore. */
-				return false;
 			}
+			else
+			{
+				std::string src;
+				cacheLock.unlock();
+				const bool wikiOk = LoadWikiRecipeForName(nameHint.c_str(), outCount, ings, &src);
+				cacheLock.lock();
+				RecipeCacheEntry& eWiki = cache[outputId];
+				if (wikiOk)
+				{
+					eWiki.ok = true;
+					eWiki.outCount = outCount;
+					eWiki.recipeId = 0;
+					eWiki.ings = ings;
+					eWiki.source = src.empty() ? "Wiki recipe" : src;
+					if (sourceOut) *sourceOut = eWiki.source;
+					return true;
+				}
+			}
+		}
+
+		/* Hardcoded bills first (gift trees expand better than flat vendor mats). */
+		RecipeCacheEntry& eCurGate = cache[outputId];
+		if (!eCurGate.curatedTried)
+		{
+			eCurGate.curatedTried = true;
 			std::string src;
 			cacheLock.unlock();
-			const bool wikiOk = LoadWikiRecipeForName(nameHint.c_str(), outCount, ings, &src);
+			const bool curOk = LoadCuratedBill(outputId, outCount, ings, &src);
 			cacheLock.lock();
-			RecipeCacheEntry& eWiki = cache[outputId];
-			if (wikiOk)
+			RecipeCacheEntry& eCur = cache[outputId];
+			if (curOk)
 			{
-				eWiki.ok = true;
-				eWiki.outCount = outCount;
-				eWiki.recipeId = 0;
-				eWiki.ings = ings;
-				eWiki.source = src.empty() ? "Wiki recipe" : src;
-				if (sourceOut) *sourceOut = eWiki.source;
+				eCur.ok = true;
+				eCur.outCount = outCount;
+				eCur.recipeId = 0;
+				eCur.ings = ings;
+				eCur.source = src.empty() ? "Curated acquisition" : src;
+				if (sourceOut) *sourceOut = eCur.source;
+				return true;
+			}
+		}
+
+		/* Vendor / Contained-in legendaries: wiki material cost lists (no {{recipe}}). */
+		RecipeCacheEntry& eAcqGate = cache[outputId];
+		if (!eAcqGate.acquireTried && !nameHint.empty() && !IsTerminalMaterial(nameHint))
+		{
+			eAcqGate.acquireTried = true;
+			std::string src;
+			cacheLock.unlock();
+			const bool acqOk = LoadWikiAcquisitionBill(nameHint.c_str(), outCount, ings, &src);
+			cacheLock.lock();
+			RecipeCacheEntry& eAcq = cache[outputId];
+			if (acqOk)
+			{
+				eAcq.ok = true;
+				eAcq.outCount = outCount;
+				eAcq.recipeId = 0;
+				eAcq.ings = ings;
+				eAcq.source = src.empty() ? "Vendor / wiki acquisition" : src;
+				if (sourceOut) *sourceOut = eAcq.source;
 				return true;
 			}
 		}
