@@ -241,6 +241,7 @@ void DrawFavoriteStar(const char* siteId)
 	if (FavoriteToggleButton("row", fav, true))
 	{
 		Sites::ToggleFavorite(siteId);
+		Settings::SaveNow();
 		LivePanels::NotifyFavoritesChanged();
 	}
 }

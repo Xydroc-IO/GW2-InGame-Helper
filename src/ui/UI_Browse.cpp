@@ -153,6 +153,7 @@ bool UI_Browse_ToolbarFavoriteToggle()
 	if (FavoriteToggleButton("toolbar", fav, false))
 	{
 		Sites::ToggleFavorite(Sites::ActiveId());
+		Settings::SaveNow();
 		LivePanels::NotifyFavoritesChanged();
 		return true;
 	}

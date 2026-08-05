@@ -76,14 +76,31 @@ bool FileFresh(const std::wstring& path, DWORD ttlSec)
 
 bool WriteUtf8File(const std::wstring& path, const std::string& data)
 {
-	HANDLE h = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
-		FILE_ATTRIBUTE_NORMAL, nullptr);
+	const std::wstring tmp = path + L".tmp";
+	HANDLE h = CreateFileW(tmp.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr,
+		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (h == INVALID_HANDLE_VALUE)
 		return false;
 	DWORD written = 0;
 	const BOOL ok = WriteFile(h, data.data(), static_cast<DWORD>(data.size()), &written, nullptr);
+	FlushFileBuffers(h);
 	CloseHandle(h);
-	return ok && written == data.size();
+	if (!ok || written != data.size())
+	{
+		DeleteFileW(tmp.c_str());
+		return false;
+	}
+	if (MoveFileExW(tmp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+		return true;
+	DeleteFileW(tmp.c_str());
+	h = CreateFileW(path.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (h == INVALID_HANDLE_VALUE)
+		return false;
+	written = 0;
+	const BOOL ok2 = WriteFile(h, data.data(), static_cast<DWORD>(data.size()), &written, nullptr);
+	CloseHandle(h);
+	return ok2 && written == data.size();
 }
 
 std::string ReadUtf8File(const std::wstring& path)

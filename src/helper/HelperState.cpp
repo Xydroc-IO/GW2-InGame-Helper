@@ -806,19 +806,47 @@ namespace HelperDetail
 			SetStatus("Opening…");
 			return true;
 		}
-		/* fav toggle */
+		/* fav toggle — queue DLL only; do NOT delete/rebuild the open page.
+		   Wiki category HTML is ~1MB; wipe+EnsurePanel races CEF and logs
+		   "Failed to write Live panel HTML". Update the star in-page instead. */
 		for (char c : favId)
 		{
 			if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
 				(c >= '0' && c <= '9') || c == '-' || c == '_'))
 				return false;
 		}
+		/* CEF can fire OnBeforeBrowse twice for one click — debounce. */
+		{
+			static std::string sLastFavId;
+			static DWORD sLastFavMs = 0;
+			const DWORD now = GetTickCount();
+			if (favId == sLastFavId && sLastFavMs != 0 && (now - sLastFavMs) < 400u)
+				return true;
+			sLastFavId = favId;
+			sLastFavMs = now;
+		}
 		AppendCmdLine(L"fav-cmd.txt", std::string("toggle ") + favId + "\n");
-		InvalidateHelperBrowsePage(url);
-		const std::string about = AboutFromBrowseFileUrl(url);
-		if (!about.empty())
-			AppendCmdLine(L"open-about-cmd.txt", about + "\n");
-		SetStatus("Updating favorites…");
+		if (gActiveSlot >= 0 && gActiveSlot < kWikiMaxTabs && gBrowsers[gActiveSlot] &&
+			gBrowsers[gActiveSlot]->get_main_frame)
+		{
+			cef_frame_t* frame = gBrowsers[gActiveSlot]->get_main_frame(gBrowsers[gActiveSlot]);
+			if (frame && frame->execute_java_script)
+			{
+				char js[512];
+				std::snprintf(js, sizeof(js),
+					"(function(){var a=document.querySelector('a.star[href*=\"gw2igh-fav-toggle=%s\"]');"
+					"if(!a)return;var on=a.classList.toggle('on');"
+					"a.textContent=on?'\\u2605':'\\u2606';"
+					"a.title=on?'Remove favorite':'Add favorite';})();",
+					favId.c_str());
+				cef_string_t code{};
+				MakeCefString(&code, js);
+				frame->execute_java_script(frame, &code, nullptr, 0);
+				ClearCefString(&code);
+				frame->base.release(&frame->base);
+			}
+		}
+		SetStatus("Favorites updated");
 		return true;
 	}
 

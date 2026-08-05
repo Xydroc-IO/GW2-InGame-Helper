@@ -311,9 +311,8 @@ bool ProcessFavCmdFile(const std::wstring& addonDir)
 	}
 	if (changed)
 	{
-		Settings::SetDirty();
-		/* Wipe hub cache only — helper already deleted the open page and queues
-		   open-about to rebuild it (avoid a double Navigate here). */
+		Settings::SaveNow();
+		/* Wipe hub cache only — avoid rebuild of open browse-cat pages (Wiki is huge). */
 		InvalidateBrowseFavCaches(addonDir.empty() ? AddonPaths::DataDir() : addonDir, nullptr);
 	}
 	return changed;

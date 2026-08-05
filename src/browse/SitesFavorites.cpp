@@ -37,7 +37,7 @@ bool Sites::ToggleFavorite(const char* id)
 			gFavoriteIds[gFavoriteCount - 1][0] = 0;
 			--gFavoriteCount;
 			++gFavoriteGeneration;
-			Settings::SaveNow();
+			Settings::SetDirty();
 			return false;
 		}
 	}
@@ -47,7 +47,7 @@ bool Sites::ToggleFavorite(const char* id)
 	std::snprintf(gFavoriteIds[gFavoriteCount], sizeof(gFavoriteIds[gFavoriteCount]), "%s", id);
 	++gFavoriteCount;
 	++gFavoriteGeneration;
-	Settings::SaveNow();
+	Settings::SetDirty();
 	return true;
 }
 
@@ -172,6 +172,7 @@ bool Sites::MoveFavorite(int fromSlot, int toSlot)
 	}
 	std::snprintf(gFavoriteIds[toSlot], sizeof(gFavoriteIds[toSlot]), "%s", tmp);
 	++gFavoriteGeneration;
+	Settings::SetDirty();
 	Settings::SaveNow();
 	return true;
 }
