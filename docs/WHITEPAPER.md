@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.0.19 | 2.2.0.19 | Trail Tools pad split; trail file ops; Combined/Split XML |
+| 2.2.0.19 | 2.2.0.19 | Trail Tools unified pad; keybinds; Trails/Markers pop-outs; Combined/Split XML |
 | 2.2.0.18 | 2.2.0.18 | Trail Tools Looks/schedules/import; opt-in PathingLua |
 | 2.2.0.17 | 2.2.0.17 | Trail Tools in-addon pack authoring |
 | 2.2.0.16 | 2.2.0.16 | Favorite folders (`config/favorites.json`; hub + Folder / ⇄ move) |
@@ -699,7 +699,7 @@ See [`ACCOUNT.md`](ACCOUNT.md), [`API_KEY.md`](API_KEY.md).
 
 **Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, and Hero's Marker Pack download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy. Opt-in **PathingLua** (default off) covers a Blish-shaped `script-*` subset — not the full Pathing libdef host.
 
-**Trail Tools.** Side-rail hub (Live + Pack) plus separate **Trails** and **Markers** windows records `.trl` from Mumble pose (Load/Save/Save As, nearest-point edit), drops POIs, edits category XML / Looks, chooses Combined or Split menu/data OverlayData layout, imports packs, and builds `.taco` into `pathing/` with textured draft preview on compass/world GPS—display-first pack creation without TacO/TrlTool embedding.
+**Trail Tools.** One side-rail pad (Live / Trails / Markers / Pack / Keybinds) records `.trl` from Mumble pose (Load/Save/Save As, record/pause, nearest-point edit), drops POIs, edits category XML / Looks, chooses Combined or Split menu/data OverlayData layout, binds trail/marker chords (including ten place-marker slots), and builds `.taco` into `pathing/`. Trails and Markers may **Open in window** and collapse to a title bar. Textured draft preview on compass/world GPS—display-first pack creation without TacO/TrlTool embedding.
 
 **Lady Features.** Barefoot / With Mounts / WP Only are mutually exclusive map-completion editions.
 
@@ -965,6 +965,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.0.19 — Trail Tools keybinds; Browse hub favorite folders |
+| Last sync | 2.2.0.19 — Trail Tools keybinds + pop-outs; Browse hub favorite folders |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.0.19, 2026. |
