@@ -98,6 +98,7 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowLogManager") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowPathingGuides") == 0 ||
 			std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowTrailTools") == 0) { /* ignore — session only */ }
 		else if (std::strcmp(key, "ShowPathingTrails") == 0 ||
 			std::strcmp(key, "ShowTekkitTrails") == 0)
 			G::ShowPathingTrails = AsBool(val);
@@ -237,6 +238,8 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadAccount);
 		else if (std::strcmp(key, "PadPathing") == 0)
 			PadDock::ParseGeom(val, G::PadPathing);
+		else if (std::strcmp(key, "PadTrailTools") == 0)
+			PadDock::ParseGeom(val, G::PadTrailTools);
 		else if (std::strcmp(key, "PadEvents") == 0)
 			PadDock::ParseGeom(val, G::PadEvents);
 		else if (std::strcmp(key, "PadNotes") == 0)
@@ -371,6 +374,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowEvents=0\n");
 	std::fprintf(f, "ShowLogManager=0\n");
 	std::fprintf(f, "ShowPathingGuides=0\n");
+	std::fprintf(f, "ShowTrailTools=0\n");
 	std::fprintf(f, "ShowPathingTrails=%d\n", G::ShowPathingTrails ? 1 : 0);
 	std::fprintf(f, "LadyBarefoot=%d\n", G::LadyBarefoot ? 1 : 0);
 	std::fprintf(f, "LadyWpOnly=%d\n", G::LadyWpOnly ? 1 : 0);
@@ -419,6 +423,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "LogManagerAutoParse=%d\n", G::LogManagerAutoParse ? 1 : 0);
 	PadDock::WriteGeom(f, "PadAccount", G::PadAccount);
 	PadDock::WriteGeom(f, "PadPathing", G::PadPathing);
+	PadDock::WriteGeom(f, "PadTrailTools", G::PadTrailTools);
 	PadDock::WriteGeom(f, "PadEvents", G::PadEvents);
 	PadDock::WriteGeom(f, "PadNotes", G::PadNotes);
 	PadDock::WriteGeom(f, "PadCompass", G::PadCompass);

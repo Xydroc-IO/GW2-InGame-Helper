@@ -64,6 +64,19 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 2. In-game, open **Pathing** and click **Reload packs** (or **Update curated** to refresh downloads too).
 3. Enable the categories / Features edition you want (first run may auto-enable Lady).
 
+### Trail Tools (author packs)
+
+Side-rail **Trail Tools** creates packs without TacO/TrlTool:
+
+1. **Live** — Map ID + XYZ from Mumble (copy helpers).
+2. **Trail** — Insert Map / Vector at your feet, section breaks `(0,0,0)`, save `.trl`.
+3. **Markers** — Drop POIs, nudge XYZ, assign category types.
+4. **Pack** — Edit categories, preview XML, **Build .taco** → writes here and reloads Pathing.
+
+Workspace: `pathing/authoring/<PackName>/` under the addon data folder. Drop PNG icons into
+`Data/<PackName>/Markers/` yourself. Magenta draft preview shows on compass + world GPS while
+the pad is open. Details: [`docs/PATHING.md`](../docs/PATHING.md) §8b.
+
 ### Quick presets
 
 | Control | What it does |

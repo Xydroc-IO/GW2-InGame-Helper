@@ -696,6 +696,8 @@ See [`ACCOUNT.md`](ACCOUNT.md), [`API_KEY.md`](API_KEY.md).
 
 **Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, and Hero's Marker Pack download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy—not Lua `script-*`.
 
+**Trail Tools.** Side-rail authoring pad (Live / Trail / Markers / Pack) records `.trl` from Mumble pose, drops POIs, edits category XML, and builds `.taco` into `pathing/` with draft preview on compass/world GPS—display-first pack creation without TacO/TrlTool embedding.
+
 **Lady Features.** Barefoot / With Mounts / WP Only are mutually exclusive map-completion editions.
 
 **Compass vs world GPS.** Direction compass is an ImGui/Nexus-font world N/E/S/W pad. World GPS draws **upright D3D ribbons** (Blish-style chevrons, fixed UV period, animspeed flow, soft player clear). Markers remain ImGui.

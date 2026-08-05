@@ -138,6 +138,16 @@ DLL_SRC = \
 	src/logs/EiRuntimeFs.cpp \
 	src/logs/EiRuntimeHttp.cpp \
 	src/pathing/PathingGuidesPad.cpp \
+	src/pathing/TrailToolsPad.cpp \
+	src/pathing/TrailToolsPadLive.cpp \
+	src/pathing/TrailToolsPadTrail.cpp \
+	src/pathing/TrailToolsPadMarkers.cpp \
+	src/pathing/TrailToolsPadPack.cpp \
+	src/pathing/TrailToolsState.cpp \
+	src/pathing/TrailToolsTrl.cpp \
+	src/pathing/TrailToolsXml.cpp \
+	src/pathing/TrailToolsBuild.cpp \
+	src/pathing/TrailToolsPreview.cpp \
 	src/pathing/PathingTrails.cpp \
 	src/pathing/PathingTrailsCore.cpp \
 	src/pathing/PathingLoad.cpp \

@@ -271,7 +271,7 @@ namespace UIDetail
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowPathingGuides || G::ShowCompassPad || G::ShowSettings;
+			G::ShowPathingGuides || G::ShowTrailTools || G::ShowCompassPad || G::ShowSettings;
 	}
 
 	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves

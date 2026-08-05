@@ -18,6 +18,7 @@
 #include "EventsPad.h"
 #include "LogManagerPad.h"
 #include "PathingGuidesPad.h"
+#include "TrailToolsPad.h"
 #include "PathingTrails.h"
 #include "PadNav.h"
 #include "CompassOverlay.h"
@@ -108,11 +109,12 @@ void UI_Render()
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
+		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
-			compassHover || settingsHover);
+			trailToolsHover || compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
@@ -205,11 +207,12 @@ void UI_Render()
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
+		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
-			compassHover || settingsHover);
+			trailToolsHover || compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;

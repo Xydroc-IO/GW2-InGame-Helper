@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.0.16` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.0.17` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
@@ -44,6 +44,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | DPS Logs (side-rail **DPS Logs**) | ImGui |
 | World Events (side-rail **Events**) | ImGui |
 | Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
+| Trail Tools (side-rail) | Author packs — trails, markers, XML, build `.taco` |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
 | Settings (side-rail **Settings**) | ImGui — landing site, opacity, font scale, warm CEF, API key |
@@ -150,7 +151,7 @@ Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`d
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
-- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Pathing · Events · DPS Logs · Notes · Compass · Settings) · `...` menu
+- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Events · DPS Logs · Notes · Settings) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
 - **Settings** — landing site, opacity, font scale / auto, warm CEF, API key (Nexus Options opens this pad)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))

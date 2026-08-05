@@ -45,6 +45,7 @@ namespace G
 	bool  ShowLogManager = false;
 	bool  ShowPathingGuides = false;
 	bool  ShowPathingTrails = true;
+	bool  ShowTrailTools = false;
 	bool  LadyBarefoot = true;  /* Lady map-completion foot routes */
 	bool  LadyWpOnly = false;   /* Lady Core WP Only routes */
 	bool  LadyWithMounts = false; /* off by default so Barefoot works out of the box */
@@ -95,6 +96,7 @@ namespace G
 	bool  LogManagerAutoParse = true;
 	PadGeom PadAccount{};
 	PadGeom PadPathing{};
+	PadGeom PadTrailTools{};
 	PadGeom PadEvents{};
 	PadGeom PadNotes{};
 	PadGeom PadCompass{};
@@ -120,7 +122,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 2;
 	G::AddonDef.Version.Build    = 0;
-	G::AddonDef.Version.Revision = 16;
+	G::AddonDef.Version.Revision = 17;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";

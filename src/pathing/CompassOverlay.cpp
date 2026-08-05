@@ -1,7 +1,9 @@
 #include "CompassOverlay.h"
 
 #include "Globals.h"
+#include "PathingIndex.h"
 #include "PathingTrails.h"
+#include "TrailToolsShared.h"
 
 #include "imgui/imgui.h"
 
@@ -9,6 +11,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <mutex>
 #include <vector>
 
 /* Compass overlay math mirrors TacO GetMinimapRectangle + Blish Pathing
@@ -284,6 +287,50 @@ void CompassOverlay::Render()
 			prevOk = true;
 			prevCx = tr.points[i].x;
 			prevCy = tr.points[i].y;
+		}
+	}
+
+	/* Trail Tools draft — magenta, distinct from pack trails. */
+	if (G::ShowTrailTools && TrailToolsDetail::gDraft.previewEnabled &&
+		TrailToolsDetail::gDraft.active.points.size() >= 2 &&
+		TrailToolsDetail::gDraft.active.mapId == ctx->mapId)
+	{
+		PathingDetail::Rects rects{};
+		bool haveRects = false;
+		{
+			std::lock_guard<std::mutex> lock(PathingDetail::gMutex);
+			auto it = PathingDetail::gRects.find(ctx->mapId);
+			if (it != PathingDetail::gRects.end() && it->second.valid)
+			{
+				rects = it->second;
+				haveRects = true;
+			}
+		}
+		if (haveRects)
+		{
+			const ImU32 draftCol = IM_COL32(255, 64, 220, 220);
+			bool prevOk = false;
+			ImVec2 prev{};
+			for (const auto& w : TrailToolsDetail::gDraft.active.points)
+			{
+				if (w.x == 0.f && w.y == 0.f && w.z == 0.f)
+				{
+					prevOk = false;
+					continue;
+				}
+				if (!std::isfinite(w.x) || !std::isfinite(w.z))
+				{
+					prevOk = false;
+					continue;
+				}
+				float cx = 0.f, cy = 0.f;
+				PathingDetail::WorldToContinent(rects, w.x, w.z, cx, cy);
+				ImVec2 cur = ToScreen(cx, cy);
+				if (prevOk && InCompass(prev) && InCompass(cur))
+					dl->AddLine(prev, cur, draftCol, 3.2f);
+				prev = cur;
+				prevOk = true;
+			}
 		}
 	}
 

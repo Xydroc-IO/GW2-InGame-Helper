@@ -18,6 +18,7 @@
 #include "EventsPad.h"
 #include "LogManagerPad.h"
 #include "PathingGuidesPad.h"
+#include "TrailToolsPad.h"
 #include "PathingTrails.h"
 #include "PadNav.h"
 #include "CompassOverlay.h"
@@ -159,6 +160,16 @@ namespace UIDetail
 				else
 					PathingGuidesPad::Open();
 			}
+			if (ImGui::MenuItem(G::ShowTrailTools ? "Hide Trail Tools" : "Show Trail Tools"))
+			{
+				if (G::ShowTrailTools)
+				{
+					G::ShowTrailTools = false;
+					Settings::SetDirty();
+				}
+				else
+					TrailToolsPad::Open();
+			}
 			ImGui::Separator();
 			if (ImGui::MenuItem(G::ShowCompassPad ? "Hide Compass" : "Show Compass"))
 			{
@@ -249,10 +260,10 @@ namespace UIDetail
 		static const char* kRailLabels[] = {
 			"IN-GAME HELPER",
 			"Browse", "Legendary Ledger", "Cheat Sheets", "GW2 API Check",
-			"Account", "Compass", "Pathing", "Events", "Notes", "DPS Logs",
+			"Account", "Compass", "Pathing", "Trail Tools", "Events", "Notes", "DPS Logs",
 			"Settings"
 		};
-		const float railW = UiScale::FitSideRailWidth(kRailLabels, 12);
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, 13);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 6.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
@@ -364,6 +375,19 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Pathing — Tekkit + Lady Elyssa + Hero packs");
+
+		if (PadNav::SideToggle("Trail Tools###gw2igh_trailtools", G::ShowTrailTools))
+		{
+			if (G::ShowTrailTools)
+			{
+				G::ShowTrailTools = false;
+				Settings::SetDirty();
+			}
+			else
+				TrailToolsPad::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Trail Tools — author packs: trails, markers, XML, build .taco");
 
 		if (PadNav::SideToggle("Events###gw2igh_events", G::ShowEvents))
 		{

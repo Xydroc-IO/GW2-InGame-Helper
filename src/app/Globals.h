@@ -76,6 +76,7 @@ namespace G
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
+	extern bool  ShowTrailTools; /* ImGui Trail Tools pack authoring pad */
 	/* Lady Elyssa Features — map-completion editions are exclusive; Hearts / HP Train are independent. */
 	extern bool  LadyBarefoot;   /* foot routes + bfs shortcuts (current map) */
 	extern bool  LadyWpOnly;     /* waypoint trails (current map) */
@@ -137,6 +138,7 @@ namespace G
 	};
 	extern PadGeom PadAccount;
 	extern PadGeom PadPathing;
+	extern PadGeom PadTrailTools;
 	extern PadGeom PadEvents;
 	extern PadGeom PadNotes;
 	extern PadGeom PadCompass;

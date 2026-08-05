@@ -2,6 +2,8 @@
 
 #include "Globals.h"
 #include "PathingTrails.h"
+#include "TrailToolsPreview.h"
+#include "TrailToolsShared.h"
 #include "WorldGpsD3d.h"
 #include "WorldGpsImgui.h"
 #include "WorldGpsMath.h"
@@ -71,7 +73,9 @@ void WorldOverlay::Render()
 	PathingTrails::Update(ctx->mapId);
 	PathingTrails::TickMarkerBehaviors();
 
-	if (!G::ShowWorldTrails && !PathingTrails::HasSearchGuideActive())
+	if (!G::ShowWorldTrails && !PathingTrails::HasSearchGuideActive() &&
+		!(G::ShowTrailTools && TrailToolsDetail::gDraft.previewEnabled &&
+			TrailToolsDetail::gDraft.active.points.size() >= 2))
 		return;
 	if (G::HideWhenMapOpen && (ctx->uiState & static_cast<uint32_t>(UiStateBits::MapOpen)))
 		return;
@@ -336,6 +340,8 @@ void WorldOverlay::Render()
 			WorldGpsMath::BuildViewProj(markW, markH, markVp, markCam);
 		WorldGpsImgui::DrawMarkers(dl, markVp, markW, markH, avatar, sMarkerCache);
 	}
+
+	TrailToolsPreview::RenderWorld();
 	}
 	catch (...)
 	{
