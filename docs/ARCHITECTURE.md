@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.0.8` |
+| Addon revision (shipping) | `2.2.0.9` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2208` / `2208` / `s2208` / `c2208` |
+| Helper / home / sites / cheatsheets stamps | `2209` / `2209` / `s2210` / `c2210` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 
@@ -253,5 +253,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.0.8 — GW2 Legendary Ledger; Crafting Ledger catalog |
+| Last architecture sync | 2.2.0.9 — Live Legendary Ledger; Cheat Sheets hub; craft Sync |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

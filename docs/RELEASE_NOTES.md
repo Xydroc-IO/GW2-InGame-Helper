@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.8
+# GW2 In-Game Helper v2.2.0.9
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,23 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.9
+
+- **Cheat Sheets hub:** Side rail **Cheat Sheets** (below Notes) opens themed
+  `about:cheatsheets-hub` with a tile for every offline sheet. Browse **Cheat Sheets**
+  category is hidden from the picker; individual sheet URLs still work. Hub tiles use
+  real `file:///` hrefs (Chromium blocks unknown `about:` before the helper can rewrite).
+- **GW2 Legendary Ledger (live):** Embedded catalog → Live `about:legendary-vault` —
+  search, type filters, Missing chip, A–Z, Owned/Missing from `/v2/account/legendaryarmory`.
+  Sync craft tree expands gifts → mats with have/need and %; themed loading/detail pages;
+  bulk item-name resolve; Open in Account Crafting. Perfected Envoy covers Light / Medium /
+  Heavy. Progress→Plan covers vendor legendaries (e.g. Eikasia). Idea credit:
+  **Dark Sorcerer.6420**.
+- **Navigation hardening:** Helper never hands CEF raw `about:` for Ledger CTAs
+  (`?gw2igh-leg-open=` / `?gw2igh-craft-plan=` / `?gw2igh-leg-sync=`); Live panel finish
+  uses Reload when already on the loading shell (same-file Navigate was a no-op).
+- **Stamps:** Helper `2209` · homepage `2209` · sites `s2210` · cheatsheets `c2210`
 
 ## What’s new in 2.2.0.8
 

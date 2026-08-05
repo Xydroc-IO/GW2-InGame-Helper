@@ -1,6 +1,6 @@
 # GW2 In-Game Helper — Complete Browse Catalog
 
-**Revision:** 2.2.0.8 · Total entries: **2,720**
+**Revision:** 2.2.0.9 · Total entries: **2,720**
 
 Source of truth: `data/sites.json` (schema v2 with `browsePath` / `browseSections`).
 At runtime the DLL extracts it to `addons/<addon-name>/sites.json` (`Sites::Init` / `SitesLoad.cpp`).
@@ -252,7 +252,6 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 
 - **gw2efficiency** — [https://gw2efficiency.com/](https://gw2efficiency.com/)
 - **Legendary Tracker** — [https://gw2efficiency.com/account/legendaries](https://gw2efficiency.com/account/legendaries)
-- **Legendary Crafting Ledger** — [https://forge-legend-track.base44.app/](https://forge-legend-track.base44.app/)
 
 ### Overlay
 
@@ -318,7 +317,8 @@ Nested Superior Runes / Relics / Superior Sigils from the wiki lists.
 - **Uber's All-In-One** — `about:ubers-aio`
 - **Material Conversions** — `about:material-conversions`
 - **Legendary Paths** — `about:legendary-paths`
-- **GW2 Legendary Ledger** — `about:legendary-vault`
+- **Cheat Sheets hub** — side rail **Cheat Sheets** → `about:cheatsheets-hub` (Browse category removed; about: URLs still work)
+- **GW2 Legendary Ledger** — `about:legendary-vault` (Live; armory + craft have/need %)
 - **Mount Unlock** — `about:mount-unlock`
 - **Daily / Weekly** — `about:daily-weekly`
 - **Currency Sinks** — `about:currency-sinks`
