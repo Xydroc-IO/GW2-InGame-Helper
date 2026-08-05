@@ -220,6 +220,23 @@ a.tile .meta{font-size:.72rem;color:var(--gold-dim);margin-top:.15rem}
     });
   }
 
+  function closeMoveMenus(except){
+    document.querySelectorAll("details.move[open]").forEach(function(d){
+      if(except&&d===except)return;
+      d.removeAttribute("open");
+    });
+  }
+  /* Accidental ⇄ open: click outside or Esc dismisses the move menu. */
+  document.addEventListener("click",function(e){
+    var t=e.target;
+    var open=null;
+    if(t&&t.closest)open=t.closest("details.move");
+    closeMoveMenus(open);
+  });
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape")closeMoveMenus(null);
+  });
+
   var modal=document.getElementById("fav-folder-modal");
   var openBtn=document.getElementById("fav-add-folder");
   var nameInput=document.getElementById("fav-folder-name");
@@ -239,6 +256,7 @@ a.tile .meta{font-size:.72rem;color:var(--gold-dim);margin-top:.15rem}
   }
   openBtn.addEventListener("click",function(e){
     e.preventDefault();
+    closeMoveMenus(null);
     modal.classList.remove("hidden");
     setTimeout(function(){nameInput.focus();},0);
   });
