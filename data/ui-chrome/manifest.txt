@@ -11,3 +11,5 @@
 155014.png	dialog_close_navy
 button-exit.png	window_exit
 button-exit-active.png	window_exit_active
+crest-hero.png	title_crest_medallion
+panel-wash.png	panel_fill_opaque_crop

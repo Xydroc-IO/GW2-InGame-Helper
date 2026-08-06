@@ -232,6 +232,6 @@ namespace UIDetail
 
 		ImGui::EndChild();
 		ImGui::PopStyleVar(3);
-		ImGui::SameLine(0.f, 6.f);
+		ImGui::SameLine(0.f, 0.f);
 	}
 } // namespace UIDetail

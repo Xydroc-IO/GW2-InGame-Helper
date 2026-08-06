@@ -194,7 +194,7 @@ void UI_Render()
 
 	bool open = G::ShowWiki;
 	const bool padBody = ImGui::Begin("In-Game Helper##GW2InGameHelper", &open,
-		HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs));
+		HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoScrollbar));
 	const bool helperCollapsed = ImGui::GetStateStorage()->GetBool(
 		ImGui::GetID("##gw2igh_pad_collapsed"), false);
 	if (!helperCollapsed)
@@ -400,7 +400,10 @@ void UI_Render()
 
 	ImGui::Separator();
 
+	/* Flush rail + CEF edge-to-edge. Pops MUST happen inside DrawWikiPageSlot
+	   before End/PopWikiTheme — that function owns the window teardown. */
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, ImGui::GetStyle().ItemSpacing.y));
 	DrawHelperSideRail();
-
 	DrawWikiPageSlot(open);
 }

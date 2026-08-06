@@ -30,7 +30,7 @@ const char* HubCss()
 		s += HelperThemeCss::FillBackgroundCss(
 			UiChrome::FillFileUrl(AddonPaths::DataDir()).c_str());
 		s += R"CSS(
-.wrap{max-width:1100px;margin:0 auto;padding:28px 22px 72px}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 22px 96px;min-height:calc(100% - 0px)}
 .hero{
   margin-bottom:22px;padding:1.1rem 1.15rem 1.2rem;
   background:linear-gradient(165deg,rgba(48,38,22,.4),transparent 55%),var(--panel-inset);
@@ -173,7 +173,7 @@ a.tile .blurb{font-size:.8rem;color:var(--muted);line-height:1.35}
 a.tile .meta{font-size:.72rem;color:var(--gold-dim);margin-top:.15rem;letter-spacing:.03em}
 .foot{margin-top:2.5rem;font-size:.78rem;color:var(--muted)}
 .credit{
-  margin:1.75rem 0 1.25rem;padding-top:1rem;
+  margin:1.75rem 0 0;padding:1rem 0 3.5rem;
   border-top:1px solid var(--border-soft);
   font-size:.78rem;color:var(--gold-dim);
   letter-spacing:.06em;text-align:center;text-transform:uppercase;

@@ -73,31 +73,36 @@ bool Gw2Ui::PaintPadChrome(float opacity)
 	const ImVec2 sz = ImGui::GetWindowSize();
 	const ImVec2 p1(p0.x + sz.x, p0.y + sz.y);
 
-	Texture_t* fill = GetChromeTex(static_cast<int>(Icon::PanelFill));
+	Texture_t* wash = GetChromeNamed("panel-wash");
+	Texture_t* fill = (wash && wash->Resource) ? wash : GetChromeTex(static_cast<int>(Icon::PanelFill));
 	if (!fill || !fill->Resource)
 		fill = GetChromeTex(static_cast<int>(Icon::PanelFillAlt));
+	const bool usingWash = (wash && wash->Resource && fill == wash);
 
 	dl->PushClipRect(p0, p1, false);
 
+	/* Opaque base so feathered StandardWindow edges never show the game through. */
+	dl->AddRectFilled(p0, p1, IM_COL32(10, 8, 6, static_cast<int>(a * 255.f + 0.5f)));
+
 	if (!fill || !fill->Resource)
 	{
-		const ImU32 bg = IM_COL32(14, 11, 8, static_cast<int>(a * 245.f + 0.5f));
-		dl->AddRectFilled(p0, p1, bg);
 		dl->AddRect(p0, p1, IM_COL32(161, 120, 56, static_cast<int>(a * 200.f + 0.5f)));
 		dl->PopClipRect();
 		return false;
 	}
 
-	constexpr float tex = 1024.f;
-	constexpr float u0 = 40.f / tex;
-	constexpr float v0 = 26.f / tex;
-	constexpr float u1 = (40.f + 913.f) / tex;
-	constexpr float v1 = (26.f + 691.f) / tex;
 	const ImU32 col = IM_COL32(255, 255, 255, static_cast<int>(a * 255.f + 0.5f));
+	ImVec2 uv0(0.f, 0.f), uv1(1.f, 1.f);
+	if (!usingWash)
+	{
+		/* DAT 155985 — inset UVs to skip ragged fringe. */
+		constexpr float tex = 1024.f;
+		uv0 = ImVec2(48.f / tex, 34.f / tex);
+		uv1 = ImVec2((40.f + 905.f) / tex, (26.f + 680.f) / tex);
+	}
 	dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
-		p0, p1, ImVec2(u0, v0), ImVec2(u1, v1), col);
-	/* Darken Blish fill so cream body text reads like in-game panels. */
-	dl->AddRectFilled(p0, p1, IM_COL32(5, 3, 2, static_cast<int>(a * 72.f + 0.5f)));
+		p0, p1, uv0, uv1, col);
+	dl->AddRectFilled(p0, p1, IM_COL32(5, 3, 2, static_cast<int>(a * 90.f + 0.5f)));
 
 	dl->PopClipRect();
 	return true;
@@ -149,15 +154,18 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		}
 	};
 
-	/* Expanded title — aim at in-game Hero panel header (dark plate + emblem overhang). */
-	const float kTitleH = collapsed ? 24.f : 64.f;
-	const float kEmblem = collapsed ? 0.f : 78.f; /* hangs past the bar like Hero crest */
-	const float kBtn = collapsed ? 18.f : 28.f;
-	constexpr float kPadX = 10.f;
-	constexpr float kBtnGap = 6.f;
-	/* Blish StandardWindow soft edge + always reserve scrollbar gutter. On some
-	   Windows hosts the VScroll clip eats the close X if we sit on winW - pad. */
-	constexpr float kChromeInsetR = 14.f;
+	/* Expanded title — Hero plate + crest overhang; controls large and flush-right. */
+	const float kTitleH = collapsed ? 26.f : 56.f;
+	const float kEmblem = collapsed ? 0.f : 88.f;
+	const float kEmblemHangTop = collapsed ? 0.f : 20.f;
+	const float kBtn = collapsed ? 20.f : 30.f;
+	const float kExitSz = collapsed ? 18.f : 28.f;
+	constexpr float kPadX = 12.f;
+	constexpr float kBtnGap = 8.f;
+	constexpr float kTitleGap = 8.f;
+	/* Keep X near the frame edge (theme WindowPadding is for body chrome only). */
+	constexpr float kChromeInsetR = 4.f;
+	constexpr float kChromeInsetT = 8.f;
 
 	char vis[96];
 	Gw2UiDetail::VisibleLabel(title, vis, sizeof(vis));
@@ -166,14 +174,13 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 
 	const ImVec2 win0 = ImGui::GetWindowPos();
 	const float winW = ImGui::GetWindowWidth();
-	const ImGuiStyle& style = ImGui::GetStyle();
-	/* Prefer live content max (accounts for scroll); fall back to padding+scrollbar. */
 	const float contentMaxX = ImGui::GetWindowContentRegionMax().x;
-	float rightInset = style.WindowPadding.x + style.ScrollbarSize + kChromeInsetR;
-	if (contentMaxX > 80.f && winW - contentMaxX > rightInset)
-		rightInset = winW - contentMaxX + kChromeInsetR;
-	if (rightInset < style.WindowPadding.x + kChromeInsetR)
-		rightInset = style.WindowPadding.x + kChromeInsetR;
+	/* Title controls sit near the right edge — do not inherit body WindowPadding. */
+	float rightInset = kChromeInsetR;
+	if (contentMaxX > 80.f && winW - contentMaxX > rightInset + 2.f)
+		rightInset = (winW - contentMaxX) * 0.35f + kChromeInsetR;
+	if (rightInset < kChromeInsetR)
+		rightInset = kChromeInsetR;
 
 	/* Kill padding on the minimized strip so height stays ~one title line. */
 	const bool slimPad = collapsed;
@@ -184,8 +191,13 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 
 	const int nBtns = pOpen ? 2 : 1;
 	const float btnsW = static_cast<float>(nBtns) * kBtn + static_cast<float>(nBtns - 1) * kBtnGap + kPadX;
-	const float dragW = winW - (row0.x - win0.x) - btnsW - rightInset;
+	/* Leave room for the overhanging crest so the drag strip doesn't start under it. */
+	const float dragLeft = (!collapsed && kEmblem > 0.f)
+		? (kEmblem * 0.55f + kPadX) : 0.f;
+	const float dragW = winW - dragLeft - btnsW - rightInset;
 	const float dragWClamped = dragW > 24.f ? dragW : 24.f;
+	if (dragLeft > 0.f)
+		ImGui::SetCursorScreenPos(ImVec2(win0.x + dragLeft, row0.y));
 
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 	const ImU32 col = IM_COL32(255, 255, 255, static_cast<int>(a * 255.f + 0.5f));
@@ -250,28 +262,40 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		float textX = row0.x + kPadX;
 		if (!collapsed && kEmblem > 0.f)
 		{
-			Texture_t* emblem = GetChromeTex(static_cast<int>(Icon::WindowEmblem));
-			/* Emblem hangs past the bar (Hero crest). Allow draw outside title clip. */
-			const float ex = row0.x + 4.f;
-			const float ey = win0.y + (kTitleH - kEmblem) * 0.5f;
+			/* Pack crest (128² upscale of Hero 157085) — CDN icon is only 32² and blurs. */
+			Texture_t* emblem = GetChromeNamed("crest-hero");
+			if (!emblem || !emblem->Resource)
+			{
+				Gw2Ui::Request(Icon::Hero);
+				emblem = Gw2UiDetail::GetTex(static_cast<int>(Icon::Hero));
+			}
+			if (!emblem || !emblem->Resource)
+				emblem = GetChromeTex(static_cast<int>(Icon::WindowEmblem));
+			const float ex = win0.x - 6.f; /* hang past the left frame like Hero */
+			const float ey = win0.y - kEmblemHangTop;
+			dl->PushClipRect(
+				ImVec2(win0.x - 12.f, win0.y - kEmblemHangTop - 4.f),
+				ImVec2(win0.x + kEmblem + 12.f, win0.y + kEmblem - kEmblemHangTop + 4.f),
+				false);
 			if (emblem && emblem->Resource)
 			{
 				dl->AddImage(reinterpret_cast<ImTextureID>(emblem->Resource),
 					ImVec2(ex, ey),
 					ImVec2(ex + kEmblem, ey + kEmblem),
 					ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), col);
-				textX = ex + kEmblem * 0.72f; /* title tucks beside crest like Hero */
+				textX = ex + kEmblem + kTitleGap;
 			}
+			dl->PopClipRect();
 		}
 
-		/* Hero-panel title: larger cream type + dark halo (not mid brass). */
+		/* Cream title vertically centered in the dark plate (not the crest). */
 		ImFont* font = ImGui::GetFont();
 		const float baseSz = ImGui::GetFontSize();
-		const float titleSz = collapsed ? baseSz : baseSz * 1.55f;
+		const float titleSz = collapsed ? baseSz : baseSz * 1.65f;
 		const ImVec2 tsz = font
 			? font->CalcTextSizeA(titleSz, FLT_MAX, 0.f, vis)
 			: ImGui::CalcTextSize(vis);
-		const float ty = row0.y + (kTitleH - tsz.y) * 0.5f - 1.f;
+		const float ty = win0.y + (kTitleH - tsz.y) * 0.5f;
 		const ImVec2 tp(textX, ty);
 		if (font)
 		{
@@ -291,14 +315,18 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		}
 	}
 
-	ImGui::SetCursorScreenPos(ImVec2(win0.x + winW - btnsW - rightInset, row0.y + (kTitleH - kBtn) * 0.5f));
-	/* Title controls must paint even when the body work-rect/scrollbar clips. */
+	/* Controls sit in the top-right of the plate like native panel chrome. */
+	ImGui::SetCursorScreenPos(ImVec2(
+		win0.x + winW - btnsW - rightInset,
+		win0.y + kChromeInsetT));
 	if (dl)
-		dl->PushClipRect(win0, ImVec2(win0.x + winW, win0.y + kTitleH + 8.f), false);
+		dl->PushClipRect(
+			ImVec2(win0.x, win0.y - 2.f),
+			ImVec2(win0.x + winW, win0.y + kTitleH + 8.f),
+			false);
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.f, 1.f, 1.f, 0.10f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.f, 1.f, 1.f, 0.18f));
-	/* In-game close/min have no ImGui frame border — only the glyph/texture. */
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
 	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.f);
 
@@ -312,11 +340,11 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		const ImVec2 mx = ImGui::GetItemRectMax();
 		const float cx = (mn.x + mx.x) * 0.5f;
 		const float cy = (mn.y + mx.y) * 0.5f;
-		const float hw = collapsed ? 5.f : 7.f;
+		const float hw = collapsed ? 4.5f : 6.f;
 		if (collapsed)
-			dl->AddRect(ImVec2(cx - hw, cy - hw), ImVec2(cx + hw, cy + hw), gold, 0.f, 0, 1.6f);
+			dl->AddRect(ImVec2(cx - hw, cy - hw), ImVec2(cx + hw, cy + hw), gold, 0.f, 0, 1.5f);
 		else
-			dl->AddLine(ImVec2(cx - hw, cy), ImVec2(cx + hw, cy), gold, 2.4f);
+			dl->AddLine(ImVec2(cx - hw, cy), ImVec2(cx + hw, cy), gold, 2.2f);
 	}
 
 	if (pOpen)
@@ -331,13 +359,13 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		const ImVec2 mx = ImGui::GetItemRectMax();
 		if (dl)
 		{
-			/* Blish WindowBase2 exit glyphs (Contacts-style X). */
+			/* Contacts / WindowBase2 exit — draw glyph smaller than the hit box. */
 			Texture_t* cxTex = GetChromeNamed(closeHover ? "button-exit-active" : "button-exit");
 			if (!cxTex || !cxTex->Resource)
 				cxTex = GetChromeNamed("button-exit");
 			if (cxTex && cxTex->Resource)
 			{
-				const float s = kBtn;
+				const float s = kExitSz;
 				const float ix = (mn.x + mx.x - s) * 0.5f;
 				const float iy = (mn.y + mx.y - s) * 0.5f;
 				dl->AddImage(reinterpret_cast<ImTextureID>(cxTex->Resource),
@@ -348,7 +376,7 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 			{
 				const float cx = (mn.x + mx.x) * 0.5f;
 				const float cy = (mn.y + mx.y) * 0.5f;
-				const float hw = 6.5f;
+				const float hw = 5.5f;
 				dl->AddLine(ImVec2(cx - hw, cy - hw), ImVec2(cx + hw, cy + hw), gold, 1.8f);
 				dl->AddLine(ImVec2(cx + hw, cy - hw), ImVec2(cx - hw, cy + hw), gold, 1.8f);
 			}

@@ -21,13 +21,13 @@ extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "uc6";
+	constexpr const char* kPackStamp = "uc9";
 	constexpr int kChromeIds[] = {
 		155985, 155981, 156022, 156008, 156009, 156010, 155967, 156260, 155014
 	};
-	/* Blish WindowBase2 exit glyphs (same art Contacts / Codex windows use). */
+	/* Named pack files (not numeric DAT ids). */
 	constexpr const char* kChromeNamed[] = {
-		"button-exit.png", "button-exit-active.png"
+		"button-exit.png", "button-exit-active.png", "crest-hero.png", "panel-wash.png"
 	};
 
 	std::string WideToUtf8(const std::wstring& w)
@@ -212,6 +212,11 @@ std::wstring UiChrome::NamedPngPath(const std::wstring& addonDir, const char* fi
 std::string UiChrome::FillFileUrl(const std::wstring& addonDir, int assetId)
 {
 	Ensure(addonDir);
+	/* Prefer opaque rectangular wash — full 155985 has feathered alpha edges that
+	   leave black gaps at the sides/bottom of CEF pages under background-size:cover. */
+	const std::wstring wash = NamedPngPath(addonDir, "panel-wash.png");
+	if (!wash.empty())
+		return PathToFileUrl(wash);
 	if (assetId <= 0)
 		assetId = 155985;
 	const std::wstring path = PngPath(addonDir, assetId);

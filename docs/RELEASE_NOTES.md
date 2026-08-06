@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.1
+# GW2 In-Game Helper v2.2.3.2
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,6 +32,19 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.2
+
+- **Title crest:** High-res gold medallion (`crest-hero`) replaces the satchel/sword emblem
+  on Hero-style pad title bars.
+- **Opaque panel wash:** `panel-wash` fill for ImGui pads + CEF pages — no feathered
+  StandardWindow edges showing the game through.
+- **Fixed page background:** Browse/hub HTML pins the wash with `background-attachment:
+  fixed` so tall pages scroll over the texture (no mid-page black cut).
+- **Chrome layout:** Crest hangs past the left frame; title controls sit flush-right;
+  rail/OSR gutters tightened so the wash reaches the panel edges.
+- **Stamps:** Helper `2235` · homepage `2222` · sites `s2213` · cheatsheets `c2218`
+  · live panel `46` · raid food `5` · ui-chrome `uc9`
 
 ## What’s new in 2.2.3.1
 

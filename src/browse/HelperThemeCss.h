@@ -61,15 +61,20 @@ namespace HelperThemeCss
 			return {};
 		std::string s;
 		s.reserve(512);
-		s += "\n  body {\n    background-image: url(\"";
+		/* Pin wash to the viewport so tall pages scroll over it (no mid-page cut). */
+		s += "\n  html, body {\n    min-height: 100%;\n    margin: 0;\n"
+			"    background-color: #0e0b08;\n  }\n"
+			"  body {\n    background-color: #0e0b08;\n"
+			"    background-image: url(\"";
 		s += fillUrl;
 		s += "\"),\n"
 			"      radial-gradient(ellipse 90% 60% at 50% -8%, rgba(232, 196, 112, 0.10) 0%, transparent 52%),\n"
 			"      radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.45) 0%, transparent 55%),\n"
-			"      linear-gradient(180deg, rgba(14, 11, 8, 0.72) 0%, rgba(8, 6, 4, 0.82) 42%, rgba(6, 4, 3, 0.90) 100%);\n"
+			"      linear-gradient(180deg, rgba(14, 11, 8, 0.55) 0%, rgba(8, 6, 4, 0.72) 42%, rgba(6, 4, 3, 0.85) 100%);\n"
 			"    background-size: cover, auto, auto, auto;\n"
-			"    background-position: center, center, center, center;\n"
+			"    background-position: center top, center, center, center;\n"
 			"    background-repeat: no-repeat;\n"
+			"    background-attachment: fixed;\n"
 			"  }\n"
 			"  body::before { z-index: 1; opacity: 0.08; }\n"
 			"  body > * { z-index: 2; }\n";
@@ -82,9 +87,13 @@ namespace HelperThemeCss
 		return R"CSS(
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+  }
   body {
     margin: 0;
-    min-height: 100vh;
+    min-height: 100%;
     font-family: var(--font-ui);
     color: var(--text);
     line-height: 1.55;
@@ -92,6 +101,8 @@ namespace HelperThemeCss
       radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.35) 0%, transparent 55%),
       radial-gradient(ellipse 60% 45% at 0% 80%, rgba(40, 28, 14, 0.55) 0%, transparent 50%),
       linear-gradient(180deg, #1a1510 0%, var(--bg) 42%, #0a0806 100%);
+    background-color: var(--bg);
+    background-attachment: fixed;
     position: relative;
   }
   /* Soft film-grain without image files (CSS noise via repeating gradients). */

@@ -56,8 +56,10 @@ namespace UIDetail
 {
 	void DrawWikiPageSlot(bool open)
 	{
-	const ImVec2 avail = ImGui::GetContentRegionAvail();
-	ImGui::BeginChild("##gw2igh_wiki_osr_slot", avail, false,
+	/* Fill remaining space (0,0) — sizing to GetContentRegionAvail() often
+	   overshoots by a pixel and forces a parent scrollbar + grey gutters. */
+	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.f, 0.f, 0.f, 0.f));
+	ImGui::BeginChild("##gw2igh_wiki_osr_slot", ImVec2(0.f, 0.f), false,
 		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
 		ImGuiWindowFlags_NoNavInputs);
 
@@ -214,6 +216,9 @@ namespace UIDetail
 	}
 
 	ImGui::EndChild();
+	ImGui::PopStyleColor(); /* ChildBg */
+	/* Match UI_Render PushStyleVar pair (WindowPadding + ItemSpacing) for the rail row. */
+	ImGui::PopStyleVar(2);
 
 	const ImVec2 pos = ImGui::GetWindowPos();
 	const ImVec2 winSize = ImGui::GetWindowSize();
