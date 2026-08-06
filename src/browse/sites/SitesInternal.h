@@ -52,6 +52,8 @@ namespace SitesRuntimeDetail
 	extern int gFavoriteNextFolderId;
 	extern unsigned gFavoriteGeneration;
 
+	bool FolderIdKnown(int folderId);
+
 	struct SiteUrlKey
 	{
 		std::string path;

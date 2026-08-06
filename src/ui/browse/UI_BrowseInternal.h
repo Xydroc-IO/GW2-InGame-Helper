@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 /* Shared Browse UI state/helpers for UI_Browse*.cpp. */
 namespace UIBrowseDetail
@@ -57,6 +58,27 @@ namespace UIBrowseDetail
 	extern ImVec2 sBrowseAnchor;
 	extern ImVec2 sNewTabBrowseAnchor;
 	extern ImVec2 sDefaultSiteBrowseAnchor;
+
+	struct BrowseSitesDrawCtx
+	{
+		const SiteDef* sites = nullptr;
+		size_t siteCount = 0;
+		int current = -1;
+		bool pickDefaultSite = false;
+		bool pickNewTab = false;
+		bool navigateOnChange = false;
+		bool* closePanel = nullptr;
+		bool showFavorites = false;
+		int* shown = nullptr;
+	};
+
+	void DrawBrowseFavoritesHeader();
+	void DrawBrowseFavoritesPane(const BrowseSitesDrawCtx& ctx);
+
+	void DrawBrowseSiteRow(const BrowseSitesDrawCtx& ctx, int siteIndex, bool withCategoryPrefix);
+	void DrawBrowseClippedRows(const BrowseSitesDrawCtx& ctx, const std::vector<int>& idxs, bool withCategoryPrefix);
+	void DrawBrowseFilterMatches(const BrowseSitesDrawCtx& ctx);
+	void DrawBrowseCategorySections(const BrowseSitesDrawCtx& ctx, const char* selectedCat);
 
 	void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel,
 		bool pickDefaultSite = false, bool pickNewTab = false,

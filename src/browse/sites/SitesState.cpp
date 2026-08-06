@@ -23,6 +23,18 @@ namespace SitesRuntimeDetail
 	int gFavoriteNextFolderId = 1;
 	unsigned gFavoriteGeneration = 1;
 
+	bool FolderIdKnown(int folderId)
+	{
+		if (folderId == kUnfiledFavoriteFolderId)
+			return true;
+		for (int i = 0; i < gFavoriteFolderCount; ++i)
+		{
+			if (gFavoriteFolders[i].id == folderId)
+				return true;
+		}
+		return false;
+	}
+
 	SiteUrlKey gUrlKeys[kMaxUrlKeys];
 	std::unordered_map<std::string, std::vector<int>> gUrlKeysByHost;
 	std::unordered_map<std::string, int> gExactBuiltin;

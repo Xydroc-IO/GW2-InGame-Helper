@@ -2,6 +2,8 @@
 
 #include "TrailToolsShared.h"
 
+#include <string>
+
 /* Trail Tools pad tab drawers (TrailToolsPad*.cpp). */
 namespace TrailToolsDetail
 {
@@ -18,4 +20,23 @@ namespace TrailToolsDetail
 	void DrawKeybindsTab();
 	void DrawPoiScriptAttrs(DraftPoi& p);
 	void DrawLuaFilesUi();
+
+	/* Shared by TrailToolsPadTrailDesk / Raw / Helpers. */
+	void SyncActiveType();
+	void SyncActiveFileRelFromStem();
+	void ApplyStemFromFileRel();
+	void MarkDirty();
+
+	std::wstring Utf8ToWide(const char* u);
+	std::string WideToUtf8(const std::wstring& w);
+	std::wstring PackRelToAbs(const std::string& fileRel);
+	std::wstring TrailsFolder();
+	std::wstring ActiveTrlPath();
+	void RememberDirFromPath(const std::wstring& fullPath);
+	std::wstring DialogStartDir();
+	bool IsSectionBreak(const PathingTrails::WorldPoint& p);
+	bool TryAbsUnderPack(const std::wstring& absPath, std::string& outRel);
+	void RegisterActiveInPack();
+	bool SaveActiveToPath(const std::wstring& path);
+	bool DialogPickTrl(bool saveAs, std::wstring& outPath);
 }

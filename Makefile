@@ -61,12 +61,14 @@ DLL_SRC = \
 	src/app/PanelBindsUi.cpp \
 	src/app/Gw2Icons.cpp \
 	src/app/Gw2Ui.cpp \
+	src/app/Gw2UiPadChrome.cpp \
 	src/app/UiChrome.cpp \
 	src/api/Gw2Http.cpp \
 	src/browse/sites/Sites.cpp \
 	src/browse/sites/SitesState.cpp \
 	src/browse/sites/SitesUrlMatch.cpp \
 	src/browse/sites/SitesFavorites.cpp \
+	src/browse/sites/SitesFavoritesStore.cpp \
 	src/browse/sites/SitesLoad.cpp \
 	src/browse/sites/SitesLoadParse.cpp \
 	src/browse/tabs/BrowserTabs.cpp \
@@ -79,6 +81,8 @@ DLL_SRC = \
 	src/browse/CheatSheets.cpp \
 	src/browse/livepanels/LivePanels.cpp \
 	src/browse/livepanels/LivePanelsAsync.cpp \
+	src/browse/livepanels/LivePanelsAsyncFs.cpp \
+	src/browse/livepanels/LivePanelsAsyncTpWatch.cpp \
 	src/browse/livepanels/LivePanelsCraftPlan.cpp \
 	src/browse/livepanels/LivePanelsBuildCommon.cpp \
 	src/browse/livepanels/LivePanelsBuildJson.cpp \
@@ -89,9 +93,12 @@ DLL_SRC = \
 	src/browse/livepanels/LivePanelsBuildProgress.cpp \
 	src/browse/livepanels/LivePanelsBuildProgressArmory.cpp \
 	src/browse/livepanels/LivePanelsBuildLegendaryLedger.cpp \
+	src/browse/livepanels/LivePanelsBuildLegendaryIcons.cpp \
 	src/browse/livepanels/LivePanelsBuildLegendaryDetail.cpp \
 	src/browse/livepanels/LivePanelsBuildCheatSheetsHub.cpp \
 	src/browse/livepanels/LivePanelsBuildBrowseHub.cpp \
+	src/browse/livepanels/LivePanelsBuildBrowseHubAssets.cpp \
+	src/browse/livepanels/LivePanelsBuildBrowseCategory.cpp \
 	src/browse/livepanels/LivePanelsBuildApiCheck.cpp \
 	src/browse/livepanels/LivePanels_Html.cpp \
 	src/notes/NotesPad.cpp \
@@ -125,7 +132,8 @@ DLL_SRC = \
 	src/account/crafting/CraftingData.cpp \
 	src/account/crafting/CraftingApi.cpp \
 	src/account/crafting/CraftingApiRecipe.cpp \
-	src/account/crafting/CraftingWiki.cpp \
+	src/account/crafting/CraftingWikiIds.cpp \
+	src/account/crafting/CraftingWikiFetch.cpp \
 	src/account/crafting/CraftingWikiAcquire.cpp \
 	src/account/crafting/CraftingCurated.cpp \
 	src/account/crafting/CraftingPlan.cpp \
@@ -138,6 +146,8 @@ DLL_SRC = \
 	src/economy/EconomyPad.cpp \
 	src/economy/EconomyPadState.cpp \
 	src/economy/EconomyFetch.cpp \
+	src/economy/EconomyFetchFlip.cpp \
+	src/economy/EconomyFetchCart.cpp \
 	src/instances/InstancesPad.cpp \
 	src/instances/InstancesPadState.cpp \
 	src/instances/InstancesData.cpp \
@@ -174,7 +184,9 @@ DLL_SRC = \
 	src/pathing/waypoints/PathingGuidesPad.cpp \
 	src/pathing/trailtools/TrailToolsPad.cpp \
 	src/pathing/trailtools/TrailToolsPadLive.cpp \
-	src/pathing/trailtools/TrailToolsPadTrail.cpp \
+	src/pathing/trailtools/TrailToolsPadTrailDesk.cpp \
+	src/pathing/trailtools/TrailToolsPadTrailHelpers.cpp \
+	src/pathing/trailtools/TrailToolsPadTrailRaw.cpp \
 	src/pathing/trailtools/TrailToolsPadMarkers.cpp \
 	src/pathing/trailtools/TrailToolsPadXmlDesk.cpp \
 	src/pathing/trailtools/TrailToolsPadMarkersScript.cpp \
@@ -182,7 +194,12 @@ DLL_SRC = \
 	src/pathing/trailtools/TrailToolsPadPack.cpp \
 	src/pathing/trailtools/TrailToolsPadKeybinds.cpp \
 	src/pathing/trailtools/TrailToolsBinds.cpp \
+	src/pathing/trailtools/TrailToolsBindsChord.cpp \
+	src/pathing/trailtools/TrailToolsBindsActions.cpp \
 	src/pathing/trailtools/TrailToolsState.cpp \
+	src/pathing/trailtools/TrailToolsStateEditors.cpp \
+	src/pathing/trailtools/TrailToolsStateCategories.cpp \
+	src/pathing/trailtools/TrailToolsStateFs.cpp \
 	src/pathing/trailtools/TrailToolsTrl.cpp \
 	src/pathing/trailtools/TrailToolsXml.cpp \
 	src/pathing/trailtools/TrailToolsBuild.cpp \
@@ -207,13 +224,16 @@ DLL_SRC = \
 	src/pathing/lua/PathingLuaStorage.cpp \
 	src/pathing/lua/PathingLuaInstance.cpp \
 	src/pathing/trails/PathingTrails.cpp \
-	src/pathing/trails/PathingTrailsCore.cpp \
+	src/pathing/trails/PathingTrailsQuery.cpp \
+	src/pathing/trails/PathingTrailsBehaviors.cpp \
+	src/pathing/trails/PathingTrailsGuide.cpp \
 	src/pathing/packs/PathingLoad.cpp \
 	src/pathing/packs/PathingLoadLady.cpp \
 	src/pathing/packs/PathingLoadHttp.cpp \
 	src/pathing/packs/PathingLoadGuide.cpp \
 	src/pathing/packs/PathingLoadIcons.cpp \
-	src/pathing/trails/PathingTrailsGps.cpp \
+	src/pathing/trails/PathingTrailsGpsSnippets.cpp \
+	src/pathing/trails/PathingTrailsGpsNearby.cpp \
 	src/pathing/trails/PathingTrailsPresets.cpp \
 	src/pathing/trails/PathingTrailsPresetsMc.cpp \
 	src/pathing/trails/PathingTrailsUi.cpp \
@@ -238,6 +258,7 @@ DLL_SRC = \
 	src/browser/WikiBrowser.cpp \
 	src/browser/WikiBrowserApi.cpp \
 	src/browser/WikiBrowserHelper.cpp \
+	src/browser/WikiBrowserHelperMigrate.cpp \
 	src/browser/WikiBrowserHelperLifecycle.cpp \
 	src/browser/WikiBrowserHelperLaunch.cpp \
 	src/browser/WikiBrowserIpc.cpp \
@@ -257,6 +278,8 @@ DLL_SRC = \
 	src/ui/browse/UI_Browse.cpp \
 	src/ui/browse/UI_BrowseHelpers.cpp \
 	src/ui/browse/UI_BrowsePanel.cpp \
+	src/ui/browse/UI_BrowsePanelFavorites.cpp \
+	src/ui/browse/UI_BrowsePanelSites.cpp \
 	src/ui/chrome/UI_Options.cpp \
 	src/ui/settings/SettingsPad.cpp \
 	src/ui/settings/SettingsPadBody.cpp \

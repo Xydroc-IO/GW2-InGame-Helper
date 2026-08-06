@@ -115,16 +115,17 @@ namespace CraftingDetail
 		std::unordered_map<int, RecipeCacheEntry>& cache, std::string* sourceOut);
 	std::string ToLowerCopy(std::string s);
 
-	/* CraftingWiki.cpp */
+	/* CraftingWikiIds.cpp */
 	size_t FindCi(const std::string& hay, const char* needle, size_t from = 0);
 	void AppendIdsAfterEquals(const std::string& wt, size_t eqPos, std::vector<int>& out);
 	void CollectIdsInRange(const std::string& wt, size_t from, size_t to, std::vector<int>& out);
 	std::vector<int> CollectWikiItemIdCandidates(const std::string& wikitext);
+	int ResolveWikiTitleToItemId(const char* title, std::string* nameOut);
+	std::string CleanWikiLinkName(std::string s);
+	/* CraftingWikiFetch.cpp */
 	std::string FetchWikiWikitext(const char* title);
 	void FetchWikiWikitextBatch(const std::vector<std::string>& titles,
 		std::unordered_map<std::string, std::string>& outByKey);
-	int ResolveWikiTitleToItemId(const char* title, std::string* nameOut);
-	std::string CleanWikiLinkName(std::string s);
 	bool LoadWikiRecipeForName(const char* pageTitle, int& outCount,
 		std::vector<RecipeIng>& ings, std::string* sourceOut);
 

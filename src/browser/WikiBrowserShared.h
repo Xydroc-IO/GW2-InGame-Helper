@@ -127,9 +127,10 @@ namespace WikiBrowserDetail
 	bool EnsureDevice();
 	bool EnsureTexture(uint32_t w, uint32_t h);
 
-	/* WikiBrowserHelper.cpp */
+	/* WikiBrowserHelperMigrate.cpp */
 	void CleanupStaleAddonRootFiles();
 	void MigrateLegacyAddonDataLayout();
+	/* WikiBrowserHelper.cpp */
 	void KillHelperByPid(DWORD pid);
 	void ResetIpcQueues();
 	bool ExtractHelper();

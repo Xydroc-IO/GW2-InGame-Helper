@@ -62,4 +62,7 @@ namespace LivePanelsBuild
 	void AppendVaultObjectives(std::string& body, const char* sectionId, const char* title,
 		const std::string& json, bool accountScoped, const char* trackFilter = nullptr,
 		int maxItems = 80);
+
+	/* Cached public item icons (render.guildwars2.com) for ledger avatars. */
+	std::string BuildItemIconsJson(const std::wstring& addonDir, const std::string& itemsJson);
 }
