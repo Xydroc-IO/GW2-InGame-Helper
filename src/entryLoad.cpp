@@ -42,17 +42,10 @@ void AddonLoad(AddonAPI_t* api)
 	SessionHistoryData::Load();
 	PathingTrails::Init();
 	/* Restore category toggles after Init (Init no longer wipes them, but first
-	   load applies settings here so order stays Load -> Init -> apply). */
+	   load applies settings here so order stays Load -> Init -> apply).
+	   Empty PathingEnabled stays empty — Lady/Tekkit/Hero start off; user opts in. */
 	if (G::PathingEnabled[0])
 		PathingTrails::ParseEnabledPaths(G::PathingEnabled);
-	else
-	{
-		/* First run / empty settings - enable Lady Elyssa so Windows users see
-		   trails without hunting Categories (was a common "trails broken" report). */
-		PathingTrails::EnableAllLadyCategories();
-		PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
-		Settings::SetDirty();
-	}
 	G::ShowWiki = false;
 	G::ShowNotes = false;
 	G::ShowTpWatch = false;
