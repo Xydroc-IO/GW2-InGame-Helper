@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.19
+# GW2 In-Game Helper v2.2.0.20
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.0.20
+
+- **Economy companion pad:** Side-rail Flip Finder (fee-adjusted net from official commerce
+  prices), local buy/sell charts from scan history, read-only crafting cart with Account Crafting
+  handoff, BLTC opens in a new in-addon tab. Verified material seed ids; status shows API/HTTP
+  errors in red.
+- **Instances companion pad:** Story / fractal / raid / strike checklist journal with per-entry
+  progress, reset, and wiki search in a new tab.
+- **Side rail:** Shorter labels + scrollable companions section; Browse / Ledger / Sheets / API Check
+  open sites in a **new tab** (not only the active tab).
+- **Helper maintainability:** Split `HelperPaths` / `HelperResolve` / `HelperBrowseActions` out of
+  `HelperState`; homepage + Browse hub credit line.
+- **Stamps:** Helper `2224` · homepage `2212` · sites `s2213` · cheatsheets `c2211`
+  · live panel `39`
 
 ## What’s new in 2.2.0.19
 
