@@ -8,12 +8,13 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.1.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.2.0` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) ·
-[`docs/PATHING.md`](docs/PATHING.md) · [`docs/MODULES.md`](docs/MODULES.md)
+[`docs/PATHING.md`](docs/PATHING.md) · [`docs/COMPLETION.md`](docs/COMPLETION.md) ·
+[`docs/FARMING.md`](docs/FARMING.md) · [`docs/MODULES.md`](docs/MODULES.md)
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
@@ -47,9 +48,11 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | Trail Tools (side-rail) | Author packs — Live/Trails/Markers/Pack/Keybinds; optional Trails/Markers pop-outs |
 | Economy (side-rail **Companions**) | Flip Finder, local price charts, crafting cart (read-only official API) |
 | Instances (side-rail **Companions**) | Story / fractal / raid / strike checklist journal |
+| Completion (side-rail **Companions**) | Checklist + Atlas + Nearest / Zone loop GPS; Open Pathing one-shot |
+| Farming (side-rail **Companions**) | Farm-run checklists + fishing catch log |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
-| Settings (side-rail **Settings**) | ImGui — landing site, opacity, font scale, warm CEF, API key |
+| Settings (side-rail **Settings**) | ImGui — landing site, opacity, font scale, warm CEF, API key, panel Keybinds |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
@@ -153,9 +156,11 @@ Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`d
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
-- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Events · DPS Logs · Notes · Settings) · `...` menu
+- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Events · DPS Logs · Notes · Companions · Settings) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
-- **Settings** — landing site, opacity, font scale / auto, warm CEF, API key (Nexus Options opens this pad)
+- **Companions** — Economy, Instances, Completion (checklist/Atlas/routes), Farming (runs + fishing log)
+- **Overlays** — floating GPS arrow toward active guide; short zone-entry banner
+- **Settings** — landing site, opacity, font scale / auto, warm CEF, API key, **Keybinds** (Nexus Options opens this pad)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
 - **GW2-themed** chrome (gold tabs + muted status); Browse picker with section headers (Tools, Guides, Discord, Cheat Sheets, …)
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
@@ -166,7 +171,7 @@ Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`d
 - **Keep browser warm** — optional hide without killing CEF (collapse also keeps the helper alive)
 - **Default landing site** — Settings picker; used by the Home button and when no tabs are saved
 - Nexus **QuickAccess** icon at the top of the screen
-- Hotkeys: `Ctrl+Shift+H` (or `K`) helper · `A` Account · `G` Tekkit · `E` Events · `N` Notes (rebind in Nexus)
+- Hotkeys: `Ctrl+Shift+H` (or `K`) helper open (Nexus / QuickAccess) · panel chords in **Settings → Keybinds** (defaults include Account / Pathing / Events / Notes / …)
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
 - **Cheat Sheets** category — offline pages including **Daily / Weekly**, **Currency Sinks**, **Ascended Start**, **Portals / Pulls**, **Homestead**, **WvW Consumables**, plus Uber's, Food, Utilities, Fractals, Sigils, Relics, Boons, Squad, Stab/Cleanse, CC, Wings, Strikes, Mats, Legendaries, Mounts, Garden

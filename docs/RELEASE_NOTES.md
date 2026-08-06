@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.1.0
+# GW2 In-Game Helper v2.2.2.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -7,7 +7,8 @@ One DLL for Nexus — no memory reads. Chromium is **private CEF Stable 150**
 (first-run download into `addons/GW2-InGame-Helper/cef/`).
 
 Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · CEF setup [`CEF_RUNTIME.md`](CEF_RUNTIME.md) ·
-DPS Logs [`DPS_LOGS.md`](DPS_LOGS.md) · API key [`API_KEY.md`](API_KEY.md)
+DPS Logs [`DPS_LOGS.md`](DPS_LOGS.md) · API key [`API_KEY.md`](API_KEY.md) ·
+Completion [`COMPLETION.md`](COMPLETION.md) · Farming [`FARMING.md`](FARMING.md)
 (local `CODE_AUDIT.md` is gitignored)
 
 ## Install
@@ -32,13 +33,37 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
+## What’s new in 2.2.2.0
+
+- **Completion companion:** Side-rail **Completion** pad — checklist + Atlas + route
+  modes (**Nearest** / **Zone loop**). Nearest = closest remaining; Zone loop =
+  checklist order on the focus map (never falls back to Nearest). **Open Pathing**
+  is a one-shot Lady MC handoff (not a route mode). GPS via Pathing search guide;
+  auto-arrive from Mumble proximity. Persist `config/completion-checklist.txt` /
+  `config/completion-favorites.txt`. Curated **78 Public Tyria zones**.
+- **Farming companion:** Side-rail **Farming** pad — curated run checklists with
+  Pathing handoff + fishing catch log (`config/farming-state.txt`).
+- **Overlays:** Floating GPS arrow toward the active guide; short zone-entry banner
+  on map change.
+- **Panel keybinds:** Addon-owned chords in **Settings → Keybinds** (capture / clear /
+  reset). Legacy Nexus `KB_HELPER_*` panel ids deregistered on load. Helper open stays
+  Ctrl+Shift+H / QuickAccess.
+- **IPC DACLs:** Named `CreateFileMapping` / `CreateEvent` objects use a current-user
+  DACL (falls back to Win32 defaults if ACL setup fails).
+- **PathingLua:** Expanded Blish-shaped APIs (Storage, Debug, Category/Marker visibility,
+  Pack:Require, instance helpers) — still opt-in via Features.
+- **HTML theme:** Homepage, cheat sheets, Browse/CheatSheets hubs, live panels, Raid Food,
+  and Legendary Ledger match the warm parchment + gold ImGui theme.
+- **Stamps:** Helper `2232` · homepage `2216` · sites `s2213` · cheatsheets `c2212`
+  · live panel `40` · raid food `3`
+
 ## What’s new in 2.2.1.0
 
 - **Helper lifecycle:** Closing Browse soon after open is no longer treated as a helper
   crash (no quick-death lockout). Unexpected helper deaths still disable relaunch and
   surface exit code / uptime in status.
 - **Stamps:** Helper `2224` · homepage `2212` · sites `s2213` · cheatsheets `c2211`
-  · live panel `39` (unchanged from 2.2.0.20)
+  · live panel `39` (as shipped at tag)
 
 ## What’s new in 2.2.0.20
 
