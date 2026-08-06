@@ -52,10 +52,11 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   DACL (falls back to Win32 defaults if ACL setup fails).
 - **PathingLua:** Expanded Blish-shaped APIs (Storage, Debug, Category/Marker visibility,
   Pack:Require, instance helpers) — still opt-in via Features.
-- **Trail Tools desk:** Trails / Markers hubs are shared OverlayData project desks
-  (New/Load/Save/Save As, Combined or Split). **Trails1** / **Markers1** are collapsible
-  raw editors (`.trl` / POI attrs); hub tabs stay the desk when pop-outs are open.
-  **Insert into XML** upserts the active trail or selected marker before Save.
+- **Trail Tools desk:** Trails / Markers can open as their own **XML desks** (shared
+  OverlayData New/Load/Save/Save As; Combined or Split). Up to **four TrailsN** and
+  **four MarkersN** collapsible raw editors at once (cascaded; keybind recording
+  targets the focused TrailsN). Hub tabs stay usable; **Insert into XML** upserts
+  before Save. Empty `PathingEnabled` on first load stays off (no Lady auto-enable).
 - **Immersive HTML theme:** Homepage, cheat sheets, Browse/CheatSheets hubs, live panels,
   Raid Food, and Legendary Ledger use deeper parchment/gold tokens aligned with ImGui
   (`HelperTheme` / `ImmersiveShell`).

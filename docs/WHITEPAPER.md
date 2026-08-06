@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.2.0 | 2.2.2.0 | Completion/Farming; overlays; PanelBinds; IPC DACLs; PathingLua; Trail Tools desk/Trails1/Markers1; immersive HTML theme |
+| 2.2.2.0 | 2.2.2.0 | Completion/Farming; overlays; PanelBinds; IPC DACLs; PathingLua; Trail Tools multi TrailsN/MarkersN desks; immersive HTML theme |
 | 2.2.1.0 | 2.2.1.0 | Helper quick-close not counted as crash lockout |
 | 2.2.0.20 | 2.2.0.20 | Economy + Instances companions; rail new-tab opens; helper Paths/Resolve/BrowseActions |
 | 2.2.0.19 | 2.2.0.19 | Trail Tools unified pad; keybinds; Trails/Markers pop-outs; Combined/Split XML |
@@ -702,7 +702,7 @@ See [`ACCOUNT.md`](ACCOUNT.md), [`API_KEY.md`](API_KEY.md).
 
 **Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, and Hero's Marker Pack download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy. Opt-in **PathingLua** (default off) covers a Blish-shaped `script-*` subset — not the full Pathing libdef host.
 
-**Trail Tools.** One side-rail hub (Live / Trails / Markers / Pack / Keybinds). **Trails** and **Markers** are OverlayData project desks (shared New/Load/Save/Save As; Combined or Split layout); raw work happens in collapsible **Trails1** (`.trl` record/edit from Mumble) and **Markers1** (selected POI attrs), with **Insert into XML** upserting into the project before Save. Pack tab covers Looks / categories / import / build `.taco`; Keybinds cover trail chords and ten place-marker slots. Textured draft preview on compass/world GPS while the hub or a pop-out is open—display-first pack creation without TacO/TrlTool embedding.
+**Trail Tools.** Side-rail hub (Live / Trails / Markers / Pack / Keybinds). Trails and Markers are OverlayData project **desks** (shared New/Load/Save/Save As; Combined or Split); desks may open as their own windows. Up to four **TrailsN** / **MarkersN** collapsible raw editors run at once (cascaded; keybind recording targets the focused TrailsN). **Insert into XML** upserts into the project before Save. Pack tab covers Looks / categories / import / build `.taco`. Textured draft preview while hub, desk, or any editor is open—display-first pack creation without TacO/TrlTool embedding.
 
 **Lady Features.** Barefoot / With Mounts / WP Only are independent map-completion editions under Lady extras (can combine); separate from Tekkit Map Completion presets.
 
@@ -904,7 +904,8 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2231 / 2215 / s2213 / c2212 |
+| Helper / home / sites / cheatsheets stamps | 2232 / 2217 / s2213 / c2213 |
+| Live panel stamp | 41 |
 | Live panel stamp | 40 |
 | Live panel stamp | 39 |
 | OSR `device_scale_factor` | 1.0 |
@@ -988,6 +989,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.2.0 — Completion/Farming; Trail Tools desk + Trails1/Markers1; immersive theme stamps |
+| Last sync | 2.2.2.0 — Trail Tools multi TrailsN/MarkersN desks; Completion/Farming; immersive theme stamps |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.2.0, 2026. |
