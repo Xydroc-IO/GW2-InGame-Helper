@@ -70,18 +70,21 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 ### Trail Tools (author packs)
 
 Side-rail **Trail Tools** creates packs without TacO/TrlTool — Live / Trails / Markers / Pack /
-Keybinds in one window:
+Keybinds in one hub, plus optional collapsible editors:
 
 1. **Live** — Map ID + XYZ from Mumble.
-2. **Trails** — Record/edit `.trl` (optional **Open in window**, collapse to title bar).
-3. **Markers** — Drop POIs (optional **Open in window**, collapse to title bar).
+2. **Trails** — XML project desk (shared OverlayData) + trail list; **Open Trails1** for raw `.trl`
+   record/edit; **Insert into XML** upserts the active trail.
+3. **Markers** — Same XML desk + marker list; **Open Markers1** for selected POI attrs;
+   **Insert into XML** marks the project dirty for Save.
 4. **Pack** — Looks, categories, import, Build `.taco`.
 5. **Keybinds** — Start/pause trail, section, delete segment; delete marker; **10 place-marker slots**
    (category + chord each — e.g. CTRL+NumPad for mount markers along a route).
 
-Workspace: `pathing/authoring/<PackName>/` under the addon data folder. Drop PNG icons into
+**Trails1 / Markers1** stay separate windows (collapse title bar to a strip); the hub tabs remain
+the desk. Workspace: `pathing/authoring/<PackName>/` under the addon data folder. Drop PNG icons into
 `Data/<PackName>/Markers/` yourself. Textured draft preview shows on compass + world GPS while
-the pad is open. Details: [`docs/PATHING.md`](../docs/PATHING.md) §8b.
+the hub or a pop-out is open. Details: [`docs/PATHING.md`](../docs/PATHING.md) §8b.
 
 ### Quick presets
 

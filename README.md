@@ -45,7 +45,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | DPS Logs (side-rail **DPS Logs**) | ImGui |
 | World Events (side-rail **Events**) | ImGui |
 | Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
-| Trail Tools (side-rail) | Author packs — Live/Trails/Markers/Pack/Keybinds; optional Trails/Markers pop-outs |
+| Trail Tools (side-rail) | Author packs — XML desk on Trails/Markers; Trails1/Markers1 raw editors; Pack/Keybinds |
 | Economy (side-rail **Companions**) | Flip Finder, local price charts, crafting cart (read-only official API) |
 | Instances (side-rail **Companions**) | Story / fractal / raid / strike checklist journal |
 | Completion (side-rail **Companions**) | Checklist + Atlas + Nearest / Zone loop GPS; Open Pathing one-shot |

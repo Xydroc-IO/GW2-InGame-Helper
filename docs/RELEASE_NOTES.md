@@ -52,10 +52,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   DACL (falls back to Win32 defaults if ACL setup fails).
 - **PathingLua:** Expanded Blish-shaped APIs (Storage, Debug, Category/Marker visibility,
   Pack:Require, instance helpers) — still opt-in via Features.
-- **HTML theme:** Homepage, cheat sheets, Browse/CheatSheets hubs, live panels, Raid Food,
-  and Legendary Ledger match the warm parchment + gold ImGui theme.
-- **Stamps:** Helper `2232` · homepage `2216` · sites `s2213` · cheatsheets `c2212`
-  · live panel `40` · raid food `3`
+- **Trail Tools desk:** Trails / Markers hubs are shared OverlayData project desks
+  (New/Load/Save/Save As, Combined or Split). **Trails1** / **Markers1** are collapsible
+  raw editors (`.trl` / POI attrs); hub tabs stay the desk when pop-outs are open.
+  **Insert into XML** upserts the active trail or selected marker before Save.
+- **Immersive HTML theme:** Homepage, cheat sheets, Browse/CheatSheets hubs, live panels,
+  Raid Food, and Legendary Ledger use deeper parchment/gold tokens aligned with ImGui
+  (`HelperTheme` / `ImmersiveShell`).
+- **Version source:** `src/app/AddonVersion.h` is the single shipping revision
+  (feeds `entry.cpp` + CMake `project()` VERSION).
+- **Stamps:** Helper `2232` · homepage `2217` · sites `s2213` · cheatsheets `c2213`
+  · live panel `41` · raid food `3`
 
 ## What’s new in 2.2.1.0
 
