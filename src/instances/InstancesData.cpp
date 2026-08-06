@@ -56,7 +56,7 @@ namespace InstancesDetail
 		Add(11, Kind::Fractal, "Shattered Observatory", "CM / challenge",
 			{"Skorvald", "Artsariiv", "Arkk"});
 		Add(12, Kind::Fractal, "Sunqua Peak", "CM / challenge",
-			{"Ai — elemental", "Ai — dark"});
+			{"Ai - elemental", "Ai - dark"});
 		Add(13, Kind::Fractal, "Silent Surf", "CM / challenge",
 			{"Kanaxai"});
 		Add(14, Kind::Fractal, "Lonely Tower", "CM / challenge",
@@ -72,9 +72,9 @@ namespace InstancesDetail
 		Add(22, Kind::Strike, "Secrets of the Obscure", "Weekly strikes",
 			{"Cosmic Observatory", "Temple of Febe"});
 		Add(23, Kind::Strike, "Janthir Wilds", "Weekly strikes",
-			{"Mount Balrior — Greer", "Decima", "Ura"});
+			{"Mount Balrior - Greer", "Decima", "Ura"});
 		Add(30, Kind::Story, "Personal Story", "Core chapters",
-			{"Chapter 1–3", "Chapter 4–5", "Chapter 6–7", "Chapter 8"});
+			{"Chapter 1-3", "Chapter 4-5", "Chapter 6-7", "Chapter 8"});
 		Add(31, Kind::Story, "Living World Season 2", "Episode tracker",
 			{"S2E1", "S2E2", "S2E3", "S2E4", "S2E5", "S2E6", "S2E7", "S2E8"});
 		Add(32, Kind::Story, "Heart of Thorns", "Expansion story",
@@ -82,7 +82,7 @@ namespace InstancesDetail
 		Add(33, Kind::Story, "Path of Fire", "Expansion story",
 			{"Act 1", "Act 2", "Act 3"});
 		Add(34, Kind::Story, "End of Dragons", "Expansion story",
-			{"Prologue", "Chapter 1–5", "Chapter 6–10", "Chapter 11–15", "Chapter 16–20"});
+			{"Prologue", "Chapter 1-5", "Chapter 6-10", "Chapter 11-15", "Chapter 16-20"});
 		Add(35, Kind::Story, "Secrets of the Obscure", "Expansion story",
 			{"Prologue", "Through the Looking Glass", "The World Spire", "The Realm of Dreams"});
 		gReady = true;
@@ -228,7 +228,7 @@ namespace InstancesDetail
 	void LoadProgress()
 	{
 		EnsureCatalog();
-		/* Always reset first — Load only SETs from file, so stale in-memory ticks
+		/* Always reset first - Load only SETs from file, so stale in-memory ticks
 		   would stick after an uncheck+reopen without this wipe. */
 		for (auto& en : gEntries)
 		{

@@ -10,18 +10,18 @@ const char* HomePage::Html()
 <title>GW2 In-Game Helper</title>
 <style>
   :root {
-    --bg: #06070a;
-    --panel: rgba(16, 18, 24, 0.88);
-    --panel-solid: #12141a;
-    --border: #5a4a28;
-    --border-soft: rgba(235, 192, 71, 0.22);
-    --gold: #f0c65a;
-    --gold-bright: #ffe08a;
-    --gold-dim: #c9a227;
-    --text: #f0f2f5;
-    --muted: #a8aeb8;
-    --accent: #1a1510;
-    --ink: rgba(6, 7, 10, 0.78);
+    --bg: #120e0a;
+    --panel: rgba(28, 23, 17, 0.88);
+    --panel-solid: #1c1711;
+    --border: #8c6b33;
+    --border-soft: rgba(240, 199, 97, 0.22);
+    --gold: #f0c761;
+    --gold-bright: #ffe68c;
+    --gold-dim: #c29438;
+    --text: #f5eddb;
+    --muted: #b8ad94;
+    --accent: #1a160f;
+    --ink: rgba(18, 14, 10, 0.82);
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -41,8 +41,8 @@ const char* HomePage::Html()
     inset: 0;
     z-index: 0;
     background:
-      radial-gradient(ellipse 80% 55% at 50% 0%, rgba(235, 192, 71, 0.14) 0%, transparent 55%),
-      linear-gradient(180deg, rgba(6,7,10,0.55) 0%, rgba(6,7,10,0.82) 42%, rgba(6,7,10,0.94) 100%),
+      radial-gradient(ellipse 80% 55% at 50% 0%, rgba(240, 199, 97, 0.14) 0%, transparent 55%),
+      linear-gradient(180deg, rgba(18,14,10,0.55) 0%, rgba(18,14,10,0.82) 42%, rgba(18,14,10,0.94) 100%),
       url("home-cover.jpg") center top / cover no-repeat;
     animation: bgDrift 28s ease-in-out infinite alternate;
   }
@@ -70,10 +70,10 @@ const char* HomePage::Html()
     position: fixed;
     inset: 10px;
     z-index: 1;
-    border: 1px solid rgba(235, 192, 71, 0.28);
+    border: 1px solid rgba(240, 199, 97, 0.28);
     pointer-events: none;
     box-shadow:
-      inset 0 0 80px rgba(235, 192, 71, 0.04),
+      inset 0 0 80px rgba(240, 199, 97, 0.04),
       0 0 40px rgba(0,0,0,0.4);
   }
   .ornament-frame::before,
@@ -116,7 +116,7 @@ const char* HomePage::Html()
       linear-gradient(135deg, rgba(26, 22, 14, 0.92) 0%, rgba(12, 14, 18, 0.75) 55%, rgba(12, 14, 18, 0.55) 100%);
     border: 1px solid var(--border);
     box-shadow:
-      0 0 0 1px rgba(235, 192, 71, 0.08),
+      0 0 0 1px rgba(240, 199, 97, 0.08),
       0 18px 50px rgba(0,0,0,0.45);
     overflow: hidden;
   }
@@ -125,7 +125,7 @@ const char* HomePage::Html()
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 85% 40%, rgba(235, 192, 71, 0.12) 0%, transparent 45%);
+      radial-gradient(circle at 85% 40%, rgba(240, 199, 97, 0.12) 0%, transparent 45%);
     pointer-events: none;
   }
   .hero::after {
@@ -150,10 +150,10 @@ const char* HomePage::Html()
     height: 118px;
     display: block;
     border: 1px solid var(--border);
-    background: rgba(8, 9, 12, 0.7);
+    background: rgba(18, 14, 10, 0.72);
     box-shadow:
-      0 0 0 1px rgba(235, 192, 71, 0.12),
-      0 0 28px rgba(235, 192, 71, 0.18),
+      0 0 0 1px rgba(240, 199, 97, 0.12),
+      0 0 28px rgba(240, 199, 97, 0.18),
       0 12px 32px rgba(0,0,0,0.5);
     animation: logoGlow 4s ease-in-out infinite;
   }
@@ -179,14 +179,14 @@ const char* HomePage::Html()
     color: var(--gold-bright);
     letter-spacing: 0.02em;
     text-shadow:
-      0 0 24px rgba(235, 192, 71, 0.35),
+      0 0 24px rgba(240, 199, 97, 0.35),
       0 2px 12px rgba(0,0,0,0.65);
     line-height: 1.15;
   }
   .tagline {
     margin: 0;
     max-width: 36rem;
-    color: #d4d8de;
+    color: var(--muted);
     font-size: 1.06rem;
     text-shadow: 0 1px 8px rgba(0,0,0,0.6);
   }
@@ -284,7 +284,7 @@ const char* HomePage::Html()
     transition: border-color 0.2s ease, transform 0.2s ease;
   }
   .card:hover {
-    border-color: rgba(235, 192, 71, 0.45);
+    border-color: rgba(240, 199, 97, 0.45);
     transform: translateY(-1px);
   }
   .card::after {
@@ -292,8 +292,8 @@ const char* HomePage::Html()
     position: absolute;
     top: 0; right: 0;
     width: 18px; height: 18px;
-    border-top: 1px solid rgba(235, 192, 71, 0.35);
-    border-right: 1px solid rgba(235, 192, 71, 0.35);
+    border-top: 1px solid rgba(240, 199, 97, 0.35);
+    border-right: 1px solid rgba(240, 199, 97, 0.35);
   }
   .cat {
     display: block;
@@ -375,16 +375,18 @@ const char* HomePage::Html()
         <div class="body">
           <ul>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>) — open / close this helper</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> — Account pad</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> — Pathing</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — World Events</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> — Notes</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> — Account · <kbd>G</kbd> Pathing · <kbd>E</kbd> Events · <kbd>N</kbd> Notes</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> — Completion · <kbd>R</kbd> Farming · <kbd>Y</kbd> Economy · <kbd>I</kbd> Instances</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd> — DPS Logs · <kbd>B</kbd> Trail Tools · <kbd>O</kbd> Compass · <kbd>.</kbd> Settings</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> Wallet · <kbd>V</kbd> Vault · <kbd>P</kbd> TP Watch · <kbd>J</kbd> Lookup · <kbd>F</kbd> marker interact</li>
             <li><kbd>Ctrl</kbd>+<kbd>T</kbd> — new tab picker · <kbd>Ctrl</kbd>+<kbd>W</kbd> — close tab · <kbd>Ctrl</kbd>+<kbd>Tab</kbd> — cycle tabs</li>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> — reopen last closed tab</li>
             <li><kbd>Ctrl</kbd>+<kbd>F</kbd> — find in page</li>
             <li>Or click the helper icon in the Nexus QuickAccess bar</li>
           </ul>
-          <p class="muted">Rebind in Nexus Options → Keybinds (<strong>KB_HELPER_*</strong>).</p>
+          <p class="muted">Rebind panel pads in <strong>Settings → Keybinds</strong> (addon-owned; not Nexus Options).
+            Helper open stays <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> / QuickAccess.
+            Side rail: Completion / Farming under Tools.</p>
         </div>
       </section>
 

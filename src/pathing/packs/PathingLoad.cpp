@@ -40,7 +40,7 @@ namespace PathingDetail
 			guideActive = gGuideActive;
 		}
 
-		/* Nothing opted in and no active search → skip opening the ~100MB pack.
+		/* Nothing opted in and no active search -> skip opening the ~100MB pack.
 		   This was a common Wine OOM path when every category defaulted on. */
 		const bool needPack = !enabledCopy.empty() || guideActive;
 		if (!needPack)
@@ -99,7 +99,7 @@ namespace PathingDetail
 			if (it.mapId != mapId)
 				continue; /* header-resolved; unknown (0) trails are skipped */
 			int rank;
-			/* Category enable only — Lady Barefoot/WP/Mounts filter at draw time. */
+			/* Category enable only - Lady Barefoot/WP/Mounts filter at draw time. */
 			if (TypeCategoryEnabled(it.type, enabledCopy))
 				rank = 0;
 			else if (it.mapCompletion)
@@ -173,7 +173,7 @@ namespace PathingDetail
 				continue;
 
 			const IndexedTrail& it = *c.it;
-			/* Same .trl from two packs (duplicate Tekkit AIO copies) → skip. */
+			/* Same .trl from two packs (duplicate Tekkit AIO copies) -> skip. */
 			const std::string trailKey = ToLower(it.entryName) + "#" +
 				std::to_string(static_cast<unsigned>(mapId));
 			if (!seenTrailFiles.insert(trailKey).second)
@@ -203,7 +203,7 @@ namespace PathingDetail
 			trail.color = style.hasColor ? style.color : it.color;
 			trail.minimapVisible = style.minimapVisible;
 			trail.inGameVisible = style.inGameVisible;
-			/* Blish: mapVisibility is the fullscreen map only — never copy it into
+			/* Blish: mapVisibility is the fullscreen map only - never copy it into
 			   inGameVisible (that hid world GPS while the compass still drew). */
 			{
 				const std::string typeLow = ToLower(it.type);
@@ -229,7 +229,7 @@ namespace PathingDetail
 			{
 				const std::string tid = IconTextureId(style.texture);
 				std::snprintf(trail.textureId, sizeof(trail.textureId), "%s", tid.c_str());
-				/* Always queue trail textures (any rank) — missing → solid yellow ribbon. */
+				/* Always queue trail textures (any rank) - missing -> solid yellow ribbon. */
 				assetsNeeded.emplace(style.texture, it.packPath);
 			}
 			std::snprintf(trail.label, sizeof(trail.label), "%s",
@@ -262,7 +262,7 @@ namespace PathingDetail
 			loaded.push_back(std::move(trail));
 		}
 
-		/* POI markers for this map — same TacO prefix enable rules as trails.
+		/* POI markers for this map - same TacO prefix enable rules as trails.
 		   Prefer Barefoot Shortcuts / Mounts icons so the per-map cap cannot
 		   drop them behind heart/festival POI spam. */
 		std::vector<const IndexedPoi*> poiCands;
@@ -306,14 +306,14 @@ namespace PathingDetail
 			m.minimapVisible = style.minimapVisible;
 			m.inGameVisible = style.inGameVisible;
 			/* Blish separates mapVisibility (fullscreen map) from inGameVisibility.
-			   Do NOT copy mapVisibility=0 onto in-world — Lady Mounts categories set
+			   Do NOT copy mapVisibility=0 onto in-world - Lady Mounts categories set
 			   mapVisibility/miniMapVisibility to 0 but still draw in the world. */
 			{
 				const std::string typeLow = ToLower(poi.type);
 				if (typeLow.compare(0, 9, "legs.map.") == 0 ||
 					typeLow.compare(0, 9, "leag.map.") == 0)
 				{
-					/* Same as trails — Lady map POIs stay drawable in-world even when
+					/* Same as trails - Lady map POIs stay drawable in-world even when
 					   the pack zeroes map/minimap visibility on Mounts categories. */
 					if (!style.hasInGameVisible)
 						m.inGameVisible = true;
@@ -374,7 +374,7 @@ namespace PathingDetail
 				std::snprintf(m.iconId, sizeof(m.iconId), "%s", tid.c_str());
 				assetsNeeded.emplace(icon, poi.packPath);
 				const std::string iconLow = ToLower(icon);
-				/* Same rules for Numbers and Mounts PNGs — Lady often sets
+				/* Same rules for Numbers and Mounts PNGs - Lady often sets
 				   mapVisibility=0; that is the fullscreen map, not in-world/compass. */
 				if (iconLow.find("images/mounts/") != std::string::npos ||
 					iconLow.find("images/numbers/") != std::string::npos)
@@ -411,7 +411,7 @@ namespace PathingDetail
 				break;
 		}
 
-		/* Free trail zip before icon pass — Wine cannot hold two 45MB packs. */
+		/* Free trail zip before icon pass - Wine cannot hold two 45MB packs. */
 		pack.Close();
 		openPath.clear();
 
@@ -439,7 +439,7 @@ namespace PathingDetail
 		if (gEpoch.load(std::memory_order_acquire) != epoch)
 			return;
 		gActiveMap = mapId;
-		/* Always settle the gen we intended — perpetual mismatch was reloading
+		/* Always settle the gen we intended - perpetual mismatch was reloading
 		   the pack every ~1s and blanking GPS. Another toggle bumps gen again. */
 		gLoadedEnabledGen = gEnabledGen.load(std::memory_order_acquire);
 		gCurrentAll = std::move(loaded);

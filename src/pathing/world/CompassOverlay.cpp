@@ -74,7 +74,7 @@ namespace
 		}
 	}
 
-	/* Blish FlatMap GetOffset — soft padding around the compass widget. */
+	/* Blish FlatMap GetOffset - soft padding around the compass widget. */
 	int BlishPad(float curr, float maxV, float minV, float val)
 	{
 		constexpr float kMapOffsetMin = 19.f;
@@ -195,7 +195,7 @@ void CompassOverlay::Render()
 		return;
 
 	const ImGuiIO& io = ImGui::GetIO();
-	/* Match WorldOverlay — ImGui draw-list space only. Mixing Nexus sizes on
+	/* Match WorldOverlay - ImGui draw-list space only. Mixing Nexus sizes on
 	   Windows DPI builds misplaces compass trails. */
 	const float screenW = io.DisplaySize.x;
 	const float screenH = io.DisplaySize.y;
@@ -251,7 +251,7 @@ void CompassOverlay::Render()
 		}
 		a = std::clamp(static_cast<int>(a * tr.alpha), 40, 230);
 		const ImU32 col = IM_COL32(r, g, b, a);
-		/* Pack trailScale only — same baseline as world GPS (no edition bias). */
+		/* Pack trailScale only - same baseline as world GPS (no edition bias). */
 		const float thickness = std::clamp(2.6f * tr.trailScale * G::WorldTrailWidth, 1.6f, 6.0f);
 
 		const size_t step = (tr.points.size() > 160) ? 2u : 1u;
@@ -269,11 +269,11 @@ void CompassOverlay::Render()
 		{
 			if (!std::isfinite(tr.points[i].x) || !std::isfinite(tr.points[i].y))
 			{
-				/* TacO section break — do not stitch to the next segment. */
+				/* TacO section break - do not stitch to the next segment. */
 				prevOk = false;
 				continue;
 			}
-			/* Section break / bad stitch — TacO (0,0,0) gaps become huge jumps. */
+			/* Section break / bad stitch - TacO (0,0,0) gaps become huge jumps. */
 			const float cdx = tr.points[i].x - prevCx;
 			const float cdy = tr.points[i].y - prevCy;
 			ImVec2 cur = ToScreen(tr.points[i].x, tr.points[i].y);
@@ -293,7 +293,7 @@ void CompassOverlay::Render()
 		}
 	}
 
-	/* Trail Tools draft — WYSIWYG Looks (texture/tint/scale). */
+	/* Trail Tools draft - WYSIWYG Looks (texture/tint/scale). */
 	if (TrailToolsDetail::AnyAuthoringPadOpen() && TrailToolsDetail::gDraft.previewEnabled)
 	{
 		PathingDetail::Rects rects{};
@@ -309,7 +309,7 @@ void CompassOverlay::Render()
 		}
 		if (!haveRects)
 		{
-			/* Pathing may not have loaded this map yet — fetch rects once async. */
+			/* Pathing may not have loaded this map yet - fetch rects once async. */
 			static std::atomic<uint32_t> sRectFetchMap{0};
 			const uint32_t want = ctx->mapId;
 			uint32_t expected = 0;
@@ -341,7 +341,7 @@ void CompassOverlay::Render()
 		}
 	}
 
-	/* Marker culling in continent units ≈ half compass * scale. */
+	/* Marker culling in continent units ~ half compass * scale. */
 	float scale = mapScale * 0.897f;
 	if (!(scale > 1e-6f))
 		scale = 1.f;

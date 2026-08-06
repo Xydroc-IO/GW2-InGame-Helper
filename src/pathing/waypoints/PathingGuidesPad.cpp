@@ -1,6 +1,7 @@
 #include "PathingGuidesPad.h"
 
 #include "Globals.h"
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
 #include "PadDock.h"
 #include "PadNav.h"
@@ -22,13 +23,13 @@ namespace
 	constexpr float kPadW = 720.f;
 	constexpr float kPadH = 780.f;
 
-	bool gRequestDock = false; /* placeOnce — restore saved or dock beside helper */
-	int gPathTab = 0; /* 0 Overview · 1 Features · 2 Categories · 3 Route */
+	bool gRequestDock = false; /* placeOnce - restore saved or dock beside helper */
+	int gPathTab = 0; /* 0 Overview | 1 Features | 2 Categories | 3 Route */
 
 	void SyncEnabledToSettings()
 	{
 		PathingTrails::SerializeEnabledPaths(G::PathingEnabled, sizeof(G::PathingEnabled));
-		/* Immediate write — debounce left toggles unset across Nexus reload. */
+		/* Immediate write - debounce left toggles unset across Nexus reload. */
 		Settings::SaveNow();
 	}
 
@@ -37,12 +38,12 @@ namespace
 		ImGui::TextColored(HelperTheme::Gold, "PATHING");
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Curated packs auto-update. Drop extra .taco into pathing/ — yours are never deleted.");
-		ImGui::TextDisabled("Tekkit · Lady Elyssa · QuitarHero (hover)");
+			"Curated packs auto-update. Drop extra .taco into pathing/ - yours are never deleted.");
+		ImGui::TextDisabled("Tekkit | Lady Elyssa | QuitarHero (hover)");
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
-			ImGui::TextUnformatted("Tekkit's All-In-One © Tekkit's Workshop — used with permission");
+			ImGui::TextUnformatted("Tekkit's All-In-One © Tekkit's Workshop - used with permission");
 			ImGui::TextUnformatted("https://www.tekkitsworkshop.net/");
 			ImGui::Spacing();
 			ImGui::TextUnformatted("Guides & Achievements © Lady Elyssa");
@@ -60,12 +61,12 @@ namespace
 		ImGui::TextUnformatted("Route to nearest waypoint");
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Uses public API waypoints — works with no pathing categories enabled. "
+			"Uses public API waypoints - works with no pathing categories enabled. "
 			"With packs on, prefers trail start; otherwise your position. "
-			"Copy a chat code — no auto-teleport.");
+			"Copy a chat code - no auto-teleport.");
 		PadNav::PopWrap();
 
-		/* Keep map trails warm when categories are on — Find itself does not wait on packs. */
+		/* Keep map trails warm when categories are on - Find itself does not wait on packs. */
 		uint32_t mapId = 0;
 		if (G::Mumble && G::Mumble->uiTick != 0)
 		{
@@ -93,13 +94,13 @@ namespace
 		const bool trailsBusy = PathingTrails::IsLoading() || PathingPacks::IsUpdating();
 		if (sPendingRoute)
 		{
-			/* Waypoint index only — do not block on pathing pack load/toggles. */
+			/* Waypoint index only - do not block on pathing pack load/toggles. */
 			if (!WaypointsData::Ready())
 			{
 				WaypointsData::EnsureLoaded(false);
 				PadNav::PushWrap();
 				ImGui::TextColored(HelperTheme::Warn, "%s",
-					WaypointsData::Busy() ? WaypointsData::Status() : "Starting waypoint index…");
+					WaypointsData::Busy() ? WaypointsData::Status() : "Starting waypoint index...");
 				PadNav::PopWrap();
 			}
 			else
@@ -118,7 +119,7 @@ namespace
 		{
 			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted,
-				"Indexing trail packs… (Find still works without categories)");
+				"Indexing trail packs... (Find still works without categories)");
 			PadNav::PopWrap();
 		}
 
@@ -129,8 +130,8 @@ namespace
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
-				"Shift+click a waypoint in GW2 (copies [&…]), then click here.\n"
-				"Sets the orange guide to that POI — no auto-teleport.");
+				"Shift+click a waypoint in GW2 (copies [&...]), then click here.\n"
+				"Sets the orange guide to that POI - no auto-teleport.");
 
 		{
 			bool prefer = ConfirmedWaypoints::PreferConfirmed();
@@ -142,7 +143,7 @@ namespace
 					"Confirmed locally from MumbleLink position + API coords.");
 			const int mapIdWp = WaypointsData::CurrentMapId();
 			PadNav::PushWrap();
-			ImGui::TextColored(HelperTheme::Muted, "Confirmed: %zu total · %zu on this map",
+			ImGui::TextColored(HelperTheme::Muted, "Confirmed: %zu total | %zu on this map",
 				ConfirmedWaypoints::CountForActive(),
 				ConfirmedWaypoints::CountOnMap(mapIdWp));
 			PadNav::PopWrap();
@@ -163,7 +164,7 @@ namespace
 		else if (PathingTrails::HasSearchGuideActive())
 		{
 			PadNav::PushWrap();
-			ImGui::TextColored(HelperTheme::Muted, "Orange guide loading trail geometry…");
+			ImGui::TextColored(HelperTheme::Muted, "Orange guide loading trail geometry...");
 			PadNav::PopWrap();
 		}
 
@@ -194,7 +195,7 @@ namespace
 			if (ctx && ctx->mapId)
 			{
 				ImGui::SameLine();
-				ImGui::TextDisabled("map %u · compass %ux%u",
+				ImGui::TextDisabled("map %u | compass %ux%u",
 					ctx->mapId, ctx->compassWidth, ctx->compassHeight);
 			}
 		}
@@ -256,7 +257,13 @@ bool PathingGuidesPad::Render()
 	HelperTheme::ScopedFontScale fontScale;
 
 	static const char* kTabs[] = { "Overview", "Features", "Categories", "Route" };
-	gPathTab = PadNav::DrawSideRail("###gw2igh_path_nav", kTabs, 4, gPathTab);
+	static const int kTabIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::Help),
+		static_cast<int>(Gw2Ui::Icon::Hero),
+		static_cast<int>(Gw2Ui::Icon::Inventory),
+		static_cast<int>(Gw2Ui::Icon::Map),
+	};
+	gPathTab = PadNav::DrawSideRail("###gw2igh_path_nav", kTabs, 4, gPathTab, 0.f, kTabIcons);
 
 	ImGui::BeginChild("###gw2igh_path_body", ImVec2(0.f, 0.f), gPathTab != 0);
 	switch (gPathTab)

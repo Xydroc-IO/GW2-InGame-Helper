@@ -1,6 +1,6 @@
 #pragma once
 
-/* ImGui DPS Logs pad — browse ArcDPS EVTC/ZEVTC logs via Elite Insights JSON.
+/* ImGui DPS Logs pad - browse ArcDPS EVTC/ZEVTC logs via Elite Insights JSON.
    Original Helper UI (not a clone of third-party log managers). */
 namespace LogManagerPad
 {

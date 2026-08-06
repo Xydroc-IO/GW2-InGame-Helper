@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "Gw2Icons.h"
 #include "JsonView.h"
 
 #include <algorithm>
@@ -67,7 +68,7 @@ namespace UnlocksDetail
 		JsonView::ParseIdArray(body, out);
 	}
 
-	/* Finishers arrive as [{"id":N,"permanent":true},…] — collect id fields. */
+	/* Finishers arrive as [{"id":N,"permanent":true},...] - collect id fields. */
 	void ParseFinisherIds(const std::string& body, std::unordered_set<int>& out)
 	{
 		out.clear();
@@ -122,7 +123,10 @@ namespace UnlocksDetail
 			const long long id = JsonIntAfterKey(body, "id", brace);
 			std::string name = JsonStringAfterKey(body, "name", brace);
 			if (id > 0 && !name.empty())
+			{
 				names[static_cast<int>(id)] = std::move(name);
+				Gw2Icons::RememberIconFromJson(static_cast<int>(id), body.c_str(), brace, end);
+			}
 			p = end;
 		}
 	}
@@ -248,7 +252,7 @@ namespace UnlocksDetail
 		}
 		else
 		{
-			status = "Downloading…";
+			status = "Downloading...";
 			{
 				std::lock_guard<std::mutex> lock(gMu);
 				st.pendingStatus = status;

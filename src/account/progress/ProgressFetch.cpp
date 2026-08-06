@@ -114,7 +114,7 @@ namespace ProgressDetail
 				snap.status = "Need API scopes: account + inventories + unlocks (+ characters).";
 			}
 			else
-				snap.status = "Armory unlocks failed — showing public catalog.";
+				snap.status = "Armory unlocks failed - showing public catalog.";
 
 			auto chars = Gw2Http::Api("/v2/characters", G::Gw2ApiKey, kHttpTimeoutMs);
 			if (chars.ok)
@@ -195,7 +195,7 @@ namespace ProgressDetail
 		}
 		else
 		{
-			snap.status = "Public catalog — add an API key for unlocks + roster.";
+			snap.status = "Public catalog - add an API key for unlocks + roster.";
 			snap.ok = !snap.legs.empty();
 		}
 
@@ -203,7 +203,7 @@ namespace ProgressDetail
 		{
 			char buf[96];
 			if (snap.hasKey && !snap.scopeFail)
-				std::snprintf(buf, sizeof(buf), "%d / %d unlocked · %d characters",
+				std::snprintf(buf, sizeof(buf), "%d / %d unlocked | %d characters",
 					snap.unlocked, static_cast<int>(snap.legs.size()),
 					static_cast<int>(snap.chars.size()));
 			else

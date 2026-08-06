@@ -36,7 +36,7 @@ Menu, CDN textures, Pack:CreateMarker). Full Blish libdef hosts (Storage, Instan
 GameTime, achievement auto-hide, etc.) still need
 [Blish HUD Pathing](https://blishhud.com/modules/?module=bh.community.pathing).
 
-Interact default: **Ctrl+Shift+F** (`KB_HELPER_MARKER_INTERACT`) — rebind in Nexus.
+Interact default: **Ctrl+Shift+F** — rebind under **Settings → Keybinds** (Marker slot; addon-owned PanelBinds). Legacy Nexus panel bind ids are deregistered on load.
 States persist in `config/marker_behaviors.txt` (Pathing → **Reset marker states** to clear).
 
 Do **not** keep a second copy of Tekkit under another name (e.g. both

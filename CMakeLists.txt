@@ -40,6 +40,9 @@ set(SRC_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/events
   ${CMAKE_CURRENT_SOURCE_DIR}/src/economy
   ${CMAKE_CURRENT_SOURCE_DIR}/src/instances
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/completion
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/farming
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/overlay
   ${CMAKE_CURRENT_SOURCE_DIR}/src/notes
   ${CMAKE_CURRENT_SOURCE_DIR}/src/helper
 )
@@ -86,6 +89,10 @@ add_library(GW2-InGame-Helper SHARED
   src/app/AddonPaths.cpp
   src/app/MumbleIdentity.cpp
   src/app/AspectLayout.cpp
+  src/app/PanelBinds.cpp
+  src/app/PanelBindsUi.cpp
+  src/app/Gw2Icons.cpp
+  src/app/Gw2Ui.cpp
   src/api/Gw2Http.cpp
   src/browse/sites/Sites.cpp
   src/browse/sites/SitesState.cpp
@@ -165,6 +172,19 @@ add_library(GW2-InGame-Helper SHARED
   src/instances/InstancesPad.cpp
   src/instances/InstancesPadState.cpp
   src/instances/InstancesData.cpp
+  src/completion/CompletionPad.cpp
+  src/completion/CompletionPadState.cpp
+  src/completion/CompletionData.cpp
+  src/completion/CompletionRoute.cpp
+  src/completion/CompletionHierarchy.cpp
+  src/completion/CompletionFavorites.cpp
+  src/completion/CompletionAtlas.cpp
+  src/completion/CompletionChecklist.cpp
+  src/farming/FarmingPad.cpp
+  src/farming/FarmingPadState.cpp
+  src/farming/FarmingPersist.cpp
+  src/overlay/GpsArrow.cpp
+  src/overlay/ZoneBanner.cpp
   src/logs/logmanager/LogManagerPad.cpp
   src/logs/logmanager/LogManagerPadState.cpp
   src/logs/logmanager/LogManagerParse.cpp
@@ -251,6 +271,7 @@ add_library(GW2-InGame-Helper SHARED
   src/browser/WikiBrowserHelperLifecycle.cpp
   src/browser/WikiBrowserHelperLaunch.cpp
   src/browser/WikiBrowserIpc.cpp
+  src/browser/WikiBrowserIpcSec.cpp
   src/browser/WikiBrowserPresent.cpp
   src/browser/CefRuntime.cpp
   src/browser/CefRuntimeFs.cpp
@@ -260,6 +281,7 @@ add_library(GW2-InGame-Helper SHARED
   src/ui/chrome/UI_Helpers.cpp
   src/ui/chrome/UI_ChromeTabs.cpp
   src/ui/chrome/UI_ChromeToolbar.cpp
+  src/ui/chrome/UI_ChromeSideRail.cpp
   src/ui/chrome/UI_Render.cpp
   src/ui/chrome/UI_RenderPage.cpp
   src/ui/browse/UI_Browse.cpp
@@ -287,7 +309,7 @@ target_include_directories(GW2-InGame-Helper PRIVATE
 )
 target_compile_definitions(GW2-InGame-Helper PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 if(MINGW)
-  target_link_libraries(GW2-InGame-Helper PRIVATE dxgi d3d11 gdi32 ole32 uuid shell32 winhttp crypt32 bcrypt)
+  target_link_libraries(GW2-InGame-Helper PRIVATE dxgi d3d11 gdi32 ole32 uuid shell32 winhttp crypt32 bcrypt advapi32)
   target_link_options(GW2-InGame-Helper PRIVATE -static -static-libgcc -static-libstdc++)
   set_target_properties(GW2-InGame-Helper PROPERTIES PREFIX "")
 endif()

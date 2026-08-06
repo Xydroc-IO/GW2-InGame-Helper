@@ -79,14 +79,14 @@ bool EiRuntime::EnsureInstalled(const wchar_t* addonDirWide, void (*statusFn)(co
 		if (AlreadyInstalled(eiDir))
 		{
 			CleanupStrayZipInEi(eiDir);
-			Status(statusFn, "Elite Insights ready (offline — kept current)");
+			Status(statusFn, "Elite Insights ready (offline - kept current)");
 			return true;
 		}
 
 		latest.stamp = kFallbackStamp;
 		latest.url = kFallbackDownloadUrl;
 		latest.sha256 = kFallbackSha256Hex;
-		Status(statusFn, "Using fallback Elite Insights package…");
+		Status(statusFn, "Using fallback Elite Insights package...");
 	}
 	else if (MatchesStamp(eiDir, latest.stamp.c_str()))
 	{
@@ -101,16 +101,16 @@ bool EiRuntime::EnsureInstalled(const wchar_t* addonDirWide, void (*statusFn)(co
 	bool deleteAfter = false;
 	if (FindLocalZip(addonDir, localZip, deleteAfter))
 	{
-		Status(statusFn, "Installing Elite Insights from local zip…");
+		Status(statusFn, "Installing Elite Insights from local zip...");
 		if (InstallFromZip(localZip, eiDir, latest.stamp.c_str(), latest.sha256.c_str(),
 				statusFn, deleteAfter))
 			return true;
-		Status(statusFn, "Local EI zip did not match latest hash — downloading…");
+		Status(statusFn, "Local EI zip did not match latest hash - downloading...");
 	}
 
 	if (latest.url.empty())
 	{
-		Status(statusFn, "EI zip missing — place GW2EICLI.zip next to the DLL");
+		Status(statusFn, "EI zip missing - place GW2EICLI.zip next to the DLL");
 		return false;
 	}
 
@@ -265,7 +265,7 @@ bool EiRuntime::HasDotNet8Runtime()
 
 void EiRuntime::OpenDotNet8Installer()
 {
-	/* Direct x64 Desktop Runtime installer — works on Windows and in Wine/Proton prefixes. */
+	/* Direct x64 Desktop Runtime installer - works on Windows and in Wine/Proton prefixes. */
 	ShellExecuteA(nullptr, "open",
 		"https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe",
 		nullptr, nullptr, SW_SHOWNORMAL);

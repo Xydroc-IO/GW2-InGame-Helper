@@ -35,7 +35,7 @@ namespace CraftingDetail
 		else
 		{
 			/* ["item", ...] string ids or item names? Actually returns string slugs like "glob_of_ectoplasm" OR ids?
-			   API: array of strings — daily crafting recipe ids as strings matching /v2/dailycrafting */
+			   API: array of strings - daily crafting recipe ids as strings matching /v2/dailycrafting */
 			std::vector<std::string> slugs;
 			size_t i = 0;
 			while (i < r.body.size() && slugs.size() < 32)
@@ -73,7 +73,7 @@ namespace CraftingDetail
 						if (end == std::string::npos) break;
 						DailyRow row;
 						row.name = JsonStringAfterKey(det.body, "id", brace);
-						/* dailycrafting objects: { "id": "slug" } — need item via separate mapping.
+						/* dailycrafting objects: { "id": "slug" } - need item via separate mapping.
 						   Actually schema is just { "id": "charged_quartz_crystal" }.
 						   Convert slug to display name. */
 						if (!row.name.empty())

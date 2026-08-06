@@ -22,22 +22,10 @@ namespace
 		return s;
 	}
 
-	bool LadyPackEnabled()
+	/* Map Completion Features - only legs.map / leag.map (not bounty/fishing/...). */
+	void EnsureLadyMapCompletionCategories()
 	{
-		for (const std::string& p : PathingTrails::EnabledPaths())
-		{
-			const std::string l = LowerCopy(p);
-			if (l == "legs" || l == "leag" ||
-				(l.size() > 5 && (l.compare(0, 5, "legs.") == 0 || l.compare(0, 5, "leag.") == 0)))
-				return true;
-		}
-		return false;
-	}
-
-	void EnsureLadyCategories()
-	{
-		if (!LadyPackEnabled())
-			PathingTrails::EnableAllLadyCategories();
+		PathingTrails::EnableLadyMapCompletionCategories();
 	}
 
 	/* Prefer a narrow enable so Hero Point Train does not need the whole pack. */
@@ -55,12 +43,12 @@ namespace
 		PathingTrails::SetEnabledPaths(paths);
 	}
 
-	/* Map-completion editions are independent — each only gates its own trails. */
-	void SetLadyRouteFlag(bool& flag, bool on)
+	/* Each Map Completion toggle only gates its own trails/markers/shortcuts. */
+	void SetLadyMcFlag(bool& flag, bool on)
 	{
 		flag = on;
 		if (G::LadyBarefoot || G::LadyWithMounts || G::LadyWpOnly || G::LadyHearts)
-			EnsureLadyCategories();
+			EnsureLadyMapCompletionCategories();
 		if (G::LadyHeroPointTrain)
 			EnsureLadyHpTrainCategories();
 		PathingTrails::NotifyVisibilityFilterChanged();
@@ -81,7 +69,7 @@ namespace
 		else
 		{
 			if (G::LadyBarefoot || G::LadyWithMounts || G::LadyWpOnly || G::LadyHearts)
-				EnsureLadyCategories();
+				EnsureLadyMapCompletionCategories();
 			if (G::LadyHeroPointTrain)
 				EnsureLadyHpTrainCategories();
 		}
@@ -145,10 +133,17 @@ bool PathingFeatures::RenderContents()
 
 	ImGui::Spacing();
 	ImGui::Separator();
-	ImGui::TextUnformatted("Lady Elyssa — map routes");
+	ImGui::TextUnformatted("Lady Elyssa - extras");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Current map — each toggle only its own trails (can combine).");
+		"Independent toggles. Map Completion is Lady-only (not Tekkit).");
+	PadNav::PopWrap();
+
+	ImGui::Spacing();
+	ImGui::TextUnformatted("Map Completion");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Current map only - each toggle its own trails, markers, shortcuts.");
 	PadNav::PopWrap();
 
 	bool ladyBare = G::LadyBarefoot;
@@ -156,37 +151,39 @@ bool PathingFeatures::RenderContents()
 	bool ladyWp = G::LadyWpOnly;
 	if (ImGui::Checkbox("Barefoot###gw2igh_feat_lady_bare", &ladyBare))
 	{
-		SetLadyRouteFlag(G::LadyBarefoot, ladyBare);
+		SetLadyMcFlag(G::LadyBarefoot, ladyBare);
 		dirty = true;
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Barefoot foot routes on this map, plus Barefoot Shortcut (bfs)\n"
-			"trails and shortcut markers. Hearts use the Hearts toggle.");
+			"Barefoot map-completion trails and markers on this map,\n"
+			"plus Barefoot Shortcut (bfs) trails and shortcut markers.");
 	PadNav::WrapSameLine(PadNav::CheckboxWidth("WP Only"));
 	if (ImGui::Checkbox("WP Only###gw2igh_feat_lady_wp", &ladyWp))
 	{
-		SetLadyRouteFlag(G::LadyWpOnly, ladyWp);
-		dirty = true;
-	}
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("Waypoint-only trails on this map (…map.<zone>.wp) — no markers.");
-	PadNav::WrapSameLine(PadNav::CheckboxWidth("With Mounts"));
-	if (ImGui::Checkbox("With Mounts###gw2igh_feat_lady_mounts", &ladyMounts))
-	{
-		SetLadyRouteFlag(G::LadyWithMounts, ladyMounts);
+		SetLadyMcFlag(G::LadyWpOnly, ladyWp);
 		dirty = true;
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Mount route on this map plus mount-guide markers (raptor/springer/…).\n"
-			"Barefoot Shortcuts stay on Barefoot. Hearts use the Hearts toggle.");
+			"Waypoint-only edition on this map (...map.<zone>.wp):\n"
+			"trails, markers, and shortcuts under that edition.");
+	PadNav::WrapSameLine(PadNav::CheckboxWidth("With Mounts"));
+	if (ImGui::Checkbox("With Mounts###gw2igh_feat_lady_mounts", &ladyMounts))
+	{
+		SetLadyMcFlag(G::LadyWithMounts, ladyMounts);
+		dirty = true;
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Mount map-completion trails on this map, plus mount-guide\n"
+			"markers and shortcuts (raptor/springer/...). Not barefoot/bfs.");
 
 	ImGui::Spacing();
-	ImGui::TextUnformatted("Lady Elyssa — extras");
+	ImGui::TextUnformatted("Other");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Independent. Categories → Hero Points is the same tree as Hero Point Train.");
+		"Categories -> Hero Points is the same tree as Hero Point Train.");
 	PadNav::PopWrap();
 	bool ladyHearts = G::LadyHearts;
 	bool ladyHp = G::LadyHeroPointTrain;
@@ -205,13 +202,13 @@ bool PathingFeatures::RenderContents()
 	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"Hero Point train (legs.hp) — same as Categories → Hero Points.\n"
+			"Hero Point train (legs.hp) - same as Categories -> Hero Points.\n"
 			"Number/start/WP icons along the HP train on this map.");
 
 	if (PathingTrails::IsLoading() || PathingPacks::IsUpdating())
 	{
 		PadNav::PushWrap();
-		ImGui::TextColored(HelperTheme::Muted, "Indexing packs…");
+		ImGui::TextColored(HelperTheme::Muted, "Indexing packs...");
 		PadNav::PopWrap();
 	}
 

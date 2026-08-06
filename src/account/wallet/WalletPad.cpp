@@ -6,7 +6,9 @@
 #include "AspectLayout.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "Gw2Icons.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "InventoryData.h"
 #include "PadDock.h"
 #include "Settings.h"
@@ -35,7 +37,7 @@ namespace WalletDetail
 	Snapshot gSnap;
 	std::atomic<unsigned> gGen{0};
 	unsigned gDrawnGen = 0;
-	Snapshot gDraw; /* UI copy — refreshed only when gGen changes */
+	Snapshot gDraw; /* UI copy - refreshed only when gGen changes */
 
 	std::atomic<bool> gBusy{false};
 	std::atomic<bool> gCancel{false};
@@ -43,9 +45,9 @@ namespace WalletDetail
 	bool gFocus = false;
 	bool gPlaceOnce = false;
 	char gFilter[96] = {};
-	int gLocFilter = 0; /* 0=All … 5=Characters — never touch from worker */
+	int gLocFilter = 0; /* 0=All ... 5=Characters - never touch from worker */
 
-	/* Persistent id → name (currency keys stored negative). */
+	/* Persistent id -> name (currency keys stored negative). */
 	std::mutex gNameMu;
 	std::unordered_map<int, std::string> gNames;
 	bool gNamesLoaded = false;
@@ -135,24 +137,24 @@ void WalletPad::RenderContents()
 	const Snapshot& snap = gDraw;
 
 	ImGui::TextUnformatted("Wallet & stash search");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
 		"Scopes: account, wallet, inventories, characters. Reopen uses cache when fresh.");
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 
 	if (ImGui::Button("Refresh###gw2igh_wallet_ref"))
 		StartFetch(true);
 	ImGui::SameLine();
 	if (gBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating…");
+		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating...");
 	else if (!snap.status.empty())
 		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", snap.status.c_str());
 
 	ImGui::SetNextItemWidth(-1.f);
-	ImGui::InputTextWithHint("###gw2igh_wallet_filter", "Filter: ecto, Alice, bank…",
+	ImGui::InputTextWithHint("###gw2igh_wallet_filter", "Filter: ecto, Alice, bank...",
 		gFilter, sizeof(gFilter));
 
-	/* In-window chips — BeginCombo/popup lists lose clicks under Nexus (separate
+	/* In-window chips - BeginCombo/popup lists lose clicks under Nexus (separate
 	   ImGui window outside the pad hit-box). */
 	ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Location");
 	ImGui::PushID("###gw2igh_wallet_loc");
@@ -186,9 +188,9 @@ void WalletPad::RenderContents()
 
 	if (snap.noKey || snap.scopeFail)
 	{
-		ImGui::PushTextWrapPos(0.f);
+		PadNav::PushWrap();
 		ImGui::TextWrapped("%s", snap.status.c_str());
-		ImGui::PopTextWrapPos();
+		PadNav::PopWrap();
 	}
 	else
 	{
@@ -207,12 +209,14 @@ void WalletPad::RenderContents()
 				? FormatCoins(e.total)
 				: FormatCount(e.total);
 
-			/* Click row to expand — no TreeNode arrow. */
+			/* Click row to expand - no TreeNode arrow. */
 			static std::unordered_map<int, bool> sOpen;
 			const int rowKey = e.isCurrency ? -e.id : e.id;
 			bool& open = sOpen[rowKey];
 			char rowLabel[256];
 			std::snprintf(rowLabel, sizeof(rowLabel), "%s###stash_row_%d", e.name.c_str(), rowKey);
+			if (!e.isCurrency && Gw2Icons::ImageItem(e.id, 22.f))
+				ImGui::SameLine(0.f, 6.f);
 			if (ImGui::Selectable(rowLabel, open, ImGuiSelectableFlags_AllowDoubleClick))
 				open = !open;
 			ImGui::SameLine();
@@ -230,7 +234,7 @@ void WalletPad::RenderContents()
 					const std::string lq = e.isCurrency && e.id == 1
 						? FormatCoins(l.count)
 						: FormatCount(l.count);
-					ImGui::BulletText("%s — %s", l.where.c_str(), lq.c_str());
+					ImGui::BulletText("%s - %s", l.where.c_str(), lq.c_str());
 				}
 				ImGui::Unindent();
 			}
@@ -238,10 +242,10 @@ void WalletPad::RenderContents()
 		}
 		if (shown == 0 && !gBusy)
 		{
-			ImGui::PushTextWrapPos(0.f);
+			PadNav::PushWrap();
 			if (!snap.ok)
 			{
-				ImGui::TextWrapped("No data yet — click Refresh.");
+				ImGui::TextWrapped("No data yet - click Refresh.");
 			}
 			else if (locFilter == 5) /* Characters location chip */
 			{
@@ -269,7 +273,7 @@ void WalletPad::RenderContents()
 			{
 				ImGui::TextWrapped("Stash is empty.");
 			}
-			ImGui::PopTextWrapPos();
+			PadNav::PopWrap();
 		}
 		ImGui::EndChild();
 	}

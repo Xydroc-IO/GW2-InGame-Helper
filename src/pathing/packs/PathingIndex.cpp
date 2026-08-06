@@ -89,7 +89,7 @@ void IndexPack(const std::wstring& packPath, std::vector<IndexedTrail>& out,
 		}
 	}
 
-	/* Resolve .trl mapIds while the pack zip is still in memory (critical —
+	/* Resolve .trl mapIds while the pack zip is still in memory (critical -
 	   without this, map loads re-scan every trail in every pack). Uses the
 	   central-directory lookup + 8-byte header read, so it stays cheap. */
 	for (size_t i = startIdx; i < out.size(); ++i)
@@ -165,7 +165,7 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 {
 	try
 	{
-		/* Clear heavy state on the worker — never on the UI/render thread
+		/* Clear heavy state on the worker - never on the UI/render thread
 		   (Reload packs used to wipe the ~Tekkit index under the frame lock
 		   and freeze Wine/Steam). */
 		{
@@ -217,7 +217,7 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 				fallbackDirs.push_back(d);
 		}
 
-		/* Prefer our pathing/ only — indexing Tekkit from both our folder and
+		/* Prefer our pathing/ only - indexing Tekkit from both our folder and
 		   Taimi doubled ~48MB zip + parsed data and could OOM/crash Wine. */
 		std::vector<std::wstring> packs;
 		for (const std::wstring& d : ourDirs)
@@ -229,7 +229,7 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 		}
 		SuppressDuplicateTacoPacks(packs);
 
-		/* Soft cap — curated + a few user packs; huge dumps still blow Wine. */
+		/* Soft cap - curated + a few user packs; huge dumps still blow Wine. */
 		constexpr size_t kMaxPacks = 12;
 		if (packs.size() > kMaxPacks)
 			packs.resize(kMaxPacks);
@@ -250,7 +250,7 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 			const size_t menuBefore = menu.size();
 			bool opened = false;
 			IndexPack(pack, index, pois, menu, categoryStyles, epoch, &opened);
-			/* List any pack we successfully opened as a zip — Hero/Blish packs
+			/* List any pack we successfully opened as a zip - Hero/Blish packs
 			   used to vanish from Overview when MapID inheritance left 0 POIs. */
 			if (opened || index.size() + pois.size() > before || menu.size() > menuBefore)
 			{
@@ -260,7 +260,7 @@ void WorkerLoop(uint32_t epoch, uint32_t firstMap)
 		}
 
 		/* Prepare the large menu entirely on the worker without holding the
-		   render-thread mutex. Keep every MarkerCategory Tekkit ships —
+		   render-thread mutex. Keep every MarkerCategory Tekkit ships -
 		   do NOT prune POI-only / zero-trail nodes (official has those toggles). */
 		std::unordered_map<std::string, int> itemCounts;
 		itemCounts.reserve(index.size() + pois.size());

@@ -1,17 +1,8 @@
 #include "entryInternal.h"
 
 #include <windows.h>
-#include <cstdio>
-#include <cstring>
 
-#include "imgui/imgui.h"
-
-#include "AccountPad.h"
-#include "EventsPad.h"
 #include "Globals.h"
-#include "NotesPad.h"
-#include "PathingGuidesPad.h"
-#include "PathingTrails.h"
 #include "Settings.h"
 #include "UI.h"
 #include "WikiBrowser.h"
@@ -21,15 +12,8 @@ using namespace EntryDetail;
 namespace EntryDetail
 {
 const char* KB_TOGGLE = "KB_HELPER_TOGGLE";
-const char* KB_ACCOUNT = "KB_HELPER_ACCOUNT";
-const char* KB_TEKKIT = "KB_HELPER_TEKKIT";
-const char* KB_MARKER = "KB_HELPER_MARKER_INTERACT";
-const char* KB_EVENTS = "KB_HELPER_EVENTS";
-const char* KB_NOTES = "KB_HELPER_NOTES";
-const char* KB_ITEM_LEGACY = "KB_HELPER_ITEM"; /* removed — deregister only */
 
 DWORD gLastToggleMs = 0;
-DWORD gLastPanelBindMs = 0;
 bool  gPollToggleHeld = false;
 bool  gSwallowHotkeyKeys = false;
 
@@ -97,72 +81,7 @@ void OnToggle(const char*, bool release)
 	if (G::API && G::API->Log)
 		G::API->Log(LOGL_INFO, ADDON_NAME, G::ShowWiki ? "Helper opened" : "Helper closed");
 }
-
-bool PanelBindDebounce()
-{
-	const DWORD now = GetTickCount();
-	if (now - gLastPanelBindMs < 250)
-		return false;
-	gLastPanelBindMs = now;
-	return true;
-}
-
-void OnToggleAccount(const char*, bool release)
-{
-	if (release || !PanelBindDebounce()) return;
-	if (G::ShowAccount)
-	{
-		G::ShowAccount = false;
-		Settings::SetDirty();
-	}
-	else
-		AccountPad::OpenAndRefresh();
-}
-
-void OnTogglePathing(const char*, bool release)
-{
-	if (release || !PanelBindDebounce()) return;
-	if (G::ShowPathingGuides)
-	{
-		G::ShowPathingGuides = false;
-		Settings::SetDirty();
-	}
-	else
-		PathingGuidesPad::Open();
-}
-
-void OnMarkerInteract(const char*, bool release)
-{
-	if (release) return;
-	PathingTrails::RequestMarkerInteract();
-}
-
-void OnToggleEvents(const char*, bool release)
-{
-	if (release || !PanelBindDebounce()) return;
-	if (G::ShowEvents)
-	{
-		G::ShowEvents = false;
-		Settings::SetDirty();
-	}
-	else
-		EventsPad::OpenAndRefresh();
-}
-
-void OnToggleNotes(const char*, bool release)
-{
-	if (release || !PanelBindDebounce()) return;
-	if (G::ShowNotes)
-	{
-		G::ShowNotes = false;
-		Settings::SetDirty();
-	}
-	else
-		NotesPad::Open();
-}
 } // namespace EntryDetail
-
-using namespace EntryDetail;
 
 void HelperHotkeys_Poll()
 {

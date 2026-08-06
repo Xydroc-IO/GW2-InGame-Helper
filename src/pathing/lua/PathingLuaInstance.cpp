@@ -46,7 +46,7 @@ namespace PathingLuaDetail
 
 		int I_Marker(lua_State* L)
 		{
-			/* I:Marker(attrs) → same as Pack:CreateMarker(attrs) */
+			/* I:Marker(attrs) -> same as Pack:CreateMarker(attrs) */
 			lua_getglobal(L, "Pack");
 			if (!lua_istable(L, -1))
 			{
@@ -91,7 +91,7 @@ namespace PathingLuaDetail
 
 		int I_Texture(lua_State* L)
 		{
-			/* Stub — return path/id string for SetTexture consumers */
+			/* Stub - return path/id string for SetTexture consumers */
 			int arg = lua_istable(L, 1) ? 2 : 1;
 			if (lua_isnumber(L, arg))
 			{

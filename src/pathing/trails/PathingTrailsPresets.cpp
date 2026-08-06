@@ -156,6 +156,17 @@ void PathingTrails::EnableAllLadyCategories()
 	gForceReload.store(true, std::memory_order_release);
 }
 
+void PathingTrails::EnableLadyMapCompletionCategories()
+{
+	std::lock_guard<std::mutex> lock(gMutex);
+	EnsureRootEnabledLocked("legs.map");
+	EnsureRootEnabledLocked("leag.map");
+	MarkEnabled(gMenu);
+	gMenuRevision.fetch_add(1, std::memory_order_release);
+	gEnabledGen.fetch_add(1, std::memory_order_release);
+	gForceReload.store(true, std::memory_order_release);
+}
+
 void PathingTrails::NotifyVisibilityFilterChanged()
 {
 	gContentRevision.fetch_add(1, std::memory_order_release);

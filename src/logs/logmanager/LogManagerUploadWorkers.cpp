@@ -25,10 +25,10 @@ DWORD WINAPI UploadWorker(LPVOID)
 			queue.swap(gUploadQueue);
 			if (queue.empty())
 			{
-				/* Release busy only while queue is still empty — else drain again. */
+				/* Release busy only while queue is still empty - else drain again. */
 				gUploadBusy.store(false);
 				std::snprintf(gStatus, sizeof(gStatus),
-					"Upload finished (%d) → dps.report.", sessionDone);
+					"Upload finished (%d) -> dps.report.", sessionDone);
 				return 0;
 			}
 		}
@@ -56,7 +56,7 @@ DWORD WINAPI UploadWorker(LPVOID)
 			}
 
 			std::snprintf(gStatus, sizeof(gStatus),
-				"Uploading to dps.report %d / %d…",
+				"Uploading to dps.report %d / %d...",
 				sessionDone + 1, gUploadTotal.load());
 
 			std::string resp, err;
@@ -128,7 +128,7 @@ DWORD WINAPI HydrateWorker(LPVOID)
 		if (gCancel.load())
 			break;
 		std::string resp, err;
-		std::snprintf(gStatus, sizeof(gStatus), "Loading report stats %d / %d…",
+		std::snprintf(gStatus, sizeof(gStatus), "Loading report stats %d / %d...",
 			done + 1, static_cast<int>(jobs.size()));
 		if (FetchDpsReportMeta(job.second, resp, err))
 		{
@@ -143,7 +143,7 @@ DWORD WINAPI HydrateWorker(LPVOID)
 			gGen.fetch_add(1);
 		}
 
-		/* Full EI JSON from dps.report — DPS + boon uptimes + guild IDs. */
+		/* Full EI JSON from dps.report - DPS + boon uptimes + guild IDs. */
 		std::string eiJson;
 		if (FetchEiJsonFromReport(job.second, eiJson, err))
 		{
@@ -202,7 +202,7 @@ void BeginHydrateFromReports(bool force)
 	gHydrateForce.store(force);
 	gCancel.store(false);
 	std::snprintf(gStatus, sizeof(gStatus),
-		force ? "Refreshing DPS/boons from dps.report…" : "Loading metadata from dps.report…");
+		force ? "Refreshing DPS/boons from dps.report..." : "Loading metadata from dps.report...");
 	if (gHydrateThread)
 	{
 		CloseHandle(gHydrateThread);
@@ -226,9 +226,9 @@ void BeginUpload(const std::vector<std::string>& paths)
 			gUploadQueue.push_back(p);
 	}
 	if (gUploadBusy.exchange(true))
-		return; /* worker already draining — will pick up queued paths */
+		return; /* worker already draining - will pick up queued paths */
 	gCancel.store(false);
-	std::snprintf(gStatus, sizeof(gStatus), "Uploading to dps.report…");
+	std::snprintf(gStatus, sizeof(gStatus), "Uploading to dps.report...");
 	if (gUploadThread)
 	{
 		CloseHandle(gUploadThread);

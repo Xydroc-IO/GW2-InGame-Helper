@@ -5,7 +5,7 @@
 #include <vector>
 
 /* Nearest waypoints to a trail start / chat-link destination + orange guide.
-   Clipboard only — no auto-teleport. Prefer walk-confirmed WPs when enabled. */
+   Clipboard only - no auto-teleport. Prefer walk-confirmed WPs when enabled. */
 namespace RoutingSuggest
 {
 	struct Candidate
@@ -30,10 +30,10 @@ namespace RoutingSuggest
 	};
 
 	/* Uses current-map trails when categories are enabled; otherwise player position.
-	   Public waypoint index — does not require pathing packs toggled on. */
+	   Public waypoint index - does not require pathing packs toggled on. */
 	Result SuggestNearTrailStart(size_t maxN = 3);
 
-	/* Parse clipboard for [&…] and route orange guide to that POI. */
+	/* Parse clipboard for [&...] and route orange guide to that POI. */
 	Result SuggestFromClipboard();
 
 	/* Sets Tekkit orange guide toward the trail/destination point. */
@@ -43,7 +43,7 @@ namespace RoutingSuggest
 
 	bool CopyChatLink(const char* chatLink);
 
-	/* Last successful / attempted suggest — for Pathing pad UI. */
+	/* Last successful / attempted suggest - for Pathing pad UI. */
 	const Result& Last();
 	void SetLast(Result r);
 }

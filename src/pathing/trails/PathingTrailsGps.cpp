@@ -23,7 +23,7 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 	std::vector<WorldSnippet> out;
 	if (maxTrails < 1 || maxPointTests < 1)
 		return out;
-	/* Nearby slice only — short range so GPS does not paint through walls/map. */
+	/* Nearby slice only - short range so GPS does not paint through walls/map. */
 	const float maxDist = std::clamp(maxDistMeters, 10.f, 200.f);
 	const float softDist = maxDist * 1.55f;
 	const float softDist2 = softDist * softDist;
@@ -41,7 +41,7 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		return std::isfinite(d) ? d : 1.0e30f;
 	};
 
-	/* Never block the render thread — a held worker lock froze/crashed Wine. */
+	/* Never block the render thread - a held worker lock froze/crashed Wine. */
 	std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
 	if (!lock.owns_lock())
 		return out;
@@ -107,7 +107,7 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		const size_t n = pts.size();
 		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
 			continue;
-		/* Stay inside one TacO section — never expand across NaN breaks. */
+		/* Stay inside one TacO section - never expand across NaN breaks. */
 		size_t a = c.nearest;
 		size_t b = c.nearest;
 		while (a > 0 &&
@@ -149,7 +149,7 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		{
 			const WorldPoint& wp = pts[i];
 			if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z))
-				break; /* section end — do not skip and stitch */
+				break; /* section end - do not skip and stitch */
 			if (first)
 			{
 				firstIdx = i;
@@ -206,8 +206,8 @@ bool PathingTrails::TryNearbyWorldGps(
 	if (!std::isfinite(avatarX) || !std::isfinite(avatarY) || !std::isfinite(avatarZ))
 		return true;
 
-	/* Activation + along-path window track the Overview “GPS range” slider.
-	   Earlier floors (320m / 520m) made 40–200m adjustments look broken. */
+	/* Activation + along-path window track the Overview "GPS range" slider.
+	   Earlier floors (320m / 520m) made 40-200m adjustments look broken. */
 	float maxDist = std::clamp(maxDistMeters, 40.f, 200.f);
 	float activateDist = maxDist * 1.35f;
 	float alongBudget = maxDist * 2.25f;
@@ -386,7 +386,7 @@ bool PathingTrails::TryNearbyWorldGps(
 		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
 			continue;
 
-		/* Heart / WP / HP train: full TacO section — sparse waypoint gaps break
+		/* Heart / WP / HP train: full TacO section - sparse waypoint gaps break
 		   along-budget windows (compass showed full path; world GPS looked cut). */
 		const char* lab = tr.label;
 		const size_t labN = std::strlen(lab);
@@ -504,7 +504,7 @@ bool PathingTrails::TryNearbyWorldGps(
 	{
 		if (!TypeEnabledLocked(marker.label))
 			continue;
-		/* Match trail gate — compass-visible markers belong in world GPS too. */
+		/* Match trail gate - compass-visible markers belong in world GPS too. */
 		if (!MarkerShownInWorld(marker) && !marker.minimapVisible)
 			continue;
 		if (!MarkerBehaviorVisible(marker))
@@ -535,7 +535,7 @@ bool PathingTrails::TryNearbyWorldGps(
 
 PathingTrails::WorldSnippet PathingTrails::SearchGuideWorldSnippet()
 {
-	/* Blocking lock — try_lock returned empty mid-Update and blinked the guide. */
+	/* Blocking lock - try_lock returned empty mid-Update and blinked the guide. */
 	std::lock_guard<std::mutex> lock(gMutex);
 	WorldSnippet snip;
 	if (!gGuideActive || gGuide.worldPoints.size() < 2)

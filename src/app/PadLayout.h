@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PadNav.h"
+
 #include "imgui/imgui.h"
 
 /* Shared layout helpers for floating companion pads. */
@@ -14,13 +16,16 @@ namespace PadLayout
 		return h;
 	}
 
+	/* Scroll child with wrap bound to the child's live width (resize-safe). */
 	inline void BeginList(const char* id, float minH = 120.f)
 	{
 		ImGui::BeginChild(id, ImVec2(0.f, RemainingListH(minH)), true);
+		PadNav::PushWrap();
 	}
 
 	inline void EndList()
 	{
+		PadNav::PopWrap();
 		ImGui::EndChild();
 	}
 }

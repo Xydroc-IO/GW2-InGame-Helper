@@ -6,7 +6,10 @@
 #include "BrowserTabs.h"
 #include "CraftingData.h"
 #include "Globals.h"
+#include "Gw2Icons.h"
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "PadLayout.h"
 #include "Settings.h"
@@ -70,13 +73,13 @@ static void DrawFlips()
 			std::strstr(gStatus, "Failed") != nullptr ||
 			std::strstr(gStatus, "error") != nullptr);
 		ImGui::TextColored(err ? ImVec4(0.92f, 0.45f, 0.40f, 1.f) : HelperTheme::Muted,
-			"%s", gFlipBusy ? "Scanning…" : gStatus);
+			"%s", gFlipBusy ? "Scanning..." : gStatus);
 	}
-	ImGui::InputTextWithHint("##eco_f", "Filter name or id…", gFlipFilter, sizeof(gFlipFilter));
-	ImGui::PushTextWrapPos(0.f);
+	ImGui::InputTextWithHint("##eco_f", "Filter name or id...", gFlipFilter, sizeof(gFlipFilter));
+	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Fee-adjusted net (~15%%). Read-only — trade on BLTC / in-game.");
-	ImGui::PopTextWrapPos();
+		"Fee-adjusted net (~15%%). Read-only - trade on BLTC / in-game.");
+	PadNav::PopWrap();
 
 	PadLayout::BeginList("###gw2igh_eco_flips");
 	int shown = 0;
@@ -86,14 +89,16 @@ static void DrawFlips()
 			continue;
 		++shown;
 		ImGui::PushID(r.id);
+		if (Gw2Icons::ImageItem(r.id, 26.f))
+			ImGui::SameLine();
 		ImGui::TextUnformatted(r.name[0] ? r.name : "Item");
-		ImGui::TextColored(HelperTheme::Muted, "Buy %s · Sell %s · ",
+		ImGui::TextColored(HelperTheme::Muted, "Buy %s | Sell %s | ",
 			FormatCoins(r.buy).c_str(), FormatCoins(r.sell).c_str());
 		ImGui::SameLine(0.f, 0.f);
 		ImGui::TextColored(r.spread > 0 ? ImVec4(0.45f, 0.85f, 0.55f, 1.f) : HelperTheme::Muted,
 			"Net %s", FormatCoins(r.spread).c_str());
 		if (r.demand > 0 || r.supply > 0)
-			ImGui::TextColored(HelperTheme::Muted, "Demand %d · Supply %d", r.demand, r.supply);
+			ImGui::TextColored(HelperTheme::Muted, "Demand %d | Supply %d", r.demand, r.supply);
 		if (ImGui::SmallButton("Cart"))
 		{
 			AddToCart(r.id, r.name, 1);
@@ -113,13 +118,13 @@ static void DrawFlips()
 		ImGui::PopID();
 	}
 	if (gFlips.empty() && !gFlipBusy)
-		ImGui::TextColored(HelperTheme::Muted, "No flips yet — tap Rescan.");
+		ImGui::TextColored(HelperTheme::Muted, "No flips yet - tap Rescan.");
 	else if (!gFlips.empty() && shown == 0)
 		ImGui::TextColored(HelperTheme::Muted, "No items match this filter.");
 	PadLayout::EndList();
 }
 
-/* PlotLines ignores ImGui's usual -1 “fill” width — must pass a real x size. */
+/* PlotLines ignores ImGui's usual -1 "fill" width - must pass a real x size. */
 static void DrawPricePlot(const char* title, const char* id, const std::vector<float>& vals, float plotH)
 {
 	if (vals.empty())
@@ -135,7 +140,7 @@ static void DrawPricePlot(const char* title, const char* id, const std::vector<f
 		if (v < mn) mn = v;
 		if (v > mx) mx = v;
 	}
-	/* Flat history collapses the line into the frame edge — pad the range. */
+	/* Flat history collapses the line into the frame edge - pad the range. */
 	if (mx <= mn)
 	{
 		const float pad = (mn > 0.f) ? (mn * 0.05f + 1.f) : 1.f;
@@ -190,7 +195,7 @@ static void DrawCharts()
 	}
 	if (buys.empty())
 	{
-		ImGui::TextColored(HelperTheme::Muted, "No samples yet — run Flip scan.");
+		ImGui::TextColored(HelperTheme::Muted, "No samples yet - run Flip scan.");
 		return;
 	}
 	const float plotH = (PadLayout::RemainingListH(160.f) - 28.f) * 0.5f;
@@ -203,10 +208,10 @@ static void DrawCharts()
 static void DrawCart()
 {
 	using namespace EconomyDetail;
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Shopping list only — no orders placed.");
-	ImGui::PopTextWrapPos();
+		"Shopping list only - no orders placed.");
+	PadNav::PopWrap();
 	if (ImGui::Button("Clear cart###gw2igh_eco_cc"))
 		ClearCart();
 	ImGui::SameLine();
@@ -220,7 +225,7 @@ static void DrawCart()
 	{
 		auto& c = gCart[i];
 		ImGui::PushID(static_cast<int>(i));
-		ImGui::TextWrapped("%s × %d (id %d)", c.name, c.qty, c.id);
+		ImGui::TextWrapped("%s x %d (id %d)", c.name, c.qty, c.id);
 		if (ImGui::SmallButton("-") && c.qty > 1) { --c.qty; SaveCart(); }
 		ImGui::SameLine();
 		if (ImGui::SmallButton("+")) { ++c.qty; SaveCart(); }
@@ -243,7 +248,7 @@ static void DrawCart()
 			++i;
 	}
 	if (gCart.empty())
-		ImGui::TextColored(HelperTheme::Muted, "Cart empty — add from Flips.");
+		ImGui::TextColored(HelperTheme::Muted, "Cart empty - add from Flips.");
 	PadLayout::EndList();
 }
 
@@ -284,38 +289,33 @@ bool EconomyPad::Render()
 	HelperTheme::ScopedFontScale fontScale;
 
 	ImGui::TextColored(HelperTheme::Gold, "ECONOMY");
-	ImGui::PushTextWrapPos(0.f);
-	ImGui::TextColored(HelperTheme::Muted, "Flip Finder · charts · cart (read-only).");
-	ImGui::PopTextWrapPos();
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted, "Flip Finder | charts | cart (read-only).");
+	PadNav::PopWrap();
 
-	if (ImGui::BeginTabBar("###gw2igh_eco_tabs"))
+	if (gForceTab >= 0)
 	{
-		const int force = gForceTab;
-		if (force >= 0)
-			gForceTab = -1;
-		if (ImGui::BeginTabItem("Flips", nullptr,
-			force == 0 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
-		{
-			gTab = 0;
-			DrawFlips();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Charts", nullptr,
-			force == 1 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
-		{
-			gTab = 1;
-			DrawCharts();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Cart", nullptr,
-			force == 2 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
-		{
-			gTab = 2;
-			DrawCart();
-			ImGui::EndTabItem();
-		}
-		ImGui::EndTabBar();
+		gTab = gForceTab;
+		gForceTab = -1;
 	}
+
+	static const char* kTabs[] = { "Flips", "Charts", "Cart" };
+	static const int kTabIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::GoldCoins),
+		static_cast<int>(Gw2Ui::Icon::Story),
+		static_cast<int>(Gw2Ui::Icon::Bag),
+	};
+	gTab = PadNav::DrawSideRail("###gw2igh_eco_nav", kTabs, 3, gTab, 0.f, kTabIcons);
+
+	ImGui::BeginChild("###gw2igh_eco_body", ImVec2(0.f, 0.f), true);
+	switch (gTab)
+	{
+	case 0: DrawFlips(); break;
+	case 1: DrawCharts(); break;
+	case 2: DrawCart(); break;
+	default: break;
+	}
+	ImGui::EndChild();
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 	ImGui::End();

@@ -129,13 +129,13 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	{
 		const char* cat = cats[i] ? cats[i] : "";
 		if (std::strcmp(cat, "Cheat Sheets") == 0)
-			continue; /* Side rail hub — about:cheatsheets-hub */
+			continue; /* Side rail hub - about:cheatsheets-hub */
 		const int uiIndex = pickDefaultSite ? i : (i + 1);
 		const bool selected = (uiIndex == sCategoryIndex);
 		char label[96];
 		std::snprintf(label, sizeof(label), "%s (%d)", cat, Sites::CountInCategory(cat));
 		if (selected)
-			ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.32f, 0.26f, 0.12f, 0.95f));
+			ImGui::PushStyleColor(ImGuiCol_Header, HelperTheme::Header);
 		if (ImGui::Selectable(label, selected))
 		{
 			sCategoryIndex = uiIndex;
@@ -251,7 +251,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 				*closePanel = true;
 			sSyncCategory = true;
 		}
-		/* Guarantee the row advanced — empty labels / SameLine quirks must
+		/* Guarantee the row advanced - empty labels / SameLine quirks must
 		   not leave the cursor stuck (breaks clipper height measure). */
 		if (ImGui::GetCursorPosY() <= rowStartY + 0.5f)
 			ImGui::SetCursorPosY(rowStartY + ImGui::GetFrameHeightWithSpacing());
@@ -381,7 +381,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 				sFocusNewFolder = false;
 			}
 			const bool enter = ImGui::InputTextWithHint("##gw2igh_new_fav_name",
-				"Folder name…", sNewFolder, sizeof(sNewFolder),
+				"Folder name...", sNewFolder, sizeof(sNewFolder),
 				ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::Spacing();
 			const bool canSave = sNewFolder[0] != 0;
@@ -416,7 +416,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 						LivePanels::NotifyFavoritesChanged();
 				}
 				if (ImGui::IsItemHovered())
-					ImGui::SetTooltip("Delete folder — favorites inside return to Unfiled");
+					ImGui::SetTooltip("Delete folder - favorites inside return to Unfiled");
 				ImGui::SameLine(0.f, 6.f);
 			}
 			char header[96];
@@ -426,12 +426,12 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 				ImGuiTreeNodeFlags_DefaultOpen);
 			if (folderId != 0 && ImGui::BeginPopupContextItem())
 			{
-				if (ImGui::MenuItem("Rename…"))
+				if (ImGui::MenuItem("Rename..."))
 				{
 					sRenameFolderId = folderId;
 					std::snprintf(sRenameBuf, sizeof(sRenameBuf), "%s", name ? name : "");
 				}
-				if (ImGui::MenuItem("Delete folder (items → Unfiled)"))
+				if (ImGui::MenuItem("Delete folder (items -> Unfiled)"))
 				{
 					if (Sites::DeleteFavoriteFolder(folderId))
 						LivePanels::NotifyFavoritesChanged();
@@ -500,7 +500,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 			DrawFolderBlock(Sites::FavoriteFolderIdAt(fi));
 
 		if (Sites::FavoriteCount() == 0)
-			ImGui::TextDisabled("No favorites yet — star a site to pin it here.");
+			ImGui::TextDisabled("No favorites yet - star a site to pin it here.");
 	}
 	else if (filtering)
 	{

@@ -41,7 +41,7 @@ namespace LogManagerDetail
 		if (sel->players.empty())
 		{
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
-				"No player data — Parse or Load DPS/boons first so account names exist.");
+				"No player data - Parse or Load DPS/boons first so account names exist.");
 			return;
 		}
 
@@ -58,13 +58,13 @@ namespace LogManagerDetail
 
 		if (gKillProofBusy.load())
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
-				gStatus[0] ? gStatus : "Loading killproof.me…");
+				gStatus[0] ? gStatus : "Loading killproof.me...");
 		else if (withAccount == 0)
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
-				"No account names — Load DPS/boons for full EI JSON.");
+				"No account names - Load DPS/boons for full EI JSON.");
 		else if (kpOk > 0 || kpMissing > 0)
 			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f),
-				"%d loaded · %d none/private · %d pending",
+				"%d loaded | %d none/private | %d pending",
 				kpOk, kpMissing, kpPending);
 		else
 			ImGui::TextColored(ImVec4(0.75f, 0.70f, 0.45f, 1.f),
@@ -74,7 +74,7 @@ namespace LogManagerDetail
 		if (busy)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-			ImGui::Button("Loading…###gw2igh_lm_loadkp");
+			ImGui::Button("Loading...###gw2igh_lm_loadkp");
 			ImGui::PopStyleVar();
 		}
 		else if (ImGui::Button("Load KillProof###gw2igh_lm_loadkp"))
@@ -129,12 +129,12 @@ namespace LogManagerDetail
 			auto kpCell = [](int v, int state) {
 				if (state == 1)
 				{
-					ImGui::TextColored(ImVec4(0.70f, 0.68f, 0.45f, 1.f), "…");
+					ImGui::TextColored(ImVec4(0.70f, 0.68f, 0.45f, 1.f), "...");
 					return;
 				}
 				if (state == 3)
 				{
-					ImGui::TextColored(HelperTheme::Muted, "—");
+					ImGui::TextColored(HelperTheme::Muted, "-");
 					if (ImGui::IsItemHovered())
 						ImGui::SetTooltip("No public killproof.me profile");
 					return;
@@ -143,12 +143,12 @@ namespace LogManagerDetail
 				{
 					ImGui::TextColored(ImVec4(0.90f, 0.50f, 0.40f, 1.f), "!");
 					if (ImGui::IsItemHovered())
-						ImGui::SetTooltip("killproof.me request failed — try Load again");
+						ImGui::SetTooltip("killproof.me request failed - try Load again");
 					return;
 				}
 				if (state == 0 || v < 0)
 				{
-					ImGui::TextUnformatted("—");
+					ImGui::TextUnformatted("-");
 					return;
 				}
 				ImGui::Text("%d", v);
@@ -190,7 +190,7 @@ namespace LogManagerDetail
 				if (bossId > 0)
 					kpCell(p.kpBoss, p.kpState);
 				else
-					ImGui::TextUnformatted("—");
+					ImGui::TextUnformatted("-");
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted(p.profession.empty() ? "-" : p.profession.c_str());
 				ImGui::TableNextColumn();
@@ -225,7 +225,7 @@ namespace LogManagerDetail
 			if (key.empty() && !p.guildId.empty())
 			{
 				key = p.guildId;
-				label = p.guildId.size() > 8 ? p.guildId.substr(0, 8) + "…" : p.guildId;
+				label = p.guildId.size() > 8 ? p.guildId.substr(0, 8) + "..." : p.guildId;
 			}
 			if (key.empty())
 				continue;
@@ -319,12 +319,12 @@ namespace LogManagerDetail
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.72f, 0.35f, 1.f));
 			ImGui::TextWrapped(
-				".NET 8 Desktop Runtime not detected — Elite Insights cannot parse until it is installed.");
+				".NET 8 Desktop Runtime not detected - Elite Insights cannot parse until it is installed.");
 			ImGui::PopStyleColor();
 			if (EiRuntime::IsWine())
 			{
 				ImGui::TextColored(ImVec4(0.75f, 0.70f, 0.45f, 1.f), "%s",
-					"Proton/Wine: install into this game's Windows prefix — Linux distro packages will not work.");
+					"Proton/Wine: install into this game's Windows prefix - Linux distro packages will not work.");
 			}
 			if (ImGui::Button("Install .NET 8 Runtime###gw2igh_lm_dotnet_install"))
 				EiRuntime::OpenDotNet8Installer();
@@ -384,7 +384,7 @@ namespace LogManagerDetail
 
 		if (gEiInstallBusy.load())
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
-				gEiStatus[0] ? gEiStatus : "Installing Elite Insights…");
+				gEiStatus[0] ? gEiStatus : "Installing Elite Insights...");
 	}
 
 

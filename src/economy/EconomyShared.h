@@ -36,7 +36,7 @@ namespace EconomyDetail
 	extern bool gFocus;
 	extern bool gPlaceOnce;
 	extern int gTab;
-	extern int gForceTab; /* -1 none; set to force BeginTabItem select once */
+	extern int gForceTab; /* -1 none; set to force side-rail tab once */
 	extern char gStatus[192];
 	extern char gFlipFilter[64];
 	extern bool gFlipBusy;

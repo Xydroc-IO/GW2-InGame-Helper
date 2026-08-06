@@ -17,7 +17,7 @@ bool UI_IsPointerOverWiki(int clientX, int clientY);
 /* Drop wiki keyboard focus so the game can move/skills again. */
 void UI_ReleaseGameInput();
 /* Send KEYUP to GW2 for held movement keys when left-clicking into the helper
-   (avoids stuck autorun). Not used on hover — that broke RMB camera look. */
+   (avoids stuck autorun). Not used on hover - that broke RMB camera look. */
 void UI_ReleaseHeldGameKeys();
 /* Clear browser/ImGui key ownership + ImGui capture so GW2 chat works after close. */
 void UI_ResetKeyRouting();
@@ -29,5 +29,5 @@ void UI_WriteBrowseOpen(FILE* f);
 /* Mark helper popup hover for game-input capture (Browse / More / tab menus). */
 void UI_NoteHelperPopupHover();
 
-/* Frame poll for Ctrl+Shift hotkeys — defined in entry.cpp, runs even when closed. */
+/* Frame poll for Ctrl+Shift hotkeys - defined in entry.cpp, runs even when closed. */
 void HelperHotkeys_Poll();

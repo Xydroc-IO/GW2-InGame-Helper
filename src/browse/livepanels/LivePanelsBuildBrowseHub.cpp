@@ -27,18 +27,18 @@ namespace
 	{
 		return R"CSS(
 :root{
-  --bg:#06070a;--panel:rgba(16,18,24,.94);--panel-2:#12141a;
-  --border:#5a4a28;--border-soft:rgba(235,192,71,.22);
-  --gold:#f0c65a;--gold-bright:#ffe08a;--gold-dim:#c9a227;
-  --text:#f0f2f5;--muted:#a8aeb8;--accent:#1a1510;
+  --bg:#120e0a;--panel:rgba(28,23,17,.94);--panel-2:#18140e;
+  --border:#8c6b33;--border-soft:rgba(240,199,97,.22);
+  --gold:#f0c761;--gold-bright:#ffe68c;--gold-dim:#c29438;
+  --text:#f5eddb;--muted:#b8ad94;--accent:#1a160f;--header:#47381f;
 }
 *{box-sizing:border-box}
 body{
   margin:0;min-height:100vh;
   font-family:"Segoe UI",Tahoma,sans-serif;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(235,192,71,.16),transparent 55%),
-    linear-gradient(180deg,#14161c 0%,var(--bg) 42%),var(--bg);
+    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(240,199,97,.16),transparent 55%),
+    linear-gradient(180deg,#1c1711 0%,var(--bg) 42%),var(--bg);
   color:var(--text);line-height:1.5;
 }
 .wrap{max-width:1100px;margin:0 auto;padding:28px 22px 72px}
@@ -59,7 +59,7 @@ h1{margin:0 0 8px;font-size:2rem;font-weight:700;color:var(--gold)}
 .toc{
   display:flex;flex-wrap:wrap;gap:.45rem;margin:16px 0 0;padding:12px 0 2px;
   position:sticky;top:0;z-index:5;
-  background:linear-gradient(180deg,rgba(6,7,10,.97) 70%,rgba(6,7,10,.88));
+  background:linear-gradient(180deg,rgba(18,14,10,.97) 70%,rgba(18,14,10,.88));
   border-bottom:1px solid var(--border-soft);
 }
 a.jump{
@@ -172,7 +172,7 @@ details.move .move-menu a{
   display:block;padding:.35rem .55rem;text-decoration:none;
   color:var(--text);font-size:.78rem;border-radius:2px;white-space:nowrap;
 }
-details.move .move-menu a:hover{background:rgba(235,192,71,.12);color:var(--gold-bright)}
+details.move .move-menu a:hover{background:rgba(240,199,97,.12);color:var(--gold-bright)}
 details.move .move-menu a.cur{color:var(--gold-dim);pointer-events:none}
 details.move .move-menu .lbl{
   display:block;padding:.2rem .55rem .35rem;font-size:.68rem;

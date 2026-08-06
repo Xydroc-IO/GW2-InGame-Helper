@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
 

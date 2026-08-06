@@ -64,15 +64,15 @@ namespace
 			ImGui::TextDisabled("Trail category: %s", gDraft.trailType);
 			char tex[256]{};
 			std::snprintf(tex, sizeof(tex), "%s", trailLeaf->texture.c_str());
+			PadNav::PushWidthForLabel("Trail texture###gw2igh_tt_ttex");
 			if (ImGui::InputText("Trail texture###gw2igh_tt_ttex", tex, sizeof(tex)))
 				trailLeaf->texture = tex;
-			ImGui::SetNextItemWidth(120.f);
+			PadNav::PopWidthForLabel();
+			PadNav::PrepLabeled("trailScale###gw2igh_tt_tscale", 120.f, true);
 			ImGui::DragFloat("trailScale###gw2igh_tt_tscale", &trailLeaf->trailScale, 0.05f, 0.25f, 4.f);
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(100.f);
+			PadNav::PrepLabeled("fadeNear###gw2igh_tt_tfn", 100.f);
 			ImGui::DragFloat("fadeNear###gw2igh_tt_tfn", &trailLeaf->fadeNear, 10.f, -1.f, 20000.f);
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(100.f);
+			PadNav::PrepLabeled("fadeFar###gw2igh_tt_tff", 100.f);
 			ImGui::DragFloat("fadeFar###gw2igh_tt_tff", &trailLeaf->fadeFar, 10.f, -1.f, 20000.f);
 			float rgba[4] = {
 				((trailLeaf->color >> 16) & 0xFFu) / 255.f,
@@ -101,9 +101,11 @@ namespace
 			ImGui::TextDisabled("Marker category: %s", gDraft.markerType);
 			char icon[256]{};
 			std::snprintf(icon, sizeof(icon), "%s", markLeaf->iconFile.c_str());
+			PadNav::PushWidthForLabel("Marker icon###gw2igh_tt_micon");
 			if (ImGui::InputText("Marker icon###gw2igh_tt_micon", icon, sizeof(icon)))
 				markLeaf->iconFile = icon;
-			ImGui::SetNextItemWidth(120.f);
+			PadNav::PopWidthForLabel();
+			PadNav::PrepLabeled("iconSize###gw2igh_tt_misz", 120.f, true);
 			ImGui::DragFloat("iconSize###gw2igh_tt_misz", &markLeaf->iconSize, 0.05f, 0.25f, 4.f);
 			float rgba[4] = {
 				((markLeaf->color >> 16) & 0xFFu) / 255.f,
@@ -136,11 +138,10 @@ namespace
 		char dispBuf[96]{};
 		std::snprintf(nameBuf, sizeof(nameBuf), "%s", n.name.c_str());
 		std::snprintf(dispBuf, sizeof(dispBuf), "%s", n.displayName.c_str());
-		ImGui::SetNextItemWidth(100.f);
+		PadNav::PrepLabeled("name", 100.f, true);
 		if (ImGui::InputText("name", nameBuf, sizeof(nameBuf)))
 			n.name = nameBuf;
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(160.f);
+		PadNav::PrepLabeled("label", 160.f);
 		if (ImGui::InputText("label", dispBuf, sizeof(dispBuf)))
 			n.displayName = dispBuf;
 
@@ -148,29 +149,33 @@ namespace
 		char tex[256]{};
 		std::snprintf(icon, sizeof(icon), "%s", n.iconFile.c_str());
 		std::snprintf(tex, sizeof(tex), "%s", n.texture.c_str());
+		PadNav::PushWidthForLabel("iconFile");
 		if (ImGui::InputText("iconFile", icon, sizeof(icon)))
 			n.iconFile = icon;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("texture");
 		if (ImGui::InputText("texture", tex, sizeof(tex)))
 			n.texture = tex;
-		ImGui::SetNextItemWidth(80.f);
+		PadNav::PopWidthForLabel();
+
+		PadNav::PrepLabeled("fadeNear", 80.f, true);
 		ImGui::DragFloat("fadeNear", &n.fadeNear, 10.f, -1.f, 20000.f);
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(80.f);
+		PadNav::PrepLabeled("fadeFar", 80.f);
 		ImGui::DragFloat("fadeFar", &n.fadeFar, 10.f, -1.f, 20000.f);
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(70.f);
+		PadNav::PrepLabeled("scale", 70.f);
 		ImGui::DragFloat("scale", &n.trailScale, 0.05f, 0.25f, 4.f);
-		ImGui::SetNextItemWidth(70.f);
+		PadNav::PrepLabeled("iconSize", 70.f, true);
 		ImGui::DragFloat("iconSize", &n.iconSize, 0.05f, 0.25f, 4.f);
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(70.f);
+		PadNav::PrepLabeled("alpha", 70.f);
 		ImGui::DragFloat("alpha", &n.alpha, 0.05f, 0.f, 1.f);
+
 		char sched[96]{};
 		std::snprintf(sched, sizeof(sched), "%s", n.schedule.c_str());
+		PadNav::PushWidthForLabel("schedule");
 		if (ImGui::InputText("schedule", sched, sizeof(sched)))
 			n.schedule = sched;
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(90.f);
+		PadNav::PopWidthForLabel();
+		PadNav::PrepLabeled("schedDur", 90.f);
 		ImGui::DragFloat("schedDur", &n.scheduleDuration, 1.f, 0.f, 10080.f);
 
 		if (ImGui::SmallButton("Add child"))
@@ -209,7 +214,9 @@ void TrailToolsDetail::DrawPackTab()
 	static char sPrevPack[64] = {};
 	if (!sPrevPack[0])
 		std::snprintf(sPrevPack, sizeof(sPrevPack), "%s", gDraft.packName);
+	PadNav::PushWidthForLabel("Pack name###gw2igh_tt_pname");
 	ImGui::InputText("Pack name###gw2igh_tt_pname", gDraft.packName, sizeof(gDraft.packName));
+	PadNav::PopWidthForLabel();
 	if (ImGui::IsItemDeactivatedAfterEdit())
 	{
 		const std::string oldPack = sPrevPack[0] ? sPrevPack : "ExamplePack";
@@ -227,11 +234,13 @@ void TrailToolsDetail::DrawPackTab()
 				(gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail") + ".trl";
 		}
 		std::snprintf(sPrevPack, sizeof(sPrevPack), "%s", gDraft.packName);
-		SetStatus("Pack renamed — category paths remapped.");
+		SetStatus("Pack renamed - category paths remapped.");
 	}
 	else if (!ImGui::IsItemActive())
 		std::snprintf(sPrevPack, sizeof(sPrevPack), "%s", gDraft.packName);
+	PadNav::PushWidthForLabel("Display name###gw2igh_tt_pdname");
 	ImGui::InputText("Display name###gw2igh_tt_pdname", gDraft.displayName, sizeof(gDraft.displayName));
+	PadNav::PopWidthForLabel();
 	if (ImGui::Button("Reseed Example categories###gw2igh_tt_reseed"))
 	{
 		SeedDefaultCategories();
@@ -256,7 +265,7 @@ void TrailToolsDetail::DrawPackTab()
 	ImGui::TextUnformatted("Active trail");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"%s%s  ·  map %u  ·  %zu pts  ·  category %s",
+		"%s%s | map %u | %zu pts | category %s",
 		gDraft.active.fileRel.empty() ? "(none)" : gDraft.active.fileRel.c_str(),
 		gDraft.trailDirty ? " *" : "",
 		gDraft.active.mapId,
@@ -267,12 +276,12 @@ void TrailToolsDetail::DrawPackTab()
 		const std::string line = TrailToolsXml::EmitTrailElement(gDraft.active);
 		if (!line.empty())
 		{
-			ImGui::PushTextWrapPos(0.f);
+			PadNav::PushWrap();
 			ImGui::TextUnformatted(line.c_str());
-			ImGui::PopTextWrapPos();
+			PadNav::PopWrap();
 		}
 		else
-			ImGui::TextDisabled("<Trail type=\"…\" trailData=\"…\"/>");
+			ImGui::TextDisabled("<Trail type=\"...\" trailData=\"...\"/>");
 	}
 	if (gDraft.lastTrlDir[0])
 		ImGui::TextDisabled("Last .trl folder: %s", gDraft.lastTrlDir);
@@ -300,7 +309,9 @@ void TrailToolsDetail::DrawPackTab()
 		ImGui::TextDisabled("%s.xml", gDraft.packName);
 
 	static char sImportName[96] = "Hero.Blish.Pack.taco";
+	PadNav::PushWidthForLabel("Import .taco name###gw2igh_tt_impname");
 	ImGui::InputText("Import .taco name###gw2igh_tt_impname", sImportName, sizeof(sImportName));
+	PadNav::PopWidthForLabel();
 	if (ImGui::Button("Import installed .taco###gw2igh_tt_import"))
 	{
 		std::wstring path = AddonPaths::EnsureUnder(AddonPaths::DataDir(), L"pathing");
@@ -330,7 +341,7 @@ void TrailToolsDetail::DrawPackTab()
 	ImGui::EndChild();
 
 	ImGui::Separator();
-	ImGui::Text("%zu trails · %zu markers", gDraft.trails.size() +
+	ImGui::Text("%zu trails | %zu markers", gDraft.trails.size() +
 		(gDraft.active.points.size() >= 2 ? 1u : 0u), gDraft.pois.size());
 
 	if (ImGui::CollapsingHeader("XML preview###gw2igh_tt_xmlprev"))

@@ -13,7 +13,7 @@ namespace NotesPadDetail
 	constexpr int kBodyLen = 512;
 	constexpr float kNotesPadW = 500.f;
 	constexpr float kNotesPadH = 640.f;
-	/* Title + kind + multiline body + Delete/Copy — keep visible without resize. */
+	/* Title + kind + multiline body + Delete/Copy - keep visible without resize. */
 	constexpr float kEditorReserve = 230.f;
 
 	extern bool gRequestDock;

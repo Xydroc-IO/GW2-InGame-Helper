@@ -4,8 +4,8 @@
 
 #include <cstdint>
 
-/* Blish Pathing / TacO marker behaviors for curated packs (Hero, Lady, …):
-   GUID persistence, Behavior 0–7 / 101, AutoTrigger, hide/show categories,
+/* Blish Pathing / TacO marker behaviors for curated packs (Hero, Lady, ...):
+   GUID persistence, Behavior 0-7 / 101, AutoTrigger, hide/show categories,
    tips / info / copy. Lua script-* attrs are not executed. */
 
 namespace MarkerBehaviors

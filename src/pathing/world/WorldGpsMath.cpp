@@ -139,7 +139,7 @@ namespace WorldGpsMath
 
 	void TrailFadeRange(float maxDist, float& fadeStart, float& fadeEnd)
 	{
-		/* Soft far edge — keep corridors visible; hard cuts blinked mid-path. */
+		/* Soft far edge - keep corridors visible; hard cuts blinked mid-path. */
 		fadeStart = maxDist * 0.92f;
 		fadeEnd = maxDist * 1.85f;
 		fadeEnd = std::max(fadeStart + 20.f, fadeEnd);

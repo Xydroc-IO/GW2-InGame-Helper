@@ -156,7 +156,7 @@ void TrailToolsAssets::RefreshInstalledTacoList(std::vector<Entry>& out)
 				continue;
 			Entry e;
 			e.relPath = entry;
-			e.label = tacoName + " · " + FileNameOf(entry);
+			e.label = tacoName + " | " + FileNameOf(entry);
 			e.fromTaco = true;
 			e.tacoName = tacoName;
 			e.zipEntry = entry;

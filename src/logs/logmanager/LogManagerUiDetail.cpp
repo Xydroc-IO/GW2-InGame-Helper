@@ -77,11 +77,11 @@ namespace LogManagerDetail
 		ImGui::TextUnformatted("Squad (DPS + boon uptimes %)");
 		if (sel->players.empty())
 			ImGui::TextColored(HelperTheme::Muted,
-				"No player data — Parse, Upload, or Load DPS/boons.");
+				"No player data - Parse, Upload, or Load DPS/boons.");
 		else if (!PlayersHaveDps(sel->players) && !PlayersHaveBoons(sel->players))
 		{
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
-				"Names loaded — click Load DPS/boons (or Parse with EI).");
+				"Names loaded - click Load DPS/boons (or Parse with EI).");
 			if (ImGui::BeginTable("###gw2igh_lm_squad_basic", 4,
 					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
 			{
@@ -172,7 +172,7 @@ namespace LogManagerDetail
 		if (!p.guildId.empty())
 		{
 			if (p.guildId.size() > 8)
-				return p.guildId.substr(0, 8) + "…";
+				return p.guildId.substr(0, 8) + "...";
 			return p.guildId;
 		}
 		return {};
@@ -215,7 +215,7 @@ namespace LogManagerDetail
 		if (sel->players.empty())
 		{
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
-				"No player data — Parse or Load DPS/boons for this log.");
+				"No player data - Parse or Load DPS/boons for this log.");
 			return;
 		}
 

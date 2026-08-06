@@ -309,7 +309,7 @@ namespace WikiBrowserDetail
 		const std::wstring path = HelperPath();
 		/* Bump when helper behavior changes — size-only reuse can keep a stale exe
 		   if the blob happens to match byte length (or Wine holds the old file). */
-		static constexpr const char* kHelperStamp = "2224";
+		static constexpr const char* kHelperStamp = "2232";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;
@@ -384,7 +384,8 @@ namespace WikiBrowserDetail
 
 		if (!gMap)
 		{
-			gMap = CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+			SECURITY_ATTRIBUTES* sa = UserOnlyIpcSecurityAttributes();
+			gMap = CreateFileMappingA(INVALID_HANDLE_VALUE, sa, PAGE_READWRITE,
 				0, sizeof(WikiIpcState), gIpcName);
 			if (!gMap)
 			{
@@ -410,7 +411,8 @@ namespace WikiBrowserDetail
 
 		if (!gWakeEvent)
 		{
-			gWakeEvent = CreateEventA(nullptr, FALSE, FALSE, gWakeName);
+			SECURITY_ATTRIBUTES* sa = UserOnlyIpcSecurityAttributes();
+			gWakeEvent = CreateEventA(sa, FALSE, FALSE, gWakeName);
 			if (!gWakeEvent)
 			{
 				/* Non-fatal — helper falls back to Sleep. */
@@ -419,7 +421,8 @@ namespace WikiBrowserDetail
 
 		if (!gFrameMap)
 		{
-			gFrameMap = CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+			SECURITY_ATTRIBUTES* sa = UserOnlyIpcSecurityAttributes();
+			gFrameMap = CreateFileMappingA(INVALID_HANDLE_VALUE, sa, PAGE_READWRITE,
 				0, kWikiFrameMapBytes, gFrameName);
 			if (!gFrameMap)
 			{

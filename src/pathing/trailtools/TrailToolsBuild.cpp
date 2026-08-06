@@ -92,7 +92,7 @@ namespace
 
 	bool SkipZipEntry(const std::string& entry)
 	{
-		/* Authoring sidecars must not ship — Pathing indexes every .xml in the taco. */
+		/* Authoring sidecars must not ship - Pathing indexes every .xml in the taco. */
 		if (entry == "_draft_session.xml")
 			return true;
 		if (entry.size() >= 18 &&
@@ -180,7 +180,7 @@ bool TrailToolsBuild::BuildTaco(std::string& errOut)
 	}
 	if (gDraft.pois.empty() && gDraft.active.points.size() < 2 && gDraft.trails.empty())
 	{
-		errOut = "Nothing to build — drop markers or record a trail first.";
+		errOut = "Nothing to build - drop markers or record a trail first.";
 		return false;
 	}
 

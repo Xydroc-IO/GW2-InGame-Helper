@@ -6,6 +6,7 @@
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
 #include "WikiBrowser.h"
@@ -38,7 +39,7 @@ namespace TpWatchDetail
 	char gAddBuf[160] = {};
 	char gAddThreadQuery[160] = {};
 	std::string gStatus;
-	std::vector<NameHit> gNameHits; /* search results — user picks Track */
+	std::vector<NameHit> gNameHits; /* search results - user picks Track */
 	std::atomic<bool> gAddBusy{false};
 	std::atomic<bool> gAddReady{false};
 	std::string gPendingAddStatus;
@@ -63,7 +64,7 @@ void TpWatchPad::OpenAndRefresh()
 {
 	const bool wasOpen = G::ShowTpWatch;
 	G::ShowTpWatch = true;
-	/* Only auto-dock / focus when the pad was closed. Lookup → Add to TP
+	/* Only auto-dock / focus when the pad was closed. Lookup -> Add to TP
 	   must not yank an already-placed TP window back beside the helper. */
 	if (!wasOpen)
 		gRequestFocus = true;
@@ -114,7 +115,7 @@ void TpWatchPad::Tick()
 	{
 		char buf[96];
 		std::snprintf(buf, sizeof(buf),
-			"%d sell alert%s hit — sell at or under target.",
+			"%d sell alert%s hit - sell at or under target.",
 			hits, hits == 1 ? "" : "s");
 		gStatus = buf;
 		gRequestFocus = true;

@@ -4,6 +4,7 @@
 
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "Gw2Icons.h"
 #include "Settings.h"
 
 #include <atomic>
@@ -124,7 +125,10 @@ namespace TpWatchDetail
 			long long id = JsonIntAfterKey(r.body, "id", brace);
 			std::string name = JsonStringAfterKey(r.body, "name", brace);
 			if (id > 0 && !name.empty())
+			{
 				outNames.emplace_back(static_cast<int>(id), std::move(name));
+				Gw2Icons::RememberIconFromJson(static_cast<int>(id), r.body.c_str(), brace, end);
+			}
 			p = end + 1;
 		}
 	}
@@ -305,7 +309,7 @@ namespace TpWatchDetail
 		if (d.coins == 0 && d.items.empty())
 			d.status = "Nothing waiting to claim.";
 		else if (d.items.empty())
-			d.status = "Coins only — claim in-game at the Trading Post.";
+			d.status = "Coins only - claim in-game at the Trading Post.";
 		else
 			d.status = "Claim in-game at the Trading Post.";
 	}
@@ -346,7 +350,7 @@ namespace TpWatchDetail
 			CloseHandle(gThread);
 			gThread = nullptr;
 		}
-		gStatus = "Refreshing…";
+		gStatus = "Refreshing...";
 		gThread = CreateThread(nullptr, 0, FetchProc, nullptr, 0, nullptr);
 		if (!gThread)
 		{

@@ -6,7 +6,7 @@
 #include <vector>
 
 /* Loads TacO/Blish .taco packs from this addon's pathing/ folder (Tekkit +
-   any custom packs the user drops in). Categories default OFF — only
+   any custom packs the user drops in). Categories default OFF - only
    user-enabled paths draw. Compass + world overlays consume CurrentTrails /
    NearbyWorldGps. Other pathing addons are optional fallbacks. */
 
@@ -28,7 +28,7 @@ namespace PathingTrails
 	struct Trail
 	{
 		uint32_t mapId = 0;
-		uint32_t color = 0xFFFFFFFFu; /* ARGB — white; cyan was the missing-texture fallback */
+		uint32_t color = 0xFFFFFFFFu; /* ARGB - white; cyan was the missing-texture fallback */
 		char     label[96]{};
 		char     guid[96]{}; /* optional; Lua TrailByGuid also accepts label */
 		char     textureId[160]{}; /* pack trail texture, uploaded through Nexus */
@@ -82,11 +82,11 @@ namespace PathingTrails
 		char     copy[256]{};
 		char     copyMessage[128]{};
 
-		/* Blish schedule — empty = always visible. */
+		/* Blish schedule - empty = always visible. */
 		char     schedule[96]{};
 		float    scheduleDuration = 0.f; /* minutes */
 
-		/* Lua script-* expressions (pack attrs) — std::string for long Blish calls. */
+		/* Lua script-* expressions (pack attrs) - std::string for long Blish calls. */
 		std::string scriptOnce;
 		std::string scriptTrigger;
 		std::string scriptFilter;
@@ -99,7 +99,7 @@ namespace PathingTrails
 
 	struct Category
 	{
-		std::string path;   /* e.g. "tw_guides.tw_mc" — enable prefix */
+		std::string path;   /* e.g. "tw_guides.tw_mc" - enable prefix */
 		std::string label;  /* DisplayName from Tekkit menu when known */
 		std::string tip;    /* tip-description from MarkerCategory (Blish hover) */
 		int         trails = 0; /* trails + POIs under this prefix */
@@ -140,12 +140,12 @@ namespace PathingTrails
 	int  TrailCount();          /* visible (category-enabled) trails */
 	int  TrailCountAllOnMap();  /* all loaded for this map (for routing) */
 	int  MarkerCount();         /* visible (category-enabled) POIs */
-	/* Bumps when current-map trail/marker set changes — world GPS cache key. */
+	/* Bumps when current-map trail/marker set changes - world GPS cache key. */
 	uint64_t ContentRevision();
 	/* True if any enabled trail/marker is loaded for the map (for sticky GPS cache). */
 	bool HasDrawableWorldGps();
 
-	/* Category tree — Tekkit menu order / DisplayNames (like the official overlay). */
+	/* Category tree - Tekkit menu order / DisplayNames (like the official overlay). */
 	std::vector<Category> CategoryTree();
 	void SetCategoryEnabled(const std::string& path, bool enabled);
 	/* Map-completion hearts/POIs/vistas + one route edition (not both). */
@@ -162,6 +162,8 @@ namespace PathingTrails
 	MapCompletionRoutes ActiveMapCompletionRoutes();
 	void EnableAllTekkitCategories();
 	void EnableAllLadyCategories(); /* Lady Elyssa Guides (legs) + Achievements (leag) */
+	/* Lady Map Completion Features only - legs.map / leag.map (not whole pack). */
+	void EnableLadyMapCompletionCategories();
 	void EnableAllHeroCategories(); /* Hero's Marker Pack (HMP + hmpSim) */
 	void DisableAllCategories();
 	/* After Lady Barefoot / WP Only / With Mounts (or similar) changes. */
@@ -169,7 +171,7 @@ namespace PathingTrails
 	/* Exact category paths the user turned on (prefix enables descendants). */
 	std::vector<std::string> EnabledPaths();
 	void SetEnabledPaths(const std::vector<std::string>& paths);
-	/* Persist helpers — '|' separated category paths (Blish-style remember). */
+	/* Persist helpers - '|' separated category paths (Blish-style remember). */
 	void SerializeEnabledPaths(char* out, size_t outLen);
 	void ParseEnabledPaths(const char* pipeList);
 	/* Open addons/.../pathing in Explorer / file manager. */
@@ -194,7 +196,7 @@ namespace PathingTrails
 		float trailScale = 1.f;
 		float fadeNear = -1.f;
 		float fadeFar = -1.f;
-		/* Meters along the TacO section to points[0] — keeps UV world-locked when
+		/* Meters along the TacO section to points[0] - keeps UV world-locked when
 		   the nearby window slides (avoids scroll pops while moving). */
 		float uvAlong0 = 0.f;
 		std::vector<WorldPoint> points;
@@ -203,7 +205,7 @@ namespace PathingTrails
 		float avatarX, float avatarY, float avatarZ,
 		float maxDistMeters, int maxTrails, int maxPointTests);
 
-	/* Render-thread nearby GPS. Returns false on lock miss — keep prior frame. */
+	/* Render-thread nearby GPS. Returns false on lock miss - keep prior frame. */
 	bool TryNearbyWorldGps(
 		float avatarX, float avatarY, float avatarZ, float maxDistMeters,
 		std::vector<WorldSnippet>& outSnippets,
@@ -224,7 +226,7 @@ namespace PathingTrails
 	bool TryTrailStartContinent(float* outX, float* outY,
 		char* labelOut, size_t labelLen, bool preferEnabled = true);
 
-	/* Overlay / pack tools / category browser — modular Pathing tab pieces.
+	/* Overlay / pack tools / category browser - modular Pathing tab pieces.
 	   DrawSettings() combines them for any single-panel caller. */
 	bool DrawOverlaySettings();
 	bool DrawPackTools();

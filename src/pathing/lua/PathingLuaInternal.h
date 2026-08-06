@@ -39,7 +39,7 @@ namespace PathingLuaDetail
 
 	void LogLuaError(lua_State* L, const char* ctx);
 
-	/* Script registry — store all .lua from packs; Pack:Require / pack.lua entry run them. */
+	/* Script registry - store all .lua from packs; Pack:Require / pack.lua entry run them. */
 	void StoreScriptSource(const std::string& name, const std::string& source);
 	bool RequireScript(lua_State* L, const char* path);
 	void ClearScriptSources();

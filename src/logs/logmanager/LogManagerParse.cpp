@@ -257,7 +257,7 @@ void FillPlayerCombatStats(const char* playerObj, PlayerInfo& pi)
 		if (JsonLongAfterKey(dps0.c_str(), "condiDps", v) || JsonLongAfterKey(dps0.c_str(), "CondiDps", v))
 			pi.condiDps = static_cast<int>(v);
 	}
-	/* Only overwrite when nested buffUptimes exist — flat cache values must survive. */
+	/* Only overwrite when nested buffUptimes exist - flat cache values must survive. */
 	auto setBuff = [](float& dst, float v) {
 		if (v >= 0.f)
 			dst = v;
@@ -409,7 +409,7 @@ const char* FindPlayersArray(const char* json)
 	return p;
 }
 
-/* Extract object slice starting at '{' — returns end past matching '}'. */
+/* Extract object slice starting at '{' - returns end past matching '}'. */
 const char* ObjectEnd(const char* start)
 {
 	if (!start || *start != '{')

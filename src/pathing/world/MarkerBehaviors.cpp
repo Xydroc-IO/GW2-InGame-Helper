@@ -2,6 +2,7 @@
 #include "MarkerBehaviorsInternal.h"
 
 #include "HelperTheme.h"
+#include "PadNav.h"
 
 #include <cmath>
 #include <cstdio>
@@ -137,11 +138,11 @@ void MarkerBehaviors::Tick(
 			if (m.info[0])
 			{
 				std::snprintf(nearUi.infoPreview, sizeof(nearUi.infoPreview), "%.140s%s",
-					m.info, std::strlen(m.info) > 140 ? "…" : "");
+					m.info, std::strlen(m.info) > 140 ? "..." : "");
 			}
 			if (nearUi.canInteract)
 				std::snprintf(nearUi.status, sizeof(nearUi.status),
-					"Interact · %.1fm", d);
+					"Interact | %.1fm", d);
 			else
 				std::snprintf(nearUi.status, sizeof(nearUi.status), "%.1fm", d);
 		}
@@ -182,9 +183,9 @@ void MarkerBehaviors::DrawOverlay()
 			ImGui::TextColored(HelperTheme::Gold, "%s", ui.tipName);
 			if (ui.tipDescription[0])
 			{
-				ImGui::PushTextWrapPos(0.f);
+				PadNav::PushWrap();
 				ImGui::TextUnformatted(ui.tipDescription);
-				ImGui::PopTextWrapPos();
+				PadNav::PopWrap();
 			}
 			if (ui.infoPreview[0])
 			{
@@ -207,7 +208,9 @@ void MarkerBehaviors::DrawOverlay()
 	if (ImGui::BeginPopupModal("Pathing info###gw2igh_marker_info", nullptr,
 			ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushTextWrapPos(440.f);
+		/* Bound width so AlwaysAutoResize actually wraps instead of growing forever. */
+		const float wrapW = ImGui::GetFontSize() * 28.f;
+		ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + wrapW);
 		ImGui::TextUnformatted(gInfoPopup);
 		ImGui::PopTextWrapPos();
 		ImGui::Spacing();

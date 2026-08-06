@@ -36,12 +36,12 @@ bool PathingTrails::DrawOverlaySettings()
 
 	dirty |= ImGui::Checkbox("Enable path overlays", &G::ShowPathingTrails);
 	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("Master switch — allows compass / world drawing (packs still index below).");
+		ImGui::SetTooltip("Master switch - allows compass / world drawing (packs still index below).");
 	if (G::ShowPathingTrails)
 	{
 		dirty |= ImGui::Checkbox("Draw on in-game compass", &G::ShowCompassOverlay);
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("TacO / Blish style — project enabled markers onto the stock compass.");
+			ImGui::SetTooltip("TacO / Blish style - project enabled markers onto the stock compass.");
 		dirty |= ImGui::Checkbox("In-world GPS trails", &G::ShowWorldTrails);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("3D world breadcrumbs near you (same categories as the compass).");
@@ -53,7 +53,7 @@ bool PathingTrails::DrawOverlaySettings()
 		{
 			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted,
-				"Enable “In-world GPS trails” above to apply.");
+				"Enable \"In-world GPS trails\" above to apply.");
 			PadNav::PopWrap();
 		}
 		PadNav::PushLabeledItemWidth();
@@ -62,32 +62,32 @@ bool PathingTrails::DrawOverlaySettings()
 			ImGui::SetTooltip(
 				"How far in-world GPS ribbons stay visible around you.\n"
 				"Lower = shorter trails; higher = longer corridors.");
-		dirty |= ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1f×");
+		dirty |= ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.5f, 4.0f, "%.1fx");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
 				"Multiplier on pack trailScale (1.0 = Blish/TacO default).");
-		dirty |= ImGui::SliderFloat("World markers", &G::WorldMarkerScale, 0.5f, 3.0f, "%.1f×");
+		dirty |= ImGui::SliderFloat("World markers", &G::WorldMarkerScale, 0.5f, 3.0f, "%.1fx");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
 				"Scale pack icons in the 3D world (in-world GPS).\n"
-				"2.0× = default.");
-		dirty |= ImGui::SliderFloat("Compass icons", &G::CompassMarkerScale, 0.5f, 3.0f, "%.1f×");
+				"2.0x = default.");
+		dirty |= ImGui::SliderFloat("Compass icons", &G::CompassMarkerScale, 0.5f, 3.0f, "%.1fx");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
 				"Scale pack icons on the stock in-game compass.\n"
-				"1.0× = default.");
-		dirty |= ImGui::SliderFloat("Player clear", &G::WorldTrailPlayerClear, 0.f, 3.0f, "%.1f×");
+				"1.0x = default.");
+		dirty |= ImGui::SliderFloat("Player clear", &G::WorldTrailPlayerClear, 0.f, 3.0f, "%.1fx");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
 				"Fade trails away from you.\n"
 				"0 = full path visible (can draw over you).\n"
-				"1 = default gap · higher = larger clear bubble.");
-		dirty |= ImGui::SliderFloat("Marker clear", &G::WorldMarkerPlayerClear, 0.f, 3.0f, "%.1f×");
+				"1 = default gap | higher = larger clear bubble.");
+		dirty |= ImGui::SliderFloat("Marker clear", &G::WorldMarkerPlayerClear, 0.f, 3.0f, "%.1fx");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
 				"Fade world markers near you (occlusion / soft-clear).\n"
 				"0 = keep icons at your feet.\n"
-				"1 ≈ 2–5.5 m · higher = larger hole.\n"
+				"1 ~ 2-5.5 m | higher = larger hole.\n"
 				"Mount / Barefoot shortcut icons use a smaller bubble.");
 		PadNav::PopLabeledItemWidth();
 		ImGui::Unindent();
@@ -129,9 +129,9 @@ bool PathingTrails::DrawPackTools()
 		OpenPathingFolder();
 	if (IsLoading() || PathingPacks::IsUpdating())
 	{
-		PadNav::WrapSameLine(ImGui::CalcTextSize("Updating…").x);
+		PadNav::WrapSameLine(ImGui::CalcTextSize("Updating...").x);
 		ImGui::TextColored(HelperTheme::Muted,
-			PathingPacks::IsUpdating() ? "Updating…" : "Loading…");
+			PathingPacks::IsUpdating() ? "Updating..." : "Loading...");
 	}
 	{
 		char st[160]{};
@@ -149,15 +149,15 @@ bool PathingTrails::DrawPackTools()
 	PadNav::PushWrap();
 	if (loading)
 		ImGui::TextColored(HelperTheme::Muted,
-			"Packs: %d  ·  indexing categories…", PackCount());
+			"Packs: %d | indexing categories...", PackCount());
 	else
 		ImGui::TextColored(HelperTheme::Muted,
-			"Packs: %d  ·  This map: %d trails, %d markers on",
+			"Packs: %d | This map: %d trails, %d markers on",
 			PackCount(), TrailCount(), MarkerCount());
 	PadNav::PopWrap();
 	if (!packs.empty())
 	{
-		/* Fill remaining Overview height — no tiny clipped list. */
+		/* Fill remaining Overview height - no tiny clipped list. */
 		ImGui::BeginChild("##igh_tekkit_packs", ImVec2(0.f, 0.f), true);
 		for (const std::string& name : packs)
 			ImGui::BulletText("%s", name.c_str());
@@ -167,7 +167,7 @@ bool PathingTrails::DrawPackTools()
 	{
 		PadNav::PushWrap();
 		ImGui::TextColored(ImVec4(1.f, 0.7f, 0.3f, 1.f),
-			"No .taco packs yet — click Update curated, or drop packs into the pathing folder.");
+			"No .taco packs yet - click Update curated, or drop packs into the pathing folder.");
 		PadNav::PopWrap();
 	}
 	(void)dirty;
@@ -225,7 +225,7 @@ bool PathingTrails::DrawCategoryBrowser()
 	{
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			loading ? "Indexing menu…" : "No categories yet — wait for pack index.");
+			loading ? "Indexing menu..." : "No categories yet - wait for pack index.");
 		PadNav::PopWrap();
 		return dirty;
 	}
@@ -253,7 +253,7 @@ bool PathingTrails::DrawCategoryBrowser()
 			level = &current->children;
 	}
 
-	/* Breadcrumb — wraps to new rows (no single-line clip / scroll arrows). */
+	/* Breadcrumb - wraps to new rows (no single-line clip / scroll arrows). */
 	if (PadNav::WrapButton("Root###gw2igh_cat_root", sDrill.empty(), /*first=*/true))
 		sDrill.clear();
 	for (size_t i = 0; i < sDrill.size(); ++i)
@@ -313,7 +313,7 @@ bool PathingTrails::DrawCategoryBrowser()
 
 	if (filterOn)
 	{
-		/* Flat filtered results — checkboxes, no tree. */
+		/* Flat filtered results - checkboxes, no tree. */
 		std::function<void(Category&)> flat = [&](Category& c) {
 			if (c.hidden || c.separator)
 				return;
@@ -402,7 +402,7 @@ bool PathingTrails::DrawCategoryBrowser()
 	{
 		PadNav::PushWrap();
 		ImGui::TextColored(ImVec4(1.f, 0.75f, 0.35f, 1.f),
-			"Nothing visible on this map — enable categories above or in Features.");
+			"Nothing visible on this map - enable categories above or in Features.");
 		PadNav::PopWrap();
 	}
 	else

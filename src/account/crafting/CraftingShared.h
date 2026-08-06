@@ -15,7 +15,7 @@ namespace CraftingDetail
 {
 	constexpr int kHttpTimeoutMs = 6000;
 	constexpr int kBulkTimeoutMs = 10000;
-	/* Deep enough for legendary → gift → sub-gift → mats. */
+	/* Deep enough for legendary -> gift -> sub-gift -> mats. */
 	constexpr int kMaxDepth = 5;
 	constexpr DWORD kDailyTtlMs = 10 * 60 * 1000;
 
@@ -48,7 +48,7 @@ namespace CraftingDetail
 		int outCount = 1;
 		int recipeId = 0;
 		std::vector<RecipeIng> ings;
-		std::string source; /* "Crafting station" / "Mystic Forge" / … */
+		std::string source; /* "Crafting station" / "Mystic Forge" / ... */
 	};
 
 	struct DailyRow
@@ -128,11 +128,11 @@ namespace CraftingDetail
 	bool LoadWikiRecipeForName(const char* pageTitle, int& outCount,
 		std::vector<RecipeIng>& ings, std::string* sourceOut);
 
-	/* CraftingWikiAcquire.cpp — Sold by / tp-placeholder material lists */
+	/* CraftingWikiAcquire.cpp - Sold by / tp-placeholder material lists */
 	bool LoadWikiAcquisitionBill(const char* pageTitle, int& outCount,
 		std::vector<RecipeIng>& ings, std::string* sourceOut);
 
-	/* CraftingCurated.cpp — hardcoded bills when wiki has no {{recipe}} */
+	/* CraftingCurated.cpp - hardcoded bills when wiki has no {{recipe}} */
 	bool LoadCuratedBill(int outputId, int& outCount, std::vector<RecipeIng>& ings,
 		std::string* sourceOut);
 

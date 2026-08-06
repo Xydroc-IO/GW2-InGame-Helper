@@ -111,7 +111,7 @@ namespace PathingLuaDetail
 				lua_pushcfunction(L, Menu_Remove);
 				return 1;
 			}
-			lua_getfield(L, 1, key); /* fallthrough raw — may be nil */
+			lua_getfield(L, 1, key); /* fallthrough raw - may be nil */
 			return 1;
 		}
 
@@ -302,7 +302,7 @@ namespace PathingLuaDetail
 
 	void RegisterMenu(lua_State* L)
 	{
-		/* Root menu object — Blish: Menu = new("Scripts", null, ...) */
+		/* Root menu object - Blish: Menu = new("Scripts", null, ...) */
 		lua_newtable(L);
 		lua_pushinteger(L, 0);
 		lua_setfield(L, -2, "Id");

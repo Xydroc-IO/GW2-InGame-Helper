@@ -3,6 +3,7 @@
 #include "TrailToolsShared.h"
 
 #include "Globals.h"
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
 #include "PadDock.h"
 #include "PadNav.h"
@@ -16,12 +17,12 @@
 
 namespace
 {
-	constexpr float kHubW = 560.f;
-	constexpr float kHubH = 640.f;
+	constexpr float kHubW = 600.f;
+	constexpr float kHubH = 720.f;
 	constexpr float kEditW = 480.f;
 	constexpr float kEditH = 560.f;
 
-	/* Collapsible pop-out — title bar stays when minimized (ImGui collapse). */
+	/* Collapsible pop-out - title bar stays when minimized (ImGui collapse). */
 	bool RenderCollapsiblePad(
 		const char* title,
 		bool& showFlag,
@@ -38,7 +39,7 @@ namespace
 
 		const float maxH = PadDock::MaxH(320.f);
 		ImGui::SetNextWindowSizeConstraints(ImVec2(320.f, 120.f), ImVec2(PadDock::MaxW(780.f), maxH));
-		/* Only un-collapse on first appear — user may minimize to the title bar. */
+		/* Only un-collapse on first appear - user may minimize to the title bar. */
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(geom, placeOnce, defW, defH, fallbackPos);
 		if (!placeOnce && geom.w < 80.f)
@@ -53,7 +54,7 @@ namespace
 		HelperTheme::ScopedWindow theme(G::Opacity);
 		if (!ImGui::Begin(title, &open, ImGuiWindowFlags_NoNavInputs))
 		{
-			/* Collapsed to title bar — still capture pos; keep last non-collapsed size. */
+			/* Collapsed to title bar - still capture pos; keep last non-collapsed size. */
 			const ImVec2 p = ImGui::GetWindowPos();
 			if (std::fabs(p.x - geom.x) > 0.5f || std::fabs(p.y - geom.y) > 0.5f)
 			{
@@ -146,7 +147,7 @@ bool TrailToolsPad::Render()
 	if (G::ShowTrailTools)
 	{
 		const float maxH = PadDock::MaxH(320.f);
-		ImGui::SetNextWindowSizeConstraints(ImVec2(420.f, 120.f), ImVec2(PadDock::MaxW(780.f), maxH));
+		ImGui::SetNextWindowSizeConstraints(ImVec2(440.f, 280.f), ImVec2(PadDock::MaxW(820.f), maxH));
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(G::PadTrailTools, gPlaceOnce, kHubW, kHubH, PadDock::BesideHelper(kHubW));
 		if (!gPlaceOnce && G::PadTrailTools.w < 80.f)
@@ -159,7 +160,7 @@ bool TrailToolsPad::Render()
 
 		char title[280]{};
 		const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
-		std::snprintf(title, sizeof(title), "Trail Tools — %s.trl%s###GW2InGameHelperTrailTools",
+		std::snprintf(title, sizeof(title), "Trail Tools - %s.trl%s###GW2InGameHelperTrailTools",
 			stem, gDraft.trailDirty ? " *" : "");
 
 		bool open = G::ShowTrailTools;
@@ -205,7 +206,14 @@ bool TrailToolsPad::Render()
 			PadNav::PopWrap();
 
 			static const char* kTabs[] = { "Live", "Trails", "Markers", "Pack", "Keybinds" };
-			gTab = PadNav::DrawSideRail("###gw2igh_tt_nav", kTabs, 5, gTab < 0 || gTab > 4 ? 0 : gTab);
+			static const int kTabIcons[] = {
+				static_cast<int>(Gw2Ui::Icon::Map),
+				static_cast<int>(Gw2Ui::Icon::Inventory),
+				static_cast<int>(Gw2Ui::Icon::Alert),
+				static_cast<int>(Gw2Ui::Icon::Bag),
+				static_cast<int>(Gw2Ui::Icon::Options),
+			};
+			gTab = PadNav::DrawSideRail("###gw2igh_tt_nav", kTabs, 5, gTab < 0 || gTab > 4 ? 0 : gTab, 0.f, kTabIcons);
 
 			ImGui::BeginChild("###gw2igh_tt_body", ImVec2(0.f, 0.f), true);
 			if (gTab == 0)
@@ -256,7 +264,7 @@ bool TrailToolsPad::Render()
 	{
 		char title[280]{};
 		const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
-		std::snprintf(title, sizeof(title), "Trails — %s.trl%s###GW2InGameHelperTrailPopout",
+		std::snprintf(title, sizeof(title), "Trails - %s.trl%s###GW2InGameHelperTrailPopout",
 			stem, gDraft.trailDirty ? " *" : "");
 		hover = RenderCollapsiblePad(
 			title,
@@ -277,7 +285,7 @@ bool TrailToolsPad::Render()
 					Settings::SetDirty();
 				}
 				ImGui::SameLine();
-				ImGui::TextDisabled("Collapse ▸ title bar to free space");
+				ImGui::TextDisabled("Collapse > title bar to free space");
 				ImGui::Separator();
 				ImGui::BeginChild("###gw2igh_tr_po_body", ImVec2(0.f, 0.f), true);
 				DrawTrailTab();
@@ -306,7 +314,7 @@ bool TrailToolsPad::Render()
 					Settings::SetDirty();
 				}
 				ImGui::SameLine();
-				ImGui::TextDisabled("Collapse ▸ title bar to free space");
+				ImGui::TextDisabled("Collapse > title bar to free space");
 				ImGui::Separator();
 				ImGui::BeginChild("###gw2igh_mk_po_body", ImVec2(0.f, 0.f), true);
 				DrawMarkersTab();

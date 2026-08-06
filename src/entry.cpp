@@ -45,6 +45,8 @@ namespace G
 	bool  ShowLogManager = false;
 	bool  ShowEconomy = false;
 	bool  ShowInstances = false;
+	bool  ShowCompletion = false;
+	bool  ShowFarming = false;
 	bool  ShowPathingGuides = false;
 	bool  ShowPathingTrails = true;
 	bool  ShowTrailTools = false;
@@ -52,8 +54,8 @@ namespace G
 	bool  LadyBarefoot = true;  /* Lady map-completion foot routes */
 	bool  LadyWpOnly = false;   /* Lady Core WP Only routes */
 	bool  LadyWithMounts = false; /* off by default so Barefoot works out of the box */
-	bool  LadyHearts = false; /* heartpath trails — own Features toggle */
-	bool  LadyHeroPointTrain = false; /* legs.hp.* train — own Features toggle */
+	bool  LadyHearts = false; /* heartpath trails - own Features toggle */
+	bool  LadyHeroPointTrain = false; /* legs.hp.* train - own Features toggle */
 	bool  ShowCompassOverlay = true;
 	bool  ShowWorldTrails = true;
 	bool  ShowDirectionCompass = false;
@@ -66,12 +68,12 @@ namespace G
 	float WorldTrailMaxDist = 120.f;
 	float WorldTrailWidth = 1.f;
 	float WorldTrailPlayerClear = 1.f; /* 0 = full path; 1 = default clear bubble */
-	float WorldMarkerPlayerClear = 1.f; /* 0 = no marker hole; 1 = ~2–5.5m soft-clear */
+	float WorldMarkerPlayerClear = 1.f; /* 0 = no marker hole; 1 = ~2-5.5m soft-clear */
 	float WorldMarkerScale = 2.f; /* world GPS icons */
 	float CompassMarkerScale = 1.f; /* stock compass / minimap icons */
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
-	bool  FontScaleAuto = false; /* opt-in only — default stays 1.0 */
+	bool  FontScaleAuto = false; /* opt-in only - default stays 1.0 */
 	float WindowWidth  = 1100.f;
 	float WindowHeight = 760.f;
 	float WindowPosX   = 60.f;
@@ -112,6 +114,8 @@ namespace G
 	PadGeom PadVault{};
 	PadGeom PadEconomy{};
 	PadGeom PadInstances{};
+	PadGeom PadCompletion{};
+	PadGeom PadFarming{};
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)
@@ -128,14 +132,14 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Name             = ADDON_NAME;
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 2;
-	G::AddonDef.Version.Build    = 1;
+	G::AddonDef.Version.Build    = 2;
 	G::AddonDef.Version.Revision = 0;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
-		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";
+		"In-game browser for Guild Wars 2 - Wiki, Snow Crows, MetaBattle, Guildjen, and more.";
 	G::AddonDef.Load             = EntryDetail::AddonLoad;
 	G::AddonDef.Unload           = EntryDetail::AddonUnload;
-	/* Hot-unload on Nexus Disable — WikiBrowser::Shutdown stops the CEF helper first. */
+	/* Hot-unload on Nexus Disable - WikiBrowser::Shutdown stops the CEF helper first. */
 	G::AddonDef.Flags            = AF_None;
 	G::AddonDef.Provider         = UP_GitHub;
 	G::AddonDef.UpdateLink       = "https://github.com/Xydroc-IO/GW2-InGame-Helper";

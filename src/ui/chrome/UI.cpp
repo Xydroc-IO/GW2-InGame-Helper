@@ -61,7 +61,7 @@ bool UI_BlocksGameKeyboard()
 /* True while keystrokes should go to the CEF page (not ImGui filter/search/find). */
 bool UI_BrowserKeyboardActive()
 {
-	/* Pointer must be on the OSR page — sticky gUi.browserFocused alone stole
+	/* Pointer must be on the OSR page - sticky gUi.browserFocused alone stole
 	   Browse/Find typing and game chat after leaving the page. */
 	return G::ShowWiki && gUi.overBrowserPage;
 }

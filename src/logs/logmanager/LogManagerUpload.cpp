@@ -36,7 +36,7 @@ std::string UrlEncode(const std::string& s)
 	return o;
 }
 
-/* dps.report accepts id or URL — query param works most reliably as the bare id. */
+/* dps.report accepts id or URL - query param works most reliably as the bare id. */
 std::string PermalinkQueryValue(const std::string& permalink)
 {
 	std::string s = permalink;
@@ -113,7 +113,7 @@ void ApplyDpsReportMeta(LogEntry& e, const std::string& resp)
 	if (JsonLongAfterKey(resp.c_str(), "encounterTime", encTime) && encTime > 0)
 		e.encounterTime = static_cast<time_t>(encTime);
 
-	/* Metadata has names only — never replace a squad that already has DPS/boons. */
+	/* Metadata has names only - never replace a squad that already has DPS/boons. */
 	if (e.players.empty() || PlayersNeedCombatStats(e.players))
 	{
 		if (e.players.empty() || !PlayersHaveDps(e.players))
@@ -137,7 +137,7 @@ bool FetchEiJsonFromReport(const std::string& permalink, std::string& json, std:
 	}
 	std::string path = "/getJson?permalink=";
 	path += UrlEncode(PermalinkQueryValue(permalink));
-	/* EI JSON can be large — allow a longer read. */
+	/* EI JSON can be large - allow a longer read. */
 	const std::wstring host = Utf8ToWide("dps.report");
 	const std::wstring pathW = Utf8ToWide(path.c_str());
 	HINTERNET session = WinHttpOpen(L"GW2-InGame-Helper/Logs",

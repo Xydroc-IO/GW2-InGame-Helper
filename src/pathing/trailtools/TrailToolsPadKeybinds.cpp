@@ -15,19 +15,35 @@
 
 namespace
 {
+	float ChordButtonWidth(const char* shown)
+	{
+		const float pad = ImGui::GetStyle().FramePadding.x * 2.f;
+		const float textW = ImGui::CalcTextSize(shown, nullptr, true).x + pad;
+		const float minW = ImGui::CalcTextSize("CTRL+NUMPAD0", nullptr, true).x + pad;
+		return textW > minW ? textW : minW;
+	}
+
 	void BindButton(const char* id, TrailToolsBinds::Chord& chord, int captureId)
 	{
 		auto& st = TrailToolsBinds::Get();
 		const bool listening = st.captureTarget == captureId;
 		char lab[96]{};
 		if (listening)
-			std::snprintf(lab, sizeof(lab), "Press key…###%s", id);
+			std::snprintf(lab, sizeof(lab), "Press key...###%s", id);
 		else
 			std::snprintf(lab, sizeof(lab), "%s###%s",
 				TrailToolsBinds::FormatChord(chord).c_str(), id);
-		if (ImGui::Button(lab, ImVec2(168.f, 0.f)))
+
+		char vis[96]{};
+		if (const char* hash = std::strstr(lab, "###"))
+			std::snprintf(vis, sizeof(vis), "%.*s", (int)(hash - lab), lab);
+		else
+			std::snprintf(vis, sizeof(vis), "%s", lab);
+
+		const float btnW = ChordButtonWidth(vis);
+		if (ImGui::Button(lab, ImVec2(btnW, 0.f)))
 			st.captureTarget = listening ? -1 : captureId;
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("Clear"));
 		if (ImGui::SmallButton((std::string("Clear###clr_") + id).c_str()))
 		{
 			chord = {};
@@ -36,7 +52,7 @@ namespace
 		}
 	}
 
-	void DrawTypeCombo(char* typeBuf, size_t typeLen, const char* id)
+	void DrawTypeCombo(char* typeBuf, size_t typeLen, const char* id, float width)
 	{
 		using namespace TrailToolsDetail;
 		std::vector<std::string> leaves;
@@ -56,7 +72,7 @@ namespace
 			: (gDraft.markerType[0] ? "(default marker type)" : "(unset)");
 		char comboId[64]{};
 		std::snprintf(comboId, sizeof(comboId), "###%s_type", id);
-		ImGui::SetNextItemWidth(220.f);
+		ImGui::SetNextItemWidth(width);
 		if (ImGui::BeginCombo(comboId, preview))
 		{
 			if (ImGui::Selectable("(use default marker type)", typeBuf[0] == 0))
@@ -78,6 +94,38 @@ namespace
 			ImGui::EndCombo();
 		}
 	}
+
+	/* Label column sized to the longest row label so text is never covered by
+	   the chord button (fixed SameLine(168) clipped longer names). */
+	float LabelColumnWidth(const char* const* labels, int count)
+	{
+		float w = ImGui::CalcTextSize("Slot 10").x;
+		for (int i = 0; i < count; ++i)
+		{
+			if (!labels[i])
+				continue;
+			const float tw = ImGui::CalcTextSize(labels[i], nullptr, true).x;
+			if (tw > w)
+				w = tw;
+		}
+		return w + ImGui::GetStyle().ItemInnerSpacing.x + 4.f;
+	}
+
+	void BindRow(const char* label, float labelColW, const char* id,
+		TrailToolsBinds::Chord& chord, int captureId)
+	{
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted(label);
+		const float chordW = ChordButtonWidth(
+			TrailToolsBinds::FormatChord(chord).c_str());
+		const float clearW = PadNav::ButtonWidth("Clear");
+		const float need = chordW + clearW + ImGui::GetStyle().ItemSpacing.x * 2.f;
+		/* Prefer label | bind on one row; wrap bind under label if pad is narrow. */
+		PadNav::WrapSameLine(need);
+		if (ImGui::GetCursorPosX() < labelColW)
+			ImGui::SetCursorPosX(labelColW);
+		BindButton(id, chord, captureId);
+	}
 }
 
 void TrailToolsDetail::DrawKeybindsTab()
@@ -87,9 +135,8 @@ void TrailToolsDetail::DrawKeybindsTab()
 
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Binds work while GW2 is focused (even if this pad is closed). "
-		"Place Marker has %d slots — assign each a category (e.g. different mounts) "
-		"and a chord (CTRL+NumPad is a common pattern; TacO only offered ~4–5).",
+		"Binds work while GW2 is focused (pad can be closed). "
+		"%d place-marker slots - each gets a category + chord.",
 		kPlaceSlots);
 	PadNav::PopWrap();
 
@@ -99,11 +146,23 @@ void TrailToolsDetail::DrawKeybindsTab()
 		Settings::SetDirty();
 		SetStatus("Keybinds reset to defaults.");
 	}
-	ImGui::SameLine();
+	PadNav::WrapSameLine(ImGui::CalcTextSize("Click a bind, then press the key combo. Esc cancels.").x);
 	ImGui::TextDisabled("Click a bind, then press the key combo. Esc cancels.");
 
+	static const char* kTrailLabels[] = {
+		"Start / resume recording",
+		"Pause / unpause",
+		"New trail section",
+		"Delete trail segment",
+	};
+	static const char* kMarkLabels[] = { "Delete marker" };
+	const char* allLabels[] = {
+		kTrailLabels[0], kTrailLabels[1], kTrailLabels[2], kTrailLabels[3], kMarkLabels[0],
+	};
+	const float labelCol = LabelColumnWidth(allLabels, 5);
+
 	ImGui::Separator();
-	ImGui::TextUnformatted("TRAILS");
+	ImGui::TextColored(HelperTheme::GoldDim, "TRAILS");
 	if (st.trailRecording)
 	{
 		ImGui::SameLine();
@@ -111,58 +170,69 @@ void TrailToolsDetail::DrawKeybindsTab()
 			st.trailPaused ? "(paused)" : "(recording)");
 	}
 
-	ImGui::TextUnformatted("Start / resume recording");
-	ImGui::SameLine(220.f);
-	BindButton("kb_tstart", st.trailStart, 0);
-	ImGui::TextUnformatted("Pause / unpause");
-	ImGui::SameLine(220.f);
-	BindButton("kb_tpause", st.trailPause, 1);
-	ImGui::TextUnformatted("New trail section");
-	ImGui::SameLine(220.f);
-	BindButton("kb_tsec", st.trailSection, 2);
-	ImGui::TextUnformatted("Delete trail segment");
-	ImGui::SameLine(220.f);
-	BindButton("kb_tdel", st.trailDeleteSeg, 3);
+	BindRow(kTrailLabels[0], labelCol, "kb_tstart", st.trailStart, 0);
+	BindRow(kTrailLabels[1], labelCol, "kb_tpause", st.trailPause, 1);
+	BindRow(kTrailLabels[2], labelCol, "kb_tsec", st.trailSection, 2);
+	BindRow(kTrailLabels[3], labelCol, "kb_tdel", st.trailDeleteSeg, 3);
 
 	ImGui::Separator();
-	ImGui::TextUnformatted("MARKERS");
-	ImGui::TextUnformatted("Delete marker");
-	ImGui::SameLine(220.f);
-	BindButton("kb_mdel", st.markerDelete, 4);
-	ImGui::TextDisabled("Deletes the selected POI, or the last one if none selected.");
-
-	ImGui::Separator();
-	ImGui::TextUnformatted("Place marker slots");
+	ImGui::TextColored(HelperTheme::GoldDim, "MARKERS");
+	BindRow(kMarkLabels[0], labelCol, "kb_mdel", st.markerDelete, 4);
 	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
-		"Each slot places its own type at your feet. Empty type uses the Markers tab default.");
+	ImGui::TextDisabled("Selected POI, or last one if none selected.");
 	PadNav::PopWrap();
 
-	if (ImGui::BeginChild("###gw2igh_kb_places", ImVec2(0.f, 0.f), true))
+	ImGui::Separator();
+	ImGui::TextColored(HelperTheme::GoldDim, "PLACE MARKER SLOTS");
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Empty type uses the Markers tab default. List scrolls with the pad.");
+	PadNav::PopWrap();
+
+	const float slotLabW = ImGui::CalcTextSize("Slot 10").x +
+		ImGui::GetStyle().ItemInnerSpacing.x + 4.f;
+	for (int i = 0; i < kPlaceSlots; ++i)
 	{
-		for (int i = 0; i < kPlaceSlots; ++i)
-		{
-			ImGui::PushID(i);
-			char rowLab[64]{};
-			std::snprintf(rowLab, sizeof(rowLab), "Slot %d", i + 1);
-			ImGui::TextUnformatted(rowLab);
-			ImGui::SameLine(70.f);
-			ImGui::SetNextItemWidth(100.f);
-			if (ImGui::InputText("###lab", st.place[i].label, sizeof(st.place[i].label)))
-				Settings::SetDirty();
-			ImGui::SameLine();
-			char bid[32]{};
-			std::snprintf(bid, sizeof(bid), "kb_p%d", i);
-			BindButton(bid, st.place[i].chord, 10 + i);
-			DrawTypeCombo(st.place[i].type, sizeof(st.place[i].type), bid);
-			if (ImGui::SmallButton("Place now###now"))
-				ActionPlaceMarker(i);
+		ImGui::PushID(i);
+		char rowLab[32]{};
+		std::snprintf(rowLab, sizeof(rowLab), "Slot %d", i + 1);
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted(rowLab);
+
+		const float labField = ImGui::CalcTextSize("Marker 10").x +
+			ImGui::GetStyle().FramePadding.x * 2.f + 8.f;
+		PadNav::WrapSameLine(labField);
+		if (ImGui::GetCursorPosX() < slotLabW)
+			ImGui::SetCursorPosX(slotLabW);
+		ImGui::SetNextItemWidth(labField);
+		if (ImGui::InputText("###lab", st.place[i].label, sizeof(st.place[i].label)))
+			Settings::SetDirty();
+
+		char bid[32]{};
+		std::snprintf(bid, sizeof(bid), "kb_p%d", i);
+		const float chordW = ChordButtonWidth(
+			FormatChord(st.place[i].chord).c_str());
+		PadNav::WrapSameLine(chordW + PadNav::ButtonWidth("Clear") + 8.f);
+		BindButton(bid, st.place[i].chord, 10 + i);
+
+		const float placeW = PadNav::ButtonWidth("Place now");
+		const float comboW = ImGui::CalcTextSize("(default marker type)").x +
+			ImGui::GetStyle().FramePadding.x * 2.f + ImGui::GetFrameHeight();
+		PadNav::WrapSameLine(comboW + placeW + 16.f);
+		DrawTypeCombo(st.place[i].type, sizeof(st.place[i].type), bid, comboW);
+		PadNav::WrapSameLine(placeW);
+		if (ImGui::SmallButton("Place now###now"))
+			ActionPlaceMarker(i);
+
+		if (i + 1 < kPlaceSlots)
 			ImGui::Separator();
-			ImGui::PopID();
-		}
+		ImGui::PopID();
 	}
-	ImGui::EndChild();
 
 	if (gDraft.status[0])
+	{
+		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
+		PadNav::PopWrap();
+	}
 }

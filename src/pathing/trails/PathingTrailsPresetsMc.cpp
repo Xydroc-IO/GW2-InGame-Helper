@@ -57,7 +57,7 @@ void PathingTrails::EnableMapCompletionPreset(MapCompletionRoutes routes)
 		return false;
 	};
 
-	/* Prefer DisplayName — SotO/VoE reuse trails/trails2 for Skyscale/Lanterns/Skimmer. */
+	/* Prefer DisplayName - SotO/VoE reuse trails/trails2 for Skyscale/Lanterns/Skimmer. */
 	auto matchesRoutes = [&](const Category& c) -> bool
 	{
 		const std::string leaf = ToLower(leafOf(c.path));
@@ -115,7 +115,7 @@ void PathingTrails::EnableMapCompletionPreset(MapCompletionRoutes routes)
 		if (path.empty())
 			return;
 		const std::string low = ToLower(path);
-		/* Only strip overlapping MC enables — never wipe fishing / me / Lady. */
+		/* Only strip overlapping MC enables - never wipe fishing / me / Lady. */
 		gEnabledPaths.erase(
 			std::remove_if(gEnabledPaths.begin(), gEnabledPaths.end(),
 				[&](const std::string& p) {

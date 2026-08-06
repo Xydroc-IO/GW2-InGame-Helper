@@ -30,18 +30,18 @@ namespace LogManagerDetail
 	{
 		if (gEiInstallBusy.load())
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
-				gEiStatus[0] ? gEiStatus : "Installing Elite Insights…");
+				gEiStatus[0] ? gEiStatus : "Installing Elite Insights...");
 		else if (gScanBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Scanning…");
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Scanning...");
 		else if (gParseBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Parsing %d / %d…",
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Parsing %d / %d...",
 				gParseDone.load(), gParseTotal.load());
 		else if (gUploadBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "dps.report %d / %d…",
+			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "dps.report %d / %d...",
 				gUploadDone.load(), gUploadTotal.load());
 		else if (gHydrateBusy.load())
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
-				gStatus[0] ? gStatus : "Loading report metadata…");
+				gStatus[0] ? gStatus : "Loading report metadata...");
 		else if (gStatus[0])
 			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", gStatus);
 	}
@@ -108,7 +108,7 @@ namespace LogManagerDetail
 				gFocusSetupTab = true;
 			ImGui::PopStyleColor(2);
 			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Elite Insights needs .NET 8 Desktop Runtime — open Setup.");
+				ImGui::SetTooltip("Elite Insights needs .NET 8 Desktop Runtime - open Setup.");
 		}
 
 		ImGui::SameLine(0.f, 10.f);
@@ -123,7 +123,7 @@ namespace LogManagerDetail
 		ImGui::TextUnformatted("Filters");
 		ImGui::Separator();
 		ImGui::SetNextItemWidth(-1.f);
-		ImGui::InputTextWithHint("###gw2igh_lm_search", "Search file or encounter…",
+		ImGui::InputTextWithHint("###gw2igh_lm_search", "Search file or encounter...",
 			gSearch, sizeof(gSearch));
 		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 			ImGui::SetTooltip("Match log file name or encounter name.");
@@ -146,7 +146,7 @@ namespace LogManagerDetail
 		ImGui::RadioButton("30 days###gw2igh_lm_day4", &gDaysCombo, 4);
 		ImGui::Spacing();
 
-		/* Box + wrapping label — ImGui Checkbox clips long labels in a narrow pane. */
+		/* Box + wrapping label - ImGui Checkbox clips long labels in a narrow pane. */
 		auto wrapCheck = [](const char* id, const char* label, bool* v) -> bool {
 			const bool changed = ImGui::Checkbox(id, v);
 			ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
@@ -175,8 +175,8 @@ namespace LogManagerDetail
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
 			G::LogManagerGroupByEncounter
-				? "Collapsible sections · newest encounter first"
-				: "Flat list · use Search to narrow");
+				? "Collapsible sections | newest encounter first"
+				: "Flat list | use Search to narrow");
 		PadNav::PopWrap();
 		ImGui::Spacing();
 		if (ImGui::SmallButton("Clear filters###gw2igh_lm_clearf"))
@@ -227,7 +227,7 @@ namespace LogManagerDetail
 		else if (e->result == 0)
 			ImGui::TextColored(ImVec4(0.90f, 0.45f, 0.40f, 1.f), "Fail");
 		else if (e->state == ParseState::Pending)
-			ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.40f, 1.f), "…");
+			ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.40f, 1.f), "...");
 		else
 			ImGui::TextUnformatted(ResultLabel(e->result));
 		ImGui::TableNextColumn();
@@ -319,7 +319,7 @@ namespace LogManagerDetail
 			if (g->bestKillMs > 0)
 			{
 				std::snprintf(header, sizeof(header),
-					"%s  (%d)  ·  %d kill%s  ·  best %s  ·  last %s###gw2igh_enc_%zu",
+					"%s  (%d) | %d kill%s | best %s | last %s###gw2igh_enc_%zu",
 					g->label.c_str(),
 					static_cast<int>(g->logs.size()),
 					g->kills, g->kills == 1 ? "" : "s",
@@ -330,7 +330,7 @@ namespace LogManagerDetail
 			else
 			{
 				std::snprintf(header, sizeof(header),
-					"%s  (%d)  ·  last %s###gw2igh_enc_%zu",
+					"%s  (%d) | last %s###gw2igh_enc_%zu",
 					g->label.c_str(),
 					static_cast<int>(g->logs.size()),
 					FmtTime(g->lastTime).c_str(),
@@ -347,7 +347,7 @@ namespace LogManagerDetail
 			if (!open)
 				continue;
 
-			/* Unique table id per encounter — shared ids fight column layout across groups. */
+			/* Unique table id per encounter - shared ids fight column layout across groups. */
 			char tableId[64];
 			std::snprintf(tableId, sizeof(tableId), "###gw2igh_lm_gtable_%zu", idHash);
 			if (ImGui::BeginTable(tableId, 6,

@@ -145,7 +145,7 @@ namespace SyncQr
 		if (outCount)
 			*outCount = n;
 
-		/* Versioned deep link — phone app + future seamless sync share this shape. */
+		/* Versioned deep link - phone app + future seamless sync share this shape. */
 		const int written = std::snprintf(
 			out, outLen, "gw2helper://sync/v1?favorites=%s", csv);
 		return written > 0 && static_cast<size_t>(written) < outLen;
@@ -159,7 +159,7 @@ namespace SyncQr
 		ImGui::TextColored(
 			ImVec4(0.65f, 0.65f, 0.68f, 1.f),
 			"Sync favorites to the Android app with a QR code. Seamless sync can come later.");
-		if (ImGui::Button("Show favorites QR…###gw2igh_qr"))
+		if (ImGui::Button("Show favorites QR...###gw2igh_qr"))
 		{
 			RefreshPayload();
 			sShowPopup = true;
@@ -179,7 +179,7 @@ namespace SyncQr
 			if (sEncodeOk)
 			{
 				ImGui::Text("Favorites: %d", sFavCount);
-				ImGui::TextWrapped("In the Android app: Settings → Scan favorites QR.");
+				ImGui::TextWrapped("In the Android app: Settings -> Scan favorites QR.");
 				ImGui::Spacing();
 				const float qrSide = 300.f;
 				const float pad = (ImGui::GetContentRegionAvail().x - qrSide) * 0.5f;

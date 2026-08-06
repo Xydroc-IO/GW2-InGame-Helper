@@ -57,7 +57,7 @@ namespace TpWatchDetail
 			std::snprintf(out, outLen, "%lldc", c);
 	}
 
-	/* "5g", "50s", "1g 20s", "12345" (copper). Empty / junk → 0. */
+	/* "5g", "50s", "1g 20s", "12345" (copper). Empty / junk -> 0. */
 	long long ParseCoinsInput(const char* text)
 	{
 		if (!text) return 0;
@@ -303,7 +303,7 @@ namespace TpWatchDetail
 				}
 			}
 		}
-		/* Pure numeric ID only — names must go through wiki resolve. */
+		/* Pure numeric ID only - names must go through wiki resolve. */
 		int id = 0;
 		bool onlyDigits = true;
 		for (const char* p = text; *p; ++p)

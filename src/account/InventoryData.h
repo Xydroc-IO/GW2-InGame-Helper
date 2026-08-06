@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-/* Account inventory aggregation — materials, bank, shared, character bags,
+/* Account inventory aggregation - materials, bank, shared, character bags,
    and worn equipment. WalletPad keeps its richer UI; Crafting/SessionHistory
    consume this module for owned counts. */
 namespace InventoryData

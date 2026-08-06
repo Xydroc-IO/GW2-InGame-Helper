@@ -45,7 +45,7 @@ namespace CraftingDetail
 	{
 		size_t k = eqPos + 1;
 		while (k < wt.size() && (wt[k] == ' ' || wt[k] == '\t')) ++k;
-		/* Support "| id = 91737, 92443" — take each integer. */
+		/* Support "| id = 91737, 92443" - take each integer. */
 		while (k < wt.size())
 		{
 			int id = 0;
@@ -128,7 +128,7 @@ namespace CraftingDetail
 				break;
 			}
 			CollectIdsInRange(wikitext, p, recipe, fallback);
-			/* Skip until matching }} after {{recipe — simple depth scan. */
+			/* Skip until matching }} after {{recipe - simple depth scan. */
 			size_t i = recipe + 2;
 			int depth = 1;
 			while (i + 1 < wikitext.size() && depth > 0)
@@ -181,7 +181,7 @@ namespace CraftingDetail
 		}
 		{
 			std::lock_guard<std::mutex> lock(gWikiMu);
-			/* Never cache misses — a timeout would poison Sync forever. */
+			/* Never cache misses - a timeout would poison Sync forever. */
 			if (!wt.empty())
 				gWikiTextCache[key] = wt;
 		}
@@ -243,7 +243,7 @@ namespace CraftingDetail
 				}
 				p = titleKey + 7;
 			}
-			/* Alias requested spellings — fetch misses in parallel. */
+			/* Alias requested spellings - fetch misses in parallel. */
 			std::vector<std::string> stillMiss;
 			for (size_t i = 0; i < n; ++i)
 			{
@@ -303,7 +303,7 @@ namespace CraftingDetail
 
 	std::string CleanWikiLinkName(std::string s)
 	{
-		/* Trim + unwrap [[Name]] / [[Name|Label]] → Name */
+		/* Trim + unwrap [[Name]] / [[Name|Label]] -> Name */
 		while (!s.empty() && (s.front() == ' ' || s.front() == '\t')) s.erase(s.begin());
 		while (!s.empty() && (s.back() == ' ' || s.back() == '\t' || s.back() == '\r')) s.pop_back();
 		if (s.size() >= 4 && s[0] == '[' && s[1] == '[')
@@ -319,7 +319,7 @@ namespace CraftingDetail
 		return s;
 	}
 
-	/* Legendaries / mystic forge are not on /v2/recipes — read {{recipe}} from the wiki. */
+	/* Legendaries / mystic forge are not on /v2/recipes - read {{recipe}} from the wiki. */
 	bool LoadWikiRecipeForName(const char* pageTitle, int& outCount,
 		std::vector<RecipeIng>& ings, std::string* sourceOut)
 	{
@@ -419,7 +419,7 @@ namespace CraftingDetail
 			const std::string typeLow = ToLowerCopy(recipeType);
 			const std::string srcLow = ToLowerCopy(source);
 			const std::string pageLow = ToLowerCopy(pageTitle);
-			/* Mystic Forge promotions (mithril→orichalcum, dust ladders) inflate plans. */
+			/* Mystic Forge promotions (mithril->orichalcum, dust ladders) inflate plans. */
 			if (typeLow.find("promotion") != std::string::npos) continue;
 			if (hasUpperQty) continue;
 			if (typeLow.find("salvage") != std::string::npos) continue;

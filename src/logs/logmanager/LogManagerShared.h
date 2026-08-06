@@ -38,14 +38,14 @@ namespace LogManagerDetail
 	constexpr int kParseTimeoutMs = 180000;
 	constexpr int kUploadTimeoutMs = 120000;
 
-	/* Default when display metrics unavailable — nearly full 1080p client. */
+	/* Default when display metrics unavailable - nearly full 1080p client. */
 	constexpr float kPadW = 1760.f;
 	constexpr float kPadH = 900.f;
 	/* Filters column: wide enough for checkbox labels at font scale. */
 	constexpr float kFilterFrac = 0.24f;
 	constexpr float kFilterMinW = 300.f;
 	constexpr float kFilterMaxW = 400.f;
-	constexpr float kLogListFracDef = 0.55f; /* of space after filters → ~48% overall */
+	constexpr float kLogListFracDef = 0.55f; /* of space after filters -> ~48% overall */
 	constexpr float kLogListMinW = 420.f;
 	constexpr float kRightPaneMinW = 360.f;
 	constexpr float kSplitHitW = 6.f;
@@ -108,7 +108,7 @@ namespace LogManagerDetail
 		int ld = -1;
 		int ufe = -1;
 		std::string proofUrl;
-		std::unordered_map<int, int> amounts; /* item id → qty */
+		std::unordered_map<int, int> amounts; /* item id -> qty */
 		DWORD fetchedAtMs = 0;
 		bool missing = false;
 		bool error = false;
@@ -181,6 +181,7 @@ namespace LogManagerDetail
 	extern int gDaysCombo;
 	extern int gSelected;
 	extern bool gFocusSetupTab;
+	extern int gSideTab; /* Detail...Setup top tabs */
 	extern float gLogListFrac;
 
 	extern std::vector<std::string> gUploadQueue;

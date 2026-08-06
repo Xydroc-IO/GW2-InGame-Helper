@@ -117,7 +117,7 @@ void UnlocksData::EnsureLoaded(Kind k, bool force)
 		st.ready = false;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
-		st.status = "Loading…";
+		st.status = "Loading...";
 		st.pendingStatus = st.status;
 	}
 	auto* arg = new LoadArg{k, force};

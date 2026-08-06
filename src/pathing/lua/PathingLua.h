@@ -22,6 +22,6 @@ namespace PathingLua
 	void OnMarkersLoaded(std::vector<PathingTrails::Marker>& markers);
 	/* Append Pack:CreateMarker dynamics into out (current map). */
 	void AppendDynamicMarkers(uint32_t mapId, std::vector<PathingTrails::Marker>& out);
-	/* ImGui entries from Menu.Add (Pathing → Features). */
+	/* ImGui entries from Menu.Add (Pathing -> Features). */
 	void DrawScriptMenus();
 }

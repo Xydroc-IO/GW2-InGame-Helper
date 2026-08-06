@@ -344,12 +344,12 @@ function youtubeWatchUrl(src){
 function makeWatchCard(flag,title,note,linkText,url){
   var box=document.createElement('div');
   box.setAttribute(flag,'1');
-  box.style.cssText='margin:12px 0;padding:14px 16px;border:1px solid #c9a227;'+
-    'border-radius:6px;background:#1a1c24;color:#e8e6e3;font:14px/1.45 Segoe UI,sans-serif;';
+  box.style.cssText='margin:12px 0;padding:14px 16px;border:1px solid #c29438;'+
+    'border-radius:6px;background:#1a160f;color:#f5eddb;font:14px/1.45 Segoe UI,sans-serif;';
   box.innerHTML=
-    '<div style="font-weight:600;margin-bottom:6px;color:#e0c35a;">'+title+'</div>'+
+    '<div style="font-weight:600;margin-bottom:6px;color:#f0c761;">'+title+'</div>'+
     '<div style="opacity:.85;margin-bottom:10px;">'+note+'</div>'+
-    '<a href="'+String(url).replace(/"/g,'&quot;')+'" style="color:#7eb6ff;font-weight:600;">'+
+    '<a href="'+String(url).replace(/"/g,'&quot;')+'" style="color:#ffe68c;font-weight:600;">'+
     linkText+'</a>';
   return box;
 }
@@ -557,8 +557,8 @@ function openGw2SelectMenu(sel){
       'top:'+(rect.bottom+4)+'px',
       'min-width:'+Math.max(rect.width,160)+'px',
       'max-height:min(320px,calc(100vh - '+(rect.bottom+16)+'px))',
-      'overflow:auto','background:#1b1d24','color:#e8e6e3',
-      'border:1px solid #3a3f4b','border-radius:8px',
+      'overflow:auto','background:#1a160f','color:#f5eddb',
+      'border:1px solid #8c6b33','border-radius:0',
       'box-shadow:0 8px 24px rgba(0,0,0,.45)','padding:4px 0',
       'font:14px/1.35 system-ui,sans-serif'
     ].join(';');
@@ -808,8 +808,8 @@ function wireCheatSheetChecks(){
       st.textContent=[
         'ul.checks>li{cursor:pointer;user-select:none}',
         'ul.checks>li.done{opacity:.85}',
-        'ul.checks>li.done .box{background:rgba(106,170,106,.22);border-color:rgba(106,170,106,.65);position:relative}',
-        "ul.checks>li.done .box::after{content:'';position:absolute;left:3px;top:0;width:4px;height:8px;border:solid #a8d0a8;border-width:0 2px 2px 0;transform:rotate(45deg)}",
+        'ul.checks>li.done .box{background:rgba(133,184,107,.22);border-color:rgba(133,184,107,.65);position:relative}',
+        "ul.checks>li.done .box::after{content:'';position:absolute;left:3px;top:0;width:4px;height:8px;border:solid #b8d9a8;border-width:0 2px 2px 0;transform:rotate(45deg)}",
         'ul.checks>li.done>span:not(.box){text-decoration:line-through}'
       ].join('');
       (document.head||document.documentElement).appendChild(st);

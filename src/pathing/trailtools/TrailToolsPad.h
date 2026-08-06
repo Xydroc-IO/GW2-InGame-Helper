@@ -1,6 +1,6 @@
 #pragma once
 
-/* ImGui Trail Tools — hub tabs, with Trails / Markers optionally popped out
+/* ImGui Trail Tools - hub tabs, with Trails / Markers optionally popped out
    into their own collapsible windows (title bar remains when minimized). */
 namespace TrailToolsPad
 {

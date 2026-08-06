@@ -26,7 +26,7 @@ namespace LogManagerParse
 		float regeneration = -1.f;
 		float swiftness = -1.f;
 		float vigor = -1.f;
-		/* killproof.me — -1 unknown / not loaded */
+		/* killproof.me - -1 unknown / not loaded */
 		int kpLi = -1;
 		int kpLd = -1;
 		int kpUfe = -1;

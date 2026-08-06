@@ -217,7 +217,7 @@ namespace PathingLuaDetail
 
 	int Event_OnTick(lua_State* L)
 	{
-		/* Event:OnTick(fn) or Event.OnTick(fn) — last arg is function */
+		/* Event:OnTick(fn) or Event.OnTick(fn) - last arg is function */
 		int fnIdx = lua_gettop(L);
 		if (!lua_isfunction(L, fnIdx))
 			return luaL_error(L, "Event:OnTick expects a function");

@@ -24,7 +24,7 @@ int WorldGpsImgui::DrawTrailBillboards(
 		return 0;
 
 	/* Blish/Taimi draw world-space strips with a real depth buffer.
-	   Nexus only gives us ImGui — continuous screen ribbons stretch into
+	   Nexus only gives us ImGui - continuous screen ribbons stretch into
 	   giant chevrons when looking along the path. Match their *look* with
 	   discrete billboarded chevrons sized by camera distance instead. */
 
@@ -312,7 +312,7 @@ void WorldGpsImgui::DrawMarkers(
 
 		const float horiz = std::sqrt(dx * dx + dz * dz);
 		float nearFade = 1.f;
-		/* Soft-clear around the avatar — Marker clear slider (default ~2–5.5m).
+		/* Soft-clear around the avatar - Marker clear slider (default ~2-5.5m).
 		   Mount/bfs guide icons keep a smaller bubble so they stay visible on path. */
 		const bool guideIcon = PathingDetail::IsMountShortcutMarker(marker) ||
 			(marker.label[0] && std::strstr(marker.label, ".bfs") != nullptr);

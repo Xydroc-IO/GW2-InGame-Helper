@@ -76,14 +76,16 @@ namespace G
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
 	extern bool  ShowEconomy; /* Flip Finder / charts / cart (read-only) */
 	extern bool  ShowInstances; /* Story / fractal / raid / strike journal */
+	extern bool  ShowCompletion; /* Map completion checklist / Atlas / routes */
+	extern bool  ShowFarming; /* Farming runs + fishing catch log */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
 	extern bool  ShowTrailTools; /* ImGui Trail Tools authoring pad */
 	extern bool  EnablePathingLua; /* opt-in subset of Blish script-* Lua */
-	/* Lady Elyssa Features — map-completion editions are exclusive; Hearts / HP Train are independent. */
-	extern bool  LadyBarefoot;   /* foot routes + bfs shortcuts (current map) */
-	extern bool  LadyWpOnly;     /* waypoint trails (current map) */
-	extern bool  LadyWithMounts; /* mount route + mount-guide markers (current map) */
+	/* Lady Elyssa Features - Map Completion + extras; toggles are independent. */
+	extern bool  LadyBarefoot;   /* barefoot trails/markers + bfs shortcuts (current map) */
+	extern bool  LadyWpOnly;     /* WP trails/markers/shortcuts (current map) */
+	extern bool  LadyWithMounts; /* mount MC trails + mount markers/shortcuts (current map) */
 	extern bool  LadyHearts;     /* heartpath trails (current map) */
 	extern bool  LadyHeroPointTrain; /* legs.hp.* hero point train (current map) */
 	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
@@ -154,4 +156,6 @@ namespace G
 	extern PadGeom PadVault;
 	extern PadGeom PadEconomy;
 	extern PadGeom PadInstances;
+	extern PadGeom PadCompletion;
+	extern PadGeom PadFarming;
 }

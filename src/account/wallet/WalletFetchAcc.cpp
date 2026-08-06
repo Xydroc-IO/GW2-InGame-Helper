@@ -213,7 +213,7 @@ namespace WalletDetail
 		{
 			std::lock_guard<std::mutex> lock(acc.mu);
 			ResolveMissingNames(acc.map, G::Gw2ApiKey);
-			Publish(acc.map, "Account stash ready — loading characters…", 0, 0, true);
+			Publish(acc.map, "Account stash ready - loading characters...", 0, 0, true);
 		}
 
 		if (gCancel)
@@ -254,20 +254,20 @@ namespace WalletDetail
 			if (bagsFail > 0 && bagsOk == 0)
 			{
 				std::snprintf(st, sizeof(st),
-					"%d unique · %d toons listed, 0 bags loaded (need characters + inventories?). %s",
+					"%d unique | %d toons listed, 0 bags loaded (need characters + inventories?). %s",
 					static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
 					acc.note.c_str());
 			}
 			else if (bagsFail > 0)
 			{
 				std::snprintf(st, sizeof(st),
-					"%d unique · %d/%d toon bags (%d failed). %s",
+					"%d unique | %d/%d toon bags (%d failed). %s",
 					static_cast<int>(acc.map.size()), bagsOk,
 					static_cast<int>(job.names.size()), bagsFail, acc.note.c_str());
 			}
 			else
 			{
-				std::snprintf(st, sizeof(st), "%d unique · %d toons. %s",
+				std::snprintf(st, sizeof(st), "%d unique | %d toons. %s",
 					static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
 					acc.note.c_str());
 			}
@@ -312,7 +312,7 @@ namespace WalletDetail
 			}
 			else
 			{
-				/* Still running — leave it; skip starting another. */
+				/* Still running - leave it; skip starting another. */
 				gBusy = false;
 				return;
 			}
@@ -320,9 +320,9 @@ namespace WalletDetail
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			if (!gSnap.ok)
-				gSnap.status = "Loading…";
+				gSnap.status = "Loading...";
 			else
-				gSnap.status = "Refreshing in background…";
+				gSnap.status = "Refreshing in background...";
 			gGen.fetch_add(1);
 		}
 		gMasterThread = CreateThread(nullptr, 0, MasterProc, nullptr, 0, nullptr);

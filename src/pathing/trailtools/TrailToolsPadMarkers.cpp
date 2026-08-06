@@ -26,33 +26,38 @@ namespace
 		char guid[96]{};
 		std::snprintf(type, sizeof(type), "%s", p.type.c_str());
 		std::snprintf(guid, sizeof(guid), "%s", p.guid.c_str());
+		PadNav::PushWidthForLabel("type###gw2igh_tt_ptype");
 		if (ImGui::InputText("type###gw2igh_tt_ptype", type, sizeof(type)))
 			p.type = type;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("GUID###gw2igh_tt_pguid");
 		if (ImGui::InputText("GUID###gw2igh_tt_pguid", guid, sizeof(guid)))
 			p.guid = guid;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("XYZ###gw2igh_tt_mnudge");
 		ImGui::DragFloat3("XYZ###gw2igh_tt_mnudge", &p.x, 0.05f);
+		PadNav::PopWidthForLabel();
 		if (ImGui::SmallButton("+X")) p.x += 0.5f;
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("-X"));
 		if (ImGui::SmallButton("-X")) p.x -= 0.5f;
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("+Z"));
 		if (ImGui::SmallButton("+Z")) p.z += 0.5f;
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("-Z"));
 		if (ImGui::SmallButton("-Z")) p.z -= 0.5f;
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("+Y"));
 		if (ImGui::SmallButton("+Y")) p.y += 0.25f;
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("-Y"));
 		if (ImGui::SmallButton("-Y")) p.y -= 0.25f;
 
-		ImGui::SetNextItemWidth(80.f);
+		PadNav::PrepLabeled("behavior###gw2igh_tt_pbeh", 80.f, true);
 		ImGui::InputInt("behavior###gw2igh_tt_pbeh", &p.behavior);
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::CheckboxWidth("autoTrigger###gw2igh_tt_patr"));
 		ImGui::Checkbox("autoTrigger###gw2igh_tt_patr", &p.autoTrigger);
-		ImGui::SetNextItemWidth(100.f);
+		PadNav::PrepLabeled("triggerRange###gw2igh_tt_ptr", 100.f, true);
 		ImGui::DragFloat("triggerRange###gw2igh_tt_ptr", &p.triggerRange, 0.1f, 0.f, 50.f);
-		ImGui::SetNextItemWidth(100.f);
+		PadNav::PrepLabeled("fadeNear###gw2igh_tt_pfn", 100.f);
 		ImGui::DragFloat("fadeNear###gw2igh_tt_pfn", &p.fadeNear, 10.f, -1.f, 20000.f);
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(100.f);
+		PadNav::PrepLabeled("fadeFar###gw2igh_tt_pff", 100.f);
 		ImGui::DragFloat("fadeFar###gw2igh_tt_pff", &p.fadeFar, 10.f, -1.f, 20000.f);
 
 		char tip[96]{}, tipd[384]{}, info[384]{}, copy[256]{}, cmsg[128]{};
@@ -64,32 +69,46 @@ namespace
 		std::snprintf(cmsg, sizeof(cmsg), "%s", p.copyMessage.c_str());
 		std::snprintf(sched, sizeof(sched), "%s", p.schedule.c_str());
 		std::snprintf(icon, sizeof(icon), "%s", p.iconFile.c_str());
+		PadNav::PushWidthForLabel("tip-name###gw2igh_tt_ptn");
 		if (ImGui::InputText("tip-name###gw2igh_tt_ptn", tip, sizeof(tip)))
 			p.tipName = tip;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("tip-description###gw2igh_tt_ptd");
 		if (ImGui::InputText("tip-description###gw2igh_tt_ptd", tipd, sizeof(tipd)))
 			p.tipDescription = tipd;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("info###gw2igh_tt_pinfo");
 		if (ImGui::InputText("info###gw2igh_tt_pinfo", info, sizeof(info)))
 			p.info = info;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("copy###gw2igh_tt_pcopy");
 		if (ImGui::InputText("copy###gw2igh_tt_pcopy", copy, sizeof(copy)))
 			p.copy = copy;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("copy-message###gw2igh_tt_pcmsg");
 		if (ImGui::InputText("copy-message###gw2igh_tt_pcmsg", cmsg, sizeof(cmsg)))
 			p.copyMessage = cmsg;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("schedule###gw2igh_tt_psched");
 		if (ImGui::InputText("schedule###gw2igh_tt_psched", sched, sizeof(sched)))
 			p.schedule = sched;
-		ImGui::SetNextItemWidth(120.f);
+		PadNav::PopWidthForLabel();
+		PadNav::PrepLabeled("schedule-duration###gw2igh_tt_psd", 120.f, true);
 		ImGui::DragFloat("schedule-duration###gw2igh_tt_psd", &p.scheduleDuration,
 			1.f, 0.f, 10080.f);
+		PadNav::PushWidthForLabel("iconFile###gw2igh_tt_picon");
 		if (ImGui::InputText("iconFile###gw2igh_tt_picon", icon, sizeof(icon)))
 			p.iconFile = icon;
+		PadNav::PopWidthForLabel();
 
 		DrawPoiScriptAttrs(p);
 
 		ImGui::TextUnformatted("POI XML");
 		{
 			const std::string line = TrailToolsXml::EmitPoiElement(p);
-			ImGui::PushTextWrapPos(0.f);
+			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted, "%s", line.c_str());
-			ImGui::PopTextWrapPos();
+			PadNav::PopWrap();
 			if (ImGui::Button("Copy POI XML###gw2igh_tt_mcopy"))
 			{
 				CopyClipboard(line.c_str());
@@ -160,8 +179,8 @@ void TrailToolsDetail::DrawMarkersTab()
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"POIs live under <POIs> and reference a MarkerCategory path via type= "
-		"(e.g. test.circle). Categories themselves are the menu — edit them on the Pack tab. "
-		"Trails also go in <POIs> as <Trail …/>.");
+		"(e.g. test.circle). Categories themselves are the menu - edit them on the Pack tab. "
+		"Trails also go in <POIs> as <Trail .../>.");
 	PadNav::PopWrap();
 
 	ImGui::TextUnformatted("XML layout (same as Pack)");
@@ -177,9 +196,9 @@ void TrailToolsDetail::DrawMarkersTab()
 		Settings::SetDirty();
 	}
 	if (gDraft.xmlLayout == 1)
-		ImGui::TextDisabled("Build → %s_Menu.xml + %s_Data.xml", gDraft.packName, gDraft.packName);
+		ImGui::TextDisabled("Build -> %s_Menu.xml + %s_Data.xml", gDraft.packName, gDraft.packName);
 	else
-		ImGui::TextDisabled("Build → %s.xml (categories + POIs)", gDraft.packName);
+		ImGui::TextDisabled("Build -> %s.xml (categories + POIs)", gDraft.packName);
 
 	ImGui::Separator();
 	ImGui::TextUnformatted("Default marker type");
@@ -212,8 +231,10 @@ void TrailToolsDetail::DrawMarkersTab()
 		}
 		ImGui::EndCombo();
 	}
+	PadNav::PushWidthForLabel("Or type path###gw2igh_tt_mtype_edit");
 	ImGui::InputText("Or type path###gw2igh_tt_mtype_edit", gDraft.markerType, sizeof(gDraft.markerType));
-	ImGui::TextDisabled("Becomes type=\"…\" on each new POI — must match a leaf category.");
+	PadNav::PopWidthForLabel();
+	ImGui::TextDisabled("Becomes type=\"...\" on each new POI - must match a leaf category.");
 
 	uint32_t mapId = 0;
 	float x = 0.f, y = 0.f, z = 0.f;

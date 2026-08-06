@@ -141,12 +141,12 @@ namespace TrailToolsDetail
 				looksMarker = true;
 			else if (hasTex && hasIcon)
 			{
-				/* Both assets: exclusive — trail list vs marker list, never both. */
+				/* Both assets: exclusive - trail list vs marker list, never both. */
 				looksTrail = trailLeaves;
 				looksMarker = !trailLeaves;
 			}
 			else
-				looksMarker = !trailLeaves; /* bare leaf → marker picker */
+				looksMarker = !trailLeaves; /* bare leaf -> marker picker */
 			if (trailLeaves ? looksTrail : looksMarker)
 				out.push_back(path);
 			return;
@@ -379,11 +379,11 @@ namespace TrailToolsDetail
 			leaf->fadeFar = 3200.f;
 			break;
 		default:
-			SetStatus("Custom — edit texture path on the category below.");
+			SetStatus("Custom - edit texture path on the category below.");
 			return;
 		}
 		leaf->iconFile.clear();
-		SetStatus("Trail look → %s", TrailLookPresetNames(nullptr)[presetIndex]);
+		SetStatus("Trail look -> %s", TrailLookPresetNames(nullptr)[presetIndex]);
 	}
 
 	void ApplyMarkerLookPreset(int presetIndex)
@@ -421,13 +421,13 @@ namespace TrailToolsDetail
 			leaf->iconSize = 1.f;
 			break;
 		default:
-			SetStatus("Custom — edit iconFile on the category below.");
+			SetStatus("Custom - edit iconFile on the category below.");
 			return;
 		}
 		leaf->texture.clear();
 		leaf->fadeNear = -1.f;
 		leaf->fadeFar = 3500.f;
-		SetStatus("Marker look → %s", MarkerLookPresetNames(nullptr)[presetIndex]);
+		SetStatus("Marker look -> %s", MarkerLookPresetNames(nullptr)[presetIndex]);
 	}
 
 	bool HasDraftPreview()

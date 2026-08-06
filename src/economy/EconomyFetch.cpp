@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "Gw2Icons.h"
 
 #include <windows.h>
 
@@ -38,10 +39,10 @@ namespace EconomyDetail
 	static bool gHavePending = false;
 	static char gPendingStatus[192] = {};
 
-	/* Curated tradeable mats — id is the source of truth; names are fallbacks
+	/* Curated tradeable mats - id is the source of truth; names are fallbacks
 	   until /v2/items fills them (API puts "name" before "id" in objects). */
 	struct Seed { int id; const char* name; };
-	/* Verified against /v2/items — fallback names only used if names fetch fails. */
+	/* Verified against /v2/items - fallback names only used if names fetch fails. */
 	static const Seed kSeeds[] = {
 		{24357, "Vicious Fang"},
 		{24356, "Large Fang"},
@@ -234,7 +235,10 @@ namespace EconomyDetail
 			const long long id = JsonIntAfterKey(body, "id", brace, end + 1);
 			const std::string name = JsonStringAfterKey(body, "name", brace, end + 1);
 			if (id > 0 && !name.empty())
+			{
 				byId[static_cast<int>(id)] = name;
+				Gw2Icons::RememberIconFromJson(static_cast<int>(id), body.c_str(), brace, end + 1);
+			}
 			p = end + 1;
 		}
 		for (auto& r : rows)
@@ -289,7 +293,7 @@ namespace EconomyDetail
 		if (gWorkerRunning.exchange(true))
 			return;
 		gFlipBusy = true;
-		std::snprintf(gStatus, sizeof(gStatus), "Scanning commerce prices…");
+		std::snprintf(gStatus, sizeof(gStatus), "Scanning commerce prices...");
 		std::thread([]() {
 			const std::string ids = BuildIdsQuery();
 			std::vector<FlipRow> rows;
@@ -367,7 +371,7 @@ namespace EconomyDetail
 				if (rows.empty())
 				{
 					std::snprintf(status, sizeof(status),
-						"Commerce scan parsed 0 items — API format changed?");
+						"Commerce scan parsed 0 items - API format changed?");
 				}
 				else
 				{
@@ -387,7 +391,7 @@ namespace EconomyDetail
 					}
 					else
 					{
-						/* Prices still useful — keep fallback names, say why. */
+						/* Prices still useful - keep fallback names, say why. */
 						char err[96];
 						FormatHttpError(err, sizeof(err), "Item names", names);
 						std::snprintf(status, sizeof(status),

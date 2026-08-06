@@ -326,8 +326,10 @@ namespace
 				ImGui::EndCombo();
 			}
 		}
+		PadNav::PushWidthForLabel("Or type path###gw2igh_tt_trltype_edit");
 		ImGui::InputText("Or type path###gw2igh_tt_trltype_edit", gDraft.trailType,
 			sizeof(gDraft.trailType));
+		PadNav::PopWidthForLabel();
 		if (ImGui::IsItemDeactivatedAfterEdit() && gDraft.trailType[0])
 		{
 			gDraft.active.type = gDraft.trailType;
@@ -340,10 +342,10 @@ namespace
 		using namespace TrailToolsDetail;
 		const std::string line = TrailToolsXml::EmitTrailElement(gDraft.active);
 		ImGui::TextUnformatted("Trail XML");
-		ImGui::PushTextWrapPos(0.f);
+		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted, "%s",
 			line.empty() ? "(set category + file stem)" : line.c_str());
-		ImGui::PopTextWrapPos();
+		PadNav::PopWrap();
 		if (!line.empty() && ImGui::SmallButton("Copy XML line###gw2igh_tt_copytrxml"))
 		{
 			CopyClipboard(line.c_str());
@@ -365,7 +367,7 @@ void TrailToolsDetail::DrawTrailTab()
 		"recording at your feet. Select nearest to edit points live.");
 	PadNav::PopWrap();
 
-	/* File ops — same weight as New. */
+	/* File ops - same weight as New. */
 	if (ImGui::Button("New###gw2igh_tt_newtrl"))
 	{
 		SyncActiveFileRelFromStem();
@@ -376,10 +378,10 @@ void TrailToolsDetail::DrawTrailTab()
 		gDraft.selectedTrail = -1;
 		gDraft.selectedPoint = -1;
 		gDraft.trailDirty = false;
-		SetStatus("New empty trail — Map+vector or Add vector, then Save.");
+		SetStatus("New empty trail - Map+vector or Add vector, then Save.");
 	}
-	PadNav::WrapSameLine(PadNav::ButtonWidth("Load…"));
-	if (ImGui::Button("Load…###gw2igh_tt_load"))
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Load..."));
+	if (ImGui::Button("Load...###gw2igh_tt_load"))
 	{
 		std::wstring path;
 		if (!DialogPickTrl(false, path))
@@ -428,8 +430,8 @@ void TrailToolsDetail::DrawTrailTab()
 		SyncActiveFileRelFromStem();
 		SaveActiveToPath(ActiveTrlPath());
 	}
-	PadNav::WrapSameLine(PadNav::ButtonWidth("Save As…"));
-	if (ImGui::Button("Save As…###gw2igh_tt_saveas"))
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Save As..."));
+	if (ImGui::Button("Save As...###gw2igh_tt_saveas"))
 	{
 		std::wstring path;
 		if (!DialogPickTrl(true, path))
@@ -442,8 +444,10 @@ void TrailToolsDetail::DrawTrailTab()
 	DrawTrailList();
 	ImGui::Separator();
 
+	PadNav::PushWidthForLabel("Trail file stem###gw2igh_tt_trlstem");
 	ImGui::InputText("Trail file stem###gw2igh_tt_trlstem", gDraft.trailFileStem,
 		sizeof(gDraft.trailFileStem));
+	PadNav::PopWidthForLabel();
 	if (ImGui::IsItemDeactivatedAfterEdit())
 	{
 		SyncActiveFileRelFromStem();
@@ -464,10 +468,10 @@ void TrailToolsDetail::DrawTrailTab()
 		auto& kb = TrailToolsBinds::Get();
 		if (kb.trailRecording)
 			ImGui::TextColored(kb.trailPaused ? HelperTheme::Muted : HelperTheme::Ok,
-				kb.trailPaused ? "Paused — %s" : "Recording — %s",
+				kb.trailPaused ? "Paused - %s" : "Recording - %s",
 				TrailToolsBinds::FormatChord(kb.trailStart).c_str());
 		else
-			ImGui::TextDisabled("Idle — Start: %s",
+			ImGui::TextDisabled("Idle - Start: %s",
 				TrailToolsBinds::FormatChord(kb.trailStart).c_str());
 		if (ImGui::Button("Start / resume###gw2igh_tt_rec"))
 			TrailToolsBinds::ActionTrailStart();
@@ -518,7 +522,7 @@ void TrailToolsDetail::DrawTrailTab()
 		else if (gDraft.active.mapId == 0)
 			SetStatus("Set map first (Map only or Map + vector).");
 		else if (gDraft.active.mapId != mapId)
-			SetStatus("Map mismatch — trail %u, you %u.", gDraft.active.mapId, mapId);
+			SetStatus("Map mismatch - trail %u, you %u.", gDraft.active.mapId, mapId);
 		else
 		{
 			gDraft.active.points.push_back({ x, y, z });
@@ -598,7 +602,7 @@ void TrailToolsDetail::DrawTrailTab()
 		else if (!pose)
 			SetStatus("No Mumble pose.");
 		else if (IsSectionBreak(gDraft.active.points[static_cast<size_t>(s)]))
-			SetStatus("Cannot move a section break — pick a vector.");
+			SetStatus("Cannot move a section break - pick a vector.");
 		else
 		{
 			auto& pt = gDraft.active.points[static_cast<size_t>(s)];
@@ -625,8 +629,8 @@ void TrailToolsDetail::DrawTrailTab()
 		}
 	}
 
-	ImGui::Text("Active: map %u · %zu points%s", gDraft.active.mapId, gDraft.active.points.size(),
-		gDraft.trailDirty ? " · modified" : "");
+	ImGui::Text("Active: map %u | %zu points%s", gDraft.active.mapId, gDraft.active.points.size(),
+		gDraft.trailDirty ? " | modified" : "");
 	if (ImGui::BeginChild("###gw2igh_tt_pts", ImVec2(0.f, 120.f), true))
 	{
 		for (int i = 0; i < static_cast<int>(gDraft.active.points.size()); ++i)

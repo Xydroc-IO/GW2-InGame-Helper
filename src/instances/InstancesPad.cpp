@@ -4,7 +4,9 @@
 #include "AspectLayout.h"
 #include "BrowserTabs.h"
 #include "Globals.h"
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "PadLayout.h"
 #include "Settings.h"
@@ -66,30 +68,27 @@ bool InstancesPad::Render()
 	HelperTheme::ScopedFontScale fontScale;
 
 	ImGui::TextColored(HelperTheme::Gold, "INSTANCES");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Local journals — ticks save on disk. Not live weekly API.");
-	ImGui::PopTextWrapPos();
+		"Local journals - ticks save on disk. Not live weekly API.");
+	PadNav::PopWrap();
 
-	const float rowW = ImGui::GetContentRegionAvail().x;
-	float used = 0.f;
-	for (int i = 0; i < static_cast<int>(Kind::Count); ++i)
+	static const char* kKinds[] = { "Story", "Fractal", "Raid", "Strike" };
+	static const int kKindIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::Story),
+		static_cast<int>(Gw2Ui::Icon::Map),
+		static_cast<int>(Gw2Ui::Icon::PvP),
+		static_cast<int>(Gw2Ui::Icon::Squad),
+	};
+	const int kindIdx = PadNav::DrawSideRail("###gw2igh_inst_nav", kKinds,
+		static_cast<int>(Kind::Count), static_cast<int>(gKind), 0.f, kKindIcons);
+	if (kindIdx != static_cast<int>(gKind))
 	{
-		const Kind k = static_cast<Kind>(i);
-		const float need = ImGui::CalcTextSize(KindName(k)).x +
-			ImGui::GetStyle().FramePadding.x * 2.f + ImGui::GetStyle().ItemSpacing.x;
-		if (i > 0 && used + need > rowW)
-			used = 0.f;
-		else if (i > 0)
-			ImGui::SameLine();
-		if (ImGui::RadioButton(KindName(k), gKind == k))
-		{
-			gKind = k;
-			gSelected = -1;
-		}
-		used += need;
+		gKind = static_cast<Kind>(kindIdx);
+		gSelected = -1;
 	}
 
+	ImGui::BeginChild("###gw2igh_inst_body", ImVec2(0.f, 0.f), true);
 	ImGui::TextColored(HelperTheme::Muted, "%s cleared: %d / %d",
 		KindName(gKind), CountCleared(gKind), CountEntries(gKind));
 	if (ImGui::Button("Reset category###gw2igh_inst_clr"))
@@ -164,6 +163,7 @@ bool InstancesPad::Render()
 	if (listed == 0)
 		ImGui::TextColored(HelperTheme::Muted, "No entries for this category.");
 	PadLayout::EndList();
+	ImGui::EndChild();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

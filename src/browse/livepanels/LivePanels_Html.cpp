@@ -1,23 +1,25 @@
 #include "LivePanels_Html.h"
 
+#include "HelperThemeCss.h"
+
+#include <string>
+
 namespace LivePanelsHtml
 {
 	const char* SharedCss()
 	{
-		static const char* kCss = R"CSS(
-  :root {
-    --bg: #06070a; --panel: rgba(16, 18, 24, 0.92); --panel-2: #12141a;
-    --border: #5a4a28; --border-soft: rgba(235, 192, 71, 0.22);
-    --gold: #f0c65a; --gold-bright: #ffe08a; --gold-dim: #c9a227;
-    --text: #f0f2f5; --muted: #a8aeb8; --accent: #1a1510;
-    --ok: #6aaa6a; --warn: #c9a227;
-  }
+		static const char* kCss = nullptr;
+		static std::string sCss;
+		if (!kCss)
+		{
+			sCss = HelperThemeCss::RootVars();
+			sCss += R"CSS(
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh;
     font-family: "Segoe UI", Tahoma, sans-serif;
-    background: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(235, 192, 71, 0.12) 0%, transparent 55%),
-      linear-gradient(180deg, #12141a 0%, var(--bg) 45%), var(--bg);
+    background: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(240, 199, 97, 0.12) 0%, transparent 55%),
+      linear-gradient(180deg, #1c1711 0%, var(--bg) 45%), var(--bg);
     color: var(--text); line-height: 1.55;
   }
   .wrap { max-width: 900px; margin: 0 auto; padding: 28px 22px 64px; }
@@ -34,7 +36,7 @@ namespace LivePanelsHtml
   section.block { background: var(--panel); border: 1px solid var(--border); margin-bottom: 16px; }
   section.block > .head {
     padding: 12px 16px; border-bottom: 1px solid var(--border-soft); border-left: 3px solid var(--gold);
-    background: linear-gradient(90deg, #1a1710 0%, var(--panel-2) 70%);
+    background: linear-gradient(90deg, var(--header) 0%, var(--panel-2) 70%);
   }
   section.block > .head h2 { margin: 0; font-size: 1.12rem; color: var(--gold-bright); }
   section.block > .head p { margin: 4px 0 0; font-size: 0.88rem; color: var(--muted); }
@@ -53,7 +55,7 @@ namespace LivePanelsHtml
   ul.rows .t { font-weight: 650; color: var(--text); }
   ul.rows .s { display: block; margin-top: 4px; font-size: 0.86rem; color: var(--muted); }
   .bar {
-    margin-top: 8px; height: 8px; background: #0c0d10; border: 1px solid var(--border-soft);
+    margin-top: 8px; height: 8px; background: #0c0a07; border: 1px solid var(--border-soft);
   }
   .bar > i { display: block; height: 100%; background: var(--gold-dim); }
   .badge {
@@ -83,7 +85,7 @@ namespace LivePanelsHtml
   }
   .keybox {
     margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--border);
-    background: linear-gradient(90deg, #1a1710 0%, var(--panel-2) 70%);
+    background: linear-gradient(90deg, var(--header) 0%, var(--panel-2) 70%);
   }
   .keybox.ok { border-left: 3px solid var(--ok); }
   .keybox.warn { border-left: 3px solid var(--warn); }
@@ -93,6 +95,8 @@ namespace LivePanelsHtml
   .muted { color: var(--muted); font-size: 0.86rem; }
   code { color: var(--gold-dim); font-size: 0.88rem; }
 )CSS";
+			kCss = sCss.c_str();
+		}
 		return kCss;
 	}
 }

@@ -86,9 +86,9 @@ bool BeginBrowseSection(const char* category, const char* section, int count)
 		section);
 	ImGui::Spacing();
 	ImGui::PushStyleColor(ImGuiCol_Text, kGoldDim);
-	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.12f, 0.10f, 0.055f, 0.85f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.22f, 0.18f, 0.09f, 0.95f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.32f, 0.26f, 0.12f, 1.f));
+	ImGui::PushStyleColor(ImGuiCol_Header, HelperTheme::Header);
+	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.34f, 0.26f, 0.14f, 0.95f));
+	ImGui::PushStyleColor(ImGuiCol_HeaderActive, HelperTheme::TabActive);
 	ImGui::SetNextItemOpen(BrowseSectionIsOpen(category, section), ImGuiCond_Once);
 	const bool open = ImGui::CollapsingHeader(label);
 	ImGui::PopStyleColor(4);
@@ -139,7 +139,7 @@ const SiteDef* SiteById(const char* id)
 	return &sites[idx];
 }
 
-/* ProggyClean lacks · — … etc. Keep ImGui labels ASCII-only. */
+/* ProggyClean lacks | - ... etc. Keep ImGui labels ASCII-only. */
 void SanitizeForUi(char* dst, size_t dstLen, const char* src)
 {
 	if (!dst || dstLen == 0)
@@ -157,7 +157,7 @@ void SanitizeForUi(char* dst, size_t dstLen, const char* src)
 			++i;
 			continue;
 		}
-		/* UTF-8 em/en dash → '-' */
+		/* UTF-8 em/en dash -> '-' */
 		if ((c == 0xE2 && static_cast<unsigned char>(src[i + 1]) == 0x80 &&
 				(static_cast<unsigned char>(src[i + 2]) == 0x94 ||
 					static_cast<unsigned char>(src[i + 2]) == 0x93)))
@@ -166,14 +166,14 @@ void SanitizeForUi(char* dst, size_t dstLen, const char* src)
 			i += 3;
 			continue;
 		}
-		/* middle dot · */
+		/* middle dot | */
 		if (c == 0xC2 && static_cast<unsigned char>(src[i + 1]) == 0xB7)
 		{
 			dst[o++] = '-';
 			i += 2;
 			continue;
 		}
-		/* ellipsis … */
+		/* ellipsis ... */
 		if (c == 0xE2 && static_cast<unsigned char>(src[i + 1]) == 0x80 &&
 			static_cast<unsigned char>(src[i + 2]) == 0xA6)
 		{
@@ -184,6 +184,25 @@ void SanitizeForUi(char* dst, size_t dstLen, const char* src)
 				dst[o++] = '.';
 			}
 			i += 3;
+			continue;
+		}
+		/* right arrow -> */
+		if (c == 0xE2 && static_cast<unsigned char>(src[i + 1]) == 0x86 &&
+			static_cast<unsigned char>(src[i + 2]) == 0x92)
+		{
+			if (o + 2 < dstLen)
+			{
+				dst[o++] = '-';
+				dst[o++] = '>';
+			}
+			i += 3;
+			continue;
+		}
+		/* multiplication sign x */
+		if (c == 0xC3 && static_cast<unsigned char>(src[i + 1]) == 0x97)
+		{
+			dst[o++] = 'x';
+			i += 2;
 			continue;
 		}
 		/* skip other multibyte sequences */
@@ -225,7 +244,7 @@ bool FavoriteToggleButton(const char* id, bool favorited, bool smallBtn)
 	if (favorited)
 		col = ImGui::GetColorU32(hovered ? ImVec4(1.f, 0.85f, 0.35f, 1.f) : kGold);
 	else
-		col = ImGui::GetColorU32(hovered ? ImVec4(0.85f, 0.88f, 0.92f, 1.f) : kMuted);
+		col = ImGui::GetColorU32(hovered ? HelperTheme::Ink : kMuted);
 	DrawStarShape(dl, center, radius, col, favorited);
 	if (hovered)
 		ImGui::SetTooltip(favorited ? "Remove from Favorites" : "Add to Favorites");
@@ -246,7 +265,7 @@ void DrawFavoriteStar(const char* siteId)
 	}
 }
 
-/* Browse popup sized from the display — aspect-aware (16:9 / 21:9 / 32:9). */
+/* Browse popup sized from the display - aspect-aware (16:9 / 21:9 / 32:9). */
 BrowsePopupLayout CalcBrowsePopupLayout(bool withBanner, bool pickDefaultSite)
 {
 	const ImGuiIO& io = ImGui::GetIO();

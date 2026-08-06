@@ -19,6 +19,10 @@
 #include "LogManagerPad.h"
 #include "EconomyPad.h"
 #include "InstancesPad.h"
+#include "CompletionPad.h"
+#include "FarmingPad.h"
+#include "GpsArrow.h"
+#include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
 #include "TrailToolsPad.h"
 #include "PathingTrails.h"
@@ -62,13 +66,13 @@ namespace UIDetail
 	const ImGuiIO& dio = ImGui::GetIO();
 	const float dispW = dio.DisplaySize.x;
 	const float dispH = dio.DisplaySize.y;
-	/* Any overlap with the game display — fully off-screen is not viewable. */
+	/* Any overlap with the game display - fully off-screen is not viewable. */
 	const bool slotOnScreen =
 		dispW < 1.f || dispH < 1.f ||
 		(slotPos.x + imageSize.x > 0.f && slotPos.y + imageSize.y > 0.f &&
 			slotPos.x < dispW && slotPos.y < dispH);
 	/* Hysteresis on size so drag-resize does not flap was_hidden (that can
-	   interrupt ad / page timers). Opacity is NOT a gate — users still read
+	   interrupt ad / page timers). Opacity is NOT a gate - users still read
 	   at low opacity; freezing CEF there would break content. */
 	static bool sSlotLargeEnough = true;
 	if (sSlotLargeEnough)
@@ -89,7 +93,7 @@ namespace UIDetail
 	}
 	else
 	{
-		/* Keep process — window may still be open (tiny / off-screen). */
+		/* Keep process - window may still be open (tiny / off-screen). */
 		BlurBrowser();
 		WikiBrowser::SetVisible(false, /*keepProcessAlive=*/true);
 	}
@@ -137,7 +141,7 @@ namespace UIDetail
 		if (overPage)
 		{
 			/* MediaWiki search / inputs need CEF focus without relying on click
-			   alone — keep focus while the pointer is on the page. */
+			   alone - keep focus while the pointer is on the page. */
 			FocusBrowser();
 
 			const ImVec2 mouse = io.MousePos;
@@ -219,7 +223,7 @@ namespace UIDetail
 
 	const bool mouseOverWiki = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	/* Browse / More / tab menus are separate ImGui windows — use sHelperPopupHovered
+	/* Browse / More / tab menus are separate ImGui windows - use sHelperPopupHovered
 	   (set while drawing those popups). Do not use AnyWindow: that matched Nexus UI
 	   and stole keyboard from the library search field. */
 	const bool mouseOverHelperUi = mouseOverWiki || sHelperPopupHovered;
@@ -228,33 +232,33 @@ namespace UIDetail
 	gUi.blockGameMouse = G::ShowWiki && mouseOverHelperUi;
 
 	/* Snapshot ImGui's own text-input flag BEFORE we adjust capture for CEF.
-	   Never force WantTextInput=false — that broke Browse/Find typing and also
+	   Never force WantTextInput=false - that broke Browse/Find typing and also
 	   wiped Nexus library search (shared ImGui context). */
 	const bool imguiTyping = io.WantTextInput;
 
 	/* Keys follow the pointer while the helper is open:
-	   - over helper chrome/page/popups → addon (ImGui or CEF)
-	   - over the game (chat, world) → GW2
+	   - over helper chrome/page/popups -> addon (ImGui or CEF)
+	   - over the game (chat, world) -> GW2
 	   Blur CEF when the cursor leaves so page focus cannot stick. */
 	static bool sWasPointerOnHelper = false;
 	if (!mouseOverHelperUi)
 	{
 		BlurBrowser();
-		/* Only drop OUR CaptureKeyboardFromApp claim — leave WantTextInput alone
+		/* Only drop OUR CaptureKeyboardFromApp claim - leave WantTextInput alone
 		   so Nexus / other addons keep receiving typed characters. */
 		ImGui::CaptureKeyboardFromApp(false);
 		if (sWasPointerOnHelper)
 			UI_ResetKeyRouting();
-		/* Avoid ImGui::SetWindowFocus(nullptr) here — it closed Browse popups. */	}
+		/* Avoid ImGui::SetWindowFocus(nullptr) here - it closed Browse popups. */	}
 	else if (!overPage && ImGui::IsAnyItemActive())
-		BlurBrowser(); /* Find/filter/etc. active — release CEF caret/focus */
+		BlurBrowser(); /* Find/filter/etc. active - release CEF caret/focus */
 	sWasPointerOnHelper = mouseOverHelperUi;
 
 	gUi.blockGameKeyboard = G::ShowWiki && mouseOverHelperUi;
 
 	if (overPage)
 	{
-		/* CEF page under the cursor — Nexus also gates on WantTextInput. */
+		/* CEF page under the cursor - Nexus also gates on WantTextInput. */
 		io.WantTextInput = true;
 		io.WantCaptureKeyboard = true;
 		ImGui::CaptureKeyboardFromApp(true);
@@ -268,7 +272,7 @@ namespace UIDetail
 	if (gUi.blockGameMouse)
 	{
 		io.WantCaptureMouse = true;
-		/* Sticky for next NewFrame — Nexus UiInput gates game clicks on this flag. */
+		/* Sticky for next NewFrame - Nexus UiInput gates game clicks on this flag. */
 		ImGui::CaptureMouseFromApp(true);
 	}
 	if (gUi.blockGameKeyboard)
@@ -304,13 +308,19 @@ namespace UIDetail
 	const bool logsHover = LogManagerPad::Render();
 	const bool economyHover = EconomyPad::Render();
 	const bool instancesHover = InstancesPad::Render();
+	const bool completionHover = CompletionPad::Render();
+	const bool farmingHover = FarmingPad::Render();
+	CompletionPad::Tick();
+	const bool gpsArrowHover = GpsArrow::Render();
+	ZoneBanner::Render();
 	const bool tekkitHover = PathingGuidesPad::Render();
 	const bool trailToolsHover = TrailToolsPad::Render();
 	const bool compassHover = DirectionCompass::RenderPad();
 	const bool settingsHover = SettingsPad::Render();
 	CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 		walletHover || vaultHover || eventsHover || logsHover ||
-		economyHover || instancesHover ||
+		economyHover || instancesHover || completionHover || farmingHover ||
+		gpsArrowHover ||
 		tekkitHover || trailToolsHover || compassHover || settingsHover);
 	NotesPad::Save(false);
 	Settings::Save(false);

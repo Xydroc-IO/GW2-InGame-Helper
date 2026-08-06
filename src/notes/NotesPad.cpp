@@ -3,6 +3,7 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
 #include "PadDock.h"
@@ -173,9 +174,9 @@ namespace NotesPadDetail
 	{
 		gSnips.clear();
 		Snippet a{};
-		std::snprintf(a.title, sizeof(a.title), "LFG — Raids");
+		std::snprintf(a.title, sizeof(a.title), "LFG - Raids");
 		std::snprintf(a.body, sizeof(a.body),
-			"lfg w1–4 exp | [roles] | [kp] | discord: ");
+			"lfg w1-4 exp | [roles] | [kp] | discord: ");
 		a.kind = Kind_Lfg;
 		gSnips.push_back(a);
 
@@ -455,6 +456,14 @@ bool NotesPad::Render()
 
 	HelperTheme::ScopedFontScale fontScale;
 
+	static const char* kTabs[] = { "Snippets", "Waypoints" };
+	static const int kTabIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::Story),
+		static_cast<int>(Gw2Ui::Icon::Map),
+	};
+	gPadTab = PadNav::DrawSideRail("###gw2igh_notes_nav", kTabs, 2, gPadTab, 0.f, kTabIcons);
+
+	ImGui::BeginChild("###gw2igh_notes_body", ImVec2(0.f, 0.f), true);
 	ImGui::TextColored(HelperTheme::Gold, "NOTES & WAYPOINTS");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
@@ -462,22 +471,11 @@ bool NotesPad::Render()
 	PadNav::PopWrap();
 	ImGui::Separator();
 
-	if (ImGui::BeginTabBar("###gw2igh_notes_tabs", ImGuiTabBarFlags_FittingPolicyScroll))
-	{
-		if (ImGui::BeginTabItem("Snippets###gw2igh_notes_tab_snip"))
-		{
-			gPadTab = 0;
-			DrawSnippetsTab();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Waypoints###gw2igh_notes_tab_wp"))
-		{
-			gPadTab = 1;
-			DrawWaypointsTab();
-			ImGui::EndTabItem();
-		}
-		ImGui::EndTabBar();
-	}
+	if (gPadTab == 0)
+		DrawSnippetsTab();
+	else
+		DrawWaypointsTab();
+	ImGui::EndChild();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

@@ -263,7 +263,7 @@ bool WorldGpsD3d::DrawTrails(
 	auto addSnip = [&](const PathingTrails::WorldSnippet& snip, bool bright, float thick) {
 		Batch b;
 		b.srv = ResolveSrv(snip);
-		/* Hearts without texture would fall back to a solid yellow ribbon — skip. */
+		/* Hearts without texture would fall back to a solid yellow ribbon - skip. */
 		if (IsHeartTrail(snip) && !b.srv)
 			return;
 		AppendRibbon(b.verts, snip, thick, bright, flow);

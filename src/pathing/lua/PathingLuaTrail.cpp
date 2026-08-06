@@ -33,7 +33,7 @@ namespace PathingLuaDetail
 					return false;
 				if (t.guid[0] && std::strcmp(t.guid, guid) == 0)
 					return true;
-				/* Packs often omit trail GUID — accept type/label. */
+				/* Packs often omit trail GUID - accept type/label. */
 				return t.label[0] && std::strcmp(t.label, guid) == 0;
 			};
 			if (gTickTrails)

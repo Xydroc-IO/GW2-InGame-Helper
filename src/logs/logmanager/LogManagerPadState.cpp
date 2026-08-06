@@ -73,6 +73,7 @@ namespace LogManagerDetail
 	int gDaysCombo = 0; /* index into kDaysMap */
 	int gSelected = -1;
 	bool gFocusSetupTab = false;
+	int gSideTab = 0;
 	float gLogListFrac = kLogListFracDef; /* synced from G::LogManagerListFrac */
 
 	std::vector<std::string> gUploadQueue; /* pathUtf8 */
@@ -311,7 +312,7 @@ namespace LogManagerDetail
 			w = DefaultLogDirW();
 		if (w.empty())
 			return false;
-		/* Explorer fails silently when the folder is missing — create parents first. */
+		/* Explorer fails silently when the folder is missing - create parents first. */
 		SHCreateDirectoryExW(nullptr, w.c_str(), nullptr);
 		const HINSTANCE r = ShellExecuteW(nullptr, L"explore", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 		if (reinterpret_cast<INT_PTR>(r) > 32)

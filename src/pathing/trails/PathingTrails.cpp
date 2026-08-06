@@ -27,7 +27,7 @@ namespace PathingDetail
 	std::atomic<bool> gForceReload{false};
 	std::atomic<bool> gIndexStarted{false};
 	/* Bumped whenever gEnabledPaths changes. LoadMapTrails records the gen it
-	   applied; Update retries until they match — a bool force-flag alone could
+	   applied; Update retries until they match - a bool force-flag alone could
 	   be cleared before a failed load, leaving trails empty until Reload packs. */
 	std::atomic<uint32_t> gEnabledGen{1};
 	uint32_t gLoadedEnabledGen = 0; /* under gMutex; 0 = never applied */
@@ -55,7 +55,7 @@ namespace PathingDetail
 
 	std::mutex gIconMutex;
 	std::vector<PendingIcon> gPendingIcons;
-	std::unordered_map<std::string, bool> gIconQueued; /* iconFile → queued */
+	std::unordered_map<std::string, bool> gIconQueued; /* iconFile -> queued */
 	std::unordered_map<std::string, std::vector<uint8_t>> gIconRetain;
 	bool gGuideActive = false;
 	float gGuideDestX = 0.f;
@@ -97,7 +97,7 @@ void PathingTrails::Init()
 		gGuideActive = false;
 		gActiveMap = 0;
 		gLoadedEnabledGen = 0;
-		/* Keep gEnabledPaths — Blish/TacO remember category toggles across reloads. */
+		/* Keep gEnabledPaths - Blish/TacO remember category toggles across reloads. */
 		gPackNames.clear();
 	}
 	{
@@ -158,7 +158,7 @@ void PathingTrails::Update(uint32_t mapId)
 		return;
 
 	/* Keep search routing locked to the live player continent position, but only
-	   rebuild when the player has actually moved a bit — rebuilding scans every
+	   rebuild when the player has actually moved a bit - rebuilding scans every
 	   trail on the map, so doing it every frame would stutter. */
 	if (G::Mumble)
 	{
@@ -168,7 +168,7 @@ void PathingTrails::Update(uint32_t mapId)
 			std::lock_guard<std::mutex> lock(gMutex);
 			const float dx = ctx->playerX - gGuidePlayerX;
 			const float dy = ctx->playerY - gGuidePlayerY;
-			/* Larger hysteresis — rebuilds used to flip the orange guide on/off. */
+			/* Larger hysteresis - rebuilds used to flip the orange guide on/off. */
 			const bool moved = (dx * dx + dy * dy) > (280.f * 280.f);
 			gGuidePlayerX = ctx->playerX;
 			gGuidePlayerY = ctx->playerY;
@@ -275,7 +275,7 @@ std::string PathingTrails::PathingFolderHint()
 void PathingTrails::ReloadPacks()
 {
 	/* Invalidate in-flight work and ask Update() to re-index. Do NOT clear
-	   multi-MB trail/index vectors here — that ran on the UI thread and froze
+	   multi-MB trail/index vectors here - that ran on the UI thread and froze
 	   the game under Wine. The worker clears and rebuilds. */
 	gEpoch.fetch_add(1, std::memory_order_acq_rel);
 	gLoadGen.fetch_add(1, std::memory_order_acq_rel);

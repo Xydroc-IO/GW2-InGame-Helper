@@ -18,7 +18,7 @@
 #include <d3d11.h>
 #include <dxgi.h>
 
-/* Orchestrator: cache nearby GPS → D3D world ribbons only (Blish-style).
+/* Orchestrator: cache nearby GPS -> D3D world ribbons only (Blish-style).
    Markers stay on ImGui. No ImGui trail billboards. */
 
 namespace
@@ -59,7 +59,8 @@ void WorldOverlay::Render()
 {
 	try
 	{
-	if (!G::ShowPathingTrails)
+	if (!G::ShowPathingTrails && !PathingTrails::HasSearchGuideActive() &&
+		!(TrailToolsDetail::AnyAuthoringPadOpen() && TrailToolsDetail::HasDraftPreview()))
 		return;
 	if (G::HideOutOfGameplay && G::NexusLink && !G::NexusLink->IsGameplay)
 		return;
@@ -87,7 +88,7 @@ void WorldOverlay::Render()
 	if (ax * ax + ay * ay + az * az < 0.25f)
 		return;
 
-	/* Match D3D viewport aspect to projection — ImGui DisplaySize can differ
+	/* Match D3D viewport aspect to projection - ImGui DisplaySize can differ
 	   under Wine/DPI and shove ribbons off the real path. */
 	float screenW = 0.f, screenH = 0.f;
 	if (!BackbufferSize(screenW, screenH))
@@ -121,7 +122,7 @@ void WorldOverlay::Render()
 	ImDrawList* dl = ImGui::GetBackgroundDrawList();
 	PathingTrails::BeginFrame();
 
-	/* Slider is the real draw/activation radius — do not floor to hundreds of meters. */
+	/* Slider is the real draw/activation radius - do not floor to hundreds of meters. */
 	const float maxDist = (G::LadyWpOnly || G::LadyHeroPointTrain)
 		? std::clamp(G::WorldTrailMaxDist * 1.35f, 55.f, 280.f)
 		: std::clamp(G::WorldTrailMaxDist, 40.f, 200.f);
@@ -153,7 +154,7 @@ void WorldOverlay::Render()
 	const float mdx = ax - sCacheAx;
 	const float mdy = ay - sCacheAy;
 	const float mdz = az - sCacheAz;
-	/* Refresh less often — frequent rebuilds made heart trails blink out. */
+	/* Refresh less often - frequent rebuilds made heart trails blink out. */
 	const float refreshM = (G::LadyWpOnly || G::LadyHeroPointTrain) ? 8.f : 12.f;
 	const bool movedFar = (mdx * mdx + mdy * mdy + mdz * mdz) > (refreshM * refreshM);
 	const bool contentChanged = (sGpsContent != content);
@@ -167,7 +168,7 @@ void WorldOverlay::Render()
 	}
 	const bool needRefresh = contentChanged || sNearCache.empty() || movedFar || rangeChanged;
 
-	/* Features Barefoot/WP/Mounts bump ContentRevision — drop prior edition
+	/* Features Barefoot/WP/Mounts bump ContentRevision - drop prior edition
 	   immediately so a mutex miss cannot keep drawing the old ribbons. */
 	if (contentChanged)
 	{
@@ -184,7 +185,7 @@ void WorldOverlay::Render()
 			const bool got = !snips.empty() || !marks.empty();
 			if (got)
 			{
-				/* Sticky merge only for movement refreshes — never across
+				/* Sticky merge only for movement refreshes - never across
 				   Features edition changes (cache already cleared above). */
 				if (sNearCache.empty())
 				{
@@ -213,7 +214,7 @@ void WorldOverlay::Render()
 						}
 						return best;
 					};
-					/* Many Lady heart .trl share one type label — match by geometry,
+					/* Many Lady heart .trl share one type label - match by geometry,
 					   not label alone (label-only merge dropped neighboring hearts). */
 					auto sameTrail = [](const PathingTrails::WorldSnippet& a,
 						const PathingTrails::WorldSnippet& b) -> bool {
@@ -275,7 +276,7 @@ void WorldOverlay::Render()
 			}
 			else if (!PathingTrails::HasDrawableWorldGps() || contentChanged)
 			{
-				/* Edition filter change with empty sample — drop stale ribbons. */
+				/* Edition filter change with empty sample - drop stale ribbons. */
 				sNearCache.clear();
 				sMarkerCache.clear();
 				sCacheAx = ax;
@@ -286,7 +287,7 @@ void WorldOverlay::Render()
 			}
 			else if (!sNearCache.empty())
 			{
-				/* Empty sample but packs still loaded — keep drawing prior ribbons. */
+				/* Empty sample but packs still loaded - keep drawing prior ribbons. */
 				sCacheAx = ax;
 				sCacheAy = ay;
 				sCacheAz = az;
@@ -309,14 +310,14 @@ void WorldOverlay::Render()
 	else
 		sGuideCache = {};
 
-	/* Fade soft-edge is TrailFadeRange(maxDist) (~0.92×–1.85×). Pass the
-	   slider distance directly — a 480m floor made the range control inert. */
+	/* Fade soft-edge is TrailFadeRange(maxDist) (~0.92x-1.85x). Pass the
+	   slider distance directly - a 480m floor made the range control inert. */
 	const float drawDist = maxDist;
 
 	const PathingTrails::WorldSnippet* guidePtr =
 		(sGuideCache.points.size() >= 2) ? &sGuideCache : nullptr;
 
-	/* D3D world ribbons only — no ImGui trail billboards. */
+	/* D3D world ribbons only - no ImGui trail billboards. */
 	if (WorldGpsD3d::Available())
 	{
 		static const std::vector<PathingTrails::WorldSnippet> kEmpty;

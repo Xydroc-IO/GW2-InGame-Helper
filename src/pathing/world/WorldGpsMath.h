@@ -10,18 +10,18 @@ namespace WorldGpsMath
 	constexpr float kDefaultFov = 1.222f;
 	constexpr float kHeightBias = 0.f;
 	constexpr float kInchesToMeters = 1.f / 39.3700787f;
-	constexpr float kAvatarMarkerHideAt1 = 2.0f; /* meters — soft-clear hole at Player-clear 1× */
-	constexpr float kAvatarMarkerFadeExtraAt1 = 3.5f; /* fade band beyond hide (→ ~5.5m at 1×) */
+	constexpr float kAvatarMarkerHideAt1 = 2.0f; /* meters - soft-clear hole at Player-clear 1x */
+	constexpr float kAvatarMarkerFadeExtraAt1 = 3.5f; /* fade band beyond hide (-> ~5.5m at 1x) */
 	constexpr float kAvatarTrailHideAt1 = 5.0f;
 	constexpr float kAvatarTrailFadeExtraAt1 = 4.0f;
-	/* Blish StandardTrail: TRAIL_WIDTH = 20" half-offset × trailScale.
+	/* Blish StandardTrail: TRAIL_WIDTH = 20" half-offset x trailScale.
 	   UV tiles use the unscaled base (TRAIL_WIDTH*2), not width*scale. */
 	constexpr float kBlishHalfM = 20.f * 0.0254f;
 	constexpr float kBlishUvPeriodM = kBlishHalfM * 2.f;
 	constexpr int   kMaxSegments = 4000;
 
-	/* halfWidth = Blish TRAIL_WIDTH (20") × pack trailScale × user GPS width.
-	   No soft-clamp — Blish uses TrailScale as authored. */
+	/* halfWidth = Blish TRAIL_WIDTH (20") x pack trailScale x user GPS width.
+	   No soft-clamp - Blish uses TrailScale as authored. */
 	inline float TrailHalfWidthM(float packTrailScale, float userMul)
 	{
 		float scale = packTrailScale;

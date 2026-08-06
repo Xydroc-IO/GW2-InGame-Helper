@@ -32,7 +32,7 @@ long long JsonIntAfterKey(const std::string& json, const char* key, size_t from)
 
 void ParseFloorJson(const std::string& body, std::vector<WaypointsData::Poi>& pois)
 {
-	/* Each map embeds "points_of_interest":{…}. Use that anchor + nearby id/name. */
+	/* Each map embeds "points_of_interest":{...}. Use that anchor + nearby id/name. */
 	size_t p = 0;
 	while (p < body.size())
 	{
@@ -47,7 +47,7 @@ void ParseFloorJson(const std::string& body, std::vector<WaypointsData::Poi>& po
 			continue;
 		}
 
-		/* Map key is "123": { … "points_of_interest". Name is the last "name" before pois. */
+		/* Map key is "123": { ... "points_of_interest". Name is the last "name" before pois. */
 		const size_t winStart = (poisKey > 4000) ? (poisKey - 4000) : 0;
 		long long mapId = -1;
 		std::string mapName;

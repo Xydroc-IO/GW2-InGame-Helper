@@ -284,7 +284,7 @@ namespace EiRuntimeDetail
 			Status(statusFn, "EI SHA256 is invalid");
 			return false;
 		}
-		Status(statusFn, "Verifying Elite Insights…");
+		Status(statusFn, "Verifying Elite Insights...");
 		unsigned char got[32]{};
 		if (!Sha256File(path, got))
 		{
@@ -301,7 +301,7 @@ namespace EiRuntimeDetail
 
 	bool ExtractZip(const std::wstring& zipPath, const std::wstring& destDir, void (*statusFn)(const char*))
 	{
-		Status(statusFn, "Extracting Elite Insights…");
+		Status(statusFn, "Extracting Elite Insights...");
 		const std::string zipUtf8 = WideToUtf8(zipPath);
 
 		mz_zip_archive zip{};

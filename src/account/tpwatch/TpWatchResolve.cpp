@@ -49,7 +49,7 @@ namespace TpWatchDetail
 		return s;
 	}
 
-	/* Common shorthand → wiki title (ecto etc.). */
+	/* Common shorthand -> wiki title (ecto etc.). */
 	std::string ExpandNameAlias(const char* q)
 	{
 		const std::string low = ToLowerCopy(q ? q : "");
@@ -149,7 +149,7 @@ namespace TpWatchDetail
 		SaveIds(ids);
 		SyncRowsFromSettings();
 		StartFetch();
-		if (statusOut) *statusOut = "Added. Fetching price…";
+		if (statusOut) *statusOut = "Added. Fetching price...";
 		return true;
 	}
 
@@ -168,7 +168,7 @@ namespace TpWatchDetail
 		auto wr = Gw2Http::Get(url.c_str(), nullptr, kHttpTimeoutMs);
 		if (!wr.ok)
 		{
-			status = "Wiki search failed — try a chat code or ID.";
+			status = "Wiki search failed - try a chat code or ID.";
 		}
 		else
 		{
@@ -187,12 +187,12 @@ namespace TpWatchDetail
 			}
 			if (titles.empty())
 			{
-				status = "No name match — try a chat code or item ID.";
+				status = "No name match - try a chat code or item ID.";
 			}
 			else
 			{
 				const std::string qLow = ToLowerCopy(query);
-				/* Exact title first, then the rest — never auto-track. */
+				/* Exact title first, then the rest - never auto-track. */
 				std::vector<std::string> ordered;
 				for (const std::string& title : titles)
 					if (ToLowerCopy(title) == qLow)
@@ -221,7 +221,7 @@ namespace TpWatchDetail
 				if (!hits.empty())
 					FillNameHitPrices(hits);
 				status = hits.empty()
-					? "Wiki hits — none resolved to an item ID."
+					? "Wiki hits - none resolved to an item ID."
 					: "Choose Track on an item below.";
 			}
 		}
@@ -248,7 +248,7 @@ namespace TpWatchDetail
 		}
 		std::snprintf(gAddThreadQuery, sizeof(gAddThreadQuery), "%s", gAddBuf);
 		gNameHits.clear();
-		gStatus = "Searching name…";
+		gStatus = "Searching name...";
 		gAddThread = CreateThread(nullptr, 0, AddNameProc, nullptr, 0, nullptr);
 		if (!gAddThread)
 		{

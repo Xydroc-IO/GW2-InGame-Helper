@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "InventoryData.h"
 #include "MumbleIdentity.h"
 #include "UnlocksData.h"
@@ -303,7 +304,7 @@ void SessionHistoryData::RenderOverviewSnippet()
 		static_cast<long long>(baseline.invUnique);
 	ImGui::Spacing();
 	ImGui::TextColored(HelperTheme::GoldMuted, "This session");
-	ImGui::TextDisabled("Unlocks %+lld · Unique items %+lld  (local snapshots)",
+	ImGui::TextDisabled("Unlocks %+lld | Unique items %+lld  (local snapshots)",
 		dUnlock, dInv);
 }
 
@@ -311,11 +312,11 @@ void SessionHistoryData::RenderContents()
 {
 	Tick();
 	ImGui::TextColored(HelperTheme::Gold, "SESSION HISTORY");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"Local snapshots of unlock totals and inventory size. "
-		"Guild Wars 2 has no official session-history API — this is Helper-only.");
-	ImGui::PopTextWrapPos();
+		"Guild Wars 2 has no official session-history API - this is Helper-only.");
+	PadNav::PopWrap();
 	ImGui::Spacing();
 
 	if (ImGui::Button("Snapshot now###gw2igh_hist_snap"))
@@ -336,7 +337,7 @@ void SessionHistoryData::RenderContents()
 	}
 	ImGui::BeginChild("###gw2igh_hist_list", ImVec2(0.f, 0.f), true);
 	if (copy.empty())
-		ImGui::TextDisabled("No snapshots yet — open Unlocks / Stash with an API key.");
+		ImGui::TextDisabled("No snapshots yet - open Unlocks / Stash with an API key.");
 	else
 	{
 		for (size_t i = copy.size(); i-- > 0; )
@@ -344,7 +345,7 @@ void SessionHistoryData::RenderContents()
 			const Entry& e = copy[i];
 			ImGui::Text("%s", e.character.empty() ? "(no character)" : e.character.c_str());
 			ImGui::TextDisabled(
-				"unlocks %zu (skins %zu · dyes %zu · minis %zu) · items %zu unique / %zu stacks",
+				"unlocks %zu (skins %zu | dyes %zu | minis %zu) | items %zu unique / %zu stacks",
 				e.unlockTotal, e.skins, e.dyes, e.minis, e.invUnique, e.invStacks);
 			ImGui::Separator();
 		}

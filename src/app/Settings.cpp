@@ -8,6 +8,7 @@
 #include "PathingTrails.h"
 #include "TrailToolsShared.h"
 #include "TrailToolsBinds.h"
+#include "PanelBinds.h"
 #include "UI.h"
 
 #include <cstdio>
@@ -112,6 +113,8 @@ void Settings::Load()
 			TrailToolsDetail::gDraft.xmlLayout = std::atoi(val) != 0 ? 1 : 0;
 		else if (std::strcmp(key, "TrailToolsBinds") == 0)
 			TrailToolsBinds::Deserialize(val);
+		else if (std::strcmp(key, "PanelBinds") == 0)
+			PanelBinds::Deserialize(val);
 		else if (std::strcmp(key, "ShowPathingTrails") == 0 ||
 			std::strcmp(key, "ShowTekkitTrails") == 0)
 			G::ShowPathingTrails = AsBool(val);
@@ -279,6 +282,10 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadEconomy);
 		else if (std::strcmp(key, "PadInstances") == 0)
 			PadDock::ParseGeom(val, G::PadInstances);
+		else if (std::strcmp(key, "PadCompletion") == 0)
+			PadDock::ParseGeom(val, G::PadCompletion);
+		else if (std::strcmp(key, "PadFarming") == 0)
+			PadDock::ParseGeom(val, G::PadFarming);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -398,11 +405,14 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowLogManager=0\n");
 	std::fprintf(f, "ShowEconomy=0\n");
 	std::fprintf(f, "ShowInstances=0\n");
+	std::fprintf(f, "ShowCompletion=0\n");
+	std::fprintf(f, "ShowFarming=0\n");
 	std::fprintf(f, "ShowPathingGuides=0\n");
 	std::fprintf(f, "ShowTrailTools=0\n");
 	std::fprintf(f, "TrailToolsLastTrlDir=%s\n", TrailToolsDetail::gDraft.lastTrlDir);
 	std::fprintf(f, "TrailToolsXmlLayout=%d\n", TrailToolsDetail::gDraft.xmlLayout != 0 ? 1 : 0);
 	std::fprintf(f, "TrailToolsBinds=%s\n", TrailToolsBinds::Serialize().c_str());
+	std::fprintf(f, "PanelBinds=%s\n", PanelBinds::Serialize().c_str());
 	std::fprintf(f, "ShowPathingTrails=%d\n", G::ShowPathingTrails ? 1 : 0);
 	std::fprintf(f, "EnablePathingLua=%d\n", G::EnablePathingLua ? 1 : 0);
 	std::fprintf(f, "LadyBarefoot=%d\n", G::LadyBarefoot ? 1 : 0);
@@ -465,6 +475,8 @@ void Settings::Save(bool force)
 	PadDock::WriteGeom(f, "PadVault", G::PadVault);
 	PadDock::WriteGeom(f, "PadEconomy", G::PadEconomy);
 	PadDock::WriteGeom(f, "PadInstances", G::PadInstances);
+	PadDock::WriteGeom(f, "PadCompletion", G::PadCompletion);
+	PadDock::WriteGeom(f, "PadFarming", G::PadFarming);
 	char favBuf[4096]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);

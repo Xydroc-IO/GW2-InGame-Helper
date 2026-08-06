@@ -49,7 +49,7 @@ namespace UIDetail
 	void MapToCef(float localX, float localY, float drawW, float drawH, int* outX, int* outY);
 	bool HostWantsDesktopAdViewport(const char* url);
 	void DesktopAdCefSize(float panelW, float panelH, float* outW, float* outH);
-	/* Uniform fit of contentW×contentH into panel (letterbox). Keeps aspect. */
+	/* Uniform fit of contentWxcontentH into panel (letterbox). Keeps aspect. */
 	void FitContentInPanel(float panelW, float panelH, float contentW, float contentH,
 		float* outX, float* outY, float* outW, float* outH);
 

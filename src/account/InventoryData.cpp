@@ -100,7 +100,7 @@ namespace
 				long long count = JsonIntAfterKey(body, "count", brace);
 				if (hasInventory && hasSize)
 				{
-					/* bag wrapper — skip */
+					/* bag wrapper - skip */
 				}
 				else if (hasCount && count > 0)
 					MergeLoc(byId, static_cast<int>(id), kind, where, static_cast<int>(count));
@@ -179,7 +179,7 @@ namespace
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 		Snapshot snap;
-		snap.status = "Loading inventory…";
+		snap.status = "Loading inventory...";
 
 		if (!G::Gw2ApiKey[0])
 		{
@@ -256,9 +256,9 @@ void InventoryData::RefreshIfNeeded(bool force)
 	{
 		std::lock_guard<std::mutex> lock(gMu);
 		if (!gSnap.ok)
-			gSnap.status = "Loading…";
+			gSnap.status = "Loading...";
 		else
-			gSnap.status = "Refreshing…";
+			gSnap.status = "Refreshing...";
 	}
 	gThread = CreateThread(nullptr, 0, LoadProc, nullptr, 0, nullptr);
 	if (!gThread)

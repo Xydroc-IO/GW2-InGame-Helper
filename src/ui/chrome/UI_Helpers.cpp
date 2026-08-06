@@ -19,6 +19,9 @@
 #include "LogManagerPad.h"
 #include "EconomyPad.h"
 #include "InstancesPad.h"
+#include "CompletionPad.h"
+#include "FarmingPad.h"
+#include "InstancesPad.h"
 #include "PathingGuidesPad.h"
 #include "PathingTrails.h"
 #include "TrailToolsPad.h"
@@ -160,7 +163,7 @@ namespace UIDetail
 		if (!gUi.browserFocused)
 			return;
 		gUi.browserFocused = false;
-		/* Do not clear gUi.overBrowserPage here — the render loop owns hover state.
+		/* Do not clear gUi.overBrowserPage here - the render loop owns hover state.
 		   Clearing it stole CEF focus while keys still reached the page (no caret). */
 		WikiBrowser::FeedFocus(false);
 	}
@@ -230,7 +233,7 @@ namespace UIDetail
 		/* Full HD layout width so (min-width: 1840px) / footer / video queries pass.
 		   Height tracks the panel's aspect ratio so the bitmap scales uniformly into
 		   the slot (same feel as resizing a normal browser window) instead of
-		   stretching 1920×fixed-H into a mismatched panel. */
+		   stretching 1920xfixed-H into a mismatched panel. */
 		const float maxW = static_cast<float>(kWikiFrameMaxW);
 		const float maxH = static_cast<float>(kWikiFrameMaxH);
 		const float minH = 900.f;
@@ -274,13 +277,13 @@ namespace UIDetail
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowEconomy || G::ShowInstances ||
+			G::ShowEconomy || G::ShowInstances || G::ShowCompletion || G::ShowFarming ||
 			G::ShowPathingGuides || TrailToolsPad::AnyOpen() ||
 			G::ShowCompassPad || G::ShowSettings;
 	}
 
 	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves
-	   the pad rect → pad Hover is false → we used to stop capturing → GW2 ate
+	   the pad rect -> pad Hover is false -> we used to stop capturing -> GW2 ate
 	   the click. Latch while a combo popup is up after our pads opened it. */
 	bool HoveringComboPopup()
 	{
@@ -303,7 +306,7 @@ namespace UIDetail
 		return false;
 	}
 
-	/* BeginCombo lists live outside the pad rect — keep capturing until closed. */
+	/* BeginCombo lists live outside the pad rect - keep capturing until closed. */
 	void CaptureForToolPads(bool padsHover)
 	{
 		static bool sComboLatch = false;

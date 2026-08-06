@@ -5,7 +5,9 @@
 #include "BrowserTabs.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "Gw2Icons.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
 #include "WikiBrowser.h"
@@ -45,17 +47,17 @@ void TpWatchPad::RenderContents(bool forceScroll)
 	const bool autoFit = !forceScroll && contentCount <= kAutoFitMax;
 
 	ImGui::TextUnformatted("Trading Post");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Read-only — never buys, sells, or claims. "
+		"Read-only - never buys, sells, or claims. "
 		"Delivery needs API key (tradingpost); watchlist prices are public.");
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 
 	if (ImGui::Button("Refresh###gw2igh_tp_pad_ref"))
 		StartFetch();
 	ImGui::SameLine();
 	if (gBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading…");
+		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading...");
 	else if (!gStatus.empty())
 	{
 		const bool alertMsg = gStatus.find("alert") != std::string::npos;
@@ -66,7 +68,7 @@ void TpWatchPad::RenderContents(bool forceScroll)
 
 	ImGui::Separator();
 	ImGui::TextUnformatted("Delivery box");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	if (delivery.noKey || delivery.scopeFail)
 	{
 		ImGui::TextColored(ImVec4(0.70f, 0.55f, 0.40f, 1.f), "%s",
@@ -91,7 +93,7 @@ void TpWatchPad::RenderContents(bool forceScroll)
 			{
 				const DeliveryItem& it = delivery.items[i];
 				ImGui::PushID(static_cast<int>(it.id) + 100000);
-				const char* name = it.name.empty() ? "…" : it.name.c_str();
+				const char* name = it.name.empty() ? "..." : it.name.c_str();
 				char line[256];
 				std::snprintf(line, sizeof(line), "%dx  %s", it.count, name);
 				ImGui::TextUnformatted(line);
@@ -140,15 +142,15 @@ void TpWatchPad::RenderContents(bool forceScroll)
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
 			"Refresh to load delivery (needs tradingpost scope).");
 	}
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 
 	ImGui::Separator();
 	ImGui::TextUnformatted("Watchlist");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Chat code / ID adds immediately. Names search first — pick Track to watchlist. "
+		"Chat code / ID adds immediately. Names search first - pick Track to watchlist. "
 		"Optional sell alert: fire when sell ≤ your target (checked on Refresh).");
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 
 	auto trySubmit = [&]() {
 		if (!gAddBuf[0] || gAddBusy) return;
@@ -170,7 +172,7 @@ void TpWatchPad::RenderContents(bool forceScroll)
 	const float addBtnW = ImGui::CalcTextSize("Search").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
 	const float addFieldW = ImGui::GetContentRegionAvail().x - addBtnW - ImGui::GetStyle().ItemSpacing.x;
 	ImGui::SetNextItemWidth(addFieldW > 120.f ? addFieldW : 120.f);
-	if (ImGui::InputTextWithHint("###gw2igh_tp_pad_add", "[&…] / ID / name (ecto)",
+	if (ImGui::InputTextWithHint("###gw2igh_tp_pad_add", "[&...] / ID / name (ecto)",
 			gAddBuf, sizeof(gAddBuf), ImGuiInputTextFlags_EnterReturnsTrue))
 		trySubmit();
 	ImGui::SameLine();
@@ -179,16 +181,16 @@ void TpWatchPad::RenderContents(bool forceScroll)
 	if (ImGui::Button(submitId, ImVec2(addBtnW, 0.f)))
 		trySubmit();
 	if (gAddBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Searching…");
+		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Searching...");
 	else if (!gNameHits.empty())
 	{
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-			"Results — TP buy / sell (instant), then Track:");
+			"Results - TP buy / sell (instant), then Track:");
 		for (size_t i = 0; i < gNameHits.size(); ++i)
 		{
 			const NameHit& h = gNameHits[i];
 			ImGui::PushID(static_cast<int>(h.id) + 9000);
-			ImGui::TextUnformatted(h.name.empty() ? "…" : h.name.c_str());
+			ImGui::TextUnformatted(h.name.empty() ? "..." : h.name.c_str());
 			ImGui::SameLine();
 			ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "#%d", h.id);
 			ImGui::SameLine();
@@ -222,17 +224,17 @@ void TpWatchPad::RenderContents(bool forceScroll)
 	auto drawRows = [&]() {
 		if (rows.empty())
 		{
-			ImGui::PushTextWrapPos(0.f);
+			PadNav::PushWrap();
 			ImGui::TextWrapped(
 				"No items yet. Search a name and Track, or paste a chat code / ID.");
-			ImGui::PopTextWrapPos();
+			PadNav::PopWrap();
 			return;
 		}
 		for (size_t i = 0; i < rows.size(); ++i)
 		{
 			Row& r = rows[i];
 			ImGui::PushID(static_cast<int>(r.id));
-			const char* name = r.name.empty() ? "…" : r.name.c_str();
+			const char* name = r.name.empty() ? "..." : r.name.c_str();
 			const bool hit = r.alertHit;
 
 			if (hit)
@@ -243,9 +245,11 @@ void TpWatchPad::RenderContents(bool forceScroll)
 			const float removeW = ImGui::CalcTextSize("Remove").x + st.FramePadding.x * 2.f;
 			const float bltcW = ImGui::CalcTextSize("BLTC").x + st.FramePadding.x * 2.f;
 			const float actionsW = removeW + bltcW + st.ItemSpacing.x;
-			float nameW = ImGui::GetContentRegionAvail().x - actionsW - st.ItemSpacing.x;
+			float nameW = ImGui::GetContentRegionAvail().x - actionsW - st.ItemSpacing.x - 30.f;
 			if (nameW < 80.f) nameW = 80.f;
 
+			if (Gw2Icons::ImageItem(r.id, 24.f))
+				ImGui::SameLine(0.f, 6.f);
 			ImGui::BeginGroup();
 			ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + nameW);
 			if (hit)
@@ -280,30 +284,30 @@ void TpWatchPad::RenderContents(bool forceScroll)
 				G::ShowWiki = true; /* show helper so the new tab is visible */
 				Settings::SetDirty();
 				if (BrowserTabs::OpenNewUrl("gw2bltc", url) < 0)
-					WikiBrowser::Navigate(url); /* tab bar full — current tab */
+					WikiBrowser::Navigate(url); /* tab bar full - current tab */
 			}
 
-			ImGui::PushTextWrapPos(0.f);
+			PadNav::PushWrap();
 			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "#%d", r.id);
 			char priceLine[192];
 			if (r.sell > r.buy && r.buy > 0)
 			{
 				std::snprintf(priceLine, sizeof(priceLine),
-					"Buy %s  ·  Sell %s  ·  spread %s",
+					"Buy %s | Sell %s | spread %s",
 					FormatCoins(r.buy).c_str(), FormatCoins(r.sell).c_str(),
 					FormatCoins(r.sell - r.buy).c_str());
 				ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f), "%s", priceLine);
 			}
 			else if (r.buy == 0 && r.sell == 0 && !r.name.empty())
 			{
-				std::snprintf(priceLine, sizeof(priceLine), "Buy %s  ·  Sell %s",
+				std::snprintf(priceLine, sizeof(priceLine), "Buy %s | Sell %s",
 					FormatCoins(r.buy).c_str(), FormatCoins(r.sell).c_str());
 				ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f), "%s", priceLine);
 				ImGui::TextColored(ImVec4(0.70f, 0.55f, 0.40f, 1.f), "No TP listings");
 			}
 			else
 			{
-				std::snprintf(priceLine, sizeof(priceLine), "Buy %s  ·  Sell %s",
+				std::snprintf(priceLine, sizeof(priceLine), "Buy %s | Sell %s",
 					FormatCoins(r.buy).c_str(), FormatCoins(r.sell).c_str());
 				ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f), "%s", priceLine);
 			}
@@ -311,7 +315,7 @@ void TpWatchPad::RenderContents(bool forceScroll)
 			if (hit)
 			{
 				ImGui::TextColored(ImVec4(0.95f, 0.82f, 0.35f, 1.f),
-					"Alert — sell %s ≤ %s",
+					"Alert - sell %s ≤ %s",
 					FormatCoins(r.sell).c_str(), FormatCoins(r.alertSell).c_str());
 			}
 
@@ -363,7 +367,7 @@ void TpWatchPad::RenderContents(bool forceScroll)
 				ApplyAlerts(rows);
 				gStatus = "Sell alert cleared.";
 			}
-			ImGui::PopTextWrapPos();
+			PadNav::PopWrap();
 
 			if (hit)
 				ImGui::PopStyleColor();

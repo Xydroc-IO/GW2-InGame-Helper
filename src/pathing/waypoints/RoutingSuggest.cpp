@@ -154,8 +154,8 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 	else
 	{
 		r.status = PathingTrails::IsLoading()
-			? "Trail packs still loading — retry in a moment, or wait for MumbleLink."
-			: "MumbleLink position unavailable — open the map in-game and retry.";
+			? "Trail packs still loading - retry in a moment, or wait for MumbleLink."
+			: "MumbleLink position unavailable - open the map in-game and retry.";
 		gLast = r;
 		return r;
 	}
@@ -167,7 +167,7 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 	{
 		r.status = WaypointsData::Busy()
 			? std::string(WaypointsData::Status())
-			: "Waypoint index not ready — retry in a moment.";
+			: "Waypoint index not ready - retry in a moment.";
 		gLast = r;
 		return r;
 	}
@@ -207,7 +207,7 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 	}
 	if (ranked.empty())
 	{
-		r.status = "Waypoints on this map have no coordinates yet — refresh the index.";
+		r.status = "Waypoints on this map have no coordinates yet - refresh the index.";
 		gLast = r;
 		return r;
 	}
@@ -251,13 +251,13 @@ RoutingSuggest::Result RoutingSuggest::SuggestNearTrailStart(size_t maxN)
 	if (r.ok)
 	{
 		if (prefer && confirmedN > 0)
-			r.status = "Nearest walk-confirmed waypoints — copy a chat code to teleport.";
+			r.status = "Nearest walk-confirmed waypoints - copy a chat code to teleport.";
 		else if (fromPlayer)
 			r.status = anyEnabled
-				? "No trail start on this map — nearest waypoints to your position."
+				? "No trail start on this map - nearest waypoints to your position."
 				: "Nearest waypoints to your position (no pathing categories enabled).";
 		else
-			r.status = "Nearest waypoints to trail start — copy a chat code to teleport.";
+			r.status = "Nearest waypoints to trail start - copy a chat code to teleport.";
 
 		/* Orange guide: toward trail start, or toward the closest WP when anchored on the player. */
 		if (fromPlayer && r.nearest[0].hasCoord)
@@ -283,7 +283,7 @@ RoutingSuggest::Result RoutingSuggest::SuggestFromClipboard()
 	const std::string link = ExtractChatLink(clip);
 	if (link.empty())
 	{
-		r.status = "Clipboard has no GW2 chat link [&…]. Shift+click a waypoint in-game, then retry.";
+		r.status = "Clipboard has no GW2 chat link [&...]. Shift+click a waypoint in-game, then retry.";
 		gLast = r;
 		return r;
 	}
@@ -294,7 +294,7 @@ RoutingSuggest::Result RoutingSuggest::SuggestFromClipboard()
 	{
 		r.status = WaypointsData::Busy()
 			? std::string(WaypointsData::Status())
-			: "Waypoint index not ready — retry in a moment.";
+			: "Waypoint index not ready - retry in a moment.";
 		gLast = r;
 		return r;
 	}
@@ -329,11 +329,11 @@ RoutingSuggest::Result RoutingSuggest::SuggestFromClipboard()
 	r.status = std::string("Routing to ") + poi.name + " (" + poi.type + ")";
 	ApplyOrangeGuide(r);
 	if (PathingTrails::HasSearchGuide())
-		r.status += " — orange guide set.";
+		r.status += " - orange guide set.";
 	else if (PathingTrails::HasSearchGuideActive())
-		r.status += " — orange guide loading trail geometry…";
+		r.status += " - orange guide loading trail geometry...";
 	else
-		r.status += " — destination set (enable a nearby trail category if the guide stays empty).";
+		r.status += " - destination set (enable a nearby trail category if the guide stays empty).";
 	gLast = r;
 	return r;
 }

@@ -115,7 +115,7 @@ namespace
 			ParsePart(parts[1], 0, 23, hour) &&
 			ParsePart(parts[2], 1, 31, dom) &&
 			ParsePart(parts[3], 1, 12, month) &&
-			ParsePart(parts[4], 0, 6, dow); /* 0=Sun … 6=Sat (Blish) */
+			ParsePart(parts[4], 0, 6, dow); /* 0=Sun ... 6=Sat (Blish) */
 	}
 
 	bool CronMatchesAt(const Field& minute, const Field& hour, const Field& dom,
@@ -128,7 +128,7 @@ namespace
 #else
 		gmtime_r(&t, &tm);
 #endif
-		/* tm_wday: 0=Sun — matches Blish */
+		/* tm_wday: 0=Sun - matches Blish */
 		return MatchField(minute, tm.tm_min) &&
 			MatchField(hour, tm.tm_hour) &&
 			MatchField(dom, tm.tm_mday) &&
@@ -143,11 +143,11 @@ bool PathingSchedule::IsActiveUtc(const std::string& cronFiveField,
 	if (cronFiveField.empty())
 		return true;
 	if (!(durationMinutes > 0.f))
-		return true; /* Blish: missing duration → treat as always / ignore */
+		return true; /* Blish: missing duration -> treat as always / ignore */
 
 	Field minute, hour, dom, month, dow;
 	if (!ParseCron(cronFiveField, minute, hour, dom, month, dow))
-		return true; /* malformed → do not hide content */
+		return true; /* malformed -> do not hide content */
 
 	const int windowSecs = static_cast<int>(durationMinutes * 60.f) + 59;
 	/* Sample each minute in [now-duration, now] for a cron start. */
@@ -181,7 +181,7 @@ std::int64_t PathingSchedule::NowUnixUtc()
 	ULARGE_INTEGER u{};
 	u.LowPart = ft.dwLowDateTime;
 	u.HighPart = ft.dwHighDateTime;
-	/* FILETIME epochs at 1601; Unix at 1970 — 11644473600 seconds. */
+	/* FILETIME epochs at 1601; Unix at 1970 - 11644473600 seconds. */
 	constexpr std::uint64_t kEpochDiff = 11644473600ull;
 	return static_cast<std::int64_t>((u.QuadPart / 10000000ull) - kEpochDiff);
 }

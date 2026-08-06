@@ -5,6 +5,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "Gw2Icons.h"
 #include "InventoryData.h"
 #include "Settings.h"
 
@@ -444,6 +445,7 @@ namespace WalletDetail
 				if (id > 0 && !name.empty())
 				{
 					RememberName(static_cast<int>(id), name);
+					Gw2Icons::RememberIconFromJson(static_cast<int>(id), r.body.c_str(), brace, e);
 					saved = true;
 				}
 				p = e + 1;

@@ -1,4 +1,5 @@
 #include "CraftingData.h"
+#include "PadNav.h"
 
 #include "CraftingShared.h"
 
@@ -154,42 +155,42 @@ void CraftingData::RenderContents()
 	}
 
 	ImGui::TextUnformatted("Crafting planner");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
 		"Station crafts use the official recipe API. Legendaries / gifts use wiki "
-		"Mystic Forge trees (expandable to depth %d) — gifts, sub-gifts, then mats. "
+		"Mystic Forge trees (expandable to depth %d) - gifts, sub-gifts, then mats. "
 		"Owned counts: materials, bank, shared (API key).",
 		kMaxDepth);
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 
 	const float btnW = ImGui::CalcTextSize("Plan").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
 	float fieldW = ImGui::GetContentRegionAvail().x - btnW - ImGui::GetStyle().ItemSpacing.x;
 	if (fieldW < 120.f) fieldW = 120.f;
 	ImGui::SetNextItemWidth(fieldW);
-	if (ImGui::InputTextWithHint("###gw2igh_craft_q", "[&…] / ID / name",
+	if (ImGui::InputTextWithHint("###gw2igh_craft_q", "[&...] / ID / name",
 			gQuery, sizeof(gQuery), ImGuiInputTextFlags_EnterReturnsTrue))
 		StartPlan();
 	ImGui::SameLine();
 	if (ImGui::Button("Plan###gw2igh_craft_go", ImVec2(btnW, 0.f)))
 		StartPlan();
 
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	if (gBusy && !plan.ok)
 		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
-			plan.status.empty() ? "Planning…" : plan.status.c_str());
+			plan.status.empty() ? "Planning..." : plan.status.c_str());
 	else if (gBusy && plan.ok)
 		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s", plan.status.c_str());
 	else if (!plan.status.empty())
 		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", plan.status.c_str());
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 
 	ImGui::Separator();
 	ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.35f, 1.f), "Daily crafting");
 	if (gDailyBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading…");
+		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading...");
 	else if (dailies.empty())
 		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-			"%s", dailyStatus.empty() ? "—" : dailyStatus.c_str());
+			"%s", dailyStatus.empty() ? "-" : dailyStatus.c_str());
 	else
 	{
 		for (const DailyRow& d : dailies)
@@ -207,11 +208,11 @@ void CraftingData::RenderContents()
 			plan.outputName.empty() ? "Output" : plan.outputName.c_str());
 		if (!plan.recipeSource.empty())
 			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-				"#%d · %s · crafts %d", plan.outputId, plan.recipeSource.c_str(),
+				"#%d | %s | crafts %d", plan.outputId, plan.recipeSource.c_str(),
 				plan.outputCount);
 		else
 			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-				"#%d · crafts %d per recipe", plan.outputId, plan.outputCount);
+				"#%d | crafts %d per recipe", plan.outputId, plan.outputCount);
 		if (plan.noTpMissing > 0)
 		{
 			ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f),
@@ -245,7 +246,7 @@ void CraftingData::RenderContents()
 	else if (!gBusy)
 	{
 		ImGui::TextWrapped(
-			"Try an ascended food, gift, or crafted gear name — or Shift+click a chat code.");
+			"Try an ascended food, gift, or crafted gear name - or Shift+click a chat code.");
 	}
 
 	ImGui::EndChild();

@@ -11,6 +11,7 @@
 #include "Globals.h"
 #include "HelperQuickAccess.h"
 #include "NotesPad.h"
+#include "PanelBinds.h"
 #include "SessionHistoryData.h"
 #include "PathingTrails.h"
 #include "TrailToolsShared.h"
@@ -41,6 +42,8 @@ void AddonUnload()
 	G::ShowLogManager = false;
 	G::ShowEconomy = false;
 	G::ShowInstances = false;
+	G::ShowCompletion = false;
+	G::ShowFarming = false;
 	G::ShowPathingGuides = false;
 	G::ShowTrailTools = false;
 	TrailToolsDetail::gPopoutTrails = false;
@@ -53,12 +56,7 @@ void AddonUnload()
 	G::API->GUI_Deregister(UI_Render);
 	G::API->GUI_Deregister(UI_Options);
 	G::API->InputBinds_Deregister(KB_TOGGLE);
-	G::API->InputBinds_Deregister(KB_ACCOUNT);
-	G::API->InputBinds_Deregister(KB_TEKKIT);
-	G::API->InputBinds_Deregister(KB_MARKER);
-	G::API->InputBinds_Deregister(KB_EVENTS);
-	G::API->InputBinds_Deregister(KB_NOTES);
-	G::API->InputBinds_Deregister(KB_ITEM_LEGACY);
+	PanelBinds::DeregisterLegacyNexusBinds();
 	G::API->WndProc_Deregister(OnWndProc);
 
 	HelperQuickAccess::Shutdown();

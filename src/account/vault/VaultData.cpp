@@ -77,12 +77,12 @@ namespace VaultDetail
 			if (days >= 0)
 			{
 				const int n = static_cast<int>(days + 0.999);
-				out += " · ";
+				out += " | ";
 				out += std::to_string(n);
 				out += (n == 1 ? " day left" : " days left");
 			}
 			else
-				out += " · ended";
+				out += " | ended";
 		}
 		if (out.empty())
 			out = "Season dates unavailable.";
@@ -122,7 +122,7 @@ namespace VaultDetail
 		h = tm.tm_hour;
 		mi = tm.tm_min;
 		s = tm.tm_sec;
-		wday = tm.tm_wday; /* 0=Sun … 6=Sat */
+		wday = tm.tm_wday; /* 0=Sun ... 6=Sat */
 	}
 
 	time_t MakeUtc(int y, int mo, int d, int h, int mi, int s)
@@ -168,7 +168,7 @@ namespace VaultDetail
 
 	long long SecUntilWeeklyResetUtc()
 	{
-		/* Monday 07:30 UTC. tm_wday: 0=Sun, 1=Mon, … */
+		/* Monday 07:30 UTC. tm_wday: 0=Sun, 1=Mon, ... */
 		int y, mo, d, h, mi, s, wday;
 		UtcNowParts(y, mo, d, h, mi, s, wday);
 		const time_t now = time(nullptr);

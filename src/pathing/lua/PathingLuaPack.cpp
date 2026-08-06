@@ -33,7 +33,7 @@ namespace PathingLuaDetail
 			const char* path = luaL_optstring(L, arg, "");
 			if (!RequireScript(L, path ? path : ""))
 			{
-				/* Soft-fail — Blish packs often Require optional helpers. */
+				/* Soft-fail - Blish packs often Require optional helpers. */
 				if (G::API && G::API->Log && path && path[0])
 				{
 					char buf[256];

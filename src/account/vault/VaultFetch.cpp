@@ -150,14 +150,14 @@ namespace VaultDetail
 		{
 			snap.seasonTitle = JsonStringAfterKey(pack.season.body, "title");
 			if (snap.seasonTitle.empty())
-				snap.seasonTitle = "Wizard’s Vault";
+				snap.seasonTitle = "Wizard's Vault";
 			snap.seasonBlurb = SeasonBlurb(
 				JsonStringAfterKey(pack.season.body, "start"),
 				JsonStringAfterKey(pack.season.body, "end"));
 		}
 		else
 		{
-			snap.seasonTitle = "Wizard’s Vault";
+			snap.seasonTitle = "Wizard's Vault";
 			snap.seasonBlurb = pack.season.error.empty() ? "Season fetch failed." : pack.season.error;
 		}
 
@@ -181,12 +181,12 @@ namespace VaultDetail
 		if (snap.scopeFail)
 			std::snprintf(st, sizeof(st), "Need account + progression scopes.");
 		else if (snap.hasKey)
-			std::snprintf(st, sizeof(st), "Daily %d · Weekly %d · Special %d",
+			std::snprintf(st, sizeof(st), "Daily %d | Weekly %d | Special %d",
 				static_cast<int>(snap.daily.size()),
 				static_cast<int>(snap.weekly.size()),
 				static_cast<int>(snap.special.size()));
 		else
-			std::snprintf(st, sizeof(st), "Public preview — add API key for live Vault.");
+			std::snprintf(st, sizeof(st), "Public preview - add API key for live Vault.");
 		snap.status = st;
 
 		{
@@ -224,7 +224,7 @@ namespace VaultDetail
 		}
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			gSnap.status = gSnap.ok ? "Refreshing…" : "Loading…";
+			gSnap.status = gSnap.ok ? "Refreshing..." : "Loading...";
 			gGen.fetch_add(1);
 		}
 		gThread = CreateThread(nullptr, 0, MasterProc, nullptr, 0, nullptr);

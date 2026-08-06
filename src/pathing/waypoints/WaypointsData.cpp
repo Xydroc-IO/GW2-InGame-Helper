@@ -228,7 +228,7 @@ DWORD WINAPI LoadProc(void*)
 	}
 	else
 	{
-		status = "Downloading Tyria map floor…";
+		status = "Downloading Tyria map floor...";
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			gPendingStatus = status;
@@ -236,12 +236,12 @@ DWORD WINAPI LoadProc(void*)
 		auto t1 = Gw2Http::Api("/v2/continents/1/floors/1", nullptr, kFloorTimeoutMs);
 		if (!t1.ok)
 		{
-			status = "Could not download Tyria floors — try again later.";
+			status = "Could not download Tyria floors - try again later.";
 		}
 		else
 		{
 			ParseFloorJson(t1.body, pois);
-			status = "Downloading Mists floor…";
+			status = "Downloading Mists floor...";
 			{
 				std::lock_guard<std::mutex> lock(gMu);
 				gPendingStatus = status;
@@ -302,7 +302,7 @@ void WaypointsData::EnsureLoaded(bool force)
 	}
 	{
 		std::lock_guard<std::mutex> lock(gMu);
-		gStatus = "Loading waypoints…";
+		gStatus = "Loading waypoints...";
 		gPendingStatus = gStatus;
 	}
 	gThread = CreateThread(nullptr, 0, LoadProc, nullptr, 0, nullptr);
@@ -398,7 +398,7 @@ bool WaypointsData::FindByChatLink(const char* chatLink, Poi& out)
 	if (!chatLink || !chatLink[0])
 		return false;
 	std::string needle = chatLink;
-	/* Allow pasting with surrounding text — keep first [&…]. */
+	/* Allow pasting with surrounding text - keep first [&...]. */
 	const size_t a = needle.find("[&");
 	if (a != std::string::npos)
 	{

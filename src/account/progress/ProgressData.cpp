@@ -1,4 +1,5 @@
 #include "ProgressData.h"
+#include "PadNav.h"
 
 #include "ProgressDataInternal.h"
 
@@ -254,7 +255,7 @@ namespace ProgressDetail
 		}
 	}
 
-	/* MediaWiki title path — same rules as LookupPad (spaces → _, ' → %27). */
+	/* MediaWiki title path - same rules as LookupPad (spaces -> _, ' -> %27). */
 	std::string WikiTitleToPath(const std::string& title)
 	{
 		std::string o;
@@ -270,7 +271,7 @@ namespace ProgressDetail
 
 	void OpenWikiItem(int id, const std::string& name)
 	{
-		/* Wiki Special:Search does not resolve GW2 item IDs — use the API name. */
+		/* Wiki Special:Search does not resolve GW2 item IDs - use the API name. */
 		std::string url;
 		if (!name.empty())
 		{
@@ -327,22 +328,22 @@ void ProgressData::RenderContents()
 	const Snapshot& snap = gDraw;
 
 	ImGui::TextUnformatted("Legendaries & characters");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Legendary Armory unlocks and roster — official API, read-only. "
+		"Legendary Armory unlocks and roster - official API, read-only. "
 		"Use Plan on a legendary to open Crafting with its gift / forge tree.");
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 
 	if (ImGui::Button("Refresh###gw2igh_prog_ref"))
 		StartFetch(true);
 	ImGui::SameLine();
 	if (gBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating…");
+		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating...");
 	else if (!snap.status.empty())
 		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", snap.status.c_str());
 
 	ImGui::SetNextItemWidth(-1.f);
-	ImGui::InputTextWithHint("###gw2igh_prog_filter", "Filter legendaries…",
+	ImGui::InputTextWithHint("###gw2igh_prog_filter", "Filter legendaries...",
 		gFilter, sizeof(gFilter));
 
 	ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Show");
@@ -360,7 +361,7 @@ void ProgressData::RenderContents()
 	ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.35f, 1.f), "Legendary Armory");
 	if (snap.legs.empty() && !gBusy)
 	{
-		ImGui::TextWrapped("No catalog yet — click Refresh.");
+		ImGui::TextWrapped("No catalog yet - click Refresh.");
 	}
 	else
 	{
@@ -373,7 +374,7 @@ void ProgressData::RenderContents()
 			if (gShowMode == 2 && !have) continue;
 			++shown;
 			ImGui::PushID(r.id);
-			const char* name = r.name.empty() ? "…" : r.name.c_str();
+			const char* name = r.name.empty() ? "..." : r.name.c_str();
 			if (have)
 				ImGui::TextColored(ImVec4(0.55f, 0.85f, 0.55f, 1.f), "%s", name);
 			else
@@ -389,7 +390,7 @@ void ProgressData::RenderContents()
 			ImGui::SameLine();
 			if (ImGui::SmallButton("Plan"))
 			{
-				/* Prefer item ID — skips wiki name search (snappy). */
+				/* Prefer item ID - skips wiki name search (snappy). */
 				char idBuf[24];
 				std::snprintf(idBuf, sizeof(idBuf), "%d", r.id);
 				CraftingData::QueuePlan(idBuf);
@@ -427,7 +428,7 @@ void ProgressData::RenderContents()
 			{
 				char meta[96];
 				if (c.level >= 0 && !c.profession.empty())
-					std::snprintf(meta, sizeof(meta), "Lv %lld · %s", c.level, c.profession.c_str());
+					std::snprintf(meta, sizeof(meta), "Lv %lld | %s", c.level, c.profession.c_str());
 				else if (c.level >= 0)
 					std::snprintf(meta, sizeof(meta), "Lv %lld", c.level);
 				else

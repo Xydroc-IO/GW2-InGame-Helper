@@ -59,7 +59,7 @@ namespace LogManagerDetail
 		return a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_DIRECTORY);
 	}
 
-	/* Resolve EI guildUUID → official API tag (worker thread only). */
+	/* Resolve EI guildUUID -> official API tag (worker thread only). */
 	void ResolveGuildTagsForPlayers(std::vector<PlayerInfo>& players)
 	{
 		static std::mutex sCacheMu;
@@ -134,7 +134,7 @@ namespace LogManagerDetail
 			JsonStringAfterKey(json.c_str(), "TimeStart", tStart);
 		if (!tStart.empty())
 		{
-			/* "2024-01-15 12:34:56 +00" or similar — parse YYYY-MM-DD HH:MM:SS */
+			/* "2024-01-15 12:34:56 +00" or similar - parse YYYY-MM-DD HH:MM:SS */
 			struct tm tm{};
 			int y = 0, mo = 0, d = 0, h = 0, mi = 0, s = 0;
 			if (std::sscanf(tStart.c_str(), "%d-%d-%d %d:%d:%d", &y, &mo, &d, &h, &mi, &s) >= 5)
@@ -310,7 +310,7 @@ namespace LogManagerDetail
 		const std::string body = ReadFileUtf8(CachePathW());
 		if (body.empty())
 			return;
-		/* Walk top-level objects — simple scan for "path" keys in objects. */
+		/* Walk top-level objects - simple scan for "path" keys in objects. */
 		const char* p = body.c_str();
 		while ((p = std::strstr(p, "{\"path\":\"")) != nullptr)
 		{

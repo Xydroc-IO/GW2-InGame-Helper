@@ -173,7 +173,7 @@ namespace
 		return id != 0 && (id == m.a || (m.b != 0 && id == m.b));
 	}
 
-	/* Meta / festival mapLabel → open-world map id(s). */
+	/* Meta / festival mapLabel -> open-world map id(s). */
 	MapIds IdsForLabel(const char* label)
 	{
 		if (!label || !label[0]) return {};

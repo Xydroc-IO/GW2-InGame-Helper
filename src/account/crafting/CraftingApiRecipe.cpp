@@ -56,7 +56,7 @@ namespace CraftingDetail
 		{
 			InventoryData::RefreshIfNeeded(false);
 			/* Fall back to a quick materials/bank/shared pull if inventory module
-			   is still cold — same endpoints, keeps planner usable. */
+			   is still cold - same endpoints, keeps planner usable. */
 			if (!G::Gw2ApiKey[0]) return;
 			const char* key = G::Gw2ApiKey;
 			OwnedJob jobs[3] = {
@@ -141,7 +141,7 @@ namespace CraftingDetail
 		return !ings.empty();
 	}
 
-	/* TP / gather mats — buy these; do not chase promotion ladders (ore/dust/T6 blood…). */
+	/* TP / gather mats - buy these; do not chase promotion ladders (ore/dust/T6 blood...). */
 	bool IsTerminalMaterial(const std::string& name)
 	{
 		if (name.empty()) return false;
@@ -171,7 +171,7 @@ namespace CraftingDetail
 		return false;
 	}
 
-	/* Gifts / tributes almost never have station recipes — skip failed API search. */
+	/* Gifts / tributes almost never have station recipes - skip failed API search. */
 	bool PreferWikiRecipe(const std::string& nameHint)
 	{
 		if (nameHint.empty()) return false;

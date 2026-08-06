@@ -24,7 +24,7 @@ bool LooksLikeMapCompletion(const std::string& type, const std::string& path)
 		return true;
 	if (t.rfind("tt.mc.", 0) == 0 || t.find(".mc.") != std::string::npos)
 		return true;
-	/* Tekkit uses tw_guides.tw_mc.… (underscore, not .mc.) */
+	/* Tekkit uses tw_guides.tw_mc.... (underscore, not .mc.) */
 	if (t.find(".tw_mc.") != std::string::npos || t.find("tw_mc.") != std::string::npos)
 		return true;
 	if (t.find("mapcompletion") != std::string::npos)

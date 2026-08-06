@@ -1,4 +1,5 @@
 #include "NotesPadInternal.h"
+#include "PadNav.h"
 
 #include "WaypointsData.h"
 
@@ -36,10 +37,10 @@ namespace NotesPadDetail
 		WaypointsData::EnsureLoaded(false);
 		WaypointsData::Tick();
 
-		ImGui::PushTextWrapPos(0.f);
+		PadNav::PushWrap();
 		ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-			"Official API waypoints & POIs — Copy puts the chat code on your clipboard.");
-		ImGui::PopTextWrapPos();
+			"Official API waypoints & POIs - Copy puts the chat code on your clipboard.");
+		PadNav::PopWrap();
 
 		if (WaypointsData::Busy())
 			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s", WaypointsData::Status());
@@ -70,18 +71,18 @@ namespace NotesPadDetail
 		if (gWpMode == 0)
 		{
 			ImGui::SetNextItemWidth(-1.f);
-			ImGui::InputTextWithHint("###gw2igh_wp_q", "Waypoint or map name…",
+			ImGui::InputTextWithHint("###gw2igh_wp_q", "Waypoint or map name...",
 				gWpQuery, sizeof(gWpQuery));
 			if (gWpQuery[0])
 				WaypointsData::Search(gWpQuery, gWpWaypointsOnly, hits, 100);
 			else
 				ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-					"Type a name — e.g. fort trinity, lion's arch.");
+					"Type a name - e.g. fort trinity, lion's arch.");
 		}
 		else if (gWpMode == 1)
 		{
 			ImGui::SetNextItemWidth(-1.f);
-			ImGui::InputTextWithHint("###gw2igh_wp_mf", "Filter maps…",
+			ImGui::InputTextWithHint("###gw2igh_wp_mf", "Filter maps...",
 				gWpMapFilter, sizeof(gWpMapFilter));
 			WaypointsData::ListMaps(gWpMapFilter, maps, 60);
 			const float mapListH = 120.f;
@@ -144,7 +145,7 @@ namespace NotesPadDetail
 			if (gWpMode == 0)
 			{
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "· %s", p.mapName.c_str());
+				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), " |  %s", p.mapName.c_str());
 			}
 			if (!gWpWaypointsOnly && p.type != "waypoint")
 			{

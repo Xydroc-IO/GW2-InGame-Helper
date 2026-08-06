@@ -73,7 +73,7 @@ namespace UIDetail
 			if (canClose)
 				std::snprintf(label, sizeof(label), "%s  x###tab%d", title, i);
 			else if (n > 1 && tab.pinned)
-				std::snprintf(label, sizeof(label), "%s  ·###tab%d", title, i);
+				std::snprintf(label, sizeof(label), "%s   | ###tab%d", title, i);
 			else
 				std::snprintf(label, sizeof(label), "%s###tab%d", title, i);
 
@@ -124,7 +124,7 @@ namespace UIDetail
 			if (ImGui::IsItemHovered())
 			{
 				if (tab.pinned)
-					ImGui::SetTooltip("%s (pinned — unpin to close)", title);
+					ImGui::SetTooltip("%s (pinned - unpin to close)", title);
 				else if (canClose)
 				{
 					const float mx = ImGui::GetIO().MousePos.x;
@@ -226,6 +226,6 @@ namespace UIDetail
 		BrowserTabs::OpenNewUrl(Sites::ActiveId(), u);
 	}
 
-	/* Friendly status — muted gold; hide Ready / closed noise. */
+	/* Friendly status - muted gold; hide Ready / closed noise. */
 
 } // namespace UIDetail

@@ -10,15 +10,8 @@
 namespace EntryDetail
 {
 	extern const char* KB_TOGGLE;
-	extern const char* KB_ACCOUNT;
-	extern const char* KB_TEKKIT;
-	extern const char* KB_MARKER;
-	extern const char* KB_EVENTS;
-	extern const char* KB_NOTES;
-	extern const char* KB_ITEM_LEGACY;
 
 	extern DWORD gLastToggleMs;
-	extern DWORD gLastPanelBindMs;
 	extern bool  gPollToggleHeld;
 	extern bool  gSwallowHotkeyKeys;
 
@@ -29,12 +22,6 @@ namespace EntryDetail
 	void BeginHotkeySwallow();
 	void UpdateHotkeySwallow();
 	void OnToggle(const char*, bool release);
-	bool PanelBindDebounce();
-	void OnToggleAccount(const char*, bool release);
-	void OnTogglePathing(const char*, bool release);
-	void OnMarkerInteract(const char*, bool release);
-	void OnToggleEvents(const char*, bool release);
-	void OnToggleNotes(const char*, bool release);
 
 	unsigned CefModsFromWin();
 	bool IsKeyMsg(UINT msg);

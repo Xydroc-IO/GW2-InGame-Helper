@@ -39,7 +39,7 @@ namespace LogManagerDetail
 		return out;
 	}
 
-	/* Encounter name → token item id (from killproof.me tokens / killproofs). */
+	/* Encounter name -> token item id (from killproof.me tokens / killproofs). */
 	bool BossTokenForEncounter(const std::string& encounter, int& outId, const char*& outLabel)
 	{
 		outId = 0;
@@ -150,7 +150,7 @@ namespace LogManagerDetail
 		}
 		if (out.li < 0 && out.ld < 0 && out.ufe < 0 && out.amounts.empty() && out.proofUrl.empty())
 		{
-			/* Private / empty profile — treat as missing rather than inventing zeros. */
+			/* Private / empty profile - treat as missing rather than inventing zeros. */
 			out.missing = true;
 			return false;
 		}
@@ -290,7 +290,7 @@ namespace LogManagerDetail
 			{
 				if (gCancel.load())
 					break;
-				std::snprintf(gStatus, sizeof(gStatus), "Loading KP %d… (%s)",
+				std::snprintf(gStatus, sizeof(gStatus), "Loading KP %d... (%s)",
 					done + 1, account.c_str());
 				KillProofCacheEntry entry;
 				FetchKillProofProfile(account, entry);

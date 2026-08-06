@@ -31,7 +31,7 @@ bool PathingTrails::HasDrawableWorldGps()
 {
 	std::unique_lock<std::mutex> lock(gMutex, std::try_to_lock);
 	if (!lock.owns_lock())
-		return true; /* unknown — do not wipe sticky cache */
+		return true; /* unknown - do not wipe sticky cache */
 	for (const Trail& t : gCurrentAll)
 	{
 		/* Match CurrentTrails / compass: either visibility flag is enough. */
@@ -90,7 +90,7 @@ std::vector<PathingTrails::Trail> PathingTrails::CurrentTrails()
 		lock.lock();
 
 	std::vector<Trail> out;
-	/* Compass needs continent polylines — never deep-copy worldPoints. */
+	/* Compass needs continent polylines - never deep-copy worldPoints. */
 	constexpr int kMaxDraw = 128;
 	out.reserve(static_cast<size_t>(kMaxDraw));
 	for (const Trail& t : gCurrentAll)
@@ -124,7 +124,7 @@ std::vector<PathingTrails::Trail> PathingTrails::CurrentTrails()
 		slim.points = t.points;
 		out.push_back(std::move(slim));
 	}
-	/* Always accept the filtered result — including empty — so toggles turn off. */
+	/* Always accept the filtered result - including empty - so toggles turn off. */
 	sLast = out;
 	sLastMap = gActiveMap;
 	return out;
@@ -305,7 +305,7 @@ void PathingTrails::SetCategoryEnabled(const std::string& path, bool enabled)
 		enabled ? std::vector<std::string>{path} : std::vector<std::string>{},
 		enabled ? std::vector<std::string>{} : std::vector<std::string>{path});
 
-	/* Categories → Hero Points is the same tree as Features → Hero Point Train.
+	/* Categories -> Hero Points is the same tree as Features -> Hero Point Train.
 	   Sync the Features gate so the Categories checkbox actually shows/hides content
 	   when parent legs is still enabled. */
 	const std::string low = ToLower(path);
@@ -488,16 +488,51 @@ bool PathingTrails::TryTrailStartContinent(float* outX, float* outY,
 
 void PathingTrails::SetSearchDestination(float continentX, float continentY)
 {
-	std::lock_guard<std::mutex> lock(gMutex);
-	gGuideActive = true;
-	gGuideDestX = continentX;
-	gGuideDestY = continentY;
-	/* Drop the previous ribbon so clipboard / Find don't keep showing an old route. */
-	gGuide = {};
-	RebuildSearchGuideLocked();
-	/* Empty geometry → load/reload map trails (search-rank) until a snap succeeds. */
-	if (gGuide.points.size() < 2)
-		gForceReload.store(true, std::memory_order_release);
+	uint32_t mapId = 0;
+	bool needRects = false;
+	{
+		std::lock_guard<std::mutex> lock(gMutex);
+		gGuideActive = true;
+		gGuideDestX = continentX;
+		gGuideDestY = continentY;
+		gGuide = {};
+		/* Capture pose now so the first rebuild can draw a direct line. */
+		if (G::Mumble && G::Mumble->context_len >= sizeof(MumbleContext))
+		{
+			const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
+			if (ctx && ctx->mapId != 0)
+			{
+				gGuidePlayerX = ctx->playerX;
+				gGuidePlayerY = ctx->playerY;
+				gGuideHavePlayer = true;
+				if (gActiveMap == 0)
+					gActiveMap = ctx->mapId;
+			}
+		}
+		mapId = gActiveMap;
+		const auto rit = gRects.find(mapId);
+		needRects = mapId != 0 && (rit == gRects.end() || !rit->second.valid);
+		RebuildSearchGuideLocked();
+		/* Continent line is enough for the GPS arrow; world ribbon needs rects. */
+		if (gGuide.worldPoints.size() >= 2)
+			return;
+	}
+
+	/* Fetch map rects outside the lock (HTTP). Then rebuild world ribbon. */
+	if (needRects && mapId != 0)
+	{
+		Rects rects{};
+		if (FetchMapRects(mapId, rects) && rects.valid)
+		{
+			std::lock_guard<std::mutex> lock(gMutex);
+			if (gActiveMap == mapId || gActiveMap == 0)
+			{
+				gRects[mapId] = rects;
+				if (gGuideActive)
+					RebuildSearchGuideLocked();
+			}
+		}
+	}
 }
 
 void PathingTrails::ClearSearchGuide()

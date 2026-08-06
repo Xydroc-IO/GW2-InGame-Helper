@@ -97,7 +97,7 @@ float RangeFade(float3 wpos)
 
 float4 PSSolid(PSIn i) : SV_Target
 {
-	/* Procedural chevron when pack texture is missing — matches Blish density. */
+	/* Procedural chevron when pack texture is missing - matches Blish density. */
 	float stripe = frac(i.uv.y);
 	float chev = saturate(smoothstep(0.0, 0.12, stripe) * smoothstep(0.95, 0.45, stripe));
 	float a = i.col.a * chev * SoftClear(i.wpos) * RangeFade(i.wpos);
@@ -110,7 +110,7 @@ SamplerState gSamp : register(s0);
 
 float4 PSTextured(PSIn i) : SV_Target
 {
-	/* Blish: tint × trail texture (alpha shapes the chevron). */
+	/* Blish: tint x trail texture (alpha shapes the chevron). */
 	float4 t = gTex.Sample(gSamp, i.uv);
 	float a = t.a * i.col.a * SoftClear(i.wpos) * RangeFade(i.wpos);
 	if (a < 0.04) discard;

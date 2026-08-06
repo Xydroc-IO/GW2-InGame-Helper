@@ -136,7 +136,7 @@ struct CuratedPack
 {
 	const char* fileName;     /* on disk under pathing/ */
 	const char* displayName;  /* status text */
-	const char* githubApi;    /* nullable — releases/latest JSON */
+	const char* githubApi;    /* nullable - releases/latest JSON */
 	const char* assetName;    /* GitHub asset name when using API */
 	const char* directUrl;    /* fallback / primary for non-GitHub */
 };
@@ -241,7 +241,7 @@ bool EnsureOne(const std::wstring& pathingDir, const CuratedPack& pack, bool for
 		const std::wstring urlW = Utf8ToWide(url.c_str());
 		if (!HttpHeadStamp(urlW.c_str(), wantStamp))
 		{
-			/* No HEAD — refresh only when missing or forced. */
+			/* No HEAD - refresh only when missing or forced. */
 			wantStamp = "direct";
 		}
 	}
@@ -254,7 +254,7 @@ bool EnsureOne(const std::wstring& pathingDir, const CuratedPack& pack, bool for
 
 	{
 		char buf[160];
-		std::snprintf(buf, sizeof(buf), "Pathing: downloading %s…", pack.displayName);
+		std::snprintf(buf, sizeof(buf), "Pathing: downloading %s...", pack.displayName);
 		SetStatus(buf);
 	}
 
@@ -322,7 +322,7 @@ bool PathingPacks::EnsureCurated(const wchar_t* pathingDirWide)
 	gCancel.store(false, std::memory_order_release);
 	gUpdating.store(true, std::memory_order_release);
 	const bool force = gForceUpdate.exchange(false, std::memory_order_acq_rel);
-	SetStatus(force ? "Pathing: checking curated packs (force)…" : "Pathing: checking curated packs…");
+	SetStatus(force ? "Pathing: checking curated packs (force)..." : "Pathing: checking curated packs...");
 
 	CreateDirectoryW(pathingDirWide, nullptr);
 	const std::wstring dir(pathingDirWide);

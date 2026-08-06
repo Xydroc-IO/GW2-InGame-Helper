@@ -23,6 +23,7 @@ namespace LookupDetail
 		std::string rarity;
 		std::string type;
 		std::string level;
+		std::string iconUrl;
 		long long buy = 0;
 		long long sell = 0;
 		bool hasPrices = false;

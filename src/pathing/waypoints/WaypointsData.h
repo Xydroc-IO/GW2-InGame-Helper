@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-/* Official API waypoint / POI index — name search, by map, this-map (Mumble). */
+/* Official API waypoint / POI index - name search, by map, this-map (Mumble). */
 namespace WaypointsData
 {
 	struct Poi

@@ -70,7 +70,7 @@ namespace
 			gDraft.active.mapId = mapId;
 		else if (requireMapMatch && gDraft.active.mapId != mapId)
 		{
-			SetStatus("Map mismatch — trail %u, you %u.", gDraft.active.mapId, mapId);
+			SetStatus("Map mismatch - trail %u, you %u.", gDraft.active.mapId, mapId);
 			return;
 		}
 		if (gDraft.active.type.empty() && gDraft.trailType[0])
@@ -263,7 +263,7 @@ void TrailToolsBinds::ActionTrailStart()
 		if (gDraft.active.type.empty() && gDraft.trailType[0])
 			gDraft.active.type = gDraft.trailType;
 		AppendPointAtFeet(false);
-		SetStatus("Recording trail… (%zu pts).", gDraft.active.points.size());
+		SetStatus("Recording trail... (%zu pts).", gDraft.active.points.size());
 		return;
 	}
 	if (gBinds.trailPaused)
@@ -404,7 +404,7 @@ void TrailToolsBinds::Poll()
 				gBinds.place[t - 10].chord = c;
 			gBinds.captureTarget = -1;
 			Settings::SetDirty();
-			/* swallow until release — clear held so we don't fire immediately */
+			/* swallow until release - clear held so we don't fire immediately */
 			std::memset(gHeld, 0, sizeof(gHeld));
 			return;
 		}

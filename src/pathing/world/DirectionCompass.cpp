@@ -14,7 +14,7 @@
 #include <cstring>
 #include <deque>
 
-/* World N/E/S/W around the character (Raidcore-style). Gold theming is ours —
+/* World N/E/S/W around the character (Raidcore-style). Gold theming is ours -
    no Raidcore source copied. Independent of Tekkit CompassOverlay. */
 
 namespace
@@ -203,7 +203,7 @@ namespace
 		return d;
 	}
 
-	/* Read Nexus FontBig only — never PushFont (shared ImGui stack). */
+	/* Read Nexus FontBig only - never PushFont (shared ImGui stack). */
 	ImFont* DirectionFontBig()
 	{
 		if (G::NexusLink && G::NexusLink->FontBig)
@@ -368,17 +368,17 @@ void DirectionCompass::DrawControls()
 	if (ImGui::Checkbox("Enable direction compass###gw2igh_dircompass_pad", &G::ShowDirectionCompass))
 		Settings::SetDirty();
 	ImGui::SetNextItemWidth(-1.f);
-	if (ImGui::SliderFloat("Letter size###gw2igh_dirletters_pad", &G::DirectionLetterScale, 0.5f, 2.5f, "%.2f×"))
+	if (ImGui::SliderFloat("Letter size###gw2igh_dirletters_pad", &G::DirectionLetterScale, 0.5f, 2.5f, "%.2fx"))
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Scales only our N/E/S/W draw size.\n"
-			"1.00× = Nexus FontBig bake size. Does not touch FontGlobalScale.");
+			"1.00x = Nexus FontBig bake size. Does not touch FontGlobalScale.");
 	ImGui::SetNextItemWidth(-1.f);
-	if (ImGui::SliderFloat("World radius###gw2igh_dirradius_pad", &G::DirectionWorldRadiusScale, 0.4f, 3.0f, "%.2f×"))
+	if (ImGui::SliderFloat("World radius###gw2igh_dirradius_pad", &G::DirectionWorldRadiusScale, 0.4f, 3.0f, "%.2fx"))
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("How far N/E/S/W sit from your character (hitbox base × this).");
+		ImGui::SetTooltip("How far N/E/S/W sit from your character (hitbox base x this).");
 }
 
 void DirectionCompass::Open()

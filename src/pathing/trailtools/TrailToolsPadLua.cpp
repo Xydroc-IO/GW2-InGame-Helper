@@ -22,7 +22,7 @@ namespace TrailToolsDetail
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
 			"Drop .lua files into the pack authoring folder (any subpath). "
-			"Build .taco includes them; enable Lua under Pathing → Features to run.");
+			"Build .taco includes them; enable Lua under Pathing -> Features to run.");
 		PadNav::PopWrap();
 
 		std::vector<std::string> luas;
@@ -51,7 +51,7 @@ namespace TrailToolsDetail
 		if (ImGui::BeginChild("###gw2igh_tt_luas", ImVec2(0.f, 70.f), true))
 		{
 			if (luas.empty())
-				ImGui::TextDisabled("No .lua files yet — Open folder and add Scripts/foo.lua");
+				ImGui::TextDisabled("No .lua files yet - Open folder and add Scripts/foo.lua");
 			for (const std::string& f : luas)
 				ImGui::BulletText("%s", f.c_str());
 		}

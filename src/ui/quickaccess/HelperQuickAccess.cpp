@@ -19,7 +19,7 @@ void HelperQuickAccess::Init()
 	if (!G::API->Textures_GetOrCreateFromMemory || !G::API->QuickAccess_Add)
 		return;
 
-	/* Official Nexus texture + QuickAccess APIs only — no GW2 memory reads. */
+	/* Official Nexus texture + QuickAccess APIs only - no GW2 memory reads. */
 	G::API->Textures_GetOrCreateFromMemory(
 		kTexId,
 		const_cast<unsigned char*>(kHelperIconPng),

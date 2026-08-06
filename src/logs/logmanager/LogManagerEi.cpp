@@ -39,13 +39,13 @@ DWORD WINAPI EiInstallWorker(LPVOID)
 				std::snprintf(gStatus, sizeof(gStatus), "Elite Insights %s ready.", stamp);
 			else
 				std::snprintf(gStatus, sizeof(gStatus),
-					"Elite Insights %s installed — install .NET 8 Runtime to parse.", stamp);
+					"Elite Insights %s installed - install .NET 8 Runtime to parse.", stamp);
 		}
 		else if (EiRuntime::HasDotNet8Runtime())
 			std::snprintf(gStatus, sizeof(gStatus), "Elite Insights ready.");
 		else
 			std::snprintf(gStatus, sizeof(gStatus),
-				"Elite Insights installed — install .NET 8 Runtime to parse.");
+				"Elite Insights installed - install .NET 8 Runtime to parse.");
 	}
 	else if (!gEiStatus[0])
 		std::snprintf(gStatus, sizeof(gStatus), "Elite Insights install failed.");
@@ -58,7 +58,7 @@ void BeginEiEnsure(bool force)
 	if (gEiInstallBusy.exchange(true))
 		return;
 
-	/* Custom path already works — skip auto-update unless forced. */
+	/* Custom path already works - skip auto-update unless forced. */
 	if (!force && PathExistsUtf8(G::EliteInsightsPath) && !IsManagedEiPath(G::EliteInsightsPath))
 	{
 		std::snprintf(gEiStatus, sizeof(gEiStatus), "Using custom Elite Insights path.");
@@ -66,8 +66,8 @@ void BeginEiEnsure(bool force)
 		return;
 	}
 
-	std::snprintf(gEiStatus, sizeof(gEiStatus), "Checking Elite Insights updates…");
-	std::snprintf(gStatus, sizeof(gStatus), "Checking Elite Insights updates…");
+	std::snprintf(gEiStatus, sizeof(gEiStatus), "Checking Elite Insights updates...");
+	std::snprintf(gStatus, sizeof(gStatus), "Checking Elite Insights updates...");
 	if (gEiInstallThread)
 	{
 		CloseHandle(gEiInstallThread);
@@ -386,7 +386,7 @@ void BeginParsePending()
 	if (gParseBusy.exchange(true))
 		return;
 	gCancel.store(false);
-	std::snprintf(gStatus, sizeof(gStatus), "Parsing with Elite Insights…");
+	std::snprintf(gStatus, sizeof(gStatus), "Parsing with Elite Insights...");
 	if (gParseThread)
 	{
 		CloseHandle(gParseThread);

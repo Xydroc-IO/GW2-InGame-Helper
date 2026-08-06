@@ -29,12 +29,12 @@ namespace PathingDetail
 
 	bool IsMountShortcutMarker(const PathingTrails::Marker& marker)
 	{
-		/* Type path first — iconId is empty until pack extract + Nexus upload. */
+		/* Type path first - iconId is empty until pack extract + Nexus upload. */
 		if (IsLadyShortcutTypeLabel(marker.label))
 			return true;
 		if (!marker.iconId[0])
 			return false;
-		/* IconTextureId keeps alnum from path → …Images_Mounts_Mount_Raptor… */
+		/* IconTextureId keeps alnum from path -> ...Images_Mounts_Mount_Raptor... */
 		return std::strstr(marker.iconId, "Mounts") != nullptr ||
 			std::strstr(marker.iconId, "mounts") != nullptr;
 	}
@@ -53,7 +53,7 @@ namespace PathingDetail
 		return marker.minimapVisible;
 	}
 
-	/* Lady map-completion editions live at legs.map.<region>.<map>.<edition>…
+	/* Lady map-completion editions live at legs.map.<region>.<map>.<edition>...
 	   Editions: barefoot | all/main/withmounts | wp. Do not treat "main"/"wp"
 	   outside legs.map (festivals/chests) as a route edition. */
 	bool LadyMapRouteEdition(const std::string& typeLow, std::string& outEdition)
@@ -126,18 +126,6 @@ namespace PathingDetail
 			typeLow.compare(typeLow.size() - 4, 4, ".bfs") == 0;
 	}
 
-	bool IsLadyWpTrailOnly(const std::string& typeLow)
-	{
-		/* Exact waypoint trail: legs.map.<region>.<map>.wp — no .wp.wp markers,
-		   no .wp.skyscale / .wp.springer mount icons on the WP route. */
-		if (typeLow.size() < 3 ||
-			typeLow.compare(typeLow.size() - 3, 3, ".wp") != 0)
-			return false;
-		if (typeLow.find(".wp.") != std::string::npos)
-			return false;
-		return true;
-	}
-
 	bool IsLadyShortcutTypeLabel(const char* label)
 	{
 		if (!label || !label[0])
@@ -173,7 +161,7 @@ namespace PathingDetail
 
 	bool IsLadyHeroPointTrainPath(const std::string& typeLow)
 	{
-		/* legs.hp.* / leag.hp.* — not map-completion …barefoot.hp markers. */
+		/* legs.hp.* / leag.hp.* - not map-completion ...barefoot.hp markers. */
 		return typeLow == "legs.hp" || typeLow == "leag.hp" ||
 			(typeLow.size() > 8 && typeLow.compare(0, 8, "legs.hp.") == 0) ||
 			(typeLow.size() > 8 && typeLow.compare(0, 8, "leag.hp.") == 0);
@@ -185,7 +173,7 @@ namespace PathingDetail
 			return false;
 		const std::string typeLow = ToLower(type);
 
-		/* Lady Elyssa Features — current map content only via loaded map trails. */
+		/* Lady Elyssa Features - current map content only via loaded map trails. */
 		const bool ladyPack =
 			typeLow == "legs" || typeLow == "leag" ||
 			(typeLow.size() > 5 && typeLow.compare(0, 5, "legs.") == 0) ||
@@ -201,15 +189,15 @@ namespace PathingDetail
 			std::string mapEd;
 			const bool onMapRoute = LadyMapRouteEdition(typeLow, mapEd);
 
-			/* Hero Point Train / Categories → Hero Points (legs.hp.*). */
+			/* Hero Point Train / Categories -> Hero Points (legs.hp.*). */
 			if (IsLadyHeroPointTrainPath(typeLow))
 				return hpTrainOn && TypeCategoryEnabled(type, enabled);
 
-			/* Heart trails/markers — own toggle (pulled out of Barefoot/Mounts). */
+			/* Heart trails/markers - own toggle (pulled out of Barefoot/Mounts). */
 			if (IsLadyHeartPath(typeLow))
 				return heartsOn && TypeCategoryEnabled(type, enabled);
 
-			/* Barefoot Shortcuts: trails + mount shortcut markers under …bfs… */
+			/* Barefoot Shortcuts: trails + markers under ...bfs... (Barefoot only). */
 			if (bfs)
 			{
 				if (!bareOn)
@@ -219,21 +207,21 @@ namespace PathingDetail
 
 			if (onMapRoute)
 			{
-				/* Barefoot foot routes only (hearts/HP train handled above). */
+				/* Barefoot: foot trails + markers on this map. */
 				if (mapEd == "barefoot")
 				{
 					if (!bareOn)
 						return false;
 					return TypeCategoryEnabled(type, enabled);
 				}
-				/* WP Only: waypoint trails (…map.<zone>.wp) — not …wp.mount icons. */
+				/* WP Only: WP trails + markers + shortcuts under ...map.<zone>.wp*. */
 				if (mapEd == "wp")
 				{
-					if (!wpOn || !IsLadyWpTrailOnly(typeLow))
+					if (!wpOn)
 						return false;
 					return TypeCategoryEnabled(type, enabled);
 				}
-				/* With Mounts: mount route + mount-guide markers. */
+				/* With Mounts: mount MC trails + mount-guide markers/shortcuts. */
 				if (IsLadyWithMountsEdition(mapEd) ||
 					(IsLadyMountShortcutSeg(mapEd) && !IsLadyRouteEditionSeg(mapEd)))
 				{
@@ -241,11 +229,11 @@ namespace PathingDetail
 						return false;
 					return TypeCategoryEnabled(type, enabled);
 				}
-				/* Other map-route leaves (lanterns, etc.) — Categories only. */
+				/* Other map-route leaves (lanterns, etc.) - Categories only. */
 				return TypeCategoryEnabled(type, enabled);
 			}
-			/* Other Lady trees (bounty, fishing, mapt, ranger, rifts, mape, …)
-			   follow Categories — Features exclusivity is map-route / hearts / HP only. */
+			/* Other Lady trees (bounty, fishing, mapt, ranger, rifts, mape, ...)
+			   follow Categories - Features exclusivity is map-route / hearts / HP only. */
 		}
 
 		return TypeCategoryEnabled(type, enabled);
@@ -274,7 +262,7 @@ namespace PathingDetail
 		}
 		if (!covered)
 			return false;
-		/* Hero Points / Hero Point Train share legs.hp — Features gate drives the checkbox
+		/* Hero Points / Hero Point Train share legs.hp - Features gate drives the checkbox
 		   so Categories toggles stay meaningful under an enabled Lady root. */
 		if (low == "legs.hp" || low == "leag.hp" ||
 			(low.size() > 8 && low.compare(0, 8, "legs.hp.") == 0) ||

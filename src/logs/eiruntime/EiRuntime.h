@@ -5,7 +5,7 @@
 /* Private Elite Insights CLI for Combat Logs (same pattern as CefRuntime):
      1) Prefer a local GW2EICLI.zip (next to the DLL or in the addon folder)
      2) Else query GitHub releases/latest for GW2EICLI.zip (+ asset SHA-256)
-     3) If local ei.ver != latest tag → download → verify → extract to ei/
+     3) If local ei.ver != latest tag -> download -> verify -> extract to ei/
    Elite Insights is MIT (baaron4). Not bundled inside the DLL.
    Fallback constants used only when the GitHub API is unreachable. */
 
@@ -43,7 +43,7 @@ namespace EiRuntime
 	/* Force the next HasDotNet8Runtime() call to rescan. */
 	void InvalidateDotNet8Cache();
 
-	/* Opens Microsoft’s .NET 8 Desktop Runtime x64 installer (aka.ms). */
+	/* Opens Microsoft's .NET 8 Desktop Runtime x64 installer (aka.ms). */
 	void OpenDotNet8Installer();
 
 	/* True when running under Wine/Proton (ntdll wine export). */

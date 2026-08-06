@@ -19,7 +19,7 @@
 namespace
 {
 	constexpr int kVersion = 1;
-	/* Continent units — close enough to stand on / unlock a WP. */
+	/* Continent units - close enough to stand on / unlock a WP. */
 	constexpr float kConfirmRadius = 75.f;
 	constexpr float kConfirmRadius2 = kConfirmRadius * kConfirmRadius;
 	constexpr DWORD kTickMs = 250u;

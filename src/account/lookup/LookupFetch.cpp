@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "Gw2Icons.h"
 #include "BrowserTabs.h"
 #include "Settings.h"
 #include "WikiBrowser.h"
@@ -151,7 +152,7 @@ namespace LookupDetail
 				else if (e == 't') out.push_back('\t');
 				else if (e == 'u' && k + 3 < json.size())
 				{
-					/* skip \uXXXX — keep ASCII fallback */
+					/* skip \uXXXX - keep ASCII fallback */
 					k += 4;
 				}
 				else
@@ -272,6 +273,9 @@ namespace LookupDetail
 		hit.name = JsonStringAfterKey(r.body, "name", 0);
 		hit.rarity = JsonStringAfterKey(r.body, "rarity", 0);
 		hit.type = JsonStringAfterKey(r.body, "type", 0);
+		hit.iconUrl = JsonStringAfterKey(r.body, "icon", 0);
+		if (!hit.iconUrl.empty())
+			Gw2Icons::RememberIcon(id, hit.iconUrl.c_str());
 		long long lvl = JsonIntAfterKey(r.body, "level", 0);
 		if (lvl >= 0)
 		{
@@ -316,7 +320,7 @@ namespace LookupDetail
 	void WikiNameSearch(const char* query, Hit& hit)
 	{
 		hit = {};
-		hit.status = "Searching wiki…";
+		hit.status = "Searching wiki...";
 		std::string url =
 			"https://wiki.guildwars2.com/api.php?action=query&list=search&srnamespace=0"
 			"&srlimit=8&format=json&formatversion=2&srsearch=";
@@ -344,7 +348,7 @@ namespace LookupDetail
 		}
 		if (hit.nameHints.empty())
 		{
-			hit.status = "No wiki results — try a chat code or item ID.";
+			hit.status = "No wiki results - try a chat code or item ID.";
 			return;
 		}
 
@@ -359,7 +363,7 @@ namespace LookupDetail
 			std::string wt = JsonStringAfterKey(pr.body, "wikitext", 0);
 			if (wt.empty())
 			{
-				/* formatversion 2 nests differently — look for raw wikitext string after key */
+				/* formatversion 2 nests differently - look for raw wikitext string after key */
 				size_t wk = pr.body.find("\"wikitext\"");
 				if (wk != std::string::npos)
 					wt = JsonStringAfterKey(pr.body, "wikitext", wk);
@@ -371,7 +375,7 @@ namespace LookupDetail
 				return;
 			}
 		}
-		hit.status = "Wiki hits — open a page, or paste a chat code / ID for full stats.";
+		hit.status = "Wiki hits - open a page, or paste a chat code / ID for full stats.";
 	}
 
 	DWORD WINAPI LookupProc(void* param)
@@ -416,7 +420,7 @@ namespace LookupDetail
 		std::snprintf(gThreadQuery, sizeof(gThreadQuery), "%s", gQuery);
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			gHit.status = "Looking up…";
+			gHit.status = "Looking up...";
 		}
 		gThread = CreateThread(nullptr, 0, LookupProc, gThreadQuery, 0, nullptr);
 		if (!gThread)

@@ -153,7 +153,7 @@ namespace
 			}
 			if (rem.empty())
 			{
-				/* leaf — apply style */
+				/* leaf - apply style */
 				TrailToolsDetail::CategoryNode leaf = StyleToNode(seg, style);
 				leaf.children = child->children;
 				*child = std::move(leaf);

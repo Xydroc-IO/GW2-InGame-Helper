@@ -7,6 +7,8 @@
 #include "ConfirmedWaypoints.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "Gw2Icons.h"
+#include "Gw2Ui.h"
 #include "LivePanels.h"
 #include "MumbleIdentity.h"
 #include "NotesPad.h"
@@ -19,6 +21,10 @@
 #include "LogManagerPad.h"
 #include "EconomyPad.h"
 #include "InstancesPad.h"
+#include "CompletionPad.h"
+#include "FarmingPad.h"
+#include "GpsArrow.h"
+#include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
 #include "TrailToolsPad.h"
 #include "PathingTrails.h"
@@ -35,6 +41,7 @@
 #include "WikiIpc.h"
 #include "AddonPaths.h"
 #include "TrailToolsBinds.h"
+#include "PanelBinds.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -53,15 +60,18 @@ using namespace UIDetail;
 
 void UI_Render()
 {
-	/* Always poll first — must run while the helper is closed too. */
+	/* Always poll first - must run while the helper is closed too. */
 	HelperHotkeys_Poll();
 	TrailToolsBinds::Poll();
+	PanelBinds::Poll();
 	UiScale::TickAuto();
+	Gw2Icons::Tick();
+	Gw2Ui::WarmCommon();
 	WikiBrowser::Tick();
 	MumbleIdentity::Tick();
 	CharacterProfiles::Tick();
 	ConfirmedWaypoints::Tick();
-	/* Tekkit overlays — always, even with the browser closed. */
+	/* Tekkit overlays - always, even with the browser closed. */
 	CompassOverlay::Render();
 	WorldOverlay::Render();
 	PathingTrails::DrawMarkerBehaviorOverlay();
@@ -87,7 +97,7 @@ void UI_Render()
 	static bool sWasOpen = false;
 	if (!G::ShowWiki)
 	{
-		/* Do NOT clear WantTextInput / WantCaptureKeyboard here — those flags are
+		/* Do NOT clear WantTextInput / WantCaptureKeyboard here - those flags are
 		   shared with Nexus. Wiping them every frame breaks the library search field
 		   (keys fall through to GW2 hotkeys, e.g. G = guild). */
 
@@ -102,7 +112,7 @@ void UI_Render()
 		WikiBrowser::SetVisible(false);
 
 		/* Notes / TP / Lookup / Wallet can stay open while the helper browser is closed.
-		   Only block GW2 while the pointer is over those windows — do not
+		   Only block GW2 while the pointer is over those windows - do not
 		   force Capture*FromApp(false) every frame (breaks Nexus / open). */
 		const bool notesHover = NotesPad::Render();
 		const bool accountHover = AccountPad::Render();
@@ -114,13 +124,19 @@ void UI_Render()
 		const bool logsHover = LogManagerPad::Render();
 		const bool economyHover = EconomyPad::Render();
 		const bool instancesHover = InstancesPad::Render();
+		const bool completionHover = CompletionPad::Render();
+		const bool farmingHover = FarmingPad::Render();
+		CompletionPad::Tick();
+		const bool gpsArrowHover = GpsArrow::Render();
+		ZoneBanner::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover ||
-			economyHover || instancesHover ||
+			economyHover || instancesHover || completionHover || farmingHover ||
+			gpsArrowHover ||
 			tekkitHover || trailToolsHover || compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
@@ -150,7 +166,7 @@ void UI_Render()
 				G::WindowPosY = def.posY;
 				G::HasSavedPos = true;
 			}
-			G::HasSavedSize = true; /* apply once — ImGui FirstUseEver + persist */
+			G::HasSavedSize = true; /* apply once - ImGui FirstUseEver + persist */
 			Settings::SetDirty();
 		}
 	}
@@ -180,7 +196,7 @@ void UI_Render()
 	if (!ImGui::Begin("In-Game Helper##GW2InGameHelper", &open,
 		ImGuiWindowFlags_NoNavInputs))
 	{
-		/* Collapsed title bar — CEF must be was_hidden (0% viewability otherwise)
+		/* Collapsed title bar - CEF must be was_hidden (0% viewability otherwise)
 		   but keep the process alive so expand does not hitch. */
 		const ImVec2 pos = ImGui::GetWindowPos();
 		const ImVec2 winSize = ImGui::GetWindowSize();
@@ -215,13 +231,19 @@ void UI_Render()
 		const bool logsHover = LogManagerPad::Render();
 		const bool economyHover = EconomyPad::Render();
 		const bool instancesHover = InstancesPad::Render();
+		const bool completionHover = CompletionPad::Render();
+		const bool farmingHover = FarmingPad::Render();
+		CompletionPad::Tick();
+		const bool gpsArrowHover = GpsArrow::Render();
+		ZoneBanner::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover ||
-			economyHover || instancesHover ||
+			economyHover || instancesHover || completionHover || farmingHover ||
+			gpsArrowHover ||
 			tekkitHover || trailToolsHover || compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
@@ -244,7 +266,7 @@ void UI_Render()
 
 	DrawToolbar();
 
-	/* Tab / find hotkeys — use ImGuiIO (Nexus-filled KeysDown), not GetAsyncKeyState. */
+	/* Tab / find hotkeys - use ImGuiIO (Nexus-filled KeysDown), not GetAsyncKeyState. */
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		const bool typing = io.WantTextInput;

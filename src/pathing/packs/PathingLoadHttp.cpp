@@ -163,17 +163,28 @@ namespace PathingDetail
 	{
 		/* TacO / Blish / Mumble store world XZ in meters. API map_rect is in
 		   inches (GW2 internal units). Without this scale every trail collapses
-		   to a few pixels near the map center — the "blob" bug. */
+		   to a few pixels near the map center - the "blob" bug. */
 		constexpr float kMetersToInches = 39.3700787f;
 		const float wx = wxMeters * kMetersToInches;
 		const float wz = wzMeters * kMetersToInches;
 
 		const float tx = (wx - r.mx0) / (r.mx1 - r.mx0);
-		/* Same transform as the classic Mumble→continent formula:
+		/* Same transform as the classic Mumble->continent formula:
 		   continent_y uses -world_z against map_rect.y. */
 		const float ty = (-wz - r.my0) / (r.my1 - r.my0);
 		cx = r.cx0 + tx * (r.cx1 - r.cx0);
 		cy = r.cy0 + ty * (r.cy1 - r.cy0);
+	}
+
+	void ContinentToWorld(const Rects& r, float cx, float cy, float& wxMeters, float& wzMeters)
+	{
+		constexpr float kInchesToMeters = 1.f / 39.3700787f;
+		const float tx = (cx - r.cx0) / (r.cx1 - r.cx0);
+		const float ty = (cy - r.cy0) / (r.cy1 - r.cy0);
+		const float wxIn = r.mx0 + tx * (r.mx1 - r.mx0);
+		const float wzIn = -(r.my0 + ty * (r.my1 - r.my0));
+		wxMeters = wxIn * kInchesToMeters;
+		wzMeters = wzIn * kInchesToMeters;
 	}
 
 

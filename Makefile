@@ -12,14 +12,14 @@ CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/ui/browse -Isrc/ui/settings -Isrc/ui/
 	-Isrc/pathing/trailtools -Isrc/pathing/world -Isrc/pathing/lua -Isrc/pathing/packs \
 	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/logs -Isrc/logs/logmanager -Isrc/logs/eiruntime \
 	-Isrc/events -Isrc/notes -Isrc/helper \
-	-Isrc/economy -Isrc/instances
+	-Isrc/economy -Isrc/instances -Isrc/completion -Isrc/farming -Isrc/overlay
 CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/lua
 # Dependency files: emit only from the build/%.o rule via -MF (never beside sources).
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
 LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
 LDFLAGS_EXE  = -static -static-libgcc -static-libstdc++ -mwindows -municode -mcrtdll=msvcrt
-LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32
+LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32 -ladvapi32
 LIBS_EXE = -lgdi32 -lole32 -luuid -lshell32 -lwinhttp
 
 HELPER_SRC = src/helper/main.cpp src/helper/HelperState.cpp src/helper/HelperPaths.cpp \
@@ -55,6 +55,10 @@ DLL_SRC = \
 	src/app/AddonPaths.cpp \
 	src/app/MumbleIdentity.cpp \
 	src/app/AspectLayout.cpp \
+	src/app/PanelBinds.cpp \
+	src/app/PanelBindsUi.cpp \
+	src/app/Gw2Icons.cpp \
+	src/app/Gw2Ui.cpp \
 	src/api/Gw2Http.cpp \
 	src/browse/sites/Sites.cpp \
 	src/browse/sites/SitesState.cpp \
@@ -134,6 +138,19 @@ DLL_SRC = \
 	src/instances/InstancesPad.cpp \
 	src/instances/InstancesPadState.cpp \
 	src/instances/InstancesData.cpp \
+	src/completion/CompletionPad.cpp \
+	src/completion/CompletionPadState.cpp \
+	src/completion/CompletionData.cpp \
+	src/completion/CompletionRoute.cpp \
+	src/completion/CompletionHierarchy.cpp \
+	src/completion/CompletionFavorites.cpp \
+	src/completion/CompletionChecklist.cpp \
+	src/completion/CompletionAtlas.cpp \
+	src/farming/FarmingPad.cpp \
+	src/farming/FarmingPadState.cpp \
+	src/farming/FarmingPersist.cpp \
+	src/overlay/GpsArrow.cpp \
+	src/overlay/ZoneBanner.cpp \
 	src/logs/logmanager/LogManagerPad.cpp \
 	src/logs/logmanager/LogManagerPadState.cpp \
 	src/logs/logmanager/LogManagerParse.cpp \
@@ -220,6 +237,7 @@ DLL_SRC = \
 	src/browser/WikiBrowserHelperLifecycle.cpp \
 	src/browser/WikiBrowserHelperLaunch.cpp \
 	src/browser/WikiBrowserIpc.cpp \
+	src/browser/WikiBrowserIpcSec.cpp \
 	src/browser/WikiBrowserPresent.cpp \
 	src/browser/CefRuntime.cpp \
 	src/browser/CefRuntimeFs.cpp \
@@ -229,6 +247,7 @@ DLL_SRC = \
 	src/ui/chrome/UI_Helpers.cpp \
 	src/ui/chrome/UI_ChromeTabs.cpp \
 	src/ui/chrome/UI_ChromeToolbar.cpp \
+	src/ui/chrome/UI_ChromeSideRail.cpp \
 	src/ui/chrome/UI_Render.cpp \
 	src/ui/chrome/UI_RenderPage.cpp \
 	src/ui/browse/UI_Browse.cpp \

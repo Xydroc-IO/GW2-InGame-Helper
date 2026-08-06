@@ -1,6 +1,6 @@
 #pragma once
 
-/* ImGui Pathing panel — wrapping PadNav sections (no ◀ ▶ tab scroll):
+/* ImGui Pathing panel - wrapping PadNav sections (no ◀ ▶ tab scroll):
    Overview / Features / Categories / Route. Pack data stays in PathingTrails. */
 namespace PathingGuidesPad
 {

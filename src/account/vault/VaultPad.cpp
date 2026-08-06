@@ -5,6 +5,7 @@
 #include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
 
@@ -36,14 +37,14 @@ namespace VaultDetail
 	{
 		const std::string daily = FormatCountdown(SecUntilDailyResetUtc());
 		const std::string weekly = FormatCountdown(SecUntilWeeklyResetUtc());
-		ImGui::PushTextWrapPos(0.f);
+		PadNav::PushWrap();
 		ImGui::TextColored(ImVec4(0.75f, 0.82f, 0.95f, 1.f),
 			"Daily reset in %s", daily.c_str());
 		ImGui::TextColored(ImVec4(0.75f, 0.82f, 0.95f, 1.f),
 			"Weekly reset in %s", weekly.c_str());
 		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
-			"UTC — daily 00:00 · weekly Mon 07:30");
-		ImGui::PopTextWrapPos();
+			"UTC - daily 00:00 | weekly Mon 07:30");
+		PadNav::PopWrap();
 	}
 
 	void SyncDraw()
@@ -61,9 +62,9 @@ namespace VaultDetail
 			return;
 		if (list.empty())
 		{
-			ImGui::PushTextWrapPos(0.f);
+			PadNav::PushWrap();
 			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "No objectives.");
-			ImGui::PopTextWrapPos();
+			PadNav::PopWrap();
 			ImGui::TreePop();
 			return;
 		}
@@ -74,7 +75,7 @@ namespace VaultDetail
 			ImVec4 col = o.done
 				? ImVec4(0.45f, 0.75f, 0.50f, 1.f)
 				: ImVec4(0.88f, 0.88f, 0.90f, 1.f);
-			ImGui::PushTextWrapPos(0.f);
+			PadNav::PushWrap();
 			ImGui::PushStyleColor(ImGuiCol_Text, col);
 			ImGui::TextWrapped("%s%s", o.done ? "[Done] " : "", o.title.c_str());
 			ImGui::PopStyleColor();
@@ -84,14 +85,14 @@ namespace VaultDetail
 				if (!o.track.empty()) m += o.track;
 				if (o.acclaim > 0)
 				{
-					if (!m.empty()) m += " · ";
+					if (!m.empty()) m += " | ";
 					m += std::to_string(o.acclaim);
 					m += " acclaim";
 					if (o.acclaim <= 10) m += " (easy)";
 				}
 				if (o.need > 0)
 				{
-					if (!m.empty()) m += " · ";
+					if (!m.empty()) m += " | ";
 					m += std::to_string(o.cur);
 					m += " / ";
 					m += std::to_string(o.need);
@@ -107,7 +108,7 @@ namespace VaultDetail
 					ImGui::ProgressBar(frac, ImVec2(-FLT_MIN, 6.f), "");
 				}
 			}
-			ImGui::PopTextWrapPos();
+			PadNav::PopWrap();
 			ImGui::Spacing();
 			ImGui::PopID();
 		}
@@ -143,25 +144,25 @@ void VaultPad::RenderContents()
 	SyncDraw();
 	const Snapshot& snap = gDraw;
 
-	ImGui::TextUnformatted("Dailies & Wizard’s Vault");
-	ImGui::PushTextWrapPos(0.f);
+	ImGui::TextUnformatted("Dailies & Wizard's Vault");
+	PadNav::PushWrap();
 	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Official API — account + progression scopes. (Account → Vault tab.)");
-	ImGui::PopTextWrapPos();
+		"Official API - account + progression scopes. (Account -> Vault tab.)");
+	PadNav::PopWrap();
 
 	if (ImGui::Button("Refresh###gw2igh_vault_ref"))
 		StartFetch(true);
 	if (gBusy)
 	{
-		ImGui::PushTextWrapPos(0.f);
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating…");
-		ImGui::PopTextWrapPos();
+		PadNav::PushWrap();
+		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating...");
+		PadNav::PopWrap();
 	}
 	else if (!snap.status.empty())
 	{
-		ImGui::PushTextWrapPos(0.f);
+		PadNav::PushWrap();
 		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", snap.status.c_str());
-		ImGui::PopTextWrapPos();
+		PadNav::PopWrap();
 	}
 
 	ImGui::Separator();
@@ -169,28 +170,28 @@ void VaultPad::RenderContents()
 	const float listH = ImGui::GetContentRegionAvail().y;
 	ImGui::BeginChild("###gw2igh_vault_list", ImVec2(0.f, listH > 80.f ? listH : 80.f), true);
 
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.78f, 0.35f, 1.f));
 	ImGui::TextWrapped("%s", snap.seasonTitle.c_str());
 	ImGui::PopStyleColor();
 	ImGui::TextWrapped("%s", snap.seasonBlurb.c_str());
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 	ImGui::Spacing();
 	DrawResetCountdowns();
 	ImGui::Spacing();
 
 	if (!snap.hasKey)
 	{
-		ImGui::PushTextWrapPos(0.f);
+		PadNav::PushWrap();
 		ImGui::TextWrapped("Add an API key in Settings (helper side rail; account + progression) for live personal Vault.");
-		ImGui::PopTextWrapPos();
+		PadNav::PopWrap();
 		DrawObjList("Easy Vault preview", snap.easyPreview);
 	}
 	else if (snap.scopeFail)
 	{
-		ImGui::PushTextWrapPos(0.f);
+		PadNav::PushWrap();
 		ImGui::TextWrapped("API key needs account + progression scopes for live Vault progress.");
-		ImGui::PopTextWrapPos();
+		PadNav::PopWrap();
 	}
 	else
 	{

@@ -17,7 +17,7 @@ namespace CraftingDetail
 		size_t pipe = wt.find('|', marker);
 		if (pipe == std::string::npos)
 			return false;
-		/* Walk until direct cost / closing braces — collect "N; Name" lines. */
+		/* Walk until direct cost / closing braces - collect "N; Name" lines. */
 		size_t end = wt.find("direct cost", pipe);
 		if (end == std::string::npos)
 			end = wt.find("}}", pipe);

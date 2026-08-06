@@ -133,7 +133,7 @@ namespace PathingLuaDetail
 				idOut, "https://assets.gw2dat.com", endpoint);
 			return;
 		}
-		/* Fallback: WinHttp → pending icon upload (same path as pack PNGs). */
+		/* Fallback: WinHttp -> pending icon upload (same path as pack PNGs). */
 		QueueFetch(assetId, idOut);
 	}
 }

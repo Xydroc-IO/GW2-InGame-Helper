@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <string>
 
-/* Addon-owned Trail Tools keybinds (GetAsyncKeyState poll — not Nexus InputBinds).
-   Place-marker slots exceed TacO’s 4–5 so mount / route markers can each have a chord. */
+/* Addon-owned Trail Tools keybinds (GetAsyncKeyState poll - not Nexus InputBinds).
+   Place-marker slots exceed TacO's 4-5 so mount / route markers can each have a chord. */
 namespace TrailToolsBinds
 {
 	constexpr int kPlaceSlots = 10;
@@ -22,7 +22,7 @@ namespace TrailToolsBinds
 	struct PlaceSlot
 	{
 		Chord chord;
-		char  type[160] = {};  /* MarkerCategory path; empty → gDraft.markerType */
+		char  type[160] = {};  /* MarkerCategory path; empty -> gDraft.markerType */
 		char  label[48] = {};  /* optional UI name e.g. "Skyscale" */
 	};
 

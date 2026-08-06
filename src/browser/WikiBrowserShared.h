@@ -135,6 +135,9 @@ namespace WikiBrowserDetail
 	bool ExtractHelper();
 	void EnsureIpcNames();
 	bool EnsureIpc();
+	/* Current-user-only SECURITY_ATTRIBUTES for named IPC maps/events, or
+	   nullptr if ACL setup failed (falls back to Win32 defaults). */
+	SECURITY_ATTRIBUTES* UserOnlyIpcSecurityAttributes();
 	bool HelperAlive();
 	void NoteHelperDied();
 	void NoteHelperDied(DWORD exitCode);

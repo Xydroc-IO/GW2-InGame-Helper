@@ -18,12 +18,12 @@ void TrailToolsDetail::DrawLiveTab()
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"XML uses xpos/ypos/zpos (X Y Z). .trl binary stores the same float3 (Y up). "
-		"TrlTool text editors often show X Z Y — do not swap when pasting into XML.");
+		"TrlTool text editors often show X Z Y - do not swap when pasting into XML.");
 	PadNav::PopWrap();
 
 	if (!ok)
 	{
-		ImGui::TextColored(HelperTheme::Warn, "No Mumble pose — enter the game world.");
+		ImGui::TextColored(HelperTheme::Warn, "No Mumble pose - enter the game world.");
 		return;
 	}
 

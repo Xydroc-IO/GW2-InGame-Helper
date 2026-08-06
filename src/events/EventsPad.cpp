@@ -5,6 +5,7 @@
 #include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
 
@@ -83,13 +84,25 @@ bool EventsPad::Render()
 
 	HelperTheme::ScopedFontScale fontScale;
 
+	/* Section rail: 0 = All, 1..n = named section. */
+	if (gSectionPick < 0 || static_cast<size_t>(gSectionPick) > nSec)
+		gSectionPick = 0;
+	static const char* kAll = "All";
+	const char* railLabels[64];
+	const int railCount = 1 + static_cast<int>(nSec < 63 ? nSec : 63);
+	railLabels[0] = kAll;
+	for (int i = 1; i < railCount; ++i)
+		railLabels[i] = sections[static_cast<size_t>(i - 1)];
+	gSectionPick = PadNav::DrawSideRail("###gw2igh_ev_nav", railLabels, railCount, gSectionPick);
+
+	ImGui::BeginChild("###gw2igh_ev_body", ImVec2(0.f, 0.f), true);
 	ImGui::TextColored(HelperTheme::Gold, "WORLD EVENTS");
-	ImGui::PushTextWrapPos(0.f);
+	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"UTC timers for bosses and map metas. Track items you care about - "
 		"they sort up and highlight within 10 minutes. "
 		"Invasions / festivals / fractals stay hidden until you open that section or search/Track them.");
-	ImGui::PopTextWrapPos();
+	PadNav::PopWrap();
 
 	if (ImGui::Button("Refresh claims###gw2igh_ev_ref"))
 		BeginClaimRefresh();
@@ -109,54 +122,21 @@ bool EventsPad::Render()
 		const unsigned mapId = CurrentMapId();
 		const char* mapName = EventsData::MapDisplayName(mapId);
 		if (mapId == 0)
-			ImGui::TextColored(ImVec4(1.f, 0.55f, 0.35f, 1.f),
-				"This map: waiting for MumbleLink…");
+			ImGui::TextColored(HelperTheme::Warn, "This map: waiting for MumbleLink...");
 		else if (mapName)
-			ImGui::TextColored(ImVec4(0.55f, 0.78f, 0.95f, 1.f),
-				"This map: %s", mapName);
+			ImGui::TextColored(HelperTheme::GoldMuted, "This map: %s", mapName);
 		else
-			ImGui::TextColored(ImVec4(0.55f, 0.78f, 0.95f, 1.f),
-				"This map: id %u (no timetable rows tagged)", mapId);
+			ImGui::TextColored(HelperTheme::GoldMuted, "This map: id %u (no timetable rows tagged)", mapId);
 	}
 
 	ImGui::SetNextItemWidth(-1.f);
 	ImGui::InputTextWithHint("###gw2igh_ev_search", "Search events (name, map, section)...",
 		gSearch, sizeof(gSearch));
 
-	char sectionPreview[96];
-	if (gSectionPick <= 0 || static_cast<size_t>(gSectionPick) > nSec)
-	{
-		gSectionPick = 0;
-		std::snprintf(sectionPreview, sizeof(sectionPreview), "All (default sections)");
-	}
-	else
-		std::snprintf(sectionPreview, sizeof(sectionPreview), "%s",
-			sections[static_cast<size_t>(gSectionPick - 1)]);
-
-	char sectionHeader[128];
-	std::snprintf(sectionHeader, sizeof(sectionHeader), "Section: %s###gw2igh_ev_sec", sectionPreview);
-	if (ImGui::CollapsingHeader(sectionHeader, ImGuiTreeNodeFlags_None))
-	{
-		const float rowH = ImGui::GetTextLineHeightWithSpacing();
-		const float boxH = rowH * 6.5f;
-		ImGui::BeginChild("###gw2igh_ev_sec_list", ImVec2(-1.f, boxH), true);
-		if (ImGui::Selectable("All (default sections)", gSectionPick == 0))
-			gSectionPick = 0;
-		for (size_t i = 0; i < nSec; ++i)
-		{
-			ImGui::PushID(static_cast<int>(i));
-			const int idx = static_cast<int>(i + 1);
-			if (ImGui::Selectable(sections[i], gSectionPick == idx))
-				gSectionPick = idx;
-			ImGui::PopID();
-		}
-		ImGui::EndChild();
-	}
-
 	if (gBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading...");
+		ImGui::TextColored(HelperTheme::GoldMuted, "Loading...");
 	else if (gStatus[0])
-		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", gStatus);
+		ImGui::TextColored(HelperTheme::Ok, "%s", gStatus);
 
 	ImGui::Separator();
 
@@ -172,7 +152,7 @@ bool EventsPad::Render()
 	if (rows.empty())
 	{
 		if (gThisMapOnly && CurrentMapId() == 0)
-			ImGui::TextWrapped("Turn on MumbleLink / enter the world — then This map can filter.");
+			ImGui::TextWrapped("Turn on MumbleLink / enter the world - then This map can filter.");
 		else if (gThisMapOnly)
 			ImGui::TextWrapped(
 				"No timetable events tagged for this map (cities, instances, and some zones have none).");
@@ -195,12 +175,12 @@ bool EventsPad::Render()
 		{
 			if (i > 0)
 				ImGui::Spacing();
-			ImGui::TextColored(ImVec4(0.75f, 0.70f, 0.45f, 1.f), "%s", e.mapLabel);
+			ImGui::TextColored(HelperTheme::GoldDim, "%s", e.mapLabel);
 			lastMap = e.mapLabel;
 		}
 
 		if (r.warn)
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.82f, 0.35f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldBright);
 
 		char title[192];
 		if (r.timing.live)
@@ -214,23 +194,23 @@ bool EventsPad::Render()
 		if (r.claimed)
 		{
 			ImGui::SameLine();
-			ImGui::TextColored(ImVec4(0.45f, 0.70f, 0.50f, 1.f), "[claimed]");
+			ImGui::TextColored(HelperTheme::Ok, "[claimed]");
 		}
 
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "%s", e.section);
+		ImGui::TextColored(HelperTheme::Muted, "%s", e.section);
 
 		if (r.timing.live)
 		{
-			ImGui::TextColored(ImVec4(0.55f, 0.85f, 0.55f, 1.f),
+			ImGui::TextColored(HelperTheme::Ok,
 				"Active - ends in %s", FmtRemain(r.timing.untilEnd).c_str());
 		}
 		else
 		{
-			ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f),
+			ImGui::TextColored(HelperTheme::Ink,
 				"Next in %s", FmtRemain(r.timing.untilStart).c_str());
 		}
 		if (r.warn && !r.timing.live)
-			ImGui::TextColored(ImVec4(0.95f, 0.82f, 0.35f, 1.f), "Tracked - starting soon");
+			ImGui::TextColored(HelperTheme::GoldBright, "Tracked - starting soon");
 
 		if (ImGui::SmallButton(r.tracked ? "Untrack" : "Track"))
 			FlipTrack(e.key);
@@ -259,9 +239,10 @@ bool EventsPad::Render()
 		ParseTrackCsv(G::EventTrackIds, ids);
 		trackedN = static_cast<int>(ids.size());
 	}
-	ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+	ImGui::TextColored(HelperTheme::Muted,
 		"%d tracked | %d shown | %d in catalog",
 		trackedN, static_cast<int>(rows.size()), static_cast<int>(nAll));
+	ImGui::EndChild();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |

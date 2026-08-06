@@ -1,6 +1,6 @@
 #pragma once
 
-/* ImGui Settings pad — same controls that used to live only in Nexus Options. */
+/* ImGui Settings pad - same controls that used to live only in Nexus Options. */
 namespace SettingsPad
 {
 	void Open();

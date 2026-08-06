@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-/* Phone sync via QR — versioned URI so we can grow into seamless sync later.
+/* Phone sync via QR - versioned URI so we can grow into seamless sync later.
  * Format: gw2helper://sync/v1?favorites=id1,id2,...
  */
 

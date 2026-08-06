@@ -56,8 +56,8 @@ void IndexXml(const std::wstring& packPath, const std::string& xml,
 void CollectCategoryMapIds(const std::string& xml,
 	std::unordered_map<std::string, uint32_t>& categoryMapIds)
 {
-	/* Same nesting walk as ParseMarkerMenuXml — MapID on a category applies to
-	   descendant POIs that omit MapID (Hero's Fractal Dailies, Twin Largos, …). */
+	/* Same nesting walk as ParseMarkerMenuXml - MapID on a category applies to
+	   descendant POIs that omit MapID (Hero's Fractal Dailies, Twin Largos, ...). */
 	struct Frame
 	{
 		std::string path;
@@ -270,8 +270,8 @@ void ParseMarkerMenuXml(
 
 		std::string path = stack.empty() ? name : (stack.back().path + "." + name);
 		MarkerStyle style = ParseStyle(tag);
-		/* Only promote DisplayName → tip for mount/shortcut leaves — copying it
-		   for every category (Three/Four/…) flooded world labels + tip UI. */
+		/* Only promote DisplayName -> tip for mount/shortcut leaves - copying it
+		   for every category (Three/Four/...) flooded world labels + tip UI. */
 		if (!style.hasTipName && !display.empty() && !sep)
 		{
 			const std::string pathLow = ToLower(path);

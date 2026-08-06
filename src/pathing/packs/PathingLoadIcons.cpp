@@ -89,7 +89,7 @@ namespace PathingDetail
 		if (assetsNeeded.empty() && preferredPack.empty())
 			return;
 
-		/* Extract icons — trail chevrons first (missing → solid tinted ribbon). */
+		/* Extract icons - trail chevrons first (missing -> solid tinted ribbon). */
 		static const char* kLadyMountIcons[] = {
 			"Data/Images/Mounts/Mount_Raptor.png",
 			"Data/Images/Mounts/Mount_Springer.png",
@@ -104,7 +104,7 @@ namespace PathingDetail
 			"Data/Images/Mounts/Hover.png",
 			nullptr
 		};
-		/* Lady map-completion inherits these — force onto a Lady pack when possible. */
+		/* Lady map-completion inherits these - force onto a Lady pack when possible. */
 		static const char* kLadyTrailIcons[] = {
 			"Data/Images/Trails/White Arrow Black Border.png",
 			"Data/Images/Trails/Footprints.png",
@@ -192,7 +192,7 @@ namespace PathingDetail
 
 			std::vector<std::wstring> tryPacks;
 			tryPacks.push_back(kv.second);
-			/* Heart / Lady line textures often get force-mapped to the wrong pack —
+			/* Heart / Lady line textures often get force-mapped to the wrong pack -
 			   fall back across every pack we already opened for this map. */
 			if (IsTrailTexturePath(ToLower(kv.first)))
 			{

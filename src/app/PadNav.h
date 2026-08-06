@@ -1,14 +1,16 @@
 #pragma once
 
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
 #include "UiScale.h"
 
 #include "imgui/imgui.h"
 
 #include <cstdio>
+#include <cstring>
 
-/* Pad section navigation. Prefer DrawSideRail for Account / Pathing / helper
-   chrome — a fixed left column instead of wrapping rows or ImGui ◀ ▶ tabs. */
+/* Pad section navigation. Prefer DrawSideRail for every themed pad —
+   a fixed left column instead of wrapping rows or ImGui ◀ ▶ tabs. */
 namespace PadNav
 {
 	/* Breathing room between content / slider labels and the scrollbar gutter. */
@@ -22,13 +24,21 @@ namespace PadNav
 		return ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x - kScrollGutterPad;
 	}
 
-	/* Word-wrap to the remaining content width (not WorkRect-0, which can lie). */
+	/* Window-local wrap X for PushTextWrapPos (tracks resize / rail / scroll). */
+	inline float WrapLocalX()
+	{
+		float x = ImGui::GetContentRegionMax().x - kScrollGutterPad + ImGui::GetScrollX();
+		const float minX = ImGui::GetCursorPos().x + 48.f;
+		if (x < minX)
+			x = minX;
+		return x;
+	}
+
+	/* Word-wrap to the live content edge (reflows when the pad is resized).
+	   Always PopWrap() before ImGui::End() / EndChild() — do not RAII across End. */
 	inline void PushWrap()
 	{
-		float avail = ImGui::GetContentRegionAvail().x - kScrollGutterPad;
-		if (avail < 48.f)
-			avail = 48.f;
-		ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + avail);
+		ImGui::PushTextWrapPos(WrapLocalX());
 	}
 
 	inline void PopWrap()
@@ -48,6 +58,23 @@ namespace PadNav
 		ImGui::PopItemWidth();
 	}
 
+	/* Label text before ### id (ImGui right-side labels). */
+	inline float VisibleLabelWidth(const char* label)
+	{
+		if (!label || !label[0])
+			return 0.f;
+		const char* end = std::strstr(label, "###");
+		return end
+			? ImGui::CalcTextSize(label, end, true).x
+			: ImGui::CalcTextSize(label, nullptr, true).x;
+	}
+
+	/* Field + label span for WrapSameLine before InputText / DragFloat / etc. */
+	inline float LabeledSpan(const char* label, float fieldW)
+	{
+		return fieldW + ImGui::GetStyle().ItemInnerSpacing.x + VisibleLabelWidth(label);
+	}
+
 	/* SameLine only when next item still fits (Account-style flow). */
 	inline void WrapSameLine(float nextItemWidth)
 	{
@@ -56,6 +83,27 @@ namespace PadNav
 		const float nextX2 = lastX2 + style.ItemSpacing.x + nextItemWidth;
 		if (nextX2 < WrapEdgeX() - 1.f)
 			ImGui::SameLine(0.f, style.ItemSpacing.x);
+	}
+
+	/* Wrap if needed, then SetNextItemWidth for a right-labeled widget. */
+	inline void PrepLabeled(const char* label, float fieldW, bool first = false)
+	{
+		if (!first)
+			WrapSameLine(LabeledSpan(label, fieldW));
+		ImGui::SetNextItemWidth(fieldW);
+	}
+
+	/* Full-row labeled input: shrink field so the right-side label never clips. */
+	inline void PushWidthForLabel(const char* label)
+	{
+		const float reserve = VisibleLabelWidth(label) +
+			ImGui::GetStyle().ItemInnerSpacing.x + kScrollGutterPad;
+		ImGui::PushItemWidth(-(reserve > 24.f ? reserve : 24.f));
+	}
+
+	inline void PopWidthForLabel()
+	{
+		ImGui::PopItemWidth();
 	}
 
 	inline float CheckboxWidth(const char* label)
@@ -96,7 +144,7 @@ namespace PadNav
 		else
 		{
 			ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabIdle);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.20f, 0.16f, 0.08f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, HelperTheme::Header);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
 			ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Muted);
 		}
@@ -139,15 +187,23 @@ namespace PadNav
 		return current;
 	}
 
-	/* Left rail: full-width buttons stacked vertically. Caller draws content
-	   after this (usually SameLine is already done — rail ends with SameLine). */
+	/* Left rail: full-width buttons stacked vertically. Optional DAT icons
+	   (icons[i] > 0). Caller draws content after — rail ends with SameLine. */
 	inline int DrawSideRail(const char* id, const char* const* labels, int count, int current,
-		float width = 0.f)
+		float width = 0.f, const int* icons = nullptr)
 	{
 		if (width <= 1.f)
 			width = UiScale::FitSideRailWidth(labels, count);
 		else
 			width = UiScale::SideRailWidth(width);
+		if (icons)
+		{
+			/* RailToggle draws 18px icon + spacing before the label. */
+			const float iconReserve = 18.f + ImGui::GetStyle().ItemInnerSpacing.x + 4.f;
+			const float withIcons = width + iconReserve;
+			const float minIcons = UiScale::SideRailWidth(108.f);
+			width = withIcons > minIcons ? withIcons : minIcons;
+		}
 		if (!labels || count <= 0)
 			return 0;
 		if (current < 0)
@@ -163,26 +219,11 @@ namespace PadNav
 		for (int i = 0; i < count; ++i)
 		{
 			ImGui::PushID(i);
-			const bool on = (i == current);
-			if (on)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabActive);
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, HelperTheme::TabActive);
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
-				ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldBright);
-			}
-			else
-			{
-				ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabIdle);
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.20f, 0.16f, 0.08f, 1.f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
-				ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Muted);
-			}
 			char buf[96];
 			std::snprintf(buf, sizeof(buf), "%s###side_%d", labels[i], i);
-			if (ImGui::Button(buf, ImVec2(-1.f, 0.f)))
+			const int asset = (icons && icons[i] > 0) ? icons[i] : 0;
+			if (Gw2Ui::RailToggle(buf, i == current, asset))
 				current = i;
-			ImGui::PopStyleColor(4);
 			ImGui::PopID();
 		}
 
@@ -193,24 +234,8 @@ namespace PadNav
 	}
 
 	/* Toggle-style rail entry for helper chrome (open pads / flags). */
-	inline bool SideToggle(const char* label, bool on)
+	inline bool SideToggle(const char* label, bool on, int assetId = 0)
 	{
-		if (on)
-		{
-			ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabActive);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, HelperTheme::TabActive);
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
-			ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldBright);
-		}
-		else
-		{
-			ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabIdle);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.20f, 0.16f, 0.08f, 1.f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
-			ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Muted);
-		}
-		const bool clicked = ImGui::Button(label, ImVec2(-1.f, 0.f));
-		ImGui::PopStyleColor(4);
-		return clicked;
+		return Gw2Ui::RailToggle(label, on, assetId);
 	}
 }

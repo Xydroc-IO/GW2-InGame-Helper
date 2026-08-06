@@ -133,7 +133,7 @@ namespace LogManagerDetail
 		if (gScanBusy.exchange(true))
 			return;
 		gCancel.store(false);
-		std::snprintf(gStatus, sizeof(gStatus), "Scanning logs…");
+		std::snprintf(gStatus, sizeof(gStatus), "Scanning logs...");
 		if (gScanThread)
 		{
 			WaitForSingleObject(gScanThread, 0);

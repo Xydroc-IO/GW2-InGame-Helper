@@ -35,7 +35,7 @@ void DiscoverPackDirs(std::vector<std::wstring>& dirs)
 		dirs.push_back(canon);
 	};
 
-	/* Our bundled pack lives here — no other addons required. */
+	/* Our bundled pack lives here - no other addons required. */
 	auto addOurs = [&](const std::wstring& addons)
 	{
 		add(addons + L"\\GW2-InGame-Helper\\pathing");
@@ -58,7 +58,7 @@ void DiscoverPackDirs(std::vector<std::wstring>& dirs)
 		addFallbacks(root + L"\\addons");
 	};
 
-	/* Prefer our DLL path (…/addons/GW2-InGame-Helper[/].dll) — reliable under Wine. */
+	/* Prefer our DLL path (.../addons/GW2-InGame-Helper[/].dll) - reliable under Wine. */
 	if (G::Self)
 	{
 		wchar_t img[MAX_PATH]{};
@@ -111,7 +111,7 @@ void DiscoverPackDirs(std::vector<std::wstring>& dirs)
 		}
 	}
 
-	/* Gw2-64.exe directory → game root\addons\… */
+	/* Gw2-64.exe directory -> game root\addons\... */
 	wchar_t exe[MAX_PATH]{};
 	const DWORD n = GetModuleFileNameW(nullptr, exe, MAX_PATH);
 	if (n > 0 && n < MAX_PATH)
@@ -227,7 +227,7 @@ void ListTacoFiles(const std::wstring& dir, std::vector<std::wstring>& out, bool
 }
 
 /* Drop alias copies of curated packs (same content, different filename).
-   e.g. "Tekkit's All-In-One.taco" next to curated tw_ALL_IN_ONE.taco → every
+   e.g. "Tekkit's All-In-One.taco" next to curated tw_ALL_IN_ONE.taco -> every
    route draws twice in-world. */
 void SuppressDuplicateTacoPacks(std::vector<std::wstring>& packs)
 {

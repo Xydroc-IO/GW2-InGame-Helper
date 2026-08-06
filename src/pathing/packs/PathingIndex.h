@@ -160,6 +160,7 @@ namespace PathingDetail
 	void AbortHttp();
 	bool FetchMapRects(uint32_t mapId, Rects& r);
 	void WorldToContinent(const Rects& r, float wxMeters, float wzMeters, float& cx, float& cy);
+	void ContinentToWorld(const Rects& r, float cx, float cy, float& wxMeters, float& wzMeters);
 	bool PrefixMatchesType(const std::string& typeLow, const std::string& prefixLow);
 	bool LadyMapRouteEdition(const std::string& typeLow, std::string& outEdition);
 	bool IsLadyWithMountsEdition(const std::string& seg);

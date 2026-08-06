@@ -13,7 +13,7 @@ namespace EiRuntimeDetail
 {
 	bool DownloadToFile(const wchar_t* urlW, const std::wstring& outPath, void (*statusFn)(const char*))
 	{
-		Status(statusFn, "Downloading Elite Insights…");
+		Status(statusFn, "Downloading Elite Insights...");
 		URL_COMPONENTSW uc{};
 		uc.dwStructSize = sizeof(uc);
 		wchar_t host[256]{};
@@ -139,7 +139,7 @@ namespace EiRuntimeDetail
 					if (pct != lastPct && (pct % 5 == 0 || pct == 100))
 					{
 						char msg[64];
-						std::snprintf(msg, sizeof(msg), "Downloading Elite Insights… %lu%%",
+						std::snprintf(msg, sizeof(msg), "Downloading Elite Insights... %lu%%",
 							static_cast<unsigned long>(pct));
 						Status(statusFn, msg);
 						lastPct = pct;
@@ -342,7 +342,7 @@ namespace EiRuntimeDetail
 			return false;
 		out.stamp = NormalizeTag(tag);
 
-		/* Find the GW2EICLI.zip asset object — search for the filename then walk back. */
+		/* Find the GW2EICLI.zip asset object - search for the filename then walk back. */
 		const char* asset = std::strstr(json.c_str(), "\"name\":\"GW2EICLI.zip\"");
 		if (!asset)
 			asset = std::strstr(json.c_str(), "\"name\": \"GW2EICLI.zip\"");
@@ -379,7 +379,7 @@ namespace EiRuntimeDetail
 
 	bool QueryLatestRelease(LatestRelease& out, void (*statusFn)(const char*))
 	{
-		Status(statusFn, "Checking latest Elite Insights…");
+		Status(statusFn, "Checking latest Elite Insights...");
 		std::string body;
 		if (!HttpGetUtf8(EiRuntime::kLatestApiUrl, body, statusFn))
 			return false;

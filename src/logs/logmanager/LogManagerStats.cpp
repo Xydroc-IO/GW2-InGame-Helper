@@ -60,7 +60,7 @@ namespace LogManagerDetail
 				if (key.empty() && !p.guildId.empty())
 				{
 					key = p.guildId;
-					label = p.guildId.size() > 8 ? p.guildId.substr(0, 8) + "…" : p.guildId;
+					label = p.guildId.size() > 8 ? p.guildId.substr(0, 8) + "..." : p.guildId;
 				}
 				if (key.empty())
 					continue;

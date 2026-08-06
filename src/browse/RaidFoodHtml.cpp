@@ -10,17 +10,18 @@ const char* RaidFood::Html()
 <title>Raid Food — Universal Seasoning Guide</title>
 <style>
   :root {
-    --bg: #06070a;
-    --panel: rgba(16, 18, 24, 0.92);
-    --panel-2: #12141a;
-    --border: #5a4a28;
-    --border-soft: rgba(235, 192, 71, 0.22);
-    --gold: #f0c65a;
-    --gold-bright: #ffe08a;
-    --gold-dim: #c9a227;
-    --text: #f0f2f5;
-    --muted: #a8aeb8;
-    --accent: #1a1510;
+    --bg: #120e0a;
+    --panel: rgba(28, 23, 17, 0.92);
+    --panel-2: #18140e;
+    --border: #8c6b33;
+    --border-soft: rgba(240, 199, 97, 0.22);
+    --gold: #f0c761;
+    --gold-bright: #ffe68c;
+    --gold-dim: #c29438;
+    --text: #f5eddb;
+    --muted: #b8ad94;
+    --accent: #1a160f;
+    --header: #47381f;
     --life: #c45c4a;
     --mitigate: #5a8fbf;
     --heal: #6aaa6a;
@@ -34,8 +35,8 @@ const char* RaidFood::Html()
     min-height: 100vh;
     font-family: "Segoe UI", Tahoma, sans-serif;
     background:
-      radial-gradient(ellipse 80% 55% at 50% 0%, rgba(235, 192, 71, 0.12) 0%, transparent 55%),
-      linear-gradient(180deg, #12141a 0%, var(--bg) 45%),
+      radial-gradient(ellipse 80% 55% at 50% 0%, rgba(240, 199, 97, 0.12) 0%, transparent 55%),
+      linear-gradient(180deg, #1c1711 0%, var(--bg) 45%),
       var(--bg);
     color: var(--text);
     line-height: 1.55;
@@ -96,7 +97,7 @@ const char* RaidFood::Html()
     padding: 14px 18px 14px 16px;
     border-bottom: 1px solid var(--border-soft);
     border-left: 3px solid var(--gold);
-    background: linear-gradient(90deg, #1a1710 0%, var(--panel-2) 70%);
+    background: linear-gradient(90deg, var(--header) 0%, var(--panel-2) 70%);
   }
   section.block > .head h2 {
     margin: 0;
@@ -133,7 +134,7 @@ const char* RaidFood::Html()
     vertical-align: top;
   }
   table.season th {
-    background: #1a1710;
+    background: var(--header);
     color: var(--gold);
     font-weight: 600;
     width: 42%;
@@ -154,7 +155,7 @@ const char* RaidFood::Html()
   .util-heal { background: rgba(106, 170, 106, 0.2); color: #a8d0a8; border: 1px solid rgba(106, 170, 106, 0.45); }
   .util-condi { background: rgba(155, 123, 184, 0.2); color: #c4aee0; border: 1px solid rgba(155, 123, 184, 0.45); }
   .util-regen { background: rgba(122, 158, 110, 0.2); color: #b5d0aa; border: 1px solid rgba(122, 158, 110, 0.45); }
-  .util-stats { background: rgba(235, 192, 71, 0.12); color: var(--gold); border: 1px solid var(--border); }
+  .util-stats { background: rgba(240, 199, 97, 0.12); color: var(--gold); border: 1px solid var(--border); }
   .base {
     margin: 0 0 14px;
     padding: 10px 12px;

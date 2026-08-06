@@ -7,7 +7,7 @@
 #include <vector>
 
 /* Account unlock sets from official /v2/account APIs + public name catalogs.
-   One module, many kinds — AccountPad / UnlocksPad only render. */
+   One module, many kinds - AccountPad / UnlocksPad only render. */
 namespace UnlocksData
 {
 	enum class Kind

@@ -179,13 +179,13 @@ namespace CraftingPlanSnapshot
 
 		ApplyOwnedCounts(plan.root, owned);
 
-		/* Always expand full bill — owned gifts still expand for a second craft. */
+		/* Always expand full bill - owned gifts still expand for a second craft. */
 		for (int depth = 2; depth <= kMaxDepth; ++depth)
 			ExpandFrontier(plan, owned, names, recipeCache, depth, true);
 
 		ApplyOwnedCounts(plan.root, owned);
 
-		/* Wiki/API recipes often omit ingredient names — bulk-resolve like FinishPrices. */
+		/* Wiki/API recipes often omit ingredient names - bulk-resolve like FinishPrices. */
 		{
 			std::vector<int> allIds;
 			allIds.push_back(plan.outputId);
@@ -238,7 +238,7 @@ namespace CraftingPlanSnapshot
 		out.leavesJson += "]";
 
 		char st[160];
-		std::snprintf(st, sizeof(st), "%s · %d%% mats (%d / %d on leaves)",
+		std::snprintf(st, sizeof(st), "%s | %d%% mats (%d / %d on leaves)",
 			out.recipeSource.c_str(), out.pct, out.leafHave, out.leafNeed);
 		out.status = st;
 		return out;

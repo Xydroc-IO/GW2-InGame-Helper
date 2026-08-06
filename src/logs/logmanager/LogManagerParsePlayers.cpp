@@ -39,7 +39,7 @@ void ParsePlayersFromJson(const char* json, std::vector<PlayerInfo>& out)
 		JsonStringAfterKey(obj.c_str(), "account", pi.account);
 		if (pi.account.empty())
 			JsonStringAfterKey(obj.c_str(), "Account", pi.account);
-		/* Trim whitespace — EI sometimes pads account names. */
+		/* Trim whitespace - EI sometimes pads account names. */
 		while (!pi.account.empty() && (pi.account.front() == ' ' || pi.account.front() == '\t'))
 			pi.account.erase(pi.account.begin());
 		while (!pi.account.empty() && (pi.account.back() == ' ' || pi.account.back() == '\t'))
@@ -52,7 +52,7 @@ void ParsePlayersFromJson(const char* json, std::vector<PlayerInfo>& out)
 			JsonStringAfterKey(obj.c_str(), "GuildID", pi.guildId);
 		if (pi.guildId.empty())
 			JsonStringAfterKey(obj.c_str(), "guildId", pi.guildId);
-		/* EI uses nil UUID when the player has no guild — treat as empty. */
+		/* EI uses nil UUID when the player has no guild - treat as empty. */
 		if (pi.guildId == "00000000-0000-0000-0000-000000000000")
 			pi.guildId.clear();
 		if (pi.guildTag.empty())
@@ -146,7 +146,7 @@ void ParseDpsReportPlayers(const char* json, std::vector<PlayerInfo>& out)
 		return;
 	++p;
 	p = SkipWs(p);
-	/* Array form — dps.report objects (not EI player shape). */
+	/* Array form - dps.report objects (not EI player shape). */
 	if (*p == '[')
 	{
 		++p;

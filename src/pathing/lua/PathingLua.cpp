@@ -73,7 +73,7 @@ namespace PathingLuaDetail
 		auto it = gScriptSources.find(key);
 		if (it == gScriptSources.end())
 		{
-			/* Try basename match for Require("Storage") → scripts/utility/storage.lua */
+			/* Try basename match for Require("Storage") -> scripts/utility/storage.lua */
 			const std::string base = key;
 			for (const auto& kv : gScriptSources)
 			{
@@ -131,7 +131,7 @@ namespace
 	std::unordered_set<std::string> gOnceDone;
 	DWORD gLastTickMs = 0;
 
-	/* Blish: script-once="Foo()" or "Foo(marker, 1)" — run with marker userdata. */
+	/* Blish: script-once="Foo()" or "Foo(marker, 1)" - run with marker userdata. */
 	bool CallScriptAttr(lua_State* L, const char* expr, PathingTrails::Marker* m, bool* outBool)
 	{
 		if (!L || !expr || !expr[0] || !m)

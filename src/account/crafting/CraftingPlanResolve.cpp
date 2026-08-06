@@ -45,7 +45,7 @@ namespace CraftingDetail
 		flush();
 	}
 
-	/* Higher = closer title match. Reject weak wiki noise (e.g. "bow" → Emblem…). */
+	/* Higher = closer title match. Reject weak wiki noise (e.g. "bow" -> Emblem...). */
 	int ScoreTitleMatch(const std::string& title, const std::vector<std::string>& tokens,
 		const std::string& qLow)
 	{
@@ -94,12 +94,12 @@ namespace CraftingDetail
 		}
 	}
 
-	/* Common food typo: "bow of …" → "bowl of …". */
+	/* Common food typo: "bow of ..." -> "bowl of ...". */
 	std::string TypoHintsQuery(const char* q)
 	{
 		std::string s = q ? q : "";
 		std::string low = ToLowerCopy(s);
-		/* whole-word bow → bowl (not already bowl) */
+		/* whole-word bow -> bowl (not already bowl) */
 		std::string out;
 		size_t i = 0;
 		bool changed = false;
@@ -194,7 +194,7 @@ namespace CraftingDetail
 			plan.nameHints.push_back(r.title);
 		}
 
-		/* Auto-resolve only a confident title match — never first-hit roulette. */
+		/* Auto-resolve only a confident title match - never first-hit roulette. */
 		constexpr int kMinAutoScore = 30;
 		for (const Ranked& r : ranked)
 		{
@@ -237,7 +237,7 @@ namespace CraftingDetail
 			}
 			else
 			{
-				plan.status = "Resolving item…";
+				plan.status = "Resolving item...";
 				PublishLivePlan(plan);
 				std::string resolvedName;
 				const int itemId = ResolveQueryToItemId(q, plan, &resolvedName);
@@ -247,7 +247,7 @@ namespace CraftingDetail
 				{
 					plan.status = plan.nameHints.empty()
 						? "Could not resolve that item."
-						: "No close name match — click a wiki title below (check spelling), "
+						: "No close name match - click a wiki title below (check spelling), "
 						  "or paste a chat code / ID.";
 				}
 				else
@@ -255,7 +255,7 @@ namespace CraftingDetail
 					plan.outputId = itemId;
 					plan.outputName = resolvedName.empty() ? ItemName(itemId) : resolvedName;
 					plan.nameHints.clear();
-					plan.status = "Fetching recipe…";
+					plan.status = "Fetching recipe...";
 					PublishLivePlan(plan);
 					std::unordered_map<int, RecipeCacheEntry> recipeCache;
 					int outCount = 1;
@@ -267,7 +267,7 @@ namespace CraftingDetail
 					{
 						char buf[256];
 						std::snprintf(buf, sizeof(buf),
-							"Found %s (#%d) — no station, wiki forge, or acquisition bill.",
+							"Found %s (#%d) - no station, wiki forge, or acquisition bill.",
 							plan.outputName.empty() ? "item" : plan.outputName.c_str(),
 							itemId);
 						plan.status = buf;
@@ -280,7 +280,7 @@ namespace CraftingDetail
 						std::unordered_map<int, std::string> names;
 						names[itemId] = plan.outputName;
 
-						/* Paint top recipe immediately — stash / gifts catch up after. */
+						/* Paint top recipe immediately - stash / gifts catch up after. */
 						plan.root = {};
 						plan.root.itemId = itemId;
 						plan.root.need = 1;
@@ -303,7 +303,7 @@ namespace CraftingDetail
 						plan.ok = true;
 						plan.nameHints.clear();
 						plan.status = std::string(plan.recipeSource.empty() ? "Recipe" : plan.recipeSource)
-							+ " · loading stash…";
+							+ " | loading stash...";
 						PublishLivePlan(plan);
 
 						std::unordered_map<int, int> owned;
@@ -312,7 +312,7 @@ namespace CraftingDetail
 							goto restart_or_done;
 						ApplyOwnedCounts(plan.root, owned);
 						plan.status = std::string(plan.recipeSource.empty() ? "Recipe" : plan.recipeSource)
-							+ " · expanding gifts…";
+							+ " | expanding gifts...";
 						PublishLivePlan(plan);
 
 						for (int depth = 2; depth <= kMaxDepth; ++depth)
@@ -320,7 +320,7 @@ namespace CraftingDetail
 							if (gen != gPlanGen.load())
 								break;
 							char st[96];
-							std::snprintf(st, sizeof(st), "Expanding gifts (depth %d/%d)…",
+							std::snprintf(st, sizeof(st), "Expanding gifts (depth %d/%d)...",
 								depth, kMaxDepth);
 							plan.status = st;
 							PublishLivePlan(plan);
@@ -333,7 +333,7 @@ namespace CraftingDetail
 
 						if (gen == gPlanGen.load())
 						{
-							plan.status = "Pricing materials…";
+							plan.status = "Pricing materials...";
 							PublishLivePlan(plan);
 							FinishPrices(plan, names);
 							PublishLivePlan(plan);
@@ -350,7 +350,7 @@ namespace CraftingDetail
 
 		restart_or_done:
 			if (gen != gPlanGen.load())
-				continue; /* newer Plan() — reuse this worker */
+				continue; /* newer Plan() - reuse this worker */
 			gReady = false;
 			gBusy = false;
 			/* Lost the race with StartPlan after clearing busy? */
@@ -364,7 +364,7 @@ namespace CraftingDetail
 		std::snprintf(gThreadQuery, sizeof(gThreadQuery), "%s", gQuery);
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			gPlan.status = "Planning…";
+			gPlan.status = "Planning...";
 			gPlan.ok = false;
 			gPlan.root = {};
 			gPlan.nameHints.clear();

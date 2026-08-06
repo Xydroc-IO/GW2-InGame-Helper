@@ -25,18 +25,18 @@ namespace
 	{
 		return R"CSS(
 :root{
-  --bg:#06070a;--panel:rgba(16,18,24,.94);--panel-2:#12141a;
-  --border:#5a4a28;--border-soft:rgba(235,192,71,.22);
-  --gold:#f0c65a;--gold-bright:#ffe08a;--gold-dim:#c9a227;
-  --text:#f0f2f5;--muted:#a8aeb8;--accent:#1a1510;
+  --bg:#120e0a;--panel:rgba(28,23,17,.94);--panel-2:#18140e;
+  --border:#8c6b33;--border-soft:rgba(240,199,97,.22);
+  --gold:#f0c761;--gold-bright:#ffe68c;--gold-dim:#c29438;
+  --text:#f5eddb;--muted:#b8ad94;--accent:#1a160f;--header:#47381f;
 }
 *{box-sizing:border-box}
 body{
   margin:0;min-height:100vh;
   font-family:"Segoe UI",Tahoma,sans-serif;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(235,192,71,.16),transparent 55%),
-    linear-gradient(180deg,#14161c 0%,var(--bg) 42%),var(--bg);
+    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(240,199,97,.16),transparent 55%),
+    linear-gradient(180deg,#1c1711 0%,var(--bg) 42%),var(--bg);
   color:var(--text);line-height:1.5;
 }
 .wrap{max-width:960px;margin:0 auto;padding:28px 22px 72px}

@@ -15,7 +15,7 @@ namespace WalletDetail
 {
 	constexpr int kHttpTimeoutMs = 8000;
 	constexpr int kCharTimeoutMs = 8000;
-	constexpr DWORD kCacheTtlMs = 5 * 60 * 1000; /* soft TTL — still show instantly */
+	constexpr DWORD kCacheTtlMs = 5 * 60 * 1000; /* soft TTL - still show instantly */
 	constexpr int kItemBatch = 200;
 	constexpr int kMaxChars = 64;
 	constexpr int kCharWorkers = 6;
@@ -75,7 +75,7 @@ namespace WalletDetail
 	extern char gFilter[96];
 	extern int gLocFilter;
 
-	/* Persistent id → name (currency keys stored negative). */
+	/* Persistent id -> name (currency keys stored negative). */
 	extern std::mutex gNameMu;
 	extern std::unordered_map<int, std::string> gNames;
 	extern bool gNamesLoaded;

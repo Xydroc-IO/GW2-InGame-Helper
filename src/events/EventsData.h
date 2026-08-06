@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-/* Timetable for EventsPad — UTC clock math only (no game memory / live API state). */
+/* Timetable for EventsPad - UTC clock math only (no game memory / live API state). */
 namespace EventsData
 {
 	enum class Sched : unsigned char
@@ -23,7 +23,7 @@ namespace EventsData
 		const char* bossApi;    /* /v2/account/worldbosses id, or empty */
 		const char* chestApi;   /* /v2/account/mapchests id, or empty */
 		Sched       sched;
-		bool        inDefaultAll; /* false → invasions/festivals/fractals stay filtered */
+		bool        inDefaultAll; /* false -> invasions/festivals/fractals stay filtered */
 		int         activeSec;
 		int         cycleSec;   /* unused for DayList */
 		int         phaseSec;   /* Repeat / CycleSlot offset */

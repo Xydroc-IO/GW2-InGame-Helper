@@ -53,7 +53,7 @@ bool LogManagerPad::Render()
 	{
 		float winW = G::LogManagerWinW;
 		float winH = G::LogManagerWinH;
-		/* First open (no saved pos): nearly full client — screenshot three-pane fit.
+		/* First open (no saved pos): nearly full client - screenshot three-pane fit.
 		   On 32:9 cap width so the pad does not span the entire desk. */
 		if (G::LogManagerWinX < 0.f || G::LogManagerWinY < 0.f)
 		{
@@ -137,13 +137,13 @@ bool LogManagerPad::Render()
 
 	const float bodyH = ImGui::GetContentRegionAvail().y;
 	const float bodyW = ImGui::GetContentRegionAvail().x;
-	/* Fit longest filter label (font-scaled) — never let the % cap clip checkboxes. */
+	/* Fit longest filter label (font-scaled) - never let the % cap clip checkboxes. */
 	const float filterPad = ImGui::GetStyle().WindowPadding.x * 2.f + 12.f;
 	float filterNeed = PadNav::CheckboxWidth("Auto-parse after scan") + filterPad;
 	{
 		const float g = PadNav::CheckboxWidth("Group by encounter") + filterPad;
 		if (g > filterNeed) filterNeed = g;
-		const float s = ImGui::CalcTextSize("Search file or encounter…").x +
+		const float s = ImGui::CalcTextSize("Search file or encounter...").x +
 			ImGui::GetStyle().FramePadding.x * 2.f + filterPad;
 		if (s > filterNeed) filterNeed = s;
 	}
@@ -163,7 +163,7 @@ bool LogManagerPad::Render()
 	ImGui::EndChild();
 
 	ImGui::SameLine(0.f, kPaneGap);
-	/* Log list | drag splitter | detail — fraction of remaining width; tables stretch inside. */
+	/* Log list | drag splitter | detail - fraction of remaining width; tables stretch inside. */
 	const float availX = ImGui::GetContentRegionAvail().x;
 	const float usable = availX - kSplitHitW - kPaneGap * 2.f;
 	float listMin = kLogListMinW;
@@ -221,53 +221,33 @@ bool LogManagerPad::Render()
 		dl->AddLine(ImVec2(midX, splitPos.y + 4.f),
 			ImVec2(midX, splitPos.y + bodyH - 4.f), col, active ? 2.f : 1.f);
 		if (hovered)
-			ImGui::SetTooltip("Drag to resize panes — tables scale with width");
+			ImGui::SetTooltip("Drag to resize panes - tables scale with width");
 	}
 
 	ImGui::SameLine(0.f, kPaneGap);
 	ImGui::BeginChild("###gw2igh_lm_side", ImVec2(0.f, bodyH), true);
-	if (ImGui::BeginTabBar("###gw2igh_lm_tabs", ImGuiTabBarFlags_FittingPolicyScroll))
+	if (gFocusSetupTab)
 	{
-		if (ImGui::BeginTabItem("Detail"))
-		{
-			DrawDetailTab();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Players"))
-		{
-			DrawPlayersTab(filtered);
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("KillProof"))
-		{
-			DrawKillProofTab();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Guilds"))
-		{
-			DrawGuildsTab(filtered);
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Fastest"))
-		{
-			DrawFastestTab(filtered);
-			ImGui::EndTabItem();
-		}
-		{
-			ImGuiTabItemFlags setupFlags = 0;
-			if (gFocusSetupTab)
-			{
-				setupFlags = ImGuiTabItemFlags_SetSelected;
-				gFocusSetupTab = false;
-			}
-			if (ImGui::BeginTabItem("Setup", nullptr, setupFlags))
-			{
-				DrawSetupTab(hasDotNet);
-				ImGui::EndTabItem();
-			}
-		}
-		ImGui::EndTabBar();
+		gSideTab = 5;
+		gFocusSetupTab = false;
 	}
+	/* Horizontal top tabs — a left rail steals too much width from squad tables. */
+	static const char* kTabs[] = {
+		"Detail", "Players", "KillProof", "Guilds", "Fastest", "Setup"
+	};
+	gSideTab = PadNav::DrawTabs("###gw2igh_lm_nav", kTabs, 6, gSideTab);
+	ImGui::BeginChild("###gw2igh_lm_side_body", ImVec2(0.f, 0.f), false);
+	switch (gSideTab)
+	{
+	case 0: DrawDetailTab(); break;
+	case 1: DrawPlayersTab(filtered); break;
+	case 2: DrawKillProofTab(); break;
+	case 3: DrawGuildsTab(filtered); break;
+	case 4: DrawFastestTab(filtered); break;
+	case 5: DrawSetupTab(hasDotNet); break;
+	default: break;
+	}
+	ImGui::EndChild();
 	ImGui::EndChild();
 
 	{

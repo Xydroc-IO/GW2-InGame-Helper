@@ -384,7 +384,7 @@ void CharacterProfiles::ApplyProfile(const char* characterName)
 		auto it = gProfiles.find(gActive);
 		if (it == gProfiles.end())
 		{
-			/* First time on this character — snapshot current layout, don't thrash UI. */
+			/* First time on this character - snapshot current layout, don't thrash UI. */
 			gProfiles[gActive] = CaptureFromGlobals();
 			gDirty = true;
 			return;

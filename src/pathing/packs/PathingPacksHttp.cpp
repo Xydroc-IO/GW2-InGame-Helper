@@ -177,7 +177,7 @@ bool DownloadToFile(const wchar_t* urlW, const std::wstring& outPath)
 		WINHTTP_NO_PROXY_BYPASS, 0);
 	if (!session)
 		return false;
-	/* Large .taco packs (~40–50MB). */
+	/* Large .taco packs (~40-50MB). */
 	WinHttpSetTimeouts(session, 15000, 15000, 15000, 600000);
 
 	const INTERNET_PORT port = uc.nPort ? uc.nPort :

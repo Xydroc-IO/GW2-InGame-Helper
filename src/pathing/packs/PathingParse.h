@@ -112,7 +112,7 @@ namespace PathingParse
 	{
 		std::wstring packPath;
 		std::string  type;
-		std::string  guid; /* Blish/TacO GUID — behavior persistence key */
+		std::string  guid; /* Blish/TacO GUID - behavior persistence key */
 		uint32_t     mapId = 0;
 		float        wx = 0.f;
 		float        wy = 0.f;
@@ -146,7 +146,7 @@ namespace PathingParse
 
 	void IndexXml(const std::wstring& packPath, const std::string& xml,
 		std::vector<IndexedTrail>& out);
-	/* categoryMapIds: MarkerCategory path → MapID (Blish inherits onto child POIs). */
+	/* categoryMapIds: MarkerCategory path -> MapID (Blish inherits onto child POIs). */
 	void CollectCategoryMapIds(const std::string& xml,
 		std::unordered_map<std::string, uint32_t>& categoryMapIds);
 	void IndexPoisXml(const std::wstring& packPath, const std::string& xml,

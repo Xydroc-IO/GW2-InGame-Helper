@@ -64,13 +64,13 @@ namespace CraftingDetail
 		if (plan.noTpMissing > 0)
 		{
 			std::snprintf(buf, sizeof(buf),
-				"%s · TP buy ~ %s (+ bound/no-TP mats)",
+				"%s | TP buy ~ %s (+ bound/no-TP mats)",
 				src, FormatCoins(plan.buyTotal).c_str());
 		}
 		else
 		{
 			std::snprintf(buf, sizeof(buf),
-				"%s · TP buy ~ %s",
+				"%s | TP buy ~ %s",
 				src, FormatCoins(plan.buyTotal).c_str());
 		}
 		plan.status = buf;
@@ -109,7 +109,7 @@ namespace CraftingDetail
 		}
 		if (fronts.empty()) return;
 
-		/* Cap parallelism — wall clock ≈ slowest call (API Check style), not the sum. */
+		/* Cap parallelism - wall clock ≈ slowest call (API Check style), not the sum. */
 		constexpr size_t kMaxParallel = 16;
 		for (size_t off = 0; off < fronts.size(); off += kMaxParallel)
 		{

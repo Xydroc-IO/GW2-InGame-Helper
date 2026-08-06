@@ -37,7 +37,7 @@ bool ReadFileW(const std::wstring& path, std::vector<uint8_t>& out, size_t maxBy
 }
 
 /* Fast lookup via the zip central directory (binary search) instead of a
-   linear scan per trail — critical to avoid a startup freeze with big packs. */
+   linear scan per trail - critical to avoid a startup freeze with big packs. */
 int ZipLocate(mz_zip_archive& zip, const std::string& entryName)
 {
 	std::string want = entryName;
@@ -45,7 +45,7 @@ int ZipLocate(mz_zip_archive& zip, const std::string& entryName)
 	int idx = mz_zip_reader_locate_file(&zip, want.c_str(), nullptr, 0);
 	if (idx >= 0)
 		return idx;
-	/* Some packs store backslash separators — try that form too. */
+	/* Some packs store backslash separators - try that form too. */
 	std::string alt = entryName;
 	std::replace(alt.begin(), alt.end(), '/', '\\');
 	return mz_zip_reader_locate_file(&zip, alt.c_str(), nullptr, 0);
@@ -122,9 +122,9 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 	world.clear();
 	if (data.size() < 20)
 		return false;
-	/* version (u32) + mapId (u32) + N * float3 (x,y,z) — Y up, horizontal = x,z.
+	/* version (u32) + mapId (u32) + N * float3 (x,y,z) - Y up, horizontal = x,z.
 	   TacO/Blish/Taimi: a (0,0,0) point ends a trail *section*. Connecting across
-	   those breaks draws compass spaghetti (hub → every next segment). */
+	   those breaks draws compass spaghetti (hub -> every next segment). */
 	uint32_t ver = 0, mid = 0;
 	std::memcpy(&ver, data.data(), 4);
 	std::memcpy(&mid, data.data() + 4, 4);
@@ -151,7 +151,7 @@ bool ParseTrl(const std::vector<uint8_t>& data, uint32_t& mapId,
 			!(x == 0.f && y == 0.f && z == 0.f);
 	};
 
-	/* Collect every section first — Lady HP trails are multi-section and used to
+	/* Collect every section first - Lady HP trails are multi-section and used to
 	   drop everything after a flat 512-point budget (paths stopped mid-map). */
 	std::vector<std::vector<PathingTrails::WorldPoint>> sections;
 	sections.reserve(64);
