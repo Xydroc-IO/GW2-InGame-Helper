@@ -23,6 +23,9 @@ REQUIRED = (
 	"button-exit-active.png",
 	"crest-hero.png",
 	"panel-wash.png",
+	"title-bar.png",
+	"panel-edge.png",
+	"ink-edge.png",
 )
 
 

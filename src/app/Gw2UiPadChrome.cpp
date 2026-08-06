@@ -54,10 +54,9 @@ namespace
 bool Gw2Ui::PaintPadChrome(float opacity)
 {
 	/*
-	 * Blish StandardWindow (controls/window/155985):
-	 *   windowRegion  = (40, 26, 913, 691) on 1024²
-	 * Drawn on the window list with NoBackground so the texture IS the frame
-	 * (not wallpaper under stock ImGui title chrome).
+	 * Full-bleed wash plate (no black matte inset). Soft ink fringe only on
+	 * L/R/bottom so the rim feathers into the game like Hero — not a thick frame.
+	 * Top stays flush for the title bar.
 	 */
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 	if (!dl)
@@ -80,8 +79,6 @@ bool Gw2Ui::PaintPadChrome(float opacity)
 	const bool usingWash = (wash && wash->Resource && fill == wash);
 
 	dl->PushClipRect(p0, p1, false);
-
-	/* Opaque base so feathered StandardWindow edges never show the game through. */
 	dl->AddRectFilled(p0, p1, IM_COL32(10, 8, 6, static_cast<int>(a * 255.f + 0.5f)));
 
 	if (!fill || !fill->Resource)
@@ -95,16 +92,58 @@ bool Gw2Ui::PaintPadChrome(float opacity)
 	ImVec2 uv0(0.f, 0.f), uv1(1.f, 1.f);
 	if (!usingWash)
 	{
-		/* DAT 155985 — inset UVs to skip ragged fringe. */
 		constexpr float tex = 1024.f;
 		uv0 = ImVec2(48.f / tex, 34.f / tex);
 		uv1 = ImVec2((40.f + 905.f) / tex, (26.f + 680.f) / tex);
 	}
 	dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
 		p0, p1, uv0, uv1, col);
-	dl->AddRectFilled(p0, p1, IM_COL32(5, 3, 2, static_cast<int>(a * 90.f + 0.5f)));
-
+	dl->AddRectFilled(p0, p1, IM_COL32(6, 4, 3, static_cast<int>(a * 55.f + 0.5f)));
 	dl->PopClipRect();
+
+	/* Soft brush fringe only — never a solid black mat around the window. */
+	Texture_t* ink = GetChromeNamed("ink-edge");
+	if (!ink || !ink->Resource)
+		ink = GetChromeTex(static_cast<int>(Icon::InkEdge));
+	if (ink && ink->Resource)
+	{
+		constexpr float kFringe = 18.f;
+		constexpr float kBleed = 10.f;
+		ImDrawList* edgeDl = ImGui::GetForegroundDrawList();
+		const ImTextureID iid = reinterpret_cast<ImTextureID>(ink->Resource);
+		const ImU32 inkCol = IM_COL32(255, 255, 255, static_cast<int>(a * 180.f + 0.5f));
+
+		edgeDl->PushClipRect(
+			ImVec2(p0.x - kBleed - 2.f, p0.y),
+			ImVec2(p1.x + kBleed + 2.f, p1.y + kBleed + 2.f),
+			false);
+
+		edgeDl->AddImage(iid,
+			ImVec2(p0.x - 2.f, p1.y - kFringe),
+			ImVec2(p1.x + 2.f, p1.y + kBleed),
+			ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), inkCol);
+
+		edgeDl->AddImageQuad(iid,
+			ImVec2(p0.x - kBleed, p0.y),
+			ImVec2(p0.x + kFringe, p0.y),
+			ImVec2(p0.x + kFringe, p1.y + kBleed),
+			ImVec2(p0.x - kBleed, p1.y + kBleed),
+			ImVec2(0.f, 1.f), ImVec2(0.f, 0.f),
+			ImVec2(1.f, 0.f), ImVec2(1.f, 1.f),
+			inkCol);
+
+		edgeDl->AddImageQuad(iid,
+			ImVec2(p1.x - kFringe, p0.y),
+			ImVec2(p1.x + kBleed, p0.y),
+			ImVec2(p1.x + kBleed, p1.y + kBleed),
+			ImVec2(p1.x - kFringe, p1.y + kBleed),
+			ImVec2(0.f, 0.f), ImVec2(0.f, 1.f),
+			ImVec2(1.f, 1.f), ImVec2(1.f, 0.f),
+			inkCol);
+
+		edgeDl->PopClipRect();
+	}
+
 	return true;
 }
 
@@ -154,18 +193,17 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		}
 	};
 
-	/* Expanded title — Hero plate + crest overhang; controls large and flush-right. */
-	const float kTitleH = collapsed ? 26.f : 56.f;
-	const float kEmblem = collapsed ? 0.f : 88.f;
-	const float kEmblemHangTop = collapsed ? 0.f : 20.f;
-	const float kBtn = collapsed ? 20.f : 30.f;
-	const float kExitSz = collapsed ? 18.f : 28.f;
+	/* Expanded title — 156046 strip flush to window top; larger crest + − / X. */
+	const float kTitleH = collapsed ? 28.f : 60.f;
+	const float kEmblem = collapsed ? 0.f : 104.f;
+	const float kEmblemHangTop = collapsed ? 0.f : 26.f;
+	const float kBtn = collapsed ? 22.f : 38.f;
+	const float kExitSz = collapsed ? 20.f : 34.f;
 	constexpr float kPadX = 12.f;
 	constexpr float kBtnGap = 8.f;
 	constexpr float kTitleGap = 8.f;
 	/* Keep X near the frame edge (theme WindowPadding is for body chrome only). */
 	constexpr float kChromeInsetR = 4.f;
-	constexpr float kChromeInsetT = 8.f;
 
 	char vis[96];
 	Gw2UiDetail::VisibleLabel(title, vis, sizeof(vis));
@@ -174,6 +212,8 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 
 	const ImVec2 win0 = ImGui::GetWindowPos();
 	const float winW = ImGui::GetWindowWidth();
+	const ImGuiStyle& style = ImGui::GetStyle();
+	const float bodyPadX = style.WindowPadding.x;
 	const float contentMaxX = ImGui::GetWindowContentRegionMax().x;
 	/* Title controls sit near the right edge — do not inherit body WindowPadding. */
 	float rightInset = kChromeInsetR;
@@ -182,12 +222,17 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 	if (rightInset < kChromeInsetR)
 		rightInset = kChromeInsetR;
 
+	/*
+	 * Title connects to the window TOP — ignore WindowPadding for the title row.
+	 * Body padding applies only below the strip (Hero: bar IS the top of the panel).
+	 */
+	ImGui::SetCursorScreenPos(win0);
+	const ImVec2 row0 = win0;
+
 	/* Kill padding on the minimized strip so height stays ~one title line. */
 	const bool slimPad = collapsed;
 	if (slimPad)
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.f, 2.f));
-
-	const ImVec2 row0 = ImGui::GetCursorScreenPos();
 
 	const int nBtns = pOpen ? 2 : 1;
 	const float btnsW = static_cast<float>(nBtns) * kBtn + static_cast<float>(nBtns - 1) * kBtnGap + kPadX;
@@ -212,34 +257,34 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		const ImVec2 t1(win0.x + winW, win0.y + kTitleH + (collapsed ? 4.f : 0.f));
 		dl->PushClipRect(t0, ImVec2(t1.x, t1.y + 2.f), false);
 
-		/* Charcoal plate — top strip of StandardWindow fill (Hero-like), then darken. */
-		Texture_t* fill = GetChromeTex(static_cast<int>(Icon::PanelFill));
-		if (fill && fill->Resource && !collapsed)
+		/* Opaque 156046 strip — full width, flush with the window top edge. */
+		Texture_t* titleBar = GetChromeNamed("title-bar");
+		/* Solid underpaint so feathered pack fringes never leave a tan rim at the top. */
+		dl->AddRectFilled(t0, t1, IM_COL32(14, 11, 8, static_cast<int>(a * 255.f + 0.5f)));
+		if (titleBar && titleBar->Resource && !collapsed)
 		{
-			constexpr float tex = 1024.f;
-			/* windowRegion top band ≈ title plate inside 155985. */
-			const float u0 = 40.f / tex;
-			const float u1 = (40.f + 913.f) / tex;
-			const float v0 = 26.f / tex;
-			const float v1 = (26.f + 78.f) / tex;
-			dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
-				t0, t1, ImVec2(u0, v0), ImVec2(u1, v1), col);
+			dl->AddImage(reinterpret_cast<ImTextureID>(titleBar->Resource),
+				t0, t1, ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), col);
 		}
-		dl->AddRectFilled(t0, t1, IM_COL32(8, 7, 6, static_cast<int>(a * (collapsed ? 235.f : 165.f) + 0.5f)));
-		/* Subtle ink wash for grain (not the red header brush). */
-		if (!collapsed)
+		else if (!collapsed)
 		{
-			Texture_t* inkTex = GetChromeTex(static_cast<int>(Icon::InkEdge));
-			if (inkTex && inkTex->Resource)
+			Texture_t* fill = GetChromeTex(static_cast<int>(Icon::PanelFill));
+			if (fill && fill->Resource)
 			{
-				dl->AddImage(reinterpret_cast<ImTextureID>(inkTex->Resource),
-					t0, t1,
-					ImVec2(0.f, 0.92f), ImVec2(1.f, 0.55f),
-					IM_COL32(255, 255, 255, static_cast<int>(a * 55.f + 0.5f)));
+				constexpr float tex = 1024.f;
+				const float u0 = 40.f / tex;
+				const float u1 = (40.f + 913.f) / tex;
+				const float v0 = 26.f / tex;
+				const float v1 = (26.f + 78.f) / tex;
+				dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
+					t0, t1, ImVec2(u0, v0), ImVec2(u1, v1), col);
 			}
+			dl->AddRectFilled(t0, t1,
+				IM_COL32(8, 7, 6, static_cast<int>(a * 165.f + 0.5f)));
 		}
-		/* Thin frame like the in-game panel header. */
-		dl->AddRect(t0, t1, IM_COL32(20, 18, 16, static_cast<int>(a * 220.f + 0.5f)), 0.f, 0, 1.2f);
+		if (collapsed)
+			dl->AddRectFilled(t0, t1, IM_COL32(8, 7, 6, static_cast<int>(a * 235.f + 0.5f)));
+		/* Under-edge of the title strip (meets body below). */
 		dl->AddLine(
 			ImVec2(t0.x + 1.f, t1.y - 1.f),
 			ImVec2(t1.x - 1.f, t1.y - 1.f),
@@ -318,7 +363,7 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 	/* Controls sit in the top-right of the plate like native panel chrome. */
 	ImGui::SetCursorScreenPos(ImVec2(
 		win0.x + winW - btnsW - rightInset,
-		win0.y + kChromeInsetT));
+		win0.y + (kTitleH - kBtn) * 0.5f));
 	if (dl)
 		dl->PushClipRect(
 			ImVec2(win0.x, win0.y - 2.f),
@@ -340,11 +385,11 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		const ImVec2 mx = ImGui::GetItemRectMax();
 		const float cx = (mn.x + mx.x) * 0.5f;
 		const float cy = (mn.y + mx.y) * 0.5f;
-		const float hw = collapsed ? 4.5f : 6.f;
+		const float hw = collapsed ? 5.5f : 8.f;
 		if (collapsed)
-			dl->AddRect(ImVec2(cx - hw, cy - hw), ImVec2(cx + hw, cy + hw), gold, 0.f, 0, 1.5f);
+			dl->AddRect(ImVec2(cx - hw, cy - hw), ImVec2(cx + hw, cy + hw), gold, 0.f, 0, 1.8f);
 		else
-			dl->AddLine(ImVec2(cx - hw, cy), ImVec2(cx + hw, cy), gold, 2.2f);
+			dl->AddLine(ImVec2(cx - hw, cy), ImVec2(cx + hw, cy), gold, 2.8f);
 	}
 
 	if (pOpen)
@@ -376,9 +421,9 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 			{
 				const float cx = (mn.x + mx.x) * 0.5f;
 				const float cy = (mn.y + mx.y) * 0.5f;
-				const float hw = 5.5f;
-				dl->AddLine(ImVec2(cx - hw, cy - hw), ImVec2(cx + hw, cy + hw), gold, 1.8f);
-				dl->AddLine(ImVec2(cx + hw, cy - hw), ImVec2(cx - hw, cy + hw), gold, 1.8f);
+				const float hw = 7.5f;
+				dl->AddLine(ImVec2(cx - hw, cy - hw), ImVec2(cx + hw, cy + hw), gold, 2.4f);
+				dl->AddLine(ImVec2(cx + hw, cy - hw), ImVec2(cx - hw, cy + hw), gold, 2.4f);
 			}
 		}
 	}
@@ -413,6 +458,6 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		st->SetBool(restoreId, false);
 	}
 
-	ImGui::SetCursorScreenPos(ImVec2(row0.x, row0.y + kTitleH + 2.f));
+	ImGui::SetCursorScreenPos(ImVec2(win0.x + bodyPadX, win0.y + kTitleH + 2.f));
 	return true;
 }

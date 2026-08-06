@@ -21,13 +21,14 @@ extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "uc9";
+	constexpr const char* kPackStamp = "uc14";
 	constexpr int kChromeIds[] = {
 		155985, 155981, 156022, 156008, 156009, 156010, 155967, 156260, 155014
 	};
 	/* Named pack files (not numeric DAT ids). */
 	constexpr const char* kChromeNamed[] = {
-		"button-exit.png", "button-exit-active.png", "crest-hero.png", "panel-wash.png"
+		"button-exit.png", "button-exit-active.png", "crest-hero.png",
+		"panel-wash.png", "title-bar.png", "panel-edge.png", "ink-edge.png"
 	};
 
 	std::string WideToUtf8(const std::wstring& w)

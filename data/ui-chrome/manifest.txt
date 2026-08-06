@@ -13,3 +13,6 @@ button-exit.png	window_exit
 button-exit-active.png	window_exit_active
 crest-hero.png	title_crest_medallion
 panel-wash.png	panel_fill_opaque_crop
+title-bar.png	title_bar_strip_156046
+panel-edge.png	panel_edge_156109
+ink-edge.png	ink_brush_edge_155967

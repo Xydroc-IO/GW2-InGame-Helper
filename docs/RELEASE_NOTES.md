@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.2
+# GW2 In-Game Helper v2.2.3.3
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,6 +32,16 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.3
+
+- **Title bar strip:** DAT `156046` metal plate flush with the window top (opaque pack
+  fringe); larger medallion crest + − / X hit targets.
+- **Hero-style rim:** Soft `ink-edge` (155967 brush fringe) on bottom + sides — no thick
+  black matte frame; title bar left unchanged.
+- **CEF fixed backgrounds:** Tall Browse/hub pages keep wash pinned while content scrolls.
+- **Stamps:** Helper `2236` · homepage `2222` · sites `s2213` · cheatsheets `c2218`
+  · live panel `46` · raid food `5` · ui-chrome `uc14`
 
 ## What’s new in 2.2.3.2
 

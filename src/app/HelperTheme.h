@@ -33,8 +33,8 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_Text, Ink);
 		ImGui::PushStyleColor(ImGuiCol_TextDisabled, Muted);
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, Bg);
-		/* Enough plate under children without crushing the Blish fill. */
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.06f, 0.048f, 0.034f, 0.55f));
+		/* Soft plate under children — keep wash readable (Hero continuous charcoal). */
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.05f, 0.040f, 0.030f, 0.28f));
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.065f, 0.050f, 0.036f, 0.99f));
 		/* Visible for FrameBorderSize (checkboxes / inputs) — WindowBorderSize stays 0. */
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.72f, 0.56f, 0.28f, 0.70f));
