@@ -98,13 +98,11 @@ namespace
 	{
 		return R"CSS(
 :root{--bg:#120e0a;--text:#f5eddb;--muted:#b8ad94;--muted-2:#9a8f78;--zinc-100:#f5eddb;--zinc-200:#ebe3d2;--zinc-500:#b8ad94;--zinc-600:#9a8f78;--purple-200:#ffe68c;--purple-300:#f0c761;--purple:#c29438;--border:rgba(240,199,97,.22);--panel:rgba(28,23,17,.94);--ok:#85b86b;--miss:#e88878;--part:#eb8c47}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{font-family:"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+*{box-sizing:border-box}html,body{margin:0;min-height:100vh}body{font-family:"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
 .glow{pointer-events:none;position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(240,199,97,.16),transparent 55%);z-index:0}
-.shell{position:relative;z-index:1;min-height:100vh}header.top{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border);background:rgba(18,14,10,.88);backdrop-filter:blur(20px)}
-.top-inner,main{max-width:56rem;margin:0 auto;padding-left:1.25rem;padding-right:1.25rem}
-.top-inner{display:flex;align-items:center;gap:.625rem;padding-top:1rem;padding-bottom:1rem}
-.brand{display:inline-flex;align-items:center;gap:.5rem;color:var(--zinc-100);text-decoration:none;font-size:.8125rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
-.brand:hover{color:var(--purple-200)}main{padding-top:1.5rem;padding-bottom:5rem}
+.shell{position:relative;z-index:1;min-height:100vh}
+main{max-width:56rem;margin:0 auto;padding-left:1.25rem;padding-right:1.25rem}
+main{padding-top:1.5rem;padding-bottom:5rem}
 footer.credit{max-width:56rem;margin:0 auto;padding:0 1.25rem 2.5rem;font-size:.75rem;color:var(--zinc-600)}footer.credit strong{color:var(--zinc-500)}
 h1{margin:0;font-size:1.25rem;font-weight:600;letter-spacing:-.025em;color:var(--gold,#f0c65a)}
 .search{width:100%;height:2.75rem;border:1px solid var(--border);border-radius:.375rem;background:rgba(26,21,16,.95);padding:0 .75rem 0 2.5rem;color:var(--zinc-100);font-size:.875rem}
@@ -379,9 +377,7 @@ std::string BuildLegendaryLedgerHtml(const std::wstring& addonDir, const char* a
 	html += HelperThemeCss::FillBackgroundCss(
 		UiChrome::FillFileUrl(AddonPaths::DataDir()).c_str());
 	html += "</style></head><body><div class=\"glow\" aria-hidden=\"true\"></div>"
-		"<div class=\"shell\"><header class=\"top\"><div class=\"top-inner\">"
-		"<a class=\"brand\" href=\"?gw2igh-leg-vault=1\" title=\"Refresh Legendary Ledger\">"
-		"<span>GW2 Legendary Ledger</span></a></div></header>"
+		"<div class=\"shell\">"
 		"<main><div id=\"view-list\" class=\"space-y-7\"></div>"
 		"<div id=\"view-detail\" class=\"hidden\"></div></main>"
 		"<footer class=\"credit\">Idea credit: <strong>Dark Sorcerer.6420</strong> · "
