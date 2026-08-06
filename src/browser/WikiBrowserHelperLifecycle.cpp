@@ -20,19 +20,29 @@ namespace WikiBrowserDetail
 {
 	void FinishStopHelper(bool terminateIfAlive)
 	{
+		/* Only a real QUIT to a living helper (or Terminate) is intentional.
+		   Healthy helpers exit in ≪120ms after QUIT, so TickQuitPending almost
+		   always takes the !HelperAlive path with terminateIfAlive=false — without
+		   gQuitPosted, two open→close cycles within 12s of spawn falsely disabled
+		   Browse until GW2 restart. Closing after an unexpected crash still counts. */
+		const bool intentionalStop = terminateIfAlive || gQuitPosted;
+		gQuitPosted = false;
 		const DWORD ownedPid = gProcessId;
+		DWORD exitCode = 0;
 		if (gProcess)
 		{
 			const bool stillAlive = HelperAlive();
+			if (!stillAlive)
+				GetExitCodeProcess(gProcess, &exitCode);
 			if (terminateIfAlive && stillAlive)
 				TerminateProcess(gProcess, 0);
 			CloseHandle(gProcess);
 			gProcess = nullptr;
 			gProcessId = 0;
-			if (terminateIfAlive)
+			if (intentionalStop)
 				gHelperSpawnMs = 0; /* intentional stop — not a crash */
 			else
-				NoteHelperDied(); /* discovered already-dead helper */
+				NoteHelperDied(exitCode); /* discovered already-dead helper */
 		}
 		else if (terminateIfAlive && ownedPid)
 		{
@@ -72,8 +82,14 @@ namespace WikiBrowserDetail
 		if (gQuitPending.load())
 			return;
 		gRelaunchAfterQuit.store(false);
-		if (!HelperAlive() && !gProcess)
+		if (!gProcess)
 		{
+			FinishStopHelper(false);
+			return;
+		}
+		if (!HelperAlive())
+		{
+			/* Already dead — count unexpected death; do not pretend we quit it. */
 			FinishStopHelper(false);
 			return;
 		}

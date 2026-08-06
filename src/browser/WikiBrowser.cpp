@@ -46,6 +46,7 @@ namespace WikiBrowserDetail
 	HANDLE gLaunchThread = nullptr;           /* joined on Shutdown (DLL unload safety) */
 	std::atomic<bool> gRelaunchAfterQuit{false}; /* open again after graceful quit finishes */
 	std::atomic<bool> gQuitPending{false};    /* QUIT posted — finish across frames */
+	bool gQuitPosted = false;                 /* QUIT actually queued to a living helper */
 	DWORD gQuitStartedMs = 0;
 	DWORD gLastStartAttemptMs = 0;
 	DWORD gHelperSpawnMs = 0;                 /* when CreateProcess last succeeded */
@@ -117,6 +118,7 @@ void WikiBrowser::Init()
 	gShuttingDown.store(false);
 	gRelaunchAfterQuit.store(false);
 	gQuitPending.store(false);
+	gQuitPosted = false;
 	gHelperSpawnMs = 0;
 	gQuickDeathCount = 0;
 	EnsureIpcNames();

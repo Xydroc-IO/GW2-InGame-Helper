@@ -448,8 +448,15 @@ namespace WikiBrowserDetail
 		return WaitForSingleObject(gProcess, 0) == WAIT_TIMEOUT;
 	}
 
-	/* Helper died soon after spawn → stop relaunching (prevents system lockup). */
+	/* Helper died soon after spawn → stop relaunching (prevents system lockup).
+	   Call only for unexpected death — intentional QUIT/Terminate must clear
+	   gHelperSpawnMs without going through here (see FinishStopHelper). */
 	void NoteHelperDied()
+	{
+		NoteHelperDied(0);
+	}
+
+	void NoteHelperDied(DWORD exitCode)
 	{
 		if (gHelperSpawnMs == 0)
 			return;
@@ -458,12 +465,25 @@ namespace WikiBrowserDetail
 		if (lived < 12000u)
 		{
 			++gQuickDeathCount;
+			char buf[220];
 			if (gQuickDeathCount >= 2)
 			{
 				gLaunchDisabled.store(true);
 				gLaunchRequested.store(false);
 				gRelaunchAfterQuit.store(false);
-				SetLocalStatus("Browser helper crashed repeatedly — closed to protect system. Restart GW2 to retry");
+				std::snprintf(buf, sizeof(buf),
+					"Browser helper crashed repeatedly (exit=%lu, lived=%lums) — closed to protect system. Restart GW2 to retry",
+					static_cast<unsigned long>(exitCode),
+					static_cast<unsigned long>(lived));
+				SetLocalStatus(buf);
+			}
+			else
+			{
+				std::snprintf(buf, sizeof(buf),
+					"Browser helper exited early (code=%lu, lived=%lums) — will retry",
+					static_cast<unsigned long>(exitCode),
+					static_cast<unsigned long>(lived));
+				SetLocalStatus(buf);
 			}
 		}
 		else
@@ -493,6 +513,7 @@ namespace WikiBrowserDetail
 			gIpc->cmd = WIKI_CMD_QUIT;
 			gIpc->cmd_a = 0;
 			gIpc->cmd_arg[0] = 0;
+			gQuitPosted = true;
 		}
 		else
 		{
@@ -500,6 +521,7 @@ namespace WikiBrowserDetail
 			gIpc->cmd_a = 0;
 			gIpc->cmd_arg[0] = 0;
 			++gIpc->cmd_seq;
+			gQuitPosted = true;
 		}
 		WakeHelper();
 	}

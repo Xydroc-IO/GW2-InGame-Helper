@@ -53,6 +53,7 @@ namespace WikiBrowserDetail
 	extern HANDLE gLaunchThread;
 	extern std::atomic<bool> gRelaunchAfterQuit;
 	extern std::atomic<bool> gQuitPending;
+	extern bool gQuitPosted; /* true only when QUIT was queued to a living helper */
 	extern DWORD gQuitStartedMs;
 	extern DWORD gLastStartAttemptMs;
 	extern DWORD gHelperSpawnMs;
@@ -136,6 +137,7 @@ namespace WikiBrowserDetail
 	bool EnsureIpc();
 	bool HelperAlive();
 	void NoteHelperDied();
+	void NoteHelperDied(DWORD exitCode);
 	void NoteHelperSpawned();
 	void PostQuitCmd();
 	void FinishStopHelper(bool terminateIfAlive);

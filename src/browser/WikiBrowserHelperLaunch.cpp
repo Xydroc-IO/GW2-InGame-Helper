@@ -194,7 +194,7 @@ namespace WikiBrowserDetail
 		{
 			DWORD exitCode = 0;
 			GetExitCodeProcess(gProcess, &exitCode);
-			NoteHelperDied();
+			NoteHelperDied(exitCode);
 			CloseHandle(gProcess);
 			gProcess = nullptr;
 			gProcessId = 0;
