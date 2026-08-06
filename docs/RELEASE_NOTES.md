@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.0.20
+# GW2 In-Game Helper v2.2.1.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.1.0
+
+- **Helper lifecycle:** Closing Browse soon after open is no longer treated as a helper
+  crash (no quick-death lockout). Unexpected helper deaths still disable relaunch and
+  surface exit code / uptime in status.
+- **Stamps:** Helper `2224` · homepage `2212` · sites `s2213` · cheatsheets `c2211`
+  · live panel `39` (unchanged from 2.2.0.20)
 
 ## What’s new in 2.2.0.20
 
