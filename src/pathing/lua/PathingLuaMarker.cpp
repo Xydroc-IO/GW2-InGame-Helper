@@ -49,6 +49,12 @@ namespace PathingLuaDetail
 			if (std::strcmp(key, "FadeNear") == 0) { lua_pushnumber(L, m->fadeNear); return 1; }
 			if (std::strcmp(key, "FadeFar") == 0) { lua_pushnumber(L, m->fadeFar); return 1; }
 			if (std::strcmp(key, "Focused") == 0) { lua_pushboolean(L, 0); return 1; }
+			if (std::strcmp(key, "Texture") == 0) { lua_pushstring(L, m->iconId); return 1; }
+			if (std::strcmp(key, "Category") == 0)
+			{
+				PushCategory(L, m->label);
+				return 1;
+			}
 			if (std::strcmp(key, "Position") == 0)
 			{
 				PushVector3(L, m->world.x, m->world.y, m->world.z);
@@ -97,6 +103,8 @@ namespace PathingLuaDetail
 				m->heightOffset = static_cast<float>(lua_tonumber(L, 3));
 			else if (std::strcmp(key, "Size") == 0 || std::strcmp(key, "IconSize") == 0)
 				m->iconSize = static_cast<float>(lua_tonumber(L, 3));
+			else if (std::strcmp(key, "Texture") == 0)
+				std::snprintf(m->iconId, sizeof(m->iconId), "%s", luaL_optstring(L, 3, ""));
 			else if (std::strcmp(key, "Position") == 0)
 			{
 				float x = 0, y = 0, z = 0;
@@ -196,6 +204,29 @@ namespace PathingLuaDetail
 			PushBehavior(L, m);
 			return 1;
 		}
+
+		int Marker_Hide(lua_State* L)
+		{
+			PathingTrails::Marker* m = CheckMarker(L, 1);
+			if (m)
+				m->luaHidden = true;
+			return 0;
+		}
+
+		int Marker_Show(lua_State* L)
+		{
+			PathingTrails::Marker* m = CheckMarker(L, 1);
+			if (m)
+				m->luaHidden = false;
+			return 0;
+		}
+
+		int Marker_IsVisible(lua_State* L)
+		{
+			PathingTrails::Marker* m = CheckMarker(L, 1);
+			lua_pushboolean(L, (m && !m->luaHidden && !m->luaRemoved) ? 1 : 0);
+			return 1;
+		}
 	}
 
 	namespace
@@ -283,6 +314,9 @@ namespace PathingLuaDetail
 		lua_pushcfunction(L, Marker_Unfocus); lua_setfield(L, -2, "Unfocus");
 		lua_pushcfunction(L, Marker_Interact); lua_setfield(L, -2, "Interact");
 		lua_pushcfunction(L, Marker_GetBehavior); lua_setfield(L, -2, "GetBehavior");
+		lua_pushcfunction(L, Marker_Hide); lua_setfield(L, -2, "Hide");
+		lua_pushcfunction(L, Marker_Show); lua_setfield(L, -2, "Show");
+		lua_pushcfunction(L, Marker_IsVisible); lua_setfield(L, -2, "IsVisible");
 		lua_pop(L, 1);
 	}
 }

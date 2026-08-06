@@ -9,13 +9,120 @@ extern "C" {
 #include "lualib.h"
 }
 
+#include <cctype>
 #include <cstring>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include <windows.h>
+
+namespace PathingLuaDetail
+{
+	namespace
+	{
+		std::unordered_map<std::string, std::string> gScriptSources;
+		std::unordered_set<std::string> gScriptRequired;
+		std::vector<std::string> gPendingPackEntries;
+
+		std::string NormalizeScriptKey(const char* path)
+		{
+			if (!path)
+				return {};
+			std::string s = path;
+			for (char& c : s)
+			{
+				if (c == '\\')
+					c = '/';
+				else
+					c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+			}
+			while (!s.empty() && s[0] == '/')
+				s.erase(s.begin());
+			if (s.size() < 4 || s.compare(s.size() - 4, 4, ".lua") != 0)
+				s += ".lua";
+			return s;
+		}
+	}
+
+	void StoreScriptSource(const std::string& name, const std::string& source)
+	{
+		if (source.empty())
+			return;
+		const std::string key = NormalizeScriptKey(name.c_str());
+		if (key.empty())
+			return;
+		gScriptSources[key] = source;
+		/* Track pack.lua entry points (any path ending in /pack.lua or pack.lua). */
+		if (key == "pack.lua" ||
+			(key.size() >= 8 && key.compare(key.size() - 8, 8, "/pack.lua") == 0))
+			gPendingPackEntries.push_back(key);
+	}
+
+	bool RequireScript(lua_State* L, const char* path)
+	{
+		if (!L)
+			return false;
+		const std::string key = NormalizeScriptKey(path);
+		if (key.empty())
+			return false;
+		if (gScriptRequired.count(key))
+			return true;
+		auto it = gScriptSources.find(key);
+		if (it == gScriptSources.end())
+		{
+			/* Try basename match for Require("Storage") → scripts/utility/storage.lua */
+			const std::string base = key;
+			for (const auto& kv : gScriptSources)
+			{
+				if (kv.first.size() >= base.size() &&
+					kv.first.compare(kv.first.size() - base.size(), base.size(), base) == 0 &&
+					(kv.first.size() == base.size() ||
+						kv.first[kv.first.size() - base.size() - 1] == '/'))
+				{
+					it = gScriptSources.find(kv.first);
+					break;
+				}
+			}
+		}
+		if (it == gScriptSources.end())
+			return false;
+		gScriptRequired.insert(it->first);
+		gScriptRequired.insert(key);
+		if (luaL_loadbuffer(L, it->second.data(), it->second.size(), it->first.c_str()) != LUA_OK)
+		{
+			LogLuaError(L, it->first.c_str());
+			lua_pop(L, 1);
+			return false;
+		}
+		if (lua_pcall(L, 0, 0, 0) != LUA_OK)
+		{
+			LogLuaError(L, it->first.c_str());
+			lua_pop(L, 1);
+			return false;
+		}
+		return true;
+	}
+
+	void ClearScriptSources()
+	{
+		gScriptSources.clear();
+		gScriptRequired.clear();
+		gPendingPackEntries.clear();
+	}
+
+	void RunPackEntryPoints(lua_State* L)
+	{
+		if (!L)
+			return;
+		std::vector<std::string> entries = gPendingPackEntries;
+		gPendingPackEntries.clear();
+		for (const std::string& e : entries)
+			RequireScript(L, e.c_str());
+	}
+}
 
 namespace
 {
@@ -114,6 +221,7 @@ void PathingLua::ClearScripts()
 	gOnceDone.clear();
 	PathingLuaDetail::ClearOnTick();
 	PathingLuaDetail::ClearDynMarkers();
+	PathingLuaDetail::ClearScriptSources();
 	if (!gL)
 		return;
 	PathingLuaDetail::ClearMenus(gL);
@@ -130,19 +238,17 @@ void PathingLua::AddScriptSource(const std::string& name, const std::string& sou
 {
 	Init();
 	std::lock_guard<std::mutex> lock(gMu);
-	if (!gL || source.empty())
+	PathingLuaDetail::StoreScriptSource(name, source);
+}
+
+void PathingLua::RunPendingPackEntries()
+{
+	if (!Enabled())
 		return;
-	if (luaL_loadbuffer(gL, source.data(), source.size(), name.c_str()) != LUA_OK)
-	{
-		PathingLuaDetail::LogLuaError(gL, name.c_str());
-		lua_pop(gL, 1);
-		return;
-	}
-	if (lua_pcall(gL, 0, 0, 0) != LUA_OK)
-	{
-		PathingLuaDetail::LogLuaError(gL, name.c_str());
-		lua_pop(gL, 1);
-	}
+	Init();
+	std::lock_guard<std::mutex> lock(gMu);
+	if (gL)
+		PathingLuaDetail::RunPackEntryPoints(gL);
 }
 
 void PathingLua::OnMarkersLoaded(std::vector<PathingTrails::Marker>& markers)

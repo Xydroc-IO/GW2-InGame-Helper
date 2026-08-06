@@ -1,4 +1,5 @@
 #include "PathingLua.h"
+#include "PathingLuaInternal.h"
 #include "PathingParse.h"
 
 #include "miniz/miniz.h"
@@ -30,5 +31,8 @@ namespace PathingLuaLoad
 			const std::string src(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 			PathingLua::AddScriptSource(name, src);
 		}
+		/* Blish-style: store all scripts, then run pack.lua entry points which Require the rest. */
+		if (PathingLua::Enabled())
+			PathingLua::RunPendingPackEntries();
 	}
 }

@@ -10,6 +10,7 @@ extern "C" {
 
 #include <cstdio>
 #include <cstring>
+#include <mutex>
 #include <string>
 
 namespace PathingLuaDetail
@@ -28,8 +29,18 @@ namespace PathingLuaDetail
 
 		int Pack_Require(lua_State* L)
 		{
-			/* Pack:Require(path) — already loaded sources live in VM; no-op success. */
-			(void)luaL_optstring(L, lua_istable(L, 1) ? 2 : 1, "");
+			const int arg = lua_istable(L, 1) ? 2 : 1;
+			const char* path = luaL_optstring(L, arg, "");
+			if (!RequireScript(L, path ? path : ""))
+			{
+				/* Soft-fail — Blish packs often Require optional helpers. */
+				if (G::API && G::API->Log && path && path[0])
+				{
+					char buf[256];
+					std::snprintf(buf, sizeof(buf), "PathingLua: Pack:Require missing '%s'", path);
+					G::API->Log(LOGL_WARNING, ADDON_NAME, buf);
+				}
+			}
 			return 0;
 		}
 
@@ -91,6 +102,18 @@ namespace PathingLuaDetail
 				lua_getfield(L, attrIdx, "iconSize");
 				if (lua_isnumber(L, -1))
 					m.iconSize = static_cast<float>(lua_tonumber(L, -1));
+				lua_pop(L, 1);
+				lua_getfield(L, attrIdx, "TriggerRange");
+				if (lua_isnumber(L, -1))
+					m.triggerRange = static_cast<float>(lua_tonumber(L, -1));
+				lua_pop(L, 1);
+				lua_getfield(L, attrIdx, "AutoTrigger");
+				if (lua_isboolean(L, -1))
+					m.autoTrigger = lua_toboolean(L, -1) != 0;
+				lua_pop(L, 1);
+				lua_getfield(L, attrIdx, "Info");
+				if (lua_isstring(L, -1))
+					std::snprintf(m.info, sizeof(m.info), "%s", lua_tostring(L, -1));
 				lua_pop(L, 1);
 			}
 

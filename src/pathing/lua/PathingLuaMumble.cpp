@@ -134,6 +134,11 @@ namespace PathingLuaDetail
 				lua_setfield(L, -2, "IsGameFocused");
 				return 1;
 			}
+			if (std::strcmp(key, "IsAvailable") == 0)
+			{
+				lua_pushboolean(L, (G::Mumble && G::Mumble->uiTick) ? 1 : 0);
+				return 1;
+			}
 			lua_pushnil(L);
 			return 1;
 		}

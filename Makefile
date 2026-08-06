@@ -183,6 +183,8 @@ DLL_SRC = \
 	src/pathing/lua/PathingLuaCdn.cpp \
 	src/pathing/lua/PathingLuaTrail.cpp \
 	src/pathing/lua/PathingLuaLoad.cpp \
+	src/pathing/lua/PathingLuaStorage.cpp \
+	src/pathing/lua/PathingLuaInstance.cpp \
 	src/pathing/trails/PathingTrails.cpp \
 	src/pathing/trails/PathingTrailsCore.cpp \
 	src/pathing/packs/PathingLoad.cpp \

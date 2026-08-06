@@ -15,6 +15,8 @@ namespace PathingLua
 
 	void ClearScripts();
 	void AddScriptSource(const std::string& name, const std::string& source);
+	/* After a pack zip finishes storing .lua files, run pack.lua entry points. */
+	void RunPendingPackEntries();
 
 	void Tick(std::vector<PathingTrails::Marker>& markers);
 	void OnMarkersLoaded(std::vector<PathingTrails::Marker>& markers);

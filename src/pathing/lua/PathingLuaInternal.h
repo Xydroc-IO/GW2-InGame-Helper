@@ -20,6 +20,8 @@ namespace PathingLuaDetail
 	void RegisterMenu(lua_State* L);
 	void RegisterTrail(lua_State* L);
 	void RegisterWorldTrail(lua_State* L);
+	void RegisterStorage(lua_State* L);
+	void RegisterInstance(lua_State* L);
 
 	void PushMarker(lua_State* L, PathingTrails::Marker* m);
 	PathingTrails::Marker* CheckMarker(lua_State* L, int idx);
@@ -27,6 +29,8 @@ namespace PathingLuaDetail
 	void PushTrail(lua_State* L, PathingTrails::Trail* t);
 	PathingTrails::Trail* CheckTrail(lua_State* L, int idx);
 
+	void PushCategory(lua_State* L, const char* ns);
+	void PushMenuRef(lua_State* L, int id);
 	void PushBehavior(lua_State* L, const PathingTrails::Marker* m);
 	void RequestCdnTexture(int assetId, char* idOut, size_t idLen);
 
@@ -34,6 +38,12 @@ namespace PathingLuaDetail
 	bool ReadVector3(lua_State* L, int idx, float& x, float& y, float& z);
 
 	void LogLuaError(lua_State* L, const char* ctx);
+
+	/* Script registry — store all .lua from packs; Pack:Require / pack.lua entry run them. */
+	void StoreScriptSource(const std::string& name, const std::string& source);
+	bool RequireScript(lua_State* L, const char* path);
+	void ClearScriptSources();
+	void RunPackEntryPoints(lua_State* L);
 
 	extern std::vector<PathingTrails::Marker>* gTickMarkers;
 	extern std::vector<PathingTrails::Trail>* gTickTrails;

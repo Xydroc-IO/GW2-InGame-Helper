@@ -223,11 +223,13 @@ add_library(GW2-InGame-Helper SHARED
   src/pathing/lua/PathingLua.cpp
   src/pathing/lua/PathingLuaApi.cpp
   src/pathing/lua/PathingLuaCdn.cpp
+  src/pathing/lua/PathingLuaInstance.cpp
   src/pathing/lua/PathingLuaLoad.cpp
   src/pathing/lua/PathingLuaMarker.cpp
   src/pathing/lua/PathingLuaMenu.cpp
   src/pathing/lua/PathingLuaMumble.cpp
   src/pathing/lua/PathingLuaPack.cpp
+  src/pathing/lua/PathingLuaStorage.cpp
   src/pathing/lua/PathingLuaTrail.cpp
   src/pathing/lua/PathingLuaTypes.cpp
   src/pathing/lua/PathingLuaWorld.cpp
