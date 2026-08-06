@@ -373,6 +373,16 @@ void TrailToolsBinds::ActionDeleteMarker()
 
 void TrailToolsBinds::Poll()
 {
+	using namespace TrailToolsDetail;
+	const int recordSlot = gTrailRecordSlot;
+	if (recordSlot >= 0)
+		PushTrailEditorToActive(recordSlot);
+
+	auto finish = [&]() {
+		if (recordSlot >= 0)
+			PopTrailEditorFromActive(recordSlot);
+	};
+
 	/* Capture mode: next non-modifier key with current mods becomes the bind. */
 	if (gBinds.captureTarget >= 0)
 	{
@@ -406,17 +416,22 @@ void TrailToolsBinds::Poll()
 			Settings::SetDirty();
 			/* swallow until release - clear held so we don't fire immediately */
 			std::memset(gHeld, 0, sizeof(gHeld));
+			finish();
 			return;
 		}
 		if (KeyDown(VK_ESCAPE))
 			gBinds.captureTarget = -1;
+		finish();
 		return;
 	}
 
 	SampleWhileRecording();
 
 	if (TypingBlocked())
+	{
+		finish();
 		return;
+	}
 
 	if (Edge(0, ChordDown(gBinds.trailStart)))
 		ActionTrailStart();
@@ -433,6 +448,7 @@ void TrailToolsBinds::Poll()
 		if (Edge(10 + i, ChordDown(gBinds.place[i].chord)))
 			ActionPlaceMarker(i);
 	}
+	finish();
 }
 
 std::string TrailToolsBinds::Serialize()

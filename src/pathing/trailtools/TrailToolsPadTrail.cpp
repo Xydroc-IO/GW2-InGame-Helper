@@ -262,6 +262,27 @@ namespace
 					SetStatus("Editing trail %s", t.fileRel.c_str());
 				}
 				ImGui::SameLine();
+				if (ImGui::SmallButton("Win"))
+				{
+					const int slot = OpenNewTrailEditor();
+					if (slot >= 0)
+					{
+						TrailEditorSlot& s = gTrailEditors[slot];
+						s.trail = t;
+						ApplyStemFromFileRel(); /* uses active — sync stem from t */
+						{
+							const size_t slash = t.fileRel.find_last_of('/');
+							std::string stem = slash == std::string::npos ? t.fileRel
+								: t.fileRel.substr(slash + 1);
+							if (stem.size() > 4 && stem.compare(stem.size() - 4, 4, ".trl") == 0)
+								stem.resize(stem.size() - 4);
+							std::snprintf(s.stem, sizeof(s.stem), "%s", stem.c_str());
+						}
+						s.dirty = false;
+						s.selectedPoint = -1;
+					}
+				}
+				ImGui::SameLine();
 				if (ImGui::SmallButton("Del"))
 				{
 					gDraft.trails.erase(gDraft.trails.begin() + i);
@@ -336,8 +357,8 @@ void TrailToolsDetail::DrawTrailDesk()
 
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"XML project desk. Open Trails1 for .trl recording/editing. Insert adds the active "
-		"trail into the OverlayData list (then Save XML).");
+		"XML project desk. Open new trail window for Trails1 / Trails2 / … (multiple at once). "
+		"Insert adds a trail into OverlayData (then Save XML).");
 	PadNav::PopWrap();
 
 	DrawXmlProjectDesk();
@@ -346,8 +367,11 @@ void TrailToolsDetail::DrawTrailDesk()
 	ImGui::Separator();
 	DrawTrailList();
 
-	if (ImGui::Button("Open Trails1 window###gw2igh_tt_open_tr1"))
-		TrailToolsPad::OpenTrailsWindow();
+	if (ImGui::Button("Open another trail window###gw2igh_tt_open_trn"))
+		OpenNewTrailEditor();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Open Trails desk"));
+	if (ImGui::Button("Open Trails desk###gw2igh_tt_open_trdesk"))
+		TrailToolsPad::OpenTrailsDesk();
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Insert into XML"));
 	if (ImGui::Button("Insert into XML###gw2igh_tt_ins_trxml"))
 		UpsertActiveTrailInPack();
@@ -359,6 +383,18 @@ void TrailToolsDetail::DrawTrailDesk()
 			CopyClipboard(line.c_str());
 			SetStatus("Copied Trail XML line.");
 		}
+	}
+
+	ImGui::TextUnformatted("Trail windows (can all be open at once):");
+	for (int i = 0; i < kMaxTrailEditors; ++i)
+	{
+		char lab[48]{};
+		std::snprintf(lab, sizeof(lab), "%sTrails%d###gw2igh_tt_trslot%d",
+			gTrailEditors[i].open ? "*" : "", i + 1, i);
+		if (i > 0)
+			ImGui::SameLine();
+		if (ImGui::SmallButton(lab))
+			OpenTrailEditorSlot(i);
 	}
 
 	ImGui::TextDisabled("Active: %s%s  |  %zu pts  map %u",

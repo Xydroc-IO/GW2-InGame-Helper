@@ -1,12 +1,14 @@
 #pragma once
 
-/* ImGui Trail Tools - hub tabs, with Trails / Markers optionally popped out
-   into their own collapsible windows (title bar remains when minimized). */
+/* ImGui Trail Tools — hub + Trails/Markers desks + multiple TrailsN/MarkersN editors
+   (each collapsible to a title bar). */
 namespace TrailToolsPad
 {
 	void Open();
-	void OpenTrailsWindow();
-	void OpenMarkersWindow();
-	bool Render(); /* hub + any pop-outs; true while pointer over any of them */
+	void OpenTrailsWindow();  /* open next TrailsN raw editor */
+	void OpenMarkersWindow(); /* open MarkersN for selected POI */
+	void OpenTrailsDesk();
+	void OpenMarkersDesk();
+	bool Render(); /* hub + desks + editors; true while pointer over any */
 	bool AnyOpen();
 }

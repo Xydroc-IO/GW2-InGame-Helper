@@ -7,11 +7,12 @@ namespace TrailToolsDetail
 {
 	void DrawLiveTab();
 	void DrawTrailTab(); /* full tab when docked: desk + raw (legacy entry) */
-	void DrawTrailDesk(); /* hub: XML project + trail list + open Trails1 */
-	void DrawTrailRawEditor(); /* Trails1 window: .trl record/edit */
+	void DrawTrailDesk(); /* XML project + trail list + open TrailsN */
+	void DrawTrailRawEditor(); /* uses gDraft.active (after PushTrailEditorToActive) */
 	void DrawMarkersTab();
-	void DrawMarkersDesk(); /* hub: XML project + marker list + open Markers1 */
-	void DrawMarkerRawEditor(); /* Markers1 window: selected POI attrs */
+	void DrawMarkersDesk(); /* XML project + marker list + open MarkersN */
+	void DrawMarkerRawEditor(); /* uses gDraft.selectedPoi */
+	void DrawMarkerRawEditorForSlot(int slot); /* MarkersN bound to slot.poiIndex */
 	void DrawXmlProjectDesk(); /* shared New/Load/Save/Save As OverlayData */
 	void DrawPackTab();
 	void DrawKeybindsTab();

@@ -179,8 +179,8 @@ void TrailToolsDetail::DrawMarkersDesk()
 {
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"XML project desk for markers. Open Markers1 to edit the selected POI. "
-		"Place slots (Ctrl+Numpad) are configured under Keybinds.");
+		"XML project desk for markers. Open new marker windows (Markers1, Markers2, …) for "
+		"selected POIs. Place slots (Ctrl+Numpad) are under Keybinds.");
 	PadNav::PopWrap();
 
 	DrawXmlProjectDesk();
@@ -233,20 +233,47 @@ void TrailToolsDetail::DrawMarkersDesk()
 			const DraftPoi& p = gDraft.pois[static_cast<size_t>(i)];
 			if (sThisMapOnly && pose && p.mapId != mapId)
 				continue;
+			ImGui::PushID(i);
 			char label[256]{};
-			std::snprintf(label, sizeof(label), "%d  map %u  %s###gw2igh_tt_mi%d",
-				i, p.mapId, p.type.c_str(), i);
+			std::snprintf(label, sizeof(label), "%d  map %u  %s###gw2igh_tt_mi",
+				i, p.mapId, p.type.c_str());
 			if (ImGui::Selectable(label, gDraft.selectedPoi == i))
 				gDraft.selectedPoi = i;
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Win"))
+				OpenMarkerEditor(i, true); /* always another window; keep others */
+			ImGui::PopID();
 		}
 	}
 	ImGui::EndChild();
 
-	if (ImGui::Button("Open Markers1 window###gw2igh_tt_open_mk1"))
-		TrailToolsPad::OpenMarkersWindow();
+	if (ImGui::Button("Open another marker window###gw2igh_tt_open_mkn"))
+		OpenNewMarkerEditor();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Open Markers desk"));
+	if (ImGui::Button("Open Markers desk###gw2igh_tt_open_mkdesk"))
+		TrailToolsPad::OpenMarkersDesk();
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Insert into XML"));
 	if (ImGui::Button("Insert into XML###gw2igh_tt_ins_mkxml"))
 		UpsertSelectedPoiInPack();
+
+	ImGui::TextUnformatted("Marker windows (can all be open at once):");
+	for (int i = 0; i < kMaxMarkerEditors; ++i)
+	{
+		char lab[48]{};
+		std::snprintf(lab, sizeof(lab), "%sMarkers%d###gw2igh_tt_mkslot%d",
+			gMarkerEditors[i].open ? "*" : "", i + 1, i);
+		if (i > 0)
+			ImGui::SameLine();
+		if (ImGui::SmallButton(lab))
+		{
+			if (gMarkerEditors[i].open)
+				gMarkerEditors[i].focus = true;
+			else if (gDraft.selectedPoi >= 0)
+				OpenMarkerEditor(gDraft.selectedPoi, true);
+			else
+				OpenNewMarkerEditor();
+		}
+	}
 
 	DrawCopyFromLoaded();
 
@@ -275,8 +302,8 @@ void TrailToolsDetail::DrawMarkerRawEditor()
 {
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Raw marker attributes for the selected project POI. Insert on the Markers desk "
-		"marks the project dirty; Save XML writes OverlayData.");
+		"Raw marker attributes for the selected project POI. Insert marks the project dirty; "
+		"Save XML on the desk writes OverlayData.");
 	PadNav::PopWrap();
 
 	if (gDraft.selectedPoi < 0 || gDraft.selectedPoi >= static_cast<int>(gDraft.pois.size()))
@@ -291,6 +318,37 @@ void TrailToolsDetail::DrawMarkerRawEditor()
 	ImGui::Text("Editing marker %d", gDraft.selectedPoi);
 	DrawSelectedPoiEditor(p);
 	if (ImGui::Button("Insert into XML###gw2igh_tt_mk_raw_ins"))
+		UpsertSelectedPoiInPack();
+
+	if (gDraft.status[0])
+		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
+}
+
+void TrailToolsDetail::DrawMarkerRawEditorForSlot(int slot)
+{
+	if (slot < 0 || slot >= kMaxMarkerEditors || !gMarkerEditors[slot].open)
+	{
+		ImGui::TextDisabled("Editor closed.");
+		return;
+	}
+	MarkerEditorSlot& ed = gMarkerEditors[slot];
+	if (ed.poiIndex < 0 || ed.poiIndex >= static_cast<int>(gDraft.pois.size()))
+	{
+		ImGui::TextDisabled("POI %d is gone - close this window or pick another on the desk.",
+			ed.poiIndex);
+		if (ImGui::Button("Drop marker here###gw2igh_tt_drop_slot"))
+			TrailToolsBinds::ActionPlaceMarker(-1);
+		return;
+	}
+
+	gDraft.selectedPoi = ed.poiIndex;
+	DraftPoi& p = gDraft.pois[static_cast<size_t>(ed.poiIndex)];
+	ImGui::Text("Markers%d — project POI %d", slot + 1, ed.poiIndex);
+	DrawSelectedPoiEditor(p);
+	char insLab[64]{};
+	std::snprintf(insLab, sizeof(insLab), "Insert %s###gw2igh_tt_mk_slot_ins",
+		p.tipName.empty() ? (p.type.empty() ? "marker" : p.type.c_str()) : p.tipName.c_str());
+	if (ImGui::Button(insLab))
 		UpsertSelectedPoiInPack();
 
 	if (gDraft.status[0])

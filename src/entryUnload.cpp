@@ -46,8 +46,7 @@ void AddonUnload()
 	G::ShowFarming = false;
 	G::ShowPathingGuides = false;
 	G::ShowTrailTools = false;
-	TrailToolsDetail::gPopoutTrails = false;
-	TrailToolsDetail::gPopoutMarkers = false;
+	TrailToolsDetail::CloseAllPopouts();
 	G::ShowCompassPad = false;
 	G::ShowSettings = false;
 	G::ShowDirectionCompass = false;

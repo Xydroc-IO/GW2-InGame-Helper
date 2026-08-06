@@ -19,8 +19,28 @@ namespace
 {
 	constexpr float kHubW = 600.f;
 	constexpr float kHubH = 720.f;
+	constexpr float kDeskW = 520.f;
+	constexpr float kDeskH = 640.f;
 	constexpr float kEditW = 480.f;
 	constexpr float kEditH = 560.f;
+
+	G::PadGeom GeomFrom(float x, float y, float w, float h)
+	{
+		G::PadGeom g{};
+		g.x = x;
+		g.y = y;
+		g.w = w;
+		g.h = h;
+		return g;
+	}
+
+	void GeomTo(const G::PadGeom& g, float& x, float& y, float& w, float& h)
+	{
+		x = g.x;
+		y = g.y;
+		w = g.w;
+		h = g.h;
+	}
 
 	bool RenderCollapsiblePad(
 		const char* title,
@@ -31,7 +51,8 @@ namespace
 		float defW,
 		float defH,
 		ImVec2 fallbackPos,
-		const std::function<void()>& body)
+		const std::function<void()>& body,
+		bool* outFocused = nullptr)
 	{
 		if (!showFlag)
 			return false;
@@ -62,6 +83,8 @@ namespace
 			const bool hovered = ImGui::IsWindowHovered(
 				ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 			const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+			if (outFocused)
+				*outFocused = focused;
 			ImGui::End();
 			if (!open)
 			{
@@ -84,9 +107,56 @@ namespace
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 		const bool focusedWin = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+		if (outFocused)
+			*outFocused = focusedWin;
 		const bool typingHere = focusedWin && ImGui::GetIO().WantTextInput;
 		ImGui::End();
 		return hovered || typingHere;
+	}
+
+	ImVec2 DeskFallback(bool markers)
+	{
+		const ImVec2 base = PadDock::ForTrailPopout(kDeskW, kDeskH);
+		if (markers)
+			return ImVec2(base.x, base.y + 72.f);
+		return base;
+	}
+
+	ImVec2 TrailEditorFallback(int index)
+	{
+		/* Cascade far enough that windows never look like a single stacked pad. */
+		constexpr float kStepX = 56.f;
+		constexpr float kStepY = 64.f;
+		ImVec2 base = PadDock::ForTrailPopout(kEditW, kEditH);
+		if (TrailToolsDetail::gShowTrailsDesk && TrailToolsDetail::gTrailsDeskX >= 0.f)
+		{
+			base.x = TrailToolsDetail::gTrailsDeskX + TrailToolsDetail::gTrailsDeskW + 12.f;
+			base.y = TrailToolsDetail::gTrailsDeskY + static_cast<float>(index) * kStepY;
+		}
+		else
+		{
+			base.x += static_cast<float>(index) * kStepX;
+			base.y += static_cast<float>(index) * kStepY;
+		}
+		return PadDock::ClampPos(base.x, base.y, kEditW);
+	}
+
+	ImVec2 MarkerEditorFallback(int index)
+	{
+		constexpr float kStepX = 56.f;
+		constexpr float kStepY = 64.f;
+		ImVec2 base = PadDock::ForMarkerPopout(kEditW, kEditH);
+		if (TrailToolsDetail::gShowMarkersDesk && TrailToolsDetail::gMarkersDeskX >= 0.f)
+		{
+			base.x = TrailToolsDetail::gMarkersDeskX + TrailToolsDetail::gMarkersDeskW + 12.f;
+			base.y = TrailToolsDetail::gMarkersDeskY + static_cast<float>(index) * kStepY;
+		}
+		else
+		{
+			base.x += static_cast<float>(index) * kStepX + 24.f;
+			base.y += static_cast<float>(index) * kStepY + 48.f;
+		}
+		return PadDock::ClampPos(base.x, base.y, kEditW);
 	}
 }
 
@@ -103,12 +173,23 @@ void TrailToolsPad::Open()
 	Settings::SetDirty();
 }
 
+void TrailToolsPad::OpenTrailsDesk()
+{
+	TrailToolsDetail::OpenTrailsDesk();
+	Settings::SetDirty();
+}
+
+void TrailToolsPad::OpenMarkersDesk()
+{
+	TrailToolsDetail::OpenMarkersDesk();
+	Settings::SetDirty();
+}
+
 void TrailToolsPad::OpenTrailsWindow()
 {
 	using namespace TrailToolsDetail;
-	gPopoutTrails = true;
-	gPlaceOnceTrails = true;
-	gFocusTrails = true;
+	OpenTrailsDesk();
+	OpenNewTrailEditor(); /* keep any already-open TrailsN */
 	gTab = 1;
 	Settings::SetDirty();
 }
@@ -116,9 +197,8 @@ void TrailToolsPad::OpenTrailsWindow()
 void TrailToolsPad::OpenMarkersWindow()
 {
 	using namespace TrailToolsDetail;
-	gPopoutMarkers = true;
-	gPlaceOnceMarkers = true;
-	gFocusMarkers = true;
+	OpenMarkersDesk();
+	OpenNewMarkerEditor(); /* always a new MarkersN; keep others open */
 	gTab = 2;
 	Settings::SetDirty();
 }
@@ -127,6 +207,7 @@ bool TrailToolsPad::Render()
 {
 	using namespace TrailToolsDetail;
 	bool hover = false;
+	static int sPrevTab = -1;
 
 	if (G::ShowTrailTools)
 	{
@@ -184,8 +265,8 @@ bool TrailToolsPad::Render()
 			ImGui::TextColored(HelperTheme::Gold, "TRAIL TOOLS");
 			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted,
-				"Author packs here, or Open Trails / Markers in their own windows "
-				"(collapse the title-bar arrow to leave only a bar).");
+				"Trails / Markers open their own desks; Open new window for Trails1, Trails2… "
+				"(collapse title-bar arrow to leave only a bar).");
 			PadNav::PopWrap();
 
 			static const char* kTabs[] = { "Live", "Trails", "Markers", "Pack", "Keybinds" };
@@ -197,6 +278,13 @@ bool TrailToolsPad::Render()
 				static_cast<int>(Gw2Ui::Icon::Options),
 			};
 			gTab = PadNav::DrawSideRail("###gw2igh_tt_nav", kTabs, 5, gTab < 0 || gTab > 4 ? 0 : gTab, 0.f, kTabIcons);
+
+			/* Rail Trails/Markers → also spawn desk windows (mockup flow). */
+			if (gTab == 1 && sPrevTab != 1)
+				OpenTrailsDesk();
+			if (gTab == 2 && sPrevTab != 2)
+				OpenMarkersDesk();
+			sPrevTab = gTab;
 
 			ImGui::BeginChild("###gw2igh_tt_body", ImVec2(0.f, 0.f), true);
 			if (gTab == 0)
@@ -218,54 +306,148 @@ bool TrailToolsPad::Render()
 			ImGui::End();
 		}
 	}
+	else
+		sPrevTab = -1;
 
-	if (gPopoutTrails)
+	/* Trails XML desk window */
+	if (gShowTrailsDesk)
 	{
-		char title[280]{};
-		const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
-		std::snprintf(title, sizeof(title), "Trails1 - %s.trl%s###GW2InGameHelperTrailPopout",
-			stem, gDraft.trailDirty ? " *" : "");
+		G::PadGeom geom = GeomFrom(gTrailsDeskX, gTrailsDeskY, gTrailsDeskW, gTrailsDeskH);
 		hover = RenderCollapsiblePad(
-			title,
-			gPopoutTrails,
-			G::PadTrailEditor,
-			gPlaceOnceTrails,
-			gFocusTrails,
-			kEditW,
-			kEditH,
-			PadDock::ForTrailPopout(kEditW, kEditH),
+			"Trail Tools — Trails###GW2InGameHelperTrailsDesk",
+			gShowTrailsDesk,
+			geom,
+			gPlaceOnceTrailsDesk,
+			gFocusTrailsDesk,
+			kDeskW,
+			kDeskH,
+			DeskFallback(false),
 			[]() {
-				ImGui::TextColored(HelperTheme::Gold, "TRAILS1");
-				ImGui::TextDisabled("Raw .trl editor — collapse title bar to shrink");
+				ImGui::TextColored(HelperTheme::Gold, "TRAILS DESK");
+				ImGui::TextDisabled("Open New window — minimizable to title bar");
 				ImGui::Separator();
-				ImGui::BeginChild("###gw2igh_tr_po_body", ImVec2(0.f, 0.f), true);
-				DrawTrailRawEditor();
+				ImGui::BeginChild("###gw2igh_tr_desk_body", ImVec2(0.f, 0.f), true);
+				DrawTrailDesk();
 				ImGui::EndChild();
 			}) || hover;
+		GeomTo(geom, gTrailsDeskX, gTrailsDeskY, gTrailsDeskW, gTrailsDeskH);
+		if (!gShowTrailsDesk)
+			gPopoutTrails = false;
+		else
+			gPopoutTrails = true;
 	}
 
-	if (gPopoutMarkers)
+	/* Markers XML desk window */
+	if (gShowMarkersDesk)
 	{
-		char title[96]{};
-		std::snprintf(title, sizeof(title), "Markers1%s###GW2InGameHelperMarkerPopout",
-			gDraft.selectedPoi >= 0 ? "" : " (none)");
+		G::PadGeom geom = GeomFrom(gMarkersDeskX, gMarkersDeskY, gMarkersDeskW, gMarkersDeskH);
 		hover = RenderCollapsiblePad(
-			title,
-			gPopoutMarkers,
-			G::PadMarkerEditor,
-			gPlaceOnceMarkers,
-			gFocusMarkers,
-			kEditW,
-			kEditH,
-			PadDock::ForMarkerPopout(kEditW, kEditH),
+			"Trail Tools — Markers###GW2InGameHelperMarkersDesk",
+			gShowMarkersDesk,
+			geom,
+			gPlaceOnceMarkersDesk,
+			gFocusMarkersDesk,
+			kDeskW,
+			kDeskH,
+			DeskFallback(true),
 			[]() {
-				ImGui::TextColored(HelperTheme::Gold, "MARKERS1");
-				ImGui::TextDisabled("Raw marker attrs — collapse title bar to shrink");
+				ImGui::TextColored(HelperTheme::Gold, "MARKERS DESK");
+				ImGui::TextDisabled("Open New window — minimizable to title bar");
 				ImGui::Separator();
-				ImGui::BeginChild("###gw2igh_mk_po_body", ImVec2(0.f, 0.f), true);
-				DrawMarkerRawEditor();
+				ImGui::BeginChild("###gw2igh_mk_desk_body", ImVec2(0.f, 0.f), true);
+				DrawMarkersDesk();
 				ImGui::EndChild();
 			}) || hover;
+		GeomTo(geom, gMarkersDeskX, gMarkersDeskY, gMarkersDeskW, gMarkersDeskH);
+		if (!gShowMarkersDesk)
+			gPopoutMarkers = false;
+		else
+			gPopoutMarkers = true;
+	}
+
+	/* Trails1 … TrailsN */
+	for (int i = 0; i < kMaxTrailEditors; ++i)
+	{
+		TrailEditorSlot& slot = gTrailEditors[i];
+		if (!slot.open)
+			continue;
+		G::PadGeom geom = GeomFrom(slot.geomX, slot.geomY, slot.geomW, slot.geomH);
+		if (i == 0 && slot.geomX < 0.f && PadDock::HasSavedPos(G::PadTrailEditor))
+			geom = G::PadTrailEditor;
+
+		char title[280]{};
+		std::snprintf(title, sizeof(title), "Trails%d - %s.trl%s###GW2InGameHelperTrailEd%d",
+			i + 1, slot.stem[0] ? slot.stem : "Trail", slot.dirty ? " *" : "", i);
+
+		bool focused = false;
+		hover = RenderCollapsiblePad(
+			title,
+			slot.open,
+			geom,
+			slot.placeOnce,
+			slot.focus,
+			kEditW,
+			kEditH,
+			TrailEditorFallback(i),
+			[i]() {
+				ImGui::TextColored(HelperTheme::Gold, "TRAILS%d", i + 1);
+				ImGui::TextDisabled("Raw .trl editor — collapse title bar to shrink");
+				ImGui::Separator();
+				char childId[48]{};
+				std::snprintf(childId, sizeof(childId), "###gw2igh_tr_ed_body%d", i);
+				ImGui::BeginChild(childId, ImVec2(0.f, 0.f), true);
+				PushTrailEditorToActive(i);
+				DrawTrailRawEditor();
+				PopTrailEditorFromActive(i);
+				ImGui::EndChild();
+			},
+			&focused) || hover;
+
+		GeomTo(geom, slot.geomX, slot.geomY, slot.geomW, slot.geomH);
+		if (i == 0)
+			G::PadTrailEditor = geom;
+		if (focused)
+			gTrailRecordSlot = i;
+		if (!slot.open && gTrailRecordSlot == i)
+			gTrailRecordSlot = -1;
+	}
+
+	/* Markers1 … MarkersN */
+	for (int i = 0; i < kMaxMarkerEditors; ++i)
+	{
+		MarkerEditorSlot& slot = gMarkerEditors[i];
+		if (!slot.open)
+			continue;
+		G::PadGeom geom = GeomFrom(slot.geomX, slot.geomY, slot.geomW, slot.geomH);
+		if (i == 0 && slot.geomX < 0.f && PadDock::HasSavedPos(G::PadMarkerEditor))
+			geom = G::PadMarkerEditor;
+
+		char title[96]{};
+		std::snprintf(title, sizeof(title), "Markers%d###GW2InGameHelperMarkerEd%d", i + 1, i);
+
+		hover = RenderCollapsiblePad(
+			title,
+			slot.open,
+			geom,
+			slot.placeOnce,
+			slot.focus,
+			kEditW,
+			kEditH,
+			MarkerEditorFallback(i),
+			[i]() {
+				ImGui::TextColored(HelperTheme::Gold, "MARKERS%d", i + 1);
+				ImGui::TextDisabled("Raw marker attrs — collapse title bar to shrink");
+				ImGui::Separator();
+				char childId[48]{};
+				std::snprintf(childId, sizeof(childId), "###gw2igh_mk_ed_body%d", i);
+				ImGui::BeginChild(childId, ImVec2(0.f, 0.f), true);
+				DrawMarkerRawEditorForSlot(i);
+				ImGui::EndChild();
+			}) || hover;
+
+		GeomTo(geom, slot.geomX, slot.geomY, slot.geomW, slot.geomH);
+		if (i == 0)
+			G::PadMarkerEditor = geom;
 	}
 
 	return hover;

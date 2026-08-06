@@ -101,15 +101,68 @@ namespace TrailToolsDetail
 	extern bool      gPlaceOnce;
 	extern bool      gFocus;
 	extern int       gTab; /* 0 Live, 1 Trails, 2 Markers, 3 Pack, 4 Keybinds */
-	extern bool      gPopoutTrails;
-	extern bool      gPopoutMarkers;
-	extern bool      gPlaceOnceTrails;
-	extern bool      gFocusTrails;
-	extern bool      gPlaceOnceMarkers;
-	extern bool      gFocusMarkers;
 
-	/* Hub or a Trails/Markers pop-out is open (draft preview). */
+	/* Multiple TrailsN / MarkersN editors (mockup: Trails1+Trails2, Markers1+Markers2). */
+	constexpr int kMaxTrailEditors = 4;
+	constexpr int kMaxMarkerEditors = 4;
+
+	struct TrailEditorSlot
+	{
+		bool      open = false;
+		bool      placeOnce = false;
+		bool      focus = false;
+		bool      dirty = false;
+		int       selectedPoint = -1;
+		DraftTrail trail{};
+		char      stem[64] = "Trail";
+		float     geomX = -1.f;
+		float     geomY = -1.f;
+		float     geomW = 0.f;
+		float     geomH = 0.f;
+	};
+
+	struct MarkerEditorSlot
+	{
+		bool  open = false;
+		bool  placeOnce = false;
+		bool  focus = false;
+		int   poiIndex = -1; /* index into gDraft.pois */
+		float geomX = -1.f;
+		float geomY = -1.f;
+		float geomW = 0.f;
+		float geomH = 0.f;
+	};
+
+	extern TrailEditorSlot  gTrailEditors[kMaxTrailEditors];
+	extern MarkerEditorSlot gMarkerEditors[kMaxMarkerEditors];
+	/* Trails / Markers XML desks as their own windows (hub can stay on Live). */
+	extern bool  gShowTrailsDesk;
+	extern bool  gShowMarkersDesk;
+	extern bool  gPlaceOnceTrailsDesk;
+	extern bool  gFocusTrailsDesk;
+	extern bool  gPlaceOnceMarkersDesk;
+	extern bool  gFocusMarkersDesk;
+	extern float gTrailsDeskX, gTrailsDeskY, gTrailsDeskW, gTrailsDeskH;
+	extern float gMarkersDeskX, gMarkersDeskY, gMarkersDeskW, gMarkersDeskH;
+	/* Last-focused TrailsN for keybind recording (−1 = gDraft.active). */
+	extern int gTrailRecordSlot;
+
+	/* Legacy single-flag aliases used by unload; prefer desks + editor slots. */
+	extern bool gPopoutTrails;
+	extern bool gPopoutMarkers;
+
+	/* Hub, a desk, or any TrailsN/MarkersN editor is open (draft preview). */
 	bool AnyAuthoringPadOpen();
+	void CloseAllPopouts();
+	void OpenTrailsDesk();
+	void OpenMarkersDesk();
+	int  OpenNewTrailEditor(); /* −1 if full; opens next free TrailsN (keeps others open) */
+	int  OpenTrailEditorSlot(int slot); /* open/focus specific TrailsN; −1 if bad */
+	int  OpenMarkerEditor(int poiIndex, bool forceNew = false); /* forceNew skips focus-existing */
+	int  OpenNewMarkerEditor(); /* next free MarkersN for selected (or newly dropped) POI */
+	/* Swap gDraft.active ↔ editor slot for raw UI / keybind recording. */
+	void PushTrailEditorToActive(int slot);
+	void PopTrailEditorFromActive(int slot);
 
 	void SetStatus(const char* fmt, ...);
 	void SeedDefaultCategories();
