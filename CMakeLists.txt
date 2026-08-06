@@ -107,6 +107,7 @@ add_library(GW2-InGame-Helper SHARED
   src/app/PanelBindsUi.cpp
   src/app/Gw2Icons.cpp
   src/app/Gw2Ui.cpp
+  src/app/UiChrome.cpp
   src/api/Gw2Http.cpp
   src/browse/sites/Sites.cpp
   src/browse/sites/SitesState.cpp

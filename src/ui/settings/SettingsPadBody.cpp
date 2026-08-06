@@ -5,7 +5,6 @@
 #include "AddonPaths.h"
 #include "AspectLayout.h"
 #include "Globals.h"
-#include "Gw2Ui.h"
 #include "HelperTheme.h"
 #include "LivePanels.h"
 #include "PadNav.h"
@@ -21,6 +20,13 @@
 
 namespace
 {
+	void MutedWrap(const char* text)
+	{
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted, "%s", text);
+		PadNav::PopWrap();
+	}
+
 	void DrawGeneralTab()
 	{
 		size_t count = 0;
@@ -29,9 +35,10 @@ namespace
 		{
 			ImGui::TextUnformatted("Default landing site");
 			UI_Browse_DrawDefaultSitePicker();
-			ImGui::TextColored(HelperTheme::Muted, "Home button uses this. Also used when no tabs are saved yet.");
+			MutedWrap("Home button uses this. Also used when no tabs are saved yet.");
 		}
 
+		PadNav::PushLabeledItemWidth();
 		if (ImGui::SliderFloat("Opacity###gw2igh_opacity", &G::Opacity, 0.15f, 1.f, "%.2f"))
 			Settings::SetDirty();
 		if (ImGui::SliderFloat("Font scale###gw2igh_font", &G::FontScale, 0.75f, 2.f, "%.2f"))
@@ -39,7 +46,8 @@ namespace
 			G::FontScaleAuto = false;
 			Settings::SetDirty();
 		}
-		ImGui::TextColored(HelperTheme::Muted, "Default 1.00x. Content also scales with each panel's size as you resize.");
+		PadNav::PopLabeledItemWidth();
+		MutedWrap("Default 1.00x. Content also scales with each panel's size as you resize.");
 		if (ImGui::Checkbox("Auto font scale###gw2igh_font_auto", &G::FontScaleAuto))
 		{
 			if (G::FontScaleAuto)
@@ -57,18 +65,20 @@ namespace
 			if (io.DisplaySize.x > 100.f && io.DisplaySize.y > 100.f)
 				aspect = AspectLayout::ClassLabel(
 					AspectLayout::Classify(io.DisplaySize.x, io.DisplaySize.y));
+			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted,
 				"Auto: height + %s aspect (cap ~1.35x). First-open window uses 16:9 / 21:9 / 32:9 layouts.",
 				aspect);
+			PadNav::PopWrap();
 		}
 		if (ImGui::Checkbox("Keep browser warm when closed###gw2igh_warm", &G::KeepHelperWarm))
 			Settings::SetDirty();
-		ImGui::TextColored(HelperTheme::Muted, "Faster reopen; uses more RAM while the helper is hidden.");
+		MutedWrap("Faster reopen; uses more RAM while the helper is hidden.");
 
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::TextUnformatted("GW2 API key (Live panels)");
-		ImGui::TextColored(HelperTheme::Muted,
+		MutedWrap(
 			"Read-only key from account.arena.net. Scopes: account + progression (Vault); "
 			"wallet (Wallet pad); inventories + unlocks + characters (mats / Legendaries); "
 			"tradingpost (TP delivery box); progression (Vault + event claim marks). "
@@ -83,22 +93,24 @@ namespace
 		if (G::Gw2ApiKey[0])
 			ImGui::TextColored(HelperTheme::Ok, "Key saved - Reload Live tabs to refresh.");
 		else
-			ImGui::TextColored(HelperTheme::Muted, "No key - Vault/Progress show public data until you add one.");
+			MutedWrap("No key - Vault/Progress show public data until you add one.");
 		if (ImGui::Button("Clear API key###gw2igh_apikey_clear"))
 		{
 			G::Gw2ApiKey[0] = 0;
 			Settings::SetDirty();
 			LivePanels::InvalidateCaches(AddonPaths::DataDir());
 		}
-		ImGui::SameLine();
+		PadNav::WrapSameLine(PadNav::ButtonWidth("Create key on account.arena.net"));
 		if (ImGui::Button("Create key on account.arena.net###gw2igh_apikey_web"))
 			ShellExecuteA(nullptr, "open", "https://account.arena.net/applications", nullptr, nullptr, SW_SHOWNORMAL);
 
 		ImGui::Spacing();
+		PadNav::PushWrap();
 		ImGui::TextWrapped(
 			"Helper open: Ctrl+Shift+H (Nexus QuickAccess). "
 			"Panel chords: Keybinds tab (not Nexus Options). "
 			"In helper: Ctrl+T new tab | Ctrl+W close | Ctrl+Tab cycle | Ctrl+F find.");
+		PadNav::PopWrap();
 	}
 }
 
@@ -106,11 +118,8 @@ void SettingsPad::DrawContents()
 {
 	static int sTab = 0;
 	static const char* kTabs[] = { "General", "Keybinds" };
-	static const int kTabIcons[] = {
-		static_cast<int>(Gw2Ui::Icon::Options),
-		static_cast<int>(Gw2Ui::Icon::Hero),
-	};
-	sTab = PadNav::DrawSideRail("###gw2igh_settings_nav", kTabs, 2, sTab, 0.f, kTabIcons);
+	/* Top tabs — a left rail steals width and clips wrapped help text. */
+	sTab = PadNav::DrawTabs("###gw2igh_settings_nav", kTabs, 2, sTab);
 
 	ImGui::BeginChild("###gw2igh_settings_body", ImVec2(0.f, 0.f), true);
 	if (sTab == 0)

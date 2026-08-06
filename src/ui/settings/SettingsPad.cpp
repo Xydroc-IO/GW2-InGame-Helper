@@ -37,7 +37,8 @@ bool SettingsPad::Render()
 
 	bool open = G::ShowSettings;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Settings###GW2InGameHelperSettings", &open))
+	const bool padBody = ImGui::Begin("Settings###GW2InGameHelperSettings", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Settings", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadSettings))
 			Settings::SetDirty();
@@ -52,6 +53,7 @@ bool SettingsPad::Render()
 		}
 		return hovered;
 	}
+
 
 	HelperTheme::ScopedFontScale fontScale(440.f, 560.f);
 	ImGui::PushID("gw2igh_settings_pad");

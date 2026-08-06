@@ -304,8 +304,11 @@ void SessionHistoryData::RenderOverviewSnippet()
 		static_cast<long long>(baseline.invUnique);
 	ImGui::Spacing();
 	ImGui::TextColored(HelperTheme::GoldMuted, "This session");
-	ImGui::TextDisabled("Unlocks %+lld | Unique items %+lld  (local snapshots)",
+	ImGui::TextDisabled("Unlocks %+lld | Unique items %+lld",
 		dUnlock, dInv);
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted, "(local snapshots)");
+	PadNav::PopWrap();
 }
 
 void SessionHistoryData::RenderContents()

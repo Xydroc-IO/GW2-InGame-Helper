@@ -230,8 +230,9 @@ bool PathingGuidesPad::Render()
 
 	bool open = G::ShowPathingGuides;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Pathing##GW2InGameHelperPathing", &open,
-		ImGuiWindowFlags_NoNavInputs))
+	const bool padBody = ImGui::Begin("Pathing##GW2InGameHelperPathing", &open,
+		HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs));
+	if (!theme.AfterBegin("Pathing", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadPathing))
 			Settings::SetDirty();
@@ -246,6 +247,7 @@ bool PathingGuidesPad::Render()
 		}
 		return hovered || (focused && ImGui::GetIO().WantTextInput);
 	}
+
 	if (!open)
 	{
 		G::ShowPathingGuides = false;

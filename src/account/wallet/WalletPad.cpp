@@ -308,7 +308,8 @@ bool WalletPad::Render()
 
 	bool open = G::ShowWallet;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Wallet & Stash##GW2InGameHelperWallet", &open))
+	const bool padBody = ImGui::Begin("Wallet & Stash##GW2InGameHelperWallet", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Wallet & Stash", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadWallet))
 			Settings::SetDirty();
@@ -322,6 +323,7 @@ bool WalletPad::Render()
 		}
 		return hovered;
 	}
+
 	if (!open)
 	{
 		G::ShowWallet = false;

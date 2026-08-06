@@ -107,7 +107,8 @@ bool LogManagerPad::Render()
 
 	bool open = G::ShowLogManager;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("DPS Logs###gw2igh_logmgr", &open, ImGuiWindowFlags_None))
+	const bool padBody = ImGui::Begin("DPS Logs###gw2igh_logmgr", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("DPS Logs", &open) || !padBody)
 	{
 		ImGui::End();
 		if (!open)
@@ -117,6 +118,7 @@ bool LogManagerPad::Render()
 		}
 		return false;
 	}
+
 	if (!open)
 	{
 		G::ShowLogManager = false;

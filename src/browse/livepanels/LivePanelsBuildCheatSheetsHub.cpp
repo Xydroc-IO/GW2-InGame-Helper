@@ -1,7 +1,9 @@
 #include "LivePanelsBuildShared.h"
 
+#include "AddonPaths.h"
 #include "HelperThemeCss.h"
 #include "Sites.h"
+#include "UiChrome.h"
 
 #include <algorithm>
 #include <cctype>
@@ -30,6 +32,8 @@ namespace
 		{
 			s = HelperThemeCss::RootVars();
 			s += HelperThemeCss::ImmersiveShell();
+			s += HelperThemeCss::FillBackgroundCss(
+				UiChrome::FillFileUrl(AddonPaths::DataDir()).c_str());
 			s += R"CSS(
 .wrap{max-width:960px;margin:0 auto;padding:28px 22px 72px}
 .hero{

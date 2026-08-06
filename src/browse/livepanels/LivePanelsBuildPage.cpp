@@ -1,6 +1,9 @@
 #include "LivePanelsBuildShared.h"
 
+#include "AddonPaths.h"
+#include "HelperThemeCss.h"
 #include "LivePanels_Html.h"
+#include "UiChrome.h"
 
 #include <string>
 
@@ -16,6 +19,10 @@ std::string BuildPage(const char* title, const char* eyebrow, const char* headin
 	out += title;
 	out += "</title>\n<style>\n";
 	out += LivePanelsHtml::SharedCss();
+	{
+		const std::string fill = UiChrome::FillFileUrl(AddonPaths::DataDir());
+		out += HelperThemeCss::FillBackgroundCss(fill.c_str());
+	}
 	out += "\n</style>\n";
 	out += extraHead;
 	out += "</head>\n<body>\n<div class=\"wrap\">\n<header class=\"hero\">\n";

@@ -44,6 +44,8 @@ LEGENDARIES_CATALOG_SRC = build/legendaries_catalog.json
 LEGENDARIES_CATALOG_OBJ = build/legendaries_catalog_json.o
 CHEATSHEETS_ZIP_SRC = build/cheatsheets.zip
 CHEATSHEETS_ZIP_OBJ = build/cheatsheets_zip.o
+UI_CHROME_ZIP_SRC = build/ui_chrome.zip
+UI_CHROME_ZIP_OBJ = build/ui_chrome_zip.o
 
 DLL_SRC = \
 	src/entry.cpp \
@@ -59,6 +61,7 @@ DLL_SRC = \
 	src/app/PanelBindsUi.cpp \
 	src/app/Gw2Icons.cpp \
 	src/app/Gw2Ui.cpp \
+	src/app/UiChrome.cpp \
 	src/api/Gw2Http.cpp \
 	src/browse/sites/Sites.cpp \
 	src/browse/sites/SitesState.cpp \
@@ -307,7 +310,7 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
 
-.PHONY: all clean install install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets test-css test-parse test-ipc ci pack-cef
+.PHONY: all clean install install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets pack-ui-chrome test-css test-parse test-ipc ci pack-cef
 
 all: $(DLL_OUT)
 
@@ -321,6 +324,8 @@ export-cheatsheets:
 	python3 tools/export_cheatsheets.py
 
 pack-cheatsheets: $(CHEATSHEETS_ZIP_SRC)
+
+pack-ui-chrome: $(UI_CHROME_ZIP_SRC)
 
 # Re-stamp browsePath / browseSections from hierarchy rules (dev tool).
 enrich-sites:
@@ -473,10 +478,19 @@ $(CHEATSHEETS_ZIP_OBJ): $(CHEATSHEETS_ZIP_SRC)
 	$(LD) -r -b binary -o $@ $(CHEATSHEETS_ZIP_SRC)
 	@echo "Embedded cheatsheets pack $@"
 
-$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ)
+UI_CHROME_DIR = data/ui-chrome
+
+$(UI_CHROME_ZIP_SRC): $(UI_CHROME_DIR)/manifest.txt $(wildcard $(UI_CHROME_DIR)/*.png)
+	python3 tools/pack_ui_chrome.py
+
+$(UI_CHROME_ZIP_OBJ): $(UI_CHROME_ZIP_SRC)
+	$(LD) -r -b binary -o $@ $(UI_CHROME_ZIP_SRC)
+	@echo "Embedded UI chrome pack $@"
+
+$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(UI_CHROME_ZIP_OBJ)
 	@mkdir -p $(dir $@)
-	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(LIBS_DLL)
-	@echo "Built $@ (CEF helper + homepage + sites.json + legendaries + cheatsheets embedded)"
+	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(UI_CHROME_ZIP_OBJ) $(LIBS_DLL)
+	@echo "Built $@ (CEF helper + homepage + sites.json + legendaries + cheatsheets + ui-chrome embedded)"
 
 build/%.o: %.cpp
 	@mkdir -p $(dir $@)
@@ -491,6 +505,10 @@ build/%.o: %.c
 install: $(DLL_OUT)
 	@mkdir -p "$(INSTALL_DIR)" "$(INSTALL_DIR)/pathing"
 	/bin/cp -f "$(DLL_OUT)" "$(INSTALL_DLL)"
+	# Nexus loads *-Beta.dll before *.dll (hyphen sorts first). Same signature =
+	# Beta wins and the fresh DLL is ignored as a duplicate. Keep them identical.
+	/bin/cp -f "$(DLL_OUT)" "$(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll"
+	@echo "Also updated GW2-InGame-Helper-Beta.dll (prevents old Beta shadowing)"
 	/bin/cp -f pathing/README.md "$(INSTALL_DIR)/pathing/README.md"
 	# Curated Tekkit is tw_ALL_IN_ONE.taco (PathingPacks download). Never seed
 	# the old "Tekkit's All-In-One.taco" alias — loading both doubles every GPS route.
@@ -510,11 +528,16 @@ install: $(DLL_OUT)
 		"$(INSTALL_DIR)/"*-cmd.txt "$(INSTALL_DIR)/"*.cache "$(INSTALL_DIR)/"live-*.json
 	/bin/rm -rf "$(INSTALL_DIR)/pages" "$(INSTALL_DIR)/live" "$(INSTALL_DIR)/cache" \
 		"$(INSTALL_DIR)/cmds" "$(INSTALL_DIR)/cef-cache" "$(INSTALL_DIR)/cheatsheets"
+	# Seed Immersive chrome so pads look correct even before first extract.
+	@mkdir -p "$(INSTALL_DIR)/ui-chrome"
+	/bin/cp -f data/ui-chrome/*.png "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
+	@printf 'uc6' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"
 	@ls -lh "$(INSTALL_DLL)"
 	@ls -lh "$(INSTALL_DIR)/pathing/" 2>/dev/null || true
+	@ls -lh "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
 
 install-reset: $(DLL_OUT)
 	@$(MAKE) install

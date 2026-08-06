@@ -69,8 +69,7 @@ void UI_Browse_OnMainButtonClicked()
 {
 	G::ShowWiki = true;
 	Settings::SetDirty();
-	if (BrowserTabs::OpenNew("browse", true) < 0)
-		BrowserTabs::OpenInActive("browse", true);
+	BrowserTabs::OpenInActive("browse", true);
 }
 
 void UI_Browse_DrawMainPopup()

@@ -190,13 +190,26 @@ void UI_Render()
 
 	PushWikiTheme();
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, G::Opacity);
-	ImGui::SetNextWindowBgAlpha(G::Opacity);
+	ImGui::SetNextWindowBgAlpha(0.f);
 
 	bool open = G::ShowWiki;
-	if (!ImGui::Begin("In-Game Helper##GW2InGameHelper", &open,
-		ImGuiWindowFlags_NoNavInputs))
+	const bool padBody = ImGui::Begin("In-Game Helper##GW2InGameHelper", &open,
+		HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs));
+	const bool helperCollapsed = ImGui::GetStateStorage()->GetBool(
+		ImGui::GetID("##gw2igh_pad_collapsed"), false);
+	if (!helperCollapsed)
+		Gw2Ui::PaintPadChrome(G::Opacity);
+	const bool expanded = Gw2Ui::DrawPadTitleBar("In-Game Helper", &open, G::Opacity);
+	if (!open)
 	{
-		/* Collapsed title bar - CEF must be was_hidden (0% viewability otherwise)
+		G::ShowWiki = false;
+		Settings::SetDirty();
+		WikiBrowser::SetVisible(false);
+		UI_ReleaseGameInput();
+	}
+	if (!expanded || !padBody)
+	{
+		/* Minimized title strip - CEF must be was_hidden (0% viewability otherwise)
 		   but keep the process alive so expand does not hitch. */
 		const ImVec2 pos = ImGui::GetWindowPos();
 		const ImVec2 winSize = ImGui::GetWindowSize();
@@ -220,6 +233,14 @@ void UI_Render()
 		ImGui::End();
 		ImGui::PopStyleVar();
 		PopWikiTheme();
+		/* Do not persist minimized height into G::WindowHeight. */
+		if (std::fabs(pos.x - G::WindowPosX) > 0.5f || std::fabs(pos.y - G::WindowPosY) > 0.5f)
+		{
+			G::WindowPosX = pos.x;
+			G::WindowPosY = pos.y;
+			G::HasSavedPos = true;
+			Settings::SetDirty();
+		}
 		/* Still draw pads while the main window is collapsed. */
 		const bool notesHover = NotesPad::Render();
 		const bool accountHover = AccountPad::Render();
@@ -248,13 +269,6 @@ void UI_Render()
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
-	}
-	if (!open)
-	{
-		G::ShowWiki = false;
-		Settings::SetDirty();
-		WikiBrowser::SetVisible(false);
-		UI_ReleaseGameInput();
 	}
 
 	ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(

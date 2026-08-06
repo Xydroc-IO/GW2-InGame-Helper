@@ -94,6 +94,9 @@ api-key-setup.ver
 # Canonical offline sheets live in-repo (not addon-dir runtime copies).
 !data/cheatsheets/
 !data/cheatsheets/**
+# Curated Immersive UI chrome (ArenaNet textures; not MIT).
+!data/ui-chrome/
+!data/ui-chrome/**
 home-logo.png
 home-cover.jpg
 GW2HelperBrowser.exe.ver

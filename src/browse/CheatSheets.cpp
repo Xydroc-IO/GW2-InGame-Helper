@@ -2,6 +2,8 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "HelperThemeCss.h"
+#include "UiChrome.h"
 
 #include "miniz.h"
 
@@ -18,7 +20,7 @@ extern "C" const unsigned char _binary_build_cheatsheets_zip_end[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "c2213";
+	constexpr const char* kPackStamp = "c2215";
 
 	struct OwnedSheet
 	{
@@ -320,6 +322,22 @@ namespace
 			if (G::API && G::API->Log)
 				G::API->Log(LOGL_WARNING, ADDON_NAME, "cheatsheets pack extract failed");
 			return false;
+		}
+		/* Layer Immersive panel fill onto shared.css (absolute file URL). */
+		{
+			const std::wstring cssPath = SheetsDir(addonDir) + L"\\shared.css";
+			std::string css;
+			if (ReadFileUtf8(cssPath, css))
+			{
+				const std::string fill = UiChrome::FillFileUrl(addonDir);
+				const std::string fillCss = HelperThemeCss::FillBackgroundCss(fill.c_str());
+				if (!fillCss.empty() && css.find("background-image: url(\"file") == std::string::npos)
+				{
+					css += "\n/* ui-chrome fill */\n";
+					css += fillCss;
+					WriteBytes(cssPath, css.data(), static_cast<DWORD>(css.size()));
+				}
+			}
 		}
 		std::string json;
 		if (!ReadFileUtf8(SheetsDir(addonDir) + L"\\manifest.json", json) || !ParseManifest(json))

@@ -51,7 +51,7 @@ namespace
 		PadNav::PopWrap();
 		ImGui::Spacing();
 
-		ImGui::BeginChild("###gw2igh_acct_keycard", ImVec2(0.f, hasKey ? 92.f : 118.f), true);
+		ImGui::BeginChild("###gw2igh_acct_keycard", ImVec2(0.f, hasKey ? 110.f : 140.f), true);
 		if (hasKey)
 		{
 			ImGui::TextColored(HelperTheme::Ok, "API key saved locally");
@@ -64,7 +64,7 @@ namespace
 		{
 			ImGui::TextColored(HelperTheme::Warn, "No API key yet");
 			PadNav::PushWrap();
-			ImGui::TextWrapped(
+			ImGui::TextColored(HelperTheme::Muted,
 				"Add one under Settings (helper side rail). "
 				"Stash / Vault / delivery / unlocks need it; item lookup & TP prices work without.");
 			PadNav::PopWrap();
@@ -81,39 +81,39 @@ namespace
 			CraftingData::RefreshDailiesIfNeeded(true);
 			UnlocksData::EnsureAll(true);
 		}
+		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
 			"Pulls stash, vault, trading, crafting dailies, progress, and unlocks.");
+		PadNav::PopWrap();
 
 		SessionHistoryData::RenderOverviewSnippet();
 
 		SectionLabel("TOOLS");
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Use the tabs above - each tool stays in this window.");
+			"Use the tabs on the left - each tool stays in this window.");
 		PadNav::PopWrap();
 		ImGui::Spacing();
 
 		const float gap = ImGui::GetStyle().ItemSpacing.x;
-		ImGui::BeginGroup();
-		ImGui::TextColored(HelperTheme::GoldMuted, "Stash");
-		ImGui::TextColored(HelperTheme::Muted, "Wallet | mats | bank | bags");
-		ImGui::EndGroup();
-		ImGui::SameLine(0.f, gap);
-		ImGui::BeginGroup();
-		ImGui::TextColored(HelperTheme::GoldMuted, "Vault");
-		ImGui::TextColored(HelperTheme::Muted, "Dailies | Wizard's Vault");
-		ImGui::EndGroup();
+		const float colW = (ImGui::GetContentRegionAvail().x - gap) * 0.5f;
+		auto toolCell = [&](const char* title, const char* blurb) {
+			ImGui::BeginGroup();
+			ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + colW);
+			ImGui::TextColored(HelperTheme::GoldMuted, "%s", title);
+			ImGui::TextColored(HelperTheme::Muted, "%s", blurb);
+			ImGui::PopTextWrapPos();
+			ImGui::EndGroup();
+		};
+
+		toolCell("Stash", "Wallet | mats | bank | bags");
+		PadNav::WrapSameLine(colW);
+		toolCell("Vault", "Dailies | Wizard's Vault");
 
 		ImGui::Spacing();
-		ImGui::BeginGroup();
-		ImGui::TextColored(HelperTheme::GoldMuted, "Trading");
-		ImGui::TextColored(HelperTheme::Muted, "Delivery | watchlist");
-		ImGui::EndGroup();
-		ImGui::SameLine(0.f, gap);
-		ImGui::BeginGroup();
-		ImGui::TextColored(HelperTheme::GoldMuted, "Crafting");
-		ImGui::TextColored(HelperTheme::Muted, "Dailies | recipe tree");
-		ImGui::EndGroup();
+		toolCell("Trading", "Delivery | watchlist");
+		PadNav::WrapSameLine(colW);
+		toolCell("Crafting", "Dailies | recipe tree");
 
 		ImGui::Spacing();
 		PadNav::PushWrap();
@@ -168,7 +168,8 @@ bool AccountPad::Render()
 	HelperTheme::ScopedWindow theme(G::Opacity);
 
 	bool open = G::ShowAccount;
-	if (!ImGui::Begin("Account###GW2InGameHelperAccount", &open))
+	const bool padBody = ImGui::Begin("Account###GW2InGameHelperAccount", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Account", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadAccount))
 			Settings::SetDirty();
@@ -182,6 +183,7 @@ bool AccountPad::Render()
 		}
 		return hovered;
 	}
+
 	if (!open)
 	{
 		G::ShowAccount = false;

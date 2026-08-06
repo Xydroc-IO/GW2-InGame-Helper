@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 /* CSS tokens + immersive shell mirrored from HelperTheme.h.
    Keep in sync when ImGui theme colors change.
    Aim: Tyrian map-board / leather plaque immersion — not a flat dashboard. */
@@ -50,6 +52,28 @@ namespace HelperThemeCss
 			"radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.35) 0%, transparent 55%), "
 			"radial-gradient(ellipse 60% 45% at 0% 80%, rgba(40, 28, 14, 0.55) 0%, transparent 50%), "
 			"linear-gradient(180deg, #1a1510 0%, var(--bg) 42%, #0a0806 100%)";
+	}
+
+	/* Layer extracted ui-chrome panel fill under grain (file:/// URL). */
+	inline std::string FillBackgroundCss(const char* fillUrl)
+	{
+		if (!fillUrl || !fillUrl[0])
+			return {};
+		std::string s;
+		s.reserve(512);
+		s += "\n  body {\n    background-image: url(\"";
+		s += fillUrl;
+		s += "\"),\n"
+			"      radial-gradient(ellipse 90% 60% at 50% -8%, rgba(232, 196, 112, 0.12) 0%, transparent 52%),\n"
+			"      radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.40) 0%, transparent 55%),\n"
+			"      linear-gradient(180deg, rgba(26, 21, 16, 0.55) 0%, rgba(14, 11, 8, 0.72) 42%, rgba(10, 8, 6, 0.85) 100%);\n"
+			"    background-size: cover, auto, auto, auto;\n"
+			"    background-position: center, center, center, center;\n"
+			"    background-repeat: no-repeat;\n"
+			"  }\n"
+			"  body::before { z-index: 1; opacity: 0.10; }\n"
+			"  body > * { z-index: 2; }\n";
+		return s;
 	}
 
 	/* Shared immersive chrome: grain overlay, gold scrollbars, display titles, plaques. */

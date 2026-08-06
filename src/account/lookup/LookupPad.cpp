@@ -207,7 +207,8 @@ bool LookupPad::Render()
 
 	bool open = G::ShowLookup;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Item Lookup##GW2InGameHelperLookup", &open))
+	const bool padBody = ImGui::Begin("Item Lookup##GW2InGameHelperLookup", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Item Lookup", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadLookup))
 			Settings::SetDirty();
@@ -221,6 +222,7 @@ bool LookupPad::Render()
 		}
 		return hovered;
 	}
+
 	if (!open)
 	{
 		G::ShowLookup = false;

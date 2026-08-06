@@ -1,6 +1,8 @@
 #include "HomePage.h"
 
 #include "AddonPaths.h"
+#include "HelperThemeCss.h"
+#include "UiChrome.h"
 
 #include <cstdio>
 #include <cstring>
@@ -18,7 +20,7 @@ extern "C" {
 
 namespace
 {
-	static constexpr const char* kHomePageVersion = "2217";
+	static constexpr const char* kHomePageVersion = "2219";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -94,9 +96,17 @@ std::string HomePage::EnsureFileUrl(const std::wstring& addonDir)
 	/* Always rewrite HTML — version stamps alone left Wine/Proton installs on
 	   stale helper-home (Browse/Favorites pills). Assets only when needed. */
 	{
-		const char* html = Html();
-		const DWORD len = static_cast<DWORD>(std::strlen(html));
-		if (!WriteBytes(path, html, len))
+		std::string html = Html();
+		const std::string fill = UiChrome::FillFileUrl(addonDir);
+		const std::string fillCss = HelperThemeCss::FillBackgroundCss(fill.c_str());
+		if (!fillCss.empty())
+		{
+			const std::string inject = std::string("<style>\n") + fillCss + "</style>\n</head>";
+			const size_t pos = html.find("</head>");
+			if (pos != std::string::npos)
+				html.replace(pos, 7, inject);
+		}
+		if (!WriteBytes(path, html.data(), static_cast<DWORD>(html.size())))
 			return {};
 	}
 

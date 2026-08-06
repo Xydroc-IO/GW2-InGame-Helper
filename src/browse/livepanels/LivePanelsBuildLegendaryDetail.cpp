@@ -1,7 +1,10 @@
 #include "LivePanelsBuildShared.h"
 
+#include "AddonPaths.h"
 #include "CraftingPlanSnapshot.h"
 #include "Gw2Http.h"
+#include "HelperThemeCss.h"
+#include "UiChrome.h"
 
 #include <cstdio>
 #include <cstring>
@@ -92,6 +95,8 @@ li.done .nm{color:var(--ok)}li.mat .nm{color:var(--zinc-200)}li.craft .nm{color:
 		html += Esc(title);
 		html += "</title><style>";
 		html += LedgerDetailCss();
+		html += HelperThemeCss::FillBackgroundCss(
+			UiChrome::FillFileUrl(AddonPaths::DataDir()).c_str());
 		html += "</style></head><body><div class=\"glow\" aria-hidden=\"true\"></div>"
 			"<div class=\"shell\"><header class=\"top\"><div class=\"top-inner\">"
 			"<a class=\"brand\" href=\"?gw2igh-leg-vault=1\" title=\"Refresh Legendary Ledger\">"

@@ -17,7 +17,9 @@
 #include "Settings.h"
 #include "Sites.h"
 #include "UI.h"
+#include "UiChrome.h"
 #include "WikiBrowser.h"
+#include "AddonPaths.h"
 
 using namespace EntryDetail;
 
@@ -75,6 +77,11 @@ void AddonLoad(AddonAPI_t* api)
 		}
 	}
 	WikiBrowser::Init();
+
+	/* Extract Immersive chrome pack before first pad paint (must not depend on Texture API). */
+	if (!UiChrome::Ensure(AddonPaths::DataDir()) && api->Log)
+		api->Log(LOGL_WARNING, ADDON_NAME, "ui-chrome extract failed at load");
+	UiChrome::WarmTextures(AddonPaths::DataDir());
 
 	api->GUI_Register(RT_Render, UI_Render);
 	api->GUI_Register(RT_OptionsRender, UI_Options);

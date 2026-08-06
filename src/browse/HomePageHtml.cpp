@@ -451,6 +451,8 @@ const char* HomePage::Html()
 
     <footer>
       Not affiliated with ArenaNet, NCSoft, or the listed community sites. Informational overlay only.
+      Immersive UI chrome includes curated Guild Wars 2 interface textures (ArenaNet retains ownership;
+      not relicensed under this addon's MIT license).
       <span class="sig">Created By Xydroc</span>
     </footer>
   </div>

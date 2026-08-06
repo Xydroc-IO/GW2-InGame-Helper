@@ -36,7 +36,8 @@ bool CompletionPad::Render()
 
 	bool open = G::ShowCompletion;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Completion##GW2InGameHelperCompletion", &open))
+	const bool padBody = ImGui::Begin("Completion##GW2InGameHelperCompletion", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Completion", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadCompletion)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
@@ -45,6 +46,7 @@ bool CompletionPad::Render()
 		if (!open) { G::ShowCompletion = false; Settings::SetDirty(); }
 		return hovered;
 	}
+
 	if (!open) { G::ShowCompletion = false; Settings::SetDirty(); }
 	if (PadDock::Capture(G::PadCompletion)) Settings::SetDirty();
 	HelperTheme::ScopedFontScale fontScale;

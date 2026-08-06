@@ -71,7 +71,8 @@ namespace
 
 		bool open = showFlag;
 		HelperTheme::ScopedWindow theme(G::Opacity);
-		if (!ImGui::Begin(title, &open, ImGuiWindowFlags_NoNavInputs))
+		const bool padBody = ImGui::Begin(title, &open, HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs));
+		if (!theme.AfterBegin(title, &open) || !padBody)
 		{
 			const ImVec2 p = ImGui::GetWindowPos();
 			if (std::fabs(p.x - geom.x) > 0.5f || std::fabs(p.y - geom.y) > 0.5f)
@@ -93,6 +94,7 @@ namespace
 			}
 			return hovered || (focused && ImGui::GetIO().WantTextInput);
 		}
+
 		if (!open)
 		{
 			showFlag = false;
@@ -229,7 +231,8 @@ bool TrailToolsPad::Render()
 
 		bool open = G::ShowTrailTools;
 		HelperTheme::ScopedWindow theme(G::Opacity);
-		if (!ImGui::Begin(title, &open, ImGuiWindowFlags_NoNavInputs))
+		const bool padBody = ImGui::Begin(title, &open, HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs));
+		if (!theme.AfterBegin(title, &open) || !padBody)
 		{
 			const ImVec2 p = ImGui::GetWindowPos();
 			if (std::fabs(p.x - G::PadTrailTools.x) > 0.5f ||

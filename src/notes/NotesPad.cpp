@@ -427,7 +427,8 @@ bool NotesPad::Render()
 		ImGui::SetNextWindowSize(ImVec2(kNotesPadW, kNotesPadH), ImGuiCond_Appearing);
 	bool open = G::ShowNotes;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Notes & Waypoints##GW2InGameHelperNotes", &open))
+	const bool padBody = ImGui::Begin("Notes & Waypoints##GW2InGameHelperNotes", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Notes & Waypoints", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadNotes))
 			Settings::SetDirty();
@@ -444,6 +445,7 @@ bool NotesPad::Render()
 		NotesPad::Save(false);
 		return hovered;
 	}
+
 	if (!open)
 	{
 		G::ShowNotes = false;

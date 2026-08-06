@@ -106,6 +106,17 @@ namespace PadNav
 		ImGui::PopItemWidth();
 	}
 
+	/* Caption above, full-width control — avoids right-side label clipping. */
+	inline bool SliderFloatRow(const char* caption, const char* id, float* v,
+		float vMin, float vMax, const char* fmt = "%.2f")
+	{
+		ImGui::TextUnformatted(caption);
+		ImGui::SetNextItemWidth(-1.f);
+		char buf[96];
+		std::snprintf(buf, sizeof(buf), "##%s", id);
+		return ImGui::SliderFloat(buf, v, vMin, vMax, fmt);
+	}
+
 	inline float CheckboxWidth(const char* label)
 	{
 		const ImGuiStyle& style = ImGui::GetStyle();

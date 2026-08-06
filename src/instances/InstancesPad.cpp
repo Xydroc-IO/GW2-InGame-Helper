@@ -54,7 +54,8 @@ bool InstancesPad::Render()
 
 	bool open = G::ShowInstances;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Instances##GW2InGameHelperInstances", &open))
+	const bool padBody = ImGui::Begin("Instances##GW2InGameHelperInstances", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Instances", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadInstances)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
@@ -63,6 +64,7 @@ bool InstancesPad::Render()
 		if (!open) { G::ShowInstances = false; Settings::SetDirty(); }
 		return hovered;
 	}
+
 	if (!open) { G::ShowInstances = false; Settings::SetDirty(); }
 	if (PadDock::Capture(G::PadInstances)) Settings::SetDirty();
 	HelperTheme::ScopedFontScale fontScale;

@@ -1,0 +1,13 @@
+# Curated GW2 UI chrome (ArenaNet assets — not MIT).
+# Blish StandardWindow set: fill 155985 + emblem 156022 (+ WindowBase2 corners).
+155985.png	panel_fill
+155981.png	panel_fill_alt
+156022.png	window_emblem
+156008.png	window_corner
+156009.png	window_corner_br
+156010.png	window_resize
+155967.png	ink_edge
+156260.png	header_stroke
+155014.png	dialog_close_navy
+button-exit.png	window_exit
+button-exit-active.png	window_exit_active

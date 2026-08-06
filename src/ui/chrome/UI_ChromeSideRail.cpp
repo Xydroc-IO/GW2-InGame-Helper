@@ -33,6 +33,13 @@ namespace UIDetail
 {
 	void DrawHelperSideRail()
 	{
+		auto openSiteInActive = [](const char* siteId) {
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			if (!siteId || !siteId[0])
+				return;
+			BrowserTabs::OpenInActive(siteId, true);
+		};
 		auto openSiteNewTab = [](const char* siteId) {
 			G::ShowWiki = true;
 			Settings::SetDirty();
@@ -75,9 +82,9 @@ namespace UIDetail
 		ImGui::Separator();
 
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false, static_cast<int>(Gw2Ui::Icon::Help)))
-			openSiteNewTab("browse");
+			openSiteInActive("browse");
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Browse sites - categories, favorites, open in a new tab");
+			ImGui::SetTooltip("Browse sites - categories, favorites (current tab)");
 
 		if (PadNav::SideToggle("Ledger###gw2igh_ledger", false, static_cast<int>(Gw2Ui::Icon::Achievements)))
 			openSiteNewTab("legvault");

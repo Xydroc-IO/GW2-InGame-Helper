@@ -275,7 +275,8 @@ bool EconomyPad::Render()
 
 	bool open = G::ShowEconomy;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Economy##GW2InGameHelperEconomy", &open))
+	const bool padBody = ImGui::Begin("Economy##GW2InGameHelperEconomy", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Economy", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadEconomy)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
@@ -284,6 +285,7 @@ bool EconomyPad::Render()
 		if (!open) { G::ShowEconomy = false; Settings::SetDirty(); }
 		return hovered;
 	}
+
 	if (!open) { G::ShowEconomy = false; Settings::SetDirty(); }
 	if (PadDock::Capture(G::PadEconomy)) Settings::SetDirty();
 	HelperTheme::ScopedFontScale fontScale;

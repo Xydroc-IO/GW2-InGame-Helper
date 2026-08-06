@@ -143,7 +143,8 @@ bool FarmingPad::Render()
 
 	bool open = G::ShowFarming;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Farming##GW2InGameHelperFarming", &open))
+	const bool padBody = ImGui::Begin("Farming##GW2InGameHelperFarming", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Farming", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadFarming)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
@@ -152,6 +153,7 @@ bool FarmingPad::Render()
 		if (!open) { G::ShowFarming = false; Settings::SetDirty(); }
 		return hovered;
 	}
+
 	if (!open) { G::ShowFarming = false; Settings::SetDirty(); }
 	if (PadDock::Capture(G::PadFarming)) Settings::SetDirty();
 	HelperTheme::ScopedFontScale fontScale;

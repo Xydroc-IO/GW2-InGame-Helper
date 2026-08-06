@@ -1,5 +1,7 @@
 #pragma once
 
+#include "imgui/imgui.h"
+
 /* GW2.dat UI textures via assets.gw2dat.com (same pipeline as Blish DatAssetCache).
    Curated IDs verified on the CDN — not wiki scrapes. */
 
@@ -35,6 +37,13 @@ namespace Gw2Ui
 		Logout       = 157092,
 		DetailsCrest = 605004,
 		Sample       = 102491,
+		/* Blish StandardWindow chrome (UiChrome file pack). */
+		PanelFill      = 155985, /* docs StandardWindow background */
+		PanelFillAlt   = 155981,
+		WindowEmblem   = 156022,
+		WindowCorner   = 156008,
+		WindowCornerBr = 156009,
+		WindowResize   = 156010,
 	};
 
 	/* Request Nexus upload from assets.gw2dat.com/<id>.png */
@@ -48,6 +57,21 @@ namespace Gw2Ui
 	/* Draw texture if ready. */
 	bool Image(int assetId, float size = 24.f);
 	bool Image(Icon icon, float size = 24.f);
+
+	/* Paint Immersive pad chrome from extracted ui-chrome pack. Call after Begin.
+	   Returns true when panel fill was drawn. */
+	bool PaintPadChrome(float opacity = 1.f);
+
+	/* Blish-style title row: emblem + gold title + minimize + close.
+	   Call after PaintPadChrome when using ImGuiWindowFlags_NoTitleBar.
+	   Returns false when the pad is minimized (skip body widgets). */
+	bool DrawPadTitleBar(const char* title, bool* pOpen, float opacity = 1.f);
+
+	/* Flags for pads that use PaintPadChrome + DrawPadTitleBar. */
+	inline ImGuiWindowFlags PadWindowFlags(ImGuiWindowFlags extra = 0)
+	{
+		return ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | extra;
+	}
 
 	/* ImageButton; falls back to text label if texture not ready. */
 	bool IconButton(const char* id, int assetId, float size = 26.f);

@@ -155,7 +155,8 @@ bool TpWatchPad::Render()
 
 	bool open = G::ShowTpWatch;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Trading Post##GW2InGameHelperTpWatch", &open))
+	const bool padBody = ImGui::Begin("Trading Post##GW2InGameHelperTpWatch", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Trading Post", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadTp))
 			Settings::SetDirty();
@@ -171,6 +172,7 @@ bool TpWatchPad::Render()
 		}
 		return hovered;
 	}
+
 	if (!open)
 	{
 		G::ShowTpWatch = false;

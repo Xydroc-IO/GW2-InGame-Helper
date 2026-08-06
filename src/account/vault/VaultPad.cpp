@@ -229,7 +229,8 @@ bool VaultPad::Render()
 
 	bool open = G::ShowVault;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Dailies & Vault##GW2InGameHelperVault", &open))
+	const bool padBody = ImGui::Begin("Dailies & Vault##GW2InGameHelperVault", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Dailies & Vault", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadVault))
 			Settings::SetDirty();
@@ -243,6 +244,7 @@ bool VaultPad::Render()
 		}
 		return hovered;
 	}
+
 	if (!open)
 	{
 		G::ShowVault = false;

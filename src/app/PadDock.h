@@ -75,10 +75,12 @@ namespace PadDock
 		return fromDisp > floorPx ? fromDisp : floorPx;
 	}
 
-	inline ImVec2 ClampPos(float x, float y, float padW)
+	inline ImVec2 ClampPos(float x, float y, float padW, float padH = 0.f)
 	{
 		const ImGuiIO& io = ImGui::GetIO();
 		constexpr float kEdge = 8.f;
+		/* Keep title bar (close/minimize) on-screen — not only the top-left corner. */
+		constexpr float kTitleKeep = 56.f;
 		if (io.DisplaySize.x > 100.f)
 		{
 			if (x + padW > io.DisplaySize.x - kEdge)
@@ -88,12 +90,26 @@ namespace PadDock
 		}
 		if (io.DisplaySize.y > 100.f)
 		{
-			if (y > io.DisplaySize.y - 48.f)
-				y = io.DisplaySize.y - 48.f;
+			const float minVisible = padH > 0.f ? std::fmin(padH, kTitleKeep) : kTitleKeep;
+			if (y + minVisible > io.DisplaySize.y - kEdge)
+				y = io.DisplaySize.y - minVisible - kEdge;
 			if (y < kEdge)
 				y = kEdge;
 		}
 		return ImVec2(x, y);
+	}
+
+	/* After Begin — nudge if a saved geom left the close control off-screen. */
+	inline void KeepOnScreen(float minVisibleH = 56.f)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		if (io.DisplaySize.x <= 100.f || io.DisplaySize.y <= 100.f)
+			return;
+		const ImVec2 p = ImGui::GetWindowPos();
+		const ImVec2 s = ImGui::GetWindowSize();
+		const ImVec2 c = ClampPos(p.x, p.y, s.x, std::fmax(minVisibleH, std::fmin(s.y, 56.f)));
+		if (std::fabs(c.x - p.x) > 0.5f || std::fabs(c.y - p.y) > 0.5f)
+			ImGui::SetWindowPos(c);
 	}
 
 	inline ImVec2 BesideHelper(float padW)
@@ -180,34 +196,50 @@ namespace PadDock
 	{
 		if (!placeOnce)
 			return;
-		const float useW = (g.w >= 80.f) ? g.w : defW;
+		/* Heal undersized saves so title close control isn't clipped at open. */
+		constexpr float kMinUsefulW = 360.f;
+		constexpr float kMinUsefulH = 200.f;
+		float useW = (g.w >= 80.f) ? g.w : defW;
+		float useH = (g.h >= 60.f) ? g.h : defH;
+		if (useW < kMinUsefulW)
+			useW = defW;
+		if (useH < kMinUsefulH)
+			useH = defH;
 		if (HasSavedPos(g))
-			ImGui::SetNextWindowPos(ClampPos(g.x, g.y, useW), ImGuiCond_Always);
+			ImGui::SetNextWindowPos(ClampPos(g.x, g.y, useW, useH), ImGuiCond_Always);
 		else
 			ImGui::SetNextWindowPos(fallbackPos, ImGuiCond_Always);
 		if (applySize)
 		{
-			if (g.w >= 80.f && g.h >= 60.f)
+			if (g.w >= 80.f && g.h >= 60.f && g.w >= kMinUsefulW && g.h >= kMinUsefulH)
 				ImGui::SetNextWindowSize(ImVec2(g.w, g.h), ImGuiCond_Always);
 			else
-				ImGui::SetNextWindowSize(ImVec2(defW, defH), ImGuiCond_Always);
+				ImGui::SetNextWindowSize(ImVec2(useW, useH), ImGuiCond_Always);
 		}
 		ImGui::SetNextWindowFocus();
 		placeOnce = false;
 	}
 
-	/* After Begin — remember geom for settings.ini. Returns true if changed. */
+	/* After Begin — remember geom for settings.ini. Returns true if changed.
+	   While custom-minimized, only persist position (keep pre-minimize size). */
 	inline bool Capture(G::PadGeom& g)
 	{
 		const ImVec2 p = ImGui::GetWindowPos();
 		const ImVec2 s = ImGui::GetWindowSize();
+		const bool minimized = ImGui::GetStateStorage()->GetBool(
+			ImGui::GetID("##gw2igh_pad_collapsed"), false);
+		const float w = minimized ? g.w : s.x;
+		const float h = minimized ? g.h : s.y;
 		if (std::fabs(p.x - g.x) > 0.5f || std::fabs(p.y - g.y) > 0.5f ||
-			std::fabs(s.x - g.w) > 0.5f || std::fabs(s.y - g.h) > 0.5f)
+			std::fabs(w - g.w) > 0.5f || std::fabs(h - g.h) > 0.5f)
 		{
 			g.x = p.x;
 			g.y = p.y;
-			g.w = s.x;
-			g.h = s.y;
+			if (!minimized)
+			{
+				g.w = s.x;
+				g.h = s.y;
+			}
 			return true;
 		}
 		return false;

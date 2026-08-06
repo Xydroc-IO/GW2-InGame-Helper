@@ -367,15 +367,18 @@ void DirectionCompass::DrawControls()
 	PadNav::PopWrap();
 	if (ImGui::Checkbox("Enable direction compass###gw2igh_dircompass_pad", &G::ShowDirectionCompass))
 		Settings::SetDirty();
-	ImGui::SetNextItemWidth(-1.f);
-	if (ImGui::SliderFloat("Letter size###gw2igh_dirletters_pad", &G::DirectionLetterScale, 0.5f, 2.5f, "%.2fx"))
+
+	/* Labels above sliders — right-side ImGui labels clip in narrow pads. */
+	if (PadNav::SliderFloatRow("Letter size", "gw2igh_dirletters_pad",
+			&G::DirectionLetterScale, 0.5f, 2.5f, "%.2fx"))
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Scales only our N/E/S/W draw size.\n"
 			"1.00x = Nexus FontBig bake size. Does not touch FontGlobalScale.");
-	ImGui::SetNextItemWidth(-1.f);
-	if (ImGui::SliderFloat("World radius###gw2igh_dirradius_pad", &G::DirectionWorldRadiusScale, 0.4f, 3.0f, "%.2fx"))
+
+	if (PadNav::SliderFloatRow("World radius", "gw2igh_dirradius_pad",
+			&G::DirectionWorldRadiusScale, 0.4f, 3.0f, "%.2fx"))
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip("How far N/E/S/W sit from your character (hitbox base x this).");
@@ -393,11 +396,11 @@ bool DirectionCompass::RenderPad()
 	if (!G::ShowCompassPad)
 		return false;
 
-	constexpr float kPadW = 400.f;
-	constexpr float kPadH = 280.f;
+	constexpr float kPadW = 420.f;
+	constexpr float kPadH = 320.f;
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(300.f, 200.f),
-		ImVec2(PadDock::MaxW(480.f), PadDock::MaxH(280.f)));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 260.f),
+		ImVec2(PadDock::MaxW(520.f), PadDock::MaxH(360.f)));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	PadDock::Place(G::PadCompass, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
 	if (!gRequestDock && G::PadCompass.w < 80.f)
@@ -405,7 +408,8 @@ bool DirectionCompass::RenderPad()
 
 	bool open = G::ShowCompassPad;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("Compass###GW2InGameHelperCompass", &open))
+	const bool padBody = ImGui::Begin("Compass###GW2InGameHelperCompass", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Compass", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadCompass))
 			Settings::SetDirty();

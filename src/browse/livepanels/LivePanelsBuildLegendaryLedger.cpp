@@ -1,6 +1,9 @@
 #include "LivePanelsBuildShared.h"
 
+#include "AddonPaths.h"
 #include "Gw2Http.h"
+#include "HelperThemeCss.h"
+#include "UiChrome.h"
 
 #include <cstdio>
 #include <cstring>
@@ -553,6 +556,8 @@ std::string BuildLegendaryLedgerHtml(const std::wstring& addonDir, const char* a
 		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
 		"<title>The Complete GW2 Legendary Collection</title><style>";
 	html += LedgerCss();
+	html += HelperThemeCss::FillBackgroundCss(
+		UiChrome::FillFileUrl(AddonPaths::DataDir()).c_str());
 	html += "</style></head><body><div class=\"glow\" aria-hidden=\"true\"></div>"
 		"<div class=\"shell\"><header class=\"top\"><div class=\"top-inner\">"
 		"<a class=\"brand\" href=\"?gw2igh-leg-vault=1\" title=\"Refresh Legendary Ledger\">"

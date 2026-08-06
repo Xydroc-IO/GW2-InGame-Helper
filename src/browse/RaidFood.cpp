@@ -1,6 +1,8 @@
 #include "RaidFood.h"
 
 #include "AddonPaths.h"
+#include "HelperThemeCss.h"
+#include "UiChrome.h"
 
 #include <cstdio>
 #include <cstring>
@@ -10,7 +12,7 @@
 
 namespace
 {
-	static constexpr const char* kRaidFoodVersion = "3";
+	static constexpr const char* kRaidFoodVersion = "5";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{
@@ -70,14 +72,26 @@ std::string RaidFood::EnsureFileUrl(const std::wstring& addonDir)
 		CloseHandle(vin);
 	}
 
-	const char* html = Html();
-	const DWORD len = static_cast<DWORD>(std::strlen(html));
+	const char* htmlSrc = Html();
+	std::string html = htmlSrc ? htmlSrc : "";
+	{
+		const std::string fill = UiChrome::FillFileUrl(addonDir);
+		const std::string fillCss = HelperThemeCss::FillBackgroundCss(fill.c_str());
+		if (!fillCss.empty())
+		{
+			const std::string inject = std::string("<style>\n") + fillCss + "</style>\n</head>";
+			const size_t pos = html.find("</head>");
+			if (pos != std::string::npos)
+				html.replace(pos, 7, inject);
+		}
+	}
+	const DWORD len = static_cast<DWORD>(html.size());
 	HANDLE hout = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hout == INVALID_HANDLE_VALUE)
 		return {};
 	DWORD written = 0;
-	const BOOL ok = WriteFile(hout, html, len, &written, nullptr);
+	const BOOL ok = WriteFile(hout, html.data(), len, &written, nullptr);
 	CloseHandle(hout);
 	if (!ok || written != len)
 		return {};

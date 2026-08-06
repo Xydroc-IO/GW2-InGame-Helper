@@ -1,6 +1,7 @@
 #include "PanelBinds.h"
 
 #include "HelperTheme.h"
+#include "PadNav.h"
 #include "Settings.h"
 
 #include "imgui/imgui.h"
@@ -13,10 +14,12 @@ void PanelBinds::DrawSettingsTab()
 {
 	State& st = Get();
 
+	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"Click a bind, then press the new chord. Esc cancels. Clear = unbound.");
 	ImGui::TextColored(HelperTheme::Muted,
 		"Helper open (Ctrl+Shift+H) stays in Nexus QuickAccess.");
+	PadNav::PopWrap();
 	ImGui::Spacing();
 
 	if (ImGui::Button("Reset panel defaults###gw2igh_pb_reset"))
@@ -25,7 +28,7 @@ void PanelBinds::DrawSettingsTab()
 		st.captureTarget = -1;
 		Settings::SetDirty();
 	}
-	ImGui::SameLine();
+	PadNav::WrapSameLine(PadNav::VisibleLabelWidth("Ctrl+Shift+A/G/E/N/M/R/..."));
 	ImGui::TextColored(HelperTheme::Muted, "Ctrl+Shift+A/G/E/N/M/R/...");
 
 	ImGui::Spacing();

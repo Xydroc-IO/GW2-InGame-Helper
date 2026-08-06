@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.2.0
+# GW2 In-Game Helper v2.2.3.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -33,6 +33,26 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
+## What’s new in 2.2.3.0
+
+- **Immersive ImGui chrome:** Pads (and the main Helper) use Blish-style
+  **StandardWindow** fill (`155985`) + emblem (`156022`) with a custom title bar
+  (`NoTitleBar` / `NoBackground`) — minimize / Contacts-style exit glyphs, not stock
+  ImGui chrome.
+- **UI chrome pack:** Curated textures in `data/ui-chrome/` pack into the DLL, extract
+  to `addons/…/ui-chrome/` (stamp `uc6`). ArenaNet owns those assets — not MIT.
+- **Pad shell polish:** Title close/minimize stay inside the content clip; pads clamp
+  so the title bar stays on-screen; Compass min size / layout (slider labels above).
+- **Immersive HTML theme:** Homepage, cheat sheets, Browse/CheatSheets hubs, live panels,
+  Raid Food, and Legendary Ledger deepen parchment/gold tokens (`HelperTheme` /
+  `ImmersiveShell`) to match ImGui pads.
+- **Install:** `make install` keeps Beta DLL in sync with shipping so a leftover Beta
+  entry cannot shadow the new build.
+- **Version source:** `src/app/AddonVersion.h` is the single shipping revision
+  (feeds `entry.cpp` + CMake `project()` VERSION).
+- **Stamps:** Helper `2233` · homepage `2219` · sites `s2213` · cheatsheets `c2215`
+  · live panel `43` · raid food `5` · ui-chrome `uc6`
+
 ## What’s new in 2.2.2.0
 
 - **Completion companion:** Side-rail **Completion** pad — checklist + Atlas + route
@@ -57,13 +77,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   **four MarkersN** collapsible raw editors at once (cascaded; keybind recording
   targets the focused TrailsN). Hub tabs stay usable; **Insert into XML** upserts
   before Save. Empty `PathingEnabled` on first load stays off (no Lady auto-enable).
-- **Immersive HTML theme:** Homepage, cheat sheets, Browse/CheatSheets hubs, live panels,
-  Raid Food, and Legendary Ledger use deeper parchment/gold tokens aligned with ImGui
-  (`HelperTheme` / `ImmersiveShell`).
-- **Version source:** `src/app/AddonVersion.h` is the single shipping revision
-  (feeds `entry.cpp` + CMake `project()` VERSION).
-- **Stamps:** Helper `2232` · homepage `2217` · sites `s2213` · cheatsheets `c2213`
-  · live panel `41` · raid food `3`
+- **Immersive HTML theme (initial):** Homepage / hubs / live panels parchment tokens
+  aligned with ImGui (`HelperTheme`).
+- **Stamps:** Helper `2232` · homepage `2218` · sites `s2213` · cheatsheets `c2214`
+  · live panel `42` · raid food `4` · ui-chrome `uc2`
 
 ## What’s new in 2.2.1.0
 

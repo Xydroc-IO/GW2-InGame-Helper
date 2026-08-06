@@ -60,7 +60,8 @@ bool EventsPad::Render()
 
 	bool open = G::ShowEvents;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	if (!ImGui::Begin("World Events##GW2InGameHelperEvents", &open))
+	const bool padBody = ImGui::Begin("World Events##GW2InGameHelperEvents", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("World Events", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadEvents))
 			Settings::SetDirty();
@@ -74,6 +75,7 @@ bool EventsPad::Render()
 		}
 		return hovered;
 	}
+
 	if (!open)
 	{
 		G::ShowEvents = false;
