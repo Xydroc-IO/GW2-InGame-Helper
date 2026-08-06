@@ -32,18 +32,28 @@
     border: 1px solid #c29438;
   }
   *::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--gold), #8a6a32); }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; min-height: 100vh; }
   body {
     margin: 0;
     min-height: 100vh;
     font-family: var(--font-ui);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    position: relative;
+  }
+  body::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
     background:
       radial-gradient(ellipse 90% 60% at 50% -8%, rgba(232, 196, 112, 0.18) 0%, transparent 52%),
       radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.35) 0%, transparent 55%),
       linear-gradient(180deg, #1a1510 0%, var(--bg) 42%, #0a0806 100%);
-    color: var(--text);
-    line-height: 1.55;
   }
+  body > * { position: relative; z-index: 1; }
   .wrap { max-width: 860px; margin: 0 auto; padding: 28px 22px 64px; }
   .hero {
     margin-bottom: 22px; padding: 1.1rem 1.15rem 1.2rem;

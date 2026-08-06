@@ -54,17 +54,52 @@ namespace HelperThemeCss
 			"linear-gradient(180deg, #1a1510 0%, var(--bg) 42%, #0a0806 100%)";
 	}
 
-	/* Layer extracted ui-chrome panel fill under grain (file:/// URL). */
+	/* Gold scrollbars — kill CEF/OS white thumbs on about:/file: pages. */
+	inline const char* ScrollbarCss()
+	{
+		return R"CSS(
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #8a6a32 #120e0a;
+  }
+  *::-webkit-scrollbar { width: 11px; height: 11px; }
+  *::-webkit-scrollbar-track {
+    background: #120e0a;
+    border-left: 1px solid #5a4220;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #a07838, #5a4220);
+    border: 1px solid #c29438;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #f0c866, #8a6a32);
+  }
+  *::-webkit-scrollbar-corner { background: #120e0a; }
+)CSS";
+	}
+
+	/* Layer extracted ui-chrome panel fill under grain (file:/// URL).
+	   Use a fixed inset layer — NOT background-attachment:fixed. CEF OSR leaves
+	   a black void under short pages when attachment:fixed only covers the
+	   document box; position:fixed always fills the browser viewport. */
 	inline std::string FillBackgroundCss(const char* fillUrl)
 	{
 		if (!fillUrl || !fillUrl[0])
 			return {};
 		std::string s;
-		s.reserve(512);
-		/* Pin wash to the viewport so tall pages scroll over it (no mid-page cut). */
-		s += "\n  html, body {\n    min-height: 100%;\n    margin: 0;\n"
+		s.reserve(1200);
+		s += "\n  html, body {\n    min-height: 100vh;\n    margin: 0;\n"
 			"    background-color: #0e0b08;\n  }\n"
 			"  body {\n    background-color: #0e0b08;\n"
+			"    background-image: none;\n  }\n"
+			"  body::before {\n"
+			"    content: \"\";\n"
+			"    pointer-events: none;\n"
+			"    position: fixed;\n"
+			"    inset: 0;\n"
+			"    z-index: 0;\n"
+			"    opacity: 1;\n"
+			"    background-color: #0e0b08;\n"
 			"    background-image: url(\"";
 		s += fillUrl;
 		s += "\"),\n"
@@ -74,10 +109,11 @@ namespace HelperThemeCss
 			"    background-size: cover, auto, auto, auto;\n"
 			"    background-position: center top, center, center, center;\n"
 			"    background-repeat: no-repeat;\n"
-			"    background-attachment: fixed;\n"
 			"  }\n"
-			"  body::before { z-index: 1; opacity: 0.08; }\n"
-			"  body > * { z-index: 2; }\n";
+			"  body::after { z-index: 0; }\n"
+			"  body > * { position: relative; z-index: 1; }\n";
+		/* Ledger / detail pages use Fill without ImmersiveShell — still need gold bars. */
+		s += ScrollbarCss();
 		return s;
 	}
 
@@ -89,24 +125,32 @@ namespace HelperThemeCss
   html { scroll-behavior: smooth; }
   html, body {
     margin: 0;
-    min-height: 100%;
+    min-height: 100vh;
   }
   body {
     margin: 0;
-    min-height: 100%;
+    min-height: 100vh;
     font-family: var(--font-ui);
     color: var(--text);
     line-height: 1.55;
+    background-color: var(--bg);
+    background-image: none;
+    position: relative;
+  }
+  /* Viewport wash (gradients). FillBackgroundCss replaces ::before with panel art. */
+  body::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
     background: radial-gradient(ellipse 90% 60% at 50% -8%, rgba(232, 196, 112, 0.18) 0%, transparent 52%),
       radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.35) 0%, transparent 55%),
       radial-gradient(ellipse 60% 45% at 0% 80%, rgba(40, 28, 14, 0.55) 0%, transparent 50%),
       linear-gradient(180deg, #1a1510 0%, var(--bg) 42%, #0a0806 100%);
-    background-color: var(--bg);
-    background-attachment: fixed;
-    position: relative;
   }
   /* Soft film-grain without image files (CSS noise via repeating gradients). */
-  body::before {
+  body::after {
     content: "";
     pointer-events: none;
     position: fixed;
@@ -119,7 +163,7 @@ namespace HelperThemeCss
   }
   body > * { position: relative; z-index: 1; }
 
-  /* Gold scrollbars — match ImGui chrome, kill OS white track. */
+  /* Gold scrollbars — also appended by FillBackgroundCss for ledger/detail pages. */
   * {
     scrollbar-width: thin;
     scrollbar-color: #8a6a32 #120e0a;
@@ -136,6 +180,7 @@ namespace HelperThemeCss
   *::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, var(--gold), #8a6a32);
   }
+  *::-webkit-scrollbar-corner { background: #120e0a; }
 
   .eyebrow {
     margin: 0 0 8px;

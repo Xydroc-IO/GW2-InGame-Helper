@@ -30,7 +30,7 @@ const char* HubCss()
 		s += HelperThemeCss::FillBackgroundCss(
 			UiChrome::FillFileUrl(AddonPaths::DataDir()).c_str());
 		s += R"CSS(
-.wrap{max-width:1100px;margin:0 auto;padding:28px 22px 96px;min-height:calc(100% - 0px)}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 22px 96px;min-height:100vh}
 .hero{
   margin-bottom:22px;padding:1.1rem 1.15rem 1.2rem;
   background:linear-gradient(165deg,rgba(48,38,22,.4),transparent 55%),var(--panel-inset);

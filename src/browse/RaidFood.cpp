@@ -12,7 +12,7 @@
 
 namespace
 {
-	static constexpr const char* kRaidFoodVersion = "5";
+	static constexpr const char* kRaidFoodVersion = "7";
 
 	std::string WideToUtf8(const std::wstring& w)
 	{

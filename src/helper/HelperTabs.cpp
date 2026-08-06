@@ -169,7 +169,8 @@ namespace HelperDetail
 		cef_browser_settings_t bset{};
 		bset.size = sizeof(bset);
 		bset.windowless_frame_rate = 60;
-		bset.background_color = CefColorSetARGB(255, 255, 255, 255);
+		/* Match HelperThemeCss --bg so short pages never flash white/black voids. */
+		bset.background_color = CefColorSetARGB(255, 14, 11, 8);
 
 		cef_string_t u{};
 		MakeCefString(&u, url.c_str());
