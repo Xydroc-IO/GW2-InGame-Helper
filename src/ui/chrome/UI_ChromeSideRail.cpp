@@ -71,7 +71,7 @@ namespace UIDetail
 
 		if (Gw2Ui::Image(Gw2Ui::Icon::Hero, 18.f))
 			ImGui::SameLine(0.f, 6.f);
-		ImGui::TextColored(kGold, "HELPER");
+		ImGui::TextColored(HelperTheme::GoldBright, "HELPER");
 		ImGui::Separator();
 
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false, static_cast<int>(Gw2Ui::Icon::Help)))
@@ -114,7 +114,7 @@ namespace UIDetail
 				"Local page - not a third-party status site.");
 
 		ImGui::Spacing();
-		ImGui::TextDisabled("Tools");
+		ImGui::TextColored(HelperTheme::GoldDim, "TOOLS");
 		ImGui::Separator();
 
 		if (PadNav::SideToggle("Account###gw2igh_account", G::ShowAccount, static_cast<int>(Gw2Ui::Icon::Hero)))
@@ -190,7 +190,7 @@ namespace UIDetail
 			ImGui::SetTooltip("DPS Logs - ArcDPS EVTC via Elite Insights\nDefault: Ctrl+Shift+L (Settings -> Keybinds)");
 
 		ImGui::Spacing();
-		ImGui::TextDisabled("Companions");
+		ImGui::TextColored(HelperTheme::GoldDim, "COMPANIONS");
 		ImGui::Separator();
 
 		if (PadNav::SideToggle("Economy###gw2igh_economy", G::ShowEconomy, static_cast<int>(Gw2Ui::Icon::GoldCoins)))

@@ -173,6 +173,7 @@ DLL_SRC = \
 	src/pathing/trailtools/TrailToolsPadLive.cpp \
 	src/pathing/trailtools/TrailToolsPadTrail.cpp \
 	src/pathing/trailtools/TrailToolsPadMarkers.cpp \
+	src/pathing/trailtools/TrailToolsPadXmlDesk.cpp \
 	src/pathing/trailtools/TrailToolsPadMarkersScript.cpp \
 	src/pathing/trailtools/TrailToolsPadLua.cpp \
 	src/pathing/trailtools/TrailToolsPadPack.cpp \

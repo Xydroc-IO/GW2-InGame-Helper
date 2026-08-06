@@ -1,17 +1,19 @@
   :root {
-    --bg: #120e0a;
-    --panel: rgba(28, 23, 17, 0.94);
-    --panel-2: #18140e;
-    --border: #8c6b33;
-    --border-soft: rgba(240, 199, 97, 0.22);
-    --gold: #f0c761;
-    --gold-bright: #ffe68c;
+    --bg: #0e0b08;
+    --panel: rgba(32, 26, 18, 0.96);
+    --panel-2: #1a1510;
+    --panel-solid: #1f1912;
+    --border: #a07838;
+    --border-soft: rgba(232, 196, 112, 0.28);
+    --border-deep: #5a4220;
+    --gold: #efc45a;
+    --gold-bright: #ffe9a0;
     --gold-dim: #c29438;
-    --gold-muted: #ccad6b;
-    --text: #f5eddb;
-    --muted: #b8ad94;
-    --accent: #1a160f;
-    --header: #47381f;
+    --gold-muted: #b89a5c;
+    --text: #f6efdf;
+    --muted: #b5a890;
+    --accent: #16120c;
+    --header: #3d3018;
     --ok: #85b86b;
     --warn: #eb8c47;
     --power: #c45c4a;
@@ -19,36 +21,56 @@
     --heal: #6aaa6a;
     --tank: #5a8fbf;
     --support: #c29438;
+    --font-ui: "Segoe UI", Tahoma, sans-serif;
+    --font-display: Georgia, "Palatino Linotype", Palatino, "Times New Roman", serif;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #8a6a32 #120e0a; }
+  *::-webkit-scrollbar { width: 11px; height: 11px; }
+  *::-webkit-scrollbar-track { background: #120e0a; border-left: 1px solid var(--border-deep); }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #a07838, #5a4220);
+    border: 1px solid #c29438;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--gold), #8a6a32); }
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
     min-height: 100vh;
-    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-family: var(--font-ui);
     background:
-      radial-gradient(ellipse 80% 55% at 50% 0%, rgba(240, 199, 97, 0.12) 0%, transparent 55%),
-      linear-gradient(180deg, #1c1711 0%, var(--bg) 45%),
-      var(--bg);
+      radial-gradient(ellipse 90% 60% at 50% -8%, rgba(232, 196, 112, 0.18) 0%, transparent 52%),
+      radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.35) 0%, transparent 55%),
+      linear-gradient(180deg, #1a1510 0%, var(--bg) 42%, #0a0806 100%);
     color: var(--text);
     line-height: 1.55;
   }
   .wrap { max-width: 860px; margin: 0 auto; padding: 28px 22px 64px; }
-  .hero { margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--border-soft); }
+  .hero {
+    margin-bottom: 22px; padding: 1.1rem 1.15rem 1.2rem;
+    background: linear-gradient(165deg, rgba(48, 38, 22, 0.4), transparent 55%), #14100c;
+    border: 1px solid var(--border);
+    box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.1), 0 10px 32px rgba(0, 0, 0, 0.4);
+  }
   .eyebrow {
-    margin: 0 0 8px; font-size: 0.78rem; letter-spacing: 0.14em;
+    margin: 0 0 8px; font-size: 0.72rem; letter-spacing: 0.18em;
     text-transform: uppercase; color: var(--gold-dim);
   }
-  h1 { margin: 0 0 8px; font-size: 2rem; font-weight: 700; color: var(--gold); letter-spacing: 0.01em; }
+  h1 {
+    margin: 0 0 8px; font-size: 2.1rem; font-weight: 700; color: var(--gold-bright);
+    font-family: var(--font-display); letter-spacing: 0.02em;
+    text-shadow: 0 1px 0 #000, 0 0 24px rgba(232, 196, 112, 0.18);
+  }
   .tagline { margin: 0; color: var(--muted); font-size: 1.02rem; }
   nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
   nav.toc a {
     color: var(--gold); text-decoration: none; font-size: 0.86rem;
-    padding: 6px 10px; border: 1px solid var(--border); background: var(--accent);
+    padding: 6px 10px; border: 1px solid var(--border-deep); background: var(--accent);
   }
-  nav.toc a:hover { background: #2c2416; }
+  nav.toc a:hover { background: #2c2416; border-color: var(--gold); }
   section.block {
-    background: var(--panel); border: 1px solid var(--border); margin-bottom: 18px;
+    background: linear-gradient(180deg, var(--panel-solid), #14100c);
+    border: 1px solid var(--border); margin-bottom: 18px;
+    box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.1), 0 8px 28px rgba(0, 0, 0, 0.4);
   }
   section.block > .head {
     padding: 14px 18px 14px 16px; border-bottom: 1px solid var(--border-soft);

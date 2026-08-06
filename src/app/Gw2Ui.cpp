@@ -215,8 +215,16 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize)
 		const ImVec2 min = ImGui::GetItemRectMin();
 		const ImVec2 max = ImGui::GetItemRectMax();
 		ImDrawList* dl = ImGui::GetWindowDrawList();
+		/* Gold plaque rail accent — selected bright, idle dim hairline. */
+		const ImU32 accent = ImGui::GetColorU32(
+			on ? HelperTheme::GoldBright : HelperTheme::GoldDim);
+		dl->AddRectFilled(ImVec2(min.x, min.y), ImVec2(min.x + 3.f, max.y), accent);
+		if (on)
+			dl->AddRectFilled(
+				ImVec2(min.x + 3.f, min.y), ImVec2(max.x, max.y),
+				ImGui::GetColorU32(ImVec4(0.94f, 0.77f, 0.35f, 0.06f)));
 		const float iy = min.y + (max.y - min.y - iconSize) * 0.5f;
-		const float ix = min.x + st.FramePadding.x;
+		const float ix = min.x + st.FramePadding.x + 3.f;
 		dl->AddImage(reinterpret_cast<ImTextureID>(tex->Resource),
 			ImVec2(ix, iy), ImVec2(ix + iconSize, iy + iconSize));
 		const ImVec2 labelSz = ImGui::CalcTextSize(vis, nullptr, true);

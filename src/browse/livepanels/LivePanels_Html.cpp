@@ -13,27 +13,25 @@ namespace LivePanelsHtml
 		if (!kCss)
 		{
 			sCss = HelperThemeCss::RootVars();
+			sCss += HelperThemeCss::ImmersiveShell();
 			sCss += R"CSS(
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh;
-    font-family: "Segoe UI", Tahoma, sans-serif;
-    background: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(240, 199, 97, 0.12) 0%, transparent 55%),
-      linear-gradient(180deg, #1c1711 0%, var(--bg) 45%), var(--bg);
-    color: var(--text); line-height: 1.55;
-  }
   .wrap { max-width: 900px; margin: 0 auto; padding: 28px 22px 64px; }
-  .hero { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
-  .eyebrow { margin: 0 0 8px; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-dim); }
-  h1 { margin: 0 0 8px; font-size: 1.85rem; font-weight: 700; color: var(--gold); }
+  .hero {
+    margin-bottom: 18px; padding: 1rem 1.1rem 1.1rem;
+    background: linear-gradient(165deg, rgba(48, 38, 22, 0.4), transparent 55%), var(--panel-inset);
+    border: 1px solid var(--border);
+    box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.1), 0 10px 32px rgba(0, 0, 0, 0.4);
+  }
+  h1 { margin: 0 0 8px; font-size: 1.95rem; }
   .tagline { margin: 0; color: var(--muted); font-size: 0.98rem; }
   .meta { margin: 10px 0 0; font-size: 0.82rem; color: var(--muted); }
   nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
   nav.toc a {
-    color: var(--gold); text-decoration: none; font-size: 0.86rem;
-    padding: 6px 10px; border: 1px solid var(--border); background: var(--accent);
+    color: var(--gold); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.03em;
+    padding: 6px 10px; border: 1px solid var(--border-deep); background: var(--accent);
   }
-  section.block { background: var(--panel); border: 1px solid var(--border); margin-bottom: 16px; }
+  nav.toc a:hover { border-color: var(--gold); color: var(--gold-bright); }
+  section.block { margin-bottom: 16px; }
   section.block > .head {
     padding: 12px 16px; border-bottom: 1px solid var(--border-soft); border-left: 3px solid var(--gold);
     background: linear-gradient(90deg, var(--header) 0%, var(--panel-2) 70%);
@@ -72,9 +70,7 @@ namespace LivePanelsHtml
   .checks li { margin: 0 0 8px; }
   .check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
   .check input { margin-top: 4px; flex-shrink: 0; }
-  .check .box {
-    display: none;
-  }
+  .check .box { display: none; }
   .check .txt { color: var(--muted); flex: 1; }
   .check .txt strong { color: var(--text); }
   .check input:checked + .box + .txt strong,
@@ -86,6 +82,7 @@ namespace LivePanelsHtml
   .keybox {
     margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--border);
     background: linear-gradient(90deg, var(--header) 0%, var(--panel-2) 70%);
+    box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.08);
   }
   .keybox.ok { border-left: 3px solid var(--ok); }
   .keybox.warn { border-left: 3px solid var(--warn); }

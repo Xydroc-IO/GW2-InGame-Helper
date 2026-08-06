@@ -1,5 +1,6 @@
 #include "LivePanelsBuildShared.h"
 
+#include "HelperThemeCss.h"
 #include "Sites.h"
 
 #include <algorithm>
@@ -23,58 +24,54 @@ namespace
 
 	const char* HubCss()
 	{
-		return R"CSS(
-:root{
-  --bg:#120e0a;--panel:rgba(28,23,17,.94);--panel-2:#18140e;
-  --border:#8c6b33;--border-soft:rgba(240,199,97,.22);
-  --gold:#f0c761;--gold-bright:#ffe68c;--gold-dim:#c29438;
-  --text:#f5eddb;--muted:#b8ad94;--accent:#1a160f;--header:#47381f;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;min-height:100vh;
-  font-family:"Segoe UI",Tahoma,sans-serif;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(240,199,97,.16),transparent 55%),
-    linear-gradient(180deg,#1c1711 0%,var(--bg) 42%),var(--bg);
-  color:var(--text);line-height:1.5;
-}
+		static std::string s;
+		static const char* out = nullptr;
+		if (!out)
+		{
+			s = HelperThemeCss::RootVars();
+			s += HelperThemeCss::ImmersiveShell();
+			s += R"CSS(
 .wrap{max-width:960px;margin:0 auto;padding:28px 22px 72px}
-.hero{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border-soft)}
-.eyebrow{margin:0 0 8px;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dim)}
-h1{margin:0 0 8px;font-size:2rem;font-weight:700;color:var(--gold)}
+.hero{
+  margin-bottom:22px;padding:1.1rem 1.15rem 1.2rem;
+  background:linear-gradient(165deg,rgba(48,38,22,.4),transparent 55%),var(--panel-inset);
+  border:1px solid var(--border);
+  box-shadow:inset 0 1px 0 rgba(255,230,160,.1),0 10px 32px rgba(0,0,0,.4);
+}
+h1{margin:0 0 8px;font-size:2.1rem}
 .tag{margin:0;color:var(--muted);font-size:.98rem;max-width:38rem}
 .search{
-  width:100%;max-width:28rem;margin:18px 0 0;height:2.6rem;
+  width:100%;max-width:28rem;margin:18px 0 0;height:2.65rem;
   border:1px solid var(--border);background:var(--accent);color:var(--text);
-  padding:0 .9rem;font-size:.92rem;
+  padding:0 .95rem;font-size:.92rem;box-shadow:inset 0 1px 3px rgba(0,0,0,.45);
 }
-.search:focus{outline:1px solid var(--gold-dim)}
-.sec{margin-top:1.75rem}
+.search:focus{outline:1px solid var(--gold-dim);border-color:var(--gold)}
+.sec{margin-top:1.85rem}
 .sec h2{
-  margin:0 0 .75rem;font-size:1rem;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--gold-bright);border-left:3px solid var(--gold);padding-left:.65rem;
+  margin:0 0 .85rem;font-size:.92rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold-bright);border-left:3px solid var(--gold);padding-left:.7rem;
 }
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.85rem}
 a.tile{
   display:flex;flex-direction:column;justify-content:center;gap:.35rem;
-  min-height:5.25rem;padding:1rem 1.05rem;
-  text-decoration:none;color:var(--text);
-  background:linear-gradient(165deg,rgba(26,23,16,.95),var(--panel));
-  border:1px solid var(--border);border-left:3px solid var(--gold-dim);
-  transition:border-color .15s,transform .12s,background .15s;
+  min-height:5.4rem;padding:1.05rem 1.1rem;text-decoration:none;color:var(--text);
+  border-left:3px solid var(--gold-dim);
+  transition:border-color .15s,transform .12s,box-shadow .15s;
 }
 a.tile:hover{
   border-color:var(--gold);border-left-color:var(--gold-bright);
-  background:linear-gradient(165deg,#221c12,var(--panel-2));
-  transform:translateY(-1px);
+  transform:translateY(-2px);
+  box-shadow:inset 0 1px 0 rgba(255,230,160,.16),0 12px 28px rgba(0,0,0,.5);
 }
-a.tile .name{font-size:1.02rem;font-weight:650;color:var(--gold-bright)}
+a.tile .name{font-size:1.05rem;font-weight:650;color:var(--gold-bright);font-family:var(--font-display)}
 a.tile .blurb{font-size:.8rem;color:var(--muted);line-height:1.35}
 .foot{margin-top:2.5rem;font-size:.78rem;color:var(--muted)}
 .empty{margin:2rem 0;color:var(--muted)}
 .hidden{display:none!important}
 )CSS";
+			out = s.c_str();
+		}
+		return out;
 	}
 
 	const char* HubJs()

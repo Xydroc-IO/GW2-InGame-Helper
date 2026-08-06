@@ -10,20 +10,28 @@ const char* HomePage::Html()
 <title>GW2 In-Game Helper</title>
 <style>
   :root {
-    --bg: #120e0a;
-    --panel: rgba(28, 23, 17, 0.88);
-    --panel-solid: #1c1711;
-    --border: #8c6b33;
-    --border-soft: rgba(240, 199, 97, 0.22);
-    --gold: #f0c761;
-    --gold-bright: #ffe68c;
+    --bg: #0e0b08;
+    --panel: rgba(32, 26, 18, 0.90);
+    --panel-solid: #1f1912;
+    --border: #a07838;
+    --border-soft: rgba(232, 196, 112, 0.28);
+    --border-deep: #5a4220;
+    --gold: #efc45a;
+    --gold-bright: #ffe9a0;
     --gold-dim: #c29438;
-    --text: #f5eddb;
-    --muted: #b8ad94;
-    --accent: #1a160f;
-    --ink: rgba(18, 14, 10, 0.82);
+    --text: #f6efdf;
+    --muted: #b5a890;
+    --accent: #16120c;
+    --ink: rgba(14, 11, 8, 0.88);
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #8a6a32 #120e0a; }
+  *::-webkit-scrollbar { width: 11px; height: 11px; }
+  *::-webkit-scrollbar-track { background: #120e0a; border-left: 1px solid var(--border-deep); }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #a07838, #5a4220);
+    border: 1px solid #c29438;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--gold), #8a6a32); }
   html { scroll-behavior: smooth; }
   body {
     margin: 0;

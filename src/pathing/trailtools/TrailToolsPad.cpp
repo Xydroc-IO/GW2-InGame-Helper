@@ -22,7 +22,6 @@ namespace
 	constexpr float kEditW = 480.f;
 	constexpr float kEditH = 560.f;
 
-	/* Collapsible pop-out - title bar stays when minimized (ImGui collapse). */
 	bool RenderCollapsiblePad(
 		const char* title,
 		bool& showFlag,
@@ -39,7 +38,6 @@ namespace
 
 		const float maxH = PadDock::MaxH(320.f);
 		ImGui::SetNextWindowSizeConstraints(ImVec2(320.f, 120.f), ImVec2(PadDock::MaxW(780.f), maxH));
-		/* Only un-collapse on first appear - user may minimize to the title bar. */
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(geom, placeOnce, defW, defH, fallbackPos);
 		if (!placeOnce && geom.w < 80.f)
@@ -54,7 +52,6 @@ namespace
 		HelperTheme::ScopedWindow theme(G::Opacity);
 		if (!ImGui::Begin(title, &open, ImGuiWindowFlags_NoNavInputs))
 		{
-			/* Collapsed to title bar - still capture pos; keep last non-collapsed size. */
 			const ImVec2 p = ImGui::GetWindowPos();
 			if (std::fabs(p.x - geom.x) > 0.5f || std::fabs(p.y - geom.y) > 0.5f)
 			{
@@ -91,21 +88,6 @@ namespace
 		ImGui::End();
 		return hovered || typingHere;
 	}
-
-	void DrawPopoutStub(const char* name, bool& popout, bool& focus)
-	{
-		ImGui::TextColored(HelperTheme::Muted,
-			"%s is open in its own window. Collapse its title-bar arrow to shrink to a bar.",
-			name);
-		if (ImGui::Button("Focus window###gw2igh_tt_focus_po"))
-			focus = true;
-		ImGui::SameLine();
-		if (ImGui::Button("Dock back here###gw2igh_tt_dock_po"))
-		{
-			popout = false;
-			Settings::SetDirty();
-		}
-	}
 }
 
 bool TrailToolsPad::AnyOpen()
@@ -127,6 +109,7 @@ void TrailToolsPad::OpenTrailsWindow()
 	gPopoutTrails = true;
 	gPlaceOnceTrails = true;
 	gFocusTrails = true;
+	gTab = 1;
 	Settings::SetDirty();
 }
 
@@ -136,6 +119,7 @@ void TrailToolsPad::OpenMarkersWindow()
 	gPopoutMarkers = true;
 	gPlaceOnceMarkers = true;
 	gFocusMarkers = true;
+	gTab = 2;
 	Settings::SetDirty();
 }
 
@@ -159,9 +143,8 @@ bool TrailToolsPad::Render()
 		}
 
 		char title[280]{};
-		const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
-		std::snprintf(title, sizeof(title), "Trail Tools - %s.trl%s###GW2InGameHelperTrailTools",
-			stem, gDraft.trailDirty ? " *" : "");
+		std::snprintf(title, sizeof(title), "Trail Tools%s###GW2InGameHelperTrailTools",
+			gDraft.xmlDirty || gDraft.trailDirty ? " *" : "");
 
 		bool open = G::ShowTrailTools;
 		HelperTheme::ScopedWindow theme(G::Opacity);
@@ -219,33 +202,9 @@ bool TrailToolsPad::Render()
 			if (gTab == 0)
 				DrawLiveTab();
 			else if (gTab == 1)
-			{
-				if (gPopoutTrails)
-					DrawPopoutStub("Trails", gPopoutTrails, gFocusTrails);
-				else
-				{
-					if (ImGui::Button("Open in window###gw2igh_tt_pop_trails"))
-						TrailToolsPad::OpenTrailsWindow();
-					ImGui::SameLine();
-					ImGui::TextDisabled("Minimizable to title bar");
-					ImGui::Separator();
-					DrawTrailTab();
-				}
-			}
+				DrawTrailDesk();
 			else if (gTab == 2)
-			{
-				if (gPopoutMarkers)
-					DrawPopoutStub("Markers", gPopoutMarkers, gFocusMarkers);
-				else
-				{
-					if (ImGui::Button("Open in window###gw2igh_tt_pop_marks"))
-						TrailToolsPad::OpenMarkersWindow();
-					ImGui::SameLine();
-					ImGui::TextDisabled("Minimizable to title bar");
-					ImGui::Separator();
-					DrawMarkersTab();
-				}
-			}
+				DrawMarkersDesk();
 			else if (gTab == 3)
 				DrawPackTab();
 			else
@@ -264,7 +223,7 @@ bool TrailToolsPad::Render()
 	{
 		char title[280]{};
 		const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
-		std::snprintf(title, sizeof(title), "Trails - %s.trl%s###GW2InGameHelperTrailPopout",
+		std::snprintf(title, sizeof(title), "Trails1 - %s.trl%s###GW2InGameHelperTrailPopout",
 			stem, gDraft.trailDirty ? " *" : "");
 		hover = RenderCollapsiblePad(
 			title,
@@ -276,27 +235,22 @@ bool TrailToolsPad::Render()
 			kEditH,
 			PadDock::ForTrailPopout(kEditW, kEditH),
 			[]() {
-				ImGui::TextColored(HelperTheme::Gold, "TRAILS");
-				if (ImGui::SmallButton("Dock into Trail Tools###gw2igh_tr_dock"))
-				{
-					gPopoutTrails = false;
-					G::ShowTrailTools = true;
-					gTab = 1;
-					Settings::SetDirty();
-				}
-				ImGui::SameLine();
-				ImGui::TextDisabled("Collapse > title bar to free space");
+				ImGui::TextColored(HelperTheme::Gold, "TRAILS1");
+				ImGui::TextDisabled("Raw .trl editor — collapse title bar to shrink");
 				ImGui::Separator();
 				ImGui::BeginChild("###gw2igh_tr_po_body", ImVec2(0.f, 0.f), true);
-				DrawTrailTab();
+				DrawTrailRawEditor();
 				ImGui::EndChild();
 			}) || hover;
 	}
 
 	if (gPopoutMarkers)
 	{
+		char title[96]{};
+		std::snprintf(title, sizeof(title), "Markers1%s###GW2InGameHelperMarkerPopout",
+			gDraft.selectedPoi >= 0 ? "" : " (none)");
 		hover = RenderCollapsiblePad(
-			"Markers###GW2InGameHelperMarkerPopout",
+			title,
 			gPopoutMarkers,
 			G::PadMarkerEditor,
 			gPlaceOnceMarkers,
@@ -305,19 +259,11 @@ bool TrailToolsPad::Render()
 			kEditH,
 			PadDock::ForMarkerPopout(kEditW, kEditH),
 			[]() {
-				ImGui::TextColored(HelperTheme::Gold, "MARKERS");
-				if (ImGui::SmallButton("Dock into Trail Tools###gw2igh_mk_dock"))
-				{
-					gPopoutMarkers = false;
-					G::ShowTrailTools = true;
-					gTab = 2;
-					Settings::SetDirty();
-				}
-				ImGui::SameLine();
-				ImGui::TextDisabled("Collapse > title bar to free space");
+				ImGui::TextColored(HelperTheme::Gold, "MARKERS1");
+				ImGui::TextDisabled("Raw marker attrs — collapse title bar to shrink");
 				ImGui::Separator();
 				ImGui::BeginChild("###gw2igh_mk_po_body", ImVec2(0.f, 0.f), true);
-				DrawMarkersTab();
+				DrawMarkerRawEditor();
 				ImGui::EndChild();
 			}) || hover;
 	}

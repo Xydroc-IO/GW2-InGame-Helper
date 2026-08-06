@@ -7,6 +7,7 @@
 #include "AccountPad.h"
 #include "CharacterProfiles.h"
 #include "ConfirmedWaypoints.h"
+#include "AddonVersion.h"
 #include "Globals.h"
 #include "HelperQuickAccess.h"
 #include "LookupPad.h"
@@ -130,10 +131,10 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Signature        = ADDON_SIG;
 	G::AddonDef.APIVersion       = NEXUS_API_VERSION;
 	G::AddonDef.Name             = ADDON_NAME;
-	G::AddonDef.Version.Major    = 2;
-	G::AddonDef.Version.Minor    = 2;
-	G::AddonDef.Version.Build    = 2;
-	G::AddonDef.Version.Revision = 0;
+	G::AddonDef.Version.Major    = ADDON_VERSION_MAJOR;
+	G::AddonDef.Version.Minor    = ADDON_VERSION_MINOR;
+	G::AddonDef.Version.Build    = ADDON_VERSION_BUILD;
+	G::AddonDef.Version.Revision = ADDON_VERSION_REVISION;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 - Wiki, Snow Crows, MetaBattle, Guildjen, and more.";

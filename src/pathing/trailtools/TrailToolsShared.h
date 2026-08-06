@@ -85,6 +85,8 @@ namespace TrailToolsDetail
 		char          trailType[160] = {}; /* default category for new/active trail */
 		char          trailFileStem[64] = "Trail";
 		char          lastTrlDir[260] = {}; /* last Load/Save As folder */
+		char          xmlPath[260] = {}; /* open OverlayData project path (utf-8) */
+		bool          xmlDirty = false;
 		char          status[384] = {};
 		bool          previewEnabled = true;
 		bool          trailDirty = false;
@@ -138,4 +140,11 @@ namespace TrailToolsDetail
 	bool SaveDraftSession();
 	bool LoadDraftSession();
 	bool ImportTacoToDraft(const std::wstring& tacoPath, std::string& err);
+
+	/* Shared OverlayData project desk (Trails + Markers hubs). */
+	void UpsertActiveTrailInPack();
+	void UpsertSelectedPoiInPack(); /* no-op if none selected; POIs already live in draft */
+	bool SaveProjectXml(bool saveAs);
+	bool LoadProjectXml();
+	void NewProjectXml();
 }

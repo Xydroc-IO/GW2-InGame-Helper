@@ -1,4 +1,5 @@
 #include "TrailToolsInternal.h"
+#include "TrailToolsPad.h"
 #include "TrailToolsShared.h"
 #include "TrailToolsTrl.h"
 #include "TrailToolsXml.h"
@@ -158,20 +159,7 @@ namespace
 
 	void RegisterActiveInPack()
 	{
-		using namespace TrailToolsDetail;
-		bool found = false;
-		for (auto& t : gDraft.trails)
-		{
-			if (t.fileRel == gDraft.active.fileRel)
-			{
-				t = gDraft.active;
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-			gDraft.trails.push_back(gDraft.active);
-		gDraft.trailDirty = false;
+		TrailToolsDetail::UpsertActiveTrailInPack();
 	}
 
 	bool SaveActiveToPath(const std::wstring& path)
@@ -337,24 +325,9 @@ namespace
 		}
 	}
 
-	void DrawTrailXmlLine()
-	{
-		using namespace TrailToolsDetail;
-		const std::string line = TrailToolsXml::EmitTrailElement(gDraft.active);
-		ImGui::TextUnformatted("Trail XML");
-		PadNav::PushWrap();
-		ImGui::TextColored(HelperTheme::Muted, "%s",
-			line.empty() ? "(set category + file stem)" : line.c_str());
-		PadNav::PopWrap();
-		if (!line.empty() && ImGui::SmallButton("Copy XML line###gw2igh_tt_copytrxml"))
-		{
-			CopyClipboard(line.c_str());
-			SetStatus("Copied Trail XML line.");
-		}
-	}
 }
 
-void TrailToolsDetail::DrawTrailTab()
+void TrailToolsDetail::DrawTrailDesk()
 {
 	EnsureWorkspace();
 	SyncActiveType();
@@ -363,11 +336,53 @@ void TrailToolsDetail::DrawTrailTab()
 
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"New / Load / Save / Save As manage the .trl. Map-only sets mapId; Map+vector starts "
-		"recording at your feet. Select nearest to edit points live.");
+		"XML project desk. Open Trails1 for .trl recording/editing. Insert adds the active "
+		"trail into the OverlayData list (then Save XML).");
 	PadNav::PopWrap();
 
-	/* File ops - same weight as New. */
+	DrawXmlProjectDesk();
+	ImGui::Separator();
+	DrawDefaultCategory();
+	ImGui::Separator();
+	DrawTrailList();
+
+	if (ImGui::Button("Open Trails1 window###gw2igh_tt_open_tr1"))
+		TrailToolsPad::OpenTrailsWindow();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Insert into XML"));
+	if (ImGui::Button("Insert into XML###gw2igh_tt_ins_trxml"))
+		UpsertActiveTrailInPack();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Copy XML line"));
+	{
+		const std::string line = TrailToolsXml::EmitTrailElement(gDraft.active);
+		if (!line.empty() && ImGui::Button("Copy XML line###gw2igh_tt_copytrxml2"))
+		{
+			CopyClipboard(line.c_str());
+			SetStatus("Copied Trail XML line.");
+		}
+	}
+
+	ImGui::TextDisabled("Active: %s%s  |  %zu pts  map %u",
+		gDraft.active.fileRel.empty() ? "(none)" : gDraft.active.fileRel.c_str(),
+		gDraft.trailDirty ? " *" : "",
+		gDraft.active.points.size(), gDraft.active.mapId);
+
+	if (gDraft.status[0])
+		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
+}
+
+void TrailToolsDetail::DrawTrailRawEditor()
+{
+	EnsureWorkspace();
+	SyncActiveType();
+	if (gDraft.active.fileRel.empty())
+		SyncActiveFileRelFromStem();
+
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Raw trail (.trl). New / Load / Save manage the binary. Map+vector starts at your feet. "
+		"Use Insert into XML on the Trails desk when ready.");
+	PadNav::PopWrap();
+
 	if (ImGui::Button("New###gw2igh_tt_newtrl"))
 	{
 		SyncActiveFileRelFromStem();
@@ -406,7 +421,6 @@ void TrailToolsDetail::DrawTrailTab()
 				}
 				else
 				{
-					/* Keep pack-relative target; stem from chosen file name. */
 					const size_t slash = path.find_last_of(L"\\/");
 					std::wstring name = slash == std::wstring::npos ? path
 						: path.substr(slash + 1);
@@ -439,10 +453,9 @@ void TrailToolsDetail::DrawTrailTab()
 		else
 			SaveActiveToPath(path);
 	}
-
-	ImGui::Separator();
-	DrawTrailList();
-	ImGui::Separator();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Insert XML"));
+	if (ImGui::Button("Insert XML###gw2igh_tt_raw_ins"))
+		UpsertActiveTrailInPack();
 
 	PadNav::PushWidthForLabel("Trail file stem###gw2igh_tt_trlstem");
 	ImGui::InputText("Trail file stem###gw2igh_tt_trlstem", gDraft.trailFileStem,
@@ -453,10 +466,8 @@ void TrailToolsDetail::DrawTrailTab()
 		SyncActiveFileRelFromStem();
 		MarkDirty();
 	}
-	DrawDefaultCategory();
 	ImGui::TextDisabled("%s%s", gDraft.active.fileRel.c_str(),
 		gDraft.trailDirty ? " *" : "");
-	DrawTrailXmlLine();
 
 	uint32_t mapId = 0;
 	float x = 0.f, y = 0.f, z = 0.f;
@@ -671,4 +682,12 @@ void TrailToolsDetail::DrawTrailTab()
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
+}
+
+
+void TrailToolsDetail::DrawTrailTab()
+{
+	DrawTrailDesk();
+	ImGui::Separator();
+	DrawTrailRawEditor();
 }

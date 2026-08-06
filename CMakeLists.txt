@@ -1,5 +1,19 @@
 cmake_minimum_required(VERSION 3.16)
-project(GW2-InGame-Helper VERSION 1.0.0 LANGUAGES C CXX)
+
+# Project VERSION tracks src/app/AddonVersion.h (bump that header when shipping).
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/src/app/AddonVersion.h" _GW2_ADDON_VERSION_H)
+foreach(_comp IN ITEMS MAJOR MINOR BUILD REVISION)
+  string(REGEX MATCH "ADDON_VERSION_${_comp}[ \t]+([0-9]+)" _ "${_GW2_ADDON_VERSION_H}")
+  if(NOT CMAKE_MATCH_1 AND NOT CMAKE_MATCH_1 STREQUAL "0")
+    message(FATAL_ERROR "Could not parse ADDON_VERSION_${_comp} from src/app/AddonVersion.h")
+  endif()
+  set(_GW2_VER_${_comp} "${CMAKE_MATCH_1}")
+endforeach()
+unset(_GW2_ADDON_VERSION_H)
+
+project(GW2-InGame-Helper
+  VERSION ${_GW2_VER_MAJOR}.${_GW2_VER_MINOR}.${_GW2_VER_BUILD}.${_GW2_VER_REVISION}
+  LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -207,6 +221,7 @@ add_library(GW2-InGame-Helper SHARED
   src/pathing/trailtools/TrailToolsPadLive.cpp
   src/pathing/trailtools/TrailToolsPadTrail.cpp
   src/pathing/trailtools/TrailToolsPadMarkers.cpp
+  src/pathing/trailtools/TrailToolsPadXmlDesk.cpp
   src/pathing/trailtools/TrailToolsPadPack.cpp
   src/pathing/trailtools/TrailToolsState.cpp
   src/pathing/trailtools/TrailToolsTrl.cpp

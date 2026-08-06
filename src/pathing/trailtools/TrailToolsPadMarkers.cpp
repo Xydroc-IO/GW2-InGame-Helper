@@ -1,4 +1,5 @@
 #include "TrailToolsInternal.h"
+#include "TrailToolsPad.h"
 #include "TrailToolsShared.h"
 #include "TrailToolsXml.h"
 #include "TrailToolsBinds.h"
@@ -174,47 +175,27 @@ namespace
 	}
 }
 
-void TrailToolsDetail::DrawMarkersTab()
+void TrailToolsDetail::DrawMarkersDesk()
 {
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"POIs live under <POIs> and reference a MarkerCategory path via type= "
-		"(e.g. test.circle). Categories themselves are the menu - edit them on the Pack tab. "
-		"Trails also go in <POIs> as <Trail .../>.");
+		"XML project desk for markers. Open Markers1 to edit the selected POI. "
+		"Place slots (Ctrl+Numpad) are configured under Keybinds.");
 	PadNav::PopWrap();
 
-	ImGui::TextUnformatted("XML layout (same as Pack)");
-	if (ImGui::RadioButton("Combined###gw2igh_mk_xml_comb", gDraft.xmlLayout == 0))
-	{
-		gDraft.xmlLayout = 0;
-		Settings::SetDirty();
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton("Split menu + data###gw2igh_mk_xml_split", gDraft.xmlLayout == 1))
-	{
-		gDraft.xmlLayout = 1;
-		Settings::SetDirty();
-	}
-	if (gDraft.xmlLayout == 1)
-		ImGui::TextDisabled("Build -> %s_Menu.xml + %s_Data.xml", gDraft.packName, gDraft.packName);
-	else
-		ImGui::TextDisabled("Build -> %s.xml (categories + POIs)", gDraft.packName);
-
+	DrawXmlProjectDesk();
 	ImGui::Separator();
+
 	ImGui::TextUnformatted("Default marker type");
 	std::vector<std::string> leaves;
 	CollectLeafPaths(gDraft.root, "", leaves, false);
 	if (leaves.empty())
 		leaves.push_back(gDraft.markerType[0] ? gDraft.markerType : "examplepack.m.exm");
-
 	int cur = 0;
 	for (size_t i = 0; i < leaves.size(); ++i)
 	{
 		if (leaves[i] == gDraft.markerType)
-		{
-			cur = static_cast<int>(i);
-			break;
-		}
+		{ cur = static_cast<int>(i); break; }
 	}
 	if (ImGui::BeginCombo("###gw2igh_tt_mtype", leaves[static_cast<size_t>(cur)].c_str()))
 	{
@@ -222,24 +203,18 @@ void TrailToolsDetail::DrawMarkersTab()
 		{
 			const bool sel = static_cast<int>(i) == cur;
 			if (ImGui::Selectable(leaves[i].c_str(), sel))
-			{
-				cur = static_cast<int>(i);
 				std::snprintf(gDraft.markerType, sizeof(gDraft.markerType), "%s", leaves[i].c_str());
-			}
-			if (sel)
-				ImGui::SetItemDefaultFocus();
+			if (sel) ImGui::SetItemDefaultFocus();
 		}
 		ImGui::EndCombo();
 	}
 	PadNav::PushWidthForLabel("Or type path###gw2igh_tt_mtype_edit");
 	ImGui::InputText("Or type path###gw2igh_tt_mtype_edit", gDraft.markerType, sizeof(gDraft.markerType));
 	PadNav::PopWidthForLabel();
-	ImGui::TextDisabled("Becomes type=\"...\" on each new POI - must match a leaf category.");
 
 	uint32_t mapId = 0;
 	float x = 0.f, y = 0.f, z = 0.f;
 	const bool pose = ReadMumblePose(mapId, x, y, z);
-
 	static bool sThisMapOnly = true;
 	ImGui::Checkbox("List this map only###gw2igh_tt_mmap", &sThisMapOnly);
 
@@ -249,16 +224,8 @@ void TrailToolsDetail::DrawMarkersTab()
 	if (ImGui::Button("Delete selected###gw2igh_tt_mdel"))
 		TrailToolsBinds::ActionDeleteMarker();
 
-	size_t shown = 0;
-	for (const DraftPoi& p : gDraft.pois)
-	{
-		if (sThisMapOnly && pose && p.mapId != mapId)
-			continue;
-		++shown;
-	}
-
 	ImGui::Separator();
-	ImGui::Text("%zu shown / %zu total", shown, gDraft.pois.size());
+	ImGui::Text("%zu markers in project", gDraft.pois.size());
 	if (ImGui::BeginChild("###gw2igh_tt_mlist", ImVec2(0.f, 140.f), true))
 	{
 		for (int i = 0; i < static_cast<int>(gDraft.pois.size()); ++i)
@@ -275,25 +242,64 @@ void TrailToolsDetail::DrawMarkersTab()
 	}
 	ImGui::EndChild();
 
-	if (gDraft.selectedPoi >= 0 && gDraft.selectedPoi < static_cast<int>(gDraft.pois.size()))
-		DrawSelectedPoiEditor(gDraft.pois[static_cast<size_t>(gDraft.selectedPoi)]);
-
-	if (ImGui::CollapsingHeader("Data XML preview (<POIs>)###gw2igh_mk_dataprev"))
-	{
-		static std::string sData;
-		sData = TrailToolsXml::EmitDataOverlay(gDraft);
-		ImGui::BeginChild("###gw2igh_mk_datascroll", ImVec2(0.f, 120.f), true);
-		ImGui::TextUnformatted(sData.c_str());
-		ImGui::EndChild();
-		if (ImGui::Button("Copy data XML###gw2igh_mk_copydata"))
-		{
-			CopyClipboard(sData.c_str());
-			SetStatus("Copied data OverlayData.");
-		}
-	}
+	if (ImGui::Button("Open Markers1 window###gw2igh_tt_open_mk1"))
+		TrailToolsPad::OpenMarkersWindow();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Insert into XML"));
+	if (ImGui::Button("Insert into XML###gw2igh_tt_ins_mkxml"))
+		UpsertSelectedPoiInPack();
 
 	DrawCopyFromLoaded();
 
+	ImGui::Separator();
+	ImGui::TextUnformatted("Place slots (Keybinds)");
+	{
+		auto& kb = TrailToolsBinds::Get();
+		for (int i = 0; i < TrailToolsBinds::kPlaceSlots && i < 9; ++i)
+		{
+			const auto& s = kb.place[i];
+			if (!s.label[0] && !s.type[0])
+				continue;
+			ImGui::TextDisabled("%d  %s  →  %s  [%s]",
+				i + 1,
+				s.label[0] ? s.label : "(unnamed)",
+				s.type[0] ? s.type : "(default type)",
+				TrailToolsBinds::FormatChord(s.chord).c_str());
+		}
+	}
+
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
+}
+
+void TrailToolsDetail::DrawMarkerRawEditor()
+{
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Raw marker attributes for the selected project POI. Insert on the Markers desk "
+		"marks the project dirty; Save XML writes OverlayData.");
+	PadNav::PopWrap();
+
+	if (gDraft.selectedPoi < 0 || gDraft.selectedPoi >= static_cast<int>(gDraft.pois.size()))
+	{
+		ImGui::TextDisabled("No marker selected - pick one on the Markers desk, or Drop here.");
+		if (ImGui::Button("Drop marker here###gw2igh_tt_drop_raw"))
+			TrailToolsBinds::ActionPlaceMarker(-1);
+		return;
+	}
+
+	DraftPoi& p = gDraft.pois[static_cast<size_t>(gDraft.selectedPoi)];
+	ImGui::Text("Editing marker %d", gDraft.selectedPoi);
+	DrawSelectedPoiEditor(p);
+	if (ImGui::Button("Insert into XML###gw2igh_tt_mk_raw_ins"))
+		UpsertSelectedPoiInPack();
+
+	if (gDraft.status[0])
+		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
+}
+
+void TrailToolsDetail::DrawMarkersTab()
+{
+	DrawMarkersDesk();
+	ImGui::Separator();
+	DrawMarkerRawEditor();
 }
