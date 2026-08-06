@@ -195,6 +195,12 @@ a.tile .name{font-size:1.02rem;font-weight:650;color:var(--gold-bright)}
 a.tile .blurb{font-size:.8rem;color:var(--muted);line-height:1.35}
 a.tile .meta{font-size:.72rem;color:var(--gold-dim);margin-top:.15rem}
 .foot{margin-top:2.5rem;font-size:.78rem;color:var(--muted)}
+.credit{
+  margin:1.75rem 0 1.25rem;padding-top:1rem;
+  border-top:1px solid var(--border);
+  font-size:.78rem;color:var(--gold-dim);
+  letter-spacing:.04em;text-align:center;
+}
 .empty{margin:2rem 0;color:var(--muted)}
 .hidden{display:none!important}
 )CSS";
@@ -561,6 +567,7 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 
 	html += "<p class=\"foot\">Cheat Sheets have their own side-rail button. "
 		"Tab bar <strong>+</strong> still opens the quick picker.</p>"
+		"<p class=\"credit\">Created By Xydroc</p>"
 		"</div><script>";
 	html += HubJs();
 	html += "</script></body></html>";

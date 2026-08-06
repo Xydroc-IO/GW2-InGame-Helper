@@ -441,7 +441,7 @@ const char* HomePage::Html()
 
     <footer>
       Not affiliated with ArenaNet, NCSoft, or the listed community sites. Informational overlay only.
-      <span class="sig">GW2 In-Game Helper</span>
+      <span class="sig">Created By Xydroc</span>
     </footer>
   </div>
 </body>

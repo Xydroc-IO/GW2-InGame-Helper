@@ -11,7 +11,7 @@
 
 namespace LivePanelsDetail
 {
-	constexpr const char* kPanelVer = "38";
+	constexpr const char* kPanelVer = "39";
 	constexpr DWORD kHtmlTtlSec = 10u * 60u;       /* avoid rebuild storms */
 	constexpr DWORD kTpHtmlTtlSec = 60u;
 	constexpr DWORD kApiCheckTtlSec = 45u;         /* diagnostics should re-probe often */

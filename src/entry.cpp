@@ -43,6 +43,8 @@ namespace G
 	bool  ShowAccount  = false;
 	bool  ShowEvents   = false;
 	bool  ShowLogManager = false;
+	bool  ShowEconomy = false;
+	bool  ShowInstances = false;
 	bool  ShowPathingGuides = false;
 	bool  ShowPathingTrails = true;
 	bool  ShowTrailTools = false;
@@ -108,6 +110,8 @@ namespace G
 	PadGeom PadLookup{};
 	PadGeom PadWallet{};
 	PadGeom PadVault{};
+	PadGeom PadEconomy{};
+	PadGeom PadInstances{};
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)
@@ -125,7 +129,7 @@ extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
 	G::AddonDef.Version.Major    = 2;
 	G::AddonDef.Version.Minor    = 2;
 	G::AddonDef.Version.Build    = 0;
-	G::AddonDef.Version.Revision = 19;
+	G::AddonDef.Version.Revision = 20;
 	G::AddonDef.Author           = "xydroc";
 	G::AddonDef.Description      =
 		"In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and more.";

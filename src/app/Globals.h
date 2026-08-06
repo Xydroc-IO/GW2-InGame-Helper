@@ -74,6 +74,8 @@ namespace G
 	extern bool  ShowAccount; /* ImGui Account pad (tabbed stash/vault/TP/item) */
 	extern bool  ShowEvents; /* ImGui world-boss timers + track list — free-floating */
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
+	extern bool  ShowEconomy; /* Flip Finder / charts / cart (read-only) */
+	extern bool  ShowInstances; /* Story / fractal / raid / strike journal */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
 	extern bool  ShowTrailTools; /* ImGui Trail Tools authoring pad */
@@ -150,4 +152,6 @@ namespace G
 	extern PadGeom PadLookup;
 	extern PadGeom PadWallet;
 	extern PadGeom PadVault;
+	extern PadGeom PadEconomy;
+	extern PadGeom PadInstances;
 }

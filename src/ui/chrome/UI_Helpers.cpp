@@ -17,6 +17,8 @@
 #include "AccountPad.h"
 #include "EventsPad.h"
 #include "LogManagerPad.h"
+#include "EconomyPad.h"
+#include "InstancesPad.h"
 #include "PathingGuidesPad.h"
 #include "PathingTrails.h"
 #include "TrailToolsPad.h"
@@ -272,6 +274,7 @@ namespace UIDetail
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
+			G::ShowEconomy || G::ShowInstances ||
 			G::ShowPathingGuides || TrailToolsPad::AnyOpen() ||
 			G::ShowCompassPad || G::ShowSettings;
 	}

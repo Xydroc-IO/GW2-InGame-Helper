@@ -17,6 +17,8 @@
 #include "AccountPad.h"
 #include "EventsPad.h"
 #include "LogManagerPad.h"
+#include "EconomyPad.h"
+#include "InstancesPad.h"
 #include "PathingGuidesPad.h"
 #include "TrailToolsPad.h"
 #include "PathingTrails.h"
@@ -110,13 +112,16 @@ void UI_Render()
 		const bool vaultHover = VaultPad::Render();
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
+		const bool economyHover = EconomyPad::Render();
+		const bool instancesHover = InstancesPad::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
-			trailToolsHover || compassHover || settingsHover);
+			walletHover || vaultHover || eventsHover || logsHover ||
+			economyHover || instancesHover ||
+			tekkitHover || trailToolsHover || compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;
@@ -208,13 +213,16 @@ void UI_Render()
 		const bool vaultHover = VaultPad::Render();
 		const bool eventsHover = EventsPad::Render();
 		const bool logsHover = LogManagerPad::Render();
+		const bool economyHover = EconomyPad::Render();
+		const bool instancesHover = InstancesPad::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-			walletHover || vaultHover || eventsHover || logsHover || tekkitHover ||
-			trailToolsHover || compassHover || settingsHover);
+			walletHover || vaultHover || eventsHover || logsHover ||
+			economyHover || instancesHover ||
+			tekkitHover || trailToolsHover || compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 		return;

@@ -17,6 +17,8 @@
 #include "AccountPad.h"
 #include "EventsPad.h"
 #include "LogManagerPad.h"
+#include "EconomyPad.h"
+#include "InstancesPad.h"
 #include "PathingGuidesPad.h"
 #include "TrailToolsPad.h"
 #include "PathingTrails.h"
@@ -257,56 +259,60 @@ namespace UIDetail
 
 	void DrawHelperSideRail()
 	{
+		auto openSiteNewTab = [](const char* siteId) {
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			if (!siteId || !siteId[0])
+				return;
+			if (BrowserTabs::OpenNew(siteId, true) < 0)
+				BrowserTabs::OpenInActive(siteId, true);
+		};
+		auto openUrlNewTab = [](const char* siteId, const char* url) {
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			if (!url || !url[0])
+				return;
+			if (BrowserTabs::OpenNewUrl(siteId && siteId[0] ? siteId : "browse", url) < 0)
+				WikiBrowser::Navigate(url);
+		};
+
+		/* Short labels keep the rail narrow so the browser still fits. */
 		static const char* kRailLabels[] = {
 			"IN-GAME HELPER",
-			"Browse", "Legendary Ledger", "Cheat Sheets", "GW2 API Check",
+			"Browse", "Ledger", "Sheets", "API Check",
 			"Account", "Compass", "Pathing", "Trail Tools", "Events", "Notes", "DPS Logs",
+			"Economy", "Instances",
 			"Settings"
 		};
-		const float railW = UiScale::FitSideRailWidth(kRailLabels, 13);
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, 15, 72.f, 148.f);
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 6.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
-		/* Allow scroll if the rail is taller than the helper — Settings must stay reachable. */
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.f, 4.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(3.f, 2.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, 3.f));
+		/* Scroll when the helper is short — companions must stay reachable. */
 		ImGui::BeginChild("###gw2igh_helper_rail", ImVec2(railW, 0.f), true,
 			ImGuiWindowFlags_NavFlattened);
 
-		ImGui::TextColored(kGold, "IN-GAME HELPER");
-		ImGui::Spacing();
+		ImGui::TextColored(kGold, "HELPER");
 		ImGui::Separator();
-		ImGui::Spacing();
 
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false))
-		{
-			G::ShowWiki = true;
-			Settings::SetDirty();
-			WikiBrowser::Navigate("about:browse-hub");
-		}
+			openSiteNewTab("browse");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Browse sites — categories, favorites, open in a new tab");
 
-		if (PadNav::SideToggle("Legendary Ledger###gw2igh_ledger", false))
-		{
-			G::ShowWiki = true;
-			Settings::SetDirty();
-			WikiBrowser::Navigate("about:legendary-vault");
-		}
+		if (PadNav::SideToggle("Ledger###gw2igh_ledger", false))
+			openSiteNewTab("legvault");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("GW2 Legendary Ledger — owned / missing / craft tree");
 
-		if (PadNav::SideToggle("Cheat Sheets###gw2igh_cheatsheets", false))
-		{
-			G::ShowWiki = true;
-			Settings::SetDirty();
-			WikiBrowser::Navigate("about:cheatsheets-hub");
-		}
+		if (PadNav::SideToggle("Sheets###gw2igh_cheatsheets", false))
+			openUrlNewTab("browse", "about:cheatsheets-hub");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Offline cheat sheets — food, fractals, squad tools, …");
 
-		if (PadNav::SideToggle("GW2 API Check###gw2igh_api_check", false))
+		if (PadNav::SideToggle("API Check###gw2igh_api_check", false))
 		{
-			G::ShowWiki = true;
-			Settings::SetDirty();
 			const std::wstring dir = AddonPaths::DataDir();
 			if (!dir.empty())
 			{
@@ -322,7 +328,7 @@ namespace UIDetail
 				kill(L".ver");
 				kill(L".ok");
 			}
-			WikiBrowser::Navigate("about:gw2-api-check");
+			openUrlNewTab("browse", "about:gw2-api-check");
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
@@ -330,12 +336,8 @@ namespace UIDetail
 				"Local page — not a third-party status site.");
 
 		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
 		ImGui::TextDisabled("Tools");
-		ImGui::Spacing();
 		ImGui::Separator();
-		ImGui::Spacing();
 
 		if (PadNav::SideToggle("Account###gw2igh_account", G::ShowAccount))
 		{
@@ -429,8 +431,37 @@ namespace UIDetail
 			ImGui::SetTooltip("DPS Logs — ArcDPS EVTC via Elite Insights");
 
 		ImGui::Spacing();
+		ImGui::TextDisabled("Companions");
 		ImGui::Separator();
+
+		if (PadNav::SideToggle("Economy###gw2igh_economy", G::ShowEconomy))
+		{
+			if (G::ShowEconomy)
+			{
+				G::ShowEconomy = false;
+				Settings::SetDirty();
+			}
+			else
+				EconomyPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Economy — Flip Finder, charts, crafting cart (read-only)");
+
+		if (PadNav::SideToggle("Instances###gw2igh_instances", G::ShowInstances))
+		{
+			if (G::ShowInstances)
+			{
+				G::ShowInstances = false;
+				Settings::SetDirty();
+			}
+			else
+				InstancesPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Instances — story, fractals, raids, strikes journal");
+
 		ImGui::Spacing();
+		ImGui::Separator();
 
 		if (PadNav::SideToggle("Settings###gw2igh_settings", G::ShowSettings))
 		{
@@ -446,8 +477,8 @@ namespace UIDetail
 			ImGui::SetTooltip("Settings — opacity, font, API key, warm CEF");
 
 		ImGui::EndChild();
-		ImGui::PopStyleVar(2);
-		ImGui::SameLine(0.f, 8.f);
+		ImGui::PopStyleVar(3);
+		ImGui::SameLine(0.f, 6.f);
 	}
 
 } // namespace UIDetail

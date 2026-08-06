@@ -38,6 +38,8 @@ set(SRC_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/logs/logmanager
   ${CMAKE_CURRENT_SOURCE_DIR}/src/logs/eiruntime
   ${CMAKE_CURRENT_SOURCE_DIR}/src/events
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/economy
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/instances
   ${CMAKE_CURRENT_SOURCE_DIR}/src/notes
   ${CMAKE_CURRENT_SOURCE_DIR}/src/helper
 )
@@ -45,6 +47,9 @@ set(SRC_INCLUDE_DIRS
 add_executable(GW2HelperBrowser WIN32
   src/helper/main.cpp
   src/helper/HelperState.cpp
+  src/helper/HelperPaths.cpp
+  src/helper/HelperResolve.cpp
+  src/helper/HelperBrowseActions.cpp
   src/helper/HelperTabs.cpp
   src/helper/HelperHandlers.cpp
   src/helper/HelperCommands.cpp
@@ -154,6 +159,12 @@ add_library(GW2-InGame-Helper SHARED
   src/events/EventsPad.cpp
   src/events/EventsPadState.cpp
   src/events/EventsData.cpp
+  src/economy/EconomyPad.cpp
+  src/economy/EconomyPadState.cpp
+  src/economy/EconomyFetch.cpp
+  src/instances/InstancesPad.cpp
+  src/instances/InstancesPadState.cpp
+  src/instances/InstancesData.cpp
   src/logs/logmanager/LogManagerPad.cpp
   src/logs/logmanager/LogManagerPadState.cpp
   src/logs/logmanager/LogManagerParse.cpp

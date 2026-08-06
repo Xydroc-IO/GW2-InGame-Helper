@@ -275,6 +275,10 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadWallet);
 		else if (std::strcmp(key, "PadVault") == 0)
 			PadDock::ParseGeom(val, G::PadVault);
+		else if (std::strcmp(key, "PadEconomy") == 0)
+			PadDock::ParseGeom(val, G::PadEconomy);
+		else if (std::strcmp(key, "PadInstances") == 0)
+			PadDock::ParseGeom(val, G::PadInstances);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -392,6 +396,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowAccount=0\n");
 	std::fprintf(f, "ShowEvents=0\n");
 	std::fprintf(f, "ShowLogManager=0\n");
+	std::fprintf(f, "ShowEconomy=0\n");
+	std::fprintf(f, "ShowInstances=0\n");
 	std::fprintf(f, "ShowPathingGuides=0\n");
 	std::fprintf(f, "ShowTrailTools=0\n");
 	std::fprintf(f, "TrailToolsLastTrlDir=%s\n", TrailToolsDetail::gDraft.lastTrlDir);
@@ -457,6 +463,8 @@ void Settings::Save(bool force)
 	PadDock::WriteGeom(f, "PadLookup", G::PadLookup);
 	PadDock::WriteGeom(f, "PadWallet", G::PadWallet);
 	PadDock::WriteGeom(f, "PadVault", G::PadVault);
+	PadDock::WriteGeom(f, "PadEconomy", G::PadEconomy);
+	PadDock::WriteGeom(f, "PadInstances", G::PadInstances);
 	char favBuf[4096]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);

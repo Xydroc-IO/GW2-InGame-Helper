@@ -11,7 +11,8 @@ CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/ui/browse -Isrc/ui/settings -Isrc/ui/
 	-Isrc/account/wallet -Isrc/account/vault -Isrc/account/lookup -Isrc/account/progress -Isrc/pathing \
 	-Isrc/pathing/trailtools -Isrc/pathing/world -Isrc/pathing/lua -Isrc/pathing/packs \
 	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/logs -Isrc/logs/logmanager -Isrc/logs/eiruntime \
-	-Isrc/events -Isrc/notes -Isrc/helper
+	-Isrc/events -Isrc/notes -Isrc/helper \
+	-Isrc/economy -Isrc/instances
 CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/lua
 # Dependency files: emit only from the build/%.o rule via -MF (never beside sources).
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
@@ -21,7 +22,9 @@ LDFLAGS_EXE  = -static -static-libgcc -static-libstdc++ -mwindows -municode -mcr
 LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32
 LIBS_EXE = -lgdi32 -lole32 -luuid -lshell32 -lwinhttp
 
-HELPER_SRC = src/helper/main.cpp src/helper/HelperState.cpp src/helper/HelperTabs.cpp \
+HELPER_SRC = src/helper/main.cpp src/helper/HelperState.cpp src/helper/HelperPaths.cpp \
+	src/helper/HelperResolve.cpp src/helper/HelperBrowseActions.cpp \
+	src/helper/HelperTabs.cpp \
 	src/helper/HelperHandlers.cpp src/helper/HelperCommands.cpp \
 	src/helper/HelperNavPolicy.cpp src/helper/HelperNavPolicyHandlers.cpp \
 	src/helper/HelperOsrRender.cpp \
@@ -125,6 +128,12 @@ DLL_SRC = \
 	src/events/EventsPad.cpp \
 	src/events/EventsPadState.cpp \
 	src/events/EventsData.cpp \
+	src/economy/EconomyPad.cpp \
+	src/economy/EconomyPadState.cpp \
+	src/economy/EconomyFetch.cpp \
+	src/instances/InstancesPad.cpp \
+	src/instances/InstancesPadState.cpp \
+	src/instances/InstancesData.cpp \
 	src/logs/logmanager/LogManagerPad.cpp \
 	src/logs/logmanager/LogManagerPadState.cpp \
 	src/logs/logmanager/LogManagerParse.cpp \

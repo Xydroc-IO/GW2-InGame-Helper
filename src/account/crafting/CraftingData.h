@@ -9,7 +9,10 @@ namespace CraftingData
 	/* Queue a plan from Progress (or elsewhere) and focus the Crafting tab. */
 	void QueuePlan(const char* itemNameOrCode);
 
-	/* True once if QueuePlan asked Account to select the Crafting tab. */
+	/* Focus Account → Crafting without starting a plan. */
+	void RequestFocusTab();
+
+	/* True once if QueuePlan / RequestFocusTab asked Account to select Crafting. */
 	bool ConsumeFocusTab();
 
 	void RenderContents();

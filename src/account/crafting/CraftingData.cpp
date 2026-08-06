@@ -128,6 +128,11 @@ void CraftingData::QueuePlan(const char* itemNameOrCode)
 	StartPlan();
 }
 
+void CraftingData::RequestFocusTab()
+{
+	gFocusTab = true;
+}
+
 bool CraftingData::ConsumeFocusTab()
 {
 	return gFocusTab.exchange(false);

@@ -39,6 +39,8 @@ void AddonUnload()
 	G::ShowAccount = false;
 	G::ShowEvents = false;
 	G::ShowLogManager = false;
+	G::ShowEconomy = false;
+	G::ShowInstances = false;
 	G::ShowPathingGuides = false;
 	G::ShowTrailTools = false;
 	TrailToolsDetail::gPopoutTrails = false;

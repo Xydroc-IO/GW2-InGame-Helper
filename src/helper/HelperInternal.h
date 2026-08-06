@@ -120,7 +120,17 @@ namespace HelperDetail
 	void RefreshNavFlags();
 	void UpdateUrlFromBrowser();
 	std::wstring HelperDir();
+	std::wstring EnsureHelperUnder(const std::wstring& root, const wchar_t* relative);
+	std::wstring HelperPagesDir();
+	std::wstring HelperCmdsDir();
 	std::string WidePathToFileUrl(const std::wstring& path);
+	void AppendCmdLine(const std::wstring& fileName, const std::string& line);
+	void QueueTpWatchCmd(const char* op, int id);
+	int ParseQueryInt(const std::string& query, const char* key);
+	std::string ParseQueryValue(const std::string& query, const char* key);
+	std::string AboutFromBrowseFileUrl(const std::string& url);
+	void InvalidateHelperBrowseCaches();
+	void InvalidateHelperBrowsePage(const std::string& fileUrl);
 
 	/* Tabs / lifespan (HelperTabs.cpp) */
 	cef_browser_host_t* Host();

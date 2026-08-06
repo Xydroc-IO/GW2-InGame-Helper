@@ -238,7 +238,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 			std::snprintf(row, sizeof(row), "%s", site.label ? site.label : site.id ? site.id : "(site)");
 
 		const bool selected = (siteIndex == current);
-		const bool ctrl = ImGui::GetIO().KeyCtrl;
+		/* Always open catalog sites in a new addon tab (Ctrl still works the same). */
 		if (ImGui::Selectable(row, selected))
 		{
 			if (pickDefaultSite)
@@ -246,7 +246,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 			else if (pickNewTab)
 				ActivateSiteIndex(siteIndex, true, true);
 			else
-				ActivateSiteIndex(siteIndex, navigateOnChange, ctrl);
+				ActivateSiteIndex(siteIndex, navigateOnChange, true);
 			if (closePanel)
 				*closePanel = true;
 			sSyncCategory = true;
@@ -266,10 +266,10 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 				{
 					char tip[192];
 					SanitizeForUi(tip, sizeof(tip), site.title);
-					ImGui::SetTooltip("%s\nClick: this tab | Ctrl+click: new tab", tip);
+					ImGui::SetTooltip("%s\nOpens in a new tab", tip);
 				}
 				else
-					ImGui::SetTooltip("Click: this tab | Ctrl+click: new tab");
+					ImGui::SetTooltip("Opens in a new tab");
 			}
 			else if (site.title && site.title[0])
 			{
@@ -647,8 +647,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
-	ImGui::TextUnformatted("Created by Xydroc");
-	ImGui::TextUnformatted("IGN - swift shadow kuda.5981 | Discord Name - xydroc");
+	ImGui::TextUnformatted("Created By Xydroc");
 	ImGui::PopStyleColor();
 }
 
