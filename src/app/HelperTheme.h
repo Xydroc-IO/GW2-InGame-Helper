@@ -10,21 +10,21 @@
 /* Dark-warm parchment + gold with optional local GW2 UI chrome (UiChrome pack). */
 namespace HelperTheme
 {
-	inline const ImVec4 Gold(0.94f, 0.77f, 0.35f, 1.f);
-	inline const ImVec4 GoldBright(1.f, 0.91f, 0.63f, 1.f);
-	inline const ImVec4 GoldDim(0.76f, 0.58f, 0.22f, 1.f);
-	inline const ImVec4 GoldMuted(0.72f, 0.60f, 0.36f, 1.f);
-	/* Warm ink on parchment (not cool slate gray). */
-	inline const ImVec4 Ink(0.96f, 0.94f, 0.87f, 1.f);
-	inline const ImVec4 Muted(0.71f, 0.66f, 0.56f, 1.f);
+	inline const ImVec4 Gold(0.96f, 0.82f, 0.42f, 1.f);
+	inline const ImVec4 GoldBright(1.f, 0.92f, 0.68f, 1.f);
+	inline const ImVec4 GoldDim(0.84f, 0.66f, 0.30f, 1.f);
+	inline const ImVec4 GoldMuted(0.82f, 0.70f, 0.44f, 1.f);
+	/* Readable cream — eased back from pure white so chrome stays warm. */
+	inline const ImVec4 Ink(0.97f, 0.94f, 0.86f, 1.f);
+	inline const ImVec4 Muted(0.86f, 0.78f, 0.64f, 1.f);
 	/* Dark leather / aged wood boards. */
-	inline const ImVec4 Bg(0.055f, 0.043f, 0.031f, 0.98f);
-	inline const ImVec4 Panel(0.12f, 0.098f, 0.070f, 1.f);
-	inline const ImVec4 Child(0.085f, 0.068f, 0.048f, 0.97f);
-	inline const ImVec4 Border(0.63f, 0.47f, 0.22f, 0.95f);
+	inline const ImVec4 Bg(0.050f, 0.038f, 0.028f, 0.98f);
+	inline const ImVec4 Panel(0.11f, 0.088f, 0.060f, 1.f);
+	inline const ImVec4 Child(0.07f, 0.055f, 0.040f, 0.90f);
+	inline const ImVec4 Border(0.68f, 0.50f, 0.24f, 0.95f);
 	inline const ImVec4 TabActive(0.28f, 0.21f, 0.11f, 1.f);
-	inline const ImVec4 TabIdle(0.075f, 0.060f, 0.042f, 1.f);
-	inline const ImVec4 Header(0.30f, 0.23f, 0.12f, 0.96f);
+	inline const ImVec4 TabIdle(0.065f, 0.050f, 0.036f, 1.f);
+	inline const ImVec4 Header(0.28f, 0.21f, 0.11f, 0.96f);
 	inline const ImVec4 Warn(0.92f, 0.55f, 0.28f, 1.f);
 	inline const ImVec4 Ok(0.52f, 0.72f, 0.42f, 1.f);
 
@@ -33,30 +33,32 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_Text, Ink);
 		ImGui::PushStyleColor(ImGuiCol_TextDisabled, Muted);
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, Bg);
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.085f, 0.068f, 0.048f, 0.35f));
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.07f, 0.055f, 0.038f, 0.99f));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 0.f, 0.f, 0.f));
+		/* Enough plate under children without crushing the Blish fill. */
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.06f, 0.048f, 0.034f, 0.55f));
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.065f, 0.050f, 0.036f, 0.99f));
+		/* Visible for FrameBorderSize (checkboxes / inputs) — WindowBorderSize stays 0. */
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.72f, 0.56f, 0.28f, 0.70f));
 		ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.f, 0.f, 0.f, 0.f));
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.10f, 0.082f, 0.055f, 0.85f));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.17f, 0.13f, 0.075f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.23f, 0.17f, 0.095f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.09f, 0.070f, 0.048f, 0.92f));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.16f, 0.12f, 0.070f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.22f, 0.16f, 0.090f, 1.f));
 		ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.04f, 0.03f, 0.02f, 0.55f));
 		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.08f, 0.06f, 0.04f, 0.70f));
 		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.04f, 0.03f, 0.02f, 0.45f));
-		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.08f, 0.06f, 0.04f, 0.55f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.04f, 0.032f, 0.022f, 0.35f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.48f, 0.36f, 0.16f, 0.85f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.65f, 0.48f, 0.20f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.07f, 0.052f, 0.036f, 0.70f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.035f, 0.026f, 0.018f, 0.40f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.52f, 0.40f, 0.18f, 0.88f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.68f, 0.52f, 0.22f, 1.f));
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, Gold);
-		ImGui::PushStyleColor(ImGuiCol_CheckMark, Gold);
+		ImGui::PushStyleColor(ImGuiCol_CheckMark, GoldBright);
 		ImGui::PushStyleColor(ImGuiCol_SliderGrab, GoldDim);
 		ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, GoldBright);
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.13f, 0.10f, 0.065f, 0.90f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.26f, 0.20f, 0.11f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.36f, 0.27f, 0.13f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.22f, 0.17f, 0.10f, 0.75f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.34f, 0.26f, 0.13f, 0.90f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.42f, 0.32f, 0.15f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.11f, 0.085f, 0.055f, 0.92f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.19f, 0.105f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.35f, 0.26f, 0.125f, 1.f));
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.20f, 0.15f, 0.090f, 0.80f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.32f, 0.24f, 0.12f, 0.92f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.40f, 0.30f, 0.14f, 1.f));
 		ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.55f, 0.40f, 0.18f, 0.40f));
 		ImGui::PushStyleColor(ImGuiCol_SeparatorHovered, Gold);
 		ImGui::PushStyleColor(ImGuiCol_SeparatorActive, GoldBright);
@@ -90,7 +92,7 @@ namespace HelperTheme
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 1.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.5f);
 	}
 
 	inline void Pop()

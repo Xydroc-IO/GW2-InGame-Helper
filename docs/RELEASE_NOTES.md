@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.0
+# GW2 In-Game Helper v2.2.3.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -33,7 +33,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
+## What’s new in 2.2.3.1
+
+- **Hero-style title bars:** Dark charcoal plate from StandardWindow top strip; emblem
+  overhangs the bar; cream title with dark halo (in-game Hero panel read).
+- **Title controls:** Contacts-style `button-exit` X + gold minimize bar (no ImGui frame
+  borders on those glyphs); stay inside content clip / scrollbar gutter.
+- **Side rail fit (Windows):** Measure real labels + icon reserve; raise max width with
+  FontScale so Completion / COMPANIONS no longer clip on native Windows fonts.
+- **Pad readability:** Eased cream text + gold checkbox/input frame borders; Blish fill
+  darkened just enough for contrast without crushing the chrome.
+- **Stamps:** Helper `2234` · homepage `2222` · sites `s2213` · cheatsheets `c2218`
+  · live panel `46` · raid food `5` · ui-chrome `uc6`
+
 ## What’s new in 2.2.3.0
+
 
 - **Immersive ImGui chrome:** Pads (and the main Helper) use Blish-style
   **StandardWindow** fill (`155985`) + emblem (`156022`) with a custom title bar

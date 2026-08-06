@@ -22,12 +22,12 @@ namespace HelperThemeCss
     --border: #a07838;
     --border-soft: rgba(232, 196, 112, 0.28);
     --border-deep: #5a4220;
-    --gold: #efc45a;
+    --gold: #f0c866;
     --gold-bright: #ffe9a0;
-    --gold-dim: #c29438;
-    --gold-muted: #b89a5c;
-    --text: #f6efdf;
-    --muted: #b5a890;
+    --gold-dim: #c9a040;
+    --gold-muted: #c4a86a;
+    --text: #f7f0de;
+    --muted: #d4c4a0;
     --accent: #16120c;
     --header: #3d3018;
     --ink: rgba(14, 11, 8, 0.88);
@@ -64,14 +64,14 @@ namespace HelperThemeCss
 		s += "\n  body {\n    background-image: url(\"";
 		s += fillUrl;
 		s += "\"),\n"
-			"      radial-gradient(ellipse 90% 60% at 50% -8%, rgba(232, 196, 112, 0.12) 0%, transparent 52%),\n"
-			"      radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.40) 0%, transparent 55%),\n"
-			"      linear-gradient(180deg, rgba(26, 21, 16, 0.55) 0%, rgba(14, 11, 8, 0.72) 42%, rgba(10, 8, 6, 0.85) 100%);\n"
+			"      radial-gradient(ellipse 90% 60% at 50% -8%, rgba(232, 196, 112, 0.10) 0%, transparent 52%),\n"
+			"      radial-gradient(ellipse 70% 50% at 100% 100%, rgba(90, 55, 20, 0.45) 0%, transparent 55%),\n"
+			"      linear-gradient(180deg, rgba(14, 11, 8, 0.72) 0%, rgba(8, 6, 4, 0.82) 42%, rgba(6, 4, 3, 0.90) 100%);\n"
 			"    background-size: cover, auto, auto, auto;\n"
 			"    background-position: center, center, center, center;\n"
 			"    background-repeat: no-repeat;\n"
 			"  }\n"
-			"  body::before { z-index: 1; opacity: 0.10; }\n"
+			"  body::before { z-index: 1; opacity: 0.08; }\n"
 			"  body > * { z-index: 2; }\n";
 		return s;
 	}

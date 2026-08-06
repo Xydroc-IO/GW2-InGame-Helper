@@ -73,11 +73,19 @@ namespace UiScale
 		return Clampf(design * base, 72.f, 260.f);
 	}
 
-	/* Widest visible label + frame/window padding (call after Begin + font scale). */
+	/* Widest visible label + frame/window padding (call after Begin + font scale).
+	   iconSize > 0 reserves RailToggle icon + accent (Windows fonts often need more
+	   than Linux — never hard-cap below measured need without raising maxW). */
 	inline float FitSideRailWidth(const char* const* labels, int count,
-		float minW = 80.f, float maxW = 260.f)
+		float minW = 80.f, float maxW = 260.f, float iconSize = 0.f)
 	{
 		const ImGuiStyle& style = ImGui::GetStyle();
+		const float iconExtra = (iconSize > 0.f)
+			? (iconSize + style.ItemInnerSpacing.x + style.FramePadding.x + 10.f)
+			: 0.f;
+		/* FontScale / denser Nexus fonts on some Windows hosts. */
+		const float fontMul = Clampf((G::FontScale > 0.1f) ? G::FontScale : 1.f, 1.f, 1.75f);
+		const float maxScaled = maxW * fontMul;
 		float w = minW;
 		for (int i = 0; i < count; ++i)
 		{
@@ -88,10 +96,10 @@ namespace UiScale
 				? ImGui::CalcTextSize(labels[i], end, true)
 				: ImGui::CalcTextSize(labels[i], nullptr, true);
 			const float need = ts.x + style.FramePadding.x * 2.f +
-				style.WindowPadding.x * 2.f + 6.f;
+				style.WindowPadding.x * 2.f + 8.f + iconExtra;
 			if (need > w)
 				w = need;
 		}
-		return Clampf(w, minW, maxW);
+		return Clampf(w, minW, maxScaled > 320.f ? 320.f : maxScaled);
 	}
 }

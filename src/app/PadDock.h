@@ -80,7 +80,7 @@ namespace PadDock
 		const ImGuiIO& io = ImGui::GetIO();
 		constexpr float kEdge = 8.f;
 		/* Keep title bar (close/minimize) on-screen — not only the top-left corner. */
-		constexpr float kTitleKeep = 56.f;
+		constexpr float kTitleKeep = 72.f;
 		if (io.DisplaySize.x > 100.f)
 		{
 			if (x + padW > io.DisplaySize.x - kEdge)
@@ -100,14 +100,14 @@ namespace PadDock
 	}
 
 	/* After Begin — nudge if a saved geom left the close control off-screen. */
-	inline void KeepOnScreen(float minVisibleH = 56.f)
+	inline void KeepOnScreen(float minVisibleH = 80.f)
 	{
 		const ImGuiIO& io = ImGui::GetIO();
 		if (io.DisplaySize.x <= 100.f || io.DisplaySize.y <= 100.f)
 			return;
 		const ImVec2 p = ImGui::GetWindowPos();
 		const ImVec2 s = ImGui::GetWindowSize();
-		const ImVec2 c = ClampPos(p.x, p.y, s.x, std::fmax(minVisibleH, std::fmin(s.y, 56.f)));
+		const ImVec2 c = ClampPos(p.x, p.y, s.x, std::fmax(minVisibleH, std::fmin(s.y, 80.f)));
 		if (std::fabs(c.x - p.x) > 0.5f || std::fabs(c.y - p.y) > 0.5f)
 			ImGui::SetWindowPos(c);
 	}

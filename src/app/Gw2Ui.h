@@ -44,6 +44,8 @@ namespace Gw2Ui
 		WindowCorner   = 156008,
 		WindowCornerBr = 156009,
 		WindowResize   = 156010,
+		InkEdge        = 155967, /* dark ink wash strip for title bands */
+		HeaderStroke   = 156260, /* brush-stroke header accent */
 	};
 
 	/* Request Nexus upload from assets.gw2dat.com/<id>.png */

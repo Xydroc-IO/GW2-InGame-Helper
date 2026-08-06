@@ -204,16 +204,15 @@ namespace PadNav
 		float width = 0.f, const int* icons = nullptr)
 	{
 		if (width <= 1.f)
-			width = UiScale::FitSideRailWidth(labels, count);
+			width = UiScale::FitSideRailWidth(labels, count, 80.f, 260.f, icons ? 18.f : 0.f);
 		else
 			width = UiScale::SideRailWidth(width);
 		if (icons)
 		{
-			/* RailToggle draws 18px icon + spacing before the label. */
-			const float iconReserve = 18.f + ImGui::GetStyle().ItemInnerSpacing.x + 4.f;
-			const float withIcons = width + iconReserve;
+			/* FitSideRailWidth already reserved icon when iconSize passed; keep a floor. */
 			const float minIcons = UiScale::SideRailWidth(108.f);
-			width = withIcons > minIcons ? withIcons : minIcons;
+			if (width < minIcons)
+				width = minIcons;
 		}
 		if (!labels || count <= 0)
 			return 0;

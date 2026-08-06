@@ -57,18 +57,21 @@ namespace UIDetail
 				WikiBrowser::Navigate(url);
 		};
 
-		/* Width fit must list every rail row (incl. section headers). */
+		/* Width fit must list every rail row — measure the strings we actually draw
+		   (COMPANIONS vs Companions; icons on every SideToggle). Cap was 160 and
+		   clipped on Windows hosts with wider Nexus fonts / FontScale > 1. */
 		static const char* kRailLabels[] = {
-			"IN-GAME HELPER",
+			"HELPER",
 			"Browse", "Ledger", "Sheets", "API Check",
+			"TOOLS",
 			"Account", "Compass", "Pathing", "Completion", "Farming",
 			"Trail Tools", "Events", "Notes", "DPS Logs",
-			"Companions",
+			"COMPANIONS",
 			"Economy", "Instances",
 			"Settings"
 		};
 		const int nLabels = static_cast<int>(sizeof(kRailLabels) / sizeof(kRailLabels[0]));
-		const float railW = UiScale::FitSideRailWidth(kRailLabels, nLabels, 88.f, 160.f);
+		const float railW = UiScale::FitSideRailWidth(kRailLabels, nLabels, 108.f, 200.f, 18.f);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.f, 4.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(3.f, 2.f));
