@@ -44,6 +44,9 @@ namespace CompletionDetail
 		bool gReady = false;
 		bool gChecklistLoaded = false;
 		uint32_t gLiveSyncedMap = 0;
+		std::unordered_set<uint32_t> gMergedMapIds;
+		bool gMapNamesEnriched = false;
+		constexpr int kBgMergePerTick = 8;
 
 		std::wstring ChecklistPath()
 		{
@@ -124,15 +127,38 @@ namespace CompletionDetail
 			AddObj(900004, 28, ObjKind::Hero, "Hangrammr Climb", 0, 0, false);
 			AddObj(900005, 15, ObjKind::Mastery, "Gliding Mastery Insight", 0, 0, false);
 
-			/* Seed every curated Public zone so Atlas / hierarchy are complete offline. */
+			/* Seed every curated zone (Public + Strikes + Festival clones) offline. */
 			VisitHierarchy([](uint32_t mapId, const char* /*release*/, const char* region,
 				const char* name, void* /*ctx*/) {
 					UpsertMap(mapId, name, region);
 				}, nullptr);
 		}
 
+		void EnrichExistingMapNames()
+		{
+			if (gMapNamesEnriched)
+				return;
+			std::vector<WaypointsData::MapRow> maps;
+			WaypointsData::ListMaps(nullptr, maps, 4000);
+			for (const auto& mr : maps)
+			{
+				if (mr.id <= 0 || mr.name.empty()) continue;
+				for (MapInfo& m : gMaps)
+				{
+					if (m.id != static_cast<uint32_t>(mr.id))
+						continue;
+					if (!m.name[0])
+						UiAscii::SanitizeForUi(m.name, sizeof(m.name), mr.name.c_str());
+					break;
+				}
+			}
+			gMapNamesEnriched = true;
+		}
+
 		void MergeLivePois(uint32_t mapId)
 		{
+			if (mapId == 0)
+				return;
 			WaypointsData::EnsureLoaded(false);
 			WaypointsData::Tick();
 			if (!WaypointsData::Ready())
@@ -146,17 +172,30 @@ namespace CompletionDetail
 				AddObj(static_cast<uint32_t>(p.id), static_cast<uint32_t>(p.mapId), k,
 					p.name.c_str(), p.continentX, p.continentY, p.hasCoord);
 			}
-			std::vector<WaypointsData::MapRow> maps;
-			WaypointsData::ListMaps(nullptr, maps, 400);
-			for (const auto& mr : maps)
+			gMergedMapIds.insert(mapId);
+		}
+
+		void MergeCuratedBackground()
+		{
+			struct Pending
 			{
-				if (mr.id <= 0) continue;
-				UpsertMap(static_cast<uint32_t>(mr.id), mr.name.c_str(), "");
+				std::vector<uint32_t>* ids;
+				const std::unordered_set<uint32_t>* done;
+			};
+			std::vector<uint32_t> pending;
+			Pending ctx{ &pending, &gMergedMapIds };
+			VisitHierarchy([](uint32_t mapId, const char*, const char*, const char*, void* v) {
+					auto* p = static_cast<Pending*>(v);
+					if (p->done->count(mapId) == 0)
+						p->ids->push_back(mapId);
+				}, &ctx);
+			int n = 0;
+			for (uint32_t id : pending)
+			{
+				MergeLivePois(id);
+				if (++n >= kBgMergePerTick)
+					break;
 			}
-			std::sort(gMaps.begin(), gMaps.end(),
-				[](const MapInfo& a, const MapInfo& b) {
-					return std::strcmp(a.name, b.name) < 0;
-				});
 		}
 	}
 
@@ -167,6 +206,8 @@ namespace CompletionDetail
 		{
 			gMaps.clear();
 			gObjs.clear();
+			gMergedMapIds.clear();
+			gMapNamesEnriched = false;
 			SeedCurated();
 			gReady = true;
 		}
@@ -182,19 +223,29 @@ namespace CompletionDetail
 
 		if (!WaypointsData::Ready())
 		{
-			/* Keep gLiveSyncedMap at 0 so we retry once the index is ready. */
+			/* Keep focus merge pending until the index is ready. */
 			if (gLiveSyncedMap != 0 && want != 0 && want != gLiveSyncedMap)
 				gLiveSyncedMap = 0;
 			return;
 		}
 
-		if (want != 0 && want != gLiveSyncedMap)
+		EnrichExistingMapNames();
+
+		if (want != 0 && gMergedMapIds.count(want) == 0)
 		{
 			MergeLivePois(want);
 			gLiveSyncedMap = want;
 			if (gFocusMapId == 0 && cur != 0)
 				gFocusMapId = cur;
 		}
+		else if (want != 0)
+		{
+			gLiveSyncedMap = want;
+		}
+
+		/* Fill Atlas counts for curated Strikes / Festival / Public without waiting
+		   for the player to click every zone. */
+		MergeCuratedBackground();
 	}
 
 	size_t MapCount()

@@ -45,6 +45,7 @@ namespace InstancesDetail
 	Entry* At(size_t i);
 	void ToggleStep(size_t entry, size_t step);
 	void ToggleCleared(size_t entry);
+	bool EntryHasApiSteps(const Entry& e);
 	void ClearKind(Kind k); /* reset clears + steps for a category */
 	void ResetEntry(size_t entry);
 	void LoadProgress();

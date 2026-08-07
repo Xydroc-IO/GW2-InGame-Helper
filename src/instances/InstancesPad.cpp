@@ -103,9 +103,8 @@ bool InstancesPad::Render()
 		ImGui::TextWrapped("%s", gStatus);
 	ImGui::Separator();
 
-	/* Auto-sync once when opening Raids with a key. */
-	if (gKind == Kind::Raid)
-		StartRaidSync(false);
+	/* Soft re-sync while the pad is open (throttled); open already force-syncs. */
+	StartRaidSync(false);
 
 	/* Keep selection on the active kind; auto-pick first so steps show immediately. */
 	if (gSelected >= 0)
@@ -135,9 +134,19 @@ bool InstancesPad::Render()
 		if (!e || e->kind != gKind) continue;
 		++listed;
 		ImGui::PushID(e->id);
+		const bool apiRaid = e->kind == Kind::Raid && EntryHasApiSteps(*e);
+		const bool apiLocked = apiRaid && G::Gw2ApiKey[0];
 		bool cleared = e->cleared;
-		if (ImGui::Checkbox("##clr", &cleared))
+		if (apiLocked)
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.55f);
+		if (ImGui::Checkbox("##clr", &cleared) && !apiLocked)
 			ToggleCleared(i);
+		if (apiLocked)
+			ImGui::PopStyleVar();
+		if (ImGui::IsItemHovered() && apiRaid)
+			ImGui::SetTooltip(apiLocked
+				? "Weekly clears come from /v2/account/raids — use Sync raids."
+				: "Add a progression API key to sync weekly clears.");
 		ImGui::SameLine();
 		const int doneSteps = CountStepsDone(i);
 		const int totalSteps = static_cast<int>(e->steps.size());
@@ -160,8 +169,13 @@ bool InstancesPad::Render()
 				bool d = e->steps[s].done;
 				char lab[180];
 				std::snprintf(lab, sizeof(lab), "%s###st%zu", e->steps[s].text, s);
-				if (ImGui::Checkbox(lab, &d))
+				const bool stepLocked = apiLocked && e->steps[s].apiId[0];
+				if (stepLocked)
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.55f);
+				if (ImGui::Checkbox(lab, &d) && !stepLocked)
 					ToggleStep(i, s);
+				if (stepLocked)
+					ImGui::PopStyleVar();
 			}
 			ImGui::Unindent();
 		}

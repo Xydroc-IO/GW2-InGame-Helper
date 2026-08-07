@@ -99,7 +99,14 @@ namespace CompletionDetail
 				const MapInfo* m = MapAt(i);
 				if (!m || !m->name[0]) continue;
 				const int total = CountTotal(m->id);
-				if (total <= 0 && m->id != gFocusMapId) continue;
+				if (total <= 0 && m->id != gFocusMapId)
+				{
+					/* Keep curated Strikes / Festival shells visible (Atlas scopes). */
+					const bool strike = std::strncmp(m->release, "Strikes", 7) == 0;
+					const bool fest = std::strncmp(m->release, "Festival", 8) == 0;
+					if (!strike && !fest)
+						continue;
+				}
 				ZoneAgg z;
 				z.id = m->id;
 				z.map = m;

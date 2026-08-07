@@ -136,6 +136,16 @@ namespace InstancesDetail
 	size_t Count() { EnsureCatalog(); return gEntries.size(); }
 	Entry* At(size_t i) { EnsureCatalog(); return i < gEntries.size() ? &gEntries[i] : nullptr; }
 
+	bool EntryHasApiSteps(const Entry& e)
+	{
+		for (const auto& s : e.steps)
+		{
+			if (s.apiId[0])
+				return true;
+		}
+		return false;
+	}
+
 	void ToggleStep(size_t entry, size_t step)
 	{
 		Entry* e = At(entry);
@@ -146,8 +156,7 @@ namespace InstancesDetail
 		{
 			if (!s.done) { all = false; break; }
 		}
-		if (all)
-			e->cleared = true;
+		e->cleared = all;
 		SaveProgress();
 	}
 
@@ -156,6 +165,8 @@ namespace InstancesDetail
 		Entry* e = At(entry);
 		if (!e) return;
 		e->cleared = !e->cleared;
+		for (auto& s : e->steps)
+			s.done = e->cleared;
 		SaveProgress();
 	}
 

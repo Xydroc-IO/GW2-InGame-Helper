@@ -10,5 +10,7 @@ void InstancesPad::OpenAndRefresh()
 	InstancesDetail::gPlaceOnce = true;
 	InstancesDetail::EnsureCatalog();
 	InstancesDetail::LoadProgress();
+	/* Pull weekly raid clears as soon as the pad opens (not only on the Raid tab). */
+	InstancesDetail::StartRaidSync(true);
 	Settings::SetDirty();
 }

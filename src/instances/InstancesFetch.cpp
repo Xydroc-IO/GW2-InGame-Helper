@@ -135,10 +135,13 @@ namespace InstancesDetail
 				gThread = nullptr;
 			}
 		}
-		if (!ids.empty() || note.find("synced") != std::string::npos)
+		const bool applied = !ids.empty() || note.find("synced") != std::string::npos;
+		if (applied)
+		{
 			ApplyRaidEncounterIds(ids);
+			gLastSyncMs = GetTickCount();
+		}
 		std::snprintf(gStatus, sizeof(gStatus), "%s", note.c_str());
-		gLastSyncMs = GetTickCount();
 	}
 
 	void StartRaidSync(bool force)
@@ -146,6 +149,14 @@ namespace InstancesDetail
 		const DWORD now = GetTickCount();
 		if (!force && gLastSyncMs != 0 && (now - gLastSyncMs) < kMinResyncMs)
 			return;
+		/* No key: skip the worker so we do not burn the soft re-sync throttle. */
+		if (!G::Gw2ApiKey[0])
+		{
+			if (force)
+				std::snprintf(gStatus, sizeof(gStatus),
+					"No API key — raids stay local. Add progression key in Settings.");
+			return;
+		}
 		if (gBusy.exchange(true))
 			return;
 		if (gThread)

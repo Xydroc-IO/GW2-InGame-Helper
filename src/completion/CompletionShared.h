@@ -170,7 +170,7 @@ namespace CompletionDetail
 	void ApplyHierarchy(MapInfo& m);
 	const char* DefaultRelease();
 	const char* DefaultRegion();
-	/* Enumerate curated Public map rows (for catalog seed). */
+	/* Enumerate curated map rows — Public + Strikes + Festival/(Public) clones. */
 	using HierVisitFn = void (*)(uint32_t mapId, const char* release, const char* region,
 		const char* name, void* ctx);
 	void VisitHierarchy(HierVisitFn fn, void* ctx);

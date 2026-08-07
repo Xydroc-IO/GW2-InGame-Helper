@@ -3,6 +3,7 @@
 
 #include "HelperTheme.h"
 #include "PadNav.h"
+#include "WaypointsData.h"
 
 #include "imgui/imgui.h"
 
@@ -110,9 +111,16 @@ namespace CompletionDetail
 						ImGui::Text("%s: %d / %d", ObjKindName(k), CountDoneKind(z.id, k), kt);
 					}
 				}
+				else if (!WaypointsData::Ready())
+					ImGui::TextColored(HelperTheme::Muted,
+						"Waypoint floor cache still loading (starts when Completion opens).");
+				else if (z.map && (std::strncmp(z.map->release, "Strikes", 7) == 0
+					|| std::strncmp(z.map->release, "Festival", 8) == 0))
+					ImGui::TextColored(HelperTheme::Muted,
+						"No floor POIs for this instance map — open Checklist after you enter it.");
 				else
 					ImGui::TextColored(HelperTheme::Muted,
-						"No live index yet — waiting for waypoint floor cache (loads on open).");
+						"No POIs merged for this zone yet — select it or wait for background index.");
 				ImGui::TextColored(HelperTheme::Muted, "Double-click opens Checklist.");
 				ImGui::EndTooltip();
 			}
