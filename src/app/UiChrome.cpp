@@ -21,7 +21,7 @@ extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "uc21";
+	constexpr const char* kPackStamp = "uc23";
 	constexpr int kChromeIds[] = {
 		155985, 155981, 156022, 156008, 156009, 156010, 155967, 156260, 155014,
 		/* Curated rail / Log Manager icons (Desktop/icons — current set). */
@@ -35,6 +35,7 @@ namespace
 	/* Named pack files (not numeric DAT ids). */
 	constexpr const char* kChromeNamed[] = {
 		"button-exit.png", "button-exit-active.png", "crest-hero.png",
+		"browse-hero.png",
 		"panel-wash.png", "title-bar.png", "panel-edge.png", "ink-edge.png",
 		"scroll-thumb.png", "scroll-thumb-mid.png", "scroll-thumb-top.png",
 		"scroll-thumb-cap.png", "scroll-arrow.png", "scroll-arrow-up.png",
@@ -231,6 +232,15 @@ std::string UiChrome::FillFileUrl(const std::wstring& addonDir, int assetId)
 	if (assetId <= 0)
 		assetId = 155985;
 	const std::wstring path = PngPath(addonDir, assetId);
+	if (path.empty())
+		return {};
+	return PathToFileUrl(path);
+}
+
+std::string UiChrome::NamedFileUrl(const std::wstring& addonDir, const char* fileName)
+{
+	Ensure(addonDir);
+	const std::wstring path = NamedPngPath(addonDir, fileName);
 	if (path.empty())
 		return {};
 	return PathToFileUrl(path);

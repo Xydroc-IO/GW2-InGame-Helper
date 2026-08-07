@@ -16,7 +16,9 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		"<title>Browse</title><style>";
 	html += HubCss();
 	html += "</style></head><body><div class=\"wrap\">"
-		"<header class=\"hero\">"
+		"<header class=\"hero\">";
+	AppendBrowseHeroArt(html);
+	html += "<div class=\"hero-copy\">"
 		"<p class=\"eyebrow\">GW2 In-Game Helper</p>"
 		"<h1>Browse</h1>"
 		"<p class=\"tag\">Pick a category, or open a favorite in a new tab. "
@@ -25,7 +27,7 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		"header to remove a mistaken folder (sites return to Unfiled).</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter favorites &amp; categories…\" "
 		"autocomplete=\"off\"/>"
-		"</header>";
+		"</div></header>";
 
 	/* Favorites (folder sections) — + Folder creates via helper IPC. */
 	html += "<section class=\"sec\" data-sec=\"1\" data-keep=\"1\">"

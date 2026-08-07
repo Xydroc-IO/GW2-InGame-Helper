@@ -207,8 +207,12 @@ void UI_Render()
 		ImGui::GetID("##gw2igh_pad_collapsed"), false);
 	sHelperCollapsedPrev = helperCollapsed;
 	if (!helperCollapsed)
-		Gw2Ui::PaintPadChrome(G::Opacity);
-	const bool expanded = Gw2Ui::DrawPadTitleBar("In-Game Helper", &open, G::Opacity);
+		/* Left joins nav; outer right gets the Hero ink rim (whole plate silhouette). */
+		Gw2Ui::PaintPadChrome(G::Opacity, /*omitLeftEdge=*/true, /*omitRightEdge=*/false);
+	const bool expanded = Gw2Ui::DrawPadTitleBar(
+		"Game Helper", &open, G::Opacity,
+		/* Flush with side-rail outer edge (UiScale uses rail chrome pads, not helper theme). */
+		HelperSideRailWidth());
 	if (!open)
 	{
 		G::ShowWiki = false;

@@ -48,14 +48,98 @@ namespace Gw2UiDetail
 			return nullptr;
 		return tex;
 	}
+
+	static void PaintEdgeStrip(ImDrawList* dl, ImTextureID iid, ImU32 col,
+		ImVec2 p0, ImVec2 p1, bool omitLeft, bool omitRight, bool omitTop, bool omitBottom,
+		float fringe, float bleed)
+	{
+		if (!dl || !iid)
+			return;
+
+		dl->PushClipRect(
+			ImVec2(p0.x - bleed - 2.f, p0.y - (omitTop ? 0.f : bleed) - 2.f),
+			ImVec2(p1.x + bleed + 2.f, p1.y + bleed + 2.f),
+			false);
+
+		if (!omitBottom)
+		{
+			dl->AddImage(iid,
+				ImVec2(p0.x - 2.f, p1.y - fringe),
+				ImVec2(p1.x + 2.f, p1.y + bleed),
+				ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), col);
+		}
+		if (!omitTop)
+		{
+			dl->AddImage(iid,
+				ImVec2(p0.x - 2.f, p0.y - bleed),
+				ImVec2(p1.x + 2.f, p0.y + fringe),
+				ImVec2(0.f, 1.f), ImVec2(1.f, 0.f), col);
+		}
+		if (!omitLeft)
+		{
+			dl->AddImageQuad(iid,
+				ImVec2(p0.x - bleed, p0.y),
+				ImVec2(p0.x + fringe, p0.y),
+				ImVec2(p0.x + fringe, p1.y + bleed),
+				ImVec2(p0.x - bleed, p1.y + bleed),
+				ImVec2(0.f, 1.f), ImVec2(0.f, 0.f),
+				ImVec2(1.f, 0.f), ImVec2(1.f, 1.f),
+				col);
+		}
+		if (!omitRight)
+		{
+			dl->AddImageQuad(iid,
+				ImVec2(p1.x - fringe, p0.y),
+				ImVec2(p1.x + bleed, p0.y),
+				ImVec2(p1.x + bleed, p1.y + bleed),
+				ImVec2(p1.x - fringe, p1.y + bleed),
+				ImVec2(0.f, 0.f), ImVec2(0.f, 1.f),
+				ImVec2(1.f, 1.f), ImVec2(1.f, 0.f),
+				col);
+		}
+
+		dl->PopClipRect();
+	}
+
+	void PaintHeroRim(ImDrawList* dl, ImVec2 p0, ImVec2 p1, float opacity,
+		bool omitLeft, bool omitRight, bool omitTop, bool omitBottom)
+	{
+		if (!dl)
+			return;
+		float a = opacity;
+		if (a < 0.f)
+			a = 0.f;
+		if (a > 1.f)
+			a = 1.f;
+
+		/* Tight metallic/ink rim (panel-edge) under a softer brush fringe (ink-edge). */
+		Texture_t* edge = GetChromeNamed("panel-edge");
+		if (edge && edge->Resource)
+		{
+			PaintEdgeStrip(dl, reinterpret_cast<ImTextureID>(edge->Resource),
+				IM_COL32(255, 255, 255, static_cast<int>(a * 220.f + 0.5f)),
+				p0, p1, omitLeft, omitRight, omitTop, omitBottom,
+				/*fringe=*/11.f, /*bleed=*/4.f);
+		}
+
+		Texture_t* ink = GetChromeNamed("ink-edge");
+		if (!ink || !ink->Resource)
+			ink = GetChromeTex(static_cast<int>(Gw2Ui::Icon::InkEdge));
+		if (ink && ink->Resource)
+		{
+			PaintEdgeStrip(dl, reinterpret_cast<ImTextureID>(ink->Resource),
+				IM_COL32(255, 255, 255, static_cast<int>(a * 200.f + 0.5f)),
+				p0, p1, omitLeft, omitRight, omitTop, omitBottom,
+				/*fringe=*/22.f, /*bleed=*/14.f);
+		}
+	}
 }
 
-bool Gw2Ui::PaintPadChrome(float opacity)
+bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge)
 {
 	/*
-	 * Full-bleed wash plate (no black matte inset). Soft ink fringe only on
-	 * L/R/bottom so the rim feathers into the game like Hero — not a thick frame.
-	 * Top stays flush for the title bar.
+	 * Translucent wash plate (Hero lets the world show through) + dual rim:
+	 * panel-edge (tight) then ink-edge (soft outer bleed). Top stays flush for title.
 	 */
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 	if (!dl)
@@ -78,7 +162,8 @@ bool Gw2Ui::PaintPadChrome(float opacity)
 	const bool usingWash = (wash && wash->Resource && fill == wash);
 
 	dl->PushClipRect(p0, p1, false);
-	dl->AddRectFilled(p0, p1, IM_COL32(10, 8, 6, static_cast<int>(a * 255.f + 0.5f)));
+	/* See-through underpaint — opaque plates kill the ink fringe silhouette. */
+	dl->AddRectFilled(p0, p1, IM_COL32(10, 8, 6, static_cast<int>(a * 168.f + 0.5f)));
 
 	if (!fill || !fill->Resource)
 	{
@@ -87,7 +172,7 @@ bool Gw2Ui::PaintPadChrome(float opacity)
 		return false;
 	}
 
-	const ImU32 col = IM_COL32(255, 255, 255, static_cast<int>(a * 255.f + 0.5f));
+	const ImU32 washCol = IM_COL32(255, 255, 255, static_cast<int>(a * 205.f + 0.5f));
 	ImVec2 uv0(0.f, 0.f), uv1(1.f, 1.f);
 	if (!usingWash)
 	{
@@ -96,53 +181,13 @@ bool Gw2Ui::PaintPadChrome(float opacity)
 		uv1 = ImVec2((40.f + 905.f) / tex, (26.f + 680.f) / tex);
 	}
 	dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
-		p0, p1, uv0, uv1, col);
-	dl->AddRectFilled(p0, p1, IM_COL32(6, 4, 3, static_cast<int>(a * 55.f + 0.5f)));
+		p0, p1, uv0, uv1, washCol);
+	dl->AddRectFilled(p0, p1, IM_COL32(6, 4, 3, static_cast<int>(a * 36.f + 0.5f)));
 	dl->PopClipRect();
 
-	/* Soft brush fringe only — never a solid black mat around the window.
-	   Use this window's draw list (not foreground) so other pads can cover it. */
-	Texture_t* ink = Gw2UiDetail::GetChromeNamed("ink-edge");
-	if (!ink || !ink->Resource)
-		ink = Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::InkEdge));
-	if (ink && ink->Resource)
-	{
-		constexpr float kFringe = 18.f;
-		constexpr float kBleed = 10.f;
-		ImDrawList* edgeDl = ImGui::GetWindowDrawList();
-		const ImTextureID iid = reinterpret_cast<ImTextureID>(ink->Resource);
-		const ImU32 inkCol = IM_COL32(255, 255, 255, static_cast<int>(a * 180.f + 0.5f));
-
-		edgeDl->PushClipRect(
-			ImVec2(p0.x - kBleed - 2.f, p0.y),
-			ImVec2(p1.x + kBleed + 2.f, p1.y + kBleed + 2.f),
-			false);
-
-		edgeDl->AddImage(iid,
-			ImVec2(p0.x - 2.f, p1.y - kFringe),
-			ImVec2(p1.x + 2.f, p1.y + kBleed),
-			ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), inkCol);
-
-		edgeDl->AddImageQuad(iid,
-			ImVec2(p0.x - kBleed, p0.y),
-			ImVec2(p0.x + kFringe, p0.y),
-			ImVec2(p0.x + kFringe, p1.y + kBleed),
-			ImVec2(p0.x - kBleed, p1.y + kBleed),
-			ImVec2(0.f, 1.f), ImVec2(0.f, 0.f),
-			ImVec2(1.f, 0.f), ImVec2(1.f, 1.f),
-			inkCol);
-
-		edgeDl->AddImageQuad(iid,
-			ImVec2(p1.x - kFringe, p0.y),
-			ImVec2(p1.x + kBleed, p0.y),
-			ImVec2(p1.x + kBleed, p1.y + kBleed),
-			ImVec2(p1.x - kFringe, p1.y + kBleed),
-			ImVec2(0.f, 0.f), ImVec2(0.f, 1.f),
-			ImVec2(1.f, 1.f), ImVec2(1.f, 0.f),
-			inkCol);
-
-		edgeDl->PopClipRect();
-	}
+	/* Rim on this window's draw list so companion pads can still cover it. */
+	Gw2UiDetail::PaintHeroRim(dl, p0, p1, a,
+		omitLeftEdge, omitRightEdge, /*omitTop=*/true, /*omitBottom=*/false);
 
 	return true;
 }

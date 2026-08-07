@@ -72,6 +72,8 @@ namespace UIDetail
 	void DrawMoreMenu();
 	void DrawToolbar();
 	void DrawHelperSideRail();
+	/* Same width DrawHelperSideRail uses (for title-bar left flush). */
+	float HelperSideRailWidth();
 
 	/* OSR page slot + input capture + tool pads (open helper path). */
 	void DrawWikiPageSlot(bool open);

@@ -66,13 +66,15 @@ std::string BuildBrowseCategoryShellHtml(const char* category)
 	html += HubCss();
 	html += "</style></head><body><div class=\"wrap\">"
 		"<a class=\"back\" href=\"?gw2igh-about=browse-hub\">← All categories</a>"
-		"<header class=\"hero\">"
+		"<header class=\"hero\">";
+	AppendBrowseHeroArt(html);
+	html += "<div class=\"hero-copy\">"
 		"<p class=\"eyebrow\">Browse</p>"
 		"<h1>";
 	html += Esc(cat);
 	html += "</h1>"
 		"<p class=\"tag\">Building site list…</p>"
-		"</header>"
+		"</div></header>"
 		"<p class=\"empty\">Loading sections in the background — this page refreshes when ready.</p>"
 		"</div></body></html>";
 	return html;
@@ -91,7 +93,9 @@ std::string BuildBrowseCategoryHtml(const std::wstring& /*addonDir*/, const char
 	html += HubCss();
 	html += "</style></head><body><div class=\"wrap\">"
 		"<a class=\"back\" href=\"?gw2igh-about=browse-hub\">← All categories</a>"
-		"<header class=\"hero\">"
+		"<header class=\"hero\">";
+	AppendBrowseHeroArt(html);
+	html += "<div class=\"hero-copy\">"
 		"<p class=\"eyebrow\">Browse</p>"
 		"<h1>";
 	html += Esc(cat);
@@ -100,7 +104,7 @@ std::string BuildBrowseCategoryHtml(const std::wstring& /*addonDir*/, const char
 		"Use ☆ to add favorites on the Browse hub.</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter sites…\" "
 		"autocomplete=\"off\"/>"
-		"</header>";
+		"</div></header>";
 
 	if (!cat[0] || std::strcmp(cat, "Cheat Sheets") == 0)
 	{

@@ -141,9 +141,18 @@ DLL_SRC = \
 	src/account/crafting/CraftingWikiAcquire.cpp \
 	src/account/crafting/CraftingCurated.cpp \
 	src/account/crafting/CraftingPlan.cpp \
+	src/account/crafting/CraftingPlanBuild.cpp \
 	src/account/crafting/CraftingPlanResolve.cpp \
 	src/account/crafting/CraftingPlanSnapshot.cpp \
 	src/account/crafting/CraftingDailies.cpp \
+	src/account/crafting/CraftingKnown.cpp \
+	src/account/crafting/CraftingKnownUi.cpp \
+	src/account/crafting/CraftingCart.cpp \
+	src/account/crafting/CraftingCartPlan.cpp \
+	src/account/crafting/CraftingCartUi.cpp \
+	src/account/crafting/CraftingOpts.cpp \
+	src/account/crafting/CraftingPlanDecide.cpp \
+	src/account/crafting/CraftingResults.cpp \
 	src/events/EventsPad.cpp \
 	src/events/EventsPadState.cpp \
 	src/events/EventsData.cpp \
@@ -558,7 +567,7 @@ install: $(DLL_OUT)
 	# Seed Immersive chrome so pads look correct even before first extract.
 	@mkdir -p "$(INSTALL_DIR)/ui-chrome"
 	/bin/cp -f data/ui-chrome/*.png "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
-	@printf 'uc21' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
+	@printf 'uc23' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"

@@ -12,6 +12,16 @@ namespace LivePanelsBuild
 {
 std::string Esc(const std::string& s) { return HtmlEscape(s); }
 
+void AppendBrowseHeroArt(std::string& html)
+{
+	const std::string art = UiChrome::NamedFileUrl(AddonPaths::DataDir(), "browse-hero.png");
+	if (art.empty())
+		return;
+	html += "<img class=\"hero-art\" alt=\"\" src=\"";
+	html += art;
+	html += "\"/>";
+}
+
 std::string ToLower(std::string s)
 {
 	for (char& c : s)
@@ -34,10 +44,21 @@ const char* HubCss()
 		s += R"CSS(
 .wrap{max-width:1100px;margin:0 auto;padding:28px 22px 96px;min-height:100vh}
 .hero{
+  position:relative;overflow:hidden;isolation:isolate;
   margin-bottom:22px;padding:1.1rem 1.15rem 1.2rem;
+  min-height:11.5rem;
   background:linear-gradient(165deg,rgba(48,38,22,.4),transparent 55%),var(--panel-inset);
   border:1px solid var(--border);
   box-shadow:inset 0 1px 0 rgba(255,230,160,.1),0 10px 32px rgba(0,0,0,.4);
+}
+.hero-copy{position:relative;z-index:1;max-width:min(36rem,calc(100% - 11rem))}
+.hero-art{
+  position:absolute;right:0;bottom:0;top:0;
+  width:min(46%,260px);height:100%;margin:0;padding:0;
+  pointer-events:none;object-fit:contain;object-position:right bottom;
+  opacity:.92;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 22%);
+  mask-image:linear-gradient(90deg,transparent 0%,#000 22%);
 }
 .hero .eyebrow{margin:0 0 8px}
 h1{margin:0 0 8px;font-size:2.15rem}
@@ -53,6 +74,9 @@ h1{margin:0 0 8px;font-size:2.15rem}
   box-shadow:inset 0 1px 3px rgba(0,0,0,.45);
 }
 .search:focus{outline:1px solid var(--gold-dim);border-color:var(--gold)}
+)CSS";
+		/* Rest of hub styles (toc onward) — keep prior block. */
+		s += R"CSS(
 .toc{
   display:flex;flex-wrap:wrap;gap:.45rem;margin:16px 0 0;padding:12px 0 2px;
   position:sticky;top:0;z-index:5;

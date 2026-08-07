@@ -31,18 +31,19 @@ bool SettingsPad::Render()
 	PadDock::SetSizeConstraints("Settings###GW2InGameHelperSettings", 360.f, 260.f,
 		PadDock::MaxW(560.f), PadDock::MaxH(640.f));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	/* Shrink bloated saved Settings geom from older builds. */
-	bool forceCompact = false;
-	if (G::PadSettings.w > 500.f || G::PadSettings.h > 520.f)
+	/* One-shot heal for absurdly bloated saves from older builds — never fight live resize. */
+	static bool sHealedBloated = false;
+	if (!sHealedBloated)
 	{
-		G::PadSettings.w = kPadW;
-		G::PadSettings.h = kPadH;
-		forceCompact = true;
+		sHealedBloated = true;
+		if (G::PadSettings.w > 900.f || G::PadSettings.h > 900.f)
+		{
+			G::PadSettings.w = kPadW;
+			G::PadSettings.h = kPadH;
+		}
 	}
 	PadDock::Place(G::PadSettings, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
-	if (forceCompact)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
-	else if (!gRequestDock && G::PadSettings.w < 80.f)
+	if (!gRequestDock && G::PadSettings.w < 80.f)
 		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 
 	bool open = G::ShowSettings;

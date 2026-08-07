@@ -12,7 +12,8 @@
 155014.png	dialog_close_navy
 button-exit.png	window_exit
 button-exit-active.png	window_exit_active
-crest-hero.png	title_crest_medallion
+crest-hero.png	title_crest_gem_759457
+browse-hero.png	browse_hub_figure_157243
 panel-wash.png	panel_fill_opaque_crop
 title-bar.png	title_bar_strip_156046
 panel-edge.png	panel_edge_156109

@@ -10,13 +10,15 @@
 #include <cfloat>
 #include <cstring>
 
-bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
+bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float leftExtend)
 {
 	float a = opacity;
 	if (a < 0.f)
 		a = 0.f;
 	if (a > 1.f)
 		a = 1.f;
+	if (leftExtend < 0.f)
+		leftExtend = 0.f;
 
 	ImGuiStorage* st = ImGui::GetStateStorage();
 	const ImGuiID collapsedId = ImGui::GetID("##gw2igh_pad_collapsed");
@@ -56,15 +58,12 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		}
 	};
 
-	/* Expanded title — 156046 strip flush to window top; larger crest + − / X. */
+	/* Expanded title — 156046 strip flush to window top. */
 	const float kTitleH = collapsed ? 28.f : 60.f;
-	const float kEmblem = collapsed ? 0.f : 104.f;
-	const float kEmblemHangTop = collapsed ? 0.f : 26.f;
 	const float kBtn = collapsed ? 22.f : 38.f;
 	const float kExitSz = collapsed ? 20.f : 34.f;
 	constexpr float kPadX = 12.f;
 	constexpr float kBtnGap = 8.f;
-	constexpr float kTitleGap = 8.f;
 	/* Keep X near the frame edge (theme WindowPadding is for body chrome only). */
 	constexpr float kChromeInsetR = 4.f;
 
@@ -75,6 +74,8 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 
 	const ImVec2 win0 = ImGui::GetWindowPos();
 	const float winW = ImGui::GetWindowWidth();
+	/* Strip may overhang left (side rail); right edge stays at window right. */
+	const ImVec2 title0(win0.x - leftExtend, win0.y);
 	const ImGuiStyle& style = ImGui::GetStyle();
 	const float bodyPadX = style.WindowPadding.x;
 	const float contentMaxX = ImGui::GetWindowContentRegionMax().x;
@@ -99,13 +100,8 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 
 	const int nBtns = pOpen ? 2 : 1;
 	const float btnsW = static_cast<float>(nBtns) * kBtn + static_cast<float>(nBtns - 1) * kBtnGap + kPadX;
-	/* Leave room for the overhanging crest so the drag strip doesn't start under it. */
-	const float dragLeft = (!collapsed && kEmblem > 0.f)
-		? (kEmblem * 0.55f + kPadX) : 0.f;
-	const float dragW = winW - dragLeft - btnsW - rightInset;
+	const float dragW = winW - btnsW - rightInset;
 	const float dragWClamped = dragW > 24.f ? dragW : 24.f;
-	if (dragLeft > 0.f)
-		ImGui::SetCursorScreenPos(ImVec2(win0.x + dragLeft, row0.y));
 
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 	const ImU32 col = IM_COL32(255, 255, 255, static_cast<int>(a * 255.f + 0.5f));
@@ -116,11 +112,11 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 
 	if (dl)
 	{
-		const ImVec2 t0 = win0;
+		const ImVec2 t0 = title0;
 		const ImVec2 t1(win0.x + winW, win0.y + kTitleH + (collapsed ? 4.f : 0.f));
 		dl->PushClipRect(t0, ImVec2(t1.x, t1.y + 2.f), false);
 
-		/* Opaque 156046 strip — full width, flush with the window top edge. */
+		/* Opaque 156046 strip — flush top; may overhang left over the side rail. */
 		Texture_t* titleBar = Gw2UiDetail::GetChromeNamed("title-bar");
 		/* Solid underpaint so feathered pack fringes never leave a tan rim at the top. */
 		dl->AddRectFilled(t0, t1, IM_COL32(14, 11, 8, static_cast<int>(a * 255.f + 0.5f)));
@@ -167,36 +163,43 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 
 	if (dl)
 	{
-		float textX = row0.x + kPadX;
-		if (!collapsed && kEmblem > 0.f)
+		/* Title starts on the helper body; crest sits centered over the side rail. */
+		float textX = win0.x + kPadX;
+
+		/*
+		 * Amber gem crest: centered on the left nav column (title strip overhang),
+		 * hangs above the strip like Hero. Title text sits to its right on the body.
+		 */
+		if (!collapsed && leftExtend > 0.f)
 		{
-			/* Pack crest (128² upscale of Hero 157085) — CDN icon is only 32² and blurs. */
-			Texture_t* emblem = Gw2UiDetail::GetChromeNamed("crest-hero");
-			if (!emblem || !emblem->Resource)
+			Texture_t* crest = Gw2UiDetail::GetChromeNamed("crest-hero");
+			if (crest && crest->Resource)
 			{
-				Gw2Ui::Request(Icon::Hero);
-				emblem = Gw2UiDetail::GetTex(static_cast<int>(Icon::Hero));
-			}
-			if (!emblem || !emblem->Resource)
-				emblem = Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::WindowEmblem));
-			const float ex = win0.x - 6.f; /* hang past the left frame like Hero */
-			const float ey = win0.y - kEmblemHangTop;
-			dl->PushClipRect(
-				ImVec2(win0.x - 12.f, win0.y - kEmblemHangTop - 4.f),
-				ImVec2(win0.x + kEmblem + 12.f, win0.y + kEmblem - kEmblemHangTop + 4.f),
-				false);
-			if (emblem && emblem->Resource)
-			{
-				dl->AddImage(reinterpret_cast<ImTextureID>(emblem->Resource),
-					ImVec2(ex, ey),
-					ImVec2(ex + kEmblem, ey + kEmblem),
+				constexpr float kHangTop = 22.f;
+				/* Clear of the gem glow — keep letters fully readable. */
+				constexpr float kCrestGap = 14.f;
+				float kCrest = 88.f;
+				/* Keep crest roughly within the rail width (+ overhang for Hero hang). */
+				if (kCrest > leftExtend + 40.f)
+					kCrest = leftExtend + 40.f;
+				if (kCrest < 48.f)
+					kCrest = 48.f;
+				const float railMid = title0.x + leftExtend * 0.5f;
+				const float cx0 = railMid - kCrest * 0.5f;
+				const float cy0 = win0.y - kHangTop;
+				dl->PushClipRect(
+					ImVec2(cx0 - 4.f, cy0 - 2.f),
+					ImVec2(cx0 + kCrest + 4.f, win0.y + kTitleH + 10.f),
+					false);
+				dl->AddImage(reinterpret_cast<ImTextureID>(crest->Resource),
+					ImVec2(cx0, cy0), ImVec2(cx0 + kCrest, cy0 + kCrest),
 					ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), col);
-				textX = ex + kEmblem + kTitleGap;
+				dl->PopClipRect();
+				textX = cx0 + kCrest + kCrestGap;
 			}
-			dl->PopClipRect();
 		}
 
-		/* Cream title vertically centered in the dark plate (not the crest). */
+		/* Cream title vertically centered in the dark plate. */
 		ImFont* font = ImGui::GetFont();
 		const float baseSz = ImGui::GetFontSize();
 		const float titleSz = collapsed ? baseSz : baseSz * 1.65f;
@@ -347,7 +350,7 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 				st->SetBool(restoreHoldId, false);
 
 			/* Main helper: keep persisted geom in sync with restore. */
-			if (title && std::strstr(title, "In-Game Helper"))
+			if (title && std::strstr(title, "Game Helper"))
 			{
 				G::WindowWidth = useW;
 				G::WindowHeight = useH;
@@ -356,6 +359,6 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity)
 		}
 	}
 
-	ImGui::SetCursorScreenPos(ImVec2(win0.x + bodyPadX, win0.y + kTitleH + 2.f));
+	ImGui::SetCursorScreenPos(ImVec2(win0.x + bodyPadX, win0.y + kTitleH + 6.f));
 	return true;
 }

@@ -74,13 +74,19 @@ namespace UiScale
 		return Clampf(design * base, 72.f, 260.f);
 	}
 
-	/* Compact game-like icon dock (no labels). */
-	inline float IconRailWidth(float iconSize = 26.f)
+	/*
+	 * Side-rail chrome pads — must match UI_ChromeSideRail PushStyleVar values.
+	 * Do not read ImGui::GetStyle().WindowPadding: title-bar measure runs under the
+	 * helper theme (large pad) while the rail itself draws after CEF zeroes padding,
+	 * which made the title strip stick out past the rail.
+	 */
+	inline float IconRailWidth(float iconSize = 52.f)
 	{
-		const ImGuiStyle& style = ImGui::GetStyle();
+		constexpr float kWinPadX = 4.f;
+		constexpr float kFramePadX = 4.f;
 		const float base = Clampf((G::FontScale > 0.1f) ? G::FontScale : 1.f, 1.f, 1.25f);
-		const float w = iconSize + style.FramePadding.x * 2.f + style.WindowPadding.x * 2.f + 12.f;
-		return Clampf(w * base, 40.f, 64.f);
+		const float w = iconSize + kFramePadX * 2.f + kWinPadX * 2.f + 12.f;
+		return Clampf(w * base, 56.f, 120.f);
 	}
 
 	/* Widest visible label + frame/window padding (call after Begin + font scale).
@@ -89,9 +95,11 @@ namespace UiScale
 	inline float FitSideRailWidth(const char* const* labels, int count,
 		float minW = 80.f, float maxW = 260.f, float iconSize = 0.f)
 	{
+		constexpr float kWinPadX = 6.f;
+		constexpr float kFramePadX = 6.f;
 		const ImGuiStyle& style = ImGui::GetStyle();
 		const float iconExtra = (iconSize > 0.f)
-			? (iconSize + style.ItemInnerSpacing.x + style.FramePadding.x + 10.f)
+			? (iconSize + style.ItemInnerSpacing.x + kFramePadX + 10.f)
 			: 0.f;
 		/* FontScale / denser Nexus fonts on some Windows hosts. */
 		const float fontMul = Clampf((G::FontScale > 0.1f) ? G::FontScale : 1.f, 1.f, 1.75f);
@@ -105,8 +113,7 @@ namespace UiScale
 			const ImVec2 ts = end
 				? ImGui::CalcTextSize(labels[i], end, true)
 				: ImGui::CalcTextSize(labels[i], nullptr, true);
-			const float need = ts.x + style.FramePadding.x * 2.f +
-				style.WindowPadding.x * 2.f + 8.f + iconExtra;
+			const float need = ts.x + kFramePadX * 2.f + kWinPadX * 2.f + 8.f + iconExtra;
 			if (need > w)
 				w = need;
 		}

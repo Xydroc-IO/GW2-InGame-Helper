@@ -42,15 +42,31 @@ namespace
 		PadNav::PushLabeledItemWidth();
 		if (ImGui::SliderFloat("Opacity###gw2igh_opacity", &G::Opacity, 0.15f, 1.f, "%.2f"))
 			Settings::SetDirty();
-		if (ImGui::SliderFloat("Font scale###gw2igh_font", &G::FontScale, 0.75f, 2.f, "%.2f"))
+		/* Draft font scale while dragging — applying live SetWindowFontScale moves the
+		   grabber under the cursor and makes the slider (and pad) thrash. */
+		static float sFontDraft = -1.f;
+		float fontEdit = (sFontDraft > 0.f) ? sFontDraft : G::FontScale;
+		if (ImGui::SliderFloat("Font scale###gw2igh_font", &fontEdit, 0.75f, 2.f, "%.2f"))
 		{
+			sFontDraft = fontEdit;
 			G::FontScaleAuto = false;
 			Settings::SetDirty();
 		}
+		if (ImGui::IsItemActive())
+		{
+			sFontDraft = fontEdit;
+		}
+		else if (sFontDraft > 0.f)
+		{
+			G::FontScale = sFontDraft;
+			sFontDraft = -1.f;
+			Settings::SetDirty();
+		}
 		PadNav::PopLabeledItemWidth();
-		MutedWrap("Default 1.00x — applies the same to every panel.");
+		MutedWrap("Default 1.00x — applies the same to every panel (commits when you release).");
 		if (ImGui::Checkbox("Auto font scale###gw2igh_font_auto", &G::FontScaleAuto))
 		{
+			sFontDraft = -1.f;
 			if (G::FontScaleAuto)
 			{
 				const ImGuiIO& io = ImGui::GetIO();

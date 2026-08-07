@@ -263,7 +263,9 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, 
 	if (tex)
 	{
 		const ImGuiStyle& st = ImGui::GetStyle();
-		const float padY = showLabel ? st.FramePadding.y * 2.f : 6.f;
+		const float padY = showLabel
+			? st.FramePadding.y * 2.f
+			: (iconSize * 0.12f > 2.f ? iconSize * 0.12f : 2.f);
 		const float frameH = ImGui::GetFrameHeight();
 		const float h = showLabel
 			? (frameH > iconSize + padY ? frameH : iconSize + padY)

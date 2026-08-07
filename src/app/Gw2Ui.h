@@ -90,7 +90,8 @@ namespace Gw2Ui
 
 	/* Paint Immersive pad chrome from extracted ui-chrome pack. Call after Begin.
 	   Returns true when panel fill was drawn. */
-	bool PaintPadChrome(float opacity = 1.f);
+	/* omitLeftEdge / omitRightEdge: skip ink fringe when that side joins another plate. */
+	bool PaintPadChrome(float opacity = 1.f, bool omitLeftEdge = false, bool omitRightEdge = false);
 
 	/* Draw native GW2 scroll chrome (DAT thumb/arrows) over ImGui's transparent grab.
 	   Call AFTER ImGui::End() with the pad window pointer (still valid until frame end). */
@@ -98,8 +99,10 @@ namespace Gw2Ui
 
 	/* Blish-style title row: emblem + gold title + minimize + close.
 	   Call after PaintPadChrome when using ImGuiWindowFlags_NoTitleBar.
-	   Returns false when the pad is minimized (skip body widgets). */
-	bool DrawPadTitleBar(const char* title, bool* pOpen, float opacity = 1.f);
+	   leftExtend grows the strip left past the window (Helper side rail flush).
+	   Right edge stays at the window's right. Returns false when minimized. */
+	bool DrawPadTitleBar(const char* title, bool* pOpen, float opacity = 1.f,
+		float leftExtend = 0.f);
 
 	/* Flags for pads that use PaintPadChrome + DrawPadTitleBar. */
 	inline ImGuiWindowFlags PadWindowFlags(ImGuiWindowFlags extra = 0)

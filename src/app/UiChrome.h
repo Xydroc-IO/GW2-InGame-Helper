@@ -16,6 +16,8 @@ namespace UiChrome
 
 	/* file:/// URL for HTML backgrounds (empty if Ensure/file missing). */
 	std::string FillFileUrl(const std::wstring& addonDir, int assetId = 155985);
+	/* file:/// URL for a named pack PNG (e.g. "browse-hero.png"). */
+	std::string NamedFileUrl(const std::wstring& addonDir, const char* fileName);
 
 	/* Request Nexus upload from extracted files (prefer over CDN for chrome). */
 	void WarmTextures(const std::wstring& addonDir);
