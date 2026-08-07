@@ -24,7 +24,7 @@ namespace CraftingDetail
 		CartEnsureLoaded();
 		PadNav::SectionTitle("Craft cart");
 		ImGui::TextColored(HelperTheme::Muted,
-			"Named multi-item projects with check-off shopping.");
+			"Home for craft projects. Economy cart is TP shopping only — use Send to Crafting plan there.");
 
 		std::vector<std::string> names = CartProjectNames();
 		int activeIdx = 0;

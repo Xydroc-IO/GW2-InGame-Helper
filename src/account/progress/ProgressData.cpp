@@ -329,11 +329,19 @@ void ProgressData::RenderContents()
 	const Snapshot& snap = gDraw;
 
 	PadNav::Blurb(
-		"Legendary Armory unlocks and roster - official API, read-only. "
+		"ImGui armory + roster (API). Primary legendary discovery is the side-rail Ledger. "
 		"Use Plan on a legendary to open Crafting with its gift / forge tree.");
 
 	if (PadNav::RefreshButton("###gw2igh_prog_ref"))
 		StartFetch(true);
+	ImGui::SameLine();
+	if (ImGui::SmallButton("Open Ledger###gw2igh_prog_ledger"))
+	{
+		G::ShowWiki = true;
+		Settings::SetDirty();
+		if (BrowserTabs::OpenNewUrl("legvault", "about:legendary-vault") < 0)
+			WikiBrowser::Navigate("about:legendary-vault");
+	}
 	ImGui::SameLine();
 	if (gBusy)
 		PadNav::StatusBusy();

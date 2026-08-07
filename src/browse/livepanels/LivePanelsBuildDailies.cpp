@@ -181,19 +181,21 @@ std::string BuildDailiesHtml(const std::wstring& addonDir, const char* apiKey)
 
 	body += "<section class=\"block\" id=\"links\"><div class=\"head\"><h2>Related</h2></div><div class=\"body\">"
 		"<ul class=\"rows\">"
-		"<li><a class=\"link\" href=\"about:daily-weekly\">Offline Daily / Weekly checklist</a></li>"
+		"<li><a class=\"link\" href=\"about:daily-weekly\">Offline Daily / Weekly checklist (reference only)</a></li>"
 		"<li><a class=\"link\" href=\"https://wiki.guildwars2.com/wiki/Wizard%27s_Vault/Easy_objectives\">Wiki — Easy Vault objectives</a></li>"
 		"<li><a class=\"link\" href=\"https://gw2timer.com/\">GW2Timer — live schedules</a></li>"
 		"<li><a class=\"link\" href=\"https://account.arena.net/applications\">Create / manage API keys</a></li>"
 		"</ul></div></section>\n";
 
 	return BuildPage(
-		"Live — Dailies &amp; Vault",
+		"Live — Today board",
 		"GW2 In-Game Helper · Live",
-		"Dailies &amp; Wizard’s Vault",
+		"Today — Vault, crafting &amp; bosses",
 		hasKey
-			? "Live Vault progress from your API key, plus crafting and world-boss checklists."
-			: "Add your API key in Settings (helper side rail) for live Vault — crafting and bosses work now.",
+			? "Today board: Vault progress shares the Account Vault cache (SoT), plus daily crafting and world bosses. "
+			  "Manage Vault ticks on the Vault pad."
+			: "Today board: crafting and bosses work now. Add your API key in Settings for live Vault "
+			  "(Account Vault pad is the source of truth).",
 		"<a href=\"#apikey\">API key</a>\n<a href=\"#vault-daily\">Vault</a>\n"
 		"<a href=\"#craft\">Crafting</a>\n<a href=\"#bosses\">Bosses</a>\n<a href=\"#links\">Links</a>",
 		body);

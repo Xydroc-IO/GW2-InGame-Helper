@@ -123,7 +123,7 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 		 */
 		Texture_t* titleBar = Gw2UiDetail::GetChromeNamed("title-bar");
 		Texture_t* fillFallback = nullptr;
-		if ((!titleBar || !titleBar->Resource) && !collapsed)
+		if (!titleBar || !titleBar->Resource)
 			fillFallback = Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::PanelFill));
 
 		auto imageHFade = [&](ImTextureID tex, ImVec2 pmin, ImVec2 pmax,
@@ -148,24 +148,26 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 				dl->PopTextureID();
 		};
 
-		if (!collapsed)
+		/* Same Hero chrome when minimized — slim strip still fades L→R with grey pocket. */
 		{
 			const float stripW = t1.x - t0.x;
-			/*
-			 * Hero: dense left → soft mid (world shows) → lil grey pocket on the
-			 * far right behind − / X (never fade all the way to clear).
-			 */
 			constexpr float kHold = 0.28f;
 			constexpr float kTrough = 0.76f;
 			const float xHold = t0.x + stripW * kHold;
 			const float xTrough = t0.x + stripW * kTrough;
 
-			const int aSolid = static_cast<int>(a * 255.f + 0.5f);
-			const int aUnder = static_cast<int>(a * 210.f + 0.5f);
-			const int aTroughTex = static_cast<int>(a * 40.f + 0.5f);
-			const int aCornerTex = static_cast<int>(a * 165.f + 0.5f);
-			const int aTroughUnd = static_cast<int>(a * 32.f + 0.5f);
-			const int aCornerUnd = static_cast<int>(a * 150.f + 0.5f);
+			/* Collapsed: slightly denser so a lone bar still reads as metal, not a hole. */
+			const float dens = collapsed ? 1.12f : 1.f;
+			auto clampA = [](float v) {
+				const int i = static_cast<int>(v + 0.5f);
+				return i < 0 ? 0 : (i > 255 ? 255 : i);
+			};
+			const int aSolid = clampA(a * 255.f * dens);
+			const int aUnder = clampA(a * 210.f * dens);
+			const int aTroughTex = clampA(a * (collapsed ? 70.f : 40.f));
+			const int aCornerTex = clampA(a * 165.f * dens);
+			const int aTroughUnd = clampA(a * (collapsed ? 55.f : 32.f));
+			const int aCornerUnd = clampA(a * 150.f * dens);
 			const ImU32 texSolid = IM_COL32(255, 255, 255, aSolid);
 			const ImU32 texTrough = IM_COL32(255, 255, 255, aTroughTex);
 			const ImU32 texCorner = IM_COL32(255, 255, 255, aCornerTex);
@@ -203,25 +205,22 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 			drawSeg(xHold, xTrough, kHold, kTrough, texSolid, texTrough);
 			drawSeg(xTrough, t1.x, kTrough, 1.f, texTrough, texCorner);
 
-			/* Hairline under-edge follows the same hold → trough → corner pocket. */
 			dl->AddRectFilled(
 				ImVec2(t0.x, t1.y - 1.5f), ImVec2(xHold, t1.y - 0.5f),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 160.f + 0.5f)));
+				IM_COL32(55, 48, 38, clampA(a * 160.f)));
 			dl->AddRectFilledMultiColor(
 				ImVec2(xHold, t1.y - 1.5f), ImVec2(xTrough, t1.y - 0.5f),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 160.f + 0.5f)),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 40.f + 0.5f)),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 40.f + 0.5f)),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 160.f + 0.5f)));
+				IM_COL32(55, 48, 38, clampA(a * 160.f)),
+				IM_COL32(55, 48, 38, clampA(a * 40.f)),
+				IM_COL32(55, 48, 38, clampA(a * 40.f)),
+				IM_COL32(55, 48, 38, clampA(a * 160.f)));
 			dl->AddRectFilledMultiColor(
 				ImVec2(xTrough, t1.y - 1.5f), ImVec2(t1.x, t1.y - 0.5f),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 40.f + 0.5f)),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 120.f + 0.5f)),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 120.f + 0.5f)),
-				IM_COL32(55, 48, 38, static_cast<int>(a * 40.f + 0.5f)));
+				IM_COL32(55, 48, 38, clampA(a * 40.f)),
+				IM_COL32(55, 48, 38, clampA(a * 120.f)),
+				IM_COL32(55, 48, 38, clampA(a * 120.f)),
+				IM_COL32(55, 48, 38, clampA(a * 40.f)));
 		}
-		else
-			dl->AddRectFilled(t0, t1, IM_COL32(8, 7, 6, static_cast<int>(a * 235.f + 0.5f)));
 
 		dl->PopClipRect();
 	}

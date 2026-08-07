@@ -220,7 +220,7 @@ namespace HelperDetail
 		else if (std::strcmp(url, "about:live-tp") == 0)
 			fileNameW = L"live-tp.html";
 		else if (std::strcmp(url, "about:live-progress") == 0)
-			fileNameW = L"live-progress.html";
+			fileNameW = L"live-legendary-vault.html"; /* demoted → Ledger */
 		else if (std::strcmp(url, "about:gw2-api-check") == 0)
 			fileNameW = L"gw2-api-check.html";
 		else if (std::strcmp(url, "about:currency-sinks") == 0)

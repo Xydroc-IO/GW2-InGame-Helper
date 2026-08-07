@@ -249,12 +249,12 @@ static void DrawCart()
 	using namespace EconomyDetail;
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Shopping list only - no orders placed.");
+		"TP shopping list only — craft projects live on Account → Crafting cart.");
 	PadNav::PopWrap();
 	if (ImGui::Button("Clear cart###gw2igh_eco_cc"))
 		ClearCart();
 	ImGui::SameLine();
-	if (ImGui::Button("Account Crafting###gw2igh_eco_craft"))
+	if (ImGui::Button("Open Crafting###gw2igh_eco_craft"))
 	{
 		CraftingData::RequestFocusTab();
 		AccountPad::OpenAndRefresh();
@@ -262,7 +262,7 @@ static void DrawCart()
 	if (!gCart.empty())
 	{
 		ImGui::SameLine();
-		if (ImGui::Button("Plan first###gw2igh_eco_plan1"))
+		if (ImGui::Button("Send first to Crafting plan###gw2igh_eco_plan1"))
 		{
 			char q[96];
 			if (gCart[0].name[0])
@@ -285,7 +285,7 @@ static void DrawCart()
 		ImGui::SameLine();
 		const bool remove = ImGui::SmallButton("X");
 		ImGui::SameLine();
-		if (ImGui::SmallButton("Plan"))
+		if (ImGui::SmallButton("Send to Crafting plan"))
 		{
 			char q[96];
 			if (c.name[0])

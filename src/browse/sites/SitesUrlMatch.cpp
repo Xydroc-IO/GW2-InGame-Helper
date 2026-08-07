@@ -108,7 +108,7 @@ int Sites::BestMatchForUrl(const std::string& url)
 		if (hit >= 0) return hit;
 		hit = fileHit("live-tp", "live_tp");
 		if (hit >= 0) return hit;
-		/* live-progress.html → Account → Progress (no Browse site id). */
+		/* live-progress.html / about:live-progress → Legendary Ledger (primary). */
 		hit = fileHit("currency-sinks", "currencysinks");
 		if (hit >= 0) return hit;
 		hit = fileHit("ascended-start", "ascendedstart");

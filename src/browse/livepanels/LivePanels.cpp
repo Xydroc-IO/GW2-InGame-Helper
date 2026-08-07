@@ -107,7 +107,7 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 	}
 	if (url == "about:live-dailies")
 		return EnsurePanel(addonDir, "live-dailies", LiveAsyncJob::Dailies,
-			"Live — Dailies &amp; Vault", "Dailies &amp; Wizard’s Vault");
+			"Live — Today board", "Today — Vault, crafting &amp; bosses");
 	if (url == "about:live-news")
 		return EnsurePanel(addonDir, "live-news", LiveAsyncJob::News,
 			"Live — News &amp; Patch Digest", "News &amp; Patch Digest");
@@ -117,10 +117,8 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 	if (url == "about:live-tp")
 		return EnsurePanel(addonDir, "live-tp", LiveAsyncJob::Tp,
 			"Live — Trading Post Watchlist", "My TP Watchlist");
-	if (url == "about:live-progress")
-		return EnsurePanel(addonDir, "live-progress", LiveAsyncJob::Progress,
-			"Live — Legendaries &amp; Characters", "Legendaries &amp; Characters");
-	if (url == "about:legendary-vault")
+	/* live-progress demoted — Ledger is primary legendary discovery. */
+	if (url == "about:live-progress" || url == "about:legendary-vault")
 	{
 		/* Always re-fetch /v2/account/legendaryarmory so Owned/Missing stays current
 		   without requiring Sync craft tree. */

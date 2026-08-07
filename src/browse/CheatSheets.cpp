@@ -20,7 +20,7 @@ extern "C" const unsigned char _binary_build_cheatsheets_zip_end[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "c2223";
+	constexpr const char* kPackStamp = "c2224";
 
 	struct OwnedSheet
 	{
