@@ -62,6 +62,7 @@ namespace HelperDetail
 	cef_find_handler_t gFind{};
 	cef_request_handler_t gRequest{};
 	cef_resource_request_handler_t gResourceRequest{};
+	cef_context_menu_handler_t gContextMenu{};
 
 	/* OSR <select> / combobox popup — PET_POPUP must be composited onto the view
 	   or dropdowns are invisible and clicks miss (breaks account Save too). */

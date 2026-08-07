@@ -17,11 +17,13 @@
 #include "include/capi/cef_callback_capi.h"
 #include "include/capi/cef_client_capi.h"
 #include "include/capi/cef_command_line_capi.h"
+#include "include/capi/cef_context_menu_handler_capi.h"
 #include "include/capi/cef_display_handler_capi.h"
 #include "include/capi/cef_find_handler_capi.h"
 #include "include/capi/cef_frame_capi.h"
 #include "include/capi/cef_life_span_handler_capi.h"
 #include "include/capi/cef_load_handler_capi.h"
+#include "include/capi/cef_menu_model_capi.h"
 #include "include/capi/cef_render_handler_capi.h"
 #include "include/capi/cef_request_capi.h"
 #include "include/capi/cef_request_handler_capi.h"
@@ -332,6 +334,23 @@ namespace HelperDetail
 	cef_render_handler_t* CEF_CALLBACK GetRender(cef_client_t*) { return &gRender; }
 	cef_find_handler_t* CEF_CALLBACK GetFind(cef_client_t*) { return &gFind; }
 	cef_request_handler_t* CEF_CALLBACK GetRequest(cef_client_t*) { return &gRequest; }
+	cef_context_menu_handler_t* CEF_CALLBACK GetContextMenu(cef_client_t*) { return &gContextMenu; }
+
+	void CEF_CALLBACK OnBeforeContextMenu(
+		cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*,
+		cef_context_menu_params_t*, cef_menu_model_t* model)
+	{
+		if (model && model->clear)
+			model->clear(model);
+	}
+
+	int CEF_CALLBACK RunQuickMenu(
+		cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*,
+		const cef_point_t*, const cef_size_t*,
+		cef_quick_menu_edit_state_flags_t, cef_run_quick_menu_callback_t*)
+	{
+		return 0; /* cancel OSR quick menu */
+	}
 
 	void InitHandlers()
 	{
@@ -377,6 +396,11 @@ namespace HelperDetail
 		gRequest.on_open_urlfrom_tab = OnOpenUrlFromTab;
 		gRequest.get_resource_request_handler = GetResourceRequestHandler;
 
+		std::memset(&gContextMenu, 0, sizeof(gContextMenu));
+		InitBase(&gContextMenu.base, sizeof(gContextMenu));
+		gContextMenu.on_before_context_menu = OnBeforeContextMenu;
+		gContextMenu.run_quick_menu = RunQuickMenu;
+
 		std::memset(&gClient, 0, sizeof(gClient));
 		InitBase(&gClient.base, sizeof(gClient));
 		gClient.get_life_span_handler = GetLifeSpan;
@@ -385,6 +409,7 @@ namespace HelperDetail
 		gClient.get_render_handler = GetRender;
 		gClient.get_find_handler = GetFind;
 		gClient.get_request_handler = GetRequest;
+		gClient.get_context_menu_handler = GetContextMenu;
 
 		std::memset(&gApp, 0, sizeof(gApp));
 		InitBase(&gApp.base, sizeof(gApp));

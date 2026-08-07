@@ -15,11 +15,13 @@
 #include "include/capi/cef_browser_capi.h"
 #include "include/capi/cef_client_capi.h"
 #include "include/capi/cef_command_line_capi.h"
+#include "include/capi/cef_context_menu_handler_capi.h"
 #include "include/capi/cef_display_handler_capi.h"
 #include "include/capi/cef_find_handler_capi.h"
 #include "include/capi/cef_frame_capi.h"
 #include "include/capi/cef_life_span_handler_capi.h"
 #include "include/capi/cef_load_handler_capi.h"
+#include "include/capi/cef_menu_model_capi.h"
 #include "include/capi/cef_render_handler_capi.h"
 #include "include/capi/cef_request_handler_capi.h"
 #include "include/capi/cef_resource_request_handler_capi.h"
@@ -83,6 +85,7 @@ namespace HelperDetail
 	extern cef_find_handler_t gFind;
 	extern cef_request_handler_t gRequest;
 	extern cef_resource_request_handler_t gResourceRequest;
+	extern cef_context_menu_handler_t gContextMenu;
 
 	extern bool gPopupShow;
 	extern cef_rect_t gPopupRect;
