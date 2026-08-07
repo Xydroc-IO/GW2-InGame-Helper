@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.7
+# GW2 In-Game Helper v2.2.3.8
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,6 +32,23 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.8
+
+- **Economy hub:** Stash, Trading (delivery + watchlist), Item lookup, and Crafting moved under
+  Economy; Account keeps Overview / Progress / Unlocks / History. Lazy tab soft-kick on open.
+- **Vault pad:** Wizard’s Vault is its own side-rail button (under Compass) with gold star icon
+  (`561441`); still `Ctrl+Shift+V`.
+- **Side rail:** COMPANIONS section removed — tools live under one TOOLS list; reordered
+  (Compass → Vault → Events → Instances → Economy → Farming → Pathing…).
+- **Rail icons:** Content UV fit so padded PNGs match dense ones; Pathing / Trail Tools /
+  Vault icons packed in ui-chrome `uc25`.
+- **Crafting known recipes:** Parallel bulk detail workers + disk cache; 429 backoff / stubs so
+  “Loading details N / M” can finish instead of rate-limit spinning.
+- **Instances / Completion:** Raids weekly clears from `/v2/account/raids`; Atlas strikes +
+  festival scopes (carried with this ship).
+- **Stamps:** Helper `2241` · homepage `2227` · sites `s2213` · cheatsheets `c2224`
+  · live panel `51` · raid food `7` · ui-chrome `uc25`
 
 ## What’s new in 2.2.3.7
 

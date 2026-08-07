@@ -573,7 +573,7 @@ install: $(DLL_OUT)
 	# Seed Immersive chrome so pads look correct even before first extract.
 	@mkdir -p "$(INSTALL_DIR)/ui-chrome"
 	/bin/cp -f data/ui-chrome/*.png "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
-	@printf 'uc23' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
+	@printf 'uc25' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"
