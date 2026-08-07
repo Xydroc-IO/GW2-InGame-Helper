@@ -5,6 +5,7 @@
 #include <cstring>
 #include <initializer_list>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace InstancesDetail
@@ -34,44 +35,88 @@ namespace InstancesDetail
 		gEntries.push_back(std::move(e));
 	}
 
+	/* text + /v2/account/raids encounter id */
+	static void AddRaid(int id, const char* name, const char* blurb,
+		std::initializer_list<std::pair<const char*, const char*>> steps)
+	{
+		Entry e{};
+		e.id = id;
+		e.kind = Kind::Raid;
+		std::snprintf(e.name, sizeof(e.name), "%s", name);
+		std::snprintf(e.blurb, sizeof(e.blurb), "%s", blurb);
+		for (const auto& p : steps)
+		{
+			Step st{};
+			std::snprintf(st.text, sizeof(st.text), "%s", p.first);
+			if (p.second && p.second[0])
+				std::snprintf(st.apiId, sizeof(st.apiId), "%s", p.second);
+			e.steps.push_back(st);
+		}
+		gEntries.push_back(std::move(e));
+	}
+
 	void EnsureCatalog()
 	{
 		if (gReady) return;
-		Add(1, Kind::Raid, "Spirit Vale (W1)", "Weekly raid wing",
-			{"Vale Guardian", "Spirit Woods", "Gorseval", "Sabetha"});
-		Add(2, Kind::Raid, "Salvation Pass (W2)", "Weekly raid wing",
-			{"Slothasor", "Bandit Trio", "Matthias"});
-		Add(3, Kind::Raid, "Stronghold of the Faithful (W3)", "Weekly raid wing",
-			{"Escort", "Keep Construct", "Xera"});
-		Add(4, Kind::Raid, "Bastion of the Penitent (W4)", "Weekly raid wing",
-			{"Cairn", "Mursaat Overseer", "Samarog", "Deimos"});
-		Add(5, Kind::Raid, "Hall of Chains (W5)", "Weekly raid wing",
-			{"Soulless Horror", "River of Souls", "Statues of Grenth", "Dhuum"});
-		Add(6, Kind::Raid, "Mythwright Gambit (W6)", "Weekly raid wing",
-			{"Conjured Amalgamate", "Twin Largos", "Qadim"});
-		Add(7, Kind::Raid, "The Key of Ahdashim (W7)", "Weekly raid wing",
-			{"Cardinal Adina", "Cardinal Sabir", "Qadim the Peerless"});
-		Add(10, Kind::Fractal, "Nightmare", "CM / challenge",
+		AddRaid(1, "Spirit Vale (W1)", "Weekly raid wing — synced via /v2/account/raids",
+			{{"Vale Guardian", "vale_guardian"},
+			 {"Spirit Woods", "spirit_woods"},
+			 {"Gorseval", "gorseval"},
+			 {"Sabetha", "sabetha"}});
+		AddRaid(2, "Salvation Pass (W2)", "Weekly raid wing — synced via /v2/account/raids",
+			{{"Slothasor", "slothasor"},
+			 {"Bandit Trio", "bandit_trio"},
+			 {"Matthias", "matthias"}});
+		AddRaid(3, "Stronghold of the Faithful (W3)", "Weekly raid wing — synced via /v2/account/raids",
+			{{"Escort", "escort"},
+			 {"Keep Construct", "keep_construct"},
+			 {"Twisted Castle", "twisted_castle"},
+			 {"Xera", "xera"}});
+		AddRaid(4, "Bastion of the Penitent (W4)", "Weekly raid wing — synced via /v2/account/raids",
+			{{"Cairn", "cairn"},
+			 {"Mursaat Overseer", "mursaat_overseer"},
+			 {"Samarog", "samarog"},
+			 {"Deimos", "deimos"}});
+		AddRaid(5, "Hall of Chains (W5)", "Weekly raid wing — synced via /v2/account/raids",
+			{{"Soulless Horror", "soulless_horror"},
+			 {"River of Souls", "river_of_souls"},
+			 {"Statues of Grenth", "statues_of_grenth"},
+			 {"Dhuum", "voice_in_the_void"}});
+		AddRaid(6, "Mythwright Gambit (W6)", "Weekly raid wing — synced via /v2/account/raids",
+			{{"Conjured Amalgamate", "conjured_amalgamate"},
+			 {"Twin Largos", "twin_largos"},
+			 {"Qadim", "qadim"}});
+		AddRaid(7, "The Key of Ahdashim (W7)", "Weekly raid wing — synced via /v2/account/raids",
+			{{"Gate", "gate"},
+			 {"Cardinal Adina", "adina"},
+			 {"Cardinal Sabir", "sabir"},
+			 {"Qadim the Peerless", "qadim_the_peerless"}});
+		AddRaid(8, "Mount Balrior (W8)", "Weekly raid wing — synced via /v2/account/raids",
+			{{"Camp", "camp"},
+			 {"Greer", "greer"},
+			 {"Decima", "decima"},
+			 {"Ura", "ura"}});
+		Add(10, Kind::Fractal, "Nightmare", "CM / challenge — local journal",
 			{"MAMA", "Siax", "Ensolyss"});
-		Add(11, Kind::Fractal, "Shattered Observatory", "CM / challenge",
+		Add(11, Kind::Fractal, "Shattered Observatory", "CM / challenge — local journal",
 			{"Skorvald", "Artsariiv", "Arkk"});
-		Add(12, Kind::Fractal, "Sunqua Peak", "CM / challenge",
+		Add(12, Kind::Fractal, "Sunqua Peak", "CM / challenge — local journal",
 			{"Ai - elemental", "Ai - dark"});
-		Add(13, Kind::Fractal, "Silent Surf", "CM / challenge",
+		Add(13, Kind::Fractal, "Silent Surf", "CM / challenge — local journal",
 			{"Kanaxai"});
-		Add(14, Kind::Fractal, "Lonely Tower", "CM / challenge",
+		Add(14, Kind::Fractal, "Lonely Tower", "CM / challenge — local journal",
 			{"Eparch"});
-		Add(15, Kind::Fractal, "Kinfall", "CM / challenge",
+		Add(15, Kind::Fractal, "Kinfall", "CM / challenge — local journal",
 			{"Whispering Shadow"});
-		Add(20, Kind::Strike, "Icebrood Saga strikes", "Weekly strikes",
+		Add(20, Kind::Strike, "Icebrood Saga strikes", "Weekly strikes — local journal",
 			{"Fraenir of Jormag", "Voice and Claw", "Boneskinner", "Whisper of Jormag",
 				"Cold War"});
-		Add(21, Kind::Strike, "End of Dragons strikes", "Weekly strikes",
+		Add(21, Kind::Strike, "End of Dragons strikes", "Weekly strikes — local journal",
 			{"Aetherblade Hideout", "Xunlai Jade Junkyard", "Kaineng Overlook",
 				"Harvest Temple", "Old Lion's Court"});
-		Add(22, Kind::Strike, "Secrets of the Obscure", "Weekly strikes",
+		Add(22, Kind::Strike, "Secrets of the Obscure", "Weekly strikes — local journal",
 			{"Cosmic Observatory", "Temple of Febe"});
-		Add(23, Kind::Strike, "Janthir Wilds", "Weekly strikes",
+		Add(23, Kind::Strike, "Janthir Wilds", "Weekly strikes — local journal",
 			{"Mount Balrior - Greer", "Decima", "Ura"});
 		Add(30, Kind::Story, "Personal Story", "Core chapters",
 			{"Chapter 1-3", "Chapter 4-5", "Chapter 6-7", "Chapter 8"});
@@ -175,7 +220,6 @@ namespace InstancesDetail
 		return dir;
 	}
 
-
 	static bool WriteUtf8File(const std::wstring& path, const std::string& body)
 	{
 		HANDLE h = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
@@ -228,8 +272,6 @@ namespace InstancesDetail
 	void LoadProgress()
 	{
 		EnsureCatalog();
-		/* Always reset first - Load only SETs from file, so stale in-memory ticks
-		   would stick after an uncheck+reopen without this wipe. */
 		for (auto& en : gEntries)
 		{
 			en.cleared = false;

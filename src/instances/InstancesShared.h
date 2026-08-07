@@ -18,7 +18,12 @@ namespace InstancesDetail
 		}
 	}
 
-	struct Step { char text[160]{}; bool done = false; };
+	struct Step
+	{
+		char text[160]{};
+		char apiId[48]{}; /* /v2/account/raids encounter id; empty = local-only */
+		bool done = false;
+	};
 	struct Entry
 	{
 		int id = 0;
@@ -47,4 +52,10 @@ namespace InstancesDetail
 	int CountCleared(Kind k);
 	int CountEntries(Kind k);
 	int CountStepsDone(size_t entry);
+
+	/* Apply /v2/account/raids encounter ids onto raid steps (SoT for weekly clears). */
+	void ApplyRaidEncounterIds(const std::vector<std::string>& ids);
+	void StartRaidSync(bool force);
+	void TickRaidSync(); /* call from pad render — apply pending worker result */
+	bool RaidSyncBusy();
 }

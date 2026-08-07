@@ -85,9 +85,15 @@ bool InstancesPad::Render()
 	}
 
 	ImGui::BeginChild("###gw2igh_inst_body", ImVec2(0.f, 0.f), true);
-	PadNav::Blurb("Local journals - ticks save on disk. Not live weekly API.");
+	TickRaidSync();
+	PadNav::Blurb("Raids sync from account weekly clears (/v2/account/raids). Story, fractals, and strikes stay local.");
 	ImGui::TextColored(HelperTheme::Muted, "%s cleared: %d / %d",
 		KindName(gKind), CountCleared(gKind), CountEntries(gKind));
+	if (ImGui::Button("Sync raids###gw2igh_inst_sync"))
+		StartRaidSync(true);
+	ImGui::SameLine();
+	if (RaidSyncBusy())
+		PadNav::StatusBusy();
 	if (ImGui::Button("Reset category###gw2igh_inst_clr"))
 		ClearKind(gKind);
 	ImGui::SameLine();
@@ -96,6 +102,10 @@ bool InstancesPad::Render()
 	if (gStatus[0])
 		ImGui::TextWrapped("%s", gStatus);
 	ImGui::Separator();
+
+	/* Auto-sync once when opening Raids with a key. */
+	if (gKind == Kind::Raid)
+		StartRaidSync(false);
 
 	/* Keep selection on the active kind; auto-pick first so steps show immediately. */
 	if (gSelected >= 0)
