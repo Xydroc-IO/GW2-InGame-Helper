@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.3
+# GW2 In-Game Helper v2.2.3.4
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,6 +32,22 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.4
+
+- **Compact pad defaults:** Shared Compact (`440×480`) / Workbench (`560×640`) /
+  Pathing (`640×700`) FirstUseEver sizes via `PadDock`; DPS Logs stay display-sized.
+- **Icon side dock:** External compact rail (labels optional); curated ui-chrome icons
+  (`uc19`).
+- **Uniform fonts:** Global FontScale only (no per-window size multiplier); auto scale
+  capped ~1.15×.
+- **Wallet & Stash:** Parallel inventory+equipment per toon; progressive character
+  publish; no dual InventoryData crawl on open.
+- **DAT scrollbars:** Paint native scroll chrome **after** `End()` so ImGui’s gold grab
+  no longer covers it; `Gw2UiPadChrome` / `Title` / `Scroll` split (≤500-line rule).
+- **Minimize restore:** Pad size constraints allow title-strip height when collapsed.
+- **Stamps:** Helper `2236` · homepage `2222` · sites `s2213` · cheatsheets `c2218`
+  · live panel `46` · raid food `5` · ui-chrome `uc19`
 
 ## What’s new in 2.2.3.3
 
