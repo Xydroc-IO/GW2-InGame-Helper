@@ -261,6 +261,13 @@ void LivePanels::InvalidateCaches(const std::wstring& addonDir)
 	};
 	for (const char* stem : stems)
 	{
+		/* Browse HTML stays on disk — stamp wipe only (see InvalidateBrowseHubCaches). */
+		if (std::strcmp(stem, "live-browse-hub") == 0)
+		{
+			DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
+			DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
+			continue;
+		}
 		DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
 		DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
 		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
@@ -298,14 +305,16 @@ void LivePanels::NotifyFavoritesChanged()
 	if (dir.empty())
 		return;
 
-	/* Always drop hub cache so Favorites list is fresh on next open.
-	   Do NOT wipe/rebuild an open browse-cat-* page here — Wiki is huge and
-	   delete+EnsurePanel while CEF holds the file fails with
-	   "Failed to write Live panel HTML". */
+	/* Stamp-only invalidate so CEF keeps a valid file:// under the path.
+	   Rebuild then Reload (Navigate to the same file is a no-op / Wine hazard). */
 	InvalidateBrowseFavCaches(dir, nullptr);
 
 	const char* cur = WikiBrowser::CurrentUrlCStr();
-	if (cur && cur[0] &&
-		(std::strstr(cur, "live-browse-hub") || std::strstr(cur, "about:browse-hub")))
-		WikiBrowser::Navigate("about:browse-hub");
+	if (!cur || !cur[0])
+		return;
+	if (!std::strstr(cur, "live-browse-hub") && !std::strstr(cur, "about:browse-hub"))
+		return;
+	if (ResolveAboutUrl(dir, "about:browse-hub").empty())
+		return;
+	WikiBrowser::Reload();
 }

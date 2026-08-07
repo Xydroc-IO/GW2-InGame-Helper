@@ -245,7 +245,8 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		if (PanelReady(addonDir, stem) && VerMatches(verPath) &&
 			ReadUtf8File(path) == html)
 			return PathToFileUrl(path);
-		WriteUtf8File(path, html);
+		if (!WriteUtf8File(path, html))
+			return {};
 		WriteUtf8File(verPath, kPanelVer);
 		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
 		return PathToFileUrl(path);
@@ -258,7 +259,9 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		if (stem && std::strncmp(stem, kPrefix, sizeof(kPrefix) - 1) == 0)
 			slug = stem + (sizeof(kPrefix) - 1);
 		const char* cat = LivePanelsBuild::BrowseCategoryFromSlug(slug);
-		WriteUtf8File(path, LivePanelsBuild::BuildBrowseCategoryShellHtml(cat ? cat : "Browse"));
+		if (!WriteUtf8File(path,
+				LivePanelsBuild::BuildBrowseCategoryShellHtml(cat ? cat : "Browse")))
+			return {};
 		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 		StartLiveWorker(addonDir, stem, kind, itemId);
 		return PathToFileUrl(path);

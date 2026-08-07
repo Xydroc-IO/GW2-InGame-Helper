@@ -182,6 +182,28 @@ void BrowserTabs::Reload()
 			about = "about:live-progress";
 		else if (url.find("gw2-api-check") != std::string::npos)
 			about = "about:gw2-api-check";
+		else if (url.find("live-browse-cat-") != std::string::npos)
+		{
+			const size_t pos = url.find("live-browse-cat-");
+			std::string slug;
+			for (size_t i = pos + 16; i < url.size(); ++i)
+			{
+				const char c = url[i];
+				if (c == '.' || c == '?' || c == '#' || c == '/' || c == '\\')
+					break;
+				slug.push_back(c);
+			}
+			if (!slug.empty())
+			{
+				static std::string sCatAbout;
+				sCatAbout = std::string("about:browse-cat-") + slug;
+				about = sCatAbout.c_str();
+			}
+		}
+		else if (url.find("live-browse-hub") != std::string::npos ||
+			url.find("about:browse-hub") != std::string::npos ||
+			std::strcmp(gTabs[gActive].tab.siteId, "browse") == 0)
+			about = "about:browse-hub";
 		else
 		{
 			const std::string resolved = Sites::ResolveUrl(Sites::Active());
@@ -191,7 +213,11 @@ void BrowserTabs::Reload()
 		if (about)
 		{
 			gTabs[gActive].tab.url = about;
+			/* Rebuild on disk first. Same file:// Navigate is a no-op in the helper —
+			   Reload is required when we were already on that live HTML. */
 			WikiBrowser::Navigate(about);
+			if (LivePanels::IsLiveUrl(url.c_str()))
+				WikiBrowser::Reload();
 			return;
 		}
 	}

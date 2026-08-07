@@ -201,36 +201,43 @@ void InvalidateBrowseHubCaches(const std::wstring& addonDir)
 {
 	if (addonDir.empty())
 		return;
-	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".html").c_str());
+	/* Never delete live-browse-*.html while CEF may still display it — that
+	   surfaces Chromium's "Can't find the page" (ERR_FILE_NOT_FOUND). Stamp
+	   only; EnsurePanel rewrites via tmp+replace. */
 	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".ver").c_str());
 	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".ok").c_str());
 	const std::wstring pages = AddonPaths::EnsureUnder(addonDir, L"pages");
-	const std::wstring pattern = pages + L"\\live-browse-cat-*";
-	WIN32_FIND_DATAW fd = {};
-	HANDLE h = FindFirstFileW(pattern.c_str(), &fd);
-	if (h == INVALID_HANDLE_VALUE)
-		return;
-	do
+	static const wchar_t* kPats[] = {
+		L"\\live-browse-cat-*.ok",
+		L"\\live-browse-cat-*.ver",
+	};
+	for (const wchar_t* pat : kPats)
 	{
-		if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		WIN32_FIND_DATAW fd = {};
+		HANDLE h = FindFirstFileW((pages + pat).c_str(), &fd);
+		if (h == INVALID_HANDLE_VALUE)
 			continue;
-		DeleteFileW((pages + L"\\" + fd.cFileName).c_str());
-	} while (FindNextFileW(h, &fd));
-	FindClose(h);
+		do
+		{
+			if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+				continue;
+			DeleteFileW((pages + L"\\" + fd.cFileName).c_str());
+		} while (FindNextFileW(h, &fd));
+		FindClose(h);
+	}
 }
 
 void InvalidateBrowseFavCaches(const std::wstring& addonDir, const char* categoryStem)
 {
 	if (addonDir.empty())
 		return;
-	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".html").c_str());
+	/* Stamp-only — keep .html so CEF does not hit ERR_FILE_NOT_FOUND. */
 	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".ver").c_str());
 	DeleteFileW(StemPath(addonDir, "live-browse-hub", L".ok").c_str());
 	if (!categoryStem || !categoryStem[0])
 		return;
 	if (std::strncmp(categoryStem, "live-browse-cat-", 16) != 0)
 		return;
-	DeleteFileW(StemPath(addonDir, categoryStem, L".html").c_str());
 	DeleteFileW(StemPath(addonDir, categoryStem, L".ver").c_str());
 	DeleteFileW(StemPath(addonDir, categoryStem, L".ok").c_str());
 }
