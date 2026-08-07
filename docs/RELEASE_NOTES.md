@@ -38,16 +38,20 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Compact pad defaults:** Shared Compact (`440×480`) / Workbench (`560×640`) /
   Pathing (`640×700`) FirstUseEver sizes via `PadDock`; DPS Logs stay display-sized.
 - **Icon side dock:** External compact rail (labels optional); curated ui-chrome icons
-  (`uc19`).
+  (`uc21`).
 - **Uniform fonts:** Global FontScale only (no per-window size multiplier); auto scale
   capped ~1.15×.
 - **Wallet & Stash:** Parallel inventory+equipment per toon; progressive character
   publish; no dual InventoryData crawl on open.
-- **DAT scrollbars:** Paint native scroll chrome **after** `End()` so ImGui’s gold grab
-  no longer covers it; `Gw2UiPadChrome` / `Title` / `Scroll` split (≤500-line rule).
+- **DAT scrollbars:** Paint native scroll chrome after `End()` on each window’s draw list
+  (not the global foreground) so other pads no longer slide under a gutter; compose
+  top (`154969`) / mid (`154970`) / grip (`154971`) / cap (`154973`) / chevron (`155031`)
+  from `UI Textures` (`Gw2UiPadChrome` / `Title` / `Scroll` split).
+- **Helper gold CEF bars:** Intentional gold OSR theme — pads (ImGui DAT) and Helper
+  (CEF CSS) stay on different stacks by design.
 - **Minimize restore:** Pad size constraints allow title-strip height when collapsed.
-- **Stamps:** Helper `2236` · homepage `2222` · sites `s2213` · cheatsheets `c2218`
-  · live panel `46` · raid food `5` · ui-chrome `uc19`
+- **Stamps:** Helper `2236` · homepage `2227` · sites `s2213` · cheatsheets `c2218`
+  · live panel `46` · raid food `5` · ui-chrome `uc21`
 
 ## What’s new in 2.2.3.3
 

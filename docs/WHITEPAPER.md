@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.3.4 | 2.2.3.4 | Compact pad defaults; icon side dock; Wallet stash speed; DAT scroll over ImGui |
+| 2.2.3.4 | 2.2.3.4 | Compact pads; icon dock; stash speed; DAT scroll Z-order (uc21); Helper gold CEF bars |
 | 2.2.3.3 | 2.2.3.3 | Title-bar 156046; soft ink rim; no black matte frame |
 | 2.2.3.2 | 2.2.3.2 | Medallion crest; opaque panel wash; fixed CEF backgrounds |
 | 2.2.3.1 | 2.2.3.1 | Hero-style title bars; rail fit on Windows; pad contrast + checkbox frames |
@@ -909,9 +909,9 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2236 / 2222 / s2213 / c2218 |
+| Helper / home / sites / cheatsheets stamps | 2236 / 2227 / s2213 / c2218 |
 | Live panel stamp | 46 |
-| ui-chrome stamp | uc19 |
+| ui-chrome stamp | uc21 |
 | OSR `device_scale_factor` | 1.0 |
 | User-Agent product token | `GW2-InGame-Helper` |
 | Browse catalog entries | ≈ 2720 |
@@ -993,6 +993,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.3.4 — Compact pads; icon side dock; stash speed; DAT scroll on top |
+| Last sync | 2.2.3.4 — Compact pads; DAT scroll Z-order (uc21); Helper gold CEF bars |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.4, 2026. |
