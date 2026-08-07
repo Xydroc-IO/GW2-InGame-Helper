@@ -1,6 +1,6 @@
 #pragma once
 
-/* Internal shared types/state for Account Crafting (not public API). */
+/* Internal shared types/state for Economy Crafting (not public API). */
 
 #include <atomic>
 #include <cstdint>
@@ -262,8 +262,14 @@ namespace CraftingDetail
 	size_t KnownUnionCount();
 	/* -2 N/A, -1 loading, 0 not known by selected/any, 1 known */
 	int RecipeKnownState(int recipeId, const char* preferChar = nullptr);
+	/* Queue missing recipe details for a worker (never blocks Present). */
 	void EnsureKnownRecipeDetails(const std::vector<int>& recipeIds);
+	/* Enqueue at most maxN missing ids (cheap; for UI throttle). */
+	void EnsureNextKnownRecipeDetails(const std::vector<int>& recipeIds, size_t maxN);
 	bool GetKnownRecipeDetail(int recipeId, KnownRecipeInfo& out);
+	size_t KnownDetailsReadyCount(const std::vector<int>& recipeIds);
+	void CopyKnownRecipeDetails(const std::vector<int>& recipeIds,
+		std::vector<KnownRecipeInfo>& out, size_t* readyOut = nullptr);
 
 	/* CraftingKnownUi.cpp */
 	void DrawKnownRail();

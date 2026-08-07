@@ -1,7 +1,7 @@
 #pragma once
 
 /* Per-character pad layout store (profiles.json under addon config/).
-   Not the Account pad - AccountPad is API stash/vault UI.
+   Not the Account pad - AccountPad is vault / progress / unlocks UI.
    Profiles remember which allowlisted panels are open + font/window prefs. */
 namespace CharacterProfiles
 {

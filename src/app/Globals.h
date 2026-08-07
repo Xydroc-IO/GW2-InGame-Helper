@@ -70,11 +70,11 @@ namespace G
 	extern bool  ShowTpWatch; /* ImGui TP watchlist (add/remove + prices) */
 	extern bool  ShowLookup; /* ImGui item lookup (chat code / ID / name) — free-floating */
 	extern bool  ShowWallet; /* ImGui wallet + mats snapshot — free-floating */
-	extern bool  ShowVault; /* ImGui Dailies & Vault — free-floating */
-	extern bool  ShowAccount; /* ImGui Account pad (tabbed stash/vault/TP/item) */
+	extern bool  ShowVault; /* ImGui Dailies & Vault — side rail + free-floating */
+	extern bool  ShowAccount; /* ImGui Account pad (progress / unlocks / history) */
 	extern bool  ShowEvents; /* ImGui world-boss timers + track list — free-floating */
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
-	extern bool  ShowEconomy; /* Flip Finder / charts / cart (read-only) */
+	extern bool  ShowEconomy; /* Flips / charts / cart / stash / trading / item / crafting */
 	extern bool  ShowInstances; /* Story / fractal / raid / strike journal */
 	extern bool  ShowCompletion; /* Map completion checklist / Atlas / routes */
 	extern bool  ShowFarming; /* Farming runs + fishing catch log */

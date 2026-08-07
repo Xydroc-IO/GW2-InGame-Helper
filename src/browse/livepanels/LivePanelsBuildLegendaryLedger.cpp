@@ -247,7 +247,7 @@ function renderList(){
           }).join("")+"</div></section>";
       }).join("")+"</div>";
   }
-  var keyNote=hasKey?'<p class="note">Owned / Missing refreshes when you open the Ledger. Open a legendary to auto-build its craft tree. <strong>Wiki</strong> and <strong>Open in Account Crafting</strong> are on each detail page.</p>':'<p class="note">Add a GW2 API key in Settings (unlocks + inventories) for Owned / Missing and craft have/need.</p>';
+  var keyNote=hasKey?'<p class="note">Owned / Missing refreshes when you open the Ledger. Open a legendary to auto-build its craft tree. <strong>Wiki</strong> and <strong>Open in Crafting</strong> are on each detail page.</p>':'<p class="note">Add a GW2 API key in Settings (unlocks + inventories) for Owned / Missing and craft have/need.</p>';
   elList.innerHTML="<div><h1>The Complete GW2 Legendary Collection</h1></div>"+keyNote+'<div class="space-y-3"><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input class="search" id="q" type="search" placeholder="Search legendaries…" value="'+esc(state.q)+'"/></div><div class="cats">'+catsHtml+"</div></div>"+body;
   var q=document.getElementById("q");
   if(q){q.addEventListener("input",function(){state.q=q.value;renderList();var a=document.getElementById("q");if(a){a.focus();try{a.setSelectionRange(a.value.length,a.value.length);}catch(e){}}});}
@@ -280,7 +280,7 @@ function renderDetail(id){
   var wiki=wikiNewTabHref(it.name);
   if(wiki) ctas+='<a class="cta" href="'+wiki+'">Open in Wiki</a>';
   if(cid){
-    ctas+='<a class="cta" href="?gw2igh-craft-plan='+cid+'">Open in Account Crafting</a>';
+    ctas+='<a class="cta" href="?gw2igh-craft-plan='+cid+'">Open in Crafting</a>';
     ctas+='<a class="cta ghost" href="?gw2igh-leg-open='+cid+'">Open craft tree</a>';
   }else{
     ctas+='<p class="note">No GW2 item id mapped — cannot open craft tree yet.</p>';

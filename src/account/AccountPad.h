@@ -1,8 +1,9 @@
 #pragma once
 
-/* Our Account pad - ImGui tabs for Overview / Stash / Vault / Trading /
-   Item / Crafting / Progress (legendaries + characters). Original UI on
-   the official API - no third-party site ties inside this pad. */
+/* Our Account pad - ImGui tabs for Overview / Progress / Unlocks / History.
+   Vault is its own side-rail pad. Original UI on the official API - no
+   third-party site ties inside this pad. Stash / trading / item / crafting
+   live on EconomyPad. */
 namespace AccountPad
 {
 	void OpenAndRefresh();

@@ -10,7 +10,7 @@ namespace TpWatchPad
 
 	void RefreshData(); /* sync watchlist + fetch without opening the window */
 
-	/* Body only - for AccountPad tabs. forceScroll=true uses a scrolling list. */
+	/* Body only - for EconomyPad Trading tab. forceScroll=true uses a scrolling list. */
 	void RenderContents(bool forceScroll = false);
 
 	/* Draw when G::ShowTpWatch. Returns true if pointer is over the window. */

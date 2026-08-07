@@ -99,7 +99,7 @@ namespace HelperDetail
 					}
 				}
 			}
-			/* Stay on the current page — DLL Tick opens Account Crafting.
+			/* Stay on the current page — DLL Tick opens Economy Crafting.
 			   Returning about:legendary-vault caused a white page when the
 			   vault HTML was missing. */
 			return {};

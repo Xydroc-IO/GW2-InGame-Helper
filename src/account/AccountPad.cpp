@@ -1,21 +1,16 @@
 #include "AccountPad.h"
 
-#include "CraftingData.h"
 #include "AspectLayout.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
 #include "HelperTheme.h"
-#include "LookupPad.h"
 #include "PadDock.h"
 #include "PadNav.h"
 #include "ProgressData.h"
 #include "SessionHistoryData.h"
 #include "Settings.h"
-#include "TpWatchPad.h"
 #include "UnlocksData.h"
 #include "UnlocksPad.h"
-#include "VaultPad.h"
-#include "WalletPad.h"
 
 #include "imgui/imgui.h"
 
@@ -30,7 +25,7 @@ namespace
 
 	bool gFocus = false;
 	bool gPlaceOnce = false;
-	int  gAccountTab = 0; /* Overview...History - left PadNav side rail */
+	int  gAccountTab = 0; /* Overview / Progress / Unlocks / History */
 
 	void SectionLabel(const char* label)
 	{
@@ -45,7 +40,8 @@ namespace
 		const bool hasKey = G::Gw2ApiKey[0] != '\0';
 
 		PadNav::Blurb(
-			"Stash, vault, trading, crafting, unlocks, and legendary progress - official API, read-only.");
+			"Unlocks, legendary progress, and session history - official API, read-only. "
+			"Vault is on the side rail. Stash, trading, item lookup, and crafting live under Economy.");
 		ImGui::Spacing();
 
 		ImGui::BeginChild("###gw2igh_acct_keycard", ImVec2(0.f, hasKey ? 110.f : 140.f), true);
@@ -54,7 +50,7 @@ namespace
 			ImGui::TextColored(HelperTheme::Ok, "API key saved locally");
 			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted,
-				"Scopes: account | characters | inventories | wallet | tradingpost | progression | unlocks");
+				"Scopes: account | characters | progression | unlocks");
 			PadNav::PopWrap();
 		}
 		else
@@ -63,7 +59,8 @@ namespace
 			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted,
 				"Add one under Settings (helper side rail). "
-				"Stash / Vault / delivery / unlocks need it; item lookup & TP prices work without.");
+				"Unlocks / progress need it. Vault is its own pad. "
+				"Economy stash & trading need inventories / wallet / tradingpost.");
 			PadNav::PopWrap();
 		}
 		ImGui::EndChild();
@@ -71,22 +68,17 @@ namespace
 		ImGui::Spacing();
 		if (Gw2Ui::IconLabelButton("Refresh all###gw2igh_acct_refall", Gw2Ui::Icon::Bag, 18.f))
 		{
-			WalletPad::RefreshData();
-			VaultPad::RefreshData();
-			TpWatchPad::RefreshData();
 			ProgressData::RefreshIfNeeded(true);
-			CraftingData::RefreshDailiesIfNeeded(true);
 			UnlocksData::EnsureAll(true);
 		}
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Pulls stash, vault, trading, crafting dailies, progress, and unlocks.");
+			"Pulls progress and unlocks.");
 		PadNav::PopWrap();
 
 		SessionHistoryData::RenderOverviewSnippet();
 
 		SectionLabel("TOOLS");
-		/* TOOLS → PadNav section gold (not GoldDim) */
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
 			"Use the tabs on the left - each tool stays in this window.");
@@ -104,19 +96,17 @@ namespace
 			ImGui::EndGroup();
 		};
 
-		toolCell("Stash", "Wallet | mats | bank | bags");
+		toolCell("Progress", "Legendaries | armory");
 		PadNav::WrapSameLine(colW);
-		toolCell("Vault", "Dailies | Wizard's Vault");
+		toolCell("Unlocks", "Skins | dyes | minis");
 
 		ImGui::Spacing();
-		toolCell("Trading", "Delivery | watchlist");
-		PadNav::WrapSameLine(colW);
-		toolCell("Crafting", "Dailies | recipe tree");
+		toolCell("History", "Session snippets");
 
 		ImGui::Spacing();
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Legendaries live under Progress. Unlocks covers wardrobe skins/dyes/minis.");
+			"Vault is on the helper side rail. Stash, trading, item lookup, and crafting are on Economy.");
 		PadNav::PopWrap();
 	}
 }
@@ -127,11 +117,7 @@ void AccountPad::OpenAndRefresh()
 	gFocus = true;
 	gPlaceOnce = true;
 	Settings::SetDirty();
-	WalletPad::RefreshData();
-	VaultPad::RefreshData();
-	TpWatchPad::RefreshData();
 	ProgressData::RefreshIfNeeded(false);
-	CraftingData::RefreshDailiesIfNeeded(false);
 	UnlocksData::EnsureLoaded(UnlocksData::Kind::Skins, false);
 }
 
@@ -140,7 +126,6 @@ bool AccountPad::Render()
 	if (!G::ShowAccount)
 		return false;
 
-	TpWatchPad::Tick();
 	UnlocksData::Tick();
 	SessionHistoryData::Tick();
 
@@ -192,41 +177,29 @@ bool AccountPad::Render()
 
 	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
-	if (CraftingData::ConsumeFocusTab())
-		gAccountTab = 5; /* Crafting */
-
 	static const char* kTabs[] = {
-		"Overview", "Stash", "Vault", "Trading", "Item",
-		"Crafting", "Progress", "Unlocks", "History"
+		"Overview", "Progress", "Unlocks", "History"
 	};
 	static const int kTabIcons[] = {
 		static_cast<int>(Gw2Ui::Icon::Hero),
-		static_cast<int>(Gw2Ui::Icon::Inventory),
-		static_cast<int>(Gw2Ui::Icon::LockBag),
-		static_cast<int>(Gw2Ui::Icon::Trade),
-		static_cast<int>(Gw2Ui::Icon::Bag),
-		static_cast<int>(Gw2Ui::Icon::Options),
 		static_cast<int>(Gw2Ui::Icon::Achievements),
 		static_cast<int>(Gw2Ui::Icon::LockBag),
 		static_cast<int>(Gw2Ui::Icon::Story),
 	};
-	gAccountTab = PadNav::DrawSideRail("###gw2igh_acct_nav", kTabs, 9, gAccountTab, 0.f, kTabIcons);
+	if (gAccountTab < 0 || gAccountTab > 3)
+		gAccountTab = 0;
+	gAccountTab = PadNav::DrawSideRail("###gw2igh_acct_nav", kTabs, 4, gAccountTab, 0.f, kTabIcons);
 
 	ImGui::BeginChild("###gw2igh_acct_body", ImVec2(0.f, 0.f), gAccountTab != 0);
 	switch (gAccountTab)
 	{
 	case 0: DrawOverview(); break;
-	case 1: WalletPad::RenderContents(); break;
-	case 2: VaultPad::RenderContents(); break;
-	case 3: TpWatchPad::RenderContents(true); break;
-	case 4: LookupPad::RenderContents(); break;
-	case 5: CraftingData::RenderContents(); break;
-	case 6:
+	case 1:
 		ProgressData::RefreshIfNeeded(false);
 		ProgressData::RenderContents();
 		break;
-	case 7: UnlocksPad::RenderContents(); break;
-	case 8: SessionHistoryData::RenderContents(); break;
+	case 2: UnlocksPad::RenderContents(); break;
+	case 3: SessionHistoryData::RenderContents(); break;
 	default: break;
 	}
 	ImGui::EndChild();

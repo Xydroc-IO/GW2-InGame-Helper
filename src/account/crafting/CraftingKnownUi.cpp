@@ -15,6 +15,8 @@
 #include <string>
 #include <vector>
 
+#include <windows.h>
+
 namespace CraftingDetail
 {
 	static char gSelectedChar[64] = {};
@@ -84,88 +86,113 @@ namespace CraftingDetail
 			gKnownFilter, sizeof(gKnownFilter));
 
 		const char* filterChar = gSelectedChar[0] ? gSelectedChar : nullptr;
-		std::vector<int> ids = KnownRecipeIdsForChar(filterChar);
-		ImGui::TextColored(HelperTheme::Muted, "%zu recipes", ids.size());
-		if (ids.empty()) return;
 
-		static int sDetIdx = -999;
-		static char sDetChar[64] = {};
-		static size_t sDetOff = 0;
-		if (sDetIdx != gSelectedCharIdx || std::strcmp(sDetChar, gSelectedChar) != 0)
+		/* Cache recipe-id list — union+sort is expensive for big accounts. */
+		static std::vector<int> sIds;
+		static int sIdsCharIdx = -999;
+		static char sIdsChar[64] = {};
+		static DWORD sIdsAt = 0;
+		const DWORD now = GetTickCount();
+		const bool idsDirty = sIdsCharIdx != gSelectedCharIdx ||
+			std::strcmp(sIdsChar, gSelectedChar) != 0 ||
+			(now - sIdsAt) > 2000;
+		if (idsDirty)
 		{
-			sDetIdx = gSelectedCharIdx;
-			std::snprintf(sDetChar, sizeof(sDetChar), "%s", gSelectedChar);
-			sDetOff = 0;
-		}
-		/* Progressive detail fill (20 / frame burst on selection) so rail stays full. */
-		if (sDetOff < ids.size())
-		{
-			std::vector<int> batch;
-			const size_t end = (std::min)(ids.size(), sDetOff + 20);
-			for (size_t i = sDetOff; i < end; ++i)
-				batch.push_back(ids[i]);
-			sDetOff = end;
-			EnsureKnownRecipeDetails(batch);
-			if (sDetOff < ids.size())
-				ImGui::TextColored(HelperTheme::Muted, "Loading details %zu / %zu…",
-					sDetOff, ids.size());
+			sIdsCharIdx = gSelectedCharIdx;
+			std::snprintf(sIdsChar, sizeof(sIdsChar), "%s", gSelectedChar);
+			sIds = KnownRecipeIdsForChar(filterChar);
+			sIdsAt = now;
 		}
 
-		std::map<std::string, std::vector<KnownRecipeInfo>> byDisc;
-		for (int id : ids)
+		ImGui::TextColored(HelperTheme::Muted, "%zu recipes", sIds.size());
+		if (sIds.empty()) return;
+
+		/* Queue every missing id for parallel bulk workers (100/ids × 2 threads). */
+		EnsureKnownRecipeDetails(sIds);
+
+		const size_t ready = KnownDetailsReadyCount(sIds);
+		if (ready < sIds.size())
+			ImGui::TextColored(HelperTheme::Muted, "Loading details %zu / %zu…",
+				ready, sIds.size());
+
+		/* Rebuild grouped list only when data / filter changes — not every Present. */
+		static size_t sReadyCached = static_cast<size_t>(-1);
+		static int sUiCharIdx = -999;
+		static char sUiFilter[64] = { '\x01' }; /* force first rebuild */
+		static std::map<std::string, std::vector<KnownRecipeInfo>> sByDisc;
+
+		if (ready != sReadyCached ||
+			sUiCharIdx != gSelectedCharIdx ||
+			std::strcmp(sUiFilter, gKnownFilter) != 0)
 		{
-			KnownRecipeInfo info;
-			if (!GetKnownRecipeDetail(id, info)) continue;
-			const char* nm = info.outputName.empty() ? "" : info.outputName.c_str();
-			if (!NameMatchesFilter(nm, gKnownFilter)) continue;
-			const char* disc = info.discipline.empty() ? "Other" : info.discipline.c_str();
-			byDisc[disc].push_back(info);
+			sReadyCached = ready;
+			sUiCharIdx = gSelectedCharIdx;
+			std::snprintf(sUiFilter, sizeof(sUiFilter), "%s", gKnownFilter);
+			sByDisc.clear();
+			std::vector<KnownRecipeInfo> details;
+			CopyKnownRecipeDetails(sIds, details, nullptr);
+			for (KnownRecipeInfo& info : details)
+			{
+				const char* nm = info.outputName.empty() ? "" : info.outputName.c_str();
+				if (!NameMatchesFilter(nm, gKnownFilter)) continue;
+				const char* disc = info.discipline.empty() ? "Other" : info.discipline.c_str();
+				sByDisc[disc].push_back(std::move(info));
+			}
 		}
 
-		if (byDisc.empty())
+		if (sByDisc.empty())
 		{
 			ImGui::TextColored(HelperTheme::Muted,
-				sDetOff < ids.size() ? "Resolving recipe outputs…" : "No matches.");
+				ready < sIds.size() ? "Resolving recipe outputs…" : "No matches.");
 			return;
 		}
 
-		for (auto& kv : byDisc)
+		for (auto& kv : sByDisc)
 		{
 			char header[128];
 			std::snprintf(header, sizeof(header), "%s (%zu)###gw2igh_kd_%s",
 				kv.first.c_str(), kv.second.size(), kv.first.c_str());
+			/* Same as Account: sections start open. Clipper keeps off-screen rows cheap. */
 			if (!ImGui::TreeNodeEx(header, ImGuiTreeNodeFlags_DefaultOpen))
 				continue;
-			for (const KnownRecipeInfo& info : kv.second)
+
+			std::vector<KnownRecipeInfo>& rows = kv.second;
+			ImGuiListClipper clipper;
+			clipper.Begin(static_cast<int>(rows.size()));
+			while (clipper.Step())
 			{
-				ImGui::PushID(info.recipeId);
-				const char* nm = info.outputName.empty() ? "Item" : info.outputName.c_str();
-				ImGui::TextColored(HelperTheme::Ok, "✓");
-				ImGui::SameLine();
-				if (ImGui::Selectable(nm))
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
 				{
-					std::snprintf(gQuery, sizeof(gQuery), "%s", nm);
-					StartPlan();
-				}
-				if (ImGui::IsItemHovered())
-				{
-					auto who = CharsKnowing(info.recipeId);
-					ImGui::BeginTooltip();
-					ImGui::Text("Recipe #%d → item #%d", info.recipeId, info.outputId);
-					if (KnownByAccount(info.recipeId))
-						ImGui::TextUnformatted("Account unlock");
-					if (!who.empty())
+					KnownRecipeInfo& info = rows[static_cast<size_t>(i)];
+					ImGui::PushID(info.recipeId);
+					const char* nm = info.outputName.empty() ? "Item" : info.outputName.c_str();
+					ImGui::TextColored(HelperTheme::Ok, "✓");
+					ImGui::SameLine();
+					if (ImGui::Selectable(nm))
 					{
-						ImGui::TextUnformatted("Known by:");
-						for (const std::string& c : who)
-							ImGui::BulletText("%s", c.c_str());
+						std::snprintf(gQuery, sizeof(gQuery), "%s", nm);
+						StartPlan();
 					}
-					ImGui::EndTooltip();
+					if (ImGui::IsItemHovered())
+					{
+						auto who = CharsKnowing(info.recipeId);
+						ImGui::BeginTooltip();
+						ImGui::Text("Recipe #%d → item #%d", info.recipeId, info.outputId);
+						if (KnownByAccount(info.recipeId))
+							ImGui::TextUnformatted("Account unlock");
+						if (!who.empty())
+						{
+							ImGui::TextUnformatted("Known by:");
+							for (const std::string& c : who)
+								ImGui::BulletText("%s", c.c_str());
+						}
+						ImGui::EndTooltip();
+					}
+					ImGui::SameLine();
+					if (ImGui::SmallButton("+"))
+						CartAdd(info.outputId, nm, gPlanQty < 1 ? 1 : gPlanQty, nullptr);
+					ImGui::PopID();
 				}
-				ImGui::SameLine();
-				if (ImGui::SmallButton("+"))
-					CartAdd(info.outputId, nm, gPlanQty < 1 ? 1 : gPlanQty, nullptr);
-				ImGui::PopID();
 			}
 			ImGui::TreePop();
 		}

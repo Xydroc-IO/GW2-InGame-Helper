@@ -113,13 +113,13 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 	uc.dwStructSize = sizeof(uc);
 	wchar_t host[256]{};
 	wchar_t path[4096]{};
-	wchar_t extra[2048]{};
+	wchar_t extra[8192]{};
 	uc.lpszHostName = host;
 	uc.dwHostNameLength = 256;
 	uc.lpszUrlPath = path;
 	uc.dwUrlPathLength = 4096;
 	uc.lpszExtraInfo = extra;
-	uc.dwExtraInfoLength = 2048;
+	uc.dwExtraInfoLength = 8192;
 	if (!WinHttpCrackUrl(urlW.c_str(), 0, 0, &uc))
 	{
 		r.error = "url parse failed";
@@ -147,7 +147,7 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 	}
 
 	/* Short budgets = one shot. Keep-alive per thread — do not open/close per call. */
-	const int maxAttempts = (timeoutMs <= 4000) ? 1 : 2;
+	const int maxAttempts = (timeoutMs <= 4000) ? 1 : 4;
 	for (int attempt = 0; attempt < maxAttempts; ++attempt)
 	{
 		DWORD flags = (uc.nScheme == INTERNET_SCHEME_HTTPS) ? WINHTTP_FLAG_SECURE : 0;
@@ -200,8 +200,10 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 		{
 			WinHttpCloseHandle(req);
 			r.error = "rate limited";
+			r.status = 429;
+			/* Token bucket is ~5/s — wait longer than the generic backoff. */
 			if (attempt + 1 < maxAttempts)
-				SleepBackoff(attempt);
+				Sleep(1000u + 500u * static_cast<DWORD>(attempt));
 			continue;
 		}
 

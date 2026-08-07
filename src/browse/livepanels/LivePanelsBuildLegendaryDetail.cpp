@@ -284,7 +284,7 @@ std::string BuildLegendaryDetailHtml(const std::wstring& addonDir, const char* a
 	}
 	html += "<a class=\"cta\" href=\"?gw2igh-craft-plan=";
 	html += std::to_string(itemId);
-	html += "\">Open in Account Crafting</a></div>";
+	html += "\">Open in Crafting</a></div>";
 
 	html += "<div class=\"detail-card\">";
 

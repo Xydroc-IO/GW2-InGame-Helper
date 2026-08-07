@@ -1,7 +1,6 @@
 #include "EconomyPad.h"
 #include "EconomyInternal.h"
 
-#include "AccountPad.h"
 #include "AspectLayout.h"
 #include "BrowserTabs.h"
 #include "CraftingData.h"
@@ -9,10 +8,13 @@
 #include "Gw2Icons.h"
 #include "Gw2Ui.h"
 #include "HelperTheme.h"
+#include "LookupPad.h"
 #include "PadNav.h"
 #include "PadDock.h"
 #include "PadLayout.h"
 #include "Settings.h"
+#include "TpWatchPad.h"
+#include "WalletPad.h"
 #include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
@@ -23,6 +25,100 @@
 #include <cstring>
 #include <string>
 #include <vector>
+
+namespace
+{
+	/* Side-rail indices — Overview first (Refresh all), then market + stash tools. */
+	constexpr int kTabOverview = 0;
+	constexpr int kTabFlips = 1;
+	constexpr int kTabCharts = 2;
+	constexpr int kTabCart = 3;
+	constexpr int kTabStash = 4;
+	constexpr int kTabTrading = 5;
+	constexpr int kTabItem = 6;
+	constexpr int kTabCrafting = 7;
+	constexpr int kTabCount = 8;
+
+	void SectionLabel(const char* label)
+	{
+		ImGui::Spacing();
+		PadNav::SectionTitle(label);
+		ImGui::Separator();
+		ImGui::Spacing();
+	}
+
+	void DrawOverview()
+	{
+		const bool hasKey = G::Gw2ApiKey[0] != '\0';
+
+		PadNav::Blurb(
+			"Flips, charts, cart, stash, trading, item lookup, and crafting - read-only.");
+		ImGui::Spacing();
+
+		ImGui::BeginChild("###gw2igh_eco_keycard", ImVec2(0.f, hasKey ? 110.f : 140.f), true);
+		if (hasKey)
+		{
+			ImGui::TextColored(HelperTheme::Ok, "API key saved locally");
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted,
+				"Scopes: account | characters | inventories | wallet | tradingpost");
+			PadNav::PopWrap();
+		}
+		else
+		{
+			ImGui::TextColored(HelperTheme::Warn, "No API key yet");
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted,
+				"Add one under Settings (helper side rail). "
+				"Stash / delivery need it; flips, charts, item lookup & TP prices work without.");
+			PadNav::PopWrap();
+		}
+		ImGui::EndChild();
+
+		ImGui::Spacing();
+		if (Gw2Ui::IconLabelButton("Refresh all###gw2igh_eco_refall", Gw2Ui::Icon::Bag, 18.f))
+			EconomyPad::RefreshAll(true);
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted,
+			"Pulls stash, trading, crafting dailies, and flip scan.");
+		PadNav::PopWrap();
+
+		SectionLabel("TOOLS");
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted,
+			"Use the tabs on the left - each tool stays in this window.");
+		PadNav::PopWrap();
+		ImGui::Spacing();
+
+		const float gap = ImGui::GetStyle().ItemSpacing.x;
+		const float colW = (ImGui::GetContentRegionAvail().x - gap) * 0.5f;
+		auto toolCell = [&](const char* title, const char* blurb) {
+			ImGui::BeginGroup();
+			ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + colW);
+			ImGui::TextColored(HelperTheme::GoldMuted, "%s", title);
+			ImGui::TextColored(HelperTheme::Muted, "%s", blurb);
+			ImGui::PopTextWrapPos();
+			ImGui::EndGroup();
+		};
+
+		toolCell("Flips", "Fee-adjusted spreads");
+		PadNav::WrapSameLine(colW);
+		toolCell("Charts", "Pinned price samples");
+
+		ImGui::Spacing();
+		toolCell("Cart", "TP shopping list");
+		PadNav::WrapSameLine(colW);
+		toolCell("Stash", "Wallet | mats | bank | bags");
+
+		ImGui::Spacing();
+		toolCell("Trading", "Delivery | watchlist");
+		PadNav::WrapSameLine(colW);
+		toolCell("Item", "Lookup | wiki | BLTC");
+
+		ImGui::Spacing();
+		toolCell("Crafting", "Dailies | recipe tree");
+	}
+}
 
 static void OpenBltcItem(int itemId)
 {
@@ -108,8 +204,8 @@ static void DrawFlips()
 		if (ImGui::SmallButton("Chart"))
 		{
 			AddChart(r.id);
-			gTab = 1;
-			gForceTab = 1;
+			gTab = kTabCharts;
+			gForceTab = kTabCharts;
 		}
 		ImGui::SameLine();
 		if (ImGui::SmallButton("BLTC"))
@@ -244,12 +340,19 @@ static void DrawCharts()
 	PadLayout::EndList();
 }
 
+static void FocusCraftingTab()
+{
+	using namespace EconomyDetail;
+	gTab = kTabCrafting;
+	gForceTab = kTabCrafting;
+}
+
 static void DrawCart()
 {
 	using namespace EconomyDetail;
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"TP shopping list only — craft projects live on Account → Crafting cart.");
+		"TP shopping list only — craft projects live on the Crafting tab.");
 	PadNav::PopWrap();
 	if (ImGui::Button("Clear cart###gw2igh_eco_cc"))
 		ClearCart();
@@ -257,7 +360,7 @@ static void DrawCart()
 	if (ImGui::Button("Open Crafting###gw2igh_eco_craft"))
 	{
 		CraftingData::RequestFocusTab();
-		AccountPad::OpenAndRefresh();
+		FocusCraftingTab();
 	}
 	if (!gCart.empty())
 	{
@@ -270,7 +373,7 @@ static void DrawCart()
 			else
 				std::snprintf(q, sizeof(q), "%d", gCart[0].id);
 			CraftingData::QueuePlan(q);
-			AccountPad::OpenAndRefresh();
+			FocusCraftingTab();
 		}
 	}
 	PadLayout::BeginList("###gw2igh_eco_cart");
@@ -293,7 +396,7 @@ static void DrawCart()
 			else
 				std::snprintf(q, sizeof(q), "%d", c.id);
 			CraftingData::QueuePlan(q);
-			AccountPad::OpenAndRefresh();
+			FocusCraftingTab();
 		}
 		ImGui::SameLine();
 		if (ImGui::SmallButton("BLTC"))
@@ -302,8 +405,8 @@ static void DrawCart()
 		if (ImGui::SmallButton("Chart"))
 		{
 			AddChart(c.id);
-			gTab = 1;
-			gForceTab = 1;
+			gTab = kTabCharts;
+			gForceTab = kTabCharts;
 		}
 		ImGui::PopID();
 		if (remove)
@@ -322,10 +425,11 @@ bool EconomyPad::Render()
 	if (!G::ShowEconomy)
 		return false;
 	PollFlipWorker();
+	TpWatchPad::Tick();
 
 	const ImGuiIO& io = ImGui::GetIO();
-	const float maxH = PadDock::MaxH(280.f);
-	PadDock::SetSizeConstraints("Economy##GW2InGameHelperEconomy", 380.f, 280.f, PadDock::MaxW(560.f), maxH);
+	const float maxH = PadDock::MaxH(360.f);
+	PadDock::SetSizeConstraints("Economy##GW2InGameHelperEconomy", 440.f, 360.f, PadDock::MaxW(720.f), maxH);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
 			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.48f) : 180.f;
@@ -354,27 +458,69 @@ bool EconomyPad::Render()
 	if (PadDock::Capture(G::PadEconomy)) Settings::SetDirty();
 	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
-	if (gForceTab >= 0)
+	if (CraftingData::ConsumeFocusTab())
+	{
+		gTab = kTabCrafting;
+		gForceTab = -1;
+	}
+	else if (gForceTab >= 0)
 	{
 		gTab = gForceTab;
 		gForceTab = -1;
 	}
 
-	static const char* kTabs[] = { "Flips", "Charts", "Cart" };
+	static const char* kTabs[] = {
+		"Overview", "Flips", "Charts", "Cart", "Stash", "Trading", "Item", "Crafting"
+	};
 	static const int kTabIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::Hero),
 		static_cast<int>(Gw2Ui::Icon::GoldCoins),
 		static_cast<int>(Gw2Ui::Icon::Story),
 		static_cast<int>(Gw2Ui::Icon::Bag),
+		static_cast<int>(Gw2Ui::Icon::Inventory),
+		static_cast<int>(Gw2Ui::Icon::Trade),
+		static_cast<int>(Gw2Ui::Icon::Bag),
+		static_cast<int>(Gw2Ui::Icon::Options),
 	};
-	gTab = PadNav::DrawSideRail("###gw2igh_eco_nav", kTabs, 3, gTab, 0.f, kTabIcons);
+	gTab = PadNav::DrawSideRail("###gw2igh_eco_nav", kTabs, kTabCount, gTab, 0.f, kTabIcons);
 
-	ImGui::BeginChild("###gw2igh_eco_body", ImVec2(0.f, 0.f), true);
-	PadNav::Blurb("Flip Finder | charts | cart (read-only).");
+	/* Soft-kick data only for the active tab (once per open session). */
+	static int sLazyTab = -1;
+	if (sLazyTab != gTab)
+	{
+		sLazyTab = gTab;
+		switch (gTab)
+		{
+		case kTabFlips:
+			EnsureSeed();
+			if (gFlips.empty() && !gFlipBusy)
+				RequestFlipScan();
+			break;
+		case kTabStash:
+			WalletPad::RefreshData(false);
+			break;
+		case kTabTrading:
+			TpWatchPad::RefreshData();
+			break;
+		case kTabCrafting:
+			CraftingData::RefreshDailiesIfNeeded(false);
+			break;
+		default:
+			break;
+		}
+	}
+
+	ImGui::BeginChild("###gw2igh_eco_body", ImVec2(0.f, 0.f), gTab != kTabOverview);
 	switch (gTab)
 	{
-	case 0: DrawFlips(); break;
-	case 1: DrawCharts(); break;
-	case 2: DrawCart(); break;
+	case kTabOverview: DrawOverview(); break;
+	case kTabFlips: DrawFlips(); break;
+	case kTabCharts: DrawCharts(); break;
+	case kTabCart: DrawCart(); break;
+	case kTabStash: WalletPad::RenderContents(); break;
+	case kTabTrading: TpWatchPad::RenderContents(true); break;
+	case kTabItem: LookupPad::RenderContents(); break;
+	case kTabCrafting: CraftingData::RenderContents(); break;
 	default: break;
 	}
 	ImGui::EndChild();

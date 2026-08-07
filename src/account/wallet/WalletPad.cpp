@@ -104,11 +104,12 @@ namespace WalletDetail
 
 using namespace WalletDetail;
 
-void WalletPad::RefreshData()
+void WalletPad::RefreshData(bool force)
 {
 	LoadNames();
 	/* InventoryData warms Crafting separately — don't dual-crawl every toon here. */
 	bool need = true;
+	if (!force)
 	{
 		std::lock_guard<std::mutex> lock(gMu);
 		if (gSnap.ok && !gSnap.charsPending && gSnap.fetchedAt != 0)
@@ -118,7 +119,7 @@ void WalletPad::RefreshData()
 				need = false;
 		}
 	}
-	StartFetch(need); /* force only when nothing fresh to show */
+	StartFetch(need); /* force only when nothing fresh to show (or caller forced) */
 }
 
 void WalletPad::OpenAndRefresh()

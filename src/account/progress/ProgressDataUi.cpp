@@ -1,6 +1,7 @@
 #include "ProgressDataInternal.h"
 
 #include "CraftingData.h"
+#include "EconomyPad.h"
 #include "Gw2Icons.h"
 #include "Gw2Ui.h"
 #include "HelperTheme.h"
@@ -66,6 +67,7 @@ namespace ProgressDetail
 				char idBuf[24];
 				std::snprintf(idBuf, sizeof(idBuf), "%d", r.id);
 				CraftingData::QueuePlan(idBuf);
+				EconomyPad::OpenAndRefresh();
 			}
 			ImGui::SameLine();
 			if (ImGui::SmallButton("Wiki"))

@@ -298,10 +298,17 @@ namespace CraftingDetail
 			return;
 		if (gThread)
 		{
-			if (WaitForSingleObject(gThread, 8000) == WAIT_OBJECT_0)
+			/* Never block Present waiting on a prior plan worker. */
+			if (WaitForSingleObject(gThread, 0) == WAIT_OBJECT_0)
 			{
 				CloseHandle(gThread);
 				gThread = nullptr;
+			}
+			else
+			{
+				/* Still running — leave handle; PlanProc will clear gBusy. */
+				gBusy = false;
+				return;
 			}
 		}
 		gThread = CreateThread(nullptr, 0, PlanProc, nullptr, 0, nullptr);
