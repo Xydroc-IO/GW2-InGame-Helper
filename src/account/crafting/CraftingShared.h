@@ -1,12 +1,13 @@
 #pragma once
 
-/* Internal shared types/state for CraftingData / Api / Wiki / Plan / Dailies (not public API). */
+/* Internal shared types/state for Account Crafting (not public API). */
 
 #include <atomic>
 #include <cstdint>
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <windows.h>
@@ -15,9 +16,16 @@ namespace CraftingDetail
 {
 	constexpr int kHttpTimeoutMs = 6000;
 	constexpr int kBulkTimeoutMs = 10000;
-	/* Deep enough for legendary -> gift -> sub-gift -> mats. */
-	constexpr int kMaxDepth = 5;
+	constexpr int kMaxDepth = 8;
 	constexpr DWORD kDailyTtlMs = 10 * 60 * 1000;
+	constexpr DWORD kKnownTtlMs = 30 * 60 * 1000;
+
+	struct PlanOpts
+	{
+		bool useOwnMaterials = true;
+		bool craftSubComponents = true; /* buy-vs-craft intermediates */
+		bool groupByItem = false;       /* cart aggregate: group shop/steps by output */
+	};
 
 	struct IngNode
 	{
@@ -25,7 +33,7 @@ namespace CraftingDetail
 		int need = 0;
 		int have = 0;
 		int depth = 0;
-		long long buyUnit = -1; /* instant-buy (sells) unit; -1 = not on TP */
+		long long buyUnit = -1;
 		std::string name;
 		bool crafted = false;
 		std::vector<IngNode> kids;
@@ -35,7 +43,7 @@ namespace CraftingDetail
 	{
 		int itemId = 0;
 		int count = 0;
-		std::string name; /* wiki/API hint so sub-gifts expand without an extra lookup */
+		std::string name;
 	};
 
 	struct RecipeCacheEntry
@@ -48,13 +56,46 @@ namespace CraftingDetail
 		int outCount = 1;
 		int recipeId = 0;
 		std::vector<RecipeIng> ings;
-		std::string source; /* "Crafting station" / "Mystic Forge" / ... */
+		std::string source;
+		std::string discipline; /* Chef / Armorsmith / Mystic Forge / ... */
 	};
 
 	struct DailyRow
 	{
 		int id = 0;
+		std::string slug;
 		std::string name;
+		bool done = false;
+	};
+
+	struct ShopRow
+	{
+		int itemId = 0;
+		int qty = 0;
+		long long unitSell = -1;
+		long long total = -1;
+		std::string name;
+		bool priced = false;
+	};
+
+	struct StepRow
+	{
+		int outId = 0;
+		int outCnt = 1;
+		int crafts = 0;
+		int depth = 0;
+		std::string disc;
+		std::string name;
+		std::vector<RecipeIng> ings;
+	};
+
+	struct KnownRecipeInfo
+	{
+		int recipeId = 0;
+		int outputId = 0;
+		int outCount = 1;
+		std::string outputName;
+		std::string discipline;
 	};
 
 	struct Plan
@@ -63,12 +104,27 @@ namespace CraftingDetail
 		std::string status;
 		std::string outputName;
 		int outputId = 0;
-		int outputCount = 1;
+		int outputCount = 1; /* per craft yield */
+		int wantQty = 1;     /* how many finished items the user wants */
+		int recipeId = 0;
 		IngNode root;
 		long long buyTotal = 0;
-		int noTpMissing = 0; /* missing stacks with no commerce listing */
-		std::string recipeSource; /* station vs mystic forge (wiki) */
+		long long tpBuyOutright = -1; /* instant-buy finished outputs (sells × wantQty) */
+		long long tpListUnit = -1;    /* lowest sell listing unit (list near this) */
+		long long tpInstantUnit = -1; /* highest buy order unit (instant sell) */
+		int noTpMissing = 0;
+		std::string recipeSource;
+		std::string recipeDiscipline;
 		std::vector<std::string> nameHints;
+		std::vector<ShopRow> shopping;
+		std::vector<StepRow> steps;
+	};
+
+	struct CartItem
+	{
+		int id = 0;
+		int qty = 1;
+		char name[96]{};
 	};
 
 	extern std::mutex gMu;
@@ -85,9 +141,20 @@ namespace CraftingDetail
 	extern HANDLE gDailyThread;
 	extern char gQuery[192];
 	extern char gThreadQuery[192];
+	extern int gThreadQty; /* wantQty for in-flight / next plan */
+	extern int gPlanQty;   /* UI qty next to Plan button */
 	extern DWORD gDailyFetchedAt;
 	extern std::atomic<bool> gFocusTab;
 	extern std::atomic<unsigned> gPlanGen;
+	extern PlanOpts gOpts;
+
+	/* Cart project rollup (multi-item aggregate plans). */
+	extern std::mutex gCartPlanMu;
+	extern std::vector<Plan> gCartPlans;
+	extern std::vector<Plan> gPendingCartPlans;
+	extern std::atomic<bool> gCartPlanBusy;
+	extern std::atomic<bool> gCartPlanReady;
+	extern std::string gCartPlanStatus;
 
 	extern std::mutex gWikiMu;
 	extern std::unordered_map<std::string, std::string> gWikiTextCache;
@@ -103,12 +170,22 @@ namespace CraftingDetail
 	std::string ItemName(int id);
 	void FetchNames(std::unordered_map<int, std::string>& names, const std::vector<int>& ids);
 	int FirstValidItemId(const std::vector<int>& candidates, std::string* nameOut);
-	void FetchPrices(std::unordered_map<int, long long>& sells, const std::vector<int>& ids);
+	void FetchPrices(std::unordered_map<int, long long>& sells, const std::vector<int>& ids,
+		std::unordered_map<int, long long>* buys = nullptr);
+	void ParseIntArray(const std::string& body, std::vector<int>& out);
+	void ParseQuotedStringArray(const std::string& body, std::vector<std::string>& out);
+	std::string EncodeCharPath(const std::string& name);
+	bool WriteUtf8File(const std::wstring& path, const std::string& body);
+	bool ReadUtf8File(const std::wstring& path, std::string& out);
+	std::wstring ConfigFile(const wchar_t* leaf);
 
 	/* CraftingApiRecipe.cpp */
 	void AddOwnedCounts(std::unordered_map<int, int>& owned, const std::string& body);
 	void LoadOwned(std::unordered_map<int, int>& owned);
-	bool LoadApiRecipeForOutput(int outputId, int& outCount, std::vector<RecipeIng>& ings, int& recipeId);
+	bool LoadApiRecipeForOutput(int outputId, int& outCount, std::vector<RecipeIng>& ings, int& recipeId,
+		std::string* disciplineOut = nullptr);
+	bool LoadApiRecipeById(int recipeId, int& outputId, int& outCount, std::vector<RecipeIng>& ings,
+		std::string* disciplineOut);
 	bool IsTerminalMaterial(const std::string& name);
 	bool TryLoadRecipe(int outputId, const std::string& nameHint, int& outCount,
 		std::vector<RecipeIng>& ings, int& recipeId,
@@ -122,18 +199,13 @@ namespace CraftingDetail
 	std::vector<int> CollectWikiItemIdCandidates(const std::string& wikitext);
 	int ResolveWikiTitleToItemId(const char* title, std::string* nameOut);
 	std::string CleanWikiLinkName(std::string s);
-	/* CraftingWikiFetch.cpp */
 	std::string FetchWikiWikitext(const char* title);
 	void FetchWikiWikitextBatch(const std::vector<std::string>& titles,
 		std::unordered_map<std::string, std::string>& outByKey);
 	bool LoadWikiRecipeForName(const char* pageTitle, int& outCount,
 		std::vector<RecipeIng>& ings, std::string* sourceOut);
-
-	/* CraftingWikiAcquire.cpp - Sold by / tp-placeholder material lists */
 	bool LoadWikiAcquisitionBill(const char* pageTitle, int& outCount,
 		std::vector<RecipeIng>& ings, std::string* sourceOut);
-
-	/* CraftingCurated.cpp - hardcoded bills when wiki has no {{recipe}} */
 	bool LoadCuratedBill(int outputId, int& outCount, std::vector<RecipeIng>& ings,
 		std::string* sourceOut);
 
@@ -148,9 +220,15 @@ namespace CraftingDetail
 		std::unordered_map<int, std::string>& names,
 		std::unordered_map<int, RecipeCacheEntry>& cache);
 	void CollectLeafIds(const IngNode& n, std::vector<int>& ids);
+	void CollectMissingLeaves(const IngNode& n, std::vector<const IngNode*>& out);
 	void ApplyPrices(IngNode& n, const std::unordered_map<int, long long>& sells,
 		long long& buyTotal, int& noTpMissing);
 	void ApplyOwnedCounts(IngNode& n, const std::unordered_map<int, int>& owned);
+
+	/* CraftingPlanDecide.cpp — buy-vs-craft collapse + shopping + craft steps */
+	void ApplyBuyVsCraft(Plan& plan, const std::unordered_map<int, long long>& sells,
+		const PlanOpts& opts);
+	void BuildShoppingAndSteps(Plan& plan);
 
 	/* CraftingPlanResolve.cpp */
 	void TokenizeQuery(const char* q, std::vector<std::string>& tokens);
@@ -161,12 +239,71 @@ namespace CraftingDetail
 	int ResolveQueryToItemId(const char* q, Plan& plan, std::string* nameOut);
 	DWORD WINAPI PlanProc(void*);
 	void StartPlan();
+	void StartPlanWithQty(int wantQty);
+
+	/* CraftingPlanBuild.cpp — expand+price one item (shared by single plan + cart rollup) */
+	bool ExpandAndPricePlan(Plan& plan, int itemId, const std::string& name, int wantQty,
+		unsigned gen, bool publishLive, bool honorPlanGen = true);
 
 	/* CraftingDailies.cpp */
 	DWORD WINAPI DailyProc(void*);
 	void StartDailies(bool force);
 
+	/* CraftingKnown.cpp */
+	void StartKnown(bool force);
+	bool KnownBusy();
+	bool KnownHasFetched();
+	void KnownTick();
+	std::vector<std::string> KnownCharacterNames();
+	bool KnownByAccount(int recipeId);
+	bool CharKnows(const char* charName, int recipeId);
+	std::vector<std::string> CharsKnowing(int recipeId);
+	std::vector<int> KnownRecipeIdsForChar(const char* charName);
+	size_t KnownUnionCount();
+	/* -2 N/A, -1 loading, 0 not known by selected/any, 1 known */
+	int RecipeKnownState(int recipeId, const char* preferChar = nullptr);
+	void EnsureKnownRecipeDetails(const std::vector<int>& recipeIds);
+	bool GetKnownRecipeDetail(int recipeId, KnownRecipeInfo& out);
+
+	/* CraftingKnownUi.cpp */
+	void DrawKnownRail();
+	const char* SelectedKnownChar(); /* "" = account union */
+
+	/* CraftingCart.cpp — multi-item named projects + got check-offs */
+	void CartEnsureLoaded();
+	std::vector<std::string> CartProjectNames();
+	const char* CartActiveName();
+	void CartSetActive(const char* name);
+	std::string CartNew(const char* name);
+	bool CartRename(const char* oldName, const char* newName);
+	void CartDelete(const char* name);
+	std::vector<CartItem> CartItems(const char* project = nullptr);
+	void CartAdd(int itemId, const char* name, int qty, const char* project = nullptr);
+	void CartSetQty(int itemId, int qty, const char* project = nullptr);
+	void CartRemove(int itemId, const char* project = nullptr);
+	void CartClear(const char* project = nullptr);
+	bool CartIsGot(int matItemId, const char* project = nullptr);
+	void CartSetGot(int matItemId, bool on, const char* project = nullptr);
+
+	/* CraftingCartUi.cpp */
+	void DrawCartUi();
+
+	/* CraftingCartPlan.cpp — Plan project → aggregated multi-item results */
+	void StartCartProjectPlan();
+	bool CartPlanBusy();
+	void CartPlanTick();
+	std::vector<Plan> CartPlansCopy();
+	std::string CartPlanStatus();
+
+	/* CraftingOpts.cpp */
+	void LoadCraftOpts();
+	void SaveCraftOpts();
+
+	/* CraftingResults.cpp */
+	void DrawPlanResults(const Plan& plan, bool allowCartGot);
+	void DrawAggregatedResults(const std::vector<Plan>& plans, bool allowCartGot);
+	void DrawOptsBar();
+
 	/* CraftingData.cpp */
-	void DrawNode(const IngNode& n);
 	void Tick();
 }

@@ -15,13 +15,46 @@
 #include <cstring>
 #include <mutex>
 #include <string>
-#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <windows.h>
 
 namespace CraftingDetail
 {
+	static void ParseSlugArray(const std::string& body, std::vector<std::string>& out)
+	{
+		size_t i = 0;
+		while (i < body.size() && out.size() < 64)
+		{
+			while (i < body.size() && body[i] != '"') ++i;
+			if (i >= body.size()) break;
+			++i;
+			std::string val;
+			while (i < body.size() && body[i] != '"')
+			{
+				if (body[i] == '\\' && i + 1 < body.size())
+				{
+					val.push_back(body[i + 1]);
+					i += 2;
+					continue;
+				}
+				val.push_back(body[i++]);
+			}
+			if (i < body.size()) ++i;
+			if (!val.empty()) out.push_back(val);
+		}
+	}
+
+	static std::string PrettySlug(std::string slug)
+	{
+		for (char& c : slug)
+			if (c == '_') c = ' ';
+		if (!slug.empty())
+			slug[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(slug[0])));
+		return slug;
+	}
+
 	DWORD WINAPI DailyProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
@@ -34,25 +67,8 @@ namespace CraftingDetail
 		}
 		else
 		{
-			/* ["item", ...] string ids or item names? Actually returns string slugs like "glob_of_ectoplasm" OR ids?
-			   API: array of strings - daily crafting recipe ids as strings matching /v2/dailycrafting */
 			std::vector<std::string> slugs;
-			size_t i = 0;
-			while (i < r.body.size() && slugs.size() < 32)
-			{
-				while (i < r.body.size() && r.body[i] != '"') ++i;
-				if (i >= r.body.size()) break;
-				++i;
-				std::string val;
-				while (i < r.body.size() && r.body[i] != '"')
-				{
-					if (r.body[i] == '\\' && i + 1 < r.body.size()) { val.push_back(r.body[i + 1]); i += 2; continue; }
-					val.push_back(r.body[i++]);
-				}
-				if (i < r.body.size()) ++i;
-				if (!val.empty()) slugs.push_back(val);
-			}
-			/* Resolve names via /v2/dailycrafting?ids=slug1,slug2 */
+			ParseSlugArray(r.body, slugs);
 			if (!slugs.empty())
 			{
 				std::string path = "/v2/dailycrafting?ids=";
@@ -72,18 +88,10 @@ namespace CraftingDetail
 						size_t end = JsonObjectEnd(det.body, brace);
 						if (end == std::string::npos) break;
 						DailyRow row;
-						row.name = JsonStringAfterKey(det.body, "id", brace);
-						/* dailycrafting objects: { "id": "slug" } - need item via separate mapping.
-						   Actually schema is just { "id": "charged_quartz_crystal" }.
-						   Convert slug to display name. */
-						if (!row.name.empty())
+						row.slug = JsonStringAfterKey(det.body, "id", brace);
+						if (!row.slug.empty())
 						{
-							std::string pretty = row.name;
-							for (char& c : pretty)
-								if (c == '_') c = ' ';
-							if (!pretty.empty())
-								pretty[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(pretty[0])));
-							row.name = pretty;
+							row.name = PrettySlug(row.slug);
 							rows.push_back(row);
 						}
 						p = end + 1;
@@ -94,14 +102,45 @@ namespace CraftingDetail
 					for (const std::string& s : slugs)
 					{
 						DailyRow row;
-						row.name = s;
-						for (char& c : row.name)
-							if (c == '_') c = ' ';
+						row.slug = s;
+						row.name = PrettySlug(s);
 						rows.push_back(row);
 					}
 				}
 			}
-			status = rows.empty() ? "No daily crafts listed." : "Daily crafting (UTC reset).";
+
+			std::unordered_set<std::string> completed;
+			if (G::Gw2ApiKey[0])
+			{
+				auto acc = Gw2Http::Api("/v2/account/dailycrafting", G::Gw2ApiKey, kHttpTimeoutMs);
+				if (acc.ok)
+				{
+					std::vector<std::string> doneSlugs;
+					ParseSlugArray(acc.body, doneSlugs);
+					for (const std::string& s : doneSlugs)
+						completed.insert(s);
+				}
+			}
+
+			int doneCount = 0;
+			for (DailyRow& row : rows)
+			{
+				row.done = !row.slug.empty() && completed.count(row.slug) > 0;
+				if (row.done) ++doneCount;
+			}
+
+			if (rows.empty())
+				status = "No daily crafts listed.";
+			else if (!G::Gw2ApiKey[0])
+				status = "Daily crafting (UTC reset). Add an API key to track done.";
+			else
+			{
+				char buf[96];
+				std::snprintf(buf, sizeof(buf),
+					"Daily crafting — %d of %d done (UTC reset).",
+					doneCount, static_cast<int>(rows.size()));
+				status = buf;
+			}
 		}
 		{
 			std::lock_guard<std::mutex> lock(gMu);

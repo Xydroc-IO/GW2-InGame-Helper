@@ -252,93 +252,10 @@ namespace CraftingDetail
 				}
 				else
 				{
-					plan.outputId = itemId;
-					plan.outputName = resolvedName.empty() ? ItemName(itemId) : resolvedName;
-					plan.nameHints.clear();
-					plan.status = "Fetching recipe...";
-					PublishLivePlan(plan);
-					std::unordered_map<int, RecipeCacheEntry> recipeCache;
-					int outCount = 1;
-					std::vector<RecipeIng> ings;
-					int recipeId = 0;
-					std::string recipeSource;
-					if (!TryLoadRecipe(itemId, plan.outputName, outCount, ings, recipeId,
-							recipeCache, &recipeSource))
-					{
-						char buf[256];
-						std::snprintf(buf, sizeof(buf),
-							"Found %s (#%d) - no station, wiki forge, or acquisition bill.",
-							plan.outputName.empty() ? "item" : plan.outputName.c_str(),
-							itemId);
-						plan.status = buf;
-						plan.outputCount = outCount;
-					}
-					else if (gen == gPlanGen.load())
-					{
-						plan.outputCount = outCount;
-						plan.recipeSource = recipeSource;
-						std::unordered_map<int, std::string> names;
-						names[itemId] = plan.outputName;
-
-						/* Paint top recipe immediately - stash / gifts catch up after. */
-						plan.root = {};
-						plan.root.itemId = itemId;
-						plan.root.need = 1;
-						plan.root.have = 0;
-						plan.root.name = plan.outputName;
-						plan.root.crafted = true;
-						plan.root.depth = 0;
-						for (const RecipeIng& ri : ings)
-						{
-							if (!ri.name.empty())
-								names[ri.itemId] = ri.name;
-							IngNode kid;
-							kid.itemId = ri.itemId;
-							kid.need = ri.count;
-							kid.depth = 1;
-							kid.name = ri.name;
-							kid.have = 0;
-							plan.root.kids.push_back(std::move(kid));
-						}
-						plan.ok = true;
-						plan.nameHints.clear();
-						plan.status = std::string(plan.recipeSource.empty() ? "Recipe" : plan.recipeSource)
-							+ " | loading stash...";
-						PublishLivePlan(plan);
-
-						std::unordered_map<int, int> owned;
-						LoadOwned(owned);
-						if (gen != gPlanGen.load())
-							goto restart_or_done;
-						ApplyOwnedCounts(plan.root, owned);
-						plan.status = std::string(plan.recipeSource.empty() ? "Recipe" : plan.recipeSource)
-							+ " | expanding gifts...";
-						PublishLivePlan(plan);
-
-						for (int depth = 2; depth <= kMaxDepth; ++depth)
-						{
-							if (gen != gPlanGen.load())
-								break;
-							char st[96];
-							std::snprintf(st, sizeof(st), "Expanding gifts (depth %d/%d)...",
-								depth, kMaxDepth);
-							plan.status = st;
-							PublishLivePlan(plan);
-							ExpandFrontier(plan, owned, names, recipeCache, depth);
-							ApplyOwnedCounts(plan.root, owned);
-							plan.status = st;
-							if (gen == gPlanGen.load())
-								PublishLivePlan(plan);
-						}
-
-						if (gen == gPlanGen.load())
-						{
-							plan.status = "Pricing materials...";
-							PublishLivePlan(plan);
-							FinishPrices(plan, names);
-							PublishLivePlan(plan);
-						}
-					}
+					const int wantQty = gThreadQty < 1 ? 1 : gThreadQty;
+					ExpandAndPricePlan(plan, itemId,
+						resolvedName.empty() ? ItemName(itemId) : resolvedName,
+						wantQty, gen, true, true);
 				}
 			}
 			if (!plan.ok)
@@ -361,20 +278,26 @@ namespace CraftingDetail
 	}
 	void StartPlan()
 	{
+		StartPlanWithQty(gPlanQty < 1 ? 1 : gPlanQty);
+	}
+
+	void StartPlanWithQty(int wantQty)
+	{
 		std::snprintf(gThreadQuery, sizeof(gThreadQuery), "%s", gQuery);
+		gThreadQty = wantQty < 1 ? 1 : wantQty;
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			gPlan.status = "Planning...";
 			gPlan.ok = false;
 			gPlan.root = {};
 			gPlan.nameHints.clear();
+			gPlan.wantQty = gThreadQty;
 		}
-		++gPlanGen; /* cancel in-flight expand; worker restarts if still alive */
+		++gPlanGen;
 		if (gBusy.exchange(true))
-			return; /* existing PlanProc loop will pick up new gen/query */
+			return;
 		if (gThread)
 		{
-			/* Reap finished worker; if still winding down, wait briefly (rare). */
 			if (WaitForSingleObject(gThread, 8000) == WAIT_OBJECT_0)
 			{
 				CloseHandle(gThread);

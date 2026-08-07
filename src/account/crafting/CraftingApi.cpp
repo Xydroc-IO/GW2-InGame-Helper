@@ -5,6 +5,8 @@
 #include "Globals.h"
 #include "Gw2Http.h"
 
+#include "AddonPaths.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -244,8 +246,10 @@ namespace CraftingDetail
 		return 0;
 	}
 
-	/* Instant-buy unit price = lowest sell listing (not buy-order). */
-	void FetchPrices(std::unordered_map<int, long long>& sells, const std::vector<int>& ids)
+	/* Instant-buy unit price = lowest sell listing (not buy-order).
+	   Optional buys map = highest buy-order unit (instant sell). */
+	void FetchPrices(std::unordered_map<int, long long>& sells, const std::vector<int>& ids,
+		std::unordered_map<int, long long>* buys)
 	{
 		for (size_t off = 0; off < ids.size(); off += 200)
 		{
@@ -267,13 +271,130 @@ namespace CraftingDetail
 				if (end == std::string::npos) break;
 				long long id = JsonIntAfterKey(r.body, "id", brace);
 				size_t sellsKey = r.body.find("\"sells\"", brace);
-				long long unit = -1;
+				long long sellUnit = -1;
 				if (sellsKey != std::string::npos && sellsKey < end)
-					unit = JsonIntAfterKey(r.body, "unit_price", sellsKey);
-				if (id > 0 && unit >= 0)
-					sells[static_cast<int>(id)] = unit;
+					sellUnit = JsonIntAfterKey(r.body, "unit_price", sellsKey);
+				if (id > 0 && sellUnit >= 0)
+					sells[static_cast<int>(id)] = sellUnit;
+				if (buys)
+				{
+					size_t buysKey = r.body.find("\"buys\"", brace);
+					long long buyUnit = -1;
+					if (buysKey != std::string::npos && buysKey < end)
+						buyUnit = JsonIntAfterKey(r.body, "unit_price", buysKey);
+					if (id > 0 && buyUnit >= 0)
+						(*buys)[static_cast<int>(id)] = buyUnit;
+				}
 				p = end + 1;
 			}
 		}
+	}
+
+	void ParseIntArray(const std::string& body, std::vector<int>& out)
+	{
+		size_t i = 0;
+		while (i < body.size() && out.size() < 20000)
+		{
+			while (i < body.size() && (body[i] < '0' || body[i] > '9') && body[i] != '-')
+				++i;
+			if (i >= body.size()) break;
+			long long v = 0;
+			bool neg = false;
+			if (body[i] == '-') { neg = true; ++i; }
+			if (i >= body.size() || body[i] < '0' || body[i] > '9') break;
+			while (i < body.size() && body[i] >= '0' && body[i] <= '9')
+				v = v * 10 + (body[i++] - '0');
+			if (neg) v = -v;
+			if (v > 0 && v < 2000000000)
+				out.push_back(static_cast<int>(v));
+		}
+	}
+
+	void ParseQuotedStringArray(const std::string& body, std::vector<std::string>& out)
+	{
+		size_t i = 0;
+		while (i < body.size() && out.size() < 256)
+		{
+			while (i < body.size() && body[i] != '"') ++i;
+			if (i >= body.size()) break;
+			++i;
+			std::string val;
+			while (i < body.size() && body[i] != '"')
+			{
+				if (body[i] == '\\' && i + 1 < body.size())
+				{
+					val.push_back(body[i + 1]);
+					i += 2;
+					continue;
+				}
+				val.push_back(body[i++]);
+			}
+			if (i < body.size()) ++i;
+			if (!val.empty()) out.push_back(val);
+		}
+	}
+
+	std::string EncodeCharPath(const std::string& name)
+	{
+		std::string o;
+		for (unsigned char c : name)
+		{
+			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+				(c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.')
+				o.push_back(static_cast<char>(c));
+			else if (c == ' ')
+				o += "%20";
+			else
+			{
+				char buf[8];
+				std::snprintf(buf, sizeof(buf), "%%%02X", c);
+				o += buf;
+			}
+		}
+		return o;
+	}
+
+	bool WriteUtf8File(const std::wstring& path, const std::string& body)
+	{
+		HANDLE h = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+			FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (h == INVALID_HANDLE_VALUE)
+			return false;
+		DWORD written = 0;
+		const BOOL ok = WriteFile(h, body.data(), static_cast<DWORD>(body.size()), &written, nullptr);
+		CloseHandle(h);
+		return ok != 0;
+	}
+
+	bool ReadUtf8File(const std::wstring& path, std::string& out)
+	{
+		out.clear();
+		HANDLE h = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
+			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (h == INVALID_HANDLE_VALUE)
+			return false;
+		LARGE_INTEGER sz{};
+		if (!GetFileSizeEx(h, &sz) || sz.QuadPart <= 0 || sz.QuadPart > 8 * 1024 * 1024)
+		{
+			CloseHandle(h);
+			return false;
+		}
+		out.resize(static_cast<size_t>(sz.QuadPart));
+		DWORD got = 0;
+		const BOOL ok = ReadFile(h, out.data(), static_cast<DWORD>(out.size()), &got, nullptr);
+		CloseHandle(h);
+		if (!ok) { out.clear(); return false; }
+		out.resize(got);
+		return true;
+	}
+
+	std::wstring ConfigFile(const wchar_t* leaf)
+	{
+		std::wstring dir = AddonPaths::ConfigDir();
+		if (dir.empty()) dir = AddonPaths::DataDir();
+		if (dir.empty() || !leaf) return {};
+		if (dir.back() != L'\\' && dir.back() != L'/') dir.push_back(L'\\');
+		dir += leaf;
+		return dir;
 	}
 } // namespace CraftingDetail

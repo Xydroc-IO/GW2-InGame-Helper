@@ -51,17 +51,72 @@ namespace CraftingDetail
 
 		std::vector<int> leafIds;
 		CollectLeafIds(plan.root, leafIds);
+		if (plan.outputId > 0)
+			leafIds.push_back(plan.outputId);
+		/* Also price intermediate nodes for buy-vs-craft. */
+		{
+			std::vector<IngNode*> stack;
+			stack.push_back(&plan.root);
+			while (!stack.empty())
+			{
+				IngNode* cur = stack.back();
+				stack.pop_back();
+				if (cur->itemId > 0) leafIds.push_back(cur->itemId);
+				for (IngNode& c : cur->kids) stack.push_back(&c);
+			}
+		}
 		std::sort(leafIds.begin(), leafIds.end());
 		leafIds.erase(std::unique(leafIds.begin(), leafIds.end()), leafIds.end());
 		std::unordered_map<int, long long> sells;
-		FetchPrices(sells, leafIds);
+		std::unordered_map<int, long long> buys;
+		FetchPrices(sells, leafIds, &buys);
+		plan.buyTotal = 0;
+		plan.noTpMissing = 0;
+		plan.tpBuyOutright = -1;
+		plan.tpListUnit = -1;
+		plan.tpInstantUnit = -1;
+		ApplyPrices(plan.root, sells, plan.buyTotal, plan.noTpMissing);
+
+		ApplyBuyVsCraft(plan, sells, gOpts);
 		plan.buyTotal = 0;
 		plan.noTpMissing = 0;
 		ApplyPrices(plan.root, sells, plan.buyTotal, plan.noTpMissing);
+		BuildShoppingAndSteps(plan);
+
+		const int want = (std::max)(1, plan.wantQty > 0 ? plan.wantQty : plan.outputCount);
+		auto sellIt = sells.find(plan.outputId);
+		if (sellIt != sells.end() && sellIt->second >= 0)
+		{
+			plan.tpListUnit = sellIt->second;
+			plan.tpBuyOutright = sellIt->second * want;
+		}
+		auto buyIt = buys.find(plan.outputId);
+		if (buyIt != buys.end() && buyIt->second >= 0)
+			plan.tpInstantUnit = buyIt->second;
 
 		char buf[192];
 		const char* src = plan.recipeSource.empty() ? "recipe" : plan.recipeSource.c_str();
-		if (plan.noTpMissing > 0)
+		if (plan.tpBuyOutright >= 0 && plan.buyTotal >= 0)
+		{
+			const long long save = plan.tpBuyOutright - plan.buyTotal;
+			if (save >= 0)
+			{
+				std::snprintf(buf, sizeof(buf),
+					"%s | craft %s vs buy %s (save %s)",
+					src, FormatCoins(plan.buyTotal).c_str(),
+					FormatCoins(plan.tpBuyOutright).c_str(),
+					FormatCoins(save).c_str());
+			}
+			else
+			{
+				std::snprintf(buf, sizeof(buf),
+					"%s | craft %s vs buy %s (buy cheaper by %s)",
+					src, FormatCoins(plan.buyTotal).c_str(),
+					FormatCoins(plan.tpBuyOutright).c_str(),
+					FormatCoins(-save).c_str());
+			}
+		}
+		else if (plan.noTpMissing > 0)
 		{
 			std::snprintf(buf, sizeof(buf),
 				"%s | TP buy ~ %s (+ bound/no-TP mats)",
@@ -229,6 +284,18 @@ namespace CraftingDetail
 		}
 		for (const IngNode& k : n.kids)
 			CollectLeafIds(k, ids);
+	}
+
+	void CollectMissingLeaves(const IngNode& n, std::vector<const IngNode*>& out)
+	{
+		if (n.kids.empty())
+		{
+			if (n.need > n.have)
+				out.push_back(&n);
+			return;
+		}
+		for (const IngNode& k : n.kids)
+			CollectMissingLeaves(k, out);
 	}
 
 	void ApplyPrices(IngNode& n, const std::unordered_map<int, long long>& sells,

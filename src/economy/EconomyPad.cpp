@@ -259,6 +259,20 @@ static void DrawCart()
 		CraftingData::RequestFocusTab();
 		AccountPad::OpenAndRefresh();
 	}
+	if (!gCart.empty())
+	{
+		ImGui::SameLine();
+		if (ImGui::Button("Plan first###gw2igh_eco_plan1"))
+		{
+			char q[96];
+			if (gCart[0].name[0])
+				std::snprintf(q, sizeof(q), "%s", gCart[0].name);
+			else
+				std::snprintf(q, sizeof(q), "%d", gCart[0].id);
+			CraftingData::QueuePlan(q);
+			AccountPad::OpenAndRefresh();
+		}
+	}
 	PadLayout::BeginList("###gw2igh_eco_cart");
 	for (size_t i = 0; i < gCart.size(); )
 	{
@@ -270,6 +284,17 @@ static void DrawCart()
 		if (ImGui::SmallButton("+")) { ++c.qty; SaveCart(); }
 		ImGui::SameLine();
 		const bool remove = ImGui::SmallButton("X");
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Plan"))
+		{
+			char q[96];
+			if (c.name[0])
+				std::snprintf(q, sizeof(q), "%s", c.name);
+			else
+				std::snprintf(q, sizeof(q), "%d", c.id);
+			CraftingData::QueuePlan(q);
+			AccountPad::OpenAndRefresh();
+		}
 		ImGui::SameLine();
 		if (ImGui::SmallButton("BLTC"))
 			OpenBltcItem(c.id);

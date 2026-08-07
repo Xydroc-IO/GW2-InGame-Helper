@@ -4,16 +4,11 @@
 
 #include "CraftingShared.h"
 
-#include "Globals.h"
-#include "Gw2Http.h"
 #include "HelperTheme.h"
-#include "InventoryData.h"
 
 #include "imgui/imgui.h"
 
-#include <algorithm>
 #include <atomic>
-#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
@@ -39,53 +34,21 @@ namespace CraftingDetail
 	HANDLE gDailyThread = nullptr;
 	char gQuery[192] = {};
 	char gThreadQuery[192] = {};
+	int gThreadQty = 1;
+	int gPlanQty = 1;
 	DWORD gDailyFetchedAt = 0;
 	std::atomic<bool> gFocusTab{false};
 	std::atomic<unsigned> gPlanGen{0};
+	PlanOpts gOpts{};
 
 	std::mutex gWikiMu;
 	std::unordered_map<std::string, std::string> gWikiTextCache;
 	std::mutex gRecipeCacheMu;
 
-	void DrawNode(const IngNode& n)
-	{
-		ImGui::PushID(n.itemId + n.depth * 1000003);
-		const char* name = n.name.empty() ? "..." : n.name.c_str();
-		const int miss = (std::max)(0, n.need - n.have);
-		const bool ok = miss <= 0;
-		char label[256];
-		std::snprintf(label, sizeof(label), "%s  %d / %d", name, n.have, n.need);
-		if (!n.kids.empty())
-		{
-			if (ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				for (const IngNode& k : n.kids)
-					DrawNode(k);
-				ImGui::TreePop();
-			}
-		}
-		else
-		{
-			if (ok)
-				ImGui::TextColored(HelperTheme::Ok, "%s", label);
-			else
-				ImGui::TextColored(HelperTheme::Warn, "%s", label);
-			if (miss > 0 && n.buyUnit >= 0)
-			{
-				ImGui::SameLine();
-				ImGui::TextColored(HelperTheme::Muted,
-					"buy %s", FormatCoins(n.buyUnit * miss).c_str());
-			}
-			else if (miss > 0)
-			{
-				ImGui::SameLine();
-				ImGui::TextColored(HelperTheme::Warn, "no TP");
-			}
-		}
-		ImGui::PopID();
-	}
 	void Tick()
 	{
+		KnownTick();
+		CartPlanTick();
 		if (gThread && !gBusy && WaitForSingleObject(gThread, 0) == WAIT_OBJECT_0)
 		{
 			CloseHandle(gThread);
@@ -128,7 +91,7 @@ void CraftingData::QueuePlan(const char* itemNameOrCode)
 	if (!itemNameOrCode || !itemNameOrCode[0]) return;
 	std::snprintf(gQuery, sizeof(gQuery), "%s", itemNameOrCode);
 	gFocusTab = true;
-	StartPlan();
+	StartPlanWithQty(1);
 }
 
 void CraftingData::RequestFocusTab()
@@ -143,8 +106,17 @@ bool CraftingData::ConsumeFocusTab()
 
 void CraftingData::RenderContents()
 {
+	static bool optsLoaded = false;
+	if (!optsLoaded)
+	{
+		optsLoaded = true;
+		LoadCraftOpts();
+	}
+
 	Tick();
 	StartDailies(false);
+	StartKnown(false);
+	CartEnsureLoaded();
 
 	Plan plan;
 	std::vector<DailyRow> dailies;
@@ -155,15 +127,22 @@ void CraftingData::RenderContents()
 		dailies = gDailies;
 		dailyStatus = gDailyStatus;
 	}
+	std::vector<Plan> cartPlans = CartPlansCopy();
 
 	PadNav::Blurb(
-		"Station crafts use the official recipe API. Legendaries / gifts use wiki "
-		"Mystic Forge trees (expandable) - gifts, sub-gifts, then mats. "
-		"Owned counts: materials, bank, shared (API key).");
+		"Known recipes (per character), multi-item craft cart with project rollup, "
+		"buy-vs-craft plans, shopping check-offs, and craft steps. "
+		"API key needs unlocks + characters + inventories.");
 
+	DrawOptsBar();
+
+	ImGui::SetNextItemWidth(56.f);
+	ImGui::InputInt("###gw2igh_craft_qty", &gPlanQty);
+	if (gPlanQty < 1) gPlanQty = 1;
+	ImGui::SameLine();
 	const float btnW = ImGui::CalcTextSize("Plan").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
 	float fieldW = ImGui::GetContentRegionAvail().x - btnW - ImGui::GetStyle().ItemSpacing.x;
-	if (fieldW < 120.f) fieldW = 120.f;
+	if (fieldW < 100.f) fieldW = 100.f;
 	ImGui::SetNextItemWidth(fieldW);
 	if (ImGui::InputTextWithHint("###gw2igh_craft_q", "[&...] / ID / name",
 			gQuery, sizeof(gQuery), ImGuiInputTextFlags_EnterReturnsTrue))
@@ -178,6 +157,10 @@ void CraftingData::RenderContents()
 		PadNav::StatusBusy(plan.status.c_str());
 	else if (!plan.status.empty())
 		PadNav::StatusOk(plan.status.c_str());
+	if (CartPlanBusy())
+		PadNav::StatusBusy(CartPlanStatus().c_str());
+	else if (!CartPlanStatus().empty() && !cartPlans.empty())
+		PadNav::StatusOk(CartPlanStatus().c_str());
 
 	ImGui::Separator();
 	PadNav::SectionTitle("Daily crafting");
@@ -188,41 +171,29 @@ void CraftingData::RenderContents()
 			"%s", dailyStatus.empty() ? "-" : dailyStatus.c_str());
 	else
 	{
+		if (!dailyStatus.empty())
+			ImGui::TextColored(HelperTheme::Muted, "%s", dailyStatus.c_str());
 		for (const DailyRow& d : dailies)
-			ImGui::BulletText("%s", d.name.c_str());
+		{
+			if (d.done)
+				ImGui::TextColored(HelperTheme::Ok, "Done  %s", d.name.c_str());
+			else
+				ImGui::TextColored(HelperTheme::Warn, "Todo  %s", d.name.c_str());
+		}
 	}
 
+	ImGui::Separator();
+	DrawKnownRail();
+	ImGui::Separator();
+	DrawCartUi();
 	ImGui::Separator();
 
 	PadLayout::BeginList("###gw2igh_craft_list", 80.f);
 
-	if (plan.ok)
-	{
-		ImGui::TextColored(HelperTheme::GoldBright, "%s",
-			plan.outputName.empty() ? "Output" : plan.outputName.c_str());
-		if (!plan.recipeSource.empty())
-			ImGui::TextColored(HelperTheme::Muted,
-				"#%d | %s | crafts %d", plan.outputId, plan.recipeSource.c_str(),
-				plan.outputCount);
-		else
-			ImGui::TextColored(HelperTheme::Muted,
-				"#%d | crafts %d per recipe", plan.outputId, plan.outputCount);
-		if (plan.noTpMissing > 0)
-		{
-			ImGui::TextColored(HelperTheme::Ink,
-				"TP buy (instant): %s", FormatCoins(plan.buyTotal).c_str());
-			ImGui::TextColored(HelperTheme::Warn,
-				"Some missing mats are account-bound / not on the TP.");
-		}
-		else
-		{
-			ImGui::TextColored(HelperTheme::Ink,
-				"TP buy (instant): %s", FormatCoins(plan.buyTotal).c_str());
-		}
-		ImGui::Spacing();
-		for (const IngNode& k : plan.root.kids)
-			DrawNode(k);
-	}
+	if (!cartPlans.empty())
+		DrawAggregatedResults(cartPlans, true);
+	else if (plan.ok)
+		DrawPlanResults(plan, true);
 	else if (!plan.nameHints.empty())
 	{
 		PadNav::Meta("Wiki results");
@@ -237,10 +208,10 @@ void CraftingData::RenderContents()
 			ImGui::PopID();
 		}
 	}
-	else if (!gBusy)
+	else if (!gBusy && !CartPlanBusy())
 	{
 		ImGui::TextWrapped(
-			"Try an ascended food, gift, or crafted gear name - or Shift+click a chat code.");
+			"Plan an item, browse Known, or Plan project on the craft cart.");
 	}
 
 	PadLayout::EndList();

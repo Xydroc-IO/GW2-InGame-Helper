@@ -84,38 +84,40 @@ namespace CraftingDetail
 		InventoryData::FillOwnedMap(owned);
 	}
 
-	bool LoadApiRecipeForOutput(int outputId, int& outCount, std::vector<RecipeIng>& ings, int& recipeId)
+	bool LoadApiRecipeById(int recipeId, int& outputId, int& outCount, std::vector<RecipeIng>& ings,
+		std::string* disciplineOut)
 	{
-		char path[80];
-		std::snprintf(path, sizeof(path), "/v2/recipes/search?output=%d", outputId);
-		auto sr = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
-		if (!sr.ok || sr.body.empty()) return false;
-		recipeId = 0;
-		size_t p = 0;
-		while (p < sr.body.size())
-		{
-			while (p < sr.body.size() && (sr.body[p] < '0' || sr.body[p] > '9')) ++p;
-			if (p >= sr.body.size()) break;
-			int v = 0;
-			while (p < sr.body.size() && sr.body[p] >= '0' && sr.body[p] <= '9')
-			{
-				v = v * 10 + (sr.body[p] - '0');
-				++p;
-			}
-			if (v > 0) { recipeId = v; break; }
-		}
 		if (recipeId <= 0) return false;
+		char path[64];
 		std::snprintf(path, sizeof(path), "/v2/recipes/%d", recipeId);
 		auto rr = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
 		if (!rr.ok) return false;
+		outputId = static_cast<int>(JsonIntAfterKey(rr.body, "output_item_id", 0));
 		outCount = static_cast<int>(JsonIntAfterKey(rr.body, "output_item_count", 0));
 		if (outCount <= 0) outCount = 1;
+		if (disciplineOut)
+		{
+			*disciplineOut = {};
+			size_t dkey = rr.body.find("\"disciplines\"");
+			if (dkey != std::string::npos)
+			{
+				size_t bracket = rr.body.find('[', dkey);
+				size_t q1 = (bracket == std::string::npos) ? std::string::npos : rr.body.find('"', bracket);
+				if (q1 != std::string::npos)
+				{
+					++q1;
+					size_t q2 = rr.body.find('"', q1);
+					if (q2 != std::string::npos)
+						*disciplineOut = rr.body.substr(q1, q2 - q1);
+				}
+			}
+		}
 		ings.clear();
 		size_t ingKey = rr.body.find("\"ingredients\"");
-		if (ingKey == std::string::npos) return false;
+		if (ingKey == std::string::npos) return outputId > 0;
 		size_t arr = rr.body.find('[', ingKey);
-		if (arr == std::string::npos) return false;
-		p = arr;
+		if (arr == std::string::npos) return outputId > 0;
+		size_t p = arr;
 		while (p < rr.body.size())
 		{
 			size_t brace = rr.body.find('{', p);
@@ -138,7 +140,33 @@ namespace CraftingDetail
 				(nextBrace == std::string::npos || nextClose < nextBrace))
 				break;
 		}
-		return !ings.empty();
+		return outputId > 0 && !ings.empty();
+	}
+
+	bool LoadApiRecipeForOutput(int outputId, int& outCount, std::vector<RecipeIng>& ings, int& recipeId,
+		std::string* disciplineOut)
+	{
+		char path[80];
+		std::snprintf(path, sizeof(path), "/v2/recipes/search?output=%d", outputId);
+		auto sr = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
+		if (!sr.ok || sr.body.empty()) return false;
+		recipeId = 0;
+		size_t p = 0;
+		while (p < sr.body.size())
+		{
+			while (p < sr.body.size() && (sr.body[p] < '0' || sr.body[p] > '9')) ++p;
+			if (p >= sr.body.size()) break;
+			int v = 0;
+			while (p < sr.body.size() && sr.body[p] >= '0' && sr.body[p] <= '9')
+			{
+				v = v * 10 + (sr.body[p] - '0');
+				++p;
+			}
+			if (v > 0) { recipeId = v; break; }
+		}
+		if (recipeId <= 0) return false;
+		int unusedOut = 0;
+		return LoadApiRecipeById(recipeId, unusedOut, outCount, ings, disciplineOut);
 	}
 
 	/* TP / gather mats - buy these; do not chase promotion ladders (ore/dust/T6 blood...). */
@@ -231,8 +259,9 @@ namespace CraftingDetail
 		if (!e.apiTried)
 		{
 			e.apiTried = true;
+			std::string disc;
 			cacheLock.unlock();
-			const bool apiOk = LoadApiRecipeForOutput(outputId, outCount, ings, recipeId);
+			const bool apiOk = LoadApiRecipeForOutput(outputId, outCount, ings, recipeId, &disc);
 			cacheLock.lock();
 			RecipeCacheEntry& eApi = cache[outputId];
 			if (apiOk)
@@ -241,7 +270,8 @@ namespace CraftingDetail
 				eApi.outCount = outCount;
 				eApi.recipeId = recipeId;
 				eApi.ings = ings;
-				eApi.source = "Crafting station";
+				eApi.discipline = disc;
+				eApi.source = disc.empty() ? "Crafting station" : disc;
 				if (sourceOut) *sourceOut = eApi.source;
 				return true;
 			}

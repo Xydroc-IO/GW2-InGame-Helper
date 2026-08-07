@@ -154,6 +154,8 @@ namespace CraftingPlanSnapshot
 		plan.outputId = itemId;
 		plan.outputName = out.outputName;
 		plan.outputCount = outCount;
+		plan.outputCount = outCount;
+		plan.recipeId = recipeId;
 		plan.recipeSource = recipeSource;
 		plan.root = {};
 		plan.root.itemId = itemId;

@@ -1,7 +1,7 @@
 #pragma once
 
-/* Account Crafting - daily crafts + item->recipe tree (station + wiki mystic forge /
-   legendary gifts) + owned mats + TP cost. Original ImGui UI. */
+/* Account Crafting — dailies, known recipes (per-character rail), multi-item craft cart,
+   buy-vs-craft plans (shopping + steps + financial), owned mats + TP costs. */
 namespace CraftingData
 {
 	void RefreshDailiesIfNeeded(bool force = false);
