@@ -30,6 +30,7 @@ const char* HomePage::Html()
   *::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #a07838, #5a4220);
     border: 1px solid #c29438;
+    border-radius: 0;
   }
   *::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--gold), #8a6a32); }
   html { scroll-behavior: smooth; }

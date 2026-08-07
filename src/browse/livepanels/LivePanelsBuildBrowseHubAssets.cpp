@@ -27,8 +27,10 @@ const char* HubCss()
 	{
 		s = HelperThemeCss::RootVars();
 		s += HelperThemeCss::ImmersiveShell();
-		s += HelperThemeCss::FillBackgroundCss(
-			UiChrome::FillFileUrl(AddonPaths::DataDir()).c_str());
+		{
+			const std::string fill = UiChrome::FillFileUrl(AddonPaths::DataDir());
+			s += HelperThemeCss::FillBackgroundCss(fill.c_str());
+		}
 		s += R"CSS(
 .wrap{max-width:1100px;margin:0 auto;padding:28px 22px 96px;min-height:100vh}
 .hero{

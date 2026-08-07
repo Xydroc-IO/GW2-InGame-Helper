@@ -374,8 +374,10 @@ std::string BuildLegendaryLedgerHtml(const std::wstring& addonDir, const char* a
 		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
 		"<title>The Complete GW2 Legendary Collection</title><style>";
 	html += LedgerCss();
-	html += HelperThemeCss::FillBackgroundCss(
-		UiChrome::FillFileUrl(AddonPaths::DataDir()).c_str());
+	{
+		const std::string fill = UiChrome::FillFileUrl(AddonPaths::DataDir());
+		html += HelperThemeCss::FillBackgroundCss(fill.c_str());
+	}
 	html += "</style></head><body><div class=\"glow\" aria-hidden=\"true\"></div>"
 		"<div class=\"shell\">"
 		"<main><div id=\"view-list\" class=\"space-y-7\"></div>"

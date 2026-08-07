@@ -1,4 +1,5 @@
 # Curated GW2 UI chrome (ArenaNet assets — not MIT).
+# Scrollbar set sourced from Pictures/Textures/UI Textures/{WxH}/{id}.png
 # Blish StandardWindow set: fill 155985 + emblem 156022 (+ WindowBase2 corners).
 155985.png	panel_fill
 155981.png	panel_fill_alt
@@ -18,9 +19,12 @@ panel-edge.png	panel_edge_156109
 ink-edge.png	ink_brush_edge_155967
 scroll-thumb.png	scrollbar_grip_154971
 scroll-thumb-mid.png	scrollbar_mid_154970
+scroll-thumb-top.png	scrollbar_top_154969
 scroll-thumb-cap.png	scrollbar_cap_154973
 scroll-arrow.png	scrollbar_chevron_155031
+scroll-arrow-up.png	scrollbar_chevron_up_155031
 scroll-atlas.png	scrollbar_atlas_156078
+scroll-track-h.png	scrollbar_track_h_154968
 # Rail / Log Manager curated icons
 1002138.png	rail_icon
 1002139.png	rail_icon

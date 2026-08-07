@@ -108,11 +108,17 @@ namespace HelperTheme
 		return Gw2Ui::PadWindowFlags(extra);
 	}
 
-	/* Call instead of ImGui::End() on themed pads — End first so ImGui's gold
-	   grab/arrows are already in the draw list, then overlay DAT scroll chrome. */
+	/* Call instead of ImGui::End() on themed pads — End first, then paint DAT
+	   scroll chrome onto that window's draw list (respects pad Z-order). */
 	inline void EndPad()
 	{
 		ImGuiWindow* pad = ImGui::GetCurrentWindow();
+		/* Re-assert invisible grab in case Nexus overwrote Style.Colors mid-frame. */
+		ImGuiStyle& st = ImGui::GetStyle();
+		st.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.f, 0.f, 0.f, 0.f);
+		st.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.f, 0.f, 0.f, 0.f);
+		st.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.f, 0.f, 0.f, 0.f);
+		st.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.04f, 0.03f, 0.02f, 0.98f);
 		ImGui::End();
 		Gw2Ui::PaintNativeScrollbars(G::Opacity > 0.05f ? G::Opacity : 1.f, pad);
 	}

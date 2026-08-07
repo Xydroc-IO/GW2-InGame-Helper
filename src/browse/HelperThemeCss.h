@@ -54,7 +54,7 @@ namespace HelperThemeCss
 			"linear-gradient(180deg, #1a1510 0%, var(--bg) 42%, #0a0806 100%)";
 	}
 
-	/* Gold scrollbars — kill CEF/OS white thumbs on about:/file: pages. */
+	/* Gold Helper scrollbars — CEF/OSR theme (pads keep DAT ImGui chrome separately). */
 	inline const char* ScrollbarCss()
 	{
 		return R"CSS(
@@ -70,6 +70,7 @@ namespace HelperThemeCss
   *::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #a07838, #5a4220);
     border: 1px solid #c29438;
+    border-radius: 0;
   }
   *::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #f0c866, #8a6a32);
@@ -163,7 +164,7 @@ namespace HelperThemeCss
   }
   body > * { position: relative; z-index: 1; }
 
-  /* Gold scrollbars — also appended by FillBackgroundCss for ledger/detail pages. */
+  /* Gold Helper scrollbars — FillBackgroundCss re-appends for ledger pages. */
   * {
     scrollbar-width: thin;
     scrollbar-color: #8a6a32 #120e0a;
@@ -176,6 +177,7 @@ namespace HelperThemeCss
   *::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #a07838, #5a4220);
     border: 1px solid #c29438;
+    border-radius: 0;
   }
   *::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, var(--gold), #8a6a32);

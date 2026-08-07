@@ -100,7 +100,8 @@ bool Gw2Ui::PaintPadChrome(float opacity)
 	dl->AddRectFilled(p0, p1, IM_COL32(6, 4, 3, static_cast<int>(a * 55.f + 0.5f)));
 	dl->PopClipRect();
 
-	/* Soft brush fringe only — never a solid black mat around the window. */
+	/* Soft brush fringe only — never a solid black mat around the window.
+	   Use this window's draw list (not foreground) so other pads can cover it. */
 	Texture_t* ink = Gw2UiDetail::GetChromeNamed("ink-edge");
 	if (!ink || !ink->Resource)
 		ink = Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::InkEdge));
@@ -108,7 +109,7 @@ bool Gw2Ui::PaintPadChrome(float opacity)
 	{
 		constexpr float kFringe = 18.f;
 		constexpr float kBleed = 10.f;
-		ImDrawList* edgeDl = ImGui::GetForegroundDrawList();
+		ImDrawList* edgeDl = ImGui::GetWindowDrawList();
 		const ImTextureID iid = reinterpret_cast<ImTextureID>(ink->Resource);
 		const ImU32 inkCol = IM_COL32(255, 255, 255, static_cast<int>(a * 180.f + 0.5f));
 

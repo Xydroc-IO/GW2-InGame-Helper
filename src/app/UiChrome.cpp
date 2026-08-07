@@ -21,21 +21,24 @@ extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "uc19";
+	constexpr const char* kPackStamp = "uc21";
 	constexpr int kChromeIds[] = {
 		155985, 155981, 156022, 156008, 156009, 156010, 155967, 156260, 155014,
 		/* Curated rail / Log Manager icons (Desktop/icons — current set). */
 		156081, 240678, 563466, 563468, 699005, 834008,
 		866115, 866117, 866119, 866124, 1948130,
 		1228263, 1228855, 2199974, 2596974, 2596976,
-		3124871, 3443174, 3443175, 3713037
+		3124871, 3443174, 3443175, 3713037,
+		/* Scrollbar DAT ids (also as named files below). */
+		154969, 154970, 154971, 154973, 155031, 156078, 154968
 	};
 	/* Named pack files (not numeric DAT ids). */
 	constexpr const char* kChromeNamed[] = {
 		"button-exit.png", "button-exit-active.png", "crest-hero.png",
 		"panel-wash.png", "title-bar.png", "panel-edge.png", "ink-edge.png",
-		"scroll-thumb.png", "scroll-thumb-mid.png", "scroll-thumb-cap.png",
-		"scroll-arrow.png", "scroll-atlas.png"
+		"scroll-thumb.png", "scroll-thumb-mid.png", "scroll-thumb-top.png",
+		"scroll-thumb-cap.png", "scroll-arrow.png", "scroll-arrow-up.png",
+		"scroll-atlas.png", "scroll-track-h.png"
 	};
 
 	std::string WideToUtf8(const std::wstring& w)
