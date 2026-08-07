@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.6
+# GW2 In-Game Helper v2.2.3.7
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,6 +32,22 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.7
+
+- **GPS pathfinding:** A* over pack-trail corridors + official waypoints when building the
+  orange search guide (falls back to densified direct). Hardened graph size / rebuild hysteresis.
+- **World GPS visuals:** denser smoothed ribbon, thicker guide, procedural chevrons.
+- **Farming live nodes:** nearest Pathing pack markers on your map + GPS handoff.
+- **Instances raids:** weekly clears sync from `/v2/account/raids` (W1–W8); story/fractals/strikes local.
+- **Completion:** strikes + festival/(Public) clones in Atlas (scope chips); eager waypoint index.
+- **Sources of truth:** Vault pad = Wizard’s Vault account progress; `about:live-dailies` =
+  Today board (shared Vault cache + crafting + bosses); Daily/Weekly sheet = offline reference only.
+- **Legendary discovery:** side-rail Ledger is primary; `about:live-progress` redirects to Ledger;
+  Account → Progress keeps ImGui armory + Open Ledger.
+- **Craft carts:** Crafting cart owns projects; Economy cart is TP shopping — “Send to Crafting plan”.
+- **Stamps:** Helper `2241` · homepage `2227` · sites `s2213` · cheatsheets `c2224`
+  · live panel `51` · raid food `5` · ui-chrome `uc23`
 
 ## What’s new in 2.2.3.6
 
