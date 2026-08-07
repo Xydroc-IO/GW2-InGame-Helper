@@ -47,7 +47,7 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
   Account → Progress keeps ImGui armory + Open Ledger.
 - **Craft carts:** Crafting cart owns projects; Economy cart is TP shopping — “Send to Crafting plan”.
 - **Stamps:** Helper `2241` · homepage `2227` · sites `s2213` · cheatsheets `c2224`
-  · live panel `51` · raid food `5` · ui-chrome `uc23`
+  · live panel `51` · raid food `7` · ui-chrome `uc23`
 
 ## What’s new in 2.2.3.6
 

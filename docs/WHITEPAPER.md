@@ -912,8 +912,9 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2239 / 2227 / s2213 / c2223 |
-| Live panel stamp | 50 |
+| Helper / home / sites / cheatsheets stamps | 2241 / 2227 / s2213 / c2224 |
+| Live panel stamp | 51 |
+| Raid food stamp | 7 |
 | ui-chrome stamp | uc23 |
 | OSR `device_scale_factor` | 1.0 |
 | User-Agent product token | `GW2-InGame-Helper` |

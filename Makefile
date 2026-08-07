@@ -349,7 +349,7 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
 
-.PHONY: all clean install install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets pack-ui-chrome test-css test-parse test-ipc ci pack-cef
+.PHONY: all clean install install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets pack-ui-chrome test-css test-parse test-ipc ci pack-cef check-stamps
 
 all: $(DLL_OUT)
 
@@ -457,6 +457,9 @@ $(TEST_JSON_VIEW_BIN): tools/test_json_view.cpp src/api/JsonView.h
 	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -o $@ tools/test_json_view.cpp
 
 # Local continuous integration. Also used by .githooks/pre-push and GitHub Actions.
+check-stamps:
+	python3 tools/check_stamps.py
+
 ci:
 	@bash tools/ci.sh
 

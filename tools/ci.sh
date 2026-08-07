@@ -4,6 +4,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+echo "==> CI: version + extract stamps"
+make check-stamps
+
 echo "==> CI: validate-sites (schema v2)"
 make validate-sites
 
