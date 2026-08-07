@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.4
+# GW2 In-Game Helper v2.2.3.5
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,6 +32,15 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.5
+
+- **Home while Home:** Pressing Home on the Browse hub is a no-op (no hub HTML rewrite +
+  CEF reload). Same-URL navigates are skipped in the helper. Fixes Wine crash-loop
+  (`exit=2147483651` / `STATUS_BREAKPOINT`) that disabled the browser helper.
+- **Browse hub write:** Skip rewriting `live-browse-hub.html` when content is unchanged.
+- **Stamps:** Helper `2237` · homepage `2227` · sites `s2213` · cheatsheets `c2223`
+  · live panel `49` · raid food `5` · ui-chrome `uc21`
 
 ## What’s new in 2.2.3.4
 
