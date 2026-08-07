@@ -111,6 +111,24 @@ void BrowserTabs::GoForward()
 void BrowserTabs::GoHome()
 {
 	EnsureDefault();
+
+	/* Already on the Home landing (Browse hub). Do not rewrite live-browse-hub.html
+	   and force CREATE_TAB/load_url — that crash-looped the CEF helper under Wine
+	   (exit 0x80000003 / 2147483651) when Home was pressed while already Home. */
+	auto isBrowseHome = [](const char* u) -> bool {
+		if (!u || !u[0])
+			return false;
+		if (std::strcmp(u, "about:browse-hub") == 0)
+			return true;
+		return std::strstr(u, "live-browse-hub.html") != nullptr;
+	};
+	const char* cefCur = WikiBrowser::CurrentUrlCStr();
+	if (isBrowseHome(gTabs[gActive].tab.url.c_str()) || isBrowseHome(cefCur))
+	{
+		WikiBrowser::ActivateTab(gActive);
+		return;
+	}
+
 	StashActiveUrl();
 	/* Home always lands on the Browse hub (factory default). Settings
 	   DefaultSiteId still seeds empty-tab / first-run via EnsureDefault. */

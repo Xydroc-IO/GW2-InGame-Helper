@@ -403,6 +403,38 @@ namespace HelperDetail
 		cef_frame_t* frame = gBrowsers[slot]->get_main_frame(gBrowsers[slot]);
 		if (!frame)
 			return;
+		/* Skip no-op reloads — reloading the same file:// under Wine can tear down
+		   the helper (STATUS_BREAKPOINT / exit 2147483651). */
+		if (frame->get_url && g_userfree_free)
+		{
+			cef_string_userfree_t uf = frame->get_url(frame);
+			if (uf)
+			{
+				const std::string cur = CefStringToUtf8(uf);
+				g_userfree_free(uf);
+				if (!cur.empty() && cur == resolved)
+				{
+					frame->base.release(&frame->base);
+					return;
+				}
+				/* Strip query/?v= for file URLs so Home→hub does not thrash. */
+				auto stem = [](const std::string& u) -> std::string {
+					std::string s = u;
+					const size_t q = s.find('?');
+					if (q != std::string::npos)
+						s.resize(q);
+					const size_t h = s.find('#');
+					if (h != std::string::npos)
+						s.resize(h);
+					return s;
+				};
+				if (stem(cur) == stem(resolved) && stem(cur).find("file:") == 0)
+				{
+					frame->base.release(&frame->base);
+					return;
+				}
+			}
+		}
 		cef_string_t u{};
 		MakeCefString(&u, resolved.c_str());
 		frame->load_url(frame, &u);

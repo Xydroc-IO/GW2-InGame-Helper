@@ -237,10 +237,15 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
 		return PathToFileUrl(path);
 	}
-	/* Browse hub — small; sync so favorites are current immediately. */
+	/* Browse hub — rebuild favorites when changed; skip disk write if identical
+	   so CEF is not forced to reload a file it already has open (Wine crash). */
 	if (kind == LiveAsyncJob::BrowseHub)
 	{
-		WriteUtf8File(path, LivePanelsBuild::BuildBrowseHubHtml(addonDir, nullptr));
+		const std::string html = LivePanelsBuild::BuildBrowseHubHtml(addonDir, nullptr);
+		if (PanelReady(addonDir, stem) && VerMatches(verPath) &&
+			ReadUtf8File(path) == html)
+			return PathToFileUrl(path);
+		WriteUtf8File(path, html);
 		WriteUtf8File(verPath, kPanelVer);
 		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
 		return PathToFileUrl(path);
