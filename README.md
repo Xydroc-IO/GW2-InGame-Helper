@@ -12,7 +12,7 @@ CEF Stable 150** runtime downloaded on first open into
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) ·
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
 [`docs/PATHING.md`](docs/PATHING.md) · [`docs/COMPLETION.md`](docs/COMPLETION.md) ·
 [`docs/FARMING.md`](docs/FARMING.md) · [`docs/MODULES.md`](docs/MODULES.md)
 
@@ -150,8 +150,8 @@ release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 DPS Logs / .NET / Proton: [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) ·
 API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 
-Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
-Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
+Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`, `docs/WHITEPAPER.md`.
+Local architecture map: `docs/ARCHITECTURE.md`.
 
 ## Features
 
@@ -437,7 +437,7 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
 8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); offline sheets in `data/cheatsheets/` (and `src/browse/RaidFood.cpp` for raid food).
 
 Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor start: [`docs/ONBOARDING.md`](docs/ONBOARDING.md).
-Architecture / design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
+Architecture / design (local): `docs/ARCHITECTURE.md`, `docs/WHITEPAPER.md`.
 Local drafts (gitignored): `docs/CODE_AUDIT.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`.
 
 ## License

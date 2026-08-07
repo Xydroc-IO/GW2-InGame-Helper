@@ -123,11 +123,10 @@ pathing/*.zip
 # Local listing / announcement drafts (keep on disk; do not publish in git)
 # Discord paste drafts, Raidcore listing notes, audits, partner briefs, Beta notes.
 # Most of docs/ is local-only — only these are published in the repo:
-#   RELEASE_NOTES.md · DPS_LOGS.md · WHITEPAPER.md · API_KEY.md · COMPLIANCE.md
+#   RELEASE_NOTES.md · DPS_LOGS.md · API_KEY.md · COMPLIANCE.md
 docs/**
 !docs/RELEASE_NOTES.md
 !docs/DPS_LOGS.md
-!docs/WHITEPAPER.md
 !docs/API_KEY.md
 !docs/COMPLIANCE.md
 
