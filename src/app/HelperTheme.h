@@ -46,8 +46,8 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.08f, 0.06f, 0.04f, 0.70f));
 		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.04f, 0.03f, 0.02f, 0.45f));
 		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.07f, 0.052f, 0.036f, 0.70f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.02f, 0.015f, 0.01f, 0.55f));
-		/* Fully transparent ImGui grab/arrows sit under DAT chrome painted after End(). */
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.04f, 0.03f, 0.02f, 0.98f));
+		/* Fully transparent — native DAT chrome painted after End() covers the gutter. */
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.f, 0.f, 0.f, 0.f));
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.f, 0.f, 0.f, 0.f));
@@ -86,7 +86,7 @@ namespace HelperTheme
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 0.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 12.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 14.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_TabRounding, 0.f);

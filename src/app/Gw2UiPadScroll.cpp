@@ -18,6 +18,8 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 	if (a < 0.f) a = 0.f;
 	if (a > 1.f) a = 1.f;
 	const ImU32 tint = ImGui::ColorConvertFloat4ToU32(ImVec4(1.f, 1.f, 1.f, a));
+	const ImU32 cover = ImGui::ColorConvertFloat4ToU32(ImVec4(0.04f, 0.03f, 0.02f, 0.98f * a));
+	const ImU32 track = ImGui::ColorConvertFloat4ToU32(ImVec4(0.05f, 0.04f, 0.03f, 0.95f * a));
 
 	Texture_t* thumb = Gw2UiDetail::GetChromeNamed("scroll-thumb");
 	Texture_t* mid = Gw2UiDetail::GetChromeNamed("scroll-thumb-mid");
@@ -43,6 +45,13 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 			if (bb.GetWidth() < 2.f || bb.GetHeight() < 2.f)
 				return;
 
+			/* After End(), DrawList clip is content-only and excludes the gutter —
+			   replace clip so DAT chrome is not discarded. */
+			dl->PushClipRect(bb.Min, bb.Max, /*intersect_with_current=*/false);
+
+			/* Obliterate ImGui's gold grab / track under the native art. */
+			dl->AddRectFilled(bb.Min, bb.Max, cover);
+
 			const float size = (axis == ImGuiAxis_Y) ? bb.GetWidth() : bb.GetHeight();
 			const float trackLen = (axis == ImGuiAxis_Y) ? bb.GetHeight() : bb.GetWidth();
 			const float arrowH = size;
@@ -60,14 +69,12 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 			if (axis == ImGuiAxis_Y)
 			{
 				const float cx = (bb.Min.x + bb.Max.x) * 0.5f;
-				dl->AddLine(ImVec2(cx, bb.Min.y + arrowH), ImVec2(cx, bb.Max.y - arrowH),
-					ImGui::ColorConvertFloat4ToU32(ImVec4(0.05f, 0.04f, 0.03f, 0.95f * a)), 1.5f);
+				dl->AddLine(ImVec2(cx, bb.Min.y + arrowH), ImVec2(cx, bb.Max.y - arrowH), track, 1.5f);
 			}
 			else
 			{
 				const float cy = (bb.Min.y + bb.Max.y) * 0.5f;
-				dl->AddLine(ImVec2(bb.Min.x + arrowH, cy), ImVec2(bb.Max.x - arrowH, cy),
-					ImGui::ColorConvertFloat4ToU32(ImVec4(0.05f, 0.04f, 0.03f, 0.95f * a)), 1.5f);
+				dl->AddLine(ImVec2(bb.Min.x + arrowH, cy), ImVec2(bb.Max.x - arrowH, cy), track, 1.5f);
 			}
 
 			auto blit = [&](Texture_t* tex, ImVec2 p0, ImVec2 p1, bool flipV) {
@@ -111,6 +118,8 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 					blit(body, ImVec2(gx0, bb.Min.y), ImVec2(gx0 + grabLen, bb.Max.y), false);
 				}
 			}
+
+			dl->PopClipRect();
 		};
 
 		drawAxis(ImGuiAxis_Y);
@@ -121,4 +130,3 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 
 	paintWindow(root, paintWindow);
 }
-
