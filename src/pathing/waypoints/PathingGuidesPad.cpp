@@ -20,8 +20,8 @@
 
 namespace
 {
-	constexpr float kPadW = 720.f;
-	constexpr float kPadH = 780.f;
+	constexpr float kPadW = PadDock::kPathingW;
+	constexpr float kPadH = PadDock::kPathingH;
 
 	bool gRequestDock = false; /* placeOnce - restore saved or dock beside helper */
 	int gPathTab = 0; /* 0 Overview | 1 Features | 2 Categories | 3 Route */
@@ -35,10 +35,9 @@ namespace
 
 	void DrawCredits()
 	{
-		ImGui::TextColored(HelperTheme::Gold, "PATHING");
-		PadNav::PushWrap();
-		ImGui::TextColored(HelperTheme::Muted,
+		PadNav::Blurb(
 			"Curated packs auto-update. Drop extra .taco into pathing/ - yours are never deleted.");
+		PadNav::PushWrap();
 		ImGui::TextDisabled("Tekkit | Lady Elyssa | QuitarHero (hover)");
 		if (ImGui::IsItemHovered())
 		{
@@ -214,11 +213,11 @@ bool PathingGuidesPad::Render()
 		return false;
 
 	const float maxH = PadDock::MaxH(400.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(560.f, 360.f), ImVec2(PadDock::MaxW(900.f), maxH));
+	PadDock::SetSizeConstraints("Pathing##GW2InGameHelperPathing", 520.f, 360.f, PadDock::MaxW(900.f), maxH);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	PadDock::Place(G::PadPathing, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
 	/* Migrate old narrow saved sizes that clipped Categories Open buttons. */
-	if (!gRequestDock && G::PadPathing.w > 80.f && G::PadPathing.w < 560.f)
+	if (!gRequestDock && G::PadPathing.w > 80.f && G::PadPathing.w < 520.f)
 	{
 		G::PadPathing.w = kPadW;
 		ImGui::SetNextWindowSize(ImVec2(kPadW, std::max(G::PadPathing.h, kPadH * 0.85f)),
@@ -239,7 +238,7 @@ bool PathingGuidesPad::Render()
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 		const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowPathingGuides = false;
@@ -256,7 +255,7 @@ bool PathingGuidesPad::Render()
 	if (PadDock::Capture(G::PadPathing))
 		Settings::SetDirty();
 
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
 	static const char* kTabs[] = { "Overview", "Features", "Categories", "Route" };
 	static const int kTabIcons[] = {
@@ -298,6 +297,6 @@ bool PathingGuidesPad::Render()
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 	const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 	const bool typingHere = focused && ImGui::GetIO().WantTextInput;
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered || typingHere;
 }

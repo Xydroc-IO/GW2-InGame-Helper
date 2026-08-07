@@ -57,11 +57,8 @@ void LookupPad::RenderContents()
 		hit = gHit;
 	}
 
-	ImGui::TextUnformatted("Item lookup");
-	PadNav::PushWrap();
-	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+	PadNav::Blurb(
 		"Chat code (Shift+click), numeric ID, or item name. Official API + wiki - read-only.");
-	PadNav::PopWrap();
 
 	const float btnW = ImGui::CalcTextSize("Lookup").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
 	float fieldW = ImGui::GetContentRegionAvail().x - btnW - ImGui::GetStyle().ItemSpacing.x;
@@ -75,9 +72,9 @@ void LookupPad::RenderContents()
 		StartLookup();
 
 	if (gBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading...");
+		PadNav::StatusBusy("Loading...");
 	else if (!hit.status.empty())
-		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", hit.status.c_str());
+		PadNav::StatusOk(hit.status.c_str());
 
 	ImGui::Separator();
 
@@ -87,7 +84,7 @@ void LookupPad::RenderContents()
 			ImGui::SameLine(0.f, 10.f);
 		ImGui::BeginGroup();
 		ImGui::TextColored(RarityColor(hit.rarity), "%s", hit.name.c_str());
-		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "#%d", hit.id);
+		ImGui::TextColored(HelperTheme::Muted, "#%d", hit.id);
 		char meta[160];
 		std::snprintf(meta, sizeof(meta), "%s%s%s%s%s",
 			hit.rarity.c_str(),
@@ -103,10 +100,10 @@ void LookupPad::RenderContents()
 			char pl[128];
 			std::snprintf(pl, sizeof(pl), "Buy %s | Sell %s",
 				FormatCoins(hit.buy).c_str(), FormatCoins(hit.sell).c_str());
-			ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f), "%s", pl);
+			ImGui::TextColored(HelperTheme::Ink, "%s", pl);
 		}
 		else
-			ImGui::TextColored(ImVec4(0.70f, 0.55f, 0.40f, 1.f), "No TP listings");
+			ImGui::TextColored(HelperTheme::Warn, "No TP listings");
 
 		if (ImGui::Button("Wiki###gw2igh_lookup_wiki"))
 		{
@@ -163,7 +160,7 @@ void LookupPad::RenderContents()
 	}
 	else if (!hit.nameHints.empty())
 	{
-		ImGui::TextUnformatted("Wiki results");
+		PadNav::Meta("Wiki results");
 		for (size_t i = 0; i < hit.nameHints.size(); ++i)
 		{
 			ImGui::PushID(static_cast<int>(i));
@@ -187,18 +184,20 @@ bool LookupPad::Render()
 		return false;
 
 	const ImGuiIO& io = ImGui::GetIO();
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 200.f),
-		ImVec2(PadDock::MaxW(520.f), PadDock::MaxH(280.f)));
+	constexpr float kPadW = PadDock::kCompactW;
+	constexpr float kPadH = PadDock::kCompactH;
+	PadDock::SetSizeConstraints("Item Lookup##GW2InGameHelperLookup", 360.f, 200.f,
+		PadDock::MaxW(520.f), PadDock::MaxH(280.f));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
 			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.42f) : 120.f;
 		const float fy = (io.DisplaySize.y > 100.f)
 			? AspectLayout::PadFallbackY(io.DisplaySize.y, 0.18f) : 100.f;
-		PadDock::Place(G::PadLookup, gPlaceOnce, 440.f, 420.f, ImVec2(fx, fy), /*applySize=*/true);
+		PadDock::Place(G::PadLookup, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy), /*applySize=*/true);
 	}
 	if (!gPlaceOnce && G::PadLookup.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(440.f, 420.f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 	if (gFocus)
 	{
 		ImGui::SetNextWindowFocus();
@@ -214,7 +213,7 @@ bool LookupPad::Render()
 			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowLookup = false;
@@ -231,11 +230,11 @@ bool LookupPad::Render()
 	if (PadDock::Capture(G::PadLookup))
 		Settings::SetDirty();
 
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(PadDock::kCompactW, PadDock::kCompactH);
 	RenderContents();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

@@ -107,7 +107,7 @@ static void DrawFlips()
 		ImGui::SameLine();
 		if (ImGui::SmallButton("Chart"))
 		{
-			gChartItemId = r.id;
+			AddChart(r.id);
 			gTab = 1;
 			gForceTab = 1;
 		}
@@ -171,38 +171,77 @@ static void DrawPricePlot(const char* title, const char* id, const std::vector<f
 static void DrawCharts()
 {
 	using namespace EconomyDetail;
-	if (const char* n = NameForChart(gChartItemId))
-		ImGui::TextUnformatted(n);
-	ImGui::Text("Item id: %d", gChartItemId);
-	ImGui::SameLine();
-	if (ImGui::Button("BLTC###gw2igh_eco_bltc"))
-		OpenBltcItem(gChartItemId);
-	ImGui::SameLine();
-	if (ImGui::Button("Cart###gw2igh_eco_chart_cart"))
-	{
-		const char* n = NameForChart(gChartItemId);
-		AddToCart(gChartItemId, n ? n : "Item", 1);
-		std::snprintf(gStatus, sizeof(gStatus), "Added item %d to cart.", gChartItemId);
-	}
+	if (ImGui::Button("Clear charts###gw2igh_eco_ch_clr"))
+		ClearCharts();
+	PadNav::PushWrap();
+	ImGui::TextColored(HelperTheme::Muted,
+		"Pinned from Flips / Cart. Remove with X. Samples come from Flip scans.");
+	PadNav::PopWrap();
 
-	std::vector<float> buys, sells;
-	for (const auto& s : gHistory)
+	if (gChartIds.empty())
 	{
-		if (s.id != gChartItemId)
-			continue;
-		buys.push_back(static_cast<float>(s.buy));
-		sells.push_back(static_cast<float>(s.sell));
-	}
-	if (buys.empty())
-	{
-		ImGui::TextColored(HelperTheme::Muted, "No samples yet - run Flip scan.");
+		ImGui::TextColored(HelperTheme::Muted, "No charts pinned — tap Chart on a Flip or Cart row.");
 		return;
 	}
-	const float plotH = (PadLayout::RemainingListH(160.f) - 28.f) * 0.5f;
-	const float h = plotH > 48.f ? plotH : 48.f;
-	DrawPricePlot("Buy", "##eco_buy", buys, h);
-	DrawPricePlot("Sell", "##eco_sell", sells, h);
-	ImGui::TextColored(HelperTheme::Muted, "Samples: %zu (local history from Flip scans)", buys.size());
+
+	PadLayout::BeginList("###gw2igh_eco_charts");
+	for (size_t i = 0; i < gChartIds.size(); )
+	{
+		const int id = gChartIds[i];
+		ImGui::PushID(static_cast<int>(id) * 31 + static_cast<int>(i));
+
+		if (Gw2Icons::ImageItem(id, 26.f))
+			ImGui::SameLine();
+		if (const char* n = NameForChart(id))
+			ImGui::TextUnformatted(n);
+		else
+			ImGui::Text("Item %d", id);
+		ImGui::TextColored(HelperTheme::Muted, "id %d", id);
+
+		const bool remove = ImGui::SmallButton("X");
+		ImGui::SameLine();
+		if (ImGui::SmallButton("BLTC"))
+			OpenBltcItem(id);
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Cart"))
+		{
+			const char* n = NameForChart(id);
+			AddToCart(id, n ? n : "Item", 1);
+			std::snprintf(gStatus, sizeof(gStatus), "Added item %d to cart.", id);
+		}
+
+		if (!remove)
+		{
+			std::vector<float> buys, sells;
+			for (const auto& s : gHistory)
+			{
+				if (s.id != id)
+					continue;
+				buys.push_back(static_cast<float>(s.buy));
+				sells.push_back(static_cast<float>(s.sell));
+			}
+			if (buys.empty())
+				ImGui::TextColored(HelperTheme::Muted, "No samples yet — run Flip scan.");
+			else
+			{
+				char buyId[32], sellId[32];
+				std::snprintf(buyId, sizeof(buyId), "##eco_buy_%zu", i);
+				std::snprintf(sellId, sizeof(sellId), "##eco_sell_%zu", i);
+				const float plotH = 56.f;
+				DrawPricePlot("Buy", buyId, buys, plotH);
+				DrawPricePlot("Sell", sellId, sells, plotH);
+				ImGui::TextColored(HelperTheme::Muted, "Samples: %zu", buys.size());
+			}
+			ImGui::Separator();
+		}
+
+		ImGui::PopID();
+		if (remove)
+			RemoveChart(i);
+		else
+			++i;
+	}
+	PadLayout::EndList();
 }
 
 static void DrawCart()
@@ -237,7 +276,7 @@ static void DrawCart()
 		ImGui::SameLine();
 		if (ImGui::SmallButton("Chart"))
 		{
-			gChartItemId = c.id;
+			AddChart(c.id);
 			gTab = 1;
 			gForceTab = 1;
 		}
@@ -261,7 +300,7 @@ bool EconomyPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(280.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 280.f), ImVec2(PadDock::MaxW(560.f), maxH));
+	PadDock::SetSizeConstraints("Economy##GW2InGameHelperEconomy", 380.f, 280.f, PadDock::MaxW(560.f), maxH);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
 			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.48f) : 180.f;
@@ -281,19 +320,14 @@ bool EconomyPad::Render()
 		if (PadDock::Capture(G::PadEconomy)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open) { G::ShowEconomy = false; Settings::SetDirty(); }
 		return hovered;
 	}
 
 	if (!open) { G::ShowEconomy = false; Settings::SetDirty(); }
 	if (PadDock::Capture(G::PadEconomy)) Settings::SetDirty();
-	HelperTheme::ScopedFontScale fontScale;
-
-	ImGui::TextColored(HelperTheme::Gold, "ECONOMY");
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted, "Flip Finder | charts | cart (read-only).");
-	PadNav::PopWrap();
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
 	if (gForceTab >= 0)
 	{
@@ -310,6 +344,7 @@ bool EconomyPad::Render()
 	gTab = PadNav::DrawSideRail("###gw2igh_eco_nav", kTabs, 3, gTab, 0.f, kTabIcons);
 
 	ImGui::BeginChild("###gw2igh_eco_body", ImVec2(0.f, 0.f), true);
+	PadNav::Blurb("Flip Finder | charts | cart (read-only).");
 	switch (gTab)
 	{
 	case 0: DrawFlips(); break;
@@ -320,6 +355,6 @@ bool EconomyPad::Render()
 	ImGui::EndChild();
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

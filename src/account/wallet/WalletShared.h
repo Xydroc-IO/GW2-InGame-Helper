@@ -18,7 +18,7 @@ namespace WalletDetail
 	constexpr DWORD kCacheTtlMs = 5 * 60 * 1000; /* soft TTL - still show instantly */
 	constexpr int kItemBatch = 200;
 	constexpr int kMaxChars = 64;
-	constexpr int kCharWorkers = 6;
+	constexpr int kCharWorkers = 8;
 
 	enum LocKind : int
 	{
@@ -53,6 +53,7 @@ namespace WalletDetail
 		bool ok = false;
 		bool noKey = false;
 		bool scopeFail = false;
+		bool charsPending = false; /* true while toon bags still loading */
 		std::string status;
 		std::vector<Entry> entries;
 		int charCount = 0;
@@ -100,9 +101,9 @@ namespace WalletDetail
 		LocKind kind, const std::string& where, int count);
 	void MergeMap(std::unordered_map<int, Entry>& dst, const std::unordered_map<int, Entry>& src);
 	Snapshot SnapshotFromMap(std::unordered_map<int, Entry>& byId, const char* status,
-		int charCount, int charBagsOk, bool ok);
+		int charCount, int charBagsOk, bool ok, bool charsPending = false);
 	void Publish(const std::unordered_map<int, Entry>& byId, const char* status,
-		int charCount, int charBagsOk, bool ok);
+		int charCount, int charBagsOk, bool ok, bool charsPending = false);
 	void ResolveMissingNames(const std::unordered_map<int, Entry>& byId, const char* apiKey);
 	/* WalletFetchAcc.cpp */
 	DWORD WINAPI CharWorker(void* p);

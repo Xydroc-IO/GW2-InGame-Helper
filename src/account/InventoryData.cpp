@@ -92,22 +92,20 @@ namespace
 			size_t end = JsonObjectEnd(body, brace);
 			if (end == std::string::npos) break;
 			long long id = JsonIntAfterKey(body, "id", brace);
-			if (id > 0)
+			long long count = JsonIntAfterKey(body, "count", brace);
+			/* Prefer objects with an explicit count at/near this brace.
+			   Bag wrappers have size+inventory and may falsely see nested counts —
+			   skip when this object itself looks like a bag. */
+			const bool looksLikeBag =
+				body.find("\"inventory\"", brace) < end &&
+				body.find("\"size\"", brace) < end &&
+				(count <= 0 || body.find("\"count\"", brace) > body.find("\"inventory\"", brace));
+			if (id > 0 && !looksLikeBag)
 			{
-				const bool hasCount = body.find("\"count\"", brace) < end;
-				const bool hasSize = body.find("\"size\"", brace) < end;
-				const bool hasInventory = body.find("\"inventory\"", brace) < end;
-				long long count = JsonIntAfterKey(body, "count", brace);
-				if (hasInventory && hasSize)
-				{
-					/* bag wrapper - skip */
-				}
-				else if (hasCount && count > 0)
+				if (count > 0)
 					MergeLoc(byId, static_cast<int>(id), kind, where, static_cast<int>(count));
-				else if (!hasSize && !hasCount)
-					MergeLoc(byId, static_cast<int>(id), kind, where, 1);
 			}
-			p = end + 1;
+			p = brace + 1; /* descend into nested bag inventories */
 		}
 	}
 

@@ -17,12 +17,12 @@
 
 namespace
 {
-	constexpr float kHubW = 600.f;
-	constexpr float kHubH = 720.f;
-	constexpr float kDeskW = 520.f;
-	constexpr float kDeskH = 640.f;
-	constexpr float kEditW = 480.f;
-	constexpr float kEditH = 560.f;
+	constexpr float kHubW = PadDock::kWorkbenchW;
+	constexpr float kHubH = PadDock::kWorkbenchH;
+	constexpr float kDeskW = PadDock::kWorkbenchW;
+	constexpr float kDeskH = PadDock::kWorkbenchH;
+	constexpr float kEditW = PadDock::kCompactW;
+	constexpr float kEditH = PadDock::kWorkbenchH - 80.f;
 
 	G::PadGeom GeomFrom(float x, float y, float w, float h)
 	{
@@ -58,7 +58,7 @@ namespace
 			return false;
 
 		const float maxH = PadDock::MaxH(320.f);
-		ImGui::SetNextWindowSizeConstraints(ImVec2(320.f, 120.f), ImVec2(PadDock::MaxW(780.f), maxH));
+		PadDock::SetSizeConstraints(title, 320.f, 120.f, PadDock::MaxW(780.f), maxH);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(geom, placeOnce, defW, defH, fallbackPos);
 		if (!placeOnce && geom.w < 80.f)
@@ -86,7 +86,7 @@ namespace
 			const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 			if (outFocused)
 				*outFocused = focused;
-			ImGui::End();
+			HelperTheme::EndPad();
 			if (!open)
 			{
 				showFlag = false;
@@ -103,7 +103,7 @@ namespace
 		if (!ImGui::IsWindowCollapsed() && PadDock::Capture(geom))
 			Settings::SetDirty();
 
-		HelperTheme::ScopedFontScale fontScale;
+		HelperTheme::ScopedFontScale fontScale(defW, defH);
 		body();
 
 		const bool hovered = ImGui::IsWindowHovered(
@@ -112,7 +112,7 @@ namespace
 		if (outFocused)
 			*outFocused = focusedWin;
 		const bool typingHere = focusedWin && ImGui::GetIO().WantTextInput;
-		ImGui::End();
+		HelperTheme::EndPad();
 		return hovered || typingHere;
 	}
 
@@ -213,8 +213,12 @@ bool TrailToolsPad::Render()
 
 	if (G::ShowTrailTools)
 	{
+		char title[280]{};
+		std::snprintf(title, sizeof(title), "Trail Tools%s###GW2InGameHelperTrailTools",
+			gDraft.xmlDirty || gDraft.trailDirty ? " *" : "");
+
 		const float maxH = PadDock::MaxH(320.f);
-		ImGui::SetNextWindowSizeConstraints(ImVec2(440.f, 280.f), ImVec2(PadDock::MaxW(820.f), maxH));
+		PadDock::SetSizeConstraints(title, 440.f, 280.f, PadDock::MaxW(820.f), maxH);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(G::PadTrailTools, gPlaceOnce, kHubW, kHubH, PadDock::BesideHelper(kHubW));
 		if (!gPlaceOnce && G::PadTrailTools.w < 80.f)
@@ -224,10 +228,6 @@ bool TrailToolsPad::Render()
 			ImGui::SetNextWindowFocus();
 			gFocus = false;
 		}
-
-		char title[280]{};
-		std::snprintf(title, sizeof(title), "Trail Tools%s###GW2InGameHelperTrailTools",
-			gDraft.xmlDirty || gDraft.trailDirty ? " *" : "");
 
 		bool open = G::ShowTrailTools;
 		HelperTheme::ScopedWindow theme(G::Opacity);
@@ -246,7 +246,7 @@ bool TrailToolsPad::Render()
 				ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) ||
 				(ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
 					ImGui::GetIO().WantTextInput);
-			ImGui::End();
+			HelperTheme::EndPad();
 			if (!open)
 			{
 				G::ShowTrailTools = false;
@@ -263,14 +263,7 @@ bool TrailToolsPad::Render()
 			if (!ImGui::IsWindowCollapsed() && PadDock::Capture(G::PadTrailTools))
 				Settings::SetDirty();
 
-			HelperTheme::ScopedFontScale fontScale;
-
-			ImGui::TextColored(HelperTheme::Gold, "TRAIL TOOLS");
-			PadNav::PushWrap();
-			ImGui::TextColored(HelperTheme::Muted,
-				"Trails / Markers open their own desks; Open new window for Trails1, Trails2… "
-				"(collapse title-bar arrow to leave only a bar).");
-			PadNav::PopWrap();
+			HelperTheme::ScopedFontScale fontScale(kHubW, kHubH);
 
 			static const char* kTabs[] = { "Live", "Trails", "Markers", "Pack", "Keybinds" };
 			static const int kTabIcons[] = {
@@ -290,6 +283,9 @@ bool TrailToolsPad::Render()
 			sPrevTab = gTab;
 
 			ImGui::BeginChild("###gw2igh_tt_body", ImVec2(0.f, 0.f), true);
+			PadNav::Blurb(
+				"Trails / Markers open their own desks; Open new window for Trails1, Trails2… "
+				"(collapse title-bar arrow to leave only a bar).");
 			if (gTab == 0)
 				DrawLiveTab();
 			else if (gTab == 1)
@@ -306,7 +302,7 @@ bool TrailToolsPad::Render()
 				ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) ||
 				(ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
 					ImGui::GetIO().WantTextInput);
-			ImGui::End();
+			HelperTheme::EndPad();
 		}
 	}
 	else
@@ -326,9 +322,7 @@ bool TrailToolsPad::Render()
 			kDeskH,
 			DeskFallback(false),
 			[]() {
-				ImGui::TextColored(HelperTheme::Gold, "TRAILS DESK");
-				ImGui::TextDisabled("Open New window — minimizable to title bar");
-				ImGui::Separator();
+				PadNav::Blurb("Open New window — minimizable to title bar");
 				ImGui::BeginChild("###gw2igh_tr_desk_body", ImVec2(0.f, 0.f), true);
 				DrawTrailDesk();
 				ImGui::EndChild();
@@ -354,9 +348,7 @@ bool TrailToolsPad::Render()
 			kDeskH,
 			DeskFallback(true),
 			[]() {
-				ImGui::TextColored(HelperTheme::Gold, "MARKERS DESK");
-				ImGui::TextDisabled("Open New window — minimizable to title bar");
-				ImGui::Separator();
+				PadNav::Blurb("Open New window — minimizable to title bar");
 				ImGui::BeginChild("###gw2igh_mk_desk_body", ImVec2(0.f, 0.f), true);
 				DrawMarkersDesk();
 				ImGui::EndChild();
@@ -393,9 +385,7 @@ bool TrailToolsPad::Render()
 			kEditH,
 			TrailEditorFallback(i),
 			[i]() {
-				ImGui::TextColored(HelperTheme::Gold, "TRAILS%d", i + 1);
-				ImGui::TextDisabled("Raw .trl editor — collapse title bar to shrink");
-				ImGui::Separator();
+				PadNav::Blurb("Raw .trl editor — collapse title bar to shrink");
 				char childId[48]{};
 				std::snprintf(childId, sizeof(childId), "###gw2igh_tr_ed_body%d", i);
 				ImGui::BeginChild(childId, ImVec2(0.f, 0.f), true);
@@ -438,9 +428,7 @@ bool TrailToolsPad::Render()
 			kEditH,
 			MarkerEditorFallback(i),
 			[i]() {
-				ImGui::TextColored(HelperTheme::Gold, "MARKERS%d", i + 1);
-				ImGui::TextDisabled("Raw marker attrs — collapse title bar to shrink");
-				ImGui::Separator();
+				PadNav::Blurb("Raw marker attrs — collapse title bar to shrink");
 				char childId[48]{};
 				std::snprintf(childId, sizeof(childId), "###gw2igh_mk_ed_body%d", i);
 				ImGui::BeginChild(childId, ImVec2(0.f, 0.f), true);

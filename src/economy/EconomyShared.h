@@ -44,7 +44,8 @@ namespace EconomyDetail
 	extern std::vector<FlipRow> gFlips;
 	extern std::vector<PriceSample> gHistory;
 	extern std::vector<CartItem> gCart;
-	extern int gChartItemId;
+	extern int gChartItemId; /* last focused chart (also used when list is empty) */
+	extern std::vector<int> gChartIds; /* pinned Charts tab entries */
 
 	void EnsureSeed();
 	void RequestFlipScan();
@@ -54,6 +55,11 @@ namespace EconomyDetail
 	void ClearCart();
 	void SaveCart();
 	void LoadCart();
+	void AddChart(int id); /* pin item on Charts tab (no-op if already pinned) */
+	void RemoveChart(size_t idx);
+	void ClearCharts();
+	void SaveCharts();
+	void LoadCharts();
 	void SaveHistory();
 	void LoadHistory();
 	void RecordSample(int id, long long buy, long long sell);

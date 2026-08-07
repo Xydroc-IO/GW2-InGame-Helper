@@ -126,20 +126,21 @@ namespace AspectLayout
 	{
 		float s = 1.f;
 		if (displayH > 1600.f)
-			s = Clampf(displayH / 1440.f, 1.f, 1.28f);
-		else if (displayH > 1400.f)
 			s = Clampf(displayH / 1440.f, 1.f, 1.12f);
+		else if (displayH > 1400.f)
+			s = Clampf(displayH / 1440.f, 1.f, 1.08f);
 
 		/* Ultrawide desks often run farther from the screen — tiny bump only. */
 		switch (Classify(displayW, displayH))
 		{
 		case Class::Ultrawide_21_9:
-			s = Clampf(s * 1.04f, 0.85f, 1.32f);
+			s = Clampf(s * 1.03f, 0.85f, 1.15f);
 			break;
 		case Class::Super_32_9:
-			s = Clampf(s * 1.06f, 0.85f, 1.35f);
+			s = Clampf(s * 1.04f, 0.85f, 1.15f);
 			break;
 		default:
+			s = Clampf(s, 0.85f, 1.15f);
 			break;
 		}
 		return s;

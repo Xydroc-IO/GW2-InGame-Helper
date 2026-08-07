@@ -5,6 +5,7 @@
 #include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadLayout.h"
 #include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
@@ -38,11 +39,11 @@ namespace VaultDetail
 		const std::string daily = FormatCountdown(SecUntilDailyResetUtc());
 		const std::string weekly = FormatCountdown(SecUntilWeeklyResetUtc());
 		PadNav::PushWrap();
-		ImGui::TextColored(ImVec4(0.75f, 0.82f, 0.95f, 1.f),
+		ImGui::TextColored(HelperTheme::GoldMuted,
 			"Daily reset in %s", daily.c_str());
-		ImGui::TextColored(ImVec4(0.75f, 0.82f, 0.95f, 1.f),
+		ImGui::TextColored(HelperTheme::GoldMuted,
 			"Weekly reset in %s", weekly.c_str());
-		ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+		ImGui::TextColored(HelperTheme::Muted,
 			"UTC - daily 00:00 | weekly Mon 07:30");
 		PadNav::PopWrap();
 	}
@@ -63,7 +64,7 @@ namespace VaultDetail
 		if (list.empty())
 		{
 			PadNav::PushWrap();
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "No objectives.");
+			ImGui::TextColored(HelperTheme::Muted, "No objectives.");
 			PadNav::PopWrap();
 			ImGui::TreePop();
 			return;
@@ -72,9 +73,7 @@ namespace VaultDetail
 		{
 			const Obj& o = list[i];
 			ImGui::PushID(static_cast<int>(i));
-			ImVec4 col = o.done
-				? ImVec4(0.45f, 0.75f, 0.50f, 1.f)
-				: ImVec4(0.88f, 0.88f, 0.90f, 1.f);
+			const ImVec4 col = o.done ? HelperTheme::Ok : HelperTheme::Ink;
 			PadNav::PushWrap();
 			ImGui::PushStyleColor(ImGuiCol_Text, col);
 			ImGui::TextWrapped("%s%s", o.done ? "[Done] " : "", o.title.c_str());
@@ -97,7 +96,7 @@ namespace VaultDetail
 					m += " / ";
 					m += std::to_string(o.need);
 				}
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.58f, 0.62f, 1.f));
+				ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Muted);
 				ImGui::TextWrapped("%s", m.c_str());
 				ImGui::PopStyleColor();
 				if (o.need > 0)
@@ -144,37 +143,25 @@ void VaultPad::RenderContents()
 	SyncDraw();
 	const Snapshot& snap = gDraw;
 
-	ImGui::TextUnformatted("Dailies & Wizard's Vault");
-	PadNav::PushWrap();
-	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Official API - account + progression scopes. (Account -> Vault tab.)");
-	PadNav::PopWrap();
+	PadNav::Blurb("Official API - account + progression scopes. (Account -> Vault tab.)");
 
-	if (ImGui::Button("Refresh###gw2igh_vault_ref"))
+	if (PadNav::RefreshButton("###gw2igh_vault_ref"))
 		StartFetch(true);
+	ImGui::SameLine();
 	if (gBusy)
-	{
-		PadNav::PushWrap();
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating...");
-		PadNav::PopWrap();
-	}
+		PadNav::StatusBusy();
 	else if (!snap.status.empty())
-	{
-		PadNav::PushWrap();
-		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", snap.status.c_str());
-		PadNav::PopWrap();
-	}
+		PadNav::StatusOk(snap.status.c_str());
 
 	ImGui::Separator();
 
-	const float listH = ImGui::GetContentRegionAvail().y;
-	ImGui::BeginChild("###gw2igh_vault_list", ImVec2(0.f, listH > 80.f ? listH : 80.f), true);
+	PadLayout::BeginList("###gw2igh_vault_list", 80.f);
 
 	PadNav::PushWrap();
-	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.78f, 0.35f, 1.f));
+	ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Gold);
 	ImGui::TextWrapped("%s", snap.seasonTitle.c_str());
 	ImGui::PopStyleColor();
-	ImGui::TextWrapped("%s", snap.seasonBlurb.c_str());
+	ImGui::TextColored(HelperTheme::Muted, "%s", snap.seasonBlurb.c_str());
 	PadNav::PopWrap();
 	ImGui::Spacing();
 	DrawResetCountdowns();
@@ -182,16 +169,12 @@ void VaultPad::RenderContents()
 
 	if (!snap.hasKey)
 	{
-		PadNav::PushWrap();
-		ImGui::TextWrapped("Add an API key in Settings (helper side rail; account + progression) for live personal Vault.");
-		PadNav::PopWrap();
+		PadNav::Blurb("Add an API key in Settings (helper side rail; account + progression) for live personal Vault.");
 		DrawObjList("Easy Vault preview", snap.easyPreview);
 	}
 	else if (snap.scopeFail)
 	{
-		PadNav::PushWrap();
-		ImGui::TextWrapped("API key needs account + progression scopes for live Vault progress.");
-		PadNav::PopWrap();
+		PadNav::Blurb("API key needs account + progression scopes for live Vault progress.");
 	}
 	else
 	{
@@ -200,7 +183,7 @@ void VaultPad::RenderContents()
 		DrawObjList("Special Vault", snap.special);
 	}
 
-	ImGui::EndChild();
+	PadLayout::EndList();
 }
 
 bool VaultPad::Render()
@@ -210,7 +193,7 @@ bool VaultPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(280.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(PadDock::MaxW(560.f), maxH));
+	PadDock::SetSizeConstraints("Dailies & Vault##GW2InGameHelperVault", 360.f, 280.f, PadDock::MaxW(560.f), maxH);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
@@ -236,7 +219,7 @@ bool VaultPad::Render()
 			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowVault = false;
@@ -253,11 +236,11 @@ bool VaultPad::Render()
 	if (PadDock::Capture(G::PadVault))
 		Settings::SetDirty();
 
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 	RenderContents();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

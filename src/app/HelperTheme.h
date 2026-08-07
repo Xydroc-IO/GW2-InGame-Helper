@@ -46,10 +46,11 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.08f, 0.06f, 0.04f, 0.70f));
 		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.04f, 0.03f, 0.02f, 0.45f));
 		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.07f, 0.052f, 0.036f, 0.70f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.035f, 0.026f, 0.018f, 0.40f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.52f, 0.40f, 0.18f, 0.88f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.68f, 0.52f, 0.22f, 1.f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, Gold);
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.02f, 0.015f, 0.01f, 0.55f));
+		/* Fully transparent ImGui grab/arrows sit under DAT chrome painted after End(). */
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.f, 0.f, 0.f, 0.f));
 		ImGui::PushStyleColor(ImGuiCol_CheckMark, GoldBright);
 		ImGui::PushStyleColor(ImGuiCol_SliderGrab, GoldDim);
 		ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, GoldBright);
@@ -78,14 +79,14 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(0.52f, 0.40f, 0.16f, 0.45f));
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, Gold);
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(18.f, 16.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.f, 5.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.f, 6.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.f, 12.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7.f, 4.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.f, 4.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 0.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 15.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 12.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_TabRounding, 0.f);
@@ -107,6 +108,15 @@ namespace HelperTheme
 		return Gw2Ui::PadWindowFlags(extra);
 	}
 
+	/* Call instead of ImGui::End() on themed pads — End first so ImGui's gold
+	   grab/arrows are already in the draw list, then overlay DAT scroll chrome. */
+	inline void EndPad()
+	{
+		ImGuiWindow* pad = ImGui::GetCurrentWindow();
+		ImGui::End();
+		Gw2Ui::PaintNativeScrollbars(G::Opacity > 0.05f ? G::Opacity : 1.f, pad);
+	}
+
 	struct ScopedWindow
 	{
 		float opacity = 1.f;
@@ -117,8 +127,8 @@ namespace HelperTheme
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);
 			/* Fully transparent ImGui bg — Blish fill is the window. */
 			ImGui::SetNextWindowBgAlpha(0.f);
-			/* Tighter padding — title bar + texture supply chrome insets. */
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16.f, 10.f));
+			/* Match Push() density — title bar + texture supply chrome insets. */
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.f, 8.f));
 		}
 		/* Call immediately after Begin (even when Begin returned false is unused —
 		   with NoTitleBar we use custom minimize instead of ImGui collapse).
@@ -158,11 +168,17 @@ namespace HelperTheme
 		ScopedOverlay& operator=(const ScopedOverlay&) = delete;
 	};
 
+	/* Shared design size for ALL companion pads — same window size → same font size.
+	   (Per-pad Place() defaults still control initial window geometry.) */
+	constexpr float kPadFontRefW = 560.f;
+	constexpr float kPadFontRefH = 600.f;
+
+	/* Pass design W×H for documentation; scale always uses kPadFontRef* for uniformity. */
 	struct ScopedFontScale
 	{
-		explicit ScopedFontScale(float refW = 560.f, float refH = 700.f)
+		explicit ScopedFontScale(float /*refW*/ = kPadFontRefW, float /*refH*/ = kPadFontRefH)
 		{
-			ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(refW, refH));
+			ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(kPadFontRefW, kPadFontRefH));
 		}
 		~ScopedFontScale() = default;
 		ScopedFontScale(const ScopedFontScale&) = delete;

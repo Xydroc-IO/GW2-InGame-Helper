@@ -22,7 +22,7 @@ bool CompletionPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(280.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 280.f), ImVec2(PadDock::MaxW(560.f), maxH));
+	PadDock::SetSizeConstraints("Completion##GW2InGameHelperCompletion", 380.f, 280.f, PadDock::MaxW(560.f), maxH);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
 			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.42f) : 160.f;
@@ -42,14 +42,14 @@ bool CompletionPad::Render()
 		if (PadDock::Capture(G::PadCompletion)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open) { G::ShowCompletion = false; Settings::SetDirty(); }
 		return hovered;
 	}
 
 	if (!open) { G::ShowCompletion = false; Settings::SetDirty(); }
 	if (PadDock::Capture(G::PadCompletion)) Settings::SetDirty();
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
 	if (gTabSelectOnce)
 		gTabSelectOnce = false;
@@ -63,11 +63,8 @@ bool CompletionPad::Render()
 	gTab = PadNav::DrawSideRail("###gw2igh_cmp_nav", kTabs, 3, gTab, 0.f, kTabIcons);
 
 	ImGui::BeginChild("###gw2igh_cmp_body", ImVec2(0.f, 0.f), true);
-	ImGui::TextColored(HelperTheme::Gold, "COMPLETION");
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
+	PadNav::Blurb(
 		"Checklist / Atlas / Route. Local ticks. GPS = orange guide only.");
-	PadNav::PopWrap();
 	if (const MapInfo* m = FindMap(gFocusMapId))
 		ImGui::TextColored(HelperTheme::Muted, "%s | %s | %s",
 			m->name,
@@ -90,6 +87,6 @@ bool CompletionPad::Render()
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

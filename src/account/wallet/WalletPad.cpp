@@ -8,8 +8,8 @@
 #include "Gw2Http.h"
 #include "Gw2Icons.h"
 #include "HelperTheme.h"
+#include "PadLayout.h"
 #include "PadNav.h"
-#include "InventoryData.h"
 #include "PadDock.h"
 #include "Settings.h"
 
@@ -107,12 +107,11 @@ using namespace WalletDetail;
 void WalletPad::RefreshData()
 {
 	LoadNames();
-	InventoryData::RefreshIfNeeded(false);
-	/* Show whatever we already have immediately; refresh only if stale/empty. */
+	/* InventoryData warms Crafting separately — don't dual-crawl every toon here. */
 	bool need = true;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
-		if (gSnap.ok && gSnap.fetchedAt != 0)
+		if (gSnap.ok && !gSnap.charsPending && gSnap.fetchedAt != 0)
 		{
 			const DWORD now = GetTickCount();
 			if (now - gSnap.fetchedAt < kCacheTtlMs)
@@ -131,56 +130,42 @@ void WalletPad::OpenAndRefresh()
 	RefreshData();
 }
 
+void WalletPad::FocusCharacterBags(const char* characterName)
+{
+	if (!characterName || !characterName[0])
+		return;
+	std::snprintf(gFilter, sizeof(gFilter), "%s", characterName);
+	gLocFilter = 5; /* Characters chip */
+	OpenAndRefresh();
+}
+
 void WalletPad::RenderContents()
 {
 	SyncDrawCopy();
 	const Snapshot& snap = gDraw;
 
-	ImGui::TextUnformatted("Wallet & stash search");
-	PadNav::PushWrap();
-	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
-		"Scopes: account, wallet, inventories, characters. Reopen uses cache when fresh.");
-	PadNav::PopWrap();
+	PadNav::Blurb("Scopes: account, wallet, inventories, characters. Reopen uses cache when fresh.");
 
-	if (ImGui::Button("Refresh###gw2igh_wallet_ref"))
+	if (PadNav::RefreshButton("###gw2igh_wallet_ref"))
 		StartFetch(true);
 	ImGui::SameLine();
 	if (gBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating...");
+		PadNav::StatusBusy();
 	else if (!snap.status.empty())
-		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", snap.status.c_str());
+		PadNav::StatusOk(snap.status.c_str());
 
 	ImGui::SetNextItemWidth(-1.f);
 	ImGui::InputTextWithHint("###gw2igh_wallet_filter", "Filter: ecto, Alice, bank...",
 		gFilter, sizeof(gFilter));
 
-	/* In-window chips - BeginCombo/popup lists lose clicks under Nexus (separate
-	   ImGui window outside the pad hit-box). */
-	ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Location");
+	PadNav::Meta("Location");
 	ImGui::PushID("###gw2igh_wallet_loc");
-	const float chipGap = ImGui::GetStyle().ItemSpacing.x;
-	float chipRowX = 0.f;
-	const float chipMax = ImGui::GetContentRegionAvail().x;
 	for (int i = 0; i < 6; ++i)
 	{
-		const bool on = (gLocFilter == i);
-		const ImVec2 labelSize = ImGui::CalcTextSize(kLocLabels[i]);
-		const float chipW = labelSize.x + ImGui::GetStyle().FramePadding.x * 2.f;
-		if (i > 0 && chipRowX + chipGap + chipW > chipMax)
-		{
-			chipRowX = 0.f;
-		}
-		else if (i > 0)
-		{
-			ImGui::SameLine(0.f, chipGap);
-		}
-		if (on)
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.36f, 0.28f, 0.12f, 1.f));
-		if (ImGui::SmallButton(kLocLabels[i]))
+		ImGui::PushID(i);
+		if (PadNav::WrapButton(kLocLabels[i], gLocFilter == i, /*first=*/i == 0))
 			gLocFilter = i;
-		if (on)
-			ImGui::PopStyleColor();
-		chipRowX = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x - ImGui::GetStyle().WindowPadding.x;
+		ImGui::PopID();
 	}
 	ImGui::PopID();
 
@@ -195,8 +180,7 @@ void WalletPad::RenderContents()
 	else
 	{
 		int shown = 0;
-		const float listH = ImGui::GetContentRegionAvail().y;
-		ImGui::BeginChild("###gw2igh_wallet_list", ImVec2(0.f, listH > 80.f ? listH : 80.f), true);
+		PadLayout::BeginList("###gw2igh_wallet_list", 80.f);
 		const int locFilter = gLocFilter; /* stable for this frame */
 		for (const Entry& e : snap.entries)
 		{
@@ -215,17 +199,22 @@ void WalletPad::RenderContents()
 			bool& open = sOpen[rowKey];
 			char rowLabel[256];
 			std::snprintf(rowLabel, sizeof(rowLabel), "%s###stash_row_%d", e.name.c_str(), rowKey);
-			if (!e.isCurrency && Gw2Icons::ImageItem(e.id, 22.f))
+			if (e.isCurrency)
+			{
+				if (Gw2Icons::ImageCurrency(e.id, 22.f))
+					ImGui::SameLine(0.f, 6.f);
+			}
+			else if (Gw2Icons::ImageItem(e.id, 22.f))
 				ImGui::SameLine(0.f, 6.f);
 			if (ImGui::Selectable(rowLabel, open, ImGuiSelectableFlags_AllowDoubleClick))
 				open = !open;
 			ImGui::SameLine();
-			ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f), "%s", qty.c_str());
+			ImGui::TextColored(HelperTheme::Ink, "%s", qty.c_str());
 
 			if (open)
 			{
 				ImGui::Indent();
-				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
+				ImGui::TextColored(HelperTheme::Muted,
 					"%s #%d", e.isCurrency ? "Currency" : "Item", e.id);
 				for (const LocQty& l : e.locs)
 				{
@@ -259,7 +248,8 @@ void WalletPad::RenderContents()
 						"scope, then Refresh.", snap.charCount);
 				else if (snap.characterLocItems <= 0)
 					ImGui::TextWrapped(
-						"Character bags loaded empty (or still resolving names). Try Refresh.");
+						"Character bag HTTP ok but no items parsed — click Refresh. "
+						"If this persists after a reload, check inventories scope.");
 				else if (gFilter[0])
 					ImGui::TextWrapped("No matches in character bags for that filter.");
 				else
@@ -275,7 +265,7 @@ void WalletPad::RenderContents()
 			}
 			PadNav::PopWrap();
 		}
-		ImGui::EndChild();
+		PadLayout::EndList();
 	}
 }
 
@@ -284,12 +274,12 @@ bool WalletPad::Render()
 	if (!G::ShowWallet)
 		return false;
 
-	constexpr float kPadW = 480.f;
-	constexpr float kPadH = 600.f;
+	constexpr float kPadW = PadDock::kCompactW;
+	constexpr float kPadH = PadDock::kCompactH;
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(280.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(PadDock::MaxW(560.f), maxH));
+	PadDock::SetSizeConstraints("Wallet & Stash##GW2InGameHelperWallet", 360.f, 280.f, PadDock::MaxW(560.f), maxH);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
@@ -315,7 +305,7 @@ bool WalletPad::Render()
 			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowWallet = false;
@@ -332,11 +322,11 @@ bool WalletPad::Render()
 	if (PadDock::Capture(G::PadWallet))
 		Settings::SetDirty();
 
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 	RenderContents();
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

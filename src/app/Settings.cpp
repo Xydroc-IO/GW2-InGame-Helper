@@ -221,6 +221,8 @@ void Settings::Load()
 			std::snprintf(G::DefaultSiteId, sizeof(G::DefaultSiteId), "%s", val);
 		else if (std::strcmp(key, "KeepHelperWarm") == 0)
 			G::KeepHelperWarm = AsBool(val);
+		else if (std::strcmp(key, "ShowRailLabels") == 0)
+			G::ShowRailLabels = AsBool(val);
 		else if (std::strcmp(key, "Gw2ApiKey") == 0)
 			std::snprintf(G::Gw2ApiKey, sizeof(G::Gw2ApiKey), "%s", val);
 		else if (std::strcmp(key, "TpWatchIds") == 0)
@@ -446,6 +448,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ActiveSiteId=%s\n", G::ActiveSiteId);
 	std::fprintf(f, "DefaultSiteId=%s\n", G::DefaultSiteId);
 	std::fprintf(f, "KeepHelperWarm=%d\n", G::KeepHelperWarm ? 1 : 0);
+	std::fprintf(f, "ShowRailLabels=%d\n", G::ShowRailLabels ? 1 : 0);
 	std::fprintf(f, "Gw2ApiKey=%s\n", G::Gw2ApiKey);
 	std::fprintf(f, "TpWatchIds=%s\n", G::TpWatchIds);
 	std::fprintf(f, "TpWatchAlerts=%s\n", G::TpWatchAlerts);

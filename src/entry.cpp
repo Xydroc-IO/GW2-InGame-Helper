@@ -82,6 +82,7 @@ namespace G
 	bool  HasSavedPos  = false;
 	bool  HasSavedSize = false;
 	bool  KeepHelperWarm = false;
+	bool  ShowRailLabels = false; /* icon dock by default — match game edge menu */
 	char  LastQuery[128] = "";
 	char  ActiveSiteId[64] = "browse";
 	char  DefaultSiteId[64] = "browse";

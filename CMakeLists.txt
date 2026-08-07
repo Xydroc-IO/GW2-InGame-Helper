@@ -168,12 +168,14 @@ add_library(GW2-InGame-Helper SHARED
   src/account/lookup/LookupFetch.cpp
   src/account/wallet/WalletPad.cpp
   src/account/wallet/WalletFetch.cpp
+  src/account/wallet/WalletFetchSlots.cpp
   src/account/wallet/WalletFetchAcc.cpp
   src/account/vault/VaultPad.cpp
   src/account/vault/VaultData.cpp
   src/account/vault/VaultFetch.cpp
   src/account/AccountPad.cpp
   src/account/progress/ProgressData.cpp
+  src/account/progress/ProgressDataUi.cpp
   src/account/progress/ProgressFetch.cpp
   src/account/crafting/CraftingData.cpp
   src/account/crafting/CraftingApi.cpp

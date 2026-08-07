@@ -25,8 +25,8 @@
 
 namespace
 {
-	constexpr float kPadW = 620.f;
-	constexpr float kPadH = 740.f;
+	constexpr float kPadW = PadDock::kWorkbenchW;
+	constexpr float kPadH = PadDock::kWorkbenchH;
 
 	bool gFocus = false;
 	bool gPlaceOnce = false;
@@ -35,7 +35,7 @@ namespace
 	void SectionLabel(const char* label)
 	{
 		ImGui::Spacing();
-		ImGui::TextColored(HelperTheme::GoldDim, "%s", label);
+		PadNav::SectionTitle(label);
 		ImGui::Separator();
 		ImGui::Spacing();
 	}
@@ -44,11 +44,8 @@ namespace
 	{
 		const bool hasKey = G::Gw2ApiKey[0] != '\0';
 
-		ImGui::TextColored(HelperTheme::Gold, "ACCOUNT");
-		PadNav::PushWrap();
-		ImGui::TextColored(HelperTheme::Muted,
+		PadNav::Blurb(
 			"Stash, vault, trading, crafting, unlocks, and legendary progress - official API, read-only.");
-		PadNav::PopWrap();
 		ImGui::Spacing();
 
 		ImGui::BeginChild("###gw2igh_acct_keycard", ImVec2(0.f, hasKey ? 110.f : 140.f), true);
@@ -72,7 +69,7 @@ namespace
 		ImGui::EndChild();
 
 		ImGui::Spacing();
-		if (Gw2Ui::IconLabelButton("Refresh all###gw2igh_acct_refall", Gw2Ui::Icon::Check, 18.f))
+		if (Gw2Ui::IconLabelButton("Refresh all###gw2igh_acct_refall", Gw2Ui::Icon::Bag, 18.f))
 		{
 			WalletPad::RefreshData();
 			VaultPad::RefreshData();
@@ -89,6 +86,7 @@ namespace
 		SessionHistoryData::RenderOverviewSnippet();
 
 		SectionLabel("TOOLS");
+		/* TOOLS → PadNav section gold (not GoldDim) */
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
 			"Use the tabs on the left - each tool stays in this window.");
@@ -148,7 +146,7 @@ bool AccountPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(360.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(440.f, 360.f), ImVec2(PadDock::MaxW(720.f), maxH));
+	PadDock::SetSizeConstraints("Account###GW2InGameHelperAccount", 440.f, 360.f, PadDock::MaxW(720.f), maxH);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
@@ -175,7 +173,7 @@ bool AccountPad::Render()
 			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowAccount = false;
@@ -192,7 +190,7 @@ bool AccountPad::Render()
 	if (PadDock::Capture(G::PadAccount))
 		Settings::SetDirty();
 
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
 	if (CraftingData::ConsumeFocusTab())
 		gAccountTab = 5; /* Crafting */
@@ -235,6 +233,6 @@ bool AccountPad::Render()
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

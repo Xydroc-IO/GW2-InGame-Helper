@@ -162,7 +162,7 @@ void TrailToolsDetail::DrawKeybindsTab()
 	const float labelCol = LabelColumnWidth(allLabels, 5);
 
 	ImGui::Separator();
-	ImGui::TextColored(HelperTheme::GoldDim, "TRAILS");
+	PadNav::SectionTitle("TRAILS");
 	if (st.trailRecording)
 	{
 		ImGui::SameLine();
@@ -176,14 +176,14 @@ void TrailToolsDetail::DrawKeybindsTab()
 	BindRow(kTrailLabels[3], labelCol, "kb_tdel", st.trailDeleteSeg, 3);
 
 	ImGui::Separator();
-	ImGui::TextColored(HelperTheme::GoldDim, "MARKERS");
+	PadNav::SectionTitle("MARKERS");
 	BindRow(kMarkLabels[0], labelCol, "kb_mdel", st.markerDelete, 4);
 	PadNav::PushWrap();
 	ImGui::TextDisabled("Selected POI, or last one if none selected.");
 	PadNav::PopWrap();
 
 	ImGui::Separator();
-	ImGui::TextColored(HelperTheme::GoldDim, "PLACE MARKER SLOTS");
+	PadNav::SectionTitle("PLACE MARKER SLOTS");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
 		"Empty type uses the Markers tab default. List scrolls with the pad.");

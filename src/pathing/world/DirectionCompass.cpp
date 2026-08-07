@@ -396,11 +396,11 @@ bool DirectionCompass::RenderPad()
 	if (!G::ShowCompassPad)
 		return false;
 
-	constexpr float kPadW = 420.f;
-	constexpr float kPadH = 320.f;
+	constexpr float kPadW = PadDock::kCompactW;
+	constexpr float kPadH = PadDock::kCompassH;
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 260.f),
-		ImVec2(PadDock::MaxW(520.f), PadDock::MaxH(360.f)));
+	PadDock::SetSizeConstraints("Compass###GW2InGameHelperCompass", 380.f, 260.f,
+		PadDock::MaxW(520.f), PadDock::MaxH(360.f));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	PadDock::Place(G::PadCompass, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
 	if (!gRequestDock && G::PadCompass.w < 80.f)
@@ -416,7 +416,7 @@ bool DirectionCompass::RenderPad()
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 			ImGuiHoveredFlags_ChildWindows);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowCompassPad = false;
@@ -425,7 +425,7 @@ bool DirectionCompass::RenderPad()
 		return hovered;
 	}
 
-	HelperTheme::ScopedFontScale fontScale(400.f, 280.f);
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 	DrawControls();
 
 	if (PadDock::Capture(G::PadCompass))
@@ -433,7 +433,7 @@ bool DirectionCompass::RenderPad()
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 		ImGuiHoveredFlags_ChildWindows);
-	ImGui::End();
+	HelperTheme::EndPad();
 	if (!open)
 	{
 		G::ShowCompassPad = false;

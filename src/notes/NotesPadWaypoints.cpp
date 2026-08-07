@@ -38,21 +38,21 @@ namespace NotesPadDetail
 		WaypointsData::Tick();
 
 		PadNav::PushWrap();
-		ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+		ImGui::TextColored(HelperTheme::Muted,
 			"Official API waypoints & POIs - Copy puts the chat code on your clipboard.");
 		PadNav::PopWrap();
 
 		if (WaypointsData::Busy())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s", WaypointsData::Status());
+			ImGui::TextColored(HelperTheme::Warn, "%s", WaypointsData::Status());
 		else if (!WaypointsData::Ready())
 		{
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "%s", WaypointsData::Status());
+			ImGui::TextColored(HelperTheme::Muted, "%s", WaypointsData::Status());
 			if (ImGui::Button("Load waypoints###gw2igh_wp_load"))
 				WaypointsData::EnsureLoaded(true);
 			return;
 		}
 		else
-			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", WaypointsData::Status());
+			ImGui::TextColored(HelperTheme::Ok, "%s", WaypointsData::Status());
 
 		ImGui::Checkbox("Waypoints only###gw2igh_wp_wponly", &gWpWaypointsOnly);
 		ImGui::SameLine();
@@ -76,7 +76,7 @@ namespace NotesPadDetail
 			if (gWpQuery[0])
 				WaypointsData::Search(gWpQuery, gWpWaypointsOnly, hits, 100);
 			else
-				ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+				ImGui::TextColored(HelperTheme::Muted,
 					"Type a name - e.g. fort trinity, lion's arch.");
 		}
 		else if (gWpMode == 1)
@@ -103,7 +103,7 @@ namespace NotesPadDetail
 			ImGui::EndChild();
 			if (gWpMapId > 0)
 			{
-				ImGui::TextColored(ImVec4(0.85f, 0.80f, 0.95f, 1.f), "%s",
+				ImGui::TextColored(HelperTheme::GoldMuted, "%s",
 					gWpMapName.empty() ? "Map" : gWpMapName.c_str());
 				WaypointsData::ListForMap(gWpMapId, gWpWaypointsOnly, hits);
 			}
@@ -113,7 +113,7 @@ namespace NotesPadDetail
 			const int cur = WaypointsData::CurrentMapId();
 			if (cur <= 0)
 			{
-				ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+				ImGui::TextColored(HelperTheme::Warn,
 					"Waiting for MumbleLink / enter the world.");
 			}
 			else
@@ -121,17 +121,17 @@ namespace NotesPadDetail
 				gWpMapId = cur;
 				WaypointsData::ListForMap(cur, gWpWaypointsOnly, hits);
 				const char* mapLabel = hits.empty() ? "This map" : hits[0].mapName.c_str();
-				ImGui::TextColored(ImVec4(0.85f, 0.80f, 0.95f, 1.f),
+				ImGui::TextColored(HelperTheme::GoldMuted,
 					"%s  (#%d)", mapLabel, cur);
 				if (hits.empty())
-					ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+					ImGui::TextColored(HelperTheme::Muted,
 						"No waypoints indexed for this map id.");
 			}
 		}
 
 		if (gWpCopied[0])
 		{
-			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f),
+			ImGui::TextColored(HelperTheme::Ok,
 				"Copied %s", gWpCopied);
 		}
 
@@ -145,15 +145,15 @@ namespace NotesPadDetail
 			if (gWpMode == 0)
 			{
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), " |  %s", p.mapName.c_str());
+				ImGui::TextColored(HelperTheme::Muted, " |  %s", p.mapName.c_str());
 			}
 			if (!gWpWaypointsOnly && p.type != "waypoint")
 			{
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.60f, 0.55f, 0.45f, 1.f), "[%s]", p.type.c_str());
+				ImGui::TextColored(HelperTheme::GoldDim, "[%s]", p.type.c_str());
 			}
 			ImGui::SameLine();
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "%s", p.chatLink.c_str());
+			ImGui::TextColored(HelperTheme::Muted, "%s", p.chatLink.c_str());
 			ImGui::SameLine();
 			if (ImGui::SmallButton("Copy"))
 			{
@@ -166,7 +166,7 @@ namespace NotesPadDetail
 				(gWpMode == 1 && gWpMapId > 0) ||
 				(gWpMode == 2 && gWpMapId > 0)))
 		{
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "No matches.");
+			ImGui::TextColored(HelperTheme::Muted, "No matches.");
 		}
 		ImGui::EndChild();
 	}

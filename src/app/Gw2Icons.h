@@ -28,6 +28,18 @@ namespace Gw2Icons
 	/* RequestItem + Image — for commerce / stash item rows. */
 	bool ImageItem(int itemId, float size = 28.f);
 
+	/* Wallet currencies — separate from item ids (currency 1 ≠ item 1). */
+	void RememberCurrencyIcon(int currencyId, const char* renderUrl);
+	void RememberCurrencyIconFromJson(int currencyId, const char* json, size_t brace, size_t end);
+	bool ImageCurrency(int currencyId, float size = 28.f);
+	bool HasCurrencyIcon(int currencyId);
+
+	/* Profession icons (/v2/professions id, e.g. "Guardian"). */
+	void RememberProfessionIcon(const char* professionId, const char* renderUrl);
+	bool ImageProfession(const char* professionId, float size = 28.f);
+	/* Warm built-in render URLs so roster icons work offline of a fetch. */
+	void WarmProfessionIcons();
+
 	/* Same for an arbitrary render URL (Lookup detail). */
 	bool ImageUrl(const char* renderUrl, float size = 36.f);
 }

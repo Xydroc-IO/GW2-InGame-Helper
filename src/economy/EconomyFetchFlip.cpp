@@ -236,7 +236,8 @@ namespace EconomyDetail
 
 	void EnsureSeed()
 	{
-		if (gChartItemId == 0)
+		/* Default focus id only — Charts list is empty until the user pins. */
+		if (gChartItemId == 0 && gChartIds.empty())
 			gChartItemId = 19721;
 	}
 

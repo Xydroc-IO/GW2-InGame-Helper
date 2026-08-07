@@ -5,5 +5,5 @@
 namespace FarmingDetail
 {
 	constexpr float kPadW = 560.f;
-	constexpr float kPadH = 520.f;
+	constexpr float kPadH = 640.f;
 }

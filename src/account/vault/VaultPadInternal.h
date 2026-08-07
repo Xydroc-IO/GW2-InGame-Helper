@@ -20,8 +20,8 @@ namespace VaultDetail
 	constexpr int kHttpTimeoutMs = 3500;
 	constexpr int kBulkTimeoutMs = 8000;
 	constexpr DWORD kCacheTtlMs = 3 * 60 * 1000;
-	constexpr float kPadW = 480.f;
-	constexpr float kPadH = 600.f;
+	constexpr float kPadW = 440.f;
+	constexpr float kPadH = 480.f;
 
 	struct Obj
 	{

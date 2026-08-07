@@ -1,12 +1,13 @@
 #include "ProgressData.h"
+#include "PadLayout.h"
 #include "PadNav.h"
 
 #include "ProgressDataInternal.h"
 
 #include "BrowserTabs.h"
-#include "CraftingData.h"
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "HelperTheme.h"
 #include "Settings.h"
 #include "WikiBrowser.h"
 
@@ -327,121 +328,39 @@ void ProgressData::RenderContents()
 	SyncDraw();
 	const Snapshot& snap = gDraw;
 
-	ImGui::TextUnformatted("Legendaries & characters");
-	PadNav::PushWrap();
-	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+	PadNav::Blurb(
 		"Legendary Armory unlocks and roster - official API, read-only. "
 		"Use Plan on a legendary to open Crafting with its gift / forge tree.");
-	PadNav::PopWrap();
 
-	if (ImGui::Button("Refresh###gw2igh_prog_ref"))
+	if (PadNav::RefreshButton("###gw2igh_prog_ref"))
 		StartFetch(true);
 	ImGui::SameLine();
 	if (gBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Updating...");
+		PadNav::StatusBusy();
 	else if (!snap.status.empty())
-		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", snap.status.c_str());
+		PadNav::StatusOk(snap.status.c_str());
 
 	ImGui::SetNextItemWidth(-1.f);
 	ImGui::InputTextWithHint("###gw2igh_prog_filter", "Filter legendaries...",
 		gFilter, sizeof(gFilter));
 
-	ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Show");
-	ImGui::RadioButton("All###gw2igh_prog_m0", &gShowMode, 0);
-	ImGui::SameLine();
-	ImGui::RadioButton("Missing###gw2igh_prog_m1", &gShowMode, 1);
-	ImGui::SameLine();
-	ImGui::RadioButton("Unlocked###gw2igh_prog_m2", &gShowMode, 2);
+	PadNav::Meta("Show");
+	if (PadNav::WrapButton("All", gShowMode == 0, /*first=*/true))
+		gShowMode = 0;
+	if (PadNav::WrapButton("Missing", gShowMode == 1))
+		gShowMode = 1;
+	if (PadNav::WrapButton("Unlocked", gShowMode == 2))
+		gShowMode = 2;
 
 	ImGui::Separator();
 
-	const float listH = ImGui::GetContentRegionAvail().y;
-	ImGui::BeginChild("###gw2igh_prog_list", ImVec2(0.f, listH > 80.f ? listH : 80.f), true);
+	PadLayout::BeginList("###gw2igh_prog_list", 80.f);
 
-	ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.35f, 1.f), "Legendary Armory");
-	if (snap.legs.empty() && !gBusy)
-	{
-		ImGui::TextWrapped("No catalog yet - click Refresh.");
-	}
-	else
-	{
-		int shown = 0;
-		for (const LegRow& r : snap.legs)
-		{
-			if (!FilterMatch(r, gFilter)) continue;
-			const bool have = r.owned > 0;
-			if (gShowMode == 1 && have) continue;
-			if (gShowMode == 2 && !have) continue;
-			++shown;
-			ImGui::PushID(r.id);
-			const char* name = r.name.empty() ? "..." : r.name.c_str();
-			if (have)
-				ImGui::TextColored(ImVec4(0.55f, 0.85f, 0.55f, 1.f), "%s", name);
-			else
-				ImGui::TextUnformatted(name);
-			ImGui::SameLine();
-			if (r.owned >= 0)
-			{
-				ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-					"%d/%d", r.owned, r.maxCount);
-			}
-			else
-				ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f), "#%d", r.id);
-			ImGui::SameLine();
-			if (ImGui::SmallButton("Plan"))
-			{
-				/* Prefer item ID - skips wiki name search (snappy). */
-				char idBuf[24];
-				std::snprintf(idBuf, sizeof(idBuf), "%d", r.id);
-				CraftingData::QueuePlan(idBuf);
-			}
-			ImGui::SameLine();
-			if (ImGui::SmallButton("Wiki"))
-				OpenWikiItem(r.id, r.name);
-			ImGui::PopID();
-		}
-		if (shown == 0)
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "No matches.");
-	}
+	DrawArmoryList(snap);
 
 	ImGui::Spacing();
 	ImGui::Separator();
-	ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.35f, 1.f), "Characters");
-	if (!snap.hasKey)
-	{
-		ImGui::TextWrapped("Add an API key with the characters scope to list your roster.");
-	}
-	else if (snap.chars.empty())
-	{
-		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
-			snap.scopeFail ? "Check API scopes." : "No characters loaded yet.");
-	}
-	else
-	{
-		const size_t n = (std::min)(snap.chars.size(), kMaxCharDetails);
-		for (size_t i = 0; i < n; ++i)
-		{
-			const CharRow& c = snap.chars[i];
-			ImGui::TextUnformatted(c.name.c_str());
-			ImGui::SameLine();
-			if (c.level >= 0 || !c.profession.empty())
-			{
-				char meta[96];
-				if (c.level >= 0 && !c.profession.empty())
-					std::snprintf(meta, sizeof(meta), "Lv %lld | %s", c.level, c.profession.c_str());
-				else if (c.level >= 0)
-					std::snprintf(meta, sizeof(meta), "Lv %lld", c.level);
-				else
-					std::snprintf(meta, sizeof(meta), "%s", c.profession.c_str());
-				ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "%s", meta);
-			}
-		}
-		if (snap.chars.size() > n)
-		{
-			ImGui::TextColored(ImVec4(0.50f, 0.52f, 0.56f, 1.f),
-				"Showing %d of %d", static_cast<int>(n), static_cast<int>(snap.chars.size()));
-		}
-	}
+	DrawCharacterRoster(snap);
 
-	ImGui::EndChild();
+	PadLayout::EndList();
 }

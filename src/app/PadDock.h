@@ -4,6 +4,7 @@
 #include "Globals.h"
 
 #include "imgui/imgui.h"
+#include "imgui_internal.h"
 
 #include <cmath>
 #include <cstdio>
@@ -12,6 +13,15 @@
    G::PadGeom + Settings. Caller Place() only on the open frame (placeOnce). */
 namespace PadDock
 {
+	/* Shared FirstUseEver defaults — same-tier pads open at matching footprints. */
+	constexpr float kCompactW = 440.f;
+	constexpr float kCompactH = 480.f;
+	constexpr float kCompassH = 360.f; /* shorter: dial + short list */
+	constexpr float kWorkbenchW = 560.f;
+	constexpr float kWorkbenchH = 640.f;
+	constexpr float kPathingW = 640.f;
+	constexpr float kPathingH = 700.f;
+
 	struct Rect
 	{
 		float x = 0.f;
@@ -26,20 +36,25 @@ namespace PadDock
 
 	inline void RememberNotes(const ImVec2& pos, const ImVec2& size)
 	{
+		/* Skip title-strip height so minimize never poisons session dock size. */
+		if (size.y < 80.f || size.x < 80.f)
+			return;
 		gNotes.x = pos.x;
 		gNotes.y = pos.y;
 		gNotes.w = size.x;
 		gNotes.h = size.y;
-		gNotes.valid = size.x > 1.f && size.y > 1.f;
+		gNotes.valid = true;
 	}
 
 	inline void RememberTp(const ImVec2& pos, const ImVec2& size)
 	{
+		if (size.y < 80.f || size.x < 80.f)
+			return;
 		gTp.x = pos.x;
 		gTp.y = pos.y;
 		gTp.w = size.x;
 		gTp.h = size.y;
-		gTp.valid = size.x > 1.f && size.y > 1.f;
+		gTp.valid = true;
 	}
 
 	inline void ClearNotes() { gNotes = {}; }
@@ -73,6 +88,21 @@ namespace PadDock
 			return floorPx > 900.f ? floorPx : 900.f;
 		const float fromDisp = io.DisplaySize.y * 0.94f;
 		return fromDisp > floorPx ? fromDisp : floorPx;
+	}
+
+	/* Size constraints that allow the title-strip while custom-minimized.
+	   Call BEFORE Begin with the same window name string as Begin(...). */
+	inline void SetSizeConstraints(const char* windowName,
+		float minW, float minH, float maxW, float maxH)
+	{
+		bool collapsed = false;
+		if (windowName && windowName[0])
+		{
+			if (ImGuiWindow* w = ImGui::FindWindowByName(windowName))
+				collapsed = w->StateStorage.GetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+		}
+		const float useMinH = collapsed ? 28.f : minH;
+		ImGui::SetNextWindowSizeConstraints(ImVec2(minW, useMinH), ImVec2(maxW, maxH));
 	}
 
 	inline ImVec2 ClampPos(float x, float y, float padW, float padH = 0.f)

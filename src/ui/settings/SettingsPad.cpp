@@ -25,14 +25,24 @@ bool SettingsPad::Render()
 	if (!G::ShowSettings)
 		return false;
 
-	constexpr float kPadW = 440.f;
-	constexpr float kPadH = 560.f;
+	constexpr float kPadW = PadDock::kCompactW;
+	constexpr float kPadH = PadDock::kCompactH;
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(320.f, 280.f),
-		ImVec2(PadDock::MaxW(520.f), PadDock::MaxH(720.f)));
+	PadDock::SetSizeConstraints("Settings###GW2InGameHelperSettings", 360.f, 260.f,
+		PadDock::MaxW(560.f), PadDock::MaxH(640.f));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	/* Shrink bloated saved Settings geom from older builds. */
+	bool forceCompact = false;
+	if (G::PadSettings.w > 500.f || G::PadSettings.h > 520.f)
+	{
+		G::PadSettings.w = kPadW;
+		G::PadSettings.h = kPadH;
+		forceCompact = true;
+	}
 	PadDock::Place(G::PadSettings, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
-	if (!gRequestDock && G::PadSettings.w < 80.f)
+	if (forceCompact)
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	else if (!gRequestDock && G::PadSettings.w < 80.f)
 		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
 
 	bool open = G::ShowSettings;
@@ -45,7 +55,7 @@ bool SettingsPad::Render()
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 			ImGuiHoveredFlags_ChildWindows);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowSettings = false;
@@ -55,7 +65,7 @@ bool SettingsPad::Render()
 	}
 
 
-	HelperTheme::ScopedFontScale fontScale(440.f, 560.f);
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 	ImGui::PushID("gw2igh_settings_pad");
 	DrawContents();
 	ImGui::PopID();
@@ -65,7 +75,7 @@ bool SettingsPad::Render()
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 		ImGuiHoveredFlags_ChildWindows);
-	ImGui::End();
+	HelperTheme::EndPad();
 	if (!open)
 	{
 		G::ShowSettings = false;

@@ -217,7 +217,7 @@ namespace UIDetail
 
 	ImGui::EndChild();
 	ImGui::PopStyleColor(); /* ChildBg */
-	/* Match UI_Render PushStyleVar pair (WindowPadding + ItemSpacing) for the rail row. */
+	/* Match UI_Render PushStyleVar pair (WindowPadding + ItemSpacing). */
 	ImGui::PopStyleVar(2);
 
 	const ImVec2 pos = ImGui::GetWindowPos();

@@ -17,12 +17,9 @@ void UnlocksPad::RenderContents()
 {
 	UnlocksData::Tick();
 
-	ImGui::TextColored(HelperTheme::Gold, "UNLOCKS");
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
+	PadNav::Blurb(
 		"Wardrobe and account unlocks from the official API (skins, dyes, minis, ...). "
 		"Requires an API key with the unlocks scope.");
-	PadNav::PopWrap();
 	ImGui::Spacing();
 
 	if (!G::Gw2ApiKey[0])
@@ -31,12 +28,12 @@ void UnlocksPad::RenderContents()
 		return;
 	}
 
-	if (Gw2Ui::IconLabelButton("Refresh unlocks###gw2igh_unlocks_ref", Gw2Ui::Icon::Check, 16.f))
+	if (PadNav::RefreshButton("###gw2igh_unlocks_ref"))
 		UnlocksData::EnsureAll(true);
 	if (UnlocksData::BusyAny())
 	{
 		ImGui::SameLine();
-		ImGui::TextDisabled("Loading...");
+		PadNav::StatusBusy("Loading...");
 	}
 
 	static int sKind = 0;
@@ -45,9 +42,20 @@ void UnlocksPad::RenderContents()
 		"Skins", "Dyes", "Minis", "Finishers", "Outfits",
 		"Gliders", "Mail carriers", "Novelties", "Titles"
 	};
+	static const int kKindIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::Hero),
+		static_cast<int>(Gw2Ui::Icon::Gem),
+		static_cast<int>(Gw2Ui::Icon::Contacts),
+		static_cast<int>(Gw2Ui::Icon::Check),
+		static_cast<int>(Gw2Ui::Icon::Inventory),
+		static_cast<int>(Gw2Ui::Icon::Map),
+		static_cast<int>(Gw2Ui::Icon::Mail),
+		static_cast<int>(Gw2Ui::Icon::Trade),
+		static_cast<int>(Gw2Ui::Icon::Achievements),
+	};
 	const int prev = sKind;
 	sKind = PadNav::DrawSideRail("###gw2igh_unlock_kinds", kKindTabs,
-		static_cast<int>(UnlocksData::Kind::Count), sKind);
+		static_cast<int>(UnlocksData::Kind::Count), sKind, 0.f, kKindIcons);
 	const auto kind = static_cast<UnlocksData::Kind>(sKind);
 	if (sKind != prev || !UnlocksData::Ready(kind))
 		UnlocksData::EnsureLoaded(kind, false);

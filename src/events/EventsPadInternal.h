@@ -17,8 +17,8 @@ namespace EventsPadDetail
 	constexpr int kHttpTimeoutMs = 2500;
 	constexpr int kWarnWithinSec = 10 * 60;
 	constexpr int kSoonFilterSec = 30 * 60;
-	constexpr float kPadW = 520.f;
-	constexpr float kPadH = 600.f;
+	constexpr float kPadW = 440.f;
+	constexpr float kPadH = 480.f;
 
 	struct Timing
 	{

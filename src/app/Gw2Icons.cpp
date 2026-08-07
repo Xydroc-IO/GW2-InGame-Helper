@@ -32,9 +32,12 @@ namespace
 
 	std::mutex gMu;
 	std::unordered_map<int, Slot> gByItem;
+	std::unordered_map<int, Slot> gByCurrency; /* /v2/currencies ids — not items */
+	std::unordered_map<std::string, Slot> gByProfession; /* Guardian, Warrior, … */
 	std::unordered_map<std::string, std::string> gUrlTex; /* url -> texId */
 	std::vector<int> gQueue;
 	std::atomic<bool> gWorker{false};
+	bool gProfessionsWarmed = false;
 
 	std::string JsonStringKey(const char* json, size_t from, size_t end, const char* key)
 	{
@@ -265,7 +268,20 @@ void Gw2Icons::Tick()
 	std::vector<int> batch;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
-		for (auto& kv : gByItem)
+		auto enqueueReady = [&](std::unordered_map<int, Slot>& map) {
+			for (auto& kv : map)
+			{
+				Slot& s = kv.second;
+				if (s.state == State::Ready && !s.uploadTried && !s.texId.empty())
+				{
+					s.uploadTried = true;
+					uploads.emplace_back(s.url, s.texId);
+				}
+			}
+		};
+		enqueueReady(gByItem);
+		enqueueReady(gByCurrency);
+		for (auto& kv : gByProfession)
 		{
 			Slot& s = kv.second;
 			if (s.state == State::Ready && !s.uploadTried && !s.texId.empty())
@@ -288,6 +304,132 @@ void Gw2Icons::Tick()
 	{
 		std::thread(WorkerMain, std::move(batch)).detach();
 	}
+}
+
+void Gw2Icons::RememberCurrencyIcon(int currencyId, const char* renderUrl)
+{
+	if (currencyId <= 0 || !renderUrl || !renderUrl[0])
+		return;
+	if (std::strncmp(renderUrl, "https://render.guildwars2.com/", 30) != 0)
+		return;
+	std::lock_guard<std::mutex> lock(gMu);
+	Slot& s = gByCurrency[currencyId];
+	s.url = renderUrl;
+	s.texId = MakeTexIdFromUrl(s.url);
+	s.state = State::Ready;
+	gUrlTex[s.url] = s.texId;
+	s.uploadTried = false;
+}
+
+void Gw2Icons::RememberCurrencyIconFromJson(int currencyId, const char* json, size_t brace, size_t end)
+{
+	if (!json || currencyId <= 0 || brace >= end)
+		return;
+	const std::string icon = JsonStringKey(json, brace, end, "icon");
+	if (!icon.empty())
+		RememberCurrencyIcon(currencyId, icon.c_str());
+}
+
+bool Gw2Icons::HasCurrencyIcon(int currencyId)
+{
+	if (currencyId <= 0)
+		return false;
+	std::lock_guard<std::mutex> lock(gMu);
+	auto it = gByCurrency.find(currencyId);
+	return it != gByCurrency.end() && it->second.state == State::Ready;
+}
+
+bool Gw2Icons::ImageCurrency(int currencyId, float size)
+{
+	if (currencyId <= 0 || size < 8.f)
+		return false;
+	std::string texId;
+	std::string url;
+	bool needUpload = false;
+	{
+		std::lock_guard<std::mutex> lock(gMu);
+		auto it = gByCurrency.find(currencyId);
+		if (it == gByCurrency.end() || it->second.state != State::Ready)
+			return false;
+		texId = it->second.texId;
+		if (!it->second.uploadTried)
+		{
+			it->second.uploadTried = true;
+			url = it->second.url;
+			needUpload = true;
+		}
+	}
+	if (needUpload)
+		TryUpload(url, texId);
+	return DrawTex(texId, size);
+}
+
+void Gw2Icons::RememberProfessionIcon(const char* professionId, const char* renderUrl)
+{
+	if (!professionId || !professionId[0] || !renderUrl || !renderUrl[0])
+		return;
+	if (std::strncmp(renderUrl, "https://render.guildwars2.com/", 30) != 0)
+		return;
+	std::lock_guard<std::mutex> lock(gMu);
+	Slot& s = gByProfession[professionId];
+	s.url = renderUrl;
+	s.texId = MakeTexIdFromUrl(s.url);
+	s.state = State::Ready;
+	gUrlTex[s.url] = s.texId;
+	s.uploadTried = false;
+}
+
+void Gw2Icons::WarmProfessionIcons()
+{
+	/* Official /v2/professions icon URLs — baked so roster is immersive immediately. */
+	static const char* kPairs[][2] = {
+		{ "Guardian", "https://render.guildwars2.com/file/C32BE61FC55C962524624F643897ECF1A9C80462/156634.png" },
+		{ "Warrior", "https://render.guildwars2.com/file/0A97E13F29B3597A447EEC04A09BE5BD699A2250/156643.png" },
+		{ "Engineer", "https://render.guildwars2.com/file/5CCB361F44CCC7256132405D31E3A24DACCF440A/156632.png" },
+		{ "Ranger", "https://render.guildwars2.com/file/49B10316B424F4E20139EB5E51ADCF24A8724E9B/156640.png" },
+		{ "Thief", "https://render.guildwars2.com/file/F9EC00E23F630D6DB20CDA985592EC010E2A5705/156641.png" },
+		{ "Elementalist", "https://render.guildwars2.com/file/77B793123251931AFF9FCA24C07E0F704BC4DA49/156630.png" },
+		{ "Mesmer", "https://render.guildwars2.com/file/E43730AD49A903C3A1B4F27E41DE04EA51A775EC/156636.png" },
+		{ "Necromancer", "https://render.guildwars2.com/file/AE56F8670807B87CF6EEE3FC7E6CB9710959E004/156638.png" },
+		{ "Revenant", "https://render.guildwars2.com/file/7C9309BE7A2A48C6A9FBCC70CC1EBEBFD7593C05/961390.png" },
+	};
+	bool need = false;
+	{
+		std::lock_guard<std::mutex> lock(gMu);
+		need = !gProfessionsWarmed;
+		if (need)
+			gProfessionsWarmed = true;
+	}
+	if (!need)
+		return;
+	for (const auto& pair : kPairs)
+		RememberProfessionIcon(pair[0], pair[1]);
+}
+
+bool Gw2Icons::ImageProfession(const char* professionId, float size)
+{
+	if (!professionId || !professionId[0] || size < 8.f)
+		return false;
+	WarmProfessionIcons();
+	std::string texId;
+	std::string url;
+	bool needUpload = false;
+	{
+		std::lock_guard<std::mutex> lock(gMu);
+		auto it = gByProfession.find(professionId);
+		if (it == gByProfession.end() || it->second.state != State::Ready)
+			return false;
+		texId = it->second.texId;
+		if (!it->second.uploadTried)
+		{
+			it->second.uploadTried = true;
+			url = it->second.url;
+			needUpload = true;
+		}
+	}
+	if (needUpload)
+		TryUpload(url, texId);
+	return DrawTex(texId, size);
 }
 
 bool Gw2Icons::Image(int id, float size)

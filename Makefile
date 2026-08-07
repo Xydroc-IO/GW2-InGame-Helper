@@ -62,6 +62,8 @@ DLL_SRC = \
 	src/app/Gw2Icons.cpp \
 	src/app/Gw2Ui.cpp \
 	src/app/Gw2UiPadChrome.cpp \
+	src/app/Gw2UiPadTitle.cpp \
+	src/app/Gw2UiPadScroll.cpp \
 	src/app/UiChrome.cpp \
 	src/api/Gw2Http.cpp \
 	src/browse/sites/Sites.cpp \
@@ -122,12 +124,14 @@ DLL_SRC = \
 	src/account/lookup/LookupFetch.cpp \
 	src/account/wallet/WalletPad.cpp \
 	src/account/wallet/WalletFetch.cpp \
+	src/account/wallet/WalletFetchSlots.cpp \
 	src/account/wallet/WalletFetchAcc.cpp \
 	src/account/vault/VaultPad.cpp \
 	src/account/vault/VaultData.cpp \
 	src/account/vault/VaultFetch.cpp \
 	src/account/AccountPad.cpp \
 	src/account/progress/ProgressData.cpp \
+	src/account/progress/ProgressDataUi.cpp \
 	src/account/progress/ProgressFetch.cpp \
 	src/account/crafting/CraftingData.cpp \
 	src/account/crafting/CraftingApi.cpp \
@@ -554,7 +558,7 @@ install: $(DLL_OUT)
 	# Seed Immersive chrome so pads look correct even before first extract.
 	@mkdir -p "$(INSTALL_DIR)/ui-chrome"
 	/bin/cp -f data/ui-chrome/*.png "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
-	@printf 'uc6' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
+	@printf 'uc19' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"

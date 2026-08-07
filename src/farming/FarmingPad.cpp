@@ -129,7 +129,7 @@ bool FarmingPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(260.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(460.f, 280.f), ImVec2(PadDock::MaxW(720.f), maxH));
+	PadDock::SetSizeConstraints("Farming##GW2InGameHelperFarming", 440.f, 280.f, PadDock::MaxW(720.f), maxH);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
 			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.46f) : 180.f;
@@ -149,14 +149,14 @@ bool FarmingPad::Render()
 		if (PadDock::Capture(G::PadFarming)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open) { G::ShowFarming = false; Settings::SetDirty(); }
 		return hovered;
 	}
 
 	if (!open) { G::ShowFarming = false; Settings::SetDirty(); }
 	if (PadDock::Capture(G::PadFarming)) Settings::SetDirty();
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
 	static const char* kTabs[] = { "Runs", "Fishing" };
 	static const int kTabIcons[] = {
@@ -166,10 +166,7 @@ bool FarmingPad::Render()
 	gTab = PadNav::DrawSideRail("###gw2igh_farm_nav", kTabs, 2, gTab, 0.f, kTabIcons);
 
 	ImGui::BeginChild("###gw2igh_farm_body", ImVec2(0.f, 0.f), true);
-	ImGui::TextColored(HelperTheme::Gold, "FARMING");
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted, "Run checklists | fish log | Pathing handoff.");
-	PadNav::PopWrap();
+	PadNav::Blurb("Run checklists | fish log | Pathing handoff.");
 	ImGui::Separator();
 
 	if (gTab == 0)
@@ -183,6 +180,6 @@ bool FarmingPad::Render()
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

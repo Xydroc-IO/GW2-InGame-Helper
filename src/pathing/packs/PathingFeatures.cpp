@@ -131,7 +131,6 @@ bool PathingFeatures::RenderContents()
 		"Skyscale routes: HoT + SotO only. Elsewhere use Foot/Griffon.");
 	PadNav::PopWrap();
 
-	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::TextUnformatted("Lady Elyssa - extras");
 	PadNav::PushWrap();
@@ -139,7 +138,6 @@ bool PathingFeatures::RenderContents()
 		"Independent toggles. Map Completion is Lady-only (not Tekkit).");
 	PadNav::PopWrap();
 
-	ImGui::Spacing();
 	ImGui::TextUnformatted("Map Completion");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
@@ -179,7 +177,6 @@ bool PathingFeatures::RenderContents()
 			"Mount map-completion trails on this map, plus mount-guide\n"
 			"markers and shortcuts (raptor/springer/...). Not barefoot/bfs.");
 
-	ImGui::Spacing();
 	ImGui::TextUnformatted("Other");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
@@ -212,7 +209,6 @@ bool PathingFeatures::RenderContents()
 		PadNav::PopWrap();
 	}
 
-	ImGui::Spacing();
 	ImGui::Separator();
 	if (ImGui::Button("Reset marker states###gw2igh_path_feat_reset"))
 		PathingTrails::ResetMarkerBehaviorStates();

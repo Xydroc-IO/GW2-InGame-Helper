@@ -34,10 +34,27 @@ namespace WalletDetail
 		std::atomic<size_t> next{0};
 		std::atomic<int> bagsOk{0};
 		std::atomic<int> bagsFail{0};
+		std::atomic<int> done{0}; /* inv+eq attempts finished (ok or fail) */
 		std::unordered_map<int, Entry> map;
 		std::mutex mu;
 		const char* key = nullptr;
 	};
+
+	struct CharHttpPair
+	{
+		const char* key = nullptr;
+		std::string invPath;
+		std::string eqPath;
+		Gw2Http::Result inv;
+		Gw2Http::Result eq;
+	};
+
+	DWORD WINAPI CharFetchInv(void* p)
+	{
+		CharHttpPair* d = static_cast<CharHttpPair*>(p);
+		d->inv = Gw2Http::Api(d->invPath.c_str(), d->key, kCharTimeoutMs);
+		return 0;
+	}
 
 	DWORD WINAPI CharWorker(void* p)
 	{
@@ -48,23 +65,66 @@ namespace WalletDetail
 			const size_t i = job->next.fetch_add(1);
 			if (i >= job->names.size()) break;
 			const std::string& name = job->names[i];
-			std::string path = "/v2/characters/";
-			path += UrlEncode(name);
-			path += "/inventory";
-			auto inv = Gw2Http::Api(path.c_str(), job->key, kCharTimeoutMs);
-			if (!inv.ok)
+
+			CharHttpPair dual;
+			dual.key = job->key;
+			dual.invPath = "/v2/characters/";
+			dual.invPath += UrlEncode(name);
+			dual.invPath += "/inventory";
+			dual.eqPath = "/v2/characters/";
+			dual.eqPath += UrlEncode(name);
+			dual.eqPath += "/equipment";
+
+			/* Overlap inventory + equipment HTTP for this toon. */
+			HANDLE invTh = CreateThread(nullptr, 0, CharFetchInv, &dual, 0, nullptr);
+			dual.eq = Gw2Http::Api(dual.eqPath.c_str(), dual.key, kCharTimeoutMs);
+			if (invTh)
+			{
+				WaitForSingleObject(invTh, static_cast<DWORD>(kCharTimeoutMs) + 2000u);
+				CloseHandle(invTh);
+			}
+			else
+				dual.inv = Gw2Http::Api(dual.invPath.c_str(), dual.key, kCharTimeoutMs);
+
+			if (!dual.inv.ok)
 			{
 				job->bagsFail.fetch_add(1);
+				job->done.fetch_add(1);
 				continue;
 			}
 			job->bagsOk.fetch_add(1);
 			QtyMap qty;
-			CollectSlots(inv.body, qty);
-			std::unordered_map<int, Entry> local;
-			for (const auto& kv : qty)
-				MergeLoc(local, kv.first, false, Loc_Character, name, kv.second);
-			std::lock_guard<std::mutex> lock(job->mu);
-			MergeMap(job->map, local);
+			CollectSlots(dual.inv.body, qty);
+
+			if (dual.eq.ok)
+			{
+				size_t ppos = 0;
+				while (ppos < dual.eq.body.size())
+				{
+					size_t brace = dual.eq.body.find('{', ppos);
+					if (brace == std::string::npos) break;
+					size_t end = JsonObjectEnd(dual.eq.body, brace);
+					if (end == std::string::npos) break;
+					/* Equipment entries have "slot"; skip nested upgrade objects. */
+					if (dual.eq.body.find("\"slot\"", brace) < end)
+					{
+						long long id = JsonIntAfterKey(dual.eq.body, "id", brace);
+						if (id > 0)
+							qty[static_cast<int>(id)] += 1;
+					}
+					ppos = brace + 1;
+				}
+			}
+
+			if (!qty.empty())
+			{
+				std::unordered_map<int, Entry> local;
+				for (const auto& kv : qty)
+					MergeLoc(local, kv.first, false, Loc_Character, name, kv.second);
+				std::lock_guard<std::mutex> lock(job->mu);
+				MergeMap(job->map, local);
+			}
+			job->done.fetch_add(1);
 		}
 		return 0;
 	}
@@ -213,7 +273,7 @@ namespace WalletDetail
 		{
 			std::lock_guard<std::mutex> lock(acc.mu);
 			ResolveMissingNames(acc.map, G::Gw2ApiKey);
-			Publish(acc.map, "Account stash ready - loading characters...", 0, 0, true);
+			Publish(acc.map, "Account stash ready - loading characters...", 0, 0, true, true);
 		}
 
 		if (gCancel)
@@ -235,11 +295,52 @@ namespace WalletDetail
 			const int nWorkers = std::min(kCharWorkers, std::max(1, static_cast<int>(job.names.size())));
 			for (int i = 0; i < nWorkers; ++i)
 				cw[i] = CreateThread(nullptr, 0, CharWorker, &job, 0, nullptr);
+
+			const int nChars = static_cast<int>(job.names.size());
+			int lastDone = -1;
+			for (;;)
+			{
+				const DWORD wait = WaitForMultipleObjects(
+					static_cast<DWORD>(nWorkers), cw, TRUE, 300);
+				const int done = job.done.load();
+				const bool finished = (wait == WAIT_OBJECT_0) || (wait == WAIT_FAILED);
+				if (gCancel)
+					break;
+				/* Progressive UI: publish as each toon lands (throttle by done count). */
+				if (done != lastDone || finished)
+				{
+					lastDone = done;
+					std::unordered_map<int, Entry> view;
+					{
+						std::lock_guard<std::mutex> lock(acc.mu);
+						view = acc.map;
+					}
+					{
+						std::lock_guard<std::mutex> lock(job.mu);
+						MergeMap(view, job.map);
+					}
+					/* Skip name HTTP on mid-progress ticks unless finishing — keeps feed snappy. */
+					if (finished || (done > 0 && (done % 4) == 0))
+						ResolveMissingNames(view, G::Gw2ApiKey);
+					const int bagsOk = job.bagsOk.load();
+					char st[200];
+					if (!finished)
+					{
+						std::snprintf(st, sizeof(st),
+							"Loading characters %d/%d...", done, nChars);
+						Publish(view, st, nChars, bagsOk, true, true);
+					}
+				}
+				if (finished)
+					break;
+			}
+
 			for (int i = 0; i < nWorkers; ++i)
 			{
 				if (cw[i])
 				{
-					WaitForSingleObject(cw[i], 60000);
+					if (!gCancel)
+						WaitForSingleObject(cw[i], 5000);
 					CloseHandle(cw[i]);
 				}
 			}
@@ -248,9 +349,10 @@ namespace WalletDetail
 			std::lock_guard<std::mutex> lock2(job.mu);
 			MergeMap(acc.map, job.map);
 			ResolveMissingNames(acc.map, G::Gw2ApiKey);
-			char st[200];
+			char st[240];
 			const int bagsOk = job.bagsOk.load();
 			const int bagsFail = job.bagsFail.load();
+			const int bagItems = static_cast<int>(job.map.size());
 			if (bagsFail > 0 && bagsOk == 0)
 			{
 				std::snprintf(st, sizeof(st),
@@ -258,20 +360,27 @@ namespace WalletDetail
 					static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
 					acc.note.c_str());
 			}
+			else if (bagsOk > 0 && bagItems == 0)
+			{
+				std::snprintf(st, sizeof(st),
+					"%d unique | %d/%d bag HTTP ok, 0 items parsed. %s",
+					static_cast<int>(acc.map.size()), bagsOk,
+					static_cast<int>(job.names.size()), acc.note.c_str());
+			}
 			else if (bagsFail > 0)
 			{
 				std::snprintf(st, sizeof(st),
-					"%d unique | %d/%d toon bags (%d failed). %s",
+					"%d unique | %d/%d toon bags (%d failed, %d char items). %s",
 					static_cast<int>(acc.map.size()), bagsOk,
-					static_cast<int>(job.names.size()), bagsFail, acc.note.c_str());
+					static_cast<int>(job.names.size()), bagsFail, bagItems, acc.note.c_str());
 			}
 			else
 			{
-				std::snprintf(st, sizeof(st), "%d unique | %d toons. %s",
+				std::snprintf(st, sizeof(st), "%d unique | %d toons | %d on characters. %s",
 					static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
-					acc.note.c_str());
+					bagItems, acc.note.c_str());
 			}
-			Publish(acc.map, st, static_cast<int>(job.names.size()), bagsOk, true);
+			Publish(acc.map, st, static_cast<int>(job.names.size()), bagsOk, true, false);
 		}
 		else
 		{
@@ -279,7 +388,7 @@ namespace WalletDetail
 			std::string st = "Account stash loaded.";
 			if (chars.status == 401 || chars.status == 403)
 				st += " Enable characters scope for per-toon bags.";
-			Publish(acc.map, st.c_str(), 0, 0, true);
+			Publish(acc.map, st.c_str(), 0, 0, true, false);
 		}
 
 		gBusy = false;
@@ -292,7 +401,7 @@ namespace WalletDetail
 		if (!force)
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			if (gSnap.ok && gSnap.fetchedAt != 0)
+			if (gSnap.ok && !gSnap.charsPending && gSnap.fetchedAt != 0)
 			{
 				const DWORD now = GetTickCount();
 				if (now - gSnap.fetchedAt < kCacheTtlMs)

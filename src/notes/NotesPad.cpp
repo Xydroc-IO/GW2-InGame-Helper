@@ -250,7 +250,7 @@ namespace
 			if (ImGui::InputTextWithHint("###gw2igh_notes_title", "Title", s.title, sizeof(s.title)))
 				MarkDirty();
 			const char* kinds[] = { "Waypoint", "Chat", "Build", "LFG", "Note" };
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f), "Kind");
+			ImGui::TextColored(HelperTheme::Muted, "Kind");
 			for (int ki = 0; ki < Kind_Count; ++ki)
 			{
 				if (ki > 0)
@@ -280,7 +280,7 @@ namespace
 		else
 		{
 			ImGui::Spacing();
-			ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+			ImGui::TextColored(HelperTheme::Muted,
 				"Select a snippet or Add one to edit the text box below the list.");
 		}
 	}
@@ -404,6 +404,11 @@ void NotesPad::Open()
 {
 	G::ShowNotes = true;
 	NotesPadDetail::gRequestDock = true;
+	/* Heal cramped saves so snippets + editor fit without a manual resize. */
+	if (G::PadNotes.h > 0.f && G::PadNotes.h < NotesPadDetail::kNotesMinUsefulH)
+		G::PadNotes.h = NotesPadDetail::kNotesPadH;
+	if (G::PadNotes.w > 0.f && G::PadNotes.w < NotesPadDetail::kNotesMinUsefulW)
+		G::PadNotes.w = NotesPadDetail::kNotesPadW;
 	Settings::SetDirty();
 }
 
@@ -419,8 +424,8 @@ bool NotesPad::Render()
 	if (!gLoaded)
 		Load();
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 400.f),
-		ImVec2(PadDock::MaxW(720.f), PadDock::MaxH(460.f)));
+	PadDock::SetSizeConstraints("Notes & Waypoints##GW2InGameHelperNotes",
+		kNotesMinUsefulW, kNotesMinUsefulH, PadDock::MaxW(780.f), PadDock::MaxH(720.f));
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	PadDock::Place(G::PadNotes, gRequestDock, kNotesPadW, kNotesPadH, PadDock::ForNotes(kNotesPadW));
 	if (!gRequestDock && G::PadNotes.w < 80.f)
@@ -435,7 +440,7 @@ bool NotesPad::Render()
 		PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowNotes = false;
@@ -456,7 +461,7 @@ bool NotesPad::Render()
 		Settings::SetDirty();
 	PadDock::RememberNotes(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kNotesPadW, kNotesPadH);
 
 	static const char* kTabs[] = { "Snippets", "Waypoints" };
 	static const int kTabIcons[] = {
@@ -466,11 +471,8 @@ bool NotesPad::Render()
 	gPadTab = PadNav::DrawSideRail("###gw2igh_notes_nav", kTabs, 2, gPadTab, 0.f, kTabIcons);
 
 	ImGui::BeginChild("###gw2igh_notes_body", ImVec2(0.f, 0.f), true);
-	ImGui::TextColored(HelperTheme::Gold, "NOTES & WAYPOINTS");
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
+	PadNav::Blurb(
 		"Local clipboard helpers + official map waypoints. No game injection.");
-	PadNav::PopWrap();
 	ImGui::Separator();
 
 	if (gPadTab == 0)
@@ -481,7 +483,7 @@ bool NotesPad::Render()
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	NotesPad::Save(false);
 	return hovered;
 }

@@ -29,21 +29,21 @@ namespace LogManagerDetail
 	void DrawBusyOrStatus()
 	{
 		if (gEiInstallBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
+			ImGui::TextColored(HelperTheme::Warn, "%s",
 				gEiStatus[0] ? gEiStatus : "Installing Elite Insights...");
 		else if (gScanBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Scanning...");
+			ImGui::TextColored(HelperTheme::Warn, "Scanning...");
 		else if (gParseBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Parsing %d / %d...",
+			ImGui::TextColored(HelperTheme::Warn, "Parsing %d / %d...",
 				gParseDone.load(), gParseTotal.load());
 		else if (gUploadBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "dps.report %d / %d...",
+			ImGui::TextColored(HelperTheme::Warn, "dps.report %d / %d...",
 				gUploadDone.load(), gUploadTotal.load());
 		else if (gHydrateBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
+			ImGui::TextColored(HelperTheme::Warn, "%s",
 				gStatus[0] ? gStatus : "Loading report metadata...");
 		else if (gStatus[0])
-			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", gStatus);
+			ImGui::TextColored(HelperTheme::Ok, "%s", gStatus);
 	}
 
 	void DrawToolbar(const std::vector<const LogEntry*>& filtered, bool hasDotNet)
@@ -223,11 +223,11 @@ namespace LogManagerDetail
 		}
 		ImGui::TableNextColumn();
 		if (e->result == 1)
-			ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.50f, 1.f), "Kill");
+			ImGui::TextColored(HelperTheme::Ok, "Kill");
 		else if (e->result == 0)
-			ImGui::TextColored(ImVec4(0.90f, 0.45f, 0.40f, 1.f), "Fail");
+			ImGui::TextColored(HelperTheme::Warn, "Fail");
 		else if (e->state == ParseState::Pending)
-			ImGui::TextColored(ImVec4(0.60f, 0.60f, 0.40f, 1.f), "...");
+			ImGui::TextColored(HelperTheme::GoldMuted, "...");
 		else
 			ImGui::TextUnformatted(ResultLabel(e->result));
 		ImGui::TableNextColumn();

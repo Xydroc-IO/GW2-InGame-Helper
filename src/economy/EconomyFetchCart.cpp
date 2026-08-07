@@ -59,6 +59,16 @@ namespace EconomyDetail
 		return dir;
 	}
 
+	static std::wstring ChartsPath()
+	{
+		std::wstring dir = AddonPaths::ConfigDir();
+		if (dir.empty()) dir = AddonPaths::DataDir();
+		if (dir.empty()) return {};
+		if (dir.back() != L'\\' && dir.back() != L'/') dir.push_back(L'\\');
+		dir += L"economy-charts.txt";
+		return dir;
+	}
+
 	static std::wstring HistPath()
 	{
 		std::wstring dir = AddonPaths::ConfigDir();
@@ -137,6 +147,87 @@ namespace EconomyDetail
 				gCart.push_back(c);
 			}
 		}
+	}
+
+	void AddChart(int id)
+	{
+		if (id <= 0)
+			return;
+		for (int existing : gChartIds)
+		{
+			if (existing == id)
+			{
+				gChartItemId = id;
+				return;
+			}
+		}
+		gChartIds.push_back(id);
+		gChartItemId = id;
+		SaveCharts();
+	}
+
+	void RemoveChart(size_t idx)
+	{
+		if (idx >= gChartIds.size())
+			return;
+		const int removed = gChartIds[idx];
+		gChartIds.erase(gChartIds.begin() + static_cast<std::ptrdiff_t>(idx));
+		if (gChartItemId == removed)
+			gChartItemId = gChartIds.empty() ? 0 : gChartIds.back();
+		SaveCharts();
+	}
+
+	void ClearCharts()
+	{
+		gChartIds.clear();
+		gChartItemId = 0;
+		SaveCharts();
+	}
+
+	void SaveCharts()
+	{
+		const std::wstring path = ChartsPath();
+		if (path.empty()) return;
+		std::string body;
+		for (int id : gChartIds)
+			body += std::to_string(id) + "\n";
+		WriteUtf8File(path, body);
+	}
+
+	void LoadCharts()
+	{
+		gChartIds.clear();
+		const std::wstring path = ChartsPath();
+		if (path.empty()) return;
+		std::string body;
+		if (!ReadUtf8File(path, body))
+		{
+			/* Migrate: previous builds only had a single gChartItemId. */
+			if (gChartItemId > 0)
+				gChartIds.push_back(gChartItemId);
+			return;
+		}
+		size_t i = 0;
+		while (i < body.size())
+		{
+			size_t e = body.find('\n', i);
+			if (e == std::string::npos) e = body.size();
+			std::string line = body.substr(i, e - i);
+			i = e + 1;
+			int id = 0;
+			if (std::sscanf(line.c_str(), "%d", &id) == 1 && id > 0)
+			{
+				bool dup = false;
+				for (int existing : gChartIds)
+				{
+					if (existing == id) { dup = true; break; }
+				}
+				if (!dup)
+					gChartIds.push_back(id);
+			}
+		}
+		if (!gChartIds.empty() && gChartItemId <= 0)
+			gChartItemId = gChartIds.front();
 	}
 
 	void RecordSample(int id, long long buy, long long sell)

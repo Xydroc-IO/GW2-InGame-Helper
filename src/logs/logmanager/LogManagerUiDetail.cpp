@@ -47,7 +47,7 @@ namespace LogManagerDetail
 		if (sel->compDps > 0)
 			ImGui::Text("Squad DPS: %d", sel->compDps);
 		if (!sel->parseError.empty())
-			ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.40f, 1.f), "%s", sel->parseError.c_str());
+			ImGui::TextColored(HelperTheme::Warn, "%s", sel->parseError.c_str());
 
 		if (ImGui::Button("Parse###gw2igh_lm_parsesel"))
 			BeginParseSelected(sel->pathUtf8);
@@ -80,7 +80,7 @@ namespace LogManagerDetail
 				"No player data - Parse, Upload, or Load DPS/boons.");
 		else if (!PlayersHaveDps(sel->players) && !PlayersHaveBoons(sel->players))
 		{
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+			ImGui::TextColored(HelperTheme::Warn,
 				"Names loaded - click Load DPS/boons (or Parse with EI).");
 			if (ImGui::BeginTable("###gw2igh_lm_squad_basic", 4,
 					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
@@ -214,7 +214,7 @@ namespace LogManagerDetail
 
 		if (sel->players.empty())
 		{
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+			ImGui::TextColored(HelperTheme::Warn,
 				"No player data - Parse or Load DPS/boons for this log.");
 			return;
 		}

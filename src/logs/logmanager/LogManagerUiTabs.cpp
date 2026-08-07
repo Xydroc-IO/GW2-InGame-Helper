@@ -40,7 +40,7 @@ namespace LogManagerDetail
 
 		if (sel->players.empty())
 		{
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+			ImGui::TextColored(HelperTheme::Warn,
 				"No player data - Parse or Load DPS/boons first so account names exist.");
 			return;
 		}
@@ -57,17 +57,17 @@ namespace LogManagerDetail
 		}
 
 		if (gKillProofBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
+			ImGui::TextColored(HelperTheme::Warn, "%s",
 				gStatus[0] ? gStatus : "Loading killproof.me...");
 		else if (withAccount == 0)
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f),
+			ImGui::TextColored(HelperTheme::Warn,
 				"No account names - Load DPS/boons for full EI JSON.");
 		else if (kpOk > 0 || kpMissing > 0)
-			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f),
+			ImGui::TextColored(HelperTheme::Ok,
 				"%d loaded | %d none/private | %d pending",
 				kpOk, kpMissing, kpPending);
 		else
-			ImGui::TextColored(ImVec4(0.75f, 0.70f, 0.45f, 1.f),
+			ImGui::TextColored(HelperTheme::GoldMuted,
 				"Click Load to fetch LI / LD / tokens from killproof.me.");
 
 		const bool busy = gKillProofBusy.load();
@@ -129,7 +129,7 @@ namespace LogManagerDetail
 			auto kpCell = [](int v, int state) {
 				if (state == 1)
 				{
-					ImGui::TextColored(ImVec4(0.70f, 0.68f, 0.45f, 1.f), "...");
+					ImGui::TextColored(HelperTheme::GoldMuted, "...");
 					return;
 				}
 				if (state == 3)
@@ -141,7 +141,7 @@ namespace LogManagerDetail
 				}
 				if (state == 4)
 				{
-					ImGui::TextColored(ImVec4(0.90f, 0.50f, 0.40f, 1.f), "!");
+					ImGui::TextColored(HelperTheme::Warn, "!");
 					if (ImGui::IsItemHovered())
 						ImGui::SetTooltip("killproof.me request failed - try Load again");
 					return;
@@ -317,13 +317,13 @@ namespace LogManagerDetail
 
 		if (!hasDotNet)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.72f, 0.35f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Gold);
 			ImGui::TextWrapped(
 				".NET 8 Desktop Runtime not detected - Elite Insights cannot parse until it is installed.");
 			ImGui::PopStyleColor();
 			if (EiRuntime::IsWine())
 			{
-				ImGui::TextColored(ImVec4(0.75f, 0.70f, 0.45f, 1.f), "%s",
+				ImGui::TextColored(HelperTheme::GoldMuted, "%s",
 					"Proton/Wine: install into this game's Windows prefix - Linux distro packages will not work.");
 			}
 			if (ImGui::Button("Install .NET 8 Runtime###gw2igh_lm_dotnet_install"))
@@ -340,7 +340,7 @@ namespace LogManagerDetail
 			ImGui::Separator();
 		}
 		else
-			ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), ".NET 8 Desktop Runtime detected.");
+			ImGui::TextColored(HelperTheme::Ok, ".NET 8 Desktop Runtime detected.");
 
 		ImGui::TextUnformatted("Log folder");
 		ImGui::SetNextItemWidth(-1.f);
@@ -383,7 +383,7 @@ namespace LogManagerDetail
 			ImGui::SetTooltip("Open the ArcDPS combat-log folder in Explorer.");
 
 		if (gEiInstallBusy.load())
-			ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
+			ImGui::TextColored(HelperTheme::Warn, "%s",
 				gEiStatus[0] ? gEiStatus : "Installing Elite Insights...");
 	}
 

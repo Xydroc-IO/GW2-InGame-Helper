@@ -1,15 +1,20 @@
 #include "Gw2Ui.h"
 #include "Gw2UiInternal.h"
 
+#include "AddonPaths.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "UiChrome.h"
 
 #include "imgui/imgui.h"
 #include "nexus/Nexus.h"
 
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <unordered_set>
+
+#include <windows.h>
 
 namespace
 {
@@ -78,6 +83,30 @@ void Gw2Ui::Request(int assetId)
 		return;
 	char id[48];
 	Gw2UiDetail::MakeId(assetId, id, sizeof(id));
+
+	/* Prefer packed ui-chrome PNG (curated Desktop/icons + chrome) over CDN. */
+	if (G::API->Textures_GetOrCreateFromFile)
+	{
+		const std::wstring dataDir = AddonPaths::DataDir();
+		if (!dataDir.empty())
+		{
+			UiChrome::Ensure(dataDir);
+			const std::wstring path = UiChrome::PngPath(dataDir, assetId);
+			if (!path.empty())
+			{
+				int n = WideCharToMultiByte(CP_UTF8, 0, path.c_str(), -1, nullptr, 0, nullptr, nullptr);
+				std::string utf8(static_cast<size_t>(n > 0 ? n - 1 : 0), '\0');
+				if (n > 0)
+					WideCharToMultiByte(CP_UTF8, 0, path.c_str(), -1, utf8.data(), n, nullptr, nullptr);
+				if (!utf8.empty())
+				{
+					G::API->Textures_GetOrCreateFromFile(id, utf8.c_str());
+					return;
+				}
+			}
+		}
+	}
+
 	char endpoint[48];
 	std::snprintf(endpoint, sizeof(endpoint), "/%d.png", assetId);
 	if (G::API->Textures_GetOrCreateFromURL)
@@ -107,6 +136,27 @@ void Gw2Ui::WarmCommon()
 	Request(Icon::PvP);
 	Request(Icon::Map);
 	Request(Icon::Help);
+	Request(Icon::BrowseInfo);
+	Request(Icon::LedgerCoins);
+	Request(Icon::SheetsBook);
+	Request(Icon::ApiHourglass);
+	Request(Icon::AccountSword);
+	Request(Icon::CompassRadar);
+	Request(Icon::PathingMap);
+	Request(Icon::CompletePeak);
+	Request(Icon::FarmSack);
+	Request(Icon::TrailAnvil);
+	Request(Icon::EventsMedal);
+	Request(Icon::NotesScroll);
+	Request(Icon::LogsSwords);
+	Request(Icon::EconStack);
+	Request(Icon::InstGate);
+	Request(Icon::SettingsGear);
+	Request(Icon::LmPlayers);
+	Request(Icon::LmKillProof);
+	Request(Icon::LmGuilds);
+	Request(Icon::LmFastest);
+	Request(Icon::LmDetail);
 	Request(Icon::PanelFill);
 	Request(Icon::PanelFillAlt);
 	Request(Icon::WindowEmblem);
@@ -199,7 +249,7 @@ bool Gw2Ui::IconLabelButton(const char* label, Icon icon, float iconSize)
 	return IconLabelButton(label, static_cast<int>(icon), iconSize);
 }
 
-bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize)
+bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, bool showLabel)
 {
 	if (assetId > 0)
 		Request(assetId);
@@ -209,13 +259,15 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize)
 
 	PushRailColors(on);
 	bool clicked = false;
+	ImGui::PushID(label);
 	if (tex)
 	{
 		const ImGuiStyle& st = ImGui::GetStyle();
+		const float padY = showLabel ? st.FramePadding.y * 2.f : 6.f;
 		const float frameH = ImGui::GetFrameHeight();
-		const float h = frameH > iconSize + st.FramePadding.y * 2.f
-			? frameH : iconSize + st.FramePadding.y * 2.f;
-		ImGui::PushID(label);
+		const float h = showLabel
+			? (frameH > iconSize + padY ? frameH : iconSize + padY)
+			: (iconSize + padY);
 		clicked = ImGui::Button("##rail", ImVec2(-1.f, h));
 		const ImVec2 min = ImGui::GetItemRectMin();
 		const ImVec2 max = ImGui::GetItemRectMax();
@@ -229,22 +281,33 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize)
 				ImVec2(min.x + 3.f, min.y), ImVec2(max.x, max.y),
 				ImGui::GetColorU32(ImVec4(0.94f, 0.77f, 0.35f, 0.06f)));
 		const float iy = min.y + (max.y - min.y - iconSize) * 0.5f;
-		const float ix = min.x + st.FramePadding.x + 3.f;
-		dl->AddImage(reinterpret_cast<ImTextureID>(tex->Resource),
-			ImVec2(ix, iy), ImVec2(ix + iconSize, iy + iconSize));
-		const ImVec2 labelSz = ImGui::CalcTextSize(vis, nullptr, true);
-		dl->AddText(ImVec2(ix + iconSize + st.ItemInnerSpacing.x,
-			min.y + (max.y - min.y - labelSz.y) * 0.5f),
-			ImGui::GetColorU32(ImGuiCol_Text), vis);
-		ImGui::PopID();
+		if (showLabel)
+		{
+			const float ix = min.x + st.FramePadding.x + 3.f;
+			dl->AddImage(reinterpret_cast<ImTextureID>(tex->Resource),
+				ImVec2(ix, iy), ImVec2(ix + iconSize, iy + iconSize));
+			const ImVec2 labelSz = ImGui::CalcTextSize(vis, nullptr, true);
+			dl->AddText(ImVec2(ix + iconSize + st.ItemInnerSpacing.x,
+				min.y + (max.y - min.y - labelSz.y) * 0.5f),
+				ImGui::GetColorU32(ImGuiCol_Text), vis);
+		}
+		else
+		{
+			const float ix = min.x + (max.x - min.x - iconSize) * 0.5f;
+			dl->AddImage(reinterpret_cast<ImTextureID>(tex->Resource),
+				ImVec2(ix, iy), ImVec2(ix + iconSize, iy + iconSize));
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("%s", vis);
+		}
 	}
 	else
 		clicked = ImGui::Button(label, ImVec2(-1.f, 0.f));
+	ImGui::PopID();
 	ImGui::PopStyleColor(4);
 	return clicked;
 }
 
-bool Gw2Ui::RailToggle(const char* label, bool on, Icon icon, float iconSize)
+bool Gw2Ui::RailToggle(const char* label, bool on, Icon icon, float iconSize, bool showLabel)
 {
-	return RailToggle(label, on, static_cast<int>(icon), iconSize);
+	return RailToggle(label, on, static_cast<int>(icon), iconSize, showLabel);
 }

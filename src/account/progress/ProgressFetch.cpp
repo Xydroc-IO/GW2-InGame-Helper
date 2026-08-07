@@ -16,6 +16,91 @@
 
 namespace ProgressDetail
 {
+	void FetchCharacterRoster(Snapshot& snap)
+	{
+		auto chars = Gw2Http::Api("/v2/characters", G::Gw2ApiKey, kHttpTimeoutMs);
+		if (chars.ok)
+		{
+			std::vector<std::string> names;
+			size_t i = 0;
+			while (i < chars.body.size() && names.size() < 64)
+			{
+				while (i < chars.body.size() && chars.body[i] != '"') ++i;
+				if (i >= chars.body.size()) break;
+				++i;
+				std::string val;
+				while (i < chars.body.size() && chars.body[i] != '"')
+				{
+					if (chars.body[i] == '\\' && i + 1 < chars.body.size())
+					{
+						val.push_back(chars.body[i + 1]);
+						i += 2;
+						continue;
+					}
+					val.push_back(chars.body[i++]);
+				}
+				if (i < chars.body.size()) ++i;
+				if (!val.empty()) names.push_back(val);
+			}
+			for (const std::string& nm : names)
+			{
+				CharRow cr;
+				cr.name = nm;
+				snap.chars.push_back(std::move(cr));
+			}
+			const size_t detailN = (std::min)(snap.chars.size(), kMaxCharDetails);
+			if (detailN > 0)
+			{
+				std::string path = "/v2/characters?ids=";
+				for (size_t ci = 0; ci < detailN; ++ci)
+				{
+					if (ci) path += ',';
+					path += UrlEncodePathSegment(snap.chars[ci].name);
+				}
+				auto detail = Gw2Http::Api(path.c_str(), G::Gw2ApiKey, kBulkTimeoutMs);
+				if (detail.ok)
+				{
+					size_t p = 0;
+					while (p < detail.body.size())
+					{
+						size_t brace = detail.body.find('{', p);
+						if (brace == std::string::npos) break;
+						size_t end = JsonObjectEnd(detail.body, brace);
+						if (end == std::string::npos) break;
+						std::string nm = JsonStringAfterKey(detail.body, "name", brace);
+						std::string profession = JsonStringAfterKey(detail.body, "profession", brace);
+						std::string race = JsonStringAfterKey(detail.body, "race", brace);
+						long long level = JsonIntAfterKey(detail.body, "level", brace);
+						if (!nm.empty())
+						{
+							for (CharRow& cr : snap.chars)
+							{
+								if (cr.name == nm)
+								{
+									cr.profession = profession;
+									cr.race = race;
+									cr.level = level;
+									break;
+								}
+							}
+						}
+						p = end + 1;
+					}
+				}
+			}
+			if (!snap.ok && !snap.scopeFail)
+				snap.ok = true;
+		}
+		else if (chars.status == 401 || chars.status == 403)
+		{
+			snap.scopeFail = true;
+			if (snap.status.empty())
+				snap.status = "Character roster needs the characters scope.";
+		}
+		else if (snap.status.empty())
+			snap.status = "Character roster request failed.";
+	}
+
 	DWORD WINAPI FetchProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
@@ -41,171 +126,103 @@ namespace ProgressDetail
 		}
 		ParseArmoryCatalog(catalog, snap.legs);
 		if (snap.legs.empty())
-		{
 			snap.status = "Could not load legendary armory catalog.";
-			std::lock_guard<std::mutex> lock(gMu);
-			gSnap = std::move(snap);
-			gSnap.fetchedAt = GetTickCount();
-			++gGen;
-			gBusy = false;
-			return 0;
-		}
 
-		if (FileFresh(namesPath, kArmoryTtlMs))
-			ApplyNames(ReadUtf8File(namesPath), snap.legs);
-		FetchNames(snap.legs);
+		if (!snap.legs.empty())
 		{
-			std::string out = "[";
-			bool first = true;
-			for (const LegRow& r : snap.legs)
+			if (FileFresh(namesPath, kArmoryTtlMs))
+				ApplyNames(ReadUtf8File(namesPath), snap.legs);
+			FetchNames(snap.legs);
 			{
-				if (r.name.empty()) continue;
-				if (!first) out += ',';
-				first = false;
-				out += "{\"id\":";
-				out += std::to_string(r.id);
-				out += ",\"name\":\"";
-				for (char c : r.name)
+				std::string out = "[";
+				bool first = true;
+				for (const LegRow& r : snap.legs)
 				{
-					if (c == '"' || c == '\\') out += '\\';
-					out += c;
+					if (r.name.empty()) continue;
+					if (!first) out += ',';
+					first = false;
+					out += "{\"id\":";
+					out += std::to_string(r.id);
+					out += ",\"name\":\"";
+					for (char c : r.name)
+					{
+						if (c == '"' || c == '\\') out += '\\';
+						out += c;
+					}
+					out += "\"}";
 				}
-				out += "\"}";
+				out += ']';
+				if (!first) WriteUtf8File(namesPath, out);
 			}
-			out += ']';
-			if (!first) WriteUtf8File(namesPath, out);
 		}
 
 		if (snap.hasKey)
 		{
-			auto acc = Gw2Http::Api("/v2/account/legendaryarmory", G::Gw2ApiKey, kHttpTimeoutMs);
-			if (acc.ok)
+			if (!snap.legs.empty())
 			{
-				for (LegRow& r : snap.legs) r.owned = 0;
-				size_t p = 0;
-				while (p < acc.body.size())
+				auto acc = Gw2Http::Api("/v2/account/legendaryarmory", G::Gw2ApiKey, kHttpTimeoutMs);
+				if (acc.ok)
 				{
-					size_t brace = acc.body.find('{', p);
-					if (brace == std::string::npos) break;
-					size_t end = JsonObjectEnd(acc.body, brace);
-					if (end == std::string::npos) break;
-					long long id = JsonIntAfterKey(acc.body, "id", brace);
-					long long cnt = JsonIntAfterKey(acc.body, "count", brace);
-					if (id > 0)
+					for (LegRow& r : snap.legs) r.owned = 0;
+					size_t p = 0;
+					while (p < acc.body.size())
 					{
-						for (LegRow& r : snap.legs)
+						size_t brace = acc.body.find('{', p);
+						if (brace == std::string::npos) break;
+						size_t end = JsonObjectEnd(acc.body, brace);
+						if (end == std::string::npos) break;
+						long long id = JsonIntAfterKey(acc.body, "id", brace);
+						long long cnt = JsonIntAfterKey(acc.body, "count", brace);
+						if (id > 0)
 						{
-							if (r.id == static_cast<int>(id))
+							for (LegRow& r : snap.legs)
 							{
-								r.owned = cnt > 0 ? static_cast<int>(cnt) : 0;
-								break;
-							}
-						}
-					}
-					p = end + 1;
-				}
-				for (const LegRow& r : snap.legs)
-					if (r.owned > 0) ++snap.unlocked;
-				snap.ok = true;
-			}
-			else if (acc.status == 401 || acc.status == 403)
-			{
-				snap.scopeFail = true;
-				snap.status = "Need API scopes: account + inventories + unlocks (+ characters).";
-			}
-			else
-				snap.status = "Armory unlocks failed - showing public catalog.";
-
-			auto chars = Gw2Http::Api("/v2/characters", G::Gw2ApiKey, kHttpTimeoutMs);
-			if (chars.ok)
-			{
-				std::vector<std::string> names;
-				size_t i = 0;
-				while (i < chars.body.size() && names.size() < 64)
-				{
-					while (i < chars.body.size() && chars.body[i] != '"') ++i;
-					if (i >= chars.body.size()) break;
-					++i;
-					std::string val;
-					while (i < chars.body.size() && chars.body[i] != '"')
-					{
-						if (chars.body[i] == '\\' && i + 1 < chars.body.size())
-						{
-							val.push_back(chars.body[i + 1]);
-							i += 2;
-							continue;
-						}
-						val.push_back(chars.body[i++]);
-					}
-					if (i < chars.body.size()) ++i;
-					if (!val.empty()) names.push_back(val);
-				}
-				for (const std::string& nm : names)
-				{
-					CharRow cr;
-					cr.name = nm;
-					snap.chars.push_back(std::move(cr));
-				}
-				const size_t detailN = (std::min)(snap.chars.size(), kMaxCharDetails);
-				if (detailN > 0)
-				{
-					std::string path = "/v2/characters?ids=";
-					for (size_t ci = 0; ci < detailN; ++ci)
-					{
-						if (ci) path += ',';
-						path += UrlEncodePathSegment(snap.chars[ci].name);
-					}
-					auto detail = Gw2Http::Api(path.c_str(), G::Gw2ApiKey, kBulkTimeoutMs);
-					if (detail.ok)
-					{
-						size_t p = 0;
-						while (p < detail.body.size())
-						{
-							size_t brace = detail.body.find('{', p);
-							if (brace == std::string::npos) break;
-							size_t end = JsonObjectEnd(detail.body, brace);
-							if (end == std::string::npos) break;
-							std::string nm = JsonStringAfterKey(detail.body, "name", brace);
-							std::string profession = JsonStringAfterKey(detail.body, "profession", brace);
-							long long level = JsonIntAfterKey(detail.body, "level", brace);
-							if (!nm.empty())
-							{
-								for (CharRow& cr : snap.chars)
+								if (r.id == static_cast<int>(id))
 								{
-									if (cr.name == nm)
-									{
-										cr.profession = profession;
-										cr.level = level;
-										break;
-									}
+									r.owned = cnt > 0 ? static_cast<int>(cnt) : 0;
+									break;
 								}
 							}
-							p = end + 1;
 						}
+						p = end + 1;
 					}
-				}
-				if (!snap.ok && !snap.scopeFail)
+					for (const LegRow& r : snap.legs)
+						if (r.owned > 0) ++snap.unlocked;
 					snap.ok = true;
+				}
+				else if (acc.status == 401 || acc.status == 403)
+				{
+					snap.scopeFail = true;
+					snap.status = "Need API scopes: account + inventories + unlocks (+ characters).";
+				}
+				else if (snap.status.empty())
+					snap.status = "Armory unlocks failed - showing public catalog.";
 			}
-			else if (chars.status == 401 || chars.status == 403)
-			{
-				if (snap.status.empty())
-					snap.status = "Character roster needs the characters scope.";
-			}
+
+			/* Roster is independent of armory catalog — always attempt with a key. */
+			FetchCharacterRoster(snap);
 		}
 		else
 		{
-			snap.status = "Public catalog - add an API key for unlocks + roster.";
+			if (snap.status.empty())
+				snap.status = "Public catalog - add an API key for unlocks + roster.";
 			snap.ok = !snap.legs.empty();
 		}
 
-		if (snap.status.empty())
+		if (snap.status.empty() ||
+			(!snap.chars.empty() && snap.status.find("armory catalog") != std::string::npos))
 		{
 			char buf[96];
 			if (snap.hasKey && !snap.scopeFail)
-				std::snprintf(buf, sizeof(buf), "%d / %d unlocked | %d characters",
-					snap.unlocked, static_cast<int>(snap.legs.size()),
-					static_cast<int>(snap.chars.size()));
+			{
+				if (!snap.legs.empty())
+					std::snprintf(buf, sizeof(buf), "%d / %d unlocked | %d characters",
+						snap.unlocked, static_cast<int>(snap.legs.size()),
+						static_cast<int>(snap.chars.size()));
+				else
+					std::snprintf(buf, sizeof(buf), "%d characters (armory catalog unavailable)",
+						static_cast<int>(snap.chars.size()));
+			}
 			else
 				std::snprintf(buf, sizeof(buf), "%d legendary armory items",
 					static_cast<int>(snap.legs.size()));
@@ -227,8 +244,9 @@ namespace ProgressDetail
 		if (!force)
 		{
 			std::lock_guard<std::mutex> lock(gMu);
+			/* Retry while both armory and roster are empty (prior abort / outage). */
 			if (gSnap.fetchedAt != 0 && (GetTickCount() - gSnap.fetchedAt) < kAccountTtlMs
-				&& !gSnap.legs.empty())
+				&& (!gSnap.legs.empty() || !gSnap.chars.empty()))
 				return;
 		}
 		if (gBusy.exchange(true))

@@ -181,7 +181,7 @@ namespace LogManagerDetail
 	extern int gDaysCombo;
 	extern int gSelected;
 	extern bool gFocusSetupTab;
-	extern int gSideTab; /* Detail...Setup top tabs */
+	extern int gSideTab; /* Detail...Setup side rail */
 	extern float gLogListFrac;
 
 	extern std::vector<std::string> gUploadQueue;

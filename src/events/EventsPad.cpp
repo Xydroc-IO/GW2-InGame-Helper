@@ -41,7 +41,7 @@ bool EventsPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(300.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 300.f), ImVec2(PadDock::MaxW(620.f), maxH));
+	PadDock::SetSizeConstraints("World Events##GW2InGameHelperEvents", 380.f, 300.f, PadDock::MaxW(620.f), maxH);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
@@ -67,7 +67,7 @@ bool EventsPad::Render()
 			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowEvents = false;
@@ -84,7 +84,7 @@ bool EventsPad::Render()
 	if (PadDock::Capture(G::PadEvents))
 		Settings::SetDirty();
 
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
 	/* Section rail: 0 = All, 1..n = named section. */
 	if (gSectionPick < 0 || static_cast<size_t>(gSectionPick) > nSec)
@@ -95,18 +95,20 @@ bool EventsPad::Render()
 	railLabels[0] = kAll;
 	for (int i = 1; i < railCount; ++i)
 		railLabels[i] = sections[static_cast<size_t>(i - 1)];
-	gSectionPick = PadNav::DrawSideRail("###gw2igh_ev_nav", railLabels, railCount, gSectionPick);
+	int railIcons[64];
+	railIcons[0] = static_cast<int>(Gw2Ui::Icon::Map);
+	for (int i = 1; i < railCount; ++i)
+		railIcons[i] = static_cast<int>(Gw2Ui::Icon::Achievements);
+	gSectionPick = PadNav::DrawSideRail("###gw2igh_ev_nav", railLabels, railCount, gSectionPick,
+		0.f, railIcons);
 
 	ImGui::BeginChild("###gw2igh_ev_body", ImVec2(0.f, 0.f), true);
-	ImGui::TextColored(HelperTheme::Gold, "WORLD EVENTS");
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
+	PadNav::Blurb(
 		"UTC timers for bosses and map metas. Track items you care about - "
 		"they sort up and highlight within 10 minutes. "
 		"Invasions / festivals / fractals stay hidden until you open that section or search/Track them.");
-	PadNav::PopWrap();
 
-	if (ImGui::Button("Refresh claims###gw2igh_ev_ref"))
+	if (PadNav::RefreshButton("###gw2igh_ev_ref"))
 		BeginClaimRefresh();
 	ImGui::SameLine();
 	ImGui::Checkbox("Tracked###gw2igh_ev_trackonly", &gTrackedOnly);
@@ -249,6 +251,6 @@ bool EventsPad::Render()
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 		ImGuiHoveredFlags_AllowWhenBlockedByPopup);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

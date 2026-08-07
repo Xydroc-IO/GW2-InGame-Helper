@@ -260,37 +260,6 @@ namespace WalletDetail
 		}
 	}
 
-	using QtyMap = std::unordered_map<int, int>;
-
-	void CollectSlots(const std::string& body, QtyMap& m)
-	{
-		size_t p = 0;
-		while (p < body.size())
-		{
-			size_t brace = body.find('{', p);
-			if (brace == std::string::npos) break;
-			size_t end = JsonObjectEnd(body, brace);
-			if (end == std::string::npos) break;
-			long long id = JsonIntAfterKey(body, "id", brace);
-			if (id > 0)
-			{
-				const bool hasCount = body.find("\"count\"", brace) < end;
-				const bool hasSize = body.find("\"size\"", brace) < end;
-				const bool hasInventory = body.find("\"inventory\"", brace) < end;
-				long long count = JsonIntAfterKey(body, "count", brace);
-				if (hasInventory && hasSize)
-				{
-					/* bag wrapper */
-				}
-				else if (hasCount && count > 0)
-					m[static_cast<int>(id)] += static_cast<int>(count);
-				else if (!hasSize && !hasCount)
-					m[static_cast<int>(id)] += 1; /* equipment-style */
-			}
-			p = end + 1;
-		}
-	}
-
 	void MergeLoc(std::unordered_map<int, Entry>& byId, int id, bool currency,
 		LocKind kind, const std::string& where, int count)
 	{
@@ -326,10 +295,11 @@ namespace WalletDetail
 	}
 
 	Snapshot SnapshotFromMap(std::unordered_map<int, Entry>& byId, const char* status,
-		int charCount, int charBagsOk, bool ok)
+		int charCount, int charBagsOk, bool ok, bool charsPending)
 	{
 		Snapshot snap;
 		snap.ok = ok;
+		snap.charsPending = charsPending;
 		snap.charCount = charCount;
 		snap.charBagsOk = charBagsOk;
 		snap.status = status ? status : "";
@@ -371,10 +341,10 @@ namespace WalletDetail
 
 	/* Non-destructive publish copy. */
 	void Publish(const std::unordered_map<int, Entry>& byId, const char* status,
-		int charCount, int charBagsOk, bool ok)
+		int charCount, int charBagsOk, bool ok, bool charsPending)
 	{
 		std::unordered_map<int, Entry> copy = byId;
-		Snapshot snap = SnapshotFromMap(copy, status, charCount, charBagsOk, ok);
+		Snapshot snap = SnapshotFromMap(copy, status, charCount, charBagsOk, ok, charsPending);
 		std::lock_guard<std::mutex> lock(gMu);
 		gSnap = std::move(snap);
 		gGen.fetch_add(1);
@@ -388,9 +358,15 @@ namespace WalletDetail
 			std::lock_guard<std::mutex> lock(gNameMu);
 			for (const auto& kv : byId)
 			{
+				if (kv.second.isCurrency)
+				{
+					/* Resolve when name or icon is missing (icons skipped if names cached). */
+					if (!gNames.count(kv.first) || !Gw2Icons::HasCurrencyIcon(kv.second.id))
+						curIds.push_back(kv.second.id);
+					continue;
+				}
 				if (gNames.count(kv.first)) continue;
-				if (kv.second.isCurrency) curIds.push_back(kv.second.id);
-				else itemIds.push_back(kv.second.id);
+				itemIds.push_back(kv.second.id);
 			}
 		}
 		bool saved = false;
@@ -414,10 +390,14 @@ namespace WalletDetail
 				if (e == std::string::npos) break;
 				long long id = JsonIntAfterKey(r.body, "id", brace);
 				std::string name = JsonStringAfterKey(r.body, "name", brace);
-				if (id > 0 && !name.empty())
+				if (id > 0)
 				{
-					RememberName(static_cast<int>(-id), name);
-					saved = true;
+					if (!name.empty())
+					{
+						RememberName(static_cast<int>(-id), name);
+						saved = true;
+					}
+					Gw2Icons::RememberCurrencyIconFromJson(static_cast<int>(id), r.body.c_str(), brace, e);
 				}
 				p = e + 1;
 			}

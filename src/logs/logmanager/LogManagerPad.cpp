@@ -8,6 +8,7 @@
 #include "AspectLayout.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "Gw2Ui.h"
 #include "PadNav.h"
 #include "Settings.h"
 
@@ -95,9 +96,8 @@ bool LogManagerPad::Render()
 		float minH = 520.f;
 		if (minW > displayW * 0.92f) minW = displayW * 0.92f;
 		if (minH > displayH * 0.85f) minH = displayH * 0.85f;
-		ImGui::SetNextWindowSizeConstraints(
-			ImVec2(minW, minH),
-			ImVec2(displayW * 0.98f, displayH * 0.95f));
+		PadDock::SetSizeConstraints("DPS Logs###gw2igh_logmgr",
+			minW, minH, displayW * 0.98f, displayH * 0.95f);
 	}
 	if (gFocus)
 	{
@@ -110,7 +110,7 @@ bool LogManagerPad::Render()
 	const bool padBody = ImGui::Begin("DPS Logs###gw2igh_logmgr", &open, HelperTheme::PadFlags());
 	if (!theme.AfterBegin("DPS Logs", &open) || !padBody)
 	{
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowLogManager = false;
@@ -123,11 +123,11 @@ bool LogManagerPad::Render()
 	{
 		G::ShowLogManager = false;
 		Settings::SetDirty();
-		ImGui::End();
+		HelperTheme::EndPad();
 		return false;
 	}
 
-	HelperTheme::ScopedFontScale fontScale(1200.f, 800.f);
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
 	const bool hasDotNet = EiRuntime::HasDotNet8Runtime();
 	MaybeAutoParseAfterScan(hasDotNet);
@@ -233,11 +233,18 @@ bool LogManagerPad::Render()
 		gSideTab = 5;
 		gFocusSetupTab = false;
 	}
-	/* Horizontal top tabs — a left rail steals too much width from squad tables. */
 	static const char* kTabs[] = {
 		"Detail", "Players", "KillProof", "Guilds", "Fastest", "Setup"
 	};
-	gSideTab = PadNav::DrawTabs("###gw2igh_lm_nav", kTabs, 6, gSideTab);
+	static const int kTabIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::LmDetail),
+		static_cast<int>(Gw2Ui::Icon::LmPlayers),
+		static_cast<int>(Gw2Ui::Icon::LmKillProof),
+		static_cast<int>(Gw2Ui::Icon::LmGuilds),
+		static_cast<int>(Gw2Ui::Icon::LmFastest),
+		static_cast<int>(Gw2Ui::Icon::SettingsGear),
+	};
+	gSideTab = PadNav::DrawTopBar("###gw2igh_lm_nav", kTabs, 6, gSideTab, kTabIcons);
 	ImGui::BeginChild("###gw2igh_lm_side_body", ImVec2(0.f, 0.f), false);
 	switch (gSideTab)
 	{
@@ -273,6 +280,6 @@ bool LogManagerPad::Render()
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 		ImGuiHoveredFlags_AllowWhenBlockedByPopup);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

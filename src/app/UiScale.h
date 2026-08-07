@@ -37,11 +37,12 @@ namespace UiScale
 		return Clampf(std::sqrt(sx * sy), 0.82f, 1.42f);
 	}
 
-	/* FontScale slider × window factor. Call after Begin(). */
-	inline float EffectiveFontScale(float refW = 560.f, float refH = 700.f)
+	/* Options Font scale only — no per-window size multiplier.
+	   (Window factor made small pads look tiny next to large ones.) */
+	inline float EffectiveFontScale(float /*refW*/ = 560.f, float /*refH*/ = 700.f)
 	{
 		const float base = (G::FontScale > 0.1f) ? G::FontScale : 1.f;
-		return Clampf(base * WindowFactor(refW, refH), 0.75f, 2.f);
+		return Clampf(base, 0.75f, 2.f);
 	}
 
 	/* Opt-in suggestion — height + 16:9/21:9/32:9 awareness. */
@@ -71,6 +72,15 @@ namespace UiScale
 	{
 		const float base = (G::FontScale > 0.1f) ? G::FontScale : 1.f;
 		return Clampf(design * base, 72.f, 260.f);
+	}
+
+	/* Compact game-like icon dock (no labels). */
+	inline float IconRailWidth(float iconSize = 26.f)
+	{
+		const ImGuiStyle& style = ImGui::GetStyle();
+		const float base = Clampf((G::FontScale > 0.1f) ? G::FontScale : 1.f, 1.f, 1.25f);
+		const float w = iconSize + style.FramePadding.x * 2.f + style.WindowPadding.x * 2.f + 12.f;
+		return Clampf(w * base, 40.f, 64.f);
 	}
 
 	/* Widest visible label + frame/window padding (call after Begin + font scale).

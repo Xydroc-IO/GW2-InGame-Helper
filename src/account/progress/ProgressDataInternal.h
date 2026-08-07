@@ -18,7 +18,7 @@ namespace ProgressDetail
 	constexpr int kBulkTimeoutMs = 10000;
 	constexpr DWORD kAccountTtlMs = 3 * 60 * 1000;
 	constexpr DWORD kArmoryTtlMs = 24 * 60 * 60 * 1000;
-	constexpr size_t kMaxCharDetails = 24;
+	constexpr size_t kMaxCharDetails = 50;
 
 	struct LegRow
 	{
@@ -32,6 +32,7 @@ namespace ProgressDetail
 	{
 		std::string name;
 		std::string profession;
+		std::string race;
 		long long level = -1;
 	};
 
@@ -72,6 +73,10 @@ namespace ProgressDetail
 	void OpenWikiItem(int id, const std::string& name);
 	bool FilterMatch(const LegRow& r, const char* filter);
 	void SyncDraw();
+
+	/* ProgressDataUi.cpp — immersive armory + roster rows. */
+	void DrawArmoryList(const Snapshot& snap);
+	void DrawCharacterRoster(const Snapshot& snap);
 
 	/* ProgressFetch.cpp */
 	DWORD WINAPI FetchProc(void*);

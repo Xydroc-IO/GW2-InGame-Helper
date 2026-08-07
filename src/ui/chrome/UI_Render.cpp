@@ -66,6 +66,7 @@ void UI_Render()
 	PanelBinds::Poll();
 	UiScale::TickAuto();
 	Gw2Icons::Tick();
+	Gw2Icons::WarmProfessionIcons();
 	Gw2Ui::WarmCommon();
 	WikiBrowser::Tick();
 	MumbleIdentity::Tick();
@@ -172,12 +173,16 @@ void UI_Render()
 	}
 	ClampHelperGeomToDisplay();
 	const ImGuiIO& sizeIo = ImGui::GetIO();
+	/* Previous-frame collapse — allow title-bar min height before Begin.
+	   Never cap maxH while collapsed: that clamped Restore to ~40px. */
+	static bool sHelperCollapsedPrev = false;
 	if (sizeIo.DisplaySize.x > 100.f && sizeIo.DisplaySize.y > 100.f)
 	{
 		const AspectLayout::HelperGeom lim =
 			AspectLayout::DefaultHelper(sizeIo.DisplaySize.x, sizeIo.DisplaySize.y);
+		const float minH = sHelperCollapsedPrev ? 28.f : 240.f;
 		ImGui::SetNextWindowSizeConstraints(
-			ImVec2(320.f, 240.f),
+			ImVec2(320.f, minH),
 			ImVec2(lim.maxW, lim.maxH));
 	}
 	const ImGuiCond geomCond = gUi.forceHelperOnScreen ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
@@ -193,10 +198,14 @@ void UI_Render()
 	ImGui::SetNextWindowBgAlpha(0.f);
 
 	bool open = G::ShowWiki;
-	const bool padBody = ImGui::Begin("In-Game Helper##GW2InGameHelper", &open,
-		HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoScrollbar));
+	ImGuiWindowFlags helperFlags =
+		HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoScrollbar);
+	if (sHelperCollapsedPrev)
+		helperFlags |= ImGuiWindowFlags_NoResize;
+	const bool padBody = ImGui::Begin("In-Game Helper##GW2InGameHelper", &open, helperFlags);
 	const bool helperCollapsed = ImGui::GetStateStorage()->GetBool(
 		ImGui::GetID("##gw2igh_pad_collapsed"), false);
+	sHelperCollapsedPrev = helperCollapsed;
 	if (!helperCollapsed)
 		Gw2Ui::PaintPadChrome(G::Opacity);
 	const bool expanded = Gw2Ui::DrawPadTitleBar("In-Game Helper", &open, G::Opacity);
@@ -230,7 +239,7 @@ void UI_Render()
 			ImGui::GetIO().WantCaptureKeyboard = true;
 			ImGui::CaptureKeyboardFromApp(true);
 		}
-		ImGui::End();
+		HelperTheme::EndPad();
 		ImGui::PopStyleVar();
 		PopWikiTheme();
 		/* Do not persist minimized height into G::WindowHeight. */
@@ -272,8 +281,7 @@ void UI_Render()
 	}
 
 	ImGui::SetWindowFontScale(UiScale::EffectiveFontScale(
-		(G::WindowWidth > 200.f) ? G::WindowWidth : 1100.f,
-		(G::WindowHeight > 160.f) ? G::WindowHeight : 760.f));
+		HelperTheme::kPadFontRefW, HelperTheme::kPadFontRefH));
 
 	BrowserTabs::EnsureDefault();
 	BrowserTabs::Tick();
@@ -400,10 +408,11 @@ void UI_Render()
 
 	ImGui::Separator();
 
-	/* Flush rail + CEF edge-to-edge. Pops MUST happen inside DrawWikiPageSlot
-	   before End/PopWikiTheme — that function owns the window teardown. */
+	/* Flush CEF edge-to-edge. Pops MUST happen inside DrawWikiPageSlot
+	   before End/PopWikiTheme — that function owns the window teardown.
+	   Side dock is a separate window locked to the helper's left edge. */
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, ImGui::GetStyle().ItemSpacing.y));
-	DrawHelperSideRail();
 	DrawWikiPageSlot(open);
+	DrawHelperSideRail();
 }

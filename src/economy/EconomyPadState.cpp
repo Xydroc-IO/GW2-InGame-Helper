@@ -10,6 +10,7 @@ void EconomyPad::OpenAndRefresh()
 	EconomyDetail::gPlaceOnce = true;
 	EconomyDetail::EnsureSeed();
 	EconomyDetail::LoadCart();
+	EconomyDetail::LoadCharts();
 	EconomyDetail::LoadHistory();
 	EconomyDetail::RequestFlipScan();
 	Settings::SetDirty();

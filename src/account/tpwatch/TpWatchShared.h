@@ -16,7 +16,7 @@ namespace TpWatchDetail
 {
 	constexpr int kMaxItems = 120;
 	constexpr int kHttpTimeoutMs = 2000;
-	constexpr float kTpPadW = 420.f;
+	constexpr float kTpPadW = 440.f;
 
 	struct Row
 	{

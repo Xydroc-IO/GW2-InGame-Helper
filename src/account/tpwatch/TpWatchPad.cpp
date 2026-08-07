@@ -141,17 +141,17 @@ bool TpWatchPad::Render()
 
 	const float maxWinH = PadDock::MaxH(400.f);
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(380.f, 200.f), ImVec2(PadDock::MaxW(520.f), maxWinH));
+	PadDock::SetSizeConstraints("Trading Post##GW2InGameHelperTpWatch", 380.f, 200.f, PadDock::MaxW(520.f), maxWinH);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	if (gRequestFocus)
 	{
 		PadDock::Place(G::PadTp, gRequestFocus, kTpPadW, maxWinH * 0.72f,
 			PadDock::ForTp(kTpPadW), /*applySize=*/true);
 		if (G::PadTp.w < 80.f)
-			ImGui::SetNextWindowSize(ImVec2(440.f, maxWinH * 0.72f), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(ImVec2(kTpPadW, maxWinH * 0.72f), ImGuiCond_FirstUseEver);
 	}
 	else if (G::PadTp.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(440.f, maxWinH * 0.72f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(kTpPadW, maxWinH * 0.72f), ImGuiCond_FirstUseEver);
 
 	bool open = G::ShowTpWatch;
 	HelperTheme::ScopedWindow theme(G::Opacity);
@@ -163,7 +163,7 @@ bool TpWatchPad::Render()
 		PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open)
 		{
 			G::ShowTpWatch = false;
@@ -183,11 +183,11 @@ bool TpWatchPad::Render()
 		Settings::SetDirty();
 	PadDock::RememberTp(ImGui::GetWindowPos(), ImGui::GetWindowSize());
 
-	HelperTheme::ScopedFontScale fontScale;
+	HelperTheme::ScopedFontScale fontScale(kTpPadW, PadDock::kCompactH);
 	RenderContents(false);
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Globals.h"
 #include "Gw2Ui.h"
 #include "HelperTheme.h"
 #include "UiScale.h"
@@ -198,8 +199,63 @@ namespace PadNav
 		return current;
 	}
 
+	/* Horizontal top bar with optional DAT icons (Log Manager style). */
+	inline int DrawTopBar(const char* id, const char* const* labels, int count, int current,
+		const int* icons = nullptr)
+	{
+		if (!labels || count <= 0)
+			return 0;
+		if (current < 0)
+			current = 0;
+		if (current >= count)
+			current = count - 1;
+
+		ImGui::PushID(id);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
+		for (int i = 0; i < count; ++i)
+		{
+			ImGui::PushID(i);
+			char buf[96];
+			std::snprintf(buf, sizeof(buf), "%s###top_%d", labels[i], i);
+			const bool on = (i == current);
+			if (on)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabActive);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, HelperTheme::TabActive);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
+				ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldBright);
+			}
+			else
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabIdle);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, HelperTheme::Header);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
+				ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Muted);
+			}
+			bool clicked = false;
+			const int asset = (icons && icons[i] > 0) ? icons[i] : 0;
+			if (asset > 0)
+				clicked = Gw2Ui::IconLabelButton(buf, asset, 16.f);
+			else
+				clicked = ImGui::SmallButton(buf);
+			ImGui::PopStyleColor(4);
+			if (clicked)
+				current = i;
+			if (i + 1 < count)
+				ImGui::SameLine(0.f, 4.f);
+			ImGui::PopID();
+		}
+		ImGui::PopStyleVar();
+		ImGui::PopID();
+		ImGui::Spacing();
+		ImGui::Separator();
+		return current;
+	}
+
 	/* Left rail: full-width buttons stacked vertically. Optional DAT icons
-	   (icons[i] > 0). Caller draws content after — rail ends with SameLine. */
+	   (icons[i] > 0). Caller draws content after — rail ends with SameLine.
+	   Pad body order: DrawSideRail → BeginChild body → Blurb → controls → list.
+	   Do not echo the window title in the body (chrome title bar owns it). */
 	inline int DrawSideRail(const char* id, const char* const* labels, int count, int current,
 		float width = 0.f, const int* icons = nullptr)
 	{
@@ -243,9 +299,65 @@ namespace PadNav
 		return current;
 	}
 
-	/* Toggle-style rail entry for helper chrome (open pads / flags). */
+	/* Toggle-style rail entry for helper chrome (open pads / flags).
+	   Respects G::ShowRailLabels — icon dock vs labeled rows. */
 	inline bool SideToggle(const char* label, bool on, int assetId = 0)
 	{
-		return Gw2Ui::RailToggle(label, on, assetId);
+		const bool labels = G::ShowRailLabels;
+		const float iconSz = labels ? 18.f : 26.f;
+		return Gw2Ui::RailToggle(label, on, assetId, iconSz, labels);
+	}
+
+	/* Shared pad copy hierarchy — use on every companion / Account tab.
+	   SectionTitle = real subsections only (never the window name).
+	   Blurb = one muted lead line under chrome / after rail. */
+	inline void SectionTitle(const char* title)
+	{
+		if (!title || !title[0])
+			return;
+		ImGui::TextColored(HelperTheme::Gold, "%s", title);
+	}
+
+	inline void Blurb(const char* text)
+	{
+		if (!text || !text[0])
+			return;
+		PushWrap();
+		ImGui::TextColored(HelperTheme::Muted, "%s", text);
+		PopWrap();
+	}
+
+	inline void Meta(const char* text)
+	{
+		if (!text || !text[0])
+			return;
+		ImGui::TextColored(HelperTheme::GoldMuted, "%s", text);
+	}
+
+	inline void StatusBusy(const char* text = "Updating...")
+	{
+		ImGui::TextColored(HelperTheme::Warn, "%s", text ? text : "Updating...");
+	}
+
+	inline void StatusOk(const char* text)
+	{
+		if (!text || !text[0])
+			return;
+		ImGui::TextColored(HelperTheme::Ok, "%s", text);
+	}
+
+	inline void StatusWarn(const char* text)
+	{
+		if (!text || !text[0])
+			return;
+		ImGui::TextColored(HelperTheme::Warn, "%s", text);
+	}
+
+	/* Primary Refresh control — icon when DAT chrome is ready. */
+	inline bool RefreshButton(const char* id = "###gw2igh_refresh")
+	{
+		char buf[64];
+		std::snprintf(buf, sizeof(buf), "Refresh%s", id && id[0] ? id : "###gw2igh_refresh");
+		return Gw2Ui::IconLabelButton(buf, Gw2Ui::Icon::Bag, 16.f);
 	}
 }

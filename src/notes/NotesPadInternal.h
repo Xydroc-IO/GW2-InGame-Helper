@@ -11,10 +11,13 @@ namespace NotesPadDetail
 	constexpr int kMaxSnippets = 48;
 	constexpr int kTitleLen = 64;
 	constexpr int kBodyLen = 512;
-	constexpr float kNotesPadW = 500.f;
+	constexpr float kNotesPadW = 560.f;
 	constexpr float kNotesPadH = 640.f;
 	/* Title + kind + multiline body + Delete/Copy - keep visible without resize. */
-	constexpr float kEditorReserve = 230.f;
+	constexpr float kEditorReserve = 250.f;
+	/* Saved geoms shorter than this get replaced with kNotesPadH on open. */
+	constexpr float kNotesMinUsefulH = 520.f;
+	constexpr float kNotesMinUsefulW = 480.f;
 
 	extern bool gRequestDock;
 	extern int gPadTab; /* 0 snippets, 1 waypoints */

@@ -4,6 +4,6 @@
 
 namespace CompletionDetail
 {
-	constexpr float kPadW = 400.f;
+	constexpr float kPadW = 440.f;
 	constexpr float kPadH = 480.f;
 }

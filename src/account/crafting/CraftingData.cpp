@@ -1,10 +1,12 @@
 #include "CraftingData.h"
+#include "PadLayout.h"
 #include "PadNav.h"
 
 #include "CraftingShared.h"
 
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "HelperTheme.h"
 #include "InventoryData.h"
 
 #include "imgui/imgui.h"
@@ -65,19 +67,19 @@ namespace CraftingDetail
 		else
 		{
 			if (ok)
-				ImGui::TextColored(ImVec4(0.55f, 0.85f, 0.55f, 1.f), "%s", label);
+				ImGui::TextColored(HelperTheme::Ok, "%s", label);
 			else
-				ImGui::TextColored(ImVec4(0.95f, 0.70f, 0.40f, 1.f), "%s", label);
+				ImGui::TextColored(HelperTheme::Warn, "%s", label);
 			if (miss > 0 && n.buyUnit >= 0)
 			{
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+				ImGui::TextColored(HelperTheme::Muted,
 					"buy %s", FormatCoins(n.buyUnit * miss).c_str());
 			}
 			else if (miss > 0)
 			{
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(0.70f, 0.55f, 0.40f, 1.f), "no TP");
+				ImGui::TextColored(HelperTheme::Warn, "no TP");
 			}
 		}
 		ImGui::PopID();
@@ -154,14 +156,10 @@ void CraftingData::RenderContents()
 		dailyStatus = gDailyStatus;
 	}
 
-	ImGui::TextUnformatted("Crafting planner");
-	PadNav::PushWrap();
-	ImGui::TextColored(ImVec4(0.66f, 0.68f, 0.72f, 1.f),
+	PadNav::Blurb(
 		"Station crafts use the official recipe API. Legendaries / gifts use wiki "
-		"Mystic Forge trees (expandable to depth %d) - gifts, sub-gifts, then mats. "
-		"Owned counts: materials, bank, shared (API key).",
-		kMaxDepth);
-	PadNav::PopWrap();
+		"Mystic Forge trees (expandable) - gifts, sub-gifts, then mats. "
+		"Owned counts: materials, bank, shared (API key).");
 
 	const float btnW = ImGui::CalcTextSize("Plan").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
 	float fieldW = ImGui::GetContentRegionAvail().x - btnW - ImGui::GetStyle().ItemSpacing.x;
@@ -174,22 +172,19 @@ void CraftingData::RenderContents()
 	if (ImGui::Button("Plan###gw2igh_craft_go", ImVec2(btnW, 0.f)))
 		StartPlan();
 
-	PadNav::PushWrap();
 	if (gBusy && !plan.ok)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s",
-			plan.status.empty() ? "Planning..." : plan.status.c_str());
+		PadNav::StatusBusy(plan.status.empty() ? "Planning..." : plan.status.c_str());
 	else if (gBusy && plan.ok)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "%s", plan.status.c_str());
+		PadNav::StatusBusy(plan.status.c_str());
 	else if (!plan.status.empty())
-		ImGui::TextColored(ImVec4(0.55f, 0.75f, 0.55f, 1.f), "%s", plan.status.c_str());
-	PadNav::PopWrap();
+		PadNav::StatusOk(plan.status.c_str());
 
 	ImGui::Separator();
-	ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.35f, 1.f), "Daily crafting");
+	PadNav::SectionTitle("Daily crafting");
 	if (gDailyBusy)
-		ImGui::TextColored(ImVec4(0.85f, 0.75f, 0.4f, 1.f), "Loading...");
+		PadNav::StatusBusy("Loading...");
 	else if (dailies.empty())
-		ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+		ImGui::TextColored(HelperTheme::Muted,
 			"%s", dailyStatus.empty() ? "-" : dailyStatus.c_str());
 	else
 	{
@@ -199,30 +194,29 @@ void CraftingData::RenderContents()
 
 	ImGui::Separator();
 
-	const float listH = ImGui::GetContentRegionAvail().y;
-	ImGui::BeginChild("###gw2igh_craft_list", ImVec2(0.f, listH > 80.f ? listH : 80.f), true);
+	PadLayout::BeginList("###gw2igh_craft_list", 80.f);
 
 	if (plan.ok)
 	{
-		ImGui::TextColored(ImVec4(0.85f, 0.80f, 0.95f, 1.f), "%s",
+		ImGui::TextColored(HelperTheme::GoldBright, "%s",
 			plan.outputName.empty() ? "Output" : plan.outputName.c_str());
 		if (!plan.recipeSource.empty())
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+			ImGui::TextColored(HelperTheme::Muted,
 				"#%d | %s | crafts %d", plan.outputId, plan.recipeSource.c_str(),
 				plan.outputCount);
 		else
-			ImGui::TextColored(ImVec4(0.55f, 0.58f, 0.62f, 1.f),
+			ImGui::TextColored(HelperTheme::Muted,
 				"#%d | crafts %d per recipe", plan.outputId, plan.outputCount);
 		if (plan.noTpMissing > 0)
 		{
-			ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f),
+			ImGui::TextColored(HelperTheme::Ink,
 				"TP buy (instant): %s", FormatCoins(plan.buyTotal).c_str());
-			ImGui::TextColored(ImVec4(0.70f, 0.55f, 0.40f, 1.f),
+			ImGui::TextColored(HelperTheme::Warn,
 				"Some missing mats are account-bound / not on the TP.");
 		}
 		else
 		{
-			ImGui::TextColored(ImVec4(0.78f, 0.80f, 0.84f, 1.f),
+			ImGui::TextColored(HelperTheme::Ink,
 				"TP buy (instant): %s", FormatCoins(plan.buyTotal).c_str());
 		}
 		ImGui::Spacing();
@@ -231,7 +225,7 @@ void CraftingData::RenderContents()
 	}
 	else if (!plan.nameHints.empty())
 	{
-		ImGui::TextUnformatted("Wiki results");
+		PadNav::Meta("Wiki results");
 		for (size_t i = 0; i < plan.nameHints.size(); ++i)
 		{
 			ImGui::PushID(static_cast<int>(i));
@@ -249,5 +243,5 @@ void CraftingData::RenderContents()
 			"Try an ascended food, gift, or crafted gear name - or Shift+click a chat code.");
 	}
 
-	ImGui::EndChild();
+	PadLayout::EndList();
 }

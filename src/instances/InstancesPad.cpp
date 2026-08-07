@@ -40,7 +40,7 @@ bool InstancesPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(280.f);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(360.f, 280.f), ImVec2(PadDock::MaxW(540.f), maxH));
+	PadDock::SetSizeConstraints("Instances##GW2InGameHelperInstances", 360.f, 280.f, PadDock::MaxW(540.f), maxH);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
 			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.40f) : 150.f;
@@ -60,20 +60,14 @@ bool InstancesPad::Render()
 		if (PadDock::Capture(G::PadInstances)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-		ImGui::End();
+		HelperTheme::EndPad();
 		if (!open) { G::ShowInstances = false; Settings::SetDirty(); }
 		return hovered;
 	}
 
 	if (!open) { G::ShowInstances = false; Settings::SetDirty(); }
 	if (PadDock::Capture(G::PadInstances)) Settings::SetDirty();
-	HelperTheme::ScopedFontScale fontScale;
-
-	ImGui::TextColored(HelperTheme::Gold, "INSTANCES");
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
-		"Local journals - ticks save on disk. Not live weekly API.");
-	PadNav::PopWrap();
+	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
 	static const char* kKinds[] = { "Story", "Fractal", "Raid", "Strike" };
 	static const int kKindIcons[] = {
@@ -91,6 +85,7 @@ bool InstancesPad::Render()
 	}
 
 	ImGui::BeginChild("###gw2igh_inst_body", ImVec2(0.f, 0.f), true);
+	PadNav::Blurb("Local journals - ticks save on disk. Not live weekly API.");
 	ImGui::TextColored(HelperTheme::Muted, "%s cleared: %d / %d",
 		KindName(gKind), CountCleared(gKind), CountEntries(gKind));
 	if (ImGui::Button("Reset category###gw2igh_inst_clr"))
@@ -169,6 +164,6 @@ bool InstancesPad::Render()
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-	ImGui::End();
+	HelperTheme::EndPad();
 	return hovered;
 }
