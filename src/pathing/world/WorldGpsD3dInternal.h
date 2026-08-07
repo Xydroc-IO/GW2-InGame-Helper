@@ -45,7 +45,7 @@ namespace WorldGpsD3dInternal
 	extern int                      gShaderRev;
 	extern HMODULE                  gCompiler;
 
-	constexpr int kShaderRev = 6; /* bump when embedded HLSL changes */
+	constexpr int kShaderRev = 7; /* bump when embedded HLSL changes */
 
 	void ReleaseGpu();
 	bool EnsureDevice();

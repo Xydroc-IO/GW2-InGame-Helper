@@ -8,6 +8,7 @@
 #include "PathingLuaInternal.h"
 #include "PathingSchedule.h"
 #include "Settings.h"
+#include "WaypointsData.h"
 
 #include <algorithm>
 #include <atomic>
@@ -21,6 +22,29 @@
 #include <windows.h>
 
 using namespace PathingDetail;
+
+namespace
+{
+	void RefreshGuideWpCache(uint32_t mapId)
+	{
+		std::vector<PathingTrails::Point> pts;
+		if (mapId != 0)
+		{
+			WaypointsData::EnsureLoaded(false);
+			std::vector<WaypointsData::Poi> pois;
+			WaypointsData::ListForMap(static_cast<int>(mapId), true, pois);
+			pts.reserve(pois.size());
+			for (const WaypointsData::Poi& p : pois)
+			{
+				if (!p.hasCoord || !std::isfinite(p.continentX) || !std::isfinite(p.continentY))
+					continue;
+				pts.push_back({p.continentX, p.continentY});
+			}
+		}
+		std::lock_guard<std::mutex> lock(gMutex);
+		gGuideWpCache = std::move(pts);
+	}
+}
 
 bool PathingTrails::TryTrailStartContinent(float* outX, float* outY,
 	char* labelOut, size_t labelLen, bool preferEnabled)
@@ -58,12 +82,20 @@ void PathingTrails::SetSearchDestination(float continentX, float continentY)
 	uint32_t mapId = 0;
 	bool needRects = false;
 	{
+		if (G::Mumble && G::Mumble->context_len >= sizeof(MumbleContext))
+		{
+			const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
+			if (ctx && ctx->mapId != 0)
+				mapId = ctx->mapId;
+		}
+		/* WP index outside pathing lock — pathfinder needs it. */
+		RefreshGuideWpCache(mapId);
+
 		std::lock_guard<std::mutex> lock(gMutex);
 		gGuideActive = true;
 		gGuideDestX = continentX;
 		gGuideDestY = continentY;
 		gGuide = {};
-		/* Capture pose now so the first rebuild can draw a direct line. */
 		if (G::Mumble && G::Mumble->context_len >= sizeof(MumbleContext))
 		{
 			const auto* ctx = reinterpret_cast<const MumbleContext*>(G::Mumble->context);
@@ -74,18 +106,18 @@ void PathingTrails::SetSearchDestination(float continentX, float continentY)
 				gGuideHavePlayer = true;
 				if (gActiveMap == 0)
 					gActiveMap = ctx->mapId;
+				mapId = gActiveMap ? gActiveMap : ctx->mapId;
 			}
 		}
-		mapId = gActiveMap;
+		if (gActiveMap != 0)
+			mapId = gActiveMap;
 		const auto rit = gRects.find(mapId);
 		needRects = mapId != 0 && (rit == gRects.end() || !rit->second.valid);
 		RebuildSearchGuideLocked();
-		/* Continent line is enough for the GPS arrow; world ribbon needs rects. */
 		if (gGuide.worldPoints.size() >= 2)
 			return;
 	}
 
-	/* Fetch map rects outside the lock (HTTP). Then rebuild world ribbon. */
 	if (needRects && mapId != 0)
 	{
 		Rects rects{};

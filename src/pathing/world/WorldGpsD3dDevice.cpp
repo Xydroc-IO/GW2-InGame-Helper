@@ -97,9 +97,11 @@ float RangeFade(float3 wpos)
 
 float4 PSSolid(PSIn i) : SV_Target
 {
-	/* Procedural chevron when pack texture is missing - matches Blish density. */
+	/* Procedural chevron arrows when pack texture is missing. */
 	float stripe = frac(i.uv.y);
-	float chev = saturate(smoothstep(0.0, 0.12, stripe) * smoothstep(0.95, 0.45, stripe));
+	float edge = abs(i.uv.x - 0.5) * 2.0;
+	float chev = saturate(smoothstep(0.0, 0.10, stripe) * smoothstep(0.92, 0.38, stripe));
+	chev *= saturate(1.15 - edge * (0.35 + stripe * 0.85));
 	float a = i.col.a * chev * SoftClear(i.wpos) * RangeFade(i.wpos);
 	if (a < 0.02) discard;
 	return float4(i.col.rgb, a);

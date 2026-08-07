@@ -164,6 +164,7 @@ DLL_SRC = \
 	src/instances/InstancesPad.cpp \
 	src/instances/InstancesPadState.cpp \
 	src/instances/InstancesData.cpp \
+	src/instances/InstancesFetch.cpp \
 	src/completion/CompletionPad.cpp \
 	src/completion/CompletionPadState.cpp \
 	src/completion/CompletionData.cpp \
@@ -175,6 +176,7 @@ DLL_SRC = \
 	src/farming/FarmingPad.cpp \
 	src/farming/FarmingPadState.cpp \
 	src/farming/FarmingPersist.cpp \
+	src/farming/FarmingNodes.cpp \
 	src/overlay/GpsArrow.cpp \
 	src/overlay/ZoneBanner.cpp \
 	src/logs/logmanager/LogManagerPad.cpp \
@@ -244,6 +246,7 @@ DLL_SRC = \
 	src/pathing/packs/PathingLoadLady.cpp \
 	src/pathing/packs/PathingLoadHttp.cpp \
 	src/pathing/packs/PathingLoadGuide.cpp \
+	src/pathing/packs/PathingPathfind.cpp \
 	src/pathing/packs/PathingLoadIcons.cpp \
 	src/pathing/trails/PathingTrailsGpsSnippets.cpp \
 	src/pathing/trails/PathingTrailsGpsNearby.cpp \

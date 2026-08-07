@@ -194,7 +194,11 @@ PathingTrails::WorldSnippet PathingTrails::SearchGuideWorldSnippet()
 		return snip;
 	snip.color = gGuide.color ? gGuide.color : 0xFFFFAA20u;
 	snip.alpha = 1.f;
-	snip.trailScale = 1.f;
+	snip.trailScale = (gGuide.trailScale >= 0.05f && gGuide.trailScale <= 8.f)
+		? gGuide.trailScale : 1.45f;
+	if (gGuide.textureId[0])
+		std::snprintf(snip.textureId, sizeof(snip.textureId), "%s", gGuide.textureId);
+	std::snprintf(snip.label, sizeof(snip.label), "%s", gGuide.label);
 	snip.points = gGuide.worldPoints;
 	return snip;
 }

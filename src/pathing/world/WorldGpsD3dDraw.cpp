@@ -272,7 +272,7 @@ bool WorldGpsD3d::DrawTrails(
 	};
 
 	if (guideOrNull && guideOrNull->points.size() >= 2)
-		addSnip(*guideOrNull, true, thickness + 0.15f);
+		addSnip(*guideOrNull, true, thickness + 0.42f);
 	for (const auto& snip : trails)
 		addSnip(snip, false, thickness);
 

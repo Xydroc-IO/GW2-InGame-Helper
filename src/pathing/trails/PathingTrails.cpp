@@ -64,6 +64,7 @@ namespace PathingDetail
 	float gGuidePlayerX = 0.f;
 	float gGuidePlayerY = 0.f;
 	bool  gGuideHavePlayer = false;
+	std::vector<PathingTrails::Point> gGuideWpCache;
 
 	std::unordered_map<uint32_t, bool> gMapRectsReady;
 	std::unordered_map<uint32_t, Rects> gRects;
@@ -168,8 +169,8 @@ void PathingTrails::Update(uint32_t mapId)
 			std::lock_guard<std::mutex> lock(gMutex);
 			const float dx = ctx->playerX - gGuidePlayerX;
 			const float dy = ctx->playerY - gGuidePlayerY;
-			/* Larger hysteresis - rebuilds used to flip the orange guide on/off. */
-			const bool moved = (dx * dx + dy * dy) > (280.f * 280.f);
+			/* Larger hysteresis - full pathfind under lock; rebuild rarely. */
+			const bool moved = (dx * dx + dy * dy) > (900.f * 900.f);
 			gGuidePlayerX = ctx->playerX;
 			gGuidePlayerY = ctx->playerY;
 			const bool first = !gGuideHavePlayer;

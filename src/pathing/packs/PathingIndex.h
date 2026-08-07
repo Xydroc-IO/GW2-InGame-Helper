@@ -91,6 +91,8 @@ namespace PathingDetail
 	extern float gGuidePlayerX;
 	extern float gGuidePlayerY;
 	extern bool gGuideHavePlayer;
+	/* Official WP coords for GPS pathfinding — filled outside gMutex. */
+	extern std::vector<PathingTrails::Point> gGuideWpCache;
 
 	struct Rects
 	{
