@@ -21,7 +21,7 @@ extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "uc23";
+	constexpr const char* kPackStamp = "uc25";
 	constexpr int kChromeIds[] = {
 		155985, 155981, 156022, 156008, 156009, 156010, 155967, 156260, 155014,
 		/* Curated rail / Log Manager icons (Desktop/icons — current set). */
@@ -29,6 +29,8 @@ namespace
 		866115, 866117, 866119, 866124, 1948130,
 		1228263, 1228855, 2199974, 2596974, 2596976,
 		3124871, 3443174, 3443175, 3713037,
+		60970, 155867, /* Pathing diamond + Trail Tools map */
+		561441, /* Vault gold star */
 		/* Scrollbar DAT ids (also as named files below). */
 		154969, 154970, 154971, 154973, 155031, 156078, 154968
 	};

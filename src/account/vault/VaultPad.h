@@ -1,6 +1,6 @@
 #pragma once
 
-/* Free-floating ImGui Dailies & Wizard's Vault pad (also Account -> Vault). */
+/* Free-floating ImGui Dailies & Wizard's Vault pad (side rail + Ctrl+Shift+V). */
 namespace VaultPad
 {
 	void OpenAndRefresh();

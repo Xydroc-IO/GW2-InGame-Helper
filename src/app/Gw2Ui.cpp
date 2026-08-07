@@ -20,6 +20,34 @@ namespace
 {
 	std::unordered_set<int> gRequested;
 
+	struct RailUv { float u0, v0, u1, v1; };
+
+	/* Opaque-content UVs for curated rail PNGs (uneven padding otherwise). */
+	bool RailContentUv(int assetId, RailUv& out)
+	{
+		switch (assetId)
+		{
+		case 3124871: out = { 11 / 128.f, 4 / 128.f, 118 / 128.f, 118 / 128.f }; return true;
+		case 1228855: out = { 4 / 64.f, 2 / 64.f, 62 / 64.f, 64 / 64.f }; return true;
+		case 866117: out = { 7 / 64.f, 5 / 64.f, 58 / 64.f, 57 / 64.f }; return true;
+		case 156081: out = { 10 / 64.f, 12 / 64.f, 62 / 64.f, 54 / 64.f }; return true;
+		case 866115: out = { 9 / 64.f, 11 / 64.f, 54 / 64.f, 54 / 64.f }; return true;
+		case 563468: out = { 10 / 128.f, 10 / 128.f, 105 / 128.f, 101 / 128.f }; return true;
+		case 561441: out = { 15 / 128.f, 13 / 128.f, 115 / 128.f, 113 / 128.f }; return true;
+		case 2199974: out = { 1 / 128.f, 3 / 128.f, 127 / 128.f, 127 / 128.f }; return true;
+		case 1228263: out = { 6 / 128.f, 14 / 128.f, 120 / 128.f, 128 / 128.f }; return true;
+		case 866124: out = { 6 / 64.f, 8 / 64.f, 59 / 64.f, 57 / 64.f }; return true;
+		case 60970: out = { 4 / 64.f, 0 / 64.f, 61 / 64.f, 64 / 64.f }; return true;
+		case 155867: out = { 34 / 256.f, 30 / 256.f, 214 / 256.f, 198 / 256.f }; return true;
+		case 834008: out = { 2 / 64.f, 2 / 64.f, 62 / 64.f, 62 / 64.f }; return true;
+		case 1948130: out = { 6 / 128.f, 2 / 128.f, 128 / 128.f, 128 / 128.f }; return true;
+		case 2596974: out = { 4 / 64.f, 5 / 64.f, 59 / 64.f, 61 / 64.f }; return true;
+		case 240678: out = { 5 / 128.f, 11 / 128.f, 126 / 128.f, 121 / 128.f }; return true;
+		case 3713037: out = { 8 / 128.f, 8 / 128.f, 123 / 128.f, 123 / 128.f }; return true;
+		default: return false;
+		}
+	}
+
 	void PushRailColors(bool on)
 	{
 		if (on)
@@ -142,6 +170,7 @@ void Gw2Ui::WarmCommon()
 	Request(Icon::ApiHourglass);
 	Request(Icon::AccountSword);
 	Request(Icon::CompassRadar);
+	Request(Icon::VaultStar);
 	Request(Icon::PathingMap);
 	Request(Icon::CompletePeak);
 	Request(Icon::FarmSack);
@@ -282,22 +311,50 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, 
 			dl->AddRectFilled(
 				ImVec2(min.x + 3.f, min.y), ImVec2(max.x, max.y),
 				ImGui::GetColorU32(ImVec4(0.94f, 0.77f, 0.35f, 0.06f)));
-		const float iy = min.y + (max.y - min.y - iconSize) * 0.5f;
+
+		/* Fit opaque content into a shared slot so padded assets match dense ones. */
+		RailUv uv{ 0.f, 0.f, 1.f, 1.f };
+		const bool cropped = RailContentUv(assetId, uv);
+		const float inset = iconSize * 0.06f;
+		const float slot = iconSize - inset * 2.f;
+		float dw = slot;
+		float dh = slot;
+		if (cropped && tex->Width > 0 && tex->Height > 0)
+		{
+			const float cw = (uv.u1 - uv.u0) * static_cast<float>(tex->Width);
+			const float ch = (uv.v1 - uv.v0) * static_cast<float>(tex->Height);
+			if (cw > 1.f && ch > 1.f)
+			{
+				if (cw >= ch)
+				{
+					dw = slot;
+					dh = slot * (ch / cw);
+				}
+				else
+				{
+					dh = slot;
+					dw = slot * (cw / ch);
+				}
+			}
+		}
+		const float iy = min.y + (max.y - min.y - dh) * 0.5f;
 		if (showLabel)
 		{
-			const float ix = min.x + st.FramePadding.x + 3.f;
+			const float ix = min.x + st.FramePadding.x + 3.f + inset + (slot - dw) * 0.5f;
 			dl->AddImage(reinterpret_cast<ImTextureID>(tex->Resource),
-				ImVec2(ix, iy), ImVec2(ix + iconSize, iy + iconSize));
+				ImVec2(ix, iy), ImVec2(ix + dw, iy + dh),
+				ImVec2(uv.u0, uv.v0), ImVec2(uv.u1, uv.v1));
 			const ImVec2 labelSz = ImGui::CalcTextSize(vis, nullptr, true);
-			dl->AddText(ImVec2(ix + iconSize + st.ItemInnerSpacing.x,
+			dl->AddText(ImVec2(min.x + st.FramePadding.x + 3.f + iconSize + st.ItemInnerSpacing.x,
 				min.y + (max.y - min.y - labelSz.y) * 0.5f),
 				ImGui::GetColorU32(ImGuiCol_Text), vis);
 		}
 		else
 		{
-			const float ix = min.x + (max.x - min.x - iconSize) * 0.5f;
+			const float ix = min.x + (max.x - min.x - dw) * 0.5f;
 			dl->AddImage(reinterpret_cast<ImTextureID>(tex->Resource),
-				ImVec2(ix, iy), ImVec2(ix + iconSize, iy + iconSize));
+				ImVec2(ix, iy), ImVec2(ix + dw, iy + dh),
+				ImVec2(uv.u0, uv.v0), ImVec2(uv.u1, uv.v1));
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("%s", vis);
 		}

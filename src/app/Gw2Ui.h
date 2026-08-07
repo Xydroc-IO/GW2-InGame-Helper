@@ -35,10 +35,11 @@ namespace Gw2Ui
 		ApiHourglass = 156081, /* eye — inspect / API */
 		AccountSword = 866115, /* sword + shield */
 		CompassRadar = 563468, /* spyglass */
-		PathingMap   = 2596976, /* open map */
+		VaultStar    = 561441, /* gold six-point star — Wizard's Vault */
+		PathingMap   = 60970, /* diamond waypoint marker */
 		CompletePeak = 834008, /* green star — completion */
 		FarmSack     = 866124, /* gather / logs */
-		TrailAnvil   = 3443175, /* wrench — tools */
+		TrailAnvil   = 155867, /* gold map / trail tools */
 		EventsMedal  = 1948130, /* crystal beast — world events */
 		NotesScroll  = 2596974,
 		LogsSwords   = 240678, /* crossed swords */

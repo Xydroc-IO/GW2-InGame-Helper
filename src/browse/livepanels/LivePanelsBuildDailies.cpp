@@ -192,10 +192,10 @@ std::string BuildDailiesHtml(const std::wstring& addonDir, const char* apiKey)
 		"GW2 In-Game Helper · Live",
 		"Today — Vault, crafting &amp; bosses",
 		hasKey
-			? "Today board: Vault progress shares the Account Vault cache (SoT), plus daily crafting and world bosses. "
+			? "Today board: Vault progress shares the Vault pad cache (SoT), plus daily crafting and world bosses. "
 			  "Manage Vault ticks on the Vault pad."
 			: "Today board: crafting and bosses work now. Add your API key in Settings for live Vault "
-			  "(Account Vault pad is the source of truth).",
+			  "(Vault pad is the source of truth).",
 		"<a href=\"#apikey\">API key</a>\n<a href=\"#vault-daily\">Vault</a>\n"
 		"<a href=\"#craft\">Crafting</a>\n<a href=\"#bosses\">Bosses</a>\n<a href=\"#links\">Links</a>",
 		body);

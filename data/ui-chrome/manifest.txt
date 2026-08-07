@@ -51,3 +51,4 @@ scroll-track-h.png	scrollbar_track_h_154968
 866130.png	rail_icon
 866134.png	rail_icon
 919243.png	rail_icon
+561441.png	rail_icon_vault_star

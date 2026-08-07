@@ -143,7 +143,7 @@ void VaultPad::RenderContents()
 	SyncDraw();
 	const Snapshot& snap = gDraw;
 
-	PadNav::Blurb("Account source of truth for Wizard's Vault (API). Today board: Browse live-dailies. Offline sheet is reference only.");
+	PadNav::Blurb("Wizard's Vault from the official API. Today board: Browse live-dailies. Offline sheet is reference only.");
 
 	if (PadNav::RefreshButton("###gw2igh_vault_ref"))
 		StartFetch(true);

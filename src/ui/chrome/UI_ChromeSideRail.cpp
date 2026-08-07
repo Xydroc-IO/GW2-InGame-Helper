@@ -22,6 +22,7 @@
 #include "SettingsPad.h"
 #include "TrailToolsPad.h"
 #include "UiScale.h"
+#include "VaultPad.h"
 #include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
@@ -109,14 +110,14 @@ namespace UIDetail
 
 		float RailPackedHeight(float iconSz, bool labels, float itemSp, float framePadY)
 		{
-			constexpr int kBtns = 16;
-			constexpr int kGaps = 15;
+			constexpr int kBtns = 17;
+			constexpr int kGaps = 16;
 			const float padY = RailPadY(labels);
 			const float btnH = RailBtnHeight(iconSz, labels, framePadY);
-			/* Two titled sections (TOOLS / COMPANIONS) + one hairline before Settings. */
+			/* One titled section (TOOLS) + one hairline before Settings. */
 			const float sectionH = labels
-				? (2.f * RailSectionHeight(itemSp, true) + RailSectionHeight(itemSp, false))
-				: (3.f * RailSectionHeight(itemSp, false));
+				? (RailSectionHeight(itemSp, true) + RailSectionHeight(itemSp, false))
+				: (2.f * RailSectionHeight(itemSp, false));
 			float h = padY * 2.f
 				+ static_cast<float>(kBtns) * btnH
 				+ static_cast<float>(kGaps) * itemSp
@@ -160,10 +161,9 @@ namespace UIDetail
 				"HELPER",
 				"Browse", "Ledger", "Sheets", "API Check",
 				"TOOLS",
-				"Account", "Compass", "Pathing", "Completion", "Farming",
-				"Events", "Notes", "DPS Logs", "Trail Tools",
-				"COMPANIONS",
-				"Economy", "Instances",
+				"Compass", "Vault", "Events", "Instances", "Economy", "Farming",
+				"Pathing", "Trail Tools", "Completion",
+				"Notes", "DPS Logs", "Account",
 				"Settings"
 			};
 			const int nLabels = static_cast<int>(sizeof(kRailLabels) / sizeof(kRailLabels[0]));
@@ -218,7 +218,7 @@ namespace UIDetail
 		 * Auto-size icons to the helper height — always fit, never scroll the nav.
 		 * Tall windows: keep max icon + stretch gaps. Short: shrink icons + pad.
 		 */
-		constexpr int kStretchGaps = 15;
+		constexpr int kStretchGaps = 16;
 		const float iconSz = FitRailIconSize(dockH, labels);
 		const float padY = RailPadY(labels);
 		const float itemSp = RailItemSpacing(iconSz, labels);
@@ -356,15 +356,6 @@ namespace UIDetail
 
 		RailSectionGap(labels, "TOOLS");
 
-		if (PadNav::SideToggle("Account###gw2igh_account", G::ShowAccount, static_cast<int>(Gw2Ui::Icon::AccountSword), iconSz))
-		{
-			if (G::ShowAccount) { G::ShowAccount = false; Settings::SetDirty(); }
-			else AccountPad::OpenAndRefresh();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Account - stash, vault, TP, item lookup\nDefault: Ctrl+Shift+A (Settings -> Keybinds)");
-		RailStretchGap(stretch);
-
 		if (PadNav::SideToggle("Compass###gw2igh_dircompass", G::ShowCompassPad, static_cast<int>(Gw2Ui::Icon::CompassRadar), iconSz))
 		{
 			if (G::ShowCompassPad) { G::ShowCompassPad = false; Settings::SetDirty(); }
@@ -374,22 +365,40 @@ namespace UIDetail
 			ImGui::SetTooltip("Direction compass - enable + letter size + radius\nDefault: Ctrl+Shift+O (Settings -> Keybinds)");
 		RailStretchGap(stretch);
 
-		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides, static_cast<int>(Gw2Ui::Icon::PathingMap), iconSz))
+		if (PadNav::SideToggle("Vault###gw2igh_vault", G::ShowVault, static_cast<int>(Gw2Ui::Icon::VaultStar), iconSz))
 		{
-			if (G::ShowPathingGuides) { G::ShowPathingGuides = false; Settings::SetDirty(); }
-			else PathingGuidesPad::Open();
+			if (G::ShowVault) { G::ShowVault = false; Settings::SetDirty(); }
+			else VaultPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Pathing - Tekkit + Lady Elyssa + Hero packs\nDefault: Ctrl+Shift+G (Settings -> Keybinds)");
+			ImGui::SetTooltip("Vault - dailies & Wizard's Vault\nDefault: Ctrl+Shift+V (Settings -> Keybinds)");
 		RailStretchGap(stretch);
 
-		if (PadNav::SideToggle("Completion###gw2igh_completion", G::ShowCompletion, static_cast<int>(Gw2Ui::Icon::CompletePeak), iconSz))
+		if (PadNav::SideToggle("Events###gw2igh_events", G::ShowEvents, static_cast<int>(Gw2Ui::Icon::EventsMedal), iconSz))
 		{
-			if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
-			else CompletionPad::OpenAndRefresh();
+			if (G::ShowEvents) { G::ShowEvents = false; Settings::SetDirty(); }
+			else EventsPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Completion - checklist, Atlas, routes, GPS\nDefault: Ctrl+Shift+M (Settings -> Keybinds)");
+			ImGui::SetTooltip("World events - UTC timers + track list\nDefault: Ctrl+Shift+E (Settings -> Keybinds)");
+		RailStretchGap(stretch);
+
+		if (PadNav::SideToggle("Instances###gw2igh_instances", G::ShowInstances, static_cast<int>(Gw2Ui::Icon::InstGate), iconSz))
+		{
+			if (G::ShowInstances) { G::ShowInstances = false; Settings::SetDirty(); }
+			else InstancesPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Instances - story / fractal / raid / strike\nDefault: Ctrl+Shift+I (Settings -> Keybinds)");
+		RailStretchGap(stretch);
+
+		if (PadNav::SideToggle("Economy###gw2igh_economy", G::ShowEconomy, static_cast<int>(Gw2Ui::Icon::EconStack), iconSz))
+		{
+			if (G::ShowEconomy) { G::ShowEconomy = false; Settings::SetDirty(); }
+			else EconomyPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Economy - Flip Finder, charts, cart\nDefault: Ctrl+Shift+Y (Settings -> Keybinds)");
 		RailStretchGap(stretch);
 
 		if (PadNav::SideToggle("Farming###gw2igh_farming", G::ShowFarming, static_cast<int>(Gw2Ui::Icon::FarmSack), iconSz))
@@ -401,13 +410,31 @@ namespace UIDetail
 			ImGui::SetTooltip("Farming - run checklists + catch log\nDefault: Ctrl+Shift+R (Settings -> Keybinds)");
 		RailStretchGap(stretch);
 
-		if (PadNav::SideToggle("Events###gw2igh_events", G::ShowEvents, static_cast<int>(Gw2Ui::Icon::EventsMedal), iconSz))
+		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides, static_cast<int>(Gw2Ui::Icon::PathingMap), iconSz))
 		{
-			if (G::ShowEvents) { G::ShowEvents = false; Settings::SetDirty(); }
-			else EventsPad::OpenAndRefresh();
+			if (G::ShowPathingGuides) { G::ShowPathingGuides = false; Settings::SetDirty(); }
+			else PathingGuidesPad::Open();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("World events - UTC timers + track list\nDefault: Ctrl+Shift+E (Settings -> Keybinds)");
+			ImGui::SetTooltip("Pathing - Tekkit + Lady Elyssa + Hero packs\nDefault: Ctrl+Shift+G (Settings -> Keybinds)");
+		RailStretchGap(stretch);
+
+		if (PadNav::SideToggle("Trail Tools###gw2igh_trailtools", G::ShowTrailTools, static_cast<int>(Gw2Ui::Icon::TrailAnvil), iconSz))
+		{
+			if (G::ShowTrailTools) { G::ShowTrailTools = false; Settings::SetDirty(); }
+			else TrailToolsPad::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Trail Tools - author packs\nDefault: Ctrl+Shift+B (Settings -> Keybinds)");
+		RailStretchGap(stretch);
+
+		if (PadNav::SideToggle("Completion###gw2igh_completion", G::ShowCompletion, static_cast<int>(Gw2Ui::Icon::CompletePeak), iconSz))
+		{
+			if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
+			else CompletionPad::OpenAndRefresh();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Completion - checklist, Atlas, routes, GPS\nDefault: Ctrl+Shift+M (Settings -> Keybinds)");
 		RailStretchGap(stretch);
 
 		if (PadNav::SideToggle("Notes###gw2igh_notes", G::ShowNotes, static_cast<int>(Gw2Ui::Icon::NotesScroll), iconSz))
@@ -428,33 +455,13 @@ namespace UIDetail
 			ImGui::SetTooltip("DPS Logs - ArcDPS EVTC via Elite Insights\nDefault: Ctrl+Shift+L (Settings -> Keybinds)");
 		RailStretchGap(stretch);
 
-		if (PadNav::SideToggle("Trail Tools###gw2igh_trailtools", G::ShowTrailTools, static_cast<int>(Gw2Ui::Icon::TrailAnvil), iconSz))
+		if (PadNav::SideToggle("Account###gw2igh_account", G::ShowAccount, static_cast<int>(Gw2Ui::Icon::AccountSword), iconSz))
 		{
-			if (G::ShowTrailTools) { G::ShowTrailTools = false; Settings::SetDirty(); }
-			else TrailToolsPad::Open();
+			if (G::ShowAccount) { G::ShowAccount = false; Settings::SetDirty(); }
+			else AccountPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Trail Tools - author packs\nDefault: Ctrl+Shift+B (Settings -> Keybinds)");
-		RailStretchGap(stretch);
-
-		RailSectionGap(labels, "COMPANIONS");
-
-		if (PadNav::SideToggle("Economy###gw2igh_economy", G::ShowEconomy, static_cast<int>(Gw2Ui::Icon::EconStack), iconSz))
-		{
-			if (G::ShowEconomy) { G::ShowEconomy = false; Settings::SetDirty(); }
-			else EconomyPad::OpenAndRefresh();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Economy - Flip Finder, charts, cart\nDefault: Ctrl+Shift+Y (Settings -> Keybinds)");
-		RailStretchGap(stretch);
-
-		if (PadNav::SideToggle("Instances###gw2igh_instances", G::ShowInstances, static_cast<int>(Gw2Ui::Icon::InstGate), iconSz))
-		{
-			if (G::ShowInstances) { G::ShowInstances = false; Settings::SetDirty(); }
-			else InstancesPad::OpenAndRefresh();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Instances - story / fractal / raid / strike\nDefault: Ctrl+Shift+I (Settings -> Keybinds)");
+			ImGui::SetTooltip("Account - progress, unlocks, history\nDefault: Ctrl+Shift+A (Settings -> Keybinds)");
 		RailStretchGap(stretch);
 
 		RailSectionGap(labels, nullptr);
