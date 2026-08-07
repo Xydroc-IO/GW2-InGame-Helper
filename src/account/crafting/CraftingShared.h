@@ -249,7 +249,7 @@ namespace CraftingDetail
 	DWORD WINAPI DailyProc(void*);
 	void StartDailies(bool force);
 
-	/* CraftingKnown.cpp */
+	/* CraftingKnown.cpp — account/char known recipe ids */
 	void StartKnown(bool force);
 	bool KnownBusy();
 	bool KnownHasFetched();
@@ -262,7 +262,7 @@ namespace CraftingDetail
 	size_t KnownUnionCount();
 	/* -2 N/A, -1 loading, 0 not known by selected/any, 1 known */
 	int RecipeKnownState(int recipeId, const char* preferChar = nullptr);
-	/* Queue missing recipe details for a worker (never blocks Present). */
+	/* CraftingKnownDetails.cpp — recipe→output resolve (never on Present) */
 	void EnsureKnownRecipeDetails(const std::vector<int>& recipeIds);
 	/* Enqueue at most maxN missing ids (cheap; for UI throttle). */
 	void EnsureNextKnownRecipeDetails(const std::vector<int>& recipeIds, size_t maxN);

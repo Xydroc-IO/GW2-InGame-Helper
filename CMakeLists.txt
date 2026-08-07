@@ -188,10 +188,14 @@ add_library(GW2-InGame-Helper SHARED
   src/account/crafting/CraftingPlanResolve.cpp
   src/account/crafting/CraftingPlanSnapshot.cpp
   src/account/crafting/CraftingDailies.cpp
+  src/account/crafting/CraftingKnown.cpp
+  src/account/crafting/CraftingKnownDetails.cpp
+  src/account/crafting/CraftingKnownUi.cpp
   src/events/EventsPad.cpp
   src/events/EventsPadState.cpp
   src/events/EventsData.cpp
   src/economy/EconomyPad.cpp
+  src/economy/EconomyPadUi.cpp
   src/economy/EconomyPadState.cpp
   src/economy/EconomyFetch.cpp
   src/economy/EconomyFetchFlip.cpp
@@ -202,6 +206,7 @@ add_library(GW2-InGame-Helper SHARED
   src/completion/CompletionPad.cpp
   src/completion/CompletionPadState.cpp
   src/completion/CompletionData.cpp
+  src/completion/CompletionGuide.cpp
   src/completion/CompletionRoute.cpp
   src/completion/CompletionHierarchy.cpp
   src/completion/CompletionFavorites.cpp

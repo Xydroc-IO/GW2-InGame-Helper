@@ -146,6 +146,7 @@ DLL_SRC = \
 	src/account/crafting/CraftingPlanSnapshot.cpp \
 	src/account/crafting/CraftingDailies.cpp \
 	src/account/crafting/CraftingKnown.cpp \
+	src/account/crafting/CraftingKnownDetails.cpp \
 	src/account/crafting/CraftingKnownUi.cpp \
 	src/account/crafting/CraftingCart.cpp \
 	src/account/crafting/CraftingCartPlan.cpp \
@@ -157,6 +158,7 @@ DLL_SRC = \
 	src/events/EventsPadState.cpp \
 	src/events/EventsData.cpp \
 	src/economy/EconomyPad.cpp \
+	src/economy/EconomyPadUi.cpp \
 	src/economy/EconomyPadState.cpp \
 	src/economy/EconomyFetch.cpp \
 	src/economy/EconomyFetchFlip.cpp \
@@ -168,6 +170,7 @@ DLL_SRC = \
 	src/completion/CompletionPad.cpp \
 	src/completion/CompletionPadState.cpp \
 	src/completion/CompletionData.cpp \
+	src/completion/CompletionGuide.cpp \
 	src/completion/CompletionRoute.cpp \
 	src/completion/CompletionHierarchy.cpp \
 	src/completion/CompletionFavorites.cpp \
