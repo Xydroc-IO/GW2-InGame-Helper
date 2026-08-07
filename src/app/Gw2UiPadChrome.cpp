@@ -138,8 +138,9 @@ namespace Gw2UiDetail
 bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge)
 {
 	/*
-	 * Translucent wash plate (Hero lets the world show through) + dual rim:
-	 * panel-edge (tight) then ink-edge (soft outer bleed). Top stays flush for title.
+	 * Translucent wash plate (Hero lets the world show through) + dual rim.
+	 * Leave the title-bar band empty so the strip can fade L→R onto the game
+	 * (Hero title is not backed by an opaque plate).
 	 */
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 	if (!dl)
@@ -154,6 +155,9 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge)
 	const ImVec2 p0 = ImGui::GetWindowPos();
 	const ImVec2 sz = ImGui::GetWindowSize();
 	const ImVec2 p1(p0.x + sz.x, p0.y + sz.y);
+	/* Expanded title strip height — must match DrawPadTitleBar kTitleH. */
+	constexpr float kTitleH = 60.f;
+	const ImVec2 wash0(p0.x, p0.y + kTitleH);
 
 	Texture_t* wash = Gw2UiDetail::GetChromeNamed("panel-wash");
 	Texture_t* fill = (wash && wash->Resource) ? wash : Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::PanelFill));
@@ -161,29 +165,38 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge)
 		fill = Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::PanelFillAlt));
 	const bool usingWash = (wash && wash->Resource && fill == wash);
 
-	dl->PushClipRect(p0, p1, false);
-	/* See-through underpaint — opaque plates kill the ink fringe silhouette. */
-	dl->AddRectFilled(p0, p1, IM_COL32(10, 8, 6, static_cast<int>(a * 168.f + 0.5f)));
-
-	if (!fill || !fill->Resource)
+	if (wash0.y < p1.y - 1.f)
 	{
-		dl->AddRect(p0, p1, IM_COL32(161, 120, 56, static_cast<int>(a * 200.f + 0.5f)));
+		dl->PushClipRect(wash0, p1, false);
+		dl->AddRectFilled(wash0, p1, IM_COL32(10, 8, 6, static_cast<int>(a * 168.f + 0.5f)));
+
+		if (!fill || !fill->Resource)
+		{
+			dl->AddRect(wash0, p1, IM_COL32(161, 120, 56, static_cast<int>(a * 200.f + 0.5f)));
+			dl->PopClipRect();
+			return false;
+		}
+
+		const ImU32 washCol = IM_COL32(255, 255, 255, static_cast<int>(a * 205.f + 0.5f));
+		ImVec2 uv0(0.f, 0.f), uv1(1.f, 1.f);
+		if (!usingWash)
+		{
+			constexpr float tex = 1024.f;
+			uv0 = ImVec2(48.f / tex, 34.f / tex);
+			uv1 = ImVec2((40.f + 905.f) / tex, (26.f + 680.f) / tex);
+		}
+		else
+		{
+			/* Map wash UV so the crop matches the full window, then clip to body. */
+			const float v0 = kTitleH / (sz.y > 1.f ? sz.y : 1.f);
+			uv0 = ImVec2(0.f, v0);
+			uv1 = ImVec2(1.f, 1.f);
+		}
+		dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
+			wash0, p1, uv0, uv1, washCol);
+		dl->AddRectFilled(wash0, p1, IM_COL32(6, 4, 3, static_cast<int>(a * 36.f + 0.5f)));
 		dl->PopClipRect();
-		return false;
 	}
-
-	const ImU32 washCol = IM_COL32(255, 255, 255, static_cast<int>(a * 205.f + 0.5f));
-	ImVec2 uv0(0.f, 0.f), uv1(1.f, 1.f);
-	if (!usingWash)
-	{
-		constexpr float tex = 1024.f;
-		uv0 = ImVec2(48.f / tex, 34.f / tex);
-		uv1 = ImVec2((40.f + 905.f) / tex, (26.f + 680.f) / tex);
-	}
-	dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
-		p0, p1, uv0, uv1, washCol);
-	dl->AddRectFilled(p0, p1, IM_COL32(6, 4, 3, static_cast<int>(a * 36.f + 0.5f)));
-	dl->PopClipRect();
 
 	/* Rim on this window's draw list so companion pads can still cover it. */
 	Gw2UiDetail::PaintHeroRim(dl, p0, p1, a,

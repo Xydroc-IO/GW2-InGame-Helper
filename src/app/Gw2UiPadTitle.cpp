@@ -116,38 +116,113 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 		const ImVec2 t1(win0.x + winW, win0.y + kTitleH + (collapsed ? 4.f : 0.f));
 		dl->PushClipRect(t0, ImVec2(t1.x, t1.y + 2.f), false);
 
-		/* Opaque 156046 strip — flush top; may overhang left over the side rail. */
+		/*
+		 * Hero title fade: dense left, soft brush to the game on the right.
+		 * GPU-interpolated vertex alpha (not banded slices) — body wash starts
+		 * below this strip so the fade reveals the world.
+		 */
 		Texture_t* titleBar = Gw2UiDetail::GetChromeNamed("title-bar");
-		/* Solid underpaint so feathered pack fringes never leave a tan rim at the top. */
-		dl->AddRectFilled(t0, t1, IM_COL32(14, 11, 8, static_cast<int>(a * 255.f + 0.5f)));
-		if (titleBar && titleBar->Resource && !collapsed)
+		Texture_t* fillFallback = nullptr;
+		if ((!titleBar || !titleBar->Resource) && !collapsed)
+			fillFallback = Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::PanelFill));
+
+		auto imageHFade = [&](ImTextureID tex, ImVec2 pmin, ImVec2 pmax,
+			ImVec2 uvmin, ImVec2 uvmax, ImU32 colL, ImU32 colR) {
+			if (((colL | colR) & IM_COL32_A_MASK) == 0)
+				return;
+			const bool push = tex != dl->_CmdHeader.TextureId;
+			if (push)
+				dl->PushTextureID(tex);
+			dl->PrimReserve(6, 4);
+			dl->PrimQuadUV(
+				ImVec2(pmin.x, pmin.y), ImVec2(pmax.x, pmin.y),
+				ImVec2(pmax.x, pmax.y), ImVec2(pmin.x, pmax.y),
+				uvmin, ImVec2(uvmax.x, uvmin.y),
+				uvmax, ImVec2(uvmin.x, uvmax.y),
+				colL);
+			/* PrimQuadUV wrote one color — rewrite right-edge verts to colR. */
+			ImDrawVert* v = dl->VtxBuffer.Data + (dl->VtxBuffer.Size - 4);
+			v[1].col = colR; /* TR */
+			v[2].col = colR; /* BR */
+			if (push)
+				dl->PopTextureID();
+		};
+
+		if (!collapsed)
 		{
-			dl->AddImage(reinterpret_cast<ImTextureID>(titleBar->Resource),
-				t0, t1, ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), col);
+			const float stripW = t1.x - t0.x;
+			/*
+			 * Hero: dense left → soft mid (world shows) → lil grey pocket on the
+			 * far right behind − / X (never fade all the way to clear).
+			 */
+			constexpr float kHold = 0.28f;
+			constexpr float kTrough = 0.76f;
+			const float xHold = t0.x + stripW * kHold;
+			const float xTrough = t0.x + stripW * kTrough;
+
+			const int aSolid = static_cast<int>(a * 255.f + 0.5f);
+			const int aUnder = static_cast<int>(a * 210.f + 0.5f);
+			const int aTroughTex = static_cast<int>(a * 40.f + 0.5f);
+			const int aCornerTex = static_cast<int>(a * 165.f + 0.5f);
+			const int aTroughUnd = static_cast<int>(a * 32.f + 0.5f);
+			const int aCornerUnd = static_cast<int>(a * 150.f + 0.5f);
+			const ImU32 texSolid = IM_COL32(255, 255, 255, aSolid);
+			const ImU32 texTrough = IM_COL32(255, 255, 255, aTroughTex);
+			const ImU32 texCorner = IM_COL32(255, 255, 255, aCornerTex);
+			const ImU32 undSolid = IM_COL32(14, 11, 8, aUnder);
+			const ImU32 undTrough = IM_COL32(14, 11, 8, aTroughUnd);
+			const ImU32 undCorner = IM_COL32(14, 11, 8, aCornerUnd);
+
+			dl->AddRectFilled(t0, ImVec2(xHold, t1.y), undSolid);
+			dl->AddRectFilledMultiColor(
+				ImVec2(xHold, t0.y), ImVec2(xTrough, t1.y),
+				undSolid, undTrough, undTrough, undSolid);
+			dl->AddRectFilledMultiColor(
+				ImVec2(xTrough, t0.y), t1,
+				undTrough, undCorner, undCorner, undTrough);
+
+			auto drawSeg = [&](float x0, float x1, float u0, float u1, ImU32 cL, ImU32 cR) {
+				const ImVec2 pmin(x0, t0.y);
+				const ImVec2 pmax(x1, t1.y);
+				if (titleBar && titleBar->Resource)
+				{
+					imageHFade(reinterpret_cast<ImTextureID>(titleBar->Resource),
+						pmin, pmax, ImVec2(u0, 0.f), ImVec2(u1, 1.f), cL, cR);
+				}
+				else if (fillFallback && fillFallback->Resource)
+				{
+					constexpr float tex = 1024.f;
+					imageHFade(reinterpret_cast<ImTextureID>(fillFallback->Resource),
+						pmin, pmax,
+						ImVec2((40.f + 913.f * u0) / tex, 26.f / tex),
+						ImVec2((40.f + 913.f * u1) / tex, (26.f + 78.f) / tex),
+						cL, cR);
+				}
+			};
+			drawSeg(t0.x, xHold, 0.f, kHold, texSolid, texSolid);
+			drawSeg(xHold, xTrough, kHold, kTrough, texSolid, texTrough);
+			drawSeg(xTrough, t1.x, kTrough, 1.f, texTrough, texCorner);
+
+			/* Hairline under-edge follows the same hold → trough → corner pocket. */
+			dl->AddRectFilled(
+				ImVec2(t0.x, t1.y - 1.5f), ImVec2(xHold, t1.y - 0.5f),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 160.f + 0.5f)));
+			dl->AddRectFilledMultiColor(
+				ImVec2(xHold, t1.y - 1.5f), ImVec2(xTrough, t1.y - 0.5f),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 160.f + 0.5f)),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 40.f + 0.5f)),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 40.f + 0.5f)),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 160.f + 0.5f)));
+			dl->AddRectFilledMultiColor(
+				ImVec2(xTrough, t1.y - 1.5f), ImVec2(t1.x, t1.y - 0.5f),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 40.f + 0.5f)),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 120.f + 0.5f)),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 120.f + 0.5f)),
+				IM_COL32(55, 48, 38, static_cast<int>(a * 40.f + 0.5f)));
 		}
-		else if (!collapsed)
-		{
-			Texture_t* fill = Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::PanelFill));
-			if (fill && fill->Resource)
-			{
-				constexpr float tex = 1024.f;
-				const float u0 = 40.f / tex;
-				const float u1 = (40.f + 913.f) / tex;
-				const float v0 = 26.f / tex;
-				const float v1 = (26.f + 78.f) / tex;
-				dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
-					t0, t1, ImVec2(u0, v0), ImVec2(u1, v1), col);
-			}
-			dl->AddRectFilled(t0, t1,
-				IM_COL32(8, 7, 6, static_cast<int>(a * 165.f + 0.5f)));
-		}
-		if (collapsed)
+		else
 			dl->AddRectFilled(t0, t1, IM_COL32(8, 7, 6, static_cast<int>(a * 235.f + 0.5f)));
-		/* Under-edge of the title strip (meets body below). */
-		dl->AddLine(
-			ImVec2(t0.x + 1.f, t1.y - 1.f),
-			ImVec2(t1.x - 1.f, t1.y - 1.f),
-			IM_COL32(55, 48, 38, static_cast<int>(a * 160.f + 0.5f)), 1.0f);
+
 		dl->PopClipRect();
 	}
 
