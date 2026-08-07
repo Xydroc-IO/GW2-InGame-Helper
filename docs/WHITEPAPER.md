@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.3.6 | 2.2.3.6 | Hero chrome (dual rim, gem crest, browse-hero); Browse ERR_FILE_NOT_FOUND; rail fit; crafting cart |
+| 2.2.3.6 | 2.2.3.6 | Hero chrome (dual rim, gem crest, title fade, browse-hero); no CEF context menu; Browse ERR_FILE_NOT_FOUND; rail fit; crafting cart |
 | 2.2.3.5 | 2.2.3.5 | Home-while-Home CEF crash fix; skip identical browse-hub rewrite |
 | 2.2.3.4 | 2.2.3.4 | Compact pads; icon dock; stash speed; DAT scroll Z-order (uc21); Helper gold CEF bars |
 | 2.2.3.3 | 2.2.3.3 | Title-bar 156046; soft ink rim; no black matte frame |
@@ -911,7 +911,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2238 / 2227 / s2213 / c2223 |
+| Helper / home / sites / cheatsheets stamps | 2239 / 2227 / s2213 / c2223 |
 | Live panel stamp | 50 |
 | ui-chrome stamp | uc23 |
 | OSR `device_scale_factor` | 1.0 |
@@ -995,6 +995,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.3.6 — Hero chrome; Browse ERR_FILE_NOT_FOUND; helper 2238 |
+| Last sync | 2.2.3.6 — Hero chrome/title fade; no CEF context menu; Browse ERR_FILE_NOT_FOUND; helper 2239 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.6, 2026. |

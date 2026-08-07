@@ -37,13 +37,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 - **Hero chrome:** Dual rim (`panel-edge` + `ink-edge`), translucent wash, amber gem crest
   centered on the side rail with **Game Helper** title to its right.
+- **Title fade:** Title strip fades L→R onto the game (wash starts below the band) with a soft
+  grey pocket behind − / X — Hero-style, not an opaque plate edge-to-edge.
 - **Browse hub art:** Armored figure (`browse-hero`) on hub and every category page.
 - **Side rail:** Icons auto-shrink to fit helper height (no nav scroll); matching top/bottom pad.
 - **Browse stability:** Stop deleting open `live-browse-*.html` under CEF (fixes intermittent
   Chromium “Can't find the page”); stamp-only invalidate + Reload when already on hub.
+- **No CEF context menu:** Right-click clears the Chromium menu (Back / Forward / Print / View
+  source); OSR quick menu cancelled.
 - **Crafting:** Known-recipes rail, multi-item craft cart, buy-vs-craft plan split into focused
   TUs; Economy cart **Plan** / **Plan first** handoff.
-- **Stamps:** Helper `2238` · homepage `2227` · sites `s2213` · cheatsheets `c2223`
+- **Stamps:** Helper `2239` · homepage `2227` · sites `s2213` · cheatsheets `c2223`
   · live panel `50` · raid food `5` · ui-chrome `uc23`
 
 ## What’s new in 2.2.3.5
