@@ -15,9 +15,8 @@ namespace CompletionDetail
 			const char* name; /* optional fill if blank */
 		};
 
-		/* Open-world / hub Public maps from official /v2/maps (type=Public, continent=Tyria).
-		   Strikes, raids, festival, and "(Public)" instance clones omitted.
-		   Local table only - no game memory. Unknown ids -> Uncatalogued. */
+		/* Open-world / hub Public maps from official /v2/maps plus curated
+		   Strikes and Festival/(Public) clones. Unknown ids -> Uncatalogued. */
 		const HierRow kHier[] = {
 			/* Core Tyria */
 			{ 218, "Core Tyria", "Ascalon", "Black Citadel" },
@@ -106,6 +105,32 @@ namespace CompletionDetail
 			{ 1622, "Visions of Eternity", "Castora", "Eternity's Garden" },
 			{ 1595, "Visions of Eternity", "Castora", "Shipwreck Strand" },
 			{ 1593, "Visions of Eternity", "Castora", "Starlit Weald" },
+			/* Strikes — Public clones when available; Instance maps otherwise */
+			{ 1344, "Strikes", "Icebrood Saga", "Fraenir of Jormag" },
+			{ 1340, "Strikes", "Icebrood Saga", "Voice and Claw of the Fallen" },
+			{ 1351, "Strikes", "Icebrood Saga", "Boneskinner" },
+			{ 1357, "Strikes", "Icebrood Saga", "Whisper of Jormag" },
+			{ 1376, "Strikes", "Icebrood Saga", "Cold War" },
+			{ 1331, "Strikes", "Icebrood Saga", "Shiverpeaks Pass" },
+			{ 1432, "Strikes", "End of Dragons", "Aetherblade Hideout" },
+			{ 1450, "Strikes", "End of Dragons", "Xunlai Jade Junkyard" },
+			{ 1451, "Strikes", "End of Dragons", "Kaineng Overlook" },
+			{ 1437, "Strikes", "End of Dragons", "Harvest Temple" },
+			{ 1485, "Strikes", "End of Dragons", "Old Lion's Court" },
+			{ 1515, "Strikes", "Secrets of the Obscure", "Cosmic Observatory" },
+			{ 1520, "Strikes", "Secrets of the Obscure", "Temple of Febe" },
+			/* Festival & (Public) instance clones */
+			{ 866, "Festival & clones", "Halloween", "Mad King's Labyrinth" },
+			{ 922, "Festival & clones", "Labyrinthine Cliffs", "Labyrinthine Cliffs" },
+			{ 935, "Festival & clones", "Super Adventure Box", "Super Adventure Box" },
+			{ 943, "Festival & clones", "Living World", "The Tower of Nightmares" },
+			{ 1326, "Festival & clones", "Dragon Bash", "Dragon Arena" },
+			{ 1352, "Festival & clones", "Wintersday", "Secret Lair of the Snowmen" },
+			{ 1411, "Festival & clones", "Icebrood Saga", "Dragonstorm" },
+			{ 1413, "Festival & clones", "Living World", "The Twisted Marionette" },
+			{ 1482, "Festival & clones", "Living World", "The Battle For Lion's Arch" },
+			{ 1523, "Festival & clones", "Secrets of the Obscure", "Convergence: Outer Nayos" },
+			{ 1571, "Festival & clones", "Janthir Wilds", "Convergence: Mount Balrior" },
 		};
 
 	}

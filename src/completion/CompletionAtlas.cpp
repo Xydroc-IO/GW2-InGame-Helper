@@ -18,6 +18,8 @@ namespace CompletionDetail
 	{
 		bool MapMatchesFilter(const MapInfo& m)
 		{
+			if (!MapInAtlasScope(m, gAtlasScope))
+				return false;
 			if (gAtlasFavOnly && !IsFavorite(m.id))
 				return false;
 			if (!gAtlasFilter[0])
@@ -110,7 +112,7 @@ namespace CompletionDetail
 				}
 				else
 					ImGui::TextColored(HelperTheme::Muted,
-						"No live index yet - open zone or Checklist to load waypoints.");
+						"No live index yet — waiting for waypoint floor cache (loads on open).");
 				ImGui::TextColored(HelperTheme::Muted, "Double-click opens Checklist.");
 				ImGui::EndTooltip();
 			}
@@ -136,6 +138,21 @@ namespace CompletionDetail
 		LoadFavorites();
 		ImGui::InputTextWithHint("##atlas", "Filter name / region / release...",
 			gAtlasFilter, sizeof(gAtlasFilter));
+		ImGui::TextColored(HelperTheme::Muted, "Scope");
+		for (int i = 0; i < static_cast<int>(AtlasScope::Count); ++i)
+		{
+			const AtlasScope s = static_cast<AtlasScope>(i);
+			if (i) ImGui::SameLine();
+			const bool on = gAtlasScope == s;
+			if (on)
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.55f, 0.42f, 0.12f, 1.f));
+			char lab[40];
+			std::snprintf(lab, sizeof(lab), "%s###as%d", AtlasScopeName(s), i);
+			if (ImGui::SmallButton(lab))
+				gAtlasScope = s;
+			if (on)
+				ImGui::PopStyleColor();
+		}
 		ImGui::Checkbox("Favorites only###gw2igh_afav", &gAtlasFavOnly);
 		DrawKindChips();
 		EnsureCatalog();

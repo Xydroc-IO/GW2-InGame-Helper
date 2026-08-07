@@ -74,7 +74,7 @@ namespace CompletionDetail
 						GuideToObjective(idx);
 					if (ImGui::IsItemHovered())
 						ImGui::SetTooltip(
-							"Orange GPS trail to this point only.\n"
+							"Orange GPS pathfind to this point (pack trails + waypoints).\n"
 							"Does not enable pathing pack categories.");
 				}
 				ImGui::PopID();
@@ -134,7 +134,7 @@ namespace CompletionDetail
 		if (tree.empty())
 		{
 			ImGui::TextColored(HelperTheme::Muted,
-				"No objectives yet - open Atlas or enter a zone for the live index.");
+				"No objectives yet — waiting for live waypoint index, or pick a zone in Atlas.");
 			ImGui::EndChild();
 			return;
 		}

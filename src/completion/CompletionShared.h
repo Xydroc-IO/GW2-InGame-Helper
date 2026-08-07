@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <vector>
 
 namespace CompletionDetail
@@ -82,12 +83,45 @@ namespace CompletionDetail
 		}
 	}
 
+	enum class AtlasScope : int
+	{
+		Public = 0, /* open-world releases — default */
+		Strikes,
+		Festival,
+		All,
+		Count
+	};
+
+	inline const char* AtlasScopeName(AtlasScope s)
+	{
+		switch (s)
+		{
+		case AtlasScope::Public: return "Public";
+		case AtlasScope::Strikes: return "Strikes";
+		case AtlasScope::Festival: return "Festival";
+		case AtlasScope::All: return "All";
+		default: return "?";
+		}
+	}
+
+	inline bool MapInAtlasScope(const MapInfo& m, AtlasScope scope)
+	{
+		if (scope == AtlasScope::All) return true;
+		const bool strike = std::strncmp(m.release, "Strikes", 7) == 0;
+		const bool fest = std::strncmp(m.release, "Festival", 8) == 0;
+		if (scope == AtlasScope::Strikes) return strike;
+		if (scope == AtlasScope::Festival) return fest;
+		/* Public: everything except Strikes / Festival groups */
+		return !strike && !fest;
+	}
+
 	extern bool gFocus;
 	extern bool gPlaceOnce;
 	extern int gTab; /* 0 checklist | 1 atlas | 2 route */
 	extern bool gTabSelectOnce; /* apply SetSelected once then clear */
 	extern RouteMode gRouteMode;
 	extern char gAtlasFilter[96];
+	extern AtlasScope gAtlasScope;
 	extern char gStatus[192];
 	extern uint32_t gFocusMapId;
 	extern int gFocusObjective;

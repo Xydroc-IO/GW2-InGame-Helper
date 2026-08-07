@@ -27,6 +27,7 @@ namespace CompletionDetail
 	bool gTabSelectOnce = false;
 	RouteMode gRouteMode = RouteMode::Nearest;
 	char gAtlasFilter[96]{};
+	AtlasScope gAtlasScope = AtlasScope::Public;
 	char gStatus[192]{};
 	uint32_t gFocusMapId = 0;
 	int gFocusObjective = -1;
@@ -133,6 +134,7 @@ namespace CompletionDetail
 		void MergeLivePois(uint32_t mapId)
 		{
 			WaypointsData::EnsureLoaded(false);
+			WaypointsData::Tick();
 			if (!WaypointsData::Ready())
 				return;
 			std::vector<WaypointsData::Poi> pois;
@@ -168,18 +170,30 @@ namespace CompletionDetail
 			SeedCurated();
 			gReady = true;
 		}
+
+		/* Eager floor index — do not wait for a map change to start loading. */
+		WaypointsData::EnsureLoaded(false);
+		WaypointsData::Tick();
+
 		const uint32_t cur = static_cast<uint32_t>(WaypointsData::CurrentMapId());
-		if (cur != 0 && cur != gLiveSyncedMap)
+		uint32_t want = gFocusMapId != 0 ? gFocusMapId : cur;
+		if (want == 0)
+			want = cur;
+
+		if (!WaypointsData::Ready())
 		{
-			MergeLivePois(cur);
-			gLiveSyncedMap = cur;
-			if (gFocusMapId == 0)
-				gFocusMapId = cur;
+			/* Keep gLiveSyncedMap at 0 so we retry once the index is ready. */
+			if (gLiveSyncedMap != 0 && want != 0 && want != gLiveSyncedMap)
+				gLiveSyncedMap = 0;
+			return;
 		}
-		else if (gFocusMapId != 0 && gFocusMapId != gLiveSyncedMap)
+
+		if (want != 0 && want != gLiveSyncedMap)
 		{
-			MergeLivePois(gFocusMapId);
-			gLiveSyncedMap = gFocusMapId;
+			MergeLivePois(want);
+			gLiveSyncedMap = want;
+			if (gFocusMapId == 0 && cur != 0)
+				gFocusMapId = cur;
 		}
 	}
 

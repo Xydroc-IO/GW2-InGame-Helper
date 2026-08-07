@@ -21,5 +21,7 @@ void CompletionPad::OpenAndRefresh()
 
 void CompletionPad::Tick()
 {
+	WaypointsData::Tick();
+	CompletionDetail::EnsureCatalog();
 	CompletionDetail::TickAutoArrive();
 }
