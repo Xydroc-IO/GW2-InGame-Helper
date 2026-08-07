@@ -13,6 +13,7 @@
 
 #include "imgui/imgui.h"
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -80,6 +81,12 @@ namespace
 			PadNav::WrapSameLine(PadNav::ButtonWidth("Reset"));
 			if (ImGui::Button("Reset###gw2igh_farm_rs"))
 				ResetRun(static_cast<size_t>(gSelectedRun));
+			ImGui::SameLine();
+			if (ImGui::Button("Refresh nodes###gw2igh_farm_nodes"))
+				RefreshLiveNodes(static_cast<size_t>(gSelectedRun));
+			ImGui::SameLine();
+			if (ImGui::Button("GPS nearest###gw2igh_farm_gps"))
+				GuideNearestLiveNode();
 			for (size_t si = 0; si < r.steps.size(); ++si)
 			{
 				ImGui::PushID(static_cast<int>(si));
@@ -89,6 +96,25 @@ namespace
 					ToggleStep(static_cast<size_t>(gSelectedRun), si);
 				PadNav::PopWrap();
 				ImGui::PopID();
+			}
+			const auto& nodes = LiveNodes();
+			if (!nodes.empty())
+			{
+				ImGui::Separator();
+				PadNav::SectionTitle("Live nearest nodes");
+				ImGui::TextColored(HelperTheme::Muted,
+					"From Pathing pack markers on your map (not a spawn API).");
+				const size_t showN = nodes.size() < 12 ? nodes.size() : 12;
+				for (size_t ni = 0; ni < showN; ++ni)
+				{
+					ImGui::PushID(static_cast<int>(1000 + ni));
+					const float d = nodes[ni].distSq > 0.f ? std::sqrt(nodes[ni].distSq) : 0.f;
+					ImGui::TextWrapped("%.0f  %s", d, nodes[ni].label);
+					ImGui::SameLine();
+					if (ImGui::SmallButton("GPS"))
+						GuideLiveNode(ni);
+					ImGui::PopID();
+				}
 			}
 		}
 		ImGui::EndChild();

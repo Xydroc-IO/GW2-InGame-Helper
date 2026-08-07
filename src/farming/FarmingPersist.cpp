@@ -43,7 +43,7 @@ namespace FarmingDetail
 	{
 		if (!gRuns.empty()) return;
 		{
-			Run r{}; r.id = 1;
+			Run r{}; r.id = 1; r.mapId = 1015;
 			std::snprintf(r.name, sizeof(r.name), "Silverwastes farm loop");
 			std::snprintf(r.pathingHint, sizeof(r.pathingHint), "tw_guides.tw_gatheringnodes");
 			AddStep(r, "Enter The Silverwastes");
@@ -53,7 +53,7 @@ namespace FarmingDetail
 			gRuns.push_back(r);
 		}
 		{
-			Run r{}; r.id = 2;
+			Run r{}; r.id = 2; r.mapId = 988;
 			std::snprintf(r.name, sizeof(r.name), "Dry Top crystals");
 			std::snprintf(r.pathingHint, sizeof(r.pathingHint), "tw_guides.tw_gatheringnodes");
 			AddStep(r, "Enter Dry Top");
@@ -62,7 +62,7 @@ namespace FarmingDetail
 			gRuns.push_back(r);
 		}
 		{
-			Run r{}; r.id = 3;
+			Run r{}; r.id = 3; r.mapId = 0;
 			std::snprintf(r.name, sizeof(r.name), "Fishing - Kryta coasts");
 			std::snprintf(r.pathingHint, sizeof(r.pathingHint), "tw_guides.tw_fishing");
 			AddStep(r, "Equip fishing gear");
@@ -71,7 +71,7 @@ namespace FarmingDetail
 			gRuns.push_back(r);
 		}
 		{
-			Run r{}; r.id = 4;
+			Run r{}; r.id = 4; r.mapId = 0;
 			std::snprintf(r.name, sizeof(r.name), "Home instance nodes");
 			std::snprintf(r.pathingHint, sizeof(r.pathingHint), "tw_guides.tw_gatheringnodes");
 			AddStep(r, "Enter home instance");

@@ -14,6 +14,7 @@ namespace FarmingDetail
 	struct Run
 	{
 		int id = 0;
+		int mapId = 0; /* preferred map for live nodes; 0 = any / current */
 		char name[96]{};
 		char pathingHint[96]{};
 		std::vector<RunStep> steps;
@@ -24,6 +25,14 @@ namespace FarmingDetail
 		char name[64]{};
 		char map[64]{};
 		int count = 0;
+	};
+
+	struct LiveNode
+	{
+		char label[96]{};
+		float continentX = 0.f;
+		float continentY = 0.f;
+		float distSq = 0.f;
 	};
 
 	extern bool gFocus;
@@ -44,4 +53,9 @@ namespace FarmingDetail
 	bool StartRunPathing(size_t run);
 	void Load();
 	void Save();
+
+	void RefreshLiveNodes(size_t run);
+	const std::vector<LiveNode>& LiveNodes();
+	bool GuideLiveNode(size_t idx);
+	bool GuideNearestLiveNode();
 }
