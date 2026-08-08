@@ -1,5 +1,6 @@
 #include "LivePanelsBuildBrowseHubInternal.h"
 
+#include "HelperThemeCss.h"
 #include "Sites.h"
 
 #include <cstring>
@@ -145,7 +146,9 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		"<p class=\"credit\">Created By Xydroc</p>"
 		"</div><script>";
 	html += HubJs();
-	html += "</script></body></html>";
+	html += "</script>";
+	html += HelperThemeCss::ViewportSyncJs();
+	html += "</body></html>";
 	return html;
 }
 

@@ -21,7 +21,7 @@ extern "C" const unsigned char _binary_build_cheatsheets_zip_end[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "c2226";
+	constexpr const char* kPackStamp = "c2228";
 
 	struct OwnedSheet
 	{
@@ -428,11 +428,19 @@ std::string CheatSheets::EnsureFileUrl(const std::wstring& addonDir, const Sheet
 
 	const std::wstring path = SheetsDir(addonDir) + L"\\" +
 		std::wstring(sheet.fileStem, sheet.fileStem + std::strlen(sheet.fileStem)) + L".html";
-	HANDLE probe = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (probe == INVALID_HANDLE_VALUE)
+	std::string html;
+	if (!ReadFileUtf8(path, html))
 		return {};
-	CloseHandle(probe);
+	/* CEF OSR viewport height for short-page vertical centering. */
+	if (html.find("--app-h") == std::string::npos)
+	{
+		const size_t bodyClose = html.rfind("</body>");
+		if (bodyClose != std::string::npos)
+		{
+			html.insert(bodyClose, HelperThemeCss::ViewportSyncJs());
+			WriteBytes(path, html.data(), static_cast<DWORD>(html.size()));
+		}
+	}
 	return PathToFileUrl(path);
 }
 

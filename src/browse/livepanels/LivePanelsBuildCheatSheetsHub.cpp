@@ -46,7 +46,7 @@ namespace
 				s += UiChrome::DecorCss(dir);
 			}
 			s += R"CSS(
-.wrap{max-width:960px;margin:0 auto;padding:28px 22px 72px}
+.wrap{max-width:960px;margin-left:auto;margin-right:auto;padding:28px 22px 72px}
 .hero{
   margin-bottom:22px;padding:1.1rem 1.15rem 1.2rem;
   background:linear-gradient(165deg,rgba(48,38,22,.4),transparent 55%),var(--panel-inset);
@@ -215,7 +215,9 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char
 		"Sheets open in a <strong>new helper tab</strong>.</p>"
 		"</div><script>";
 	html += HubJs();
-	html += "</script></body></html>";
+	html += "</script>";
+	html += HelperThemeCss::ViewportSyncJs();
+	html += "</body></html>";
 	return html;
 }
 

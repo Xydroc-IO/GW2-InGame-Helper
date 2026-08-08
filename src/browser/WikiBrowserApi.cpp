@@ -134,11 +134,13 @@ void WikiBrowser::Navigate(const std::string& url)
 
 void WikiBrowser::NavigateHome()
 {
+	/* Factory landing is Browse hub even when sites.json omits id "browse". */
 	if (!Sites::SetActiveById("browse"))
 		Sites::SetActiveById("home");
-	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
+	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s",
+		Sites::IndexOfId("browse") >= 0 ? "browse" : Sites::ActiveId());
 	Settings::SetDirty();
-	Navigate(Sites::IndexOfId("browse") >= 0 ? "about:browse-hub" : "about:helper-home");
+	Navigate("about:browse-hub");
 }
 
 void WikiBrowser::NavigateActiveSite()

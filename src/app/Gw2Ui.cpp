@@ -304,35 +304,7 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, 
 		ImDrawList* dl = ImGui::GetWindowDrawList();
 		const bool hover = ImGui::IsItemHovered();
 
-		/* Curated button plate + frame (under icon/text; hit rect unchanged). */
-		if (Texture_t* plate = Gw2UiDetail::GetChromeNamed("btn-plate"))
-		{
-			if (plate->Resource)
-			{
-				const int a = on ? 55 : (hover ? 40 : 28);
-				dl->AddImage(reinterpret_cast<ImTextureID>(plate->Resource),
-					min, max, ImVec2(0.f, 0.f), ImVec2(1.f, 1.f),
-					IM_COL32(255, 255, 255, a));
-			}
-		}
-		{
-			const char* frameStem = (on || hover) ? "btn-frame-hover" : "btn-frame";
-			if (Texture_t* frame = Gw2UiDetail::GetChromeNamed(frameStem))
-			{
-				if (frame->Resource)
-				{
-					const int a = on ? 200 : (hover ? 170 : 95);
-					/* Idle: natural frame. Hover/selected: gold tint (never cool blue). */
-					const ImU32 tint = (on || hover)
-						? IM_COL32(255, 220, 140, a)
-						: IM_COL32(255, 255, 255, a);
-					dl->AddImage(reinterpret_cast<ImTextureID>(frame->Resource),
-						min, max, ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), tint);
-				}
-			}
-		}
-
-		/* Gold plaque rail accent — selected bright, idle dim hairline. */
+		/* Plain fill + gold rim (no stretched btn-frame — those strips top-align badly). */
 		const ImU32 accent = ImGui::GetColorU32(
 			on ? HelperTheme::GoldBright : HelperTheme::GoldDim);
 		dl->AddRectFilled(ImVec2(min.x, min.y), ImVec2(min.x + 3.f, max.y), accent);
@@ -340,11 +312,12 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, 
 			dl->AddRectFilled(
 				ImVec2(min.x + 3.f, min.y), ImVec2(max.x, max.y),
 				ImGui::GetColorU32(ImVec4(0.94f, 0.77f, 0.35f, 0.06f)));
-		if (on || hover)
 		{
 			const ImU32 goldBorder = ImGui::GetColorU32(
-				on ? HelperTheme::GoldBright : HelperTheme::Gold);
-			dl->AddRect(min, max, goldBorder, 0.f, 0, on ? 1.75f : 1.35f);
+				on ? HelperTheme::GoldBright
+				   : (hover ? HelperTheme::Gold : HelperTheme::GoldDim));
+			const float thick = on ? 1.75f : (hover ? 1.35f : 1.0f);
+			dl->AddRect(min, max, goldBorder, 0.f, 0, thick);
 		}
 
 		/* Fit opaque content into a shared slot so padded assets match dense ones. */

@@ -112,10 +112,9 @@ void BrowserTabs::GoHome()
 {
 	EnsureDefault();
 
-	/* Already on the Home landing (Browse hub). Do not rewrite live-browse-hub.html
-	   and force CREATE_TAB/load_url — that crash-looped the CEF helper under Wine
-	   (exit 0x80000003 / 2147483651) when Home was pressed while already Home. */
-	auto isBrowseHome = [](const char* u) -> bool {
+	/* Already on Browse hub. Do not rewrite live-browse-hub.html / load_url —
+	   that crash-looped the CEF helper under Wine (exit 0x80000003 / 2147483651). */
+	auto isBrowseHub = [](const char* u) -> bool {
 		if (!u || !u[0])
 			return false;
 		if (std::strcmp(u, "about:browse-hub") == 0)
@@ -123,7 +122,7 @@ void BrowserTabs::GoHome()
 		return std::strstr(u, "live-browse-hub.html") != nullptr;
 	};
 	const char* cefCur = WikiBrowser::CurrentUrlCStr();
-	if (isBrowseHome(gTabs[gActive].tab.url.c_str()) || isBrowseHome(cefCur))
+	if (isBrowseHub(gTabs[gActive].tab.url.c_str()) || isBrowseHub(cefCur))
 	{
 		WikiBrowser::ActivateTab(gActive);
 		return;

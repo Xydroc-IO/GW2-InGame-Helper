@@ -200,6 +200,23 @@ const BrowserTabs::Tab& BrowserTabs::At(int index)
 void BrowserTabs::OpenInActive(const char* siteId, bool navigate)
 {
 	EnsureDefault();
+	/* Side-rail Browse while already on hub — skip no-op file:// reload (Wine CEF). */
+	if (siteId && std::strcmp(siteId, "browse") == 0)
+	{
+		auto isBrowseHub = [](const char* u) -> bool {
+			if (!u || !u[0])
+				return false;
+			if (std::strcmp(u, "about:browse-hub") == 0)
+				return true;
+			return std::strstr(u, "live-browse-hub.html") != nullptr;
+		};
+		const char* cefCur = WikiBrowser::CurrentUrlCStr();
+		if (isBrowseHub(gTabs[gActive].tab.url.c_str()) || isBrowseHub(cefCur))
+		{
+			WikiBrowser::ActivateTab(gActive);
+			return;
+		}
+	}
 	/* Keep CEF history coherent — stash live URL before replacing the tab site. */
 	StashActiveUrl();
 	const bool keepPin = gTabs[gActive].tab.pinned;

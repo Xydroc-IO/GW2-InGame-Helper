@@ -99,7 +99,9 @@ namespace HelperThemeCss
 			return {};
 		std::string s;
 		s.reserve(1200);
-		s += "\n  html, body {\n    min-height: 100vh;\n    margin: 0;\n"
+		/* --app-h is set by ViewportSyncJs (CEF OSR: 100vh often matches
+		   content height, so flex centering never gets free space). */
+		s += "\n  html, body {\n    min-height: var(--app-h, 100vh);\n    margin: 0;\n"
 			"    background-color: #0e0b08;\n  }\n"
 			"  body {\n    background-color: #0e0b08;\n"
 			"    background-image: none;\n  }\n"
@@ -122,10 +124,27 @@ namespace HelperThemeCss
 			"    background-repeat: no-repeat;\n"
 			"  }\n"
 			"  body::after { z-index: 0; }\n"
-			"  body > * { position: relative; z-index: 1; }\n";
+			/* Content only — do not override fixed .glow / .page-bg / ornament layers.
+			   min-height + safe center: short pages float in the viewport; tall pages grow. */
+			"  body > .wrap, body > .shell, body > .page {\n"
+			"    position: relative;\n    z-index: 1;\n"
+			"    box-sizing: border-box;\n    width: 100%;\n"
+			"    min-height: var(--app-h, 100vh);\n"
+			"    display: flex;\n    flex-direction: column;\n"
+			"    justify-content: center;\n"
+			"    justify-content: safe center;\n  }\n";
 		/* Ledger / detail pages use Fill without ImmersiveShell — still need gold bars. */
 		s += ScrollbarCss();
 		return s;
+	}
+
+	/* CEF OSR: pin layout height to the real view (innerHeight), not flaky 100vh. */
+	inline const char* ViewportSyncJs()
+	{
+		return
+			"<script>(function(){function s(){var h=window.innerHeight|0;"
+			"if(h>0)document.documentElement.style.setProperty('--app-h',h+'px');}"
+			"s();window.addEventListener('resize',s);})();</script>\n";
 	}
 
 	/* Shared immersive chrome: grain overlay, gold scrollbars, display titles, plaques. */
@@ -136,11 +155,11 @@ namespace HelperThemeCss
   html { scroll-behavior: smooth; }
   html, body {
     margin: 0;
-    min-height: 100vh;
+    min-height: var(--app-h, 100vh);
   }
   body {
     margin: 0;
-    min-height: 100vh;
+    min-height: var(--app-h, 100vh);
     font-family: var(--font-ui);
     color: var(--text);
     line-height: 1.55;
@@ -172,7 +191,18 @@ namespace HelperThemeCss
       repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.18) 2px, rgba(0,0,0,.18) 3px),
       repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(255,220,140,.04) 3px, rgba(255,220,140,.04) 4px);
   }
-  body > * { position: relative; z-index: 1; }
+  /* Short pages: center content in the real CEF view (--app-h). Tall pages grow. */
+  body > .wrap, body > .shell, body > .page {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: var(--app-h, 100vh);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-content: safe center;
+  }
 
   /* Gold Helper scrollbars — FillBackgroundCss re-appends for ledger pages. */
   * {

@@ -45,7 +45,9 @@ std::string BuildPage(const char* title, const char* eyebrow, const char* headin
 		out += "\n</nav>\n";
 	}
 	out += body;
-	out += "\n</div>\n</body>\n</html>\n";
+	out += "\n</div>\n";
+	out += HelperThemeCss::ViewportSyncJs();
+	out += "</body>\n</html>\n";
 	return out;
 }
 

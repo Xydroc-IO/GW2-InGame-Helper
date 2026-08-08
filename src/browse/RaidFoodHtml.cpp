@@ -32,7 +32,7 @@ const char* RaidFood::Html()
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    min-height: 100vh;
+    min-height: var(--app-h, 100vh);
     font-family: "Segoe UI", Tahoma, sans-serif;
     background:
       radial-gradient(ellipse 80% 55% at 50% 0%, rgba(240, 199, 97, 0.12) 0%, transparent 55%),
@@ -43,8 +43,16 @@ const char* RaidFood::Html()
   }
   .wrap {
     max-width: 860px;
-    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    box-sizing: border-box;
     padding: 28px 22px 64px;
+    min-height: var(--app-h, 100vh);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-content: safe center;
   }
   .hero {
     margin-bottom: 22px;
@@ -483,6 +491,7 @@ const char* RaidFood::Html()
 
   <footer>Built into GW2 In-Game Helper. Not affiliated with ArenaNet or NCSoft. Informational reference only.</footer>
 </div>
+<script>(function(){function s(){var h=window.innerHeight|0;if(h>0)document.documentElement.style.setProperty('--app-h',h+'px');}s();window.addEventListener('resize',s);})();</script>
 </body>
 </html>
 )HTML";

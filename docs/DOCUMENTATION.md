@@ -2,7 +2,7 @@
 
 GW2 In-Game Helper — where to find what.
 
-- **Shipping revision:** **2.2.3.10** (`GW2-InGame-Helper.dll`, private CEF 150) —
+- **Shipping revision:** **2.2.3.11** (`GW2-InGame-Helper.dll`, private CEF 150) —
   see [`RELEASE_NOTES.md`](RELEASE_NOTES.md)
 - **Contributor entry:** [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 

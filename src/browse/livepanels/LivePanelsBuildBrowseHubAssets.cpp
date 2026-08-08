@@ -53,7 +53,7 @@ const char* HubCss()
 			s += UiChrome::DecorCss(dir);
 		}
 		s += R"CSS(
-.wrap{max-width:1100px;margin:0 auto;padding:28px 22px 96px;min-height:100vh}
+.wrap{max-width:1100px;margin-left:auto;margin-right:auto;padding:28px 22px 96px}
 .hero{
   position:relative;overflow:hidden;isolation:isolate;
   margin-bottom:22px;padding:1.1rem 1.15rem 1.2rem;

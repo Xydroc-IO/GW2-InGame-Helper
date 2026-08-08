@@ -1,5 +1,6 @@
 #include "LivePanelsBuildBrowseHubInternal.h"
 
+#include "HelperThemeCss.h"
 #include "Sites.h"
 
 #include <algorithm>
@@ -76,7 +77,9 @@ std::string BuildBrowseCategoryShellHtml(const char* category)
 		"<p class=\"tag\">Building site list…</p>"
 		"</div></header>"
 		"<p class=\"empty\">Loading sections in the background — this page refreshes when ready.</p>"
-		"</div></body></html>";
+		"</div>";
+	html += HelperThemeCss::ViewportSyncJs();
+	html += "</body></html>";
 	return html;
 }
 
@@ -110,7 +113,9 @@ std::string BuildBrowseCategoryHtml(const std::wstring& /*addonDir*/, const char
 	{
 		html += "<p class=\"empty\">Unknown category.</p></div><script>";
 		html += HubJs();
-		html += "</script></body></html>";
+		html += "</script>";
+		html += HelperThemeCss::ViewportSyncJs();
+		html += "</body></html>";
 		return html;
 	}
 
@@ -254,7 +259,9 @@ std::string BuildBrowseCategoryHtml(const std::wstring& /*addonDir*/, const char
 	html += "<p class=\"foot\">Opens in a new helper tab (tab limit: 8).</p>"
 		"</div><script>";
 	html += HubJs();
-	html += "</script></body></html>";
+	html += "</script>";
+	html += HelperThemeCss::ViewportSyncJs();
+	html += "</body></html>";
 	return html;
 }
 

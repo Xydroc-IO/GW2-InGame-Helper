@@ -257,40 +257,32 @@ std::string UiChrome::NamedFileUrl(const std::wstring& addonDir, const char* fil
 std::string UiChrome::DecorCss(const std::wstring& addonDir)
 {
 	Ensure(addonDir);
-	const std::string card = NamedFileUrl(addonDir, "card-fill.png");
-	const std::string cardDark = NamedFileUrl(addonDir, "card-fill-dark.png");
-	const std::string border = NamedFileUrl(addonDir, "card-border.png");
+	/* Only textures still referenced by rules below — skip card-fill / btn-frame
+	   (asymmetric strips + Wine CEF file:// thrash). */
 	const std::string hero = NamedFileUrl(addonDir, "hero-plate.png");
-	const std::string btn = NamedFileUrl(addonDir, "btn-frame.png");
-	const std::string btnHov = NamedFileUrl(addonDir, "btn-frame-hover.png");
 	const std::string div = NamedFileUrl(addonDir, "divider-gold.png");
 	const std::string corner = NamedFileUrl(addonDir, "plaque-corner.png");
 	const std::string orn = NamedFileUrl(addonDir, "header-ornament.png");
-	if (card.empty() && hero.empty() && btn.empty())
+	if (hero.empty() && div.empty() && corner.empty() && orn.empty())
 		return {};
 
 	std::string s;
-	s.reserve(3500);
+	s.reserve(2800);
 	s += "\n/* ui-chrome decor */\n:root {\n";
-	if (!card.empty()) { s += "  --chrome-card: url(\""; s += card; s += "\");\n"; }
-	if (!cardDark.empty()) { s += "  --chrome-card-dark: url(\""; s += cardDark; s += "\");\n"; }
-	if (!border.empty()) { s += "  --chrome-card-border: url(\""; s += border; s += "\");\n"; }
 	if (!hero.empty()) { s += "  --chrome-hero: url(\""; s += hero; s += "\");\n"; }
-	if (!btn.empty()) { s += "  --chrome-btn: url(\""; s += btn; s += "\");\n"; }
-	if (!btnHov.empty()) { s += "  --chrome-btn-hover: url(\""; s += btnHov; s += "\");\n"; }
 	if (!div.empty()) { s += "  --chrome-divider: url(\""; s += div; s += "\");\n"; }
 	if (!corner.empty()) { s += "  --chrome-corner: url(\""; s += corner; s += "\");\n"; }
 	if (!orn.empty()) { s += "  --chrome-ornament: url(\""; s += orn; s += "\");\n"; }
 	s += "}\n";
 
 	s += R"CSS(
+/* Plain plaque panels — no asymmetric card-fill strips (those top-align badly). */
 .hero, .plaque, section.block, a.tile, .modal {
   background-image:
     linear-gradient(165deg, rgba(48, 38, 22, 0.42) 0%, transparent 48%),
-    linear-gradient(180deg, rgba(20, 16, 12, 0.55), rgba(10, 8, 6, 0.72)),
-    var(--chrome-card, none);
-  background-size: auto, auto, cover;
-  background-position: center, center, center;
+    linear-gradient(180deg, rgba(20, 16, 12, 0.92), rgba(10, 8, 6, 0.96));
+  background-size: auto, auto;
+  background-position: center, center;
   background-repeat: no-repeat;
   border: 1px solid var(--border);
   box-shadow:
@@ -302,26 +294,17 @@ std::string UiChrome::DecorCss(const std::wstring& addonDir)
 .hero {
   background-image:
     linear-gradient(105deg, rgba(14, 11, 8, 0.55) 0%, rgba(14, 11, 8, 0.12) 55%, transparent 78%),
-    linear-gradient(180deg, rgba(30, 24, 16, 0.35), rgba(10, 8, 6, 0.55)),
-    var(--chrome-hero, var(--chrome-card, none));
+    linear-gradient(180deg, rgba(30, 24, 16, 0.55), rgba(10, 8, 6, 0.88)),
+    var(--chrome-hero, none);
   background-size: auto, auto, cover;
-  background-position: left center, center, center top;
+  background-position: left center, center, center;
+  background-repeat: no-repeat;
 }
 .plaque::after, section.block::after {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.55;
-  background-image: var(--chrome-card-border, none);
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  mix-blend-mode: screen;
+  content: none;
 }
-/* Hero keeps CSS gold border only — avoid banner overlays (party watermark, etc.). */
 .hero::after { content: none !important; background: none !important; }
-.plaque > *, section.block > *, .hero > * { position: relative; z-index: 1; }
+.plaque > *, section.block > *, .hero > *, a.tile > * { position: relative; z-index: 1; }
 section.block > .head {
   background-image:
     linear-gradient(90deg, rgba(61, 48, 24, 0.92) 0%, rgba(26, 21, 16, 0.85) 70%),
@@ -330,8 +313,8 @@ section.block > .head {
   background-position: left center, center;
   background-repeat: no-repeat;
 }
-/* TOC / chips: plain fill + dim gold rim; brighter gold border on hover. */
-nav.toc a, a.chip, a.jump, .cta, button.gw2-btn {
+/* TOC / chips / tiles: plain fill + gold rim (no btn-frame textures). */
+nav.toc a, a.chip, a.jump, a.tile, .cta, button.gw2-btn {
   color: var(--gold-dim);
   text-decoration: none;
   border: 1px solid var(--border-deep);
@@ -339,14 +322,23 @@ nav.toc a, a.chip, a.jump, .cta, button.gw2-btn {
   background-image: none;
   box-shadow: none;
 }
-nav.toc a:hover, a.chip:hover, a.jump:hover, .cta:hover, button.gw2-btn:hover,
-nav.toc a:focus-visible, a.chip:focus-visible, a.jump:focus-visible,
+a.tile {
+  background-image:
+    linear-gradient(165deg, rgba(48, 38, 22, 0.35) 0%, transparent 48%),
+    linear-gradient(180deg, rgba(20, 16, 12, 0.92), rgba(10, 8, 6, 0.96));
+}
+nav.toc a:hover, a.chip:hover, a.jump:hover, a.tile:hover, .cta:hover, button.gw2-btn:hover,
+nav.toc a:focus-visible, a.chip:focus-visible, a.jump:focus-visible, a.tile:focus-visible,
 .cta:focus-visible, button.gw2-btn:focus-visible {
   color: var(--gold-bright);
   border-color: var(--gold);
   background-color: rgba(40, 32, 20, 0.55);
-  background-image: none;
   box-shadow: inset 0 0 0 1px rgba(232, 196, 112, 0.22);
+}
+a.tile:hover {
+  background-image:
+    linear-gradient(165deg, rgba(60, 48, 28, 0.45) 0%, transparent 48%),
+    linear-gradient(180deg, rgba(28, 22, 14, 0.95), rgba(12, 10, 8, 0.98));
 }
 .hairline, hr.chrome-div {
   height: 10px;

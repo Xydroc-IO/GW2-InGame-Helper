@@ -5,12 +5,12 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.3.10` |
+| Addon revision (shipping) | `2.2.3.11` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2242` / `2228` / `s2214` / `c2226` |
-| Live panel stamp | `59` |
-| Raid food stamp | `7` |
+| Helper / home / sites / cheatsheets stamps | `2242` / `2230` / `s2214` / `c2228` |
+| Live panel stamp | `62` |
+| Raid food stamp | `9` |
 | ui-chrome stamp | `uc31` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
@@ -274,5 +274,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.3.10 — user themes; Browse tile centering; live Back recovery; side-rail fill; ui-chrome uc31 |
+| Last architecture sync | 2.2.3.11 — CEF --app-h short-page center; chrome/CEF crash fixes; live 62; home 2230; cheatsheets c2228; raid food 9 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

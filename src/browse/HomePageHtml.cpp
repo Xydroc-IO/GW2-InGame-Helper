@@ -36,7 +36,7 @@ const char* HomePage::Html()
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    min-height: 100vh;
+    min-height: var(--app-h, 100vh);
     font-family: "Segoe UI", Tahoma, sans-serif;
     color: var(--text);
     line-height: 1.55;
@@ -105,7 +105,10 @@ const char* HomePage::Html()
     position: relative;
     z-index: 2;
     max-width: min(1120px, 94vw);
-    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    box-sizing: border-box;
     padding: 28px 22px 48px;
     animation: riseIn 0.7s ease-out both;
   }
@@ -457,6 +460,7 @@ const char* HomePage::Html()
       <span class="sig">Created By Xydroc</span>
     </footer>
   </div>
+<script>(function(){function s(){var h=window.innerHeight|0;if(h>0)document.documentElement.style.setProperty('--app-h',h+'px');}s();window.addEventListener('resize',s);})();</script>
 </body>
 </html>
 )HTML";

@@ -32,10 +32,10 @@
     border: 1px solid #c29438;
   }
   *::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--gold), #8a6a32); }
-  html { scroll-behavior: smooth; min-height: 100vh; }
+  html { scroll-behavior: smooth; min-height: var(--app-h, 100vh); }
   body {
     margin: 0;
-    min-height: 100vh;
+    min-height: var(--app-h, 100vh);
     font-family: var(--font-ui);
     background-color: var(--bg);
     color: var(--text);
@@ -54,7 +54,19 @@
       linear-gradient(180deg, #1a1510 0%, var(--bg) 42%, #0a0806 100%);
   }
   body > * { position: relative; z-index: 1; }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 22px 64px; }
+  .wrap {
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 28px 22px 64px;
+    min-height: var(--app-h, 100vh);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-content: safe center;
+  }
   .hero {
     margin-bottom: 22px; padding: 1.1rem 1.15rem 1.2rem;
     background: linear-gradient(165deg, rgba(48, 38, 22, 0.4), transparent 55%), #14100c;

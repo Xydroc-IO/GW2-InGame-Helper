@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.10
+# GW2 In-Game Helper v2.2.3.11
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,18 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.11
+
+- **Short CEF pages:** CEF OSR `100vh` does not give layout free space — pin
+  `--app-h` from `window.innerHeight` and center content inside min-height wraps
+  (API Check, hubs, Home, sheets, Raid Food, Legendary) so empty landscape shows
+  above and below.
+- **UI chrome:** Drop stretched `btn-frame` / `card-fill` on rail + HTML tiles (top-aligned
+  strips); gold CSS/ImGui borders instead. Avoid no-op Browse hub reloads that Wine CEF
+  treats as `STATUS_BREAKPOINT` (exit `2147483651`).
+- **Stamps:** Helper `2242` · homepage `2230` · sites `s2214` · cheatsheets `c2228`
+  · live panel `62` · raid food `9` · ui-chrome `uc31`
 
 ## What’s new in 2.2.3.10
 

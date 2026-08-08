@@ -20,7 +20,7 @@ namespace LivePanelsHtml
 			HelperThemeCss::AppendUserRoot(sCss);
 			sCss += HelperThemeCss::ImmersiveShell();
 			sCss += R"CSS(
-  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 22px 64px; }
+  .wrap { max-width: 900px; margin-left: auto; margin-right: auto; padding: 28px 22px 64px; }
   .hero {
     margin-bottom: 18px; padding: 1rem 1.1rem 1.1rem;
     background: linear-gradient(165deg, rgba(48, 38, 22, 0.4), transparent 55%), var(--panel-inset);
