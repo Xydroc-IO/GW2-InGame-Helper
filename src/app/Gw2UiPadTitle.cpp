@@ -262,7 +262,7 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 			{
 				constexpr float kHangBot = 6.f;
 				/* Nestle title into the crest’s transparent pad (gem is centered). */
-				constexpr float kCrestTextInset = 10.f;
+				constexpr float kCrestTextInset = 4.f;
 				/* Big gem — hangs above the strip; bottom hugs title baseline. */
 				float kCrest = 100.f;
 				if (kCrest > 112.f)
