@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.3.9 | 2.2.3.9 | Event alerts; Instances fractal/story sync; crafting level paths; economy chart poll; Completion AP/packs; ui-chrome uc28 |
+| 2.2.3.9 | 2.2.3.9 | ApiBudget/BgFetch; MapAssist opt-in + COMPLIANCE exception; Instances soft sync; crafting tabs/chips; event alert place; economy chart poll |
 | 2.2.3.8 | 2.2.3.8 | Economy hub (stash/trading/crafting); Vault side rail; known-recipe load; rail icon UV fit; ui-chrome uc25 |
 | 2.2.3.7 | 2.2.3.7 | GPS pathfind; farming live nodes; raids API; Completion Atlas scopes; Vault/Today sources of truth |
 | 2.2.3.6 | 2.2.3.6 | Hero chrome (dual rim, gem crest, title fade, browse-hero); no CEF context menu; Browse ERR_FILE_NOT_FOUND; rail fit; crafting cart |
@@ -561,7 +561,7 @@ Stock CEF builds lack proprietary codecs; H.264/AAC unavailable. Twitch `Error #
 
 **Allowed.** Nexus APIs; private CEF under addon dir; local IPC; official API reads with backoff; MumbleLink **read-only** for overlays; SwapChain D3D world GPS; terminate only our helper PID; load site ads/consent; curated pathing packs; optional EI CLI.
 
-**Forbidden.** Game memory R/W for cheating; MinHook Present / `d3d11` wrappers; synthetic input into GW2; combat/account automation; writing `bin64/cef`.
+**Forbidden.** Game memory R/W for cheating; MinHook Present / `d3d11` wrappers; synthetic input into GW2 **outside** the documented opt-in world-map assist exception (`MapAssist`, default off — see [`COMPLIANCE.md`](COMPLIANCE.md)); combat/account automation; writing `bin64/cef`.
 
 Authoritative normative text: [`COMPLIANCE.md`](COMPLIANCE.md).
 
@@ -870,7 +870,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ## 22. Glossary expansions (selected)
 
-**DataLink / MumbleLink.** Shared-memory identity published for overlays. Used here strictly for display (compass, GPS fade, map id). Using it to drive synthetic input or combat automation is forbidden.
+**DataLink / MumbleLink.** Shared-memory identity published for overlays. Used here strictly for display (compass, GPS fade, map id) and for opt-in world-map assist gating (`GameLive` freshness / map-open). Using it to drive combat automation or closed-map input is forbidden.
 
 **KeepHelperWarm.** Setting that may keep the CEF helper alive while the ImGui panel is hidden, trading RAM for faster reopen. Visibility commands must still coalesce under Proton.
 

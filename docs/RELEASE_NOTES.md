@@ -36,14 +36,20 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 ## What’s new in 2.2.3.9
 
 - **Event alerts:** On-screen toasts when events are soon/live; default = all catalog events;
-  **Alerts tracked** / **Alerts map** filters; persisted settings.
+  **Alerts tracked** / **Alerts map** filters; persisted settings; **Place alert** drag-to-position.
 - **Events polish:** Shared UTC timing helpers, next/then clocks, claim badges, wiki/MetaBattle links.
-- **Instances sync:** Fractal level + daily fractal board; CM achievement overlays; story progress via
-  character quests (LWS2–4, HoT, PoF, IBS, EoD, SotO). Raids still weekly `/v2/account/raids`.
-  Strikes stay local (no account strikes API).
-- **Crafting:** Leveling paths for all disciplines + GW2 Crafts links; smarter multi-recipe pick.
+- **Instances sync:** Fractal level + daily fractal board; CM achievement overlays on open/Sync.
+  Soft refresh while open skips the large achievements download; raids/dailies/FR fetch in parallel
+  and paint first. Story stays local (quest crawl removed from the hot path). Strikes stay local.
+- **API load control:** Process-wide `ApiBudget` (max concurrent GW2 HTTP) + `BgFetch` so Crafting
+  details / Wallet / Vault / Instances do not stampede when switching Economy tabs.
+- **Crafting:** Leveling-path discipline chips (Nexus-safe, no popup combo); Known recipes start
+  collapsed; character cycle arrows; Plan / Known / Browse / Cart sub-tabs.
+- **Map assist:** Opt-in Pathing world-map steer (`MapAssist`, default off) + optional waypoint tap
+  (never auto-confirms teleport). Uses `GameLive` Mumble freshness; compliance exception documented.
 - **Economy charts:** Per-item sample history (up to 120/id) fully persisted; ~90s poll of pinned items.
-- **Completion:** Pack-sourced hearts/HP/AP; Explorer/Been There API overlay; floors/pack structure split.
+- **Completion:** Pack-sourced hearts/HP/AP; Explorer/Been There API overlay (throttled reopen);
+  floors/pack structure split.
 - **Farming:** Catalog/schedule modules; Events-linked UTC hints for HoT metas.
 - **Stamps:** Helper `2241` · homepage `2227` · sites `s2213` · cheatsheets `c2224`
   · live panel `54` · raid food `7` · ui-chrome `uc28`
