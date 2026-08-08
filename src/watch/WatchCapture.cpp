@@ -1,8 +1,8 @@
 #include "WatchCapture.h"
 #include "WatchCaptureInternal.h"
+#include "WatchCaptureWgc.h"
 #include "WatchLinux.h"
 
-#include "EiRuntime.h"
 #include "Globals.h"
 
 #include <algorithm>
@@ -17,6 +17,8 @@ using namespace WatchCaptureDetail;
 
 namespace
 {
+	bool gClassicList = false;
+
 	bool ApplyChromeCrop(const uint8_t*& ptr, uint32_t& w, uint32_t& h, uint32_t stride)
 	{
 		if (!ptr || w < 16 || h < 16 || stride < w * 4)
@@ -97,14 +99,17 @@ namespace
 	{
 		if (!hwnd || !IsWindow(hwnd))
 			return false;
-		const bool visible = IsWindowVisible(hwnd) != FALSE;
-		const bool iconic = IsIconic(hwnd) != FALSE;
-		if (!visible && !iconic && !EiRuntime::IsWine())
+		if (!IsWindowVisible(hwnd) || IsIconic(hwnd))
 			return false;
 		if (GetWindow(hwnd, GW_OWNER) != nullptr)
 			return false;
+		const LONG_PTR style = GetWindowLongPtrW(hwnd, GWL_STYLE);
+		if (!(style & WS_VISIBLE))
+			return false;
+		if (GetParent(hwnd) != nullptr)
+			return false;
 		const LONG_PTR ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-		if ((ex & WS_EX_TOOLWINDOW) && !EiRuntime::IsWine())
+		if (ex & (WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE))
 			return false;
 		if (IsOwnProcess(hwnd))
 			return false;
@@ -114,15 +119,13 @@ namespace
 			return false;
 		const int w = rc.right - rc.left;
 		const int h = rc.bottom - rc.top;
-		const int minEdge = EiRuntime::IsWine() ? 16 : 64;
-		if (w < minEdge || h < minEdge)
+		if (w < 200 || h < 120)
 			return false;
 
-		wchar_t titleW[4]{};
-		wchar_t classW[4]{};
-		const bool hasTitle = GetWindowTextW(hwnd, titleW, 4) > 0;
-		const bool hasClass = GetClassNameW(hwnd, classW, 4) > 0;
-		return hasTitle || hasClass;
+		wchar_t titleW[8]{};
+		if (GetWindowTextW(hwnd, titleW, 8) <= 0)
+			return false;
+		return true;
 	}
 
 	bool TryAdd(HWND hwnd)
@@ -133,19 +136,15 @@ namespace
 		WatchCapture::WindowEntry e;
 		e.id = reinterpret_cast<uint64_t>(hwnd);
 		e.title = WindowLabel(hwnd);
-		if (e.title.size() > 120)
-			e.title.resize(120);
+		if (e.title.empty())
+			return true;
+		if (e.title.size() > 100)
+			e.title.resize(100);
 		gWindows.push_back(std::move(e));
 		return true;
 	}
 
 	BOOL CALLBACK EnumProc(HWND hwnd, LPARAM)
-	{
-		TryAdd(hwnd);
-		return TRUE;
-	}
-
-	BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM)
 	{
 		TryAdd(hwnd);
 		return TRUE;
@@ -164,22 +163,24 @@ void WatchCapture::RefreshWindowList()
 		return;
 	}
 
+	/* Top-level titled windows only — EnumChildWindows(desktop) floods ImGui. */
 	EnumWindows(EnumProc, 0);
-	if (HWND desk = GetDesktopWindow())
-		EnumChildWindows(desk, EnumChildProc, 0);
 	std::sort(gWindows.begin(), gWindows.end(),
 		[](const WindowEntry& a, const WindowEntry& b) { return a.title < b.title; });
+	constexpr size_t kMaxList = 80;
+	if (gWindows.size() > kMaxList)
+		gWindows.resize(kMaxList);
 
 	char buf[192]{};
 	if (gWindows.empty())
 	{
 		std::snprintf(buf, sizeof(buf),
-			"No windows found (raw %d). Click Refresh after opening the player.",
+			"No titled windows found (raw %d). Open the player, then Refresh.",
 			gRawEnumCount);
 	}
 	else
 	{
-		std::snprintf(buf, sizeof(buf), "Listed %d window(s).",
+		std::snprintf(buf, sizeof(buf), "Listed %d window(s). Select one, then Start.",
 			static_cast<int>(gWindows.size()));
 	}
 	gStatus = buf;
@@ -193,6 +194,47 @@ const std::vector<WatchCapture::WindowEntry>& WatchCapture::Windows()
 int WatchCapture::RawEnumCount()
 {
 	return gRawEnumCount;
+}
+
+bool WatchCapture::WgcAvailable()
+{
+	return !WatchLinux::Available() && WatchCaptureWgc::Available();
+}
+
+bool WatchCapture::ClassicListMode()
+{
+	return gClassicList;
+}
+
+void WatchCapture::SetClassicListMode(bool on)
+{
+	gClassicList = on;
+}
+
+bool WatchCapture::StartWgcPicker()
+{
+	Stop();
+	if (!WgcAvailable())
+	{
+		gClassicList = true;
+		gStatus = "Windows Graphics Capture unavailable — use Classic list.";
+		return false;
+	}
+	gClassicList = false;
+	gTarget = 1;
+	gCapturing = true;
+	gLastCaptureMs = 0;
+	gLastBlank = false;
+	if (!WatchCaptureWgc::StartPicker(gStatus))
+	{
+		gCapturing = false;
+		gTarget = 0;
+		gClassicList = true;
+		if (gStatus.empty())
+			gStatus = "System picker failed — use Classic list.";
+		return false;
+	}
+	return true;
 }
 
 bool WatchCapture::Start(uint64_t id)
@@ -210,6 +252,10 @@ bool WatchCapture::Start(uint64_t id)
 		return true;
 	}
 
+	/* id == 0 → system GraphicsCapturePicker when available. */
+	if (id == 0 && WatchCaptureWgc::Available() && !gClassicList)
+		return StartWgcPicker();
+
 	if (id == 0)
 	{
 		gStatus = "Invalid window.";
@@ -221,6 +267,7 @@ bool WatchCapture::Start(uint64_t id)
 		gStatus = "Invalid window.";
 		return false;
 	}
+	gClassicList = true;
 	gTarget = id;
 	gCapturing = true;
 	gLastCaptureMs = 0;
@@ -238,12 +285,14 @@ void WatchCapture::Stop()
 		WatchLinux::Stop(st);
 		gStatus = st;
 	}
+	WatchCaptureWgc::Stop();
 	gCapturing = false;
 	gTarget = 0;
 	gLastBlank = false;
 	ResetWinReady();
 	RequestGpuRelease();
-	if (gStatus != "Stopped." && gStatus.find("daemon") == std::string::npos)
+	if (gStatus != "Stopped." && gStatus.find("daemon") == std::string::npos
+		&& gStatus.find("Picker") == std::string::npos)
 		gStatus = "Stopped.";
 }
 
@@ -251,6 +300,22 @@ bool WatchCapture::IsCapturing()
 {
 	if (WatchLinux::Available())
 		return WatchLinux::IsCapturing();
+	if (WatchCaptureWgc::IsPickerOpen())
+		return true;
+	if (WatchCaptureWgc::IsCapturing())
+		return true;
+	return gCapturing && gTarget != 0;
+}
+
+bool WatchCapture::IsStreaming()
+{
+	/* Frames can arrive — not the system-picker wait (which used to auto-reopen Mirror). */
+	if (WatchLinux::Available())
+		return WatchLinux::IsCapturing();
+	if (WatchCaptureWgc::IsCapturing())
+		return true;
+	if (WatchCaptureWgc::IsPickerOpen())
+		return false;
 	return gCapturing && gTarget != 0;
 }
 
@@ -297,6 +362,38 @@ void WatchCapture::Tick()
 		}
 		WatchLinux::EndPresent();
 	}
+	else if (WatchCaptureWgc::IsCapturing() || WatchCaptureWgc::IsPickerOpen())
+	{
+		WatchCaptureWgc::GetStatus(gStatus);
+		if (WatchCaptureWgc::IsPickerOpen() && !WatchCaptureWgc::IsCapturing())
+			return;
+		if (!WatchCaptureWgc::IsCapturing())
+		{
+			/* Picker finished without a session (cancel / fail). */
+			gCapturing = false;
+			gTarget = 0;
+			if (gStatus.find("Classic") != std::string::npos
+				|| gStatus.find("failed") != std::string::npos
+				|| gStatus.find("unavailable") != std::string::npos)
+				gClassicList = true;
+			return;
+		}
+		if (!WatchCaptureWgc::TakeFrame(bgra, w, h, stride, kMaxCaptureW, kMaxCaptureH))
+			return;
+		const uint8_t* ptr = bgra.data();
+		if (!ApplyChromeCrop(ptr, w, h, stride))
+		{
+			gStatus = "Crop left no content — reduce Crop chrome.";
+			return;
+		}
+		gLastBlank = SampleLooksBlank(ptr, w, h, stride);
+		if (!UploadBgra(ptr, w, h, stride))
+		{
+			gStatus = "GPU upload failed.";
+			return;
+		}
+		WatchCaptureWgc::GetStatus(gStatus);
+	}
 	else
 	{
 		HWND hwnd = reinterpret_cast<HWND>(gTarget);
@@ -328,7 +425,7 @@ void WatchCapture::Tick()
 
 	if (gLastBlank)
 		gStatus = "Capturing — frame looks black (DRM / protected overlay?).";
-	else if (!WatchLinux::Available())
+	else if (!WatchLinux::Available() && !WatchCaptureWgc::IsCapturing())
 		gStatus = "Capturing.";
 }
 
@@ -351,6 +448,8 @@ const char* WatchCapture::StatusText()
 {
 	if (WatchLinux::Available())
 		WatchLinux::GetStatus(gStatus);
+	else if (WatchCaptureWgc::IsCapturing() || WatchCaptureWgc::IsPickerOpen())
+		WatchCaptureWgc::GetStatus(gStatus);
 	return gStatus.c_str();
 }
 
@@ -367,5 +466,5 @@ void WatchCapture::Shutdown()
 	WatchLinux::Disconnect();
 	gWindows.clear();
 	ReleaseDevice();
-	gStatus = "Idle — pick a window and Start.";
+	gStatus = "Idle — Start opens the system picker.";
 }

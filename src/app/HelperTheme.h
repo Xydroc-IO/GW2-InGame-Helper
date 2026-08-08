@@ -6,9 +6,7 @@
 #include "UiScale.h"
 
 #include "imgui/imgui.h"
-
-/* Dark-warm parchment + gold with optional local GW2 UI chrome (UiChrome pack).
-   Color tokens are mutable so UserTheme can override them at runtime. */
+#include "imgui/imgui_internal.h"
 namespace HelperTheme
 {
 	inline ImVec4 Gold(0.96f, 0.82f, 0.42f, 1.f);
@@ -118,8 +116,14 @@ namespace HelperTheme
 
 	inline void Pop()
 	{
-		ImGui::PopStyleVar(15);
-		ImGui::PopStyleColor(45);
+		ImGuiContext& g = *GImGui;
+		const int nVar = g.StyleVarStack.Size;
+		const int nCol = g.ColorStack.Size;
+		/* Never over-pop — empty stack → ImVector::back() Size > 0 assert (Windows). */
+		if (nVar > 0)
+			ImGui::PopStyleVar(nVar >= 15 ? 15 : nVar);
+		if (nCol > 0)
+			ImGui::PopStyleColor(nCol >= 45 ? 45 : nCol);
 	}
 
 	/* Pad Begin flags: game frame texture replaces ImGui title/bg. */
@@ -174,7 +178,12 @@ namespace HelperTheme
 		}
 		~ScopedWindow()
 		{
-			ImGui::PopStyleVar(2);
+			ImGuiContext& g = *GImGui;
+			const int n = g.StyleVarStack.Size;
+			if (n >= 2)
+				ImGui::PopStyleVar(2);
+			else if (n > 0)
+				ImGui::PopStyleVar(n);
 			Pop();
 		}
 		ScopedWindow(const ScopedWindow&) = delete;

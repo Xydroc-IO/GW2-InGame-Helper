@@ -31,9 +31,11 @@ namespace WatchPadDetail
 		}
 		else
 		{
-			PadNav::Meta("1. On the Watch tab, pick a window (Refresh if needed).");
-			PadNav::Meta("2. Press Start — Watch Mirror opens with the picture.");
-			PadNav::Meta("3. Stop on the Watch tab, or close Mirror, to end capture.");
+			PadNav::Meta("1. On the Watch tab, press Start — the Windows capture picker opens.");
+			PadNav::Meta("2. Pick a window or screen from the system thumbnail UI.");
+			PadNav::Meta("3. Watch Mirror shows the picture (~60 FPS, up to 1280×720).");
+			PadNav::Meta("4. Stop on the Watch tab, or close Mirror, to end capture.");
+			PadNav::Meta("Optional: Classic list… falls back to titled HWND + GDI capture.");
 		}
 		ImGui::Spacing();
 		PadNav::SectionTitle("Tips");

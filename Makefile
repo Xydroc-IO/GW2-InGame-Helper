@@ -20,7 +20,7 @@ CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
 LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
 LDFLAGS_EXE  = -static -static-libgcc -static-libstdc++ -mwindows -municode -mcrtdll=msvcrt
-LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -luser32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32 -ladvapi32 -lws2_32
+LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -luser32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32 -ladvapi32 -lws2_32 -lwindowsapp -lruntimeobject
 LIBS_EXE = -lgdi32 -lole32 -luuid -lshell32 -lwinhttp
 
 HELPER_SRC = src/helper/main.cpp src/helper/HelperState.cpp src/helper/HelperPaths.cpp \
@@ -114,9 +114,11 @@ DLL_SRC = \
 	src/notes/NotesPadWaypoints.cpp \
 	src/watch/WatchPad.cpp \
 	src/watch/WatchPadAbout.cpp \
+	src/watch/WatchPadControls.cpp \
 	src/watch/WatchCapture.cpp \
 	src/watch/WatchCaptureGpu.cpp \
 	src/watch/WatchCaptureWin.cpp \
+	src/watch/WatchCaptureWgc.cpp \
 	src/watch/WatchLinux.cpp \
 	src/watch/WatchLinuxDaemon.cpp \
 	src/watch/WatchLinuxShm.cpp \
@@ -641,7 +643,8 @@ install: $(DLL_OUT)
 	# Seed Immersive chrome so pads look correct even before first extract.
 	@mkdir -p "$(INSTALL_DIR)/ui-chrome"
 	/bin/cp -f data/ui-chrome/*.png "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
-	@printf 'uc31' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
+	@stamp=$$(sed -n 's/.*kPackStamp = "\([^"]*\)".*/\1/p' src/app/UiChrome.cpp | head -1); \
+		printf '%s' "$$stamp" > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"

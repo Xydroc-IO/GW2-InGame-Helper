@@ -155,6 +155,18 @@ namespace WatchCaptureDetail
 			const size_t bytes = stride * static_cast<size_t>(finalH);
 			outBgra.resize(bytes);
 			std::memcpy(outBgra.data(), finalBits, bytes);
+			/* GDI BI_RGB DIBs leave alpha = 0; ImGui samples A → invisible Mirror. */
+			uint8_t* row = outBgra.data();
+			for (int y = 0; y < finalH; ++y)
+			{
+				uint8_t* p = row;
+				for (int x = 0; x < finalW; ++x)
+				{
+					p[3] = 255;
+					p += 4;
+				}
+				row += stride;
+			}
 			outW = static_cast<uint32_t>(finalW);
 			outH = static_cast<uint32_t>(finalH);
 			outStride = static_cast<uint32_t>(stride);
