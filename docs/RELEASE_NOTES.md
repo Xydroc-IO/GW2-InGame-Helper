@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.11
+# GW2 In-Game Helper v2.2.3.12
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,18 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.12
+
+- **Watch pad:** Side-rail companion above Settings — slim Start/Stop control; video
+  opens in a separate **Watch Mirror** window. Look-only (playback stays in the
+  system app). Unique viewfinder rail icon (`WatchView`).
+- **Wine / Proton:** embedded `gw2igh-watchd` (stamp `w9`) — xdg-desktop-portal
+  ScreenCast + PipeWire → `/dev/shm` (~60 FPS). Daemon spawn/chmod is async with a
+  space-safe `/tmp` binary so Start does not hitch the game thread.
+- **Windows:** async GDI window capture (`PrintWindow` / `BitBlt`) with in-pad picker.
+- **Stamps:** Helper `2242` · homepage `2230` · sites `s2214` · cheatsheets `c2228`
+  · live panel `62` · raid food `9` · ui-chrome `uc31` · watchd `w9`
 
 ## What’s new in 2.2.3.11
 
