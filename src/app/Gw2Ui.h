@@ -92,7 +92,10 @@ namespace Gw2Ui
 	/* Paint Immersive pad chrome from extracted ui-chrome pack. Call after Begin.
 	   Returns true when panel fill was drawn. */
 	/* omitLeftEdge / omitRightEdge: skip ink fringe when that side joins another plate. */
-	bool PaintPadChrome(float opacity = 1.f, bool omitLeftEdge = false, bool omitRightEdge = false);
+	/* solidStack: companion pads — denser plate so focused windows don't read through each other.
+	   Helper keeps the softer Hero wash (solidStack=false). */
+	bool PaintPadChrome(float opacity = 1.f, bool omitLeftEdge = false, bool omitRightEdge = false,
+		bool solidStack = false);
 
 	/* Draw native GW2 scroll chrome (DAT thumb/arrows) over ImGui's transparent grab.
 	   Call AFTER ImGui::End() with the pad window pointer (still valid until frame end). */
@@ -101,9 +104,10 @@ namespace Gw2Ui
 	/* Blish-style title row: emblem + gold title + minimize + close.
 	   Call after PaintPadChrome when using ImGuiWindowFlags_NoTitleBar.
 	   leftExtend grows the strip left past the window (Helper side rail flush).
-	   Right edge stays at the window's right. Returns false when minimized. */
+	   Right edge stays at the window's right. Returns false when minimized.
+	   solidStack densifies the title fade for overlapping companion pads. */
 	bool DrawPadTitleBar(const char* title, bool* pOpen, float opacity = 1.f,
-		float leftExtend = 0.f);
+		float leftExtend = 0.f, bool solidStack = false);
 
 	/* Flags for pads that use PaintPadChrome + DrawPadTitleBar. */
 	inline ImGuiWindowFlags PadWindowFlags(ImGuiWindowFlags extra = 0)

@@ -175,7 +175,10 @@ namespace UIDetail
 	void DrawHelperSideRail()
 	{
 		if (!G::ShowWiki || !gUi.wikiRectValid)
+		{
+			G::SideRailW = 0.f;
 			return;
+		}
 
 		auto openSiteInActive = [](const char* siteId) {
 			G::ShowWiki = true;
@@ -203,6 +206,7 @@ namespace UIDetail
 
 		const bool labels = G::ShowRailLabels;
 		const float railW = HelperSideRailWidth();
+		G::SideRailW = railW;
 
 		const ImVec2 helperMin = gUi.wikiMin;
 		const ImVec2 helperMax = gUi.wikiMax;
@@ -262,8 +266,8 @@ namespace UIDetail
 			if (!wash || !wash->Resource)
 				wash = Gw2UiDetail::GetChromeTex(static_cast<int>(Gw2Ui::Icon::PanelFillAlt));
 			/* Match PaintPadChrome translucent underpaint / wash / veil. */
-			const ImU32 under = IM_COL32(10, 8, 6, static_cast<int>(oa * 168.f + 0.5f));
-			const ImU32 veil = IM_COL32(6, 4, 3, static_cast<int>(oa * 36.f + 0.5f));
+			const ImU32 under = IM_COL32(10, 8, 6, static_cast<int>(oa * 220.f + 0.5f));
+			const ImU32 veil = IM_COL32(6, 4, 3, static_cast<int>(oa * 55.f + 0.5f));
 			const ImU32 washCol = IM_COL32(255, 255, 255, static_cast<int>(oa * 205.f + 0.5f));
 			const float helperW = (std::max)(120.f, gUi.wikiMax.x - gUi.wikiMin.x);
 			const float helperX = gUi.wikiMin.x;
@@ -407,7 +411,7 @@ namespace UIDetail
 			else FarmingPad::OpenAndRefresh();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Farming - run checklists + catch log\nDefault: Ctrl+Shift+R (Settings -> Keybinds)");
+			ImGui::SetTooltip("Farming - curated/custom runs, GPS, fishing log\nDefault: Ctrl+Shift+R (Settings -> Keybinds)");
 		RailStretchGap(stretch);
 
 		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides, static_cast<int>(Gw2Ui::Icon::PathingMap), iconSz))

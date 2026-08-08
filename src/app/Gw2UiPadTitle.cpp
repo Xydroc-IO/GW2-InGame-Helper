@@ -10,7 +10,8 @@
 #include <cfloat>
 #include <cstring>
 
-bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float leftExtend)
+bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float leftExtend,
+	bool solidStack)
 {
 	float a = opacity;
 	if (a < 0.f)
@@ -148,7 +149,8 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 				dl->PopTextureID();
 		};
 
-		/* Same Hero chrome when minimized — slim strip still fades L→R with grey pocket. */
+		/* Same Hero chrome when minimized — slim strip still fades L→R with grey pocket.
+		   solidStack keeps the fade readable but not see-through when pads overlap. */
 		{
 			const float stripW = t1.x - t0.x;
 			constexpr float kHold = 0.28f;
@@ -163,11 +165,13 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 				return i < 0 ? 0 : (i > 255 ? 255 : i);
 			};
 			const int aSolid = clampA(a * 255.f * dens);
-			const int aUnder = clampA(a * 210.f * dens);
-			const int aTroughTex = clampA(a * (collapsed ? 70.f : 40.f));
-			const int aCornerTex = clampA(a * 165.f * dens);
-			const int aTroughUnd = clampA(a * (collapsed ? 55.f : 32.f));
-			const int aCornerUnd = clampA(a * 150.f * dens);
+			const int aUnder = clampA(a * (solidStack ? 245.f : 210.f) * dens);
+			const int aTroughTex = clampA(a * (solidStack ? (collapsed ? 180.f : 140.f)
+				: (collapsed ? 70.f : 40.f)));
+			const int aCornerTex = clampA(a * (solidStack ? 210.f : 165.f) * dens);
+			const int aTroughUnd = clampA(a * (solidStack ? (collapsed ? 200.f : 170.f)
+				: (collapsed ? 55.f : 32.f)));
+			const int aCornerUnd = clampA(a * (solidStack ? 220.f : 150.f) * dens);
 			const ImU32 texSolid = IM_COL32(255, 255, 255, aSolid);
 			const ImU32 texTrough = IM_COL32(255, 255, 255, aTroughTex);
 			const ImU32 texCorner = IM_COL32(255, 255, 255, aCornerTex);
@@ -229,6 +233,7 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 	const bool dragHovered = ImGui::IsItemHovered();
 	if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 	{
+		/* Click already FocusWindow→display-front; don't re-front here (Nexus shares ImGui). */
 		const ImVec2 d = ImGui::GetIO().MouseDelta;
 		ImGui::SetWindowPos(ImVec2(win0.x + d.x, win0.y + d.y));
 	}

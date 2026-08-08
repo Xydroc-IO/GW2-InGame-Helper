@@ -144,10 +144,13 @@ namespace HelperTheme
 			PadDock::KeepOnScreen();
 			const bool collapsed = ImGui::GetStateStorage()->GetBool(
 				ImGui::GetID("##gw2igh_pad_collapsed"), false);
-			/* Minimized: thin strip only — do not stretch full window chrome. */
+			/* Minimized: thin strip only — do not stretch full window chrome.
+			   solidStack: denser plate only (no display-order fighting — ImGui
+			   click/focus already raises the active pad; re-fronting every frame
+			   buries Nexus tooltips / other addon windows). */
 			if (!collapsed)
-				Gw2Ui::PaintPadChrome(opacity);
-			return Gw2Ui::DrawPadTitleBar(title, pOpen, opacity);
+				Gw2Ui::PaintPadChrome(opacity, false, false, /*solidStack=*/true);
+			return Gw2Ui::DrawPadTitleBar(title, pOpen, opacity, 0.f, /*solidStack=*/true);
 		}
 		~ScopedWindow()
 		{

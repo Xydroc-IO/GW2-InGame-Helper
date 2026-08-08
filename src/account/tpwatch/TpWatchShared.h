@@ -25,6 +25,7 @@ namespace TpWatchDetail
 		long long buy = 0;
 		long long sell = 0;
 		long long alertSell = 0; /* 0 = off; fire when sell > 0 && sell <= alertSell */
+		long long alertBuy = 0; /* 0 = off; fire when buy > 0 && buy >= alertBuy */
 		bool alertHit = false;
 	};
 
@@ -33,6 +34,7 @@ namespace TpWatchDetail
 		int id = 0;
 		int count = 0;
 		std::string name;
+		long long sellUnit = 0; /* instant-buy unit for value estimate */
 	};
 
 	struct DeliverySnap
@@ -41,6 +43,7 @@ namespace TpWatchDetail
 		bool scopeFail = false;
 		bool ok = false;
 		long long coins = 0;
+		long long itemsSellValue = 0;
 		std::vector<DeliveryItem> items;
 		std::string status;
 	};
@@ -82,12 +85,18 @@ namespace TpWatchDetail
 	void ParseIds(const char* csv, std::vector<int>& out);
 	void ParseAlerts(const char* csv, std::vector<std::pair<int, long long>>& out);
 	void SaveAlerts(const std::vector<std::pair<int, long long>>& alerts);
+	void ParseBuyAlerts(const char* csv, std::vector<std::pair<int, long long>>& out);
+	void SaveBuyAlerts(const std::vector<std::pair<int, long long>>& alerts);
 	void SetAlertForId(int id, long long thresh);
+	void SetBuyAlertForId(int id, long long thresh);
 	void PruneAlertsToIds(const std::vector<int>& ids);
 	void SaveIds(const std::vector<int>& ids);
 	int ApplyAlerts(std::vector<Row>& rows);
 	int ParseItemInput(const char* text);
 	void SyncRowsFromSettings();
+
+	void DrawOrdersSection();
+	void DrawListingDrawer(int itemId);
 
 	/* TpWatchResolve.cpp */
 	std::string UrlEncode(const char* s);

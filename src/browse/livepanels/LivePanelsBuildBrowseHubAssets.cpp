@@ -78,10 +78,11 @@ h1{margin:0 0 8px;font-size:2.15rem}
 		/* Rest of hub styles (toc onward) — keep prior block. */
 		s += R"CSS(
 .toc{
-  display:flex;flex-wrap:wrap;gap:.45rem;margin:16px 0 0;padding:12px 0 2px;
+  display:flex;flex-wrap:wrap;gap:.45rem;margin:16px 0 0;padding:0;
   position:sticky;top:0;z-index:5;
-  background:linear-gradient(180deg,rgba(14,11,8,.98) 70%,rgba(14,11,8,.88));
-  border-bottom:1px solid var(--border-soft);
+  background:transparent;
+  border-bottom:none;
+  width:fit-content;max-width:100%;
 }
 a.jump{
   display:inline-block;padding:.38rem .75rem;font-size:.76rem;font-weight:650;

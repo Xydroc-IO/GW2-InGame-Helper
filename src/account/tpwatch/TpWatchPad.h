@@ -1,7 +1,9 @@
 #pragma once
 
+#include <string>
+
 /* ImGui Trading Post pad - delivery box (API key) + watchlist buy/sell prices
-   + optional sell≤ alerts (highlight on refresh). Kept out of CEF for reliability.
+   + optional sell≤ / buy≥ alerts (highlight on refresh). Kept out of CEF for reliability.
    Read-only official API only - never buys, sells, or claims. */
 namespace TpWatchPad
 {
@@ -18,4 +20,7 @@ namespace TpWatchPad
 
 	/* Open panel + refresh prices / delivery (toolbar TP / Options). */
 	void OpenAndRefresh();
+
+	/* Add item id to watchlist (Economy / Lookup glue). */
+	bool AddItem(int itemId, std::string* statusOut = nullptr);
 }

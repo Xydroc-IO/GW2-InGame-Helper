@@ -78,6 +78,10 @@ void TpWatchPad::RenderContents(bool forceScroll)
 	{
 		ImGui::TextColored(HelperTheme::GoldMuted,
 			"Coins waiting: %s", FormatCoins(delivery.coins).c_str());
+		if (delivery.itemsSellValue > 0)
+			ImGui::TextColored(HelperTheme::Muted,
+				"Items at sell: ~%s (estimate)", FormatCoins(delivery.itemsSellValue).c_str());
+		ImGui::TextColored(HelperTheme::Muted, "Claim in-game at the Trading Post.");
 		if (delivery.items.empty())
 		{
 			ImGui::TextColored(HelperTheme::Muted,
@@ -91,10 +95,18 @@ void TpWatchPad::RenderContents(bool forceScroll)
 			{
 				const DeliveryItem& it = delivery.items[i];
 				ImGui::PushID(static_cast<int>(it.id) + 100000);
+				if (Gw2Icons::ImageItem(it.id, 22.f))
+					ImGui::SameLine();
 				const char* name = it.name.empty() ? "..." : it.name.c_str();
 				char line[256];
 				std::snprintf(line, sizeof(line), "%dx  %s", it.count, name);
 				ImGui::TextUnformatted(line);
+				if (it.sellUnit > 0)
+				{
+					ImGui::SameLine();
+					ImGui::TextColored(HelperTheme::Muted, "~%s",
+						FormatCoins(it.sellUnit * it.count).c_str());
+				}
 				ImGui::SameLine();
 				ImGui::TextColored(HelperTheme::Muted, "#%d", it.id);
 				ImGui::SameLine();
@@ -143,10 +155,13 @@ void TpWatchPad::RenderContents(bool forceScroll)
 	PadNav::PopWrap();
 
 	ImGui::Separator();
+	DrawOrdersSection();
+
+	ImGui::Separator();
 	PadNav::SectionTitle("Watchlist");
 	PadNav::Blurb(
 		"Chat code / ID adds immediately. Names search first - pick Track to watchlist. "
-		"Optional sell alert: fire when sell ≤ your target (checked on Refresh).");
+		"Sell ≤ and buy ≥ alerts fire on Refresh.");
 
 	auto trySubmit = [&]() {
 		if (!gAddBuf[0] || gAddBusy) return;
@@ -310,9 +325,14 @@ void TpWatchPad::RenderContents(bool forceScroll)
 
 			if (hit)
 			{
-				ImGui::TextColored(HelperTheme::Gold,
-					"Alert - sell %s ≤ %s",
-					FormatCoins(r.sell).c_str(), FormatCoins(r.alertSell).c_str());
+				if (r.alertSell > 0 && r.sell > 0 && r.sell <= r.alertSell)
+					ImGui::TextColored(HelperTheme::Gold,
+						"Alert - sell %s ≤ %s",
+						FormatCoins(r.sell).c_str(), FormatCoins(r.alertSell).c_str());
+				if (r.alertBuy > 0 && r.buy > 0 && r.buy >= r.alertBuy)
+					ImGui::TextColored(HelperTheme::Gold,
+						"Alert - buy %s ≥ %s",
+						FormatCoins(r.buy).c_str(), FormatCoins(r.alertBuy).c_str());
 			}
 
 			ImGui::TextColored(HelperTheme::Muted, "Sell alert ≤");
@@ -363,6 +383,55 @@ void TpWatchPad::RenderContents(bool forceScroll)
 				ApplyAlerts(rows);
 				gStatus = "Sell alert cleared.";
 			}
+
+			ImGui::TextColored(HelperTheme::Muted, "Buy alert ≥");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(alertW);
+			static int sBuyEditId = 0;
+			static char sBuyEditBuf[64] = {};
+			if (sBuyEditId == r.id)
+			{
+				ImGui::InputTextWithHint("###gw2igh_tp_balert", "e.g. 1g",
+					sBuyEditBuf, sizeof(sBuyEditBuf));
+				if (ImGui::IsItemDeactivatedAfterEdit())
+				{
+					const long long thresh = ParseCoinsInput(sBuyEditBuf);
+					SetBuyAlertForId(r.id, thresh);
+					sBuyEditId = 0;
+					{
+						std::lock_guard<std::mutex> lock(gMu);
+						ApplyAlerts(gRows);
+					}
+					ApplyAlerts(rows);
+					gStatus = thresh > 0 ? "Buy alert saved." : "Buy alert cleared.";
+				}
+			}
+			else
+			{
+				char shown[64];
+				FormatAlertEdit(r.alertBuy, shown, sizeof(shown));
+				ImGui::InputTextWithHint("###gw2igh_tp_balert", "e.g. 1g",
+					shown, sizeof(shown));
+				if (ImGui::IsItemActivated())
+				{
+					sBuyEditId = r.id;
+					std::snprintf(sBuyEditBuf, sizeof(sBuyEditBuf), "%s", shown);
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Clear##buy"))
+			{
+				SetBuyAlertForId(r.id, 0);
+				sBuyEditId = 0;
+				{
+					std::lock_guard<std::mutex> lock(gMu);
+					ApplyAlerts(gRows);
+				}
+				ApplyAlerts(rows);
+				gStatus = "Buy alert cleared.";
+			}
+
+			DrawListingDrawer(r.id);
 			PadNav::PopWrap();
 
 			if (hit)

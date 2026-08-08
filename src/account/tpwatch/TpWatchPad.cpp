@@ -3,6 +3,7 @@
 #include "TpWatchShared.h"
 
 #include "BrowserTabs.h"
+#include "CommerceShared.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "HelperTheme.h"
@@ -70,6 +71,12 @@ void TpWatchPad::OpenAndRefresh()
 		gRequestFocus = true;
 	Settings::SetDirty();
 	RefreshData();
+	Commerce::StartTransactionsFetch();
+}
+
+bool TpWatchPad::AddItem(int itemId, std::string* statusOut)
+{
+	return TpWatchDetail::CommitWatchId(itemId, statusOut);
 }
 
 void TpWatchPad::Tick()

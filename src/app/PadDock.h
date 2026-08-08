@@ -160,7 +160,9 @@ namespace PadDock
 
 		if (io.DisplaySize.x > 100.f && x + padW > io.DisplaySize.x - kEdge)
 		{
-			x = G::WindowPosX - padW - kGap;
+			/* Left of the nav column, not on top of the icons. */
+			const float railW = (G::SideRailW > 1.f) ? G::SideRailW : 64.f;
+			x = G::WindowPosX - railW - padW - kGap;
 			if (x < kEdge)
 			{
 				x = G::WindowPosX;

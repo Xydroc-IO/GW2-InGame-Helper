@@ -1,5 +1,6 @@
 #include "LookupPadInternal.h"
 
+#include "CommerceShared.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "Gw2Icons.h"
@@ -14,6 +15,7 @@
 #include <cstring>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <windows.h>
@@ -289,28 +291,14 @@ namespace LookupDetail
 			return false;
 		}
 
-		std::snprintf(path, sizeof(path), "/v2/commerce/prices?ids=%d", id);
-		auto pr = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
-		if (pr.ok)
+		std::unordered_map<int, Commerce::Quote> quotes;
+		Commerce::FetchQuotes({ id }, quotes, false);
+		const auto qit = quotes.find(id);
+		if (qit != quotes.end())
 		{
-			size_t brace = pr.body.find('{');
-			if (brace != std::string::npos)
-			{
-				size_t end = JsonObjectEnd(pr.body, brace);
-				if (end != std::string::npos)
-				{
-					size_t buys = pr.body.find("\"buys\"", brace);
-					size_t sells = pr.body.find("\"sells\"", brace);
-					long long buy = -1, sell = -1;
-					if (buys != std::string::npos && buys < end)
-						buy = JsonIntAfterKey(pr.body, "unit_price", buys);
-					if (sells != std::string::npos && sells < end)
-						sell = JsonIntAfterKey(pr.body, "unit_price", sells);
-					if (buy >= 0) hit.buy = buy;
-					if (sell >= 0) hit.sell = sell;
-					hit.hasPrices = (buy >= 0 || sell >= 0);
-				}
-			}
+			hit.buy = qit->second.buy;
+			hit.sell = qit->second.sell;
+			hit.hasPrices = qit->second.ok;
 		}
 		hit.ok = true;
 		hit.status = "Ready.";

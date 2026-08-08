@@ -135,12 +135,11 @@ namespace Gw2UiDetail
 	}
 }
 
-bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge)
+bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge, bool solidStack)
 {
 	/*
-	 * Translucent wash plate (Hero lets the world show through) + dual rim.
-	 * Leave the title-bar band empty so the strip can fade L→R onto the game
-	 * (Hero title is not backed by an opaque plate).
+	 * Wash plate + dual rim. Helper keeps a softer Hero wash; companion pads use
+	 * solidStack so a focused window covers whatever sits under it.
 	 */
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 	if (!dl)
@@ -168,7 +167,10 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge)
 	if (wash0.y < p1.y - 1.f)
 	{
 		dl->PushClipRect(wash0, p1, false);
-		dl->AddRectFilled(wash0, p1, IM_COL32(10, 8, 6, static_cast<int>(a * 168.f + 0.5f)));
+		const float underA = solidStack ? 252.f : 220.f;
+		const float washA = solidStack ? 248.f : 205.f;
+		const float veilA = solidStack ? 110.f : 55.f;
+		dl->AddRectFilled(wash0, p1, IM_COL32(10, 8, 6, static_cast<int>(a * underA + 0.5f)));
 
 		if (!fill || !fill->Resource)
 		{
@@ -177,7 +179,7 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge)
 			return false;
 		}
 
-		const ImU32 washCol = IM_COL32(255, 255, 255, static_cast<int>(a * 205.f + 0.5f));
+		const ImU32 washCol = IM_COL32(255, 255, 255, static_cast<int>(a * washA + 0.5f));
 		ImVec2 uv0(0.f, 0.f), uv1(1.f, 1.f);
 		if (!usingWash)
 		{
@@ -194,7 +196,7 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge)
 		}
 		dl->AddImage(reinterpret_cast<ImTextureID>(fill->Resource),
 			wash0, p1, uv0, uv1, washCol);
-		dl->AddRectFilled(wash0, p1, IM_COL32(6, 4, 3, static_cast<int>(a * 36.f + 0.5f)));
+		dl->AddRectFilled(wash0, p1, IM_COL32(6, 4, 3, static_cast<int>(a * veilA + 0.5f)));
 		dl->PopClipRect();
 	}
 

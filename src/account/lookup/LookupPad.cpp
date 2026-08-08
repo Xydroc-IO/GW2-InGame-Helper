@@ -4,6 +4,8 @@
 
 #include "BrowserTabs.h"
 #include "AspectLayout.h"
+#include "EconomyInternal.h"
+#include "EconomyShared.h"
 #include "Globals.h"
 #include "Gw2Icons.h"
 #include "HelperTheme.h"
@@ -123,39 +125,18 @@ void LookupPad::RenderContents()
 		ImGui::SameLine();
 		if (ImGui::Button("Add to TP###gw2igh_lookup_tp"))
 		{
-			std::string csv = G::TpWatchIds;
-			char idBuf[24];
-			std::snprintf(idBuf, sizeof(idBuf), "%d", hit.id);
-			bool already = false;
-			{
-				/* Token-aware check so 21 does not match 19721. */
-				const char* p = csv.c_str();
-				while (*p)
-				{
-					while (*p == ',' || *p == ' ') ++p;
-					int v = 0;
-					bool any = false;
-					while (*p >= '0' && *p <= '9')
-					{
-						any = true;
-						v = v * 10 + (*p - '0');
-						++p;
-					}
-					if (any && v == hit.id) { already = true; break; }
-					while (*p && *p != ',') ++p;
-				}
-			}
-			if (!already)
-			{
-				if (!csv.empty() && csv.back() != ',') csv += ',';
-				csv += idBuf;
-				if (csv.size() < sizeof(G::TpWatchIds))
-				{
-					std::snprintf(G::TpWatchIds, sizeof(G::TpWatchIds), "%s", csv.c_str());
-					Settings::SetDirty();
-				}
-			}
+			std::string st;
+			TpWatchPad::AddItem(hit.id, &st);
 			TpWatchPad::OpenAndRefresh();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cart###gw2igh_lookup_cart"))
+		{
+			EconomyDetail::AddToCart(hit.id, hit.name.empty() ? "Item" : hit.name.c_str(), 1);
+			G::ShowEconomy = true;
+			EconomyDetail::gTab = EconomyDetail::kTabCart;
+			EconomyDetail::gForceTab = EconomyDetail::kTabCart;
+			Settings::SetDirty();
 		}
 	}
 	else if (!hit.nameHints.empty())

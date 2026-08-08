@@ -2,6 +2,7 @@
 
 #include "TpWatchShared.h"
 
+#include "CommerceShared.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "Gw2Icons.h"
@@ -12,6 +13,7 @@
 #include <cstring>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -148,37 +150,15 @@ namespace TpWatchDetail
 				if (h.id == nv.first) { h.name = nv.second; break; }
 		}
 
-		std::string path = "/v2/commerce/prices?ids=";
-		path += IdsQuery(ids);
-		auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpTimeoutMs);
-		if (!r.ok) return;
-		size_t p = 0;
-		while (p < r.body.size())
+		std::unordered_map<int, Commerce::Quote> quotes;
+		Commerce::FetchQuotes(ids, quotes, false);
+		for (NameHit& h : hits)
 		{
-			size_t brace = r.body.find('{', p);
-			if (brace == std::string::npos) break;
-			size_t end = JsonObjectEnd(r.body, brace);
-			if (end == std::string::npos) break;
-			long long id = JsonIntAfterKey(r.body, "id", brace);
-			size_t buys = r.body.find("\"buys\"", brace);
-			size_t sells = r.body.find("\"sells\"", brace);
-			long long buy = -1, sell = -1;
-			if (buys != std::string::npos && buys < end)
-				buy = JsonIntAfterKey(r.body, "unit_price", buys);
-			if (sells != std::string::npos && sells < end)
-				sell = JsonIntAfterKey(r.body, "unit_price", sells);
-			if (id > 0)
-			{
-				for (NameHit& h : hits)
-				{
-					if (h.id != static_cast<int>(id)) continue;
-					if (buy >= 0) h.buy = buy;
-					if (sell >= 0) h.sell = sell;
-					h.hasPrices = (buy >= 0 || sell >= 0);
-					break;
-				}
-			}
-			p = end + 1;
+			const auto it = quotes.find(h.id);
+			if (it == quotes.end()) continue;
+			h.buy = it->second.buy;
+			h.sell = it->second.sell;
+			h.hasPrices = it->second.ok;
 		}
 	}
 
@@ -199,40 +179,14 @@ namespace TpWatchDetail
 			}
 		}
 		{
-			std::string path = "/v2/commerce/prices?ids=";
-			path += IdsQuery(ids);
-			auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpTimeoutMs);
-			if (r.ok)
+			std::unordered_map<int, Commerce::Quote> quotes;
+			Commerce::FetchQuotes(ids, quotes, false);
+			for (Row& row : rows)
 			{
-				size_t p = 0;
-				while (p < r.body.size())
-				{
-					size_t brace = r.body.find('{', p);
-					if (brace == std::string::npos) break;
-					size_t end = JsonObjectEnd(r.body, brace);
-					if (end == std::string::npos) break;
-					long long id = JsonIntAfterKey(r.body, "id", brace);
-					size_t buys = r.body.find("\"buys\"", brace);
-					size_t sells = r.body.find("\"sells\"", brace);
-					long long buy = -1, sell = -1;
-					if (buys != std::string::npos && buys < end)
-						buy = JsonIntAfterKey(r.body, "unit_price", buys);
-					if (sells != std::string::npos && sells < end)
-						sell = JsonIntAfterKey(r.body, "unit_price", sells);
-					if (id > 0)
-					{
-						for (Row& row : rows)
-						{
-							if (row.id == static_cast<int>(id))
-							{
-								if (buy >= 0) row.buy = buy;
-								if (sell >= 0) row.sell = sell;
-								break;
-							}
-						}
-					}
-					p = end + 1;
-				}
+				const auto it = quotes.find(row.id);
+				if (it == quotes.end()) continue;
+				row.buy = it->second.buy;
+				row.sell = it->second.sell;
 			}
 		}
 	}
@@ -303,6 +257,18 @@ namespace TpWatchDetail
 			{
 				for (DeliveryItem& it : d.items)
 					if (it.id == nv.first) { it.name = nv.second; break; }
+			}
+			std::unordered_map<int, Commerce::Quote> quotes;
+			Commerce::FetchQuotes(ids, quotes, false);
+			d.itemsSellValue = 0;
+			for (DeliveryItem& it : d.items)
+			{
+				auto qit = quotes.find(it.id);
+				if (qit != quotes.end() && qit->second.sell > 0)
+				{
+					it.sellUnit = qit->second.sell;
+					d.itemsSellValue += qit->second.sell * it.count;
+				}
 			}
 		}
 

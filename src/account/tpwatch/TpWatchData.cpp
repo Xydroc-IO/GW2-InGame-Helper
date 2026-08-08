@@ -200,6 +200,49 @@ namespace TpWatchDetail
 		Settings::SetDirty();
 	}
 
+	void ParseBuyAlerts(const char* csv, std::vector<std::pair<int, long long>>& out)
+	{
+		ParseAlerts(csv, out);
+	}
+
+	void SaveBuyAlerts(const std::vector<std::pair<int, long long>>& alerts)
+	{
+		std::string s;
+		for (size_t i = 0; i < alerts.size(); ++i)
+		{
+			if (alerts[i].second <= 0) continue;
+			if (!s.empty()) s += ',';
+			s += std::to_string(alerts[i].first);
+			s += ':';
+			s += std::to_string(alerts[i].second);
+		}
+		if (s.size() >= sizeof(G::TpWatchBuyAlerts))
+			s.resize(sizeof(G::TpWatchBuyAlerts) - 1);
+		std::snprintf(G::TpWatchBuyAlerts, sizeof(G::TpWatchBuyAlerts), "%s", s.c_str());
+		Settings::SetDirty();
+	}
+
+	void SetBuyAlertForId(int id, long long thresh)
+	{
+		if (id <= 0) return;
+		std::vector<std::pair<int, long long>> alerts;
+		ParseBuyAlerts(G::TpWatchBuyAlerts, alerts);
+		bool found = false;
+		for (size_t i = 0; i < alerts.size(); ++i)
+		{
+			if (alerts[i].first != id) continue;
+			found = true;
+			if (thresh <= 0)
+				alerts.erase(alerts.begin() + static_cast<std::ptrdiff_t>(i));
+			else
+				alerts[i].second = thresh;
+			break;
+		}
+		if (!found && thresh > 0)
+			alerts.emplace_back(id, thresh);
+		SaveBuyAlerts(alerts);
+	}
+
 	void SetAlertForId(int id, long long thresh)
 	{
 		if (id <= 0) return;
@@ -223,17 +266,21 @@ namespace TpWatchDetail
 
 	void PruneAlertsToIds(const std::vector<int>& ids)
 	{
-		std::vector<std::pair<int, long long>> alerts;
-		ParseAlerts(G::TpWatchAlerts, alerts);
-		std::vector<std::pair<int, long long>> next;
-		for (const auto& e : alerts)
-		{
-			bool keep = false;
-			for (int id : ids) if (id == e.first) { keep = true; break; }
-			if (keep) next.push_back(e);
-		}
-		if (next.size() != alerts.size())
-			SaveAlerts(next);
+		auto prune = [&](const char* src, void (*save)(const std::vector<std::pair<int, long long>>&)) {
+			std::vector<std::pair<int, long long>> alerts;
+			ParseAlerts(src, alerts);
+			std::vector<std::pair<int, long long>> next;
+			for (const auto& e : alerts)
+			{
+				bool keep = false;
+				for (int id : ids) if (id == e.first) { keep = true; break; }
+				if (keep) next.push_back(e);
+			}
+			if (next.size() != alerts.size())
+				save(next);
+		};
+		prune(G::TpWatchAlerts, SaveAlerts);
+		prune(G::TpWatchBuyAlerts, SaveBuyAlerts);
 	}
 
 	void SaveIds(const std::vector<int>& ids)
@@ -254,15 +301,22 @@ namespace TpWatchDetail
 	/* Attach thresholds + hit flags; returns number of hits. */
 	int ApplyAlerts(std::vector<Row>& rows)
 	{
-		std::vector<std::pair<int, long long>> alerts;
-		ParseAlerts(G::TpWatchAlerts, alerts);
+		std::vector<std::pair<int, long long>> sellAlerts;
+		std::vector<std::pair<int, long long>> buyAlerts;
+		ParseAlerts(G::TpWatchAlerts, sellAlerts);
+		ParseBuyAlerts(G::TpWatchBuyAlerts, buyAlerts);
 		int hits = 0;
 		for (Row& r : rows)
 		{
 			r.alertSell = 0;
-			for (const auto& e : alerts)
+			r.alertBuy = 0;
+			for (const auto& e : sellAlerts)
 				if (e.first == r.id) { r.alertSell = e.second; break; }
-			r.alertHit = (r.alertSell > 0 && r.sell > 0 && r.sell <= r.alertSell);
+			for (const auto& e : buyAlerts)
+				if (e.first == r.id) { r.alertBuy = e.second; break; }
+			const bool sellHit = (r.alertSell > 0 && r.sell > 0 && r.sell <= r.alertSell);
+			const bool buyHit = (r.alertBuy > 0 && r.buy > 0 && r.buy >= r.alertBuy);
+			r.alertHit = sellHit || buyHit;
 			if (r.alertHit) ++hits;
 		}
 		return hits;
