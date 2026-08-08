@@ -5,7 +5,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.3.14` |
+| Addon revision (shipping) | `2.2.3.15` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2242` / `2232` / `s2214` / `c2228` |
@@ -275,5 +275,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.3.14 — title crest overhang (~100px); HasKha Markers curated; Watch Windows Graphics Capture picker; GDI classic fallback; portal/PipeWire OOP (w10); live 62; home 2232; cheatsheets c2228; raid food 9; ui-chrome uc35 |
+| Last architecture sync | 2.2.3.15 — title crest overhang + label spacing; HasKha Markers curated; Watch WGC picker; GDI classic; portal/PipeWire (w10); live 62; home 2232; cheatsheets c2228; raid food 9; ui-chrome uc35 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

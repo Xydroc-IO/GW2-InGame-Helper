@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.14
+# GW2 In-Game Helper v2.2.3.15
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -32,12 +32,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
 
 ---
 
-## What’s new in 2.2.3.14
+## What’s new in 2.2.3.15
 
-- **Title crest:** Larger gem hangs mostly above the title strip; bottom stays near
-  the baseline so the first side-rail icon stays clear.
+- **Title crest:** Larger gem (~100px) hangs mostly above the title strip; Game Helper
+  label spacing tuned next to the crest.
 - **Curated pathing:** [HasKha Markers](https://github.com/HasKha/gw2-markers) from GitHub
   Releases (`haskha_markers.zip` → `haskha_markers.taco`); **Update curated** refreshes.
+- **Stamps:** Helper `2242` · homepage `2232` · sites `s2214` · cheatsheets `c2228`
+  · live panel `62` · raid food `9` · ui-chrome `uc35` · watchd `w10`
+
+## What’s new in 2.2.3.14
+
 - **Watch on native Windows:** **Start** opens the system **GraphicsCapturePicker**
   (thumbnail selector). Capture via Windows.Graphics.Capture when exports resolve at
   runtime; otherwise soft-fail to the classic list. **Classic list…** keeps titled HWND +
