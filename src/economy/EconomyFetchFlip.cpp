@@ -2,6 +2,7 @@
 
 #include "EconomyInternal.h"
 
+#include "CommerceShared.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "Gw2Icons.h"
@@ -85,6 +86,34 @@ namespace EconomyDetail
 		{19745, "Gossamer Scrap"},
 		{19748, "Silk Scrap"},
 		{19743, "Linen Scrap"},
+		/* T6 rares + extras */
+		{24295, "Vial of Powerful Blood"},
+		{24358, "Ancient Bone"},
+		{24357, "Vicious Fang"},
+		{24351, "Vicious Claw"},
+		{24289, "Armored Scale"},
+		{24283, "Powerful Venom Sac"},
+		{24299, "Intricate Totem"},
+		{24300, "Elaborate Totem"},
+		{24277, "Pile of Crystalline Dust"},
+		{19721, "Glob of Ectoplasm"},
+		{19976, "Mystic Coin"},
+		{19925, "Obsidian Shard"},
+		{49457, "Empyreal Fragment"},
+		{46733, "Dragonite Ore"},
+		{46731, "Blood Ruby"},
+		{89103, "Difluorite Crystal"},
+		{86069, "Inscribed Shard"},
+		{79280, "Kralkatite Ore"},
+		{87645, "Mist Crystal"},
+		{21155, "Gift of Exploration"},
+		{19663, "Bolt of Damask"},
+		{19662, "Bolt of Silk"},
+		{19746, "Cured Hardened Leather Square"},
+		{19721, "Glob of Ectoplasm"},
+		{43772, "Icy Runestone"},
+		{68063, "Stabilizing Matrix"},
+		{73248, "Cube of Stabilized Dark Energy"},
 	};
 
 	static size_t JsonObjectEnd(const std::string& json, size_t openBrace)
@@ -189,22 +218,6 @@ namespace EconomyDetail
 		return "Item";
 	}
 
-	static std::string BuildIdsQuery()
-	{
-		std::unordered_map<int, bool> seen;
-		std::string q;
-		for (const auto& s : kSeeds)
-		{
-			if (seen.count(s.id))
-				continue;
-			seen[s.id] = true;
-			if (!q.empty())
-				q += ',';
-			q += std::to_string(s.id);
-		}
-		return q;
-	}
-
 	static void ApplyItemNames(std::vector<FlipRow>& rows, const std::string& body)
 	{
 		std::unordered_map<int, std::string> byId;
@@ -265,118 +278,75 @@ namespace EconomyDetail
 		gFlipBusy = true;
 		std::snprintf(gStatus, sizeof(gStatus), "Scanning commerce prices...");
 		std::thread([]() {
-			const std::string ids = BuildIdsQuery();
+			std::vector<int> ids;
+			{
+				std::unordered_map<int, bool> seen;
+				for (const auto& s : kSeeds)
+				{
+					if (seen.count(s.id)) continue;
+					seen[s.id] = true;
+					ids.push_back(s.id);
+				}
+			}
 			std::vector<FlipRow> rows;
 			std::vector<PriceSample> samples;
 			char status[192] = {};
 
-			auto prices = Gw2Http::Api(("/v2/commerce/prices?ids=" + ids).c_str(), nullptr, 12000);
-			if (!prices.ok)
-			{
-				FormatHttpError(status, sizeof(status), "Commerce scan", prices);
-			}
-			else if (prices.body.empty() || prices.body == "[]")
+			std::unordered_map<int, Commerce::Quote> quotes;
+			Commerce::FetchQuotes(ids, quotes, true);
+			if (quotes.empty())
 			{
 				std::snprintf(status, sizeof(status), "Commerce scan returned no listings.");
 			}
 			else
 			{
-				size_t p = 0;
-				while (p < prices.body.size())
+				for (const auto& kv : quotes)
 				{
-					const size_t brace = prices.body.find('{', p);
-					if (brace == std::string::npos)
-						break;
-					const size_t end = JsonObjectEnd(prices.body, brace);
-					if (end == std::string::npos)
-						break;
-
-					const long long idLL = JsonIntAfterKey(prices.body, "id", brace, end + 1);
-					if (idLL <= 0)
-					{
-						p = end + 1;
-						continue;
-					}
-					const int id = static_cast<int>(idLL);
-
-					long long buy = 0, sell = 0;
-					int demand = 0, supply = 0;
-					const size_t buys = prices.body.find("\"buys\"", brace);
-					const size_t sells = prices.body.find("\"sells\"", brace);
-					if (buys != std::string::npos && buys < end)
-					{
-						const long long up = JsonIntAfterKey(prices.body, "unit_price", buys, end + 1);
-						const long long qty = JsonIntAfterKey(prices.body, "quantity", buys,
-							(sells != std::string::npos && sells < end) ? sells : end + 1);
-						if (up >= 0) buy = up;
-						if (qty >= 0) demand = static_cast<int>(qty);
-					}
-					if (sells != std::string::npos && sells < end)
-					{
-						const long long up = JsonIntAfterKey(prices.body, "unit_price", sells, end + 1);
-						const long long qty = JsonIntAfterKey(prices.body, "quantity", sells, end + 1);
-						if (up >= 0) sell = up;
-						if (qty >= 0) supply = static_cast<int>(qty);
-					}
-
+					const Commerce::Quote& q = kv.second;
 					FlipRow row{};
-					row.id = id;
-					std::snprintf(row.name, sizeof(row.name), "%s", FallbackName(id));
-					row.buy = buy;
-					row.sell = sell;
-					row.demand = demand;
-					row.supply = supply;
-					row.spread = ApproxFeeAdjustedSpread(buy, sell);
+					row.id = q.id;
+					std::snprintf(row.name, sizeof(row.name), "%s", FallbackName(q.id));
+					row.buy = q.buy;
+					row.sell = q.sell;
+					row.demand = q.demand;
+					row.supply = q.supply;
+					row.spread = ApproxFeeAdjustedSpread(q.buy, q.sell);
 					rows.push_back(row);
 
 					PriceSample s{};
-					s.id = id;
-					s.buy = buy;
-					s.sell = sell;
+					s.id = q.id;
+					s.buy = q.buy;
+					s.sell = q.sell;
 					s.ts = static_cast<unsigned>(std::time(nullptr));
 					samples.push_back(s);
-					p = end + 1;
 				}
 
-				if (rows.empty())
+				std::string nameIds;
+				for (size_t i = 0; i < rows.size(); ++i)
 				{
+					if (i) nameIds += ',';
+					nameIds += std::to_string(rows[i].id);
+				}
+				auto names = Gw2Http::Api(("/v2/items?ids=" + nameIds).c_str(), nullptr, 12000);
+				if (names.ok && !names.body.empty())
+				{
+					ApplyItemNames(rows, names.body);
 					std::snprintf(status, sizeof(status),
-						"Commerce scan parsed 0 items - API format changed?");
+						"Flip scan: %zu items (names from API).", rows.size());
 				}
 				else
 				{
-					/* Names from returned price ids only (smaller + always valid). */
-					std::string nameIds;
-					for (size_t i = 0; i < rows.size(); ++i)
-					{
-						if (i) nameIds += ',';
-						nameIds += std::to_string(rows[i].id);
-					}
-					auto names = Gw2Http::Api(("/v2/items?ids=" + nameIds).c_str(), nullptr, 12000);
-					if (names.ok && !names.body.empty())
-					{
-						ApplyItemNames(rows, names.body);
-						std::snprintf(status, sizeof(status),
-							"Flip scan: %zu items (names from API).", rows.size());
-					}
-					else
-					{
-						/* Prices still useful - keep fallback names, say why. */
-						char err[96];
-						FormatHttpError(err, sizeof(err), "Item names", names);
-						std::snprintf(status, sizeof(status),
-							"Flip scan: %zu items. %s", rows.size(), err);
-					}
+					char err[96];
+					FormatHttpError(err, sizeof(err), "Item names", names);
+					std::snprintf(status, sizeof(status),
+						"Flip scan: %zu items. %s", rows.size(), err);
 				}
 			}
 
+			AppendSamples(samples);
 			{
 				std::lock_guard<std::mutex> lock(gMu);
 				gPending = std::move(rows);
-				for (const auto& s : samples)
-					gHistory.push_back(s);
-				if (gHistory.size() > 800)
-					gHistory.erase(gHistory.begin(), gHistory.begin() + 100);
 				std::snprintf(gPendingStatus, sizeof(gPendingStatus), "%s", status);
 				gHavePending = true;
 			}
@@ -386,18 +356,22 @@ namespace EconomyDetail
 
 	void PollFlipWorker()
 	{
-		std::lock_guard<std::mutex> lock(gMu);
-		if (!gHavePending)
-			return;
-		gFlips = std::move(gPending);
-		gHavePending = false;
-		gFlipBusy = false;
-		gFlipDone = true;
-		std::sort(gFlips.begin(), gFlips.end(),
-			[](const FlipRow& a, const FlipRow& b) { return a.spread > b.spread; });
-		std::snprintf(gStatus, sizeof(gStatus), "%s",
-			gPendingStatus[0] ? gPendingStatus : "Flip scan done.");
-		if (!gFlips.empty())
+		bool saveHist = false;
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			if (!gHavePending)
+				return;
+			gFlips = std::move(gPending);
+			gHavePending = false;
+			gFlipBusy = false;
+			gFlipDone = true;
+			std::sort(gFlips.begin(), gFlips.end(),
+				[](const FlipRow& a, const FlipRow& b) { return a.spread > b.spread; });
+			std::snprintf(gStatus, sizeof(gStatus), "%s",
+				gPendingStatus[0] ? gPendingStatus : "Flip scan done.");
+			saveHist = !gFlips.empty();
+		}
+		if (saveHist)
 			SaveHistory();
 	}
 }

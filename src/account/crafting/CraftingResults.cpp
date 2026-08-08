@@ -2,9 +2,12 @@
 
 #include "CraftingShared.h"
 
+#include "EconomyInternal.h"
 #include "EconomyShared.h"
+#include "Globals.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
+#include "Settings.h"
 
 #include "imgui/imgui.h"
 
@@ -16,17 +19,15 @@
 
 namespace CraftingDetail
 {
-	static void DrawNode(const IngNode& n)
+		static void DrawNode(const IngNode& n)
 	{
 		ImGui::PushID(n.itemId + n.depth * 1000003);
 		const char* name = n.name.empty() ? "..." : n.name.c_str();
 		const int miss = (std::max)(0, n.need - n.have);
 		const bool ok = miss <= 0;
-		char label[256];
-		if (n.crafted && !n.kids.empty())
-			std::snprintf(label, sizeof(label), "[craft] %s  %d / %d", name, n.have, n.need);
-		else
-			std::snprintf(label, sizeof(label), "%s  %d / %d", name, n.have, n.need);
+		char label[288];
+		const char* mode = n.crafted && !n.kids.empty() ? "craft" : (miss > 0 ? "buy" : "owned");
+		std::snprintf(label, sizeof(label), "[%s] %s  %d / %d", mode, name, n.have, n.need);
 		if (!n.kids.empty())
 		{
 			if (ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen))
@@ -194,6 +195,10 @@ namespace CraftingDetail
 				EconomyDetail::AddToCart(s.itemId,
 					s.name.empty() ? "Item" : s.name.c_str(), s.qty);
 			}
+			G::ShowEconomy = true;
+			EconomyDetail::gTab = EconomyDetail::kTabCart;
+			EconomyDetail::gForceTab = EconomyDetail::kTabCart;
+			Settings::SetDirty();
 		}
 		if (allowCartGot)
 		{
@@ -259,10 +264,18 @@ namespace CraftingDetail
 		ImGui::TextColored(HelperTheme::GoldBright, "%s",
 			plan.outputName.empty() ? "Output" : plan.outputName.c_str());
 		ImGui::TextColored(HelperTheme::Muted,
-			"#%d | %s | want x%d | yield %d",
+			"#%d | %s | %s | want x%d | yield %d",
 			plan.outputId,
 			plan.recipeSource.empty() ? "recipe" : plan.recipeSource.c_str(),
+			plan.recipeDiscipline.empty() ? "?" : plan.recipeDiscipline.c_str(),
 			(std::max)(1, plan.wantQty), plan.outputCount);
+		if (plan.recipeDiscipline.find("Mystic") != std::string::npos ||
+			plan.recipeSource.find("wiki") != std::string::npos ||
+			plan.recipeSource.find("forge") != std::string::npos)
+		{
+			ImGui::TextColored(HelperTheme::Warn,
+				"Forge / wiki acquisition — verify steps in-game.");
+		}
 		DrawKnownBadge(plan);
 		ImGui::Spacing();
 		DrawFinancialOne(plan);

@@ -21,7 +21,9 @@ namespace InstancesDetail
 	struct Step
 	{
 		char text[160]{};
-		char apiId[48]{}; /* /v2/account/raids encounter id; empty = local-only */
+		char apiId[48]{}; /* /v2/account/raids encounter id; empty = none */
+		int  achId = 0;   /* lifetime /v2/account/achievements overlay */
+		std::vector<int> storyIds; /* /v2/stories ids — all must be quest-complete */
 		bool done = false;
 	};
 	struct Entry
@@ -31,7 +33,8 @@ namespace InstancesDetail
 		char name[96]{};
 		char blurb[128]{};
 		std::vector<Step> steps;
-		bool cleared = false; /* weekly / local */
+		bool cleared = false; /* weekly / local / overlay */
+		int  achId = 0; /* optional entry-level achievement overlay */
 	};
 
 	extern bool gFocus;
@@ -39,6 +42,8 @@ namespace InstancesDetail
 	extern Kind gKind;
 	extern int gSelected;
 	extern char gStatus[160];
+	extern int gFractalLevel; /* from /v2/account; 0 = unknown */
+	extern std::vector<std::string> gDailyFractals; /* today's fractal daily names */
 
 	void EnsureCatalog();
 	size_t Count();
@@ -46,6 +51,8 @@ namespace InstancesDetail
 	void ToggleStep(size_t entry, size_t step);
 	void ToggleCleared(size_t entry);
 	bool EntryHasApiSteps(const Entry& e);
+	bool StepSynced(const Step& s); /* raid / ach / story — lock when key present */
+	bool EntrySynced(const Entry& e);
 	void ClearKind(Kind k); /* reset clears + steps for a category */
 	void ResetEntry(size_t entry);
 	void LoadProgress();
@@ -56,7 +63,10 @@ namespace InstancesDetail
 
 	/* Apply /v2/account/raids encounter ids onto raid steps (SoT for weekly clears). */
 	void ApplyRaidEncounterIds(const std::vector<std::string>& ids);
-	void StartRaidSync(bool force);
-	void TickRaidSync(); /* call from pad render — apply pending worker result */
+	void ApplyAchievementIds(const std::vector<int>& doneIds);
+	void ApplyStoryCompletions(const std::vector<int>& completeStoryIds);
+
+	void StartRaidSync(bool force); /* full sync: raids + fractals + ach + story quests */
+	void TickRaidSync();
 	bool RaidSyncBusy();
 }

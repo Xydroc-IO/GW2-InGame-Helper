@@ -183,7 +183,7 @@ namespace CraftingDetail
 	void AddOwnedCounts(std::unordered_map<int, int>& owned, const std::string& body);
 	void LoadOwned(std::unordered_map<int, int>& owned);
 	bool LoadApiRecipeForOutput(int outputId, int& outCount, std::vector<RecipeIng>& ings, int& recipeId,
-		std::string* disciplineOut = nullptr);
+		std::string* disciplineOut = nullptr, const char* preferDiscipline = nullptr);
 	bool LoadApiRecipeById(int recipeId, int& outputId, int& outCount, std::vector<RecipeIng>& ings,
 		std::string* disciplineOut);
 	bool IsTerminalMaterial(const std::string& name);
@@ -274,6 +274,11 @@ namespace CraftingDetail
 	/* CraftingKnownUi.cpp */
 	void DrawKnownRail();
 	const char* SelectedKnownChar(); /* "" = account union */
+
+	/* CraftingBrowser.cpp / CraftingLevelPaths.cpp */
+	void DrawRecipeBrowser();
+	void DrawLevelingPaths();
+	void DrawCookingPath(); /* wrapper → DrawLevelingPaths */
 
 	/* CraftingCart.cpp — multi-item named projects + got check-offs */
 	void CartEnsureLoaded();

@@ -175,13 +175,25 @@ void CraftingData::RenderContents()
 			ImGui::TextColored(HelperTheme::Muted, "%s", dailyStatus.c_str());
 		for (const DailyRow& d : dailies)
 		{
+			ImGui::PushID(d.slug.c_str());
 			if (d.done)
 				ImGui::TextColored(HelperTheme::Ok, "Done  %s", d.name.c_str());
 			else
 				ImGui::TextColored(HelperTheme::Warn, "Todo  %s", d.name.c_str());
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Plan"))
+			{
+				std::snprintf(gQuery, sizeof(gQuery), "%s", d.name.c_str());
+				StartPlan();
+			}
+			ImGui::PopID();
 		}
 	}
 
+	ImGui::Separator();
+	DrawRecipeBrowser();
+	ImGui::Separator();
+	DrawLevelingPaths();
 	ImGui::Separator();
 	DrawKnownRail();
 	ImGui::Separator();

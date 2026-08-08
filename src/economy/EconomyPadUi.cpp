@@ -1,6 +1,7 @@
 #include "EconomyInternal.h"
 
 #include "BrowserTabs.h"
+#include "CommerceShared.h"
 #include "CraftingData.h"
 #include "Globals.h"
 #include "Gw2Icons.h"
@@ -8,6 +9,7 @@
 #include "PadLayout.h"
 #include "PadNav.h"
 #include "Settings.h"
+#include "TpWatchPad.h"
 #include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
@@ -16,6 +18,7 @@
 #include <cfloat>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <string>
 #include <vector>
 
@@ -31,21 +34,6 @@ static void OpenBltcItem(int itemId)
 		WikiBrowser::Navigate(url);
 }
 
-static bool FilterMatch(const FlipRow& r, const char* filter)
-{
-	if (!filter || !filter[0])
-		return true;
-	char idBuf[16];
-	std::snprintf(idBuf, sizeof(idBuf), "%d", r.id);
-	if (std::strstr(idBuf, filter))
-		return true;
-	std::string hay = r.name;
-	std::string needle = filter;
-	for (char& c : hay) c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
-	for (char& c : needle) c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
-	return hay.find(needle) != std::string::npos;
-}
-
 static const char* NameForChart(int id)
 {
 	for (const auto& r : gFlips)
@@ -55,68 +43,6 @@ static const char* NameForChart(int id)
 		if (c.id == id && c.name[0])
 			return c.name;
 	return nullptr;
-}
-
-void DrawFlipsTab()
-{
-	if (ImGui::Button("Rescan###gw2igh_eco_scan"))
-		RequestFlipScan();
-	ImGui::SameLine();
-	{
-		const bool err = gStatus[0] && (
-			std::strstr(gStatus, "failed") != nullptr ||
-			std::strstr(gStatus, "Failed") != nullptr ||
-			std::strstr(gStatus, "error") != nullptr);
-		ImGui::TextColored(err ? ImVec4(0.92f, 0.45f, 0.40f, 1.f) : HelperTheme::Muted,
-			"%s", gFlipBusy ? "Scanning..." : gStatus);
-	}
-	ImGui::InputTextWithHint("##eco_f", "Filter name or id...", gFlipFilter, sizeof(gFlipFilter));
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
-		"Fee-adjusted net (~15%%). Read-only - trade on BLTC / in-game.");
-	PadNav::PopWrap();
-
-	PadLayout::BeginList("###gw2igh_eco_flips");
-	int shown = 0;
-	for (const auto& r : gFlips)
-	{
-		if (!FilterMatch(r, gFlipFilter))
-			continue;
-		++shown;
-		ImGui::PushID(r.id);
-		if (Gw2Icons::ImageItem(r.id, 26.f))
-			ImGui::SameLine();
-		ImGui::TextUnformatted(r.name[0] ? r.name : "Item");
-		ImGui::TextColored(HelperTheme::Muted, "Buy %s | Sell %s | ",
-			FormatCoins(r.buy).c_str(), FormatCoins(r.sell).c_str());
-		ImGui::SameLine(0.f, 0.f);
-		ImGui::TextColored(r.spread > 0 ? ImVec4(0.45f, 0.85f, 0.55f, 1.f) : HelperTheme::Muted,
-			"Net %s", FormatCoins(r.spread).c_str());
-		if (r.demand > 0 || r.supply > 0)
-			ImGui::TextColored(HelperTheme::Muted, "Demand %d | Supply %d", r.demand, r.supply);
-		if (ImGui::SmallButton("Cart"))
-		{
-			AddToCart(r.id, r.name, 1);
-			std::snprintf(gStatus, sizeof(gStatus), "Added %s to cart.", r.name);
-		}
-		ImGui::SameLine();
-		if (ImGui::SmallButton("Chart"))
-		{
-			AddChart(r.id);
-			gTab = kTabCharts;
-			gForceTab = kTabCharts;
-		}
-		ImGui::SameLine();
-		if (ImGui::SmallButton("BLTC"))
-			OpenBltcItem(r.id);
-		ImGui::Separator();
-		ImGui::PopID();
-	}
-	if (gFlips.empty() && !gFlipBusy)
-		ImGui::TextColored(HelperTheme::Muted, "No flips yet - tap Rescan.");
-	else if (!gFlips.empty() && shown == 0)
-		ImGui::TextColored(HelperTheme::Muted, "No items match this filter.");
-	PadLayout::EndList();
 }
 
 /* PlotLines ignores ImGui's usual -1 "fill" width - must pass a real x size. */
@@ -169,7 +95,7 @@ void DrawChartsTab()
 		ClearCharts();
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Pinned from Flips / Cart. Remove with X. Samples come from Flip scans.");
+		"Pinned from Flips / Cart. Remove with X. Samples come from Flip scans and pinned chart polling (~90s).");
 	PadNav::PopWrap();
 
 	if (gChartIds.empty())
@@ -178,6 +104,7 @@ void DrawChartsTab()
 		return;
 	}
 
+	const unsigned nowTs = static_cast<unsigned>(std::time(nullptr));
 	PadLayout::BeginList("###gw2igh_eco_charts");
 	for (size_t i = 0; i < gChartIds.size(); )
 	{
@@ -207,15 +134,19 @@ void DrawChartsTab()
 		if (!remove)
 		{
 			std::vector<float> buys, sells;
+			unsigned lastTs = 0;
 			for (const auto& s : gHistory)
 			{
 				if (s.id != id)
 					continue;
 				buys.push_back(static_cast<float>(s.buy));
 				sells.push_back(static_cast<float>(s.sell));
+				if (s.ts > lastTs)
+					lastTs = s.ts;
 			}
 			if (buys.empty())
-				ImGui::TextColored(HelperTheme::Muted, "No samples yet — run Flip scan.");
+				ImGui::TextColored(HelperTheme::Muted,
+					"No samples yet — Flip scan or wait for chart poll.");
 			else
 			{
 				char buyId[32], sellId[32];
@@ -224,7 +155,21 @@ void DrawChartsTab()
 				const float plotH = 56.f;
 				DrawPricePlot("Buy", buyId, buys, plotH);
 				DrawPricePlot("Sell", sellId, sells, plotH);
-				ImGui::TextColored(HelperTheme::Muted, "Samples: %zu", buys.size());
+				if (lastTs > 0 && nowTs >= lastTs)
+				{
+					const unsigned age = nowTs - lastTs;
+					if (age < 60)
+						ImGui::TextColored(HelperTheme::Muted, "Samples: %zu · last %us ago",
+							buys.size(), age);
+					else if (age < 3600)
+						ImGui::TextColored(HelperTheme::Muted, "Samples: %zu · last %um ago",
+							buys.size(), age / 60);
+					else
+						ImGui::TextColored(HelperTheme::Muted, "Samples: %zu · last %uh ago",
+							buys.size(), age / 3600);
+				}
+				else
+					ImGui::TextColored(HelperTheme::Muted, "Samples: %zu", buys.size());
 			}
 			ImGui::Separator();
 		}
@@ -273,11 +218,15 @@ void DrawCartTab()
 		}
 	}
 	PadLayout::BeginList("###gw2igh_eco_cart");
+	Commerce::EnsureOwnedWarm(false);
 	for (size_t i = 0; i < gCart.size(); )
 	{
 		auto& c = gCart[i];
 		ImGui::PushID(static_cast<int>(i));
+		const int owned = Commerce::OwnedQty(c.id);
+		const int need = (c.qty > owned) ? (c.qty - owned) : 0;
 		ImGui::TextWrapped("%s x %d (id %d)", c.name, c.qty, c.id);
+		ImGui::TextColored(HelperTheme::Muted, "Owned %d | Still need %d", owned, need);
 		if (ImGui::SmallButton("-") && c.qty > 1) { --c.qty; SaveCart(); }
 		ImGui::SameLine();
 		if (ImGui::SmallButton("+")) { ++c.qty; SaveCart(); }
@@ -293,6 +242,14 @@ void DrawCartTab()
 				std::snprintf(q, sizeof(q), "%d", c.id);
 			CraftingData::QueuePlan(q);
 			FocusCraftingTab();
+		}
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Watch"))
+		{
+			std::string st;
+			TpWatchPad::AddItem(c.id, &st);
+			std::snprintf(gStatus, sizeof(gStatus), "%s",
+				st.empty() ? "Watchlist updated." : st.c_str());
 		}
 		ImGui::SameLine();
 		if (ImGui::SmallButton("BLTC"))

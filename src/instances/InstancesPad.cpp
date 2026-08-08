@@ -86,10 +86,20 @@ bool InstancesPad::Render()
 
 	ImGui::BeginChild("###gw2igh_inst_body", ImVec2(0.f, 0.f), true);
 	TickRaidSync();
-	PadNav::Blurb("Raids sync from account weekly clears (/v2/account/raids). Story, fractals, and strikes stay local.");
+	PadNav::Blurb(
+		"Sync pulls weekly raids, fractal level, daily fractals, CM achievement overlays, "
+		"and story progress via character quests. Strikes stay local (no account strikes API).");
 	ImGui::TextColored(HelperTheme::Muted, "%s cleared: %d / %d",
 		KindName(gKind), CountCleared(gKind), CountEntries(gKind));
-	if (ImGui::Button("Sync raids###gw2igh_inst_sync"))
+	if (gFractalLevel > 0)
+		ImGui::TextColored(HelperTheme::GoldMuted, "Fractal level: %d", gFractalLevel);
+	if (!gDailyFractals.empty())
+	{
+		ImGui::TextColored(HelperTheme::GoldMuted, "Today's fractal dailies:");
+		for (const auto& d : gDailyFractals)
+			ImGui::BulletText("%s", d.c_str());
+	}
+	if (ImGui::Button("Sync###gw2igh_inst_sync"))
 		StartRaidSync(true);
 	ImGui::SameLine();
 	if (RaidSyncBusy())
@@ -103,7 +113,7 @@ bool InstancesPad::Render()
 		ImGui::TextWrapped("%s", gStatus);
 	ImGui::Separator();
 
-	/* Soft re-sync while the pad is open (throttled); open already force-syncs. */
+	/* Soft re-sync while the pad is open (throttled). */
 	StartRaidSync(false);
 
 	/* Keep selection on the active kind; auto-pick first so steps show immediately. */
@@ -134,8 +144,9 @@ bool InstancesPad::Render()
 		if (!e || e->kind != gKind) continue;
 		++listed;
 		ImGui::PushID(e->id);
-		const bool apiRaid = e->kind == Kind::Raid && EntryHasApiSteps(*e);
-		const bool apiLocked = apiRaid && G::Gw2ApiKey[0];
+		const bool synced = EntrySynced(*e);
+		const bool apiLocked = synced && G::Gw2ApiKey[0] &&
+			(e->kind == Kind::Raid || e->kind == Kind::Story || e->achId > 0);
 		bool cleared = e->cleared;
 		if (apiLocked)
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.55f);
@@ -143,10 +154,10 @@ bool InstancesPad::Render()
 			ToggleCleared(i);
 		if (apiLocked)
 			ImGui::PopStyleVar();
-		if (ImGui::IsItemHovered() && apiRaid)
+		if (ImGui::IsItemHovered() && synced)
 			ImGui::SetTooltip(apiLocked
-				? "Weekly clears come from /v2/account/raids — use Sync raids."
-				: "Add a progression API key to sync weekly clears.");
+				? "Synced from API — use Sync to refresh."
+				: "Add a progression API key to sync.");
 		ImGui::SameLine();
 		const int doneSteps = CountStepsDone(i);
 		const int totalSteps = static_cast<int>(e->steps.size());
@@ -169,7 +180,7 @@ bool InstancesPad::Render()
 				bool d = e->steps[s].done;
 				char lab[180];
 				std::snprintf(lab, sizeof(lab), "%s###st%zu", e->steps[s].text, s);
-				const bool stepLocked = apiLocked && e->steps[s].apiId[0];
+				const bool stepLocked = apiLocked && StepSynced(e->steps[s]);
 				if (stepLocked)
 					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.55f);
 				if (ImGui::Checkbox(lab, &d) && !stepLocked)

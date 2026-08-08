@@ -2,6 +2,7 @@
 #include "EconomyInternal.h"
 
 #include "AspectLayout.h"
+#include "CommerceShared.h"
 #include "CraftingData.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
@@ -61,8 +62,40 @@ namespace
 			EconomyPad::RefreshAll(true);
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Pulls stash, trading, crafting dailies, and flip scan.");
+			"Pulls stash, trading, orders, gem rate, crafting dailies, and flip scan.");
 		PadNav::PopWrap();
+
+		SectionLabel("DASHBOARD");
+		Commerce::ExchangeSnap ex;
+		Commerce::PollExchange(ex);
+		if (!ex.ok)
+			ex = Commerce::CopyLastExchange();
+		Commerce::TxSnap tx = Commerce::CopyLastTransactions();
+		if (ex.ok && ex.coinsForGems > 0)
+			ImGui::TextColored(HelperTheme::Ink, "Gem rate: %s coins / %d gems",
+				EconomyDetail::FormatCoins(ex.coinsForGems).c_str(), ex.gemQty);
+		else
+			ImGui::TextColored(HelperTheme::Muted, "Gem rate: refresh all to load.");
+		{
+			const size_t openN = tx.currentBuys.size() + tx.currentSells.size();
+			ImGui::TextColored(HelperTheme::Muted, "Open orders: %zu buys+sells", openN);
+		}
+		{
+			using namespace EconomyDetail;
+			int shown = 0;
+			for (const FlipRow& r : gFlips)
+			{
+				if (shown >= 3) break;
+				if (r.spread <= 0) continue;
+				ImGui::TextColored(HelperTheme::Ok, "Flip: %s  net %s",
+					r.name[0] ? r.name : "Item", FormatCoins(r.spread).c_str());
+				++shown;
+			}
+			if (shown == 0)
+				ImGui::TextColored(HelperTheme::Muted, "Flips: run Rescan on Flips tab.");
+		}
+		ImGui::TextColored(HelperTheme::Muted, "TP cart: %zu line(s)",
+			EconomyDetail::gCart.size());
 
 		SectionLabel("TOOLS");
 		PadNav::PushWrap();
@@ -92,18 +125,20 @@ namespace
 		toolCell("Stash", "Wallet | mats | bank | bags");
 
 		ImGui::Spacing();
-		toolCell("Trading", "Delivery | watchlist");
+		toolCell("Trading", "Delivery | orders | watchlist");
 		PadNav::WrapSameLine(colW);
 		toolCell("Item", "Lookup | wiki | BLTC");
 
 		ImGui::Spacing();
-		toolCell("Crafting", "Dailies | recipe tree");
+		toolCell("Crafting", "Dailies | browser | plan");
 	}
 }
 
 bool EconomyPad::Render()
 {
 	using namespace EconomyDetail;
+	/* Chart poll runs even when the pad is closed, as long as charts are pinned. */
+	TickChartPoll();
 	if (!G::ShowEconomy)
 		return false;
 	PollFlipWorker();
@@ -152,17 +187,17 @@ bool EconomyPad::Render()
 	}
 
 	static const char* kTabs[] = {
-		"Overview", "Flips", "Charts", "Cart", "Stash", "Trading", "Item", "Crafting"
+		"Overview", "Item", "Trading", "Flips", "Charts", "Cart", "Crafting", "Stash"
 	};
 	static const int kTabIcons[] = {
 		static_cast<int>(Gw2Ui::Icon::Hero),
+		static_cast<int>(Gw2Ui::Icon::Bag),
+		static_cast<int>(Gw2Ui::Icon::Trade),
 		static_cast<int>(Gw2Ui::Icon::GoldCoins),
 		static_cast<int>(Gw2Ui::Icon::Story),
 		static_cast<int>(Gw2Ui::Icon::Bag),
-		static_cast<int>(Gw2Ui::Icon::Inventory),
-		static_cast<int>(Gw2Ui::Icon::Trade),
-		static_cast<int>(Gw2Ui::Icon::Bag),
 		static_cast<int>(Gw2Ui::Icon::Options),
+		static_cast<int>(Gw2Ui::Icon::Inventory),
 	};
 	gTab = PadNav::DrawSideRail("###gw2igh_eco_nav", kTabs, kTabCount, gTab, 0.f, kTabIcons);
 
@@ -183,6 +218,13 @@ bool EconomyPad::Render()
 			break;
 		case kTabTrading:
 			TpWatchPad::RefreshData();
+			Commerce::StartTransactionsFetch();
+			break;
+		case kTabOverview:
+			Commerce::StartExchangeFetch();
+			break;
+		case kTabCart:
+			Commerce::EnsureOwnedWarm(false);
 			break;
 		case kTabCrafting:
 			CraftingData::RefreshDailiesIfNeeded(false);

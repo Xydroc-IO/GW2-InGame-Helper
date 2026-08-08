@@ -50,6 +50,7 @@ namespace EconomyDetail
 	void EnsureSeed();
 	void RequestFlipScan();
 	void PollFlipWorker();
+	void TickChartPoll(); /* background /v2/commerce/prices for pinned charts */
 	void AddToCart(int id, const char* name, int qty = 1);
 	void RemoveCart(size_t idx);
 	void ClearCart();
@@ -63,5 +64,6 @@ namespace EconomyDetail
 	void SaveHistory();
 	void LoadHistory();
 	void RecordSample(int id, long long buy, long long sell);
+	void AppendSamples(const std::vector<PriceSample>& samples); /* per-id + global trim */
 	std::string FormatCoins(long long copper);
 }

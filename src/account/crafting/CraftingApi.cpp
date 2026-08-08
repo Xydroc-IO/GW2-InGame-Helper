@@ -2,6 +2,7 @@
 
 #include "CraftingShared.h"
 
+#include "CommerceShared.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 
@@ -251,43 +252,7 @@ namespace CraftingDetail
 	void FetchPrices(std::unordered_map<int, long long>& sells, const std::vector<int>& ids,
 		std::unordered_map<int, long long>* buys)
 	{
-		for (size_t off = 0; off < ids.size(); off += 200)
-		{
-			const size_t n = (std::min)(ids.size() - off, size_t{200});
-			std::string path = "/v2/commerce/prices?ids=";
-			for (size_t i = 0; i < n; ++i)
-			{
-				if (i) path += ',';
-				path += std::to_string(ids[off + i]);
-			}
-			auto r = Gw2Http::Api(path.c_str(), nullptr, kBulkTimeoutMs);
-			if (!r.ok) continue;
-			size_t p = 0;
-			while (p < r.body.size())
-			{
-				size_t brace = r.body.find('{', p);
-				if (brace == std::string::npos) break;
-				size_t end = JsonObjectEnd(r.body, brace);
-				if (end == std::string::npos) break;
-				long long id = JsonIntAfterKey(r.body, "id", brace);
-				size_t sellsKey = r.body.find("\"sells\"", brace);
-				long long sellUnit = -1;
-				if (sellsKey != std::string::npos && sellsKey < end)
-					sellUnit = JsonIntAfterKey(r.body, "unit_price", sellsKey);
-				if (id > 0 && sellUnit >= 0)
-					sells[static_cast<int>(id)] = sellUnit;
-				if (buys)
-				{
-					size_t buysKey = r.body.find("\"buys\"", brace);
-					long long buyUnit = -1;
-					if (buysKey != std::string::npos && buysKey < end)
-						buyUnit = JsonIntAfterKey(r.body, "unit_price", buysKey);
-					if (id > 0 && buyUnit >= 0)
-						(*buys)[static_cast<int>(id)] = buyUnit;
-				}
-				p = end + 1;
-			}
-		}
+		Commerce::FetchSellBuyMaps(ids, sells, buys, false);
 	}
 
 	void ParseIntArray(const std::string& body, std::vector<int>& out)

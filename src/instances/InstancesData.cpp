@@ -5,6 +5,7 @@
 #include <cstring>
 #include <initializer_list>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -15,15 +16,21 @@ namespace InstancesDetail
 	Kind gKind = Kind::Raid;
 	int gSelected = -1;
 	char gStatus[160] = {};
+	int gFractalLevel = 0;
+	std::vector<std::string> gDailyFractals;
 	static std::vector<Entry> gEntries;
 	static bool gReady = false;
 
+	using StoryList = std::initializer_list<int>;
+	using StoryStep = std::pair<const char*, StoryList>;
+
 	static void Add(int id, Kind k, const char* name, const char* blurb,
-		std::initializer_list<const char*> steps)
+		std::initializer_list<const char*> steps, int achId = 0)
 	{
 		Entry e{};
 		e.id = id;
 		e.kind = k;
+		e.achId = achId;
 		std::snprintf(e.name, sizeof(e.name), "%s", name);
 		std::snprintf(e.blurb, sizeof(e.blurb), "%s", blurb);
 		for (const char* s : steps)
@@ -35,7 +42,6 @@ namespace InstancesDetail
 		gEntries.push_back(std::move(e));
 	}
 
-	/* text + /v2/account/raids encounter id */
 	static void AddRaid(int id, const char* name, const char* blurb,
 		std::initializer_list<std::pair<const char*, const char*>> steps)
 	{
@@ -51,6 +57,26 @@ namespace InstancesDetail
 			if (p.second && p.second[0])
 				std::snprintf(st.apiId, sizeof(st.apiId), "%s", p.second);
 			e.steps.push_back(st);
+		}
+		gEntries.push_back(std::move(e));
+	}
+
+	static void AddStory(int id, const char* name, const char* blurb,
+		std::initializer_list<StoryStep> steps)
+	{
+		Entry e{};
+		e.id = id;
+		e.kind = Kind::Story;
+		std::snprintf(e.name, sizeof(e.name), "%s", name);
+		std::snprintf(e.blurb, sizeof(e.blurb), "%s", blurb);
+		for (const auto& p : steps)
+		{
+			Step st{};
+			std::snprintf(st.text, sizeof(st.text), "%s", p.first);
+			for (int sid : p.second)
+				if (sid > 0)
+					st.storyIds.push_back(sid);
+			e.steps.push_back(std::move(st));
 		}
 		gEntries.push_back(std::move(e));
 	}
@@ -96,54 +122,110 @@ namespace InstancesDetail
 			 {"Greer", "greer"},
 			 {"Decima", "decima"},
 			 {"Ura", "ura"}});
-		Add(10, Kind::Fractal, "Nightmare", "CM / challenge — local journal",
-			{"MAMA", "Siax", "Ensolyss"});
-		Add(11, Kind::Fractal, "Shattered Observatory", "CM / challenge — local journal",
-			{"Skorvald", "Artsariiv", "Arkk"});
-		Add(12, Kind::Fractal, "Sunqua Peak", "CM / challenge — local journal",
-			{"Ai - elemental", "Ai - dark"});
-		Add(13, Kind::Fractal, "Silent Surf", "CM / challenge — local journal",
-			{"Kanaxai"});
-		Add(14, Kind::Fractal, "Lonely Tower", "CM / challenge — local journal",
-			{"Eparch"});
-		Add(15, Kind::Fractal, "Kinfall", "CM / challenge — local journal",
-			{"Whispering Shadow"});
-		Add(20, Kind::Strike, "Icebrood Saga strikes", "Weekly strikes — local journal",
+
+		/* Fractal CM lifetime overlay (entry achId); boss rows stay manual. */
+		Add(10, Kind::Fractal, "Nightmare", "CM: Up to the Challenge (achievements)",
+			{"MAMA", "Siax", "Ensolyss"}, 3180);
+		Add(11, Kind::Fractal, "Shattered Observatory", "CM: Closing the Loop (achievements)",
+			{"Skorvald", "Artsariiv", "Arkk"}, 3528);
+		Add(12, Kind::Fractal, "Sunqua Peak", "CM: Another Side, Another Story (achievements)",
+			{"Ai - elemental", "Ai - dark"}, 5451);
+		Add(13, Kind::Fractal, "Silent Surf", "CM: Unsundered (achievements)",
+			{"Kanaxai"}, 6940);
+		Add(14, Kind::Fractal, "Lonely Tower", "CM: Wizard's Tower Is Ours (achievements)",
+			{"Eparch"}, 8067);
+		Add(15, Kind::Fractal, "Kinfall", "CM: Kinfall Challenge Mode (achievements)",
+			{"Whispering Shadow"}, 8710);
+
+		Add(20, Kind::Strike, "Icebrood Saga strikes", "Weekly EMS — local (no account strikes API)",
 			{"Fraenir of Jormag", "Voice and Claw", "Boneskinner", "Whisper of Jormag",
 				"Cold War"});
-		Add(21, Kind::Strike, "End of Dragons strikes", "Weekly strikes — local journal",
+		Add(21, Kind::Strike, "End of Dragons strikes", "Weekly EMS — local (no account strikes API)",
 			{"Aetherblade Hideout", "Xunlai Jade Junkyard", "Kaineng Overlook",
 				"Harvest Temple", "Old Lion's Court"});
-		Add(22, Kind::Strike, "Secrets of the Obscure", "Weekly strikes — local journal",
+		Add(22, Kind::Strike, "Secrets of the Obscure", "Weekly EMS — local (no account strikes API)",
 			{"Cosmic Observatory", "Temple of Febe"});
-		Add(23, Kind::Strike, "Janthir Wilds", "Weekly strikes — local journal",
+		Add(23, Kind::Strike, "Janthir Wilds", "Weekly EMS — local (no account strikes API)",
 			{"Mount Balrior - Greer", "Decima", "Ura"});
-		Add(30, Kind::Story, "Personal Story", "Core chapters",
+
+		Add(30, Kind::Story, "Personal Story", "Core chapters — local (race branches)",
 			{"Chapter 1-3", "Chapter 4-5", "Chapter 6-7", "Chapter 8"});
-		Add(31, Kind::Story, "Living World Season 2", "Episode tracker",
-			{"S2E1", "S2E2", "S2E3", "S2E4", "S2E5", "S2E6", "S2E7", "S2E8"});
-		Add(32, Kind::Story, "Heart of Thorns", "Expansion story",
-			{"Prologue", "Act 1", "Act 2", "Act 3", "Act 4"});
-		Add(33, Kind::Story, "Path of Fire", "Expansion story",
-			{"Act 1", "Act 2", "Act 3"});
-		Add(34, Kind::Story, "End of Dragons", "Expansion story",
-			{"Prologue", "Chapter 1-5", "Chapter 6-10", "Chapter 11-15", "Chapter 16-20"});
-		Add(35, Kind::Story, "Secrets of the Obscure", "Expansion story",
-			{"Prologue", "Through the Looking Glass", "The World Spire", "The Realm of Dreams"});
+		AddStory(31, "Living World Season 2", "Episodes — character quest sync",
+			{{"Gates of Maguuma", {11}},
+			 {"Entanglement", {12}},
+			 {"Dragon's Reach Pt 1", {13}},
+			 {"Dragon's Reach Pt 2", {14}},
+			 {"Echoes of the Past", {15}},
+			 {"Tangled Paths", {16}},
+			 {"Seeds of Truth", {17}},
+			 {"Point of No Return", {18}}});
+		AddStory(36, "Living World Season 3", "Episodes — character quest sync",
+			{{"Out of the Shadows", {46}},
+			 {"Rising Flames", {56}},
+			 {"A Crack in the Ice", {63}},
+			 {"Head of the Snake", {64}},
+			 {"Flashpoint", {65}},
+			 {"One Path Ends", {66}}});
+		AddStory(37, "Living World Season 4", "Episodes — character quest sync",
+			{{"Daybreak", {85}},
+			 {"A Bug in the System", {86}},
+			 {"Long Live the Lich", {87}},
+			 {"A Star to Guide Us", {88}},
+			 {"All or Nothing", {89}},
+			 {"War Eternal", {90}}});
+		AddStory(32, "Heart of Thorns", "Acts — character quest sync",
+			{{"Prologue", {19}},
+			 {"Act 1", {32, 41, 34, 26, 33}},
+			 {"Act 2", {21, 20, 35, 31, 36}},
+			 {"Act 3", {23, 22, 42, 27}},
+			 {"Act 4", {25}}});
+		AddStory(33, "Path of Fire", "Acts — character quest sync",
+			{{"Act 1", {83, 67, 82, 72, 79, 69}},
+			 {"Act 2", {80, 68, 71, 75, 76}},
+			 {"Act 3", {81, 78}}});
+		AddStory(38, "Icebrood Saga", "Episodes — character quest sync",
+			{{"Bound by Blood", {91}},
+			 {"Whisper in the Dark", {93}},
+			 {"Shadow in the Ice", {94}},
+			 {"Visions of the Past", {95}},
+			 {"No Quarter", {96}},
+			 {"Jormag Rising", {97}},
+			 {"Champions", {98}}});
+		AddStory(34, "End of Dragons", "Chapters — character quest sync",
+			{{"Prologue", {112}},
+			 {"Chapters 1-5", {101, 104, 114, 113, 110}},
+			 {"Chapters 6-10", {111, 103, 106, 102, 99}},
+			 {"Chapters 11-15", {109, 107, 105, 100, 108}},
+			 {"Chapters 16-20", {121, 120, 122, 123}}});
+		AddStory(35, "Secrets of the Obscure", "Acts — character quest sync",
+			{{"Prologue", {130}},
+			 {"Looking Glass", {131, 134, 129, 132, 127, 126, 125, 128}},
+			 {"World Spire", {133}},
+			 {"Realm of Dreams", {124, 138, 135, 136, 139, 141, 140, 143, 144, 142}}});
 		gReady = true;
 	}
 
 	size_t Count() { EnsureCatalog(); return gEntries.size(); }
 	Entry* At(size_t i) { EnsureCatalog(); return i < gEntries.size() ? &gEntries[i] : nullptr; }
 
+	bool StepSynced(const Step& s)
+	{
+		return s.apiId[0] || s.achId > 0 || !s.storyIds.empty();
+	}
+
+	bool EntrySynced(const Entry& e)
+	{
+		if (e.achId > 0)
+			return true;
+		for (const auto& s : e.steps)
+			if (StepSynced(s))
+				return true;
+		return false;
+	}
+
 	bool EntryHasApiSteps(const Entry& e)
 	{
-		for (const auto& s : e.steps)
-		{
-			if (s.apiId[0])
-				return true;
-		}
-		return false;
+		return EntrySynced(e);
 	}
 
 	void ToggleStep(size_t entry, size_t step)
@@ -219,6 +301,106 @@ namespace InstancesDetail
 		for (const auto& s : e->steps)
 			if (s.done) ++n;
 		return n;
+	}
+
+	void ApplyRaidEncounterIds(const std::vector<std::string>& ids)
+	{
+		EnsureCatalog();
+		std::unordered_set<std::string> set(ids.begin(), ids.end());
+		for (size_t i = 0; i < Count(); ++i)
+		{
+			Entry* e = At(i);
+			if (!e || e->kind != Kind::Raid) continue;
+			bool allMapped = !e->steps.empty();
+			bool anyMapped = false;
+			for (auto& s : e->steps)
+			{
+				if (!s.apiId[0])
+				{
+					allMapped = false;
+					continue;
+				}
+				anyMapped = true;
+				s.done = set.count(s.apiId) > 0;
+				if (!s.done)
+					allMapped = false;
+			}
+			if (anyMapped)
+				e->cleared = allMapped && !e->steps.empty();
+		}
+		SaveProgress();
+	}
+
+	void ApplyAchievementIds(const std::vector<int>& doneIds)
+	{
+		EnsureCatalog();
+		std::unordered_set<int> set(doneIds.begin(), doneIds.end());
+		for (size_t i = 0; i < Count(); ++i)
+		{
+			Entry* e = At(i);
+			if (!e) continue;
+			if (e->achId > 0 && set.count(e->achId))
+			{
+				e->cleared = true;
+				for (auto& s : e->steps)
+					s.done = true;
+			}
+			for (auto& s : e->steps)
+			{
+				if (s.achId > 0)
+					s.done = set.count(s.achId) > 0;
+			}
+			if (e->kind != Kind::Raid && e->achId <= 0)
+			{
+				bool any = false, all = !e->steps.empty();
+				for (const auto& s : e->steps)
+				{
+					if (s.achId <= 0) { all = false; continue; }
+					any = true;
+					if (!s.done) all = false;
+				}
+				if (any)
+					e->cleared = all;
+			}
+		}
+		SaveProgress();
+	}
+
+	void ApplyStoryCompletions(const std::vector<int>& completeStoryIds)
+	{
+		EnsureCatalog();
+		std::unordered_set<int> done(completeStoryIds.begin(), completeStoryIds.end());
+		for (size_t i = 0; i < Count(); ++i)
+		{
+			Entry* e = At(i);
+			if (!e || e->kind != Kind::Story) continue;
+			bool any = false;
+			bool all = !e->steps.empty();
+			for (auto& s : e->steps)
+			{
+				if (s.storyIds.empty())
+				{
+					all = false;
+					continue;
+				}
+				any = true;
+				bool stepOk = true;
+				for (int sid : s.storyIds)
+				{
+					if (!done.count(sid))
+					{
+						stepOk = false;
+						break;
+					}
+				}
+				s.done = stepOk;
+				if (!stepOk)
+					all = false;
+			}
+			if (any)
+				e->cleared = all;
+		}
+		SaveProgress();
 	}
 
 	static std::wstring ProgPath()

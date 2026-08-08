@@ -1,5 +1,6 @@
 #include "EconomyPad.h"
 #include "EconomyInternal.h"
+#include "CommerceShared.h"
 #include "CraftingData.h"
 #include "Globals.h"
 #include "Settings.h"
@@ -11,6 +12,9 @@ void EconomyPad::RefreshAll(bool force)
 	WalletPad::RefreshData(force);
 	TpWatchPad::RefreshData();
 	CraftingData::RefreshDailiesIfNeeded(force);
+	Commerce::EnsureOwnedWarm(force);
+	Commerce::StartTransactionsFetch();
+	Commerce::StartExchangeFetch();
 	EconomyDetail::EnsureSeed();
 	EconomyDetail::RequestFlipScan();
 }

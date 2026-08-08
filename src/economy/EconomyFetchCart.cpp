@@ -11,6 +11,7 @@
 #include <ctime>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace EconomyDetail
@@ -99,7 +100,7 @@ namespace EconomyDetail
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 		LARGE_INTEGER sz{};
-		if (!GetFileSizeEx(h, &sz) || sz.QuadPart <= 0 || sz.QuadPart > 4 * 1024 * 1024)
+		if (!GetFileSizeEx(h, &sz) || sz.QuadPart <= 0 || sz.QuadPart > 16 * 1024 * 1024)
 		{
 			CloseHandle(h);
 			return false;
@@ -230,17 +231,62 @@ namespace EconomyDetail
 			gChartItemId = gChartIds.front();
 	}
 
+	static void TrimHistoryLocked()
+	{
+		std::unordered_map<int, size_t> counts;
+		counts.reserve(gHistory.size() / 4 + 8);
+		for (const auto& s : gHistory)
+			++counts[s.id];
+
+		std::unordered_map<int, size_t> drop;
+		for (const auto& kv : counts)
+		{
+			if (kv.second > kMaxSamplesPerId)
+				drop[kv.first] = kv.second - kMaxSamplesPerId;
+		}
+
+		if (!drop.empty())
+		{
+			std::vector<PriceSample> kept;
+			kept.reserve(gHistory.size());
+			for (const auto& s : gHistory)
+			{
+				auto it = drop.find(s.id);
+				if (it != drop.end() && it->second > 0)
+				{
+					--it->second;
+					continue;
+				}
+				kept.push_back(s);
+			}
+			gHistory = std::move(kept);
+		}
+
+		if (gHistory.size() > kMaxSamplesGlobal)
+		{
+			const size_t excess = gHistory.size() - kMaxSamplesGlobal;
+			gHistory.erase(gHistory.begin(),
+				gHistory.begin() + static_cast<std::ptrdiff_t>(excess));
+		}
+	}
+
+	void AppendSamples(const std::vector<PriceSample>& samples)
+	{
+		if (samples.empty())
+			return;
+		std::lock_guard<std::mutex> lock(gMu);
+		gHistory.insert(gHistory.end(), samples.begin(), samples.end());
+		TrimHistoryLocked();
+	}
+
 	void RecordSample(int id, long long buy, long long sell)
 	{
-		std::lock_guard<std::mutex> lock(gMu);
 		PriceSample s{};
 		s.id = id;
 		s.buy = buy;
 		s.sell = sell;
 		s.ts = static_cast<unsigned>(std::time(nullptr));
-		gHistory.push_back(s);
-		if (gHistory.size() > 400)
-			gHistory.erase(gHistory.begin(), gHistory.begin() + 50);
+		AppendSamples({s});
 	}
 
 	void SaveHistory()
@@ -248,10 +294,14 @@ namespace EconomyDetail
 		const std::wstring path = HistPath();
 		if (path.empty()) return;
 		std::string body;
-		const size_t start = gHistory.size() > 200 ? gHistory.size() - 200 : 0;
-		for (size_t i = start; i < gHistory.size(); ++i)
+		std::vector<PriceSample> snap;
 		{
-			const auto& s = gHistory[i];
+			std::lock_guard<std::mutex> lock(gMu);
+			snap = gHistory;
+		}
+		body.reserve(snap.size() * 40);
+		for (const auto& s : snap)
+		{
 			body += std::to_string(s.id) + "\t" + std::to_string(s.buy) + "\t" +
 				std::to_string(s.sell) + "\t" + std::to_string(s.ts) + "\n";
 		}
@@ -260,6 +310,7 @@ namespace EconomyDetail
 
 	void LoadHistory()
 	{
+		std::lock_guard<std::mutex> lock(gMu);
 		gHistory.clear();
 		const std::wstring path = HistPath();
 		if (path.empty()) return;
@@ -276,5 +327,6 @@ namespace EconomyDetail
 			if (std::sscanf(line.c_str(), "%d\t%lld\t%lld\t%u", &s.id, &s.buy, &s.sell, &s.ts) >= 3)
 				gHistory.push_back(s);
 		}
+		TrimHistoryLocked();
 	}
 }

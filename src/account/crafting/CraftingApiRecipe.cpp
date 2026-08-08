@@ -144,29 +144,153 @@ namespace CraftingDetail
 	}
 
 	bool LoadApiRecipeForOutput(int outputId, int& outCount, std::vector<RecipeIng>& ings, int& recipeId,
-		std::string* disciplineOut)
+		std::string* disciplineOut, const char* preferDiscipline)
 	{
 		char path[80];
 		std::snprintf(path, sizeof(path), "/v2/recipes/search?output=%d", outputId);
 		auto sr = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
 		if (!sr.ok || sr.body.empty()) return false;
-		recipeId = 0;
-		size_t p = 0;
-		while (p < sr.body.size())
+
+		std::vector<int> candidates;
+		ParseIntArray(sr.body, candidates);
+		if (candidates.empty())
 		{
-			while (p < sr.body.size() && (sr.body[p] < '0' || sr.body[p] > '9')) ++p;
-			if (p >= sr.body.size()) break;
-			int v = 0;
-			while (p < sr.body.size() && sr.body[p] >= '0' && sr.body[p] <= '9')
+			/* Fallback: scan digits if body is a bare id list we failed to parse. */
+			size_t p = 0;
+			while (p < sr.body.size() && candidates.size() < 10)
 			{
-				v = v * 10 + (sr.body[p] - '0');
-				++p;
+				while (p < sr.body.size() && (sr.body[p] < '0' || sr.body[p] > '9')) ++p;
+				if (p >= sr.body.size()) break;
+				int v = 0;
+				while (p < sr.body.size() && sr.body[p] >= '0' && sr.body[p] <= '9')
+				{
+					v = v * 10 + (sr.body[p] - '0');
+					++p;
+				}
+				if (v > 0) candidates.push_back(v);
 			}
-			if (v > 0) { recipeId = v; break; }
 		}
-		if (recipeId <= 0) return false;
-		int unusedOut = 0;
-		return LoadApiRecipeById(recipeId, unusedOut, outCount, ings, disciplineOut);
+		if (candidates.size() > 10)
+			candidates.resize(10);
+		if (candidates.empty()) return false;
+
+		struct Cand
+		{
+			int id = 0;
+			int minRating = 999999;
+			bool preferMatch = false;
+			bool hasIngs = false;
+			int unusedOut = 0;
+			int outCnt = 1;
+			std::vector<RecipeIng> ings;
+			std::string disc;
+		};
+
+		Cand best{};
+		bool haveBest = false;
+		const bool wantPrefer = preferDiscipline && preferDiscipline[0];
+
+		for (int rid : candidates)
+		{
+			if (rid <= 0) continue;
+			char rpath[64];
+			std::snprintf(rpath, sizeof(rpath), "/v2/recipes/%d", rid);
+			auto rr = Gw2Http::Api(rpath, nullptr, kHttpTimeoutMs);
+			if (!rr.ok) continue;
+
+			Cand c;
+			c.id = rid;
+			c.minRating = static_cast<int>(JsonIntAfterKey(rr.body, "min_rating", 0));
+			if (c.minRating < 0) c.minRating = 0;
+			c.unusedOut = static_cast<int>(JsonIntAfterKey(rr.body, "output_item_id", 0));
+			c.outCnt = static_cast<int>(JsonIntAfterKey(rr.body, "output_item_count", 0));
+			if (c.outCnt <= 0) c.outCnt = 1;
+
+			size_t dkey = rr.body.find("\"disciplines\"");
+			if (dkey != std::string::npos)
+			{
+				size_t bracket = rr.body.find('[', dkey);
+				size_t close = (bracket == std::string::npos) ? std::string::npos
+					: rr.body.find(']', bracket);
+				if (bracket != std::string::npos && close != std::string::npos)
+				{
+					const std::string arr = rr.body.substr(bracket, close - bracket + 1);
+					size_t q1 = arr.find('"');
+					if (q1 != std::string::npos)
+					{
+						++q1;
+						size_t q2 = arr.find('"', q1);
+						if (q2 != std::string::npos)
+							c.disc = arr.substr(q1, q2 - q1);
+					}
+					if (wantPrefer)
+					{
+						const std::string needle = std::string("\"") + preferDiscipline + "\"";
+						c.preferMatch = arr.find(needle) != std::string::npos;
+					}
+				}
+			}
+
+			c.ings.clear();
+			size_t ingKey = rr.body.find("\"ingredients\"");
+			if (ingKey != std::string::npos)
+			{
+				size_t arr = rr.body.find('[', ingKey);
+				if (arr != std::string::npos)
+				{
+					size_t p = arr;
+					while (p < rr.body.size())
+					{
+						size_t brace = rr.body.find('{', p);
+						if (brace == std::string::npos) break;
+						size_t end = JsonObjectEnd(rr.body, brace);
+						if (end == std::string::npos) break;
+						long long iid = JsonIntAfterKey(rr.body, "item_id", brace);
+						long long cnt = JsonIntAfterKey(rr.body, "count", brace);
+						if (iid > 0 && cnt > 0)
+						{
+							RecipeIng ri;
+							ri.itemId = static_cast<int>(iid);
+							ri.count = static_cast<int>(cnt);
+							c.ings.push_back(ri);
+						}
+						p = end + 1;
+						const size_t nextBrace = rr.body.find('{', p);
+						const size_t nextClose = rr.body.find(']', p);
+						if (nextClose != std::string::npos &&
+							(nextBrace == std::string::npos || nextClose < nextBrace))
+							break;
+					}
+				}
+			}
+			c.hasIngs = !c.ings.empty();
+			if (c.unusedOut <= 0) continue;
+
+			const bool better = !haveBest
+				|| (c.preferMatch && !best.preferMatch)
+				|| (c.preferMatch == best.preferMatch && c.minRating < best.minRating)
+				|| (c.preferMatch == best.preferMatch && c.minRating == best.minRating
+					&& c.hasIngs && !best.hasIngs);
+			if (better)
+			{
+				best = std::move(c);
+				haveBest = true;
+			}
+		}
+
+		if (!haveBest)
+		{
+			recipeId = candidates[0];
+			int unusedOut = 0;
+			return LoadApiRecipeById(recipeId, unusedOut, outCount, ings, disciplineOut);
+		}
+
+		recipeId = best.id;
+		outCount = best.outCnt;
+		ings = std::move(best.ings);
+		if (disciplineOut)
+			*disciplineOut = best.disc;
+		return best.unusedOut > 0 && !ings.empty();
 	}
 
 	/* TP / gather mats - buy these; do not chase promotion ladders (ore/dust/T6 blood...). */
