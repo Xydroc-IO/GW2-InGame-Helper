@@ -5,27 +5,11 @@ out-of-process **private CEF 150** helper. Normative allow/deny rules live in
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md). Report security issues via
 [`SECURITY.md`](SECURITY.md) — do not open public issues for exploitable bugs.
 
-## Published docs in git
+## Docs
 
-Tracked under `docs/` (see `.gitignore` allow-list):
-
-| Doc | Role |
-|-----|------|
-| [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) | Changelog + current **Stamps:** line |
-| [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | Allowed / forbidden boundaries |
-| [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) | Design rationale |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Systems map / stamp table |
-| [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) | Doc index + version stamp checklist |
-| [`docs/PATHING.md`](docs/PATHING.md) | Pathing packs / GPS |
-| [`docs/THEMES.md`](docs/THEMES.md) | Drop-in `config/themes/` color themes |
-| [`docs/PUBLISHER_ACCESS.md`](docs/PUBLISHER_ACCESS.md) | User-Agent allow/deny for site operators |
-| [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) | Elite Insights / Proton setup |
-| [`docs/API_KEY.md`](docs/API_KEY.md) | ArenaNet API scopes |
-| [`docs/description.html`](docs/description.html) | Nexus / web listing HTML |
-| [`docs/media/`](docs/media/) | Cover / homepage embed assets |
-
-Local drafts (`RAIDCORE.md`, `DISCORD*.md`, `CODE_AUDIT.md`, …) stay gitignored.
-Do not force-add them.
+Everything under [`docs/`](docs/) is tracked (plus this file and [`README.md`](README.md)).
+Start with [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) for the index and stamp checklist.
+Normative allow/deny: [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md).
 
 Player-facing overview: [`README.md`](README.md).
 

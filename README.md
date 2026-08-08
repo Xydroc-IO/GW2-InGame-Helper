@@ -142,13 +142,12 @@ Works on Windows and on Linux via Wine/Proton.
 > into `bin64/cef`.
 
 Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
+doc index [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
 [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) ·
 DPS Logs / .NET / Proton: [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) ·
 API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
-
-Local (gitignored) drafts under `docs/` stay on disk only — see `.gitignore`.
 
 ## Features
 
