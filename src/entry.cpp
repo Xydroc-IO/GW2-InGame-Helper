@@ -77,8 +77,8 @@ namespace G
 	float WorldMarkerScale = 2.f; /* world GPS icons */
 	float CompassMarkerScale = 1.f; /* stock compass / minimap icons */
 	float Opacity      = 0.97f;
-	float FontScale    = 1.f;
-	bool  FontScaleAuto = false; /* opt-in only - default stays 1.0 */
+	float FontScale    = 1.25f;
+	bool  FontScaleAuto = false; /* opt-in only - default stays 1.25 */
 	char  ThemeId[64]  = "";
 	/* Default trims a typical browser tab+toolbar strip; tune in Watch pad. */
 	float WatchCropTop = 0.14f;
@@ -92,7 +92,6 @@ namespace G
 	bool  HasSavedPos  = false;
 	bool  HasSavedSize = false;
 	bool  KeepHelperWarm = false;
-	bool  ShowRailLabels = false; /* icon dock by default — match game edge menu */
 	float SideRailW = 0.f;
 	char  LastQuery[128] = "";
 	char  ActiveSiteId[64] = "browse";

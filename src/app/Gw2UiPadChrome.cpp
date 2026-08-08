@@ -204,25 +204,20 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge,
 	Gw2UiDetail::PaintHeroRim(dl, p0, p1, a,
 		omitLeftEdge, omitRightEdge, /*omitTop=*/true, /*omitBottom=*/false);
 
-		/* Curated plaque corners on pad windows (helper dock paints its own). */
+		/* Curated plaque corners — bottom only (top corners cluttered the title crest). */
 	Texture_t* corner = Gw2UiDetail::GetChromeNamed("plaque-corner");
 	if (corner && corner->Resource)
 	{
 		const ImTextureID iid = reinterpret_cast<ImTextureID>(corner->Resource);
 		constexpr float cs = 28.f; /* keep in sync with SideRail::kCornerCap */
 		const ImU32 ccol = IM_COL32(255, 255, 255, static_cast<int>(a * 200.f + 0.5f));
-		const float y0 = p0.y + kTitleH - 2.f;
 		if (!omitLeftEdge)
 		{
-			dl->AddImage(iid, ImVec2(p0.x - 1.f, y0), ImVec2(p0.x - 1.f + cs, y0 + cs),
-				ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), ccol);
 			dl->AddImage(iid, ImVec2(p0.x - 1.f, p1.y - cs + 1.f), ImVec2(p0.x - 1.f + cs, p1.y + 1.f),
 				ImVec2(0.f, 1.f), ImVec2(1.f, 0.f), ccol);
 		}
 		if (!omitRightEdge)
 		{
-			dl->AddImage(iid, ImVec2(p1.x - cs + 1.f, y0), ImVec2(p1.x + 1.f, y0 + cs),
-				ImVec2(1.f, 0.f), ImVec2(0.f, 1.f), ccol);
 			dl->AddImage(iid, ImVec2(p1.x - cs + 1.f, p1.y - cs + 1.f), ImVec2(p1.x + 1.f, p1.y + 1.f),
 				ImVec2(1.f, 1.f), ImVec2(0.f, 0.f), ccol);
 		}

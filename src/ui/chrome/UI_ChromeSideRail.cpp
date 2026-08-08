@@ -68,7 +68,7 @@ namespace UIDetail
 				WikiBrowser::Navigate(url);
 		};
 
-		const bool labels = G::ShowRailLabels;
+		const bool labels = false; /* icon dock only — hover for names */
 		/* Prefer width stamped during title draw so the strip stays flush with dockX. */
 		float railW = G::SideRailW;
 		if (railW < 40.f)
@@ -78,9 +78,11 @@ namespace UIDetail
 		const ImVec2 helperMin = gUi.wikiMin;
 		const ImVec2 helperMax = gUi.wikiMax;
 		const float dockX = helperMin.x - railW;
-		/* Align under the pad title bar (must match DrawPadTitleBar kTitleH). */
+		/* Align under the pad title bar (must match DrawPadTitleBar kTitleH).
+		   Extra clearance so the title crest does not cover the first rail icon. */
 		constexpr float kTitleBarH = 50.f;
-		const float dockY = helperMin.y + kTitleBarH;
+		constexpr float kCrestClearance = 24.f;
+		const float dockY = helperMin.y + kTitleBarH + kCrestClearance;
 		float dockH = helperMax.y - dockY;
 		if (dockH < 48.f)
 			dockH = 48.f;
@@ -180,7 +182,7 @@ namespace UIDetail
 				railDl->PopClipRect();
 			}
 
-			/* Plaque corners — same size as helper right-edge caps (kCornerCap). */
+			/* Plaque corners — bottom only (top sat under the title crest). */
 			if (Texture_t* corner = Gw2UiDetail::GetChromeNamed("plaque-corner"))
 			{
 				if (corner->Resource)
@@ -188,10 +190,6 @@ namespace UIDetail
 					const ImTextureID cid = reinterpret_cast<ImTextureID>(corner->Resource);
 					const float cs = SideRail::kCornerCap;
 					const ImU32 ccol = IM_COL32(255, 255, 255, static_cast<int>(oa * 200.f + 0.5f));
-					railDl->AddImage(cid,
-						ImVec2(rp0.x - 1.f, rp0.y - 1.f),
-						ImVec2(rp0.x - 1.f + cs, rp0.y - 1.f + cs),
-						ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), ccol);
 					railDl->AddImage(cid,
 						ImVec2(rp0.x - 1.f, rp1.y - cs + 1.f),
 						ImVec2(rp0.x - 1.f + cs, rp1.y + 1.f),

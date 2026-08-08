@@ -147,7 +147,7 @@ namespace
 			Settings::SetDirty();
 		}
 		PadNav::PopLabeledItemWidth();
-		MutedWrap("Default 1.00x — applies the same to every panel (commits when you release).");
+		MutedWrap("Default 1.25x — applies the same to every panel (commits when you release).");
 		if (ImGui::Checkbox("Auto font scale###gw2igh_font_auto", &G::FontScaleAuto))
 		{
 			sFontDraft = -1.f;
@@ -175,9 +175,6 @@ namespace
 		if (ImGui::Checkbox("Keep browser warm when closed###gw2igh_warm", &G::KeepHelperWarm))
 			Settings::SetDirty();
 		MutedWrap("Faster reopen; uses more RAM while the helper is hidden.");
-		if (ImGui::Checkbox("Show side rail labels###gw2igh_rail_labels", &G::ShowRailLabels))
-			Settings::SetDirty();
-		MutedWrap("Off = compact game-like icon dock (hover for names). On = icon + text.");
 
 		ImGui::Separator();
 		PadNav::Meta("GW2 API key (Live panels)");

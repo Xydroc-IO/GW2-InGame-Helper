@@ -238,7 +238,7 @@ void Settings::Load()
 		else if (std::strcmp(key, "KeepHelperWarm") == 0)
 			G::KeepHelperWarm = AsBool(val);
 		else if (std::strcmp(key, "ShowRailLabels") == 0)
-			G::ShowRailLabels = AsBool(val);
+			; /* removed — icon dock only; ignore legacy ini */
 		else if (std::strcmp(key, "Gw2ApiKey") == 0)
 			std::snprintf(G::Gw2ApiKey, sizeof(G::Gw2ApiKey), "%s", val);
 		else if (std::strcmp(key, "TpWatchIds") == 0)
@@ -344,12 +344,12 @@ void Settings::Load()
 	if (G::FontScale < 0.75f) G::FontScale = 0.75f;
 	if (G::FontScale > 2.f) G::FontScale = 2.f;
 	/* One-shot: early auto used Nexus UI scale and pushed many installs to ~2×.
-	   Default is 1.0; manual slider values persist when auto is off. */
+	   Default is 1.25; manual slider values persist when auto is off. */
 	if (G::FontScaleAuto || !sawFontScaleAuto)
 	{
 		if (G::FontScaleAuto)
 		{
-			G::FontScale = 1.f;
+			G::FontScale = 1.25f;
 			SettingsDetail::gDirty = true;
 		}
 		G::FontScaleAuto = false;

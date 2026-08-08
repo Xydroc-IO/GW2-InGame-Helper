@@ -251,28 +251,26 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 		float textX = win0.x + kPadX;
 
 		/*
-		 * Title crest: gem silhouette, oversized with safe overhang.
-		 * Hang mostly above the strip; keep the bottom at/near the title baseline
-		 * so we do not cover the first side-rail icon.
+		 * Title crest: gem+book, sized for the strip — sit mostly IN the title
+		 * bar (slight peek above), not hanging high over the game.
 		 */
 		if (!collapsed && leftExtend > 0.f)
 		{
 			Texture_t* crest = Gw2UiDetail::GetChromeNamed("crest-hero");
 			if (crest && crest->Resource)
 			{
-				constexpr float kHangBot = 6.f;
-				/* Nestle title into the crest’s transparent pad (gem is centered). */
-				constexpr float kCrestTextInset = 4.f;
-				/* Big gem — hangs above the strip; bottom hugs title baseline. */
-				float kCrest = 100.f;
+				/* Nestle title just past the crest’s right edge. */
+				constexpr float kCrestTextGap = 8.f;
+				constexpr float kHangTop = 6.f; /* slight peek above strip */
+				float kCrest = 104.f;
 				if (kCrest > 112.f)
 					kCrest = 112.f;
-				if (kCrest < 72.f)
-					kCrest = 72.f;
+				if (kCrest < 56.f)
+					kCrest = 56.f;
 				const float railMid = title0.x + leftExtend * 0.5f;
 				const float cx0 = railMid - kCrest * 0.5f;
-				const float cy1 = win0.y + kTitleH + kHangBot;
-				const float cy0 = cy1 - kCrest;
+				const float cy0 = win0.y - kHangTop;
+				const float cy1 = cy0 + kCrest;
 				/* Clip to crest bounds (not railW) so overhang is not crushed. */
 				dl->PushClipRect(
 					ImVec2(ImMin(title0.x, cx0) - 4.f, cy0 - 2.f),
@@ -283,7 +281,7 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 					ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), col);
 				if (dl->_ClipRectStack.Size > 0)
 					dl->PopClipRect();
-				float nestled = cx0 + kCrest - kCrestTextInset;
+				float nestled = cx0 + kCrest + kCrestTextGap;
 				if (nestled < win0.x + 4.f)
 					nestled = win0.x + 4.f;
 				textX = nestled;

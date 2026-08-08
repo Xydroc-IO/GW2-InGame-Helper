@@ -300,14 +300,12 @@ namespace PadNav
 	}
 
 	/* Toggle-style rail entry for helper chrome (open pads / flags).
-	   Respects G::ShowRailLabels — icon dock vs labeled rows.
-	   iconSzOverride < 0 → default (36 labeled / 52 icon dock). */
+	   Icon dock only (hover for names).
+	   iconSzOverride < 0 → default 52. */
 	inline bool SideToggle(const char* label, bool on, int assetId = 0, float iconSzOverride = -1.f)
 	{
-		const bool labels = G::ShowRailLabels;
-		const float iconSz = (iconSzOverride > 0.f)
-			? iconSzOverride
-			: (labels ? 36.f : 52.f);
+		constexpr bool labels = false;
+		const float iconSz = (iconSzOverride > 0.f) ? iconSzOverride : 52.f;
 		return Gw2Ui::RailToggle(label, on, assetId, iconSz, labels);
 	}
 
