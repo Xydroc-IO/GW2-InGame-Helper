@@ -185,23 +185,42 @@ namespace CraftingDetail
 		if (sDisc < 0 || sDisc >= kPathCount)
 			sDisc = 0;
 
-		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
-		if (ImGui::BeginCombo("###gw2igh_lvl_disc", kPaths[sDisc].discipline))
+		/* In-pad chips — BeginCombo popups sit outside the pad and GW2/Nexus
+		   often eats the click before Selectable fires. */
 		{
+			const ImGuiStyle& st = ImGui::GetStyle();
 			for (int i = 0; i < kPathCount; ++i)
 			{
+				const char* name = kPaths[i].discipline;
+				const float btnW = ImGui::CalcTextSize(name).x + st.FramePadding.x * 2.f;
+				if (i > 0)
+					PadNav::WrapSameLine(btnW);
+
 				const bool sel = (i == sDisc);
-				if (ImGui::Selectable(kPaths[i].discipline, sel))
-					sDisc = i;
 				if (sel)
-					ImGui::SetItemDefaultFocus();
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabActive);
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, HelperTheme::Header);
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::Header);
+					ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldBright);
+				}
+				ImGui::PushID(i);
+				if (ImGui::Button(name))
+					sDisc = i;
+				ImGui::PopID();
+				if (sel)
+					ImGui::PopStyleColor(4);
 			}
-			ImGui::EndCombo();
 		}
-		ImGui::SameLine();
+
 		if (ImGui::SmallButton("GW2 Crafts###gw2igh_lvl_crafts"))
 			OpenCraftsUrl(kPaths[sDisc].craftsUrl);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Open gw2crafts.net for %s in a Browse tab",
+				kPaths[sDisc].discipline);
 
+		ImGui::Spacing();
+		ImGui::TextColored(HelperTheme::GoldDim, "%s", kPaths[sDisc].discipline);
 		DrawPathRows(kPaths[sDisc]);
 	}
 

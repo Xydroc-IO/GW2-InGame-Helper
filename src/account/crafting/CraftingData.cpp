@@ -4,6 +4,7 @@
 
 #include "CraftingShared.h"
 
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
 
 #include "imgui/imgui.h"
@@ -45,6 +46,18 @@ namespace CraftingDetail
 	std::unordered_map<std::string, std::string> gWikiTextCache;
 	std::mutex gRecipeCacheMu;
 
+	/* Inner Crafting tabs — Plan | Known | Browse | Craft cart. */
+	enum CraftSub : int
+	{
+		kSubPlan = 0,
+		kSubKnown,
+		kSubBrowse,
+		kSubCart,
+		kSubCount
+	};
+	static int gCraftSub = kSubPlan;
+	static std::atomic<int> gForceCraftSub{-1};
+
 	void Tick()
 	{
 		KnownTick();
@@ -82,20 +95,141 @@ namespace CraftingDetail
 		}
 	}
 
+	static void DrawPlanTab(const Plan& plan, const std::vector<DailyRow>& dailies,
+		const std::string& dailyStatus, const std::vector<Plan>& cartPlans)
+	{
+		DrawOptsBar();
+
+		ImGui::SetNextItemWidth(56.f);
+		ImGui::InputInt("###gw2igh_craft_qty", &gPlanQty);
+		if (gPlanQty < 1) gPlanQty = 1;
+		ImGui::SameLine();
+		const float btnW = ImGui::CalcTextSize("Plan").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
+		float fieldW = ImGui::GetContentRegionAvail().x - btnW - ImGui::GetStyle().ItemSpacing.x;
+		if (fieldW < 100.f) fieldW = 100.f;
+		ImGui::SetNextItemWidth(fieldW);
+		if (ImGui::InputTextWithHint("###gw2igh_craft_q", "[&...] / ID / name",
+				gQuery, sizeof(gQuery), ImGuiInputTextFlags_EnterReturnsTrue))
+			StartPlan();
+		ImGui::SameLine();
+		if (ImGui::Button("Plan###gw2igh_craft_go", ImVec2(btnW, 0.f)))
+			StartPlan();
+
+		if (gBusy && !plan.ok)
+			PadNav::StatusBusy(plan.status.empty() ? "Planning..." : plan.status.c_str());
+		else if (gBusy && plan.ok)
+			PadNav::StatusBusy(plan.status.c_str());
+		else if (!plan.status.empty())
+			PadNav::StatusOk(plan.status.c_str());
+		if (CartPlanBusy())
+			PadNav::StatusBusy(CartPlanStatus().c_str());
+		else if (!CartPlanStatus().empty() && !cartPlans.empty())
+			PadNav::StatusOk(CartPlanStatus().c_str());
+
+		ImGui::Separator();
+		PadNav::SectionTitle("Daily crafting");
+		if (gDailyBusy)
+			PadNav::StatusBusy("Loading...");
+		else if (dailies.empty())
+			ImGui::TextColored(HelperTheme::Muted,
+				"%s", dailyStatus.empty() ? "-" : dailyStatus.c_str());
+		else
+		{
+			if (!dailyStatus.empty())
+				ImGui::TextColored(HelperTheme::Muted, "%s", dailyStatus.c_str());
+			for (const DailyRow& d : dailies)
+			{
+				ImGui::PushID(d.slug.c_str());
+				if (d.done)
+					ImGui::TextColored(HelperTheme::Ok, "Done  %s", d.name.c_str());
+				else
+					ImGui::TextColored(HelperTheme::Warn, "Todo  %s", d.name.c_str());
+				ImGui::SameLine();
+				if (ImGui::SmallButton("Plan"))
+				{
+					std::snprintf(gQuery, sizeof(gQuery), "%s", d.name.c_str());
+					StartPlan();
+				}
+				ImGui::PopID();
+			}
+		}
+
+		ImGui::Separator();
+		PadLayout::BeginList("###gw2igh_craft_plan_list", 80.f);
+
+		if (!cartPlans.empty())
+		{
+			ImGui::TextColored(HelperTheme::Muted,
+				"Showing Craft cart project rollup — open Craft cart to edit the project.");
+			DrawAggregatedResults(cartPlans, true);
+		}
+		else if (plan.ok)
+			DrawPlanResults(plan, true);
+		else if (!plan.nameHints.empty())
+		{
+			PadNav::Meta("Wiki results");
+			for (size_t i = 0; i < plan.nameHints.size(); ++i)
+			{
+				ImGui::PushID(static_cast<int>(i));
+				if (ImGui::Selectable(plan.nameHints[i].c_str()))
+				{
+					std::snprintf(gQuery, sizeof(gQuery), "%s", plan.nameHints[i].c_str());
+					StartPlan();
+				}
+				ImGui::PopID();
+			}
+		}
+		else if (!gBusy && !CartPlanBusy())
+		{
+			ImGui::TextWrapped(
+				"Plan an item here, browse Known for unlocks, or build a multi-item "
+				"project on Craft cart.");
+		}
+
+		PadLayout::EndList();
+	}
+
+	static void DrawCartTabBody(const std::vector<Plan>& cartPlans)
+	{
+		DrawCartUi();
+		ImGui::Separator();
+		PadLayout::BeginList("###gw2igh_craft_cart_list", 80.f);
+		if (!cartPlans.empty())
+			DrawAggregatedResults(cartPlans, true);
+		else if (CartPlanBusy())
+			PadNav::StatusBusy(CartPlanStatus().c_str());
+		else
+			ImGui::TextColored(HelperTheme::Muted,
+				"Add items with + on Known, or from the current Plan tab, then Plan project.");
+		PadLayout::EndList();
+	}
+
 } // namespace CraftingDetail
 
 using namespace CraftingDetail;
+
+void CraftingData::SetKnownDetailsActive(bool active)
+{
+	SetKnownDetailsPump(active);
+}
 
 void CraftingData::QueuePlan(const char* itemNameOrCode)
 {
 	if (!itemNameOrCode || !itemNameOrCode[0]) return;
 	std::snprintf(gQuery, sizeof(gQuery), "%s", itemNameOrCode);
+	gForceCraftSub = kSubPlan;
 	gFocusTab = true;
 	StartPlanWithQty(1);
 }
 
 void CraftingData::RequestFocusTab()
 {
+	gFocusTab = true;
+}
+
+void CraftingData::RequestFocusCraftCart()
+{
+	gForceCraftSub = kSubCart;
 	gFocusTab = true;
 }
 
@@ -118,6 +252,10 @@ void CraftingData::RenderContents()
 	StartKnown(false);
 	CartEnsureLoaded();
 
+	const int forced = gForceCraftSub.exchange(-1);
+	if (forced >= 0 && forced < kSubCount)
+		gCraftSub = forced;
+
 	Plan plan;
 	std::vector<DailyRow> dailies;
 	std::string dailyStatus;
@@ -129,102 +267,47 @@ void CraftingData::RenderContents()
 	}
 	std::vector<Plan> cartPlans = CartPlansCopy();
 
-	PadNav::Blurb(
-		"Known recipes (per character), multi-item craft cart with project rollup, "
-		"buy-vs-craft plans, shopping check-offs, and craft steps. "
-		"API key needs unlocks + characters + inventories.");
+	static const char* kSubs[] = { "Plan", "Known", "Browse", "Craft cart" };
+	static const int kSubIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::Bag),
+		static_cast<int>(Gw2Ui::Icon::Check),
+		static_cast<int>(Gw2Ui::Icon::Story),
+		static_cast<int>(Gw2Ui::Icon::Inventory),
+	};
+	gCraftSub = PadNav::DrawSideRail("###gw2igh_craft_nav", kSubs, kSubCount, gCraftSub,
+		0.f, kSubIcons);
 
-	DrawOptsBar();
+	/* Only resolve known-recipe names while the Known sub-tab is open. */
+	SetKnownDetailsActive(gCraftSub == kSubKnown);
 
-	ImGui::SetNextItemWidth(56.f);
-	ImGui::InputInt("###gw2igh_craft_qty", &gPlanQty);
-	if (gPlanQty < 1) gPlanQty = 1;
-	ImGui::SameLine();
-	const float btnW = ImGui::CalcTextSize("Plan").x + ImGui::GetStyle().FramePadding.x * 2.f + 16.f;
-	float fieldW = ImGui::GetContentRegionAvail().x - btnW - ImGui::GetStyle().ItemSpacing.x;
-	if (fieldW < 100.f) fieldW = 100.f;
-	ImGui::SetNextItemWidth(fieldW);
-	if (ImGui::InputTextWithHint("###gw2igh_craft_q", "[&...] / ID / name",
-			gQuery, sizeof(gQuery), ImGuiInputTextFlags_EnterReturnsTrue))
-		StartPlan();
-	ImGui::SameLine();
-	if (ImGui::Button("Plan###gw2igh_craft_go", ImVec2(btnW, 0.f)))
-		StartPlan();
+	ImGui::BeginChild("###gw2igh_craft_body", ImVec2(0.f, 0.f), true);
 
-	if (gBusy && !plan.ok)
-		PadNav::StatusBusy(plan.status.empty() ? "Planning..." : plan.status.c_str());
-	else if (gBusy && plan.ok)
-		PadNav::StatusBusy(plan.status.c_str());
-	else if (!plan.status.empty())
-		PadNav::StatusOk(plan.status.c_str());
-	if (CartPlanBusy())
-		PadNav::StatusBusy(CartPlanStatus().c_str());
-	else if (!CartPlanStatus().empty() && !cartPlans.empty())
-		PadNav::StatusOk(CartPlanStatus().c_str());
-
-	ImGui::Separator();
-	PadNav::SectionTitle("Daily crafting");
-	if (gDailyBusy)
-		PadNav::StatusBusy("Loading...");
-	else if (dailies.empty())
-		ImGui::TextColored(HelperTheme::Muted,
-			"%s", dailyStatus.empty() ? "-" : dailyStatus.c_str());
-	else
+	switch (gCraftSub)
 	{
-		if (!dailyStatus.empty())
-			ImGui::TextColored(HelperTheme::Muted, "%s", dailyStatus.c_str());
-		for (const DailyRow& d : dailies)
-		{
-			ImGui::PushID(d.slug.c_str());
-			if (d.done)
-				ImGui::TextColored(HelperTheme::Ok, "Done  %s", d.name.c_str());
-			else
-				ImGui::TextColored(HelperTheme::Warn, "Todo  %s", d.name.c_str());
-			ImGui::SameLine();
-			if (ImGui::SmallButton("Plan"))
-			{
-				std::snprintf(gQuery, sizeof(gQuery), "%s", d.name.c_str());
-				StartPlan();
-			}
-			ImGui::PopID();
-		}
+	case kSubPlan:
+		PadNav::Blurb(
+			"Buy-vs-craft plan, dailies, and results. API key needs unlocks + characters + inventories.");
+		DrawPlanTab(plan, dailies, dailyStatus, cartPlans);
+		break;
+	case kSubKnown:
+		PadNav::Blurb(
+			"Per-character known recipes. Details resolve in the background while this tab is open.");
+		DrawKnownRail();
+		break;
+	case kSubBrowse:
+		PadNav::Blurb("Recipe browser and leveling paths.");
+		DrawRecipeBrowser();
+		ImGui::Separator();
+		DrawLevelingPaths();
+		break;
+	case kSubCart:
+		PadNav::Blurb(
+			"Multi-item craft projects (not the Economy TP Cart). Plan project rolls shopping + steps.");
+		DrawCartTabBody(cartPlans);
+		break;
+	default:
+		break;
 	}
 
-	ImGui::Separator();
-	DrawRecipeBrowser();
-	ImGui::Separator();
-	DrawLevelingPaths();
-	ImGui::Separator();
-	DrawKnownRail();
-	ImGui::Separator();
-	DrawCartUi();
-	ImGui::Separator();
-
-	PadLayout::BeginList("###gw2igh_craft_list", 80.f);
-
-	if (!cartPlans.empty())
-		DrawAggregatedResults(cartPlans, true);
-	else if (plan.ok)
-		DrawPlanResults(plan, true);
-	else if (!plan.nameHints.empty())
-	{
-		PadNav::Meta("Wiki results");
-		for (size_t i = 0; i < plan.nameHints.size(); ++i)
-		{
-			ImGui::PushID(static_cast<int>(i));
-			if (ImGui::Selectable(plan.nameHints[i].c_str()))
-			{
-				std::snprintf(gQuery, sizeof(gQuery), "%s", plan.nameHints[i].c_str());
-				StartPlan();
-			}
-			ImGui::PopID();
-		}
-	}
-	else if (!gBusy && !CartPlanBusy())
-	{
-		ImGui::TextWrapped(
-			"Plan an item, browse Known, or Plan project on the craft cart.");
-	}
-
-	PadLayout::EndList();
+	ImGui::EndChild();
 }

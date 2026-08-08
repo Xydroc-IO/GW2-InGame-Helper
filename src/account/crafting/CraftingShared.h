@@ -266,6 +266,9 @@ namespace CraftingDetail
 	void EnsureKnownRecipeDetails(const std::vector<int>& recipeIds);
 	/* Enqueue at most maxN missing ids (cheap; for UI throttle). */
 	void EnsureNextKnownRecipeDetails(const std::vector<int>& recipeIds, size_t maxN);
+	/* Pause/resume detail workers (e.g. when leaving Crafting tab). */
+	void SetKnownDetailsPump(bool enabled);
+	bool KnownDetailsBusy();
 	bool GetKnownRecipeDetail(int recipeId, KnownRecipeInfo& out);
 	size_t KnownDetailsReadyCount(const std::vector<int>& recipeIds);
 	void CopyKnownRecipeDetails(const std::vector<int>& recipeIds,

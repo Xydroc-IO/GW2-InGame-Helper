@@ -1,5 +1,6 @@
 #include "CraftingData.h"
 
+#include "CraftingKnownInternal.h"
 #include "CraftingShared.h"
 
 #include "Globals.h"
@@ -70,15 +71,25 @@ namespace CraftingDetail
 
 		if (gSelectedCharIdx >= static_cast<int>(labels.size()))
 			gSelectedCharIdx = 0;
-		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-		if (ImGui::Combo("###gw2igh_known_char", &gSelectedCharIdx, labels.data(),
-				static_cast<int>(labels.size())))
+		/* In-pad cycle — Combo popup clicks often miss under Nexus capture. */
 		{
-			if (gSelectedCharIdx <= 0)
-				gSelectedChar[0] = 0;
-			else
-				std::snprintf(gSelectedChar, sizeof(gSelectedChar), "%s",
-					chars[static_cast<size_t>(gSelectedCharIdx - 1)].c_str());
+			const int n = static_cast<int>(labels.size());
+			auto applyIdx = [&](int idx) {
+				gSelectedCharIdx = idx;
+				if (gSelectedCharIdx <= 0)
+					gSelectedChar[0] = 0;
+				else
+					std::snprintf(gSelectedChar, sizeof(gSelectedChar), "%s",
+						chars[static_cast<size_t>(gSelectedCharIdx - 1)].c_str());
+			};
+			if (ImGui::ArrowButton("###gw2igh_known_prev", ImGuiDir_Left))
+				applyIdx((gSelectedCharIdx + n - 1) % n);
+			ImGui::SameLine();
+			ImGui::AlignTextToFramePadding();
+			ImGui::TextUnformatted(labels[static_cast<size_t>(gSelectedCharIdx)]);
+			ImGui::SameLine();
+			if (ImGui::ArrowButton("###gw2igh_known_next", ImGuiDir_Right))
+				applyIdx((gSelectedCharIdx + 1) % n);
 		}
 
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -107,25 +118,39 @@ namespace CraftingDetail
 		ImGui::TextColored(HelperTheme::Muted, "%zu recipes", sIds.size());
 		if (sIds.empty()) return;
 
-		/* Queue every missing id for parallel bulk workers (100/ids × 2 threads). */
-		EnsureKnownRecipeDetails(sIds);
+		/* Cap enqueue per frame — scanning/queuing the full set under lock freezes Present. */
+		EnsureNextKnownRecipeDetails(sIds, kDetailEnqueuePerFrame);
 
-		const size_t ready = KnownDetailsReadyCount(sIds);
+		/* Ready count is O(n) under the shared mutex — sample at most ~4×/sec. */
+		static size_t sReady = 0;
+		static DWORD sReadyAt = 0;
+		if (sReadyAt == 0 || (now - sReadyAt) > 250)
+		{
+			sReady = KnownDetailsReadyCount(sIds);
+			sReadyAt = now;
+		}
+		const size_t ready = sReady;
 		if (ready < sIds.size())
 			ImGui::TextColored(HelperTheme::Muted, "Loading details %zu / %zu…",
 				ready, sIds.size());
 
 		/* Rebuild grouped list only when data / filter changes — not every Present. */
 		static size_t sReadyCached = static_cast<size_t>(-1);
+		static DWORD sRebuildAt = 0;
 		static int sUiCharIdx = -999;
 		static char sUiFilter[64] = { '\x01' }; /* force first rebuild */
 		static std::map<std::string, std::vector<KnownRecipeInfo>> sByDisc;
 
-		if (ready != sReadyCached ||
-			sUiCharIdx != gSelectedCharIdx ||
-			std::strcmp(sUiFilter, gKnownFilter) != 0)
+		const bool filterDirty = sUiCharIdx != gSelectedCharIdx ||
+			std::strcmp(sUiFilter, gKnownFilter) != 0;
+		const bool readyJump = ready != sReadyCached &&
+			(ready >= sIds.size() ||
+				ready >= sReadyCached + 200 ||
+				(sRebuildAt != 0 && (now - sRebuildAt) > 500));
+		if (filterDirty || readyJump || sReadyCached == static_cast<size_t>(-1))
 		{
 			sReadyCached = ready;
+			sRebuildAt = now;
 			sUiCharIdx = gSelectedCharIdx;
 			std::snprintf(sUiFilter, sizeof(sUiFilter), "%s", gKnownFilter);
 			sByDisc.clear();
@@ -152,8 +177,8 @@ namespace CraftingDetail
 			char header[128];
 			std::snprintf(header, sizeof(header), "%s (%zu)###gw2igh_kd_%s",
 				kv.first.c_str(), kv.second.size(), kv.first.c_str());
-			/* Same as Account: sections start open. Clipper keeps off-screen rows cheap. */
-			if (!ImGui::TreeNodeEx(header, ImGuiTreeNodeFlags_DefaultOpen))
+			/* Start collapsed — big accounts open dozens of discipline groups. */
+			if (!ImGui::TreeNodeEx(header, 0))
 				continue;
 
 			std::vector<KnownRecipeInfo>& rows = kv.second;

@@ -31,6 +31,35 @@ namespace CraftingDetail
 	static HANDLE gKnownThread = nullptr;
 	static DWORD gKnownFetchedAt = 0;
 
+	struct CharRecipeJob
+	{
+		const std::vector<std::string>* names = nullptr;
+		std::atomic<size_t> next{0};
+		std::mutex outMu;
+		std::unordered_map<std::string, std::unordered_set<int>>* out = nullptr;
+	};
+
+	static DWORD WINAPI CharRecipeWorker(LPVOID p)
+	{
+		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+		auto* j = static_cast<CharRecipeJob*>(p);
+		for (;;)
+		{
+			const size_t i = j->next.fetch_add(1);
+			if (i >= j->names->size()) return 0;
+			const std::string& name = (*j->names)[i];
+			std::string path = "/v2/characters/" + EncodeCharPath(name) + "/recipes";
+			auto r = Gw2Http::Api(path.c_str(), G::Gw2ApiKey, kHttpTimeoutMs);
+			if (!r.ok) continue;
+			std::vector<int> list;
+			ParseIntArray(r.body, list);
+			std::unordered_set<int> set;
+			for (int id : list) set.insert(id);
+			std::lock_guard<std::mutex> lock(j->outMu);
+			(*j->out)[name] = std::move(set);
+		}
+	}
+
 	static void SaveKnownDisk()
 	{
 		const std::wstring path = ConfigFile(L"craft_known.txt");
@@ -115,17 +144,22 @@ namespace CraftingDetail
 			auto ch = Gw2Http::Api("/v2/characters", G::Gw2ApiKey, kHttpTimeoutMs);
 			std::vector<std::string> names;
 			if (ch.ok) ParseQuotedStringArray(ch.body, names);
-			const size_t maxChars = names.size(); /* all characters — full known set */
-			for (size_t i = 0; i < maxChars; ++i)
+			/* Parallel char recipe pulls — sequential N×HTTP stalls the known list for minutes. */
+			CharRecipeJob job;
+			job.names = &names;
+			job.out = &chars;
+			constexpr int kCharWorkers = 3;
+			HANDLE hs[kCharWorkers] = {};
+			int nH = 0;
+			for (int w = 0; w < kCharWorkers && !names.empty(); ++w)
 			{
-				std::string path = "/v2/characters/" + EncodeCharPath(names[i]) + "/recipes";
-				auto r = Gw2Http::Api(path.c_str(), G::Gw2ApiKey, kHttpTimeoutMs);
-				if (!r.ok) continue;
-				std::vector<int> list;
-				ParseIntArray(r.body, list);
-				auto& set = chars[names[i]];
-				for (int id : list) set.insert(id);
+				hs[w] = CreateThread(nullptr, 0, CharRecipeWorker, &job, 0, nullptr);
+				if (hs[w]) ++nH;
 			}
+			if (nH > 0)
+				WaitForMultipleObjects(static_cast<DWORD>(nH), hs, TRUE, INFINITE);
+			for (int w = 0; w < nH; ++w)
+				CloseHandle(hs[w]);
 		}
 
 		{
@@ -164,7 +198,7 @@ namespace CraftingDetail
 				warm.assign(all.begin(), all.end());
 			}
 			if (!warm.empty())
-				EnsureKnownRecipeDetails(warm); /* fills any gaps off-thread */
+				EnsureNextKnownRecipeDetails(warm, kDetailEnqueuePerFrame * 4);
 		}
 		if (!force && gKnownFetchedAt != 0 &&
 			(GetTickCount() - gKnownFetchedAt) < kKnownTtlMs)
@@ -185,8 +219,28 @@ namespace CraftingDetail
 	static DWORD WINAPI KnownSaveDiskProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
-		std::lock_guard<std::mutex> lock(gKnownMu);
-		SaveKnownDisk();
+		std::unordered_set<int> account;
+		std::unordered_map<std::string, std::unordered_set<int>> chars;
+		{
+			std::lock_guard<std::mutex> lock(gKnownMu);
+			account = gAccount;
+			chars = gChars;
+		}
+		/* Write outside gKnownMu — holding the mutex across disk I/O stalls Present. */
+		const std::wstring path = ConfigFile(L"craft_known.txt");
+		if (path.empty()) return 0;
+		std::string body = "# craft_known v1\nACCOUNT\n";
+		for (int id : account)
+			body += std::to_string(id) + "\n";
+		for (const auto& kv : chars)
+		{
+			body += "CHAR\t";
+			body += kv.first;
+			body += "\n";
+			for (int id : kv.second)
+				body += std::to_string(id) + "\n";
+		}
+		WriteUtf8File(path, body);
 		return 0;
 	}
 
@@ -219,8 +273,9 @@ namespace CraftingDetail
 		}
 		if (saveDisk)
 			CreateThread(nullptr, 0, KnownSaveDiskProc, nullptr, 0, nullptr);
+		/* UI pumps the rest via EnsureNext — avoid locking Present on a full-set enqueue. */
 		if (!prefetch.empty())
-			EnsureKnownRecipeDetails(prefetch);
+			EnsureNextKnownRecipeDetails(prefetch, kDetailEnqueuePerFrame * 4);
 	}
 
 	bool KnownHasFetched()
