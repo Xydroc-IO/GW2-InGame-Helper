@@ -1,4 +1,5 @@
 #include "WatchPad.h"
+#include "WatchPadInternal.h"
 
 #include "EiRuntime.h"
 #include "Globals.h"
@@ -31,42 +32,6 @@ namespace
 			return;
 		if (WatchCapture::Windows().empty())
 			WatchCapture::RefreshWindowList();
-	}
-
-	void DrawWatchHelp()
-	{
-		const bool wine = EiRuntime::IsWine();
-		ImGui::BeginChild("###gw2igh_watch_about", ImVec2(0.f, 0.f), true);
-		PadNav::SectionTitle("What is Watch?");
-		PadNav::Blurb(
-			"A look-only mirror of another desktop window (browser, Twitch app, guide "
-			"video, etc.). Playback stays in that app — Helper only shows pixels inside GW2.");
-		ImGui::Spacing();
-		PadNav::SectionTitle("What it does not do");
-		PadNav::Meta("No click-through, no key inject, no audio routing.");
-		PadNav::Meta("Guild Wars 2 never sees this capture traffic (local only).");
-		PadNav::Meta("Not a CEF/Widevine player — use your system app for DRM video.");
-		ImGui::Spacing();
-		PadNav::SectionTitle("How to use");
-		if (wine)
-		{
-			PadNav::Meta("1. On the Watch tab, press Start — the Linux share picker opens.");
-			PadNav::Meta("2. Pick the window or screen to share.");
-			PadNav::Meta("3. Watch Mirror opens with the picture (~60 FPS, up to 1280×720).");
-			PadNav::Meta("4. Stop on the Watch tab, or close Mirror, to end capture.");
-		}
-		else
-		{
-			PadNav::Meta("1. On the Watch tab, pick a window (Refresh if needed).");
-			PadNav::Meta("2. Press Start — Watch Mirror opens with the picture.");
-			PadNav::Meta("3. Stop on the Watch tab, or close Mirror, to end capture.");
-		}
-		ImGui::Spacing();
-		PadNav::SectionTitle("Tips");
-		PadNav::Meta("Crop chrome on the Watch tab trims browser title bars.");
-		PadNav::Meta("Resize Mirror freely — the picture letterboxes to keep aspect.");
-		PadNav::Meta("Black frames often mean DRM or a hardware overlay in the source app.");
-		ImGui::EndChild();
 	}
 
 	ImU32 ColU32(const ImVec4& c, float aMul = 1.f)
@@ -405,8 +370,12 @@ void WatchPad::Open()
 	G::ShowWatch = true;
 	gRequestDock = true;
 	gControlTab = 0;
-	WatchCapture::RefreshWindowList();
-	gSelected = -1;
+	/* Don't EnumWindows / reset picker while a session is already live. */
+	if (!WatchCapture::IsCapturing())
+	{
+		WatchCapture::RefreshWindowList();
+		gSelected = -1;
+	}
 	if (WatchLinux::Available())
 		WatchLinux::WarmAsync();
 	Settings::SetDirty();
@@ -418,6 +387,17 @@ void WatchPad::CloseAll()
 	G::ShowWatchMirror = false;
 	WatchCapture::Stop();
 	Settings::SetDirty();
+}
+
+void WatchPad::ToggleControl()
+{
+	if (G::ShowWatch)
+	{
+		G::ShowWatch = false;
+		Settings::SetDirty();
+		return;
+	}
+	Open();
 }
 
 bool WatchPad::Render()
@@ -470,7 +450,7 @@ bool WatchPad::Render()
 			gControlTab = PadNav::DrawTabs("###gw2igh_watch_ctrl_tabs", kTabs, 2, gControlTab);
 
 			if (gControlTab == 1)
-				DrawWatchHelp();
+				WatchPadDetail::DrawHelp();
 			else
 				DrawWatchControls();
 

@@ -111,8 +111,7 @@ namespace
 		case Slot::TrailTools: CloseOrOpen(G::ShowTrailTools, &TrailToolsPad::Open); break;
 		case Slot::Compass: CloseOrOpen(G::ShowCompassPad, &DirectionCompass::Open); break;
 		case Slot::Watch:
-			if (G::ShowWatch || G::ShowWatchMirror) WatchPad::CloseAll();
-			else WatchPad::Open();
+			WatchPad::ToggleControl();
 			break;
 		case Slot::SettingsPad: CloseOrOpen(G::ShowSettings, &SettingsPad::Open); break;
 		case Slot::Wallet: CloseOrOpen(G::ShowWallet, &WalletPad::OpenAndRefresh); break;

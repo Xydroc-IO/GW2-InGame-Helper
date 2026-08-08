@@ -113,6 +113,7 @@ DLL_SRC = \
 	src/notes/NotesPad.cpp \
 	src/notes/NotesPadWaypoints.cpp \
 	src/watch/WatchPad.cpp \
+	src/watch/WatchPadAbout.cpp \
 	src/watch/WatchCapture.cpp \
 	src/watch/WatchCaptureGpu.cpp \
 	src/watch/WatchCaptureWin.cpp \

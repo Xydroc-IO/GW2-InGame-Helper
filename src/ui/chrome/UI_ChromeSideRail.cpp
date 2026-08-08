@@ -357,11 +357,12 @@ namespace UIDetail
 		if (PadNav::SideToggle("Watch###gw2igh_watch",
 			G::ShowWatch || G::ShowWatchMirror, static_cast<int>(Gw2Ui::Icon::WatchView), iconSz))
 		{
-			if (G::ShowWatch || G::ShowWatchMirror) WatchPad::CloseAll();
-			else WatchPad::Open();
+			WatchPad::ToggleControl();
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Watch - mirror a desktop window (system play)\nDefault: Ctrl+Shift+W (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Watch - Start/Stop control (Mirror stays until Stop)\n"
+				"Default: Ctrl+Shift+W (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Settings###gw2igh_settings", G::ShowSettings, static_cast<int>(Gw2Ui::Icon::SettingsGear), iconSz))
 		{
