@@ -251,38 +251,42 @@ bool Gw2Ui::DrawPadTitleBar(const char* title, bool* pOpen, float opacity, float
 		float textX = win0.x + kPadX;
 
 		/*
-		 * Title crest: gem silhouette (reads at title size — ornate plaque does not).
-		 * Centered on the rail but may spill into the title strip; do not clip to railW.
+		 * Title crest: gem silhouette, oversized with safe overhang.
+		 * Hang mostly above the strip; keep the bottom at/near the title baseline
+		 * so we do not cover the first side-rail icon.
 		 */
 		if (!collapsed && leftExtend > 0.f)
 		{
 			Texture_t* crest = Gw2UiDetail::GetChromeNamed("crest-hero");
 			if (crest && crest->Resource)
 			{
-				constexpr float kHangTop = 8.f;
-				constexpr float kCrestGap = 8.f;
-				/* Match rail icon scale (~title height); ignore narrow leftExtend. */
-				float kCrest = kTitleH - 2.f;
-				if (kCrest > 56.f)
-					kCrest = 56.f;
-				if (kCrest < 40.f)
-					kCrest = 40.f;
+				constexpr float kHangBot = 6.f;
+				/* Nestle title into the crest’s transparent pad (gem is centered). */
+				constexpr float kCrestTextInset = 10.f;
+				/* Big gem — hangs above the strip; bottom hugs title baseline. */
+				float kCrest = 100.f;
+				if (kCrest > 112.f)
+					kCrest = 112.f;
+				if (kCrest < 72.f)
+					kCrest = 72.f;
 				const float railMid = title0.x + leftExtend * 0.5f;
 				const float cx0 = railMid - kCrest * 0.5f;
-				const float cy0 = win0.y + (kTitleH - kCrest) * 0.5f;
-				const float cy1 = cy0 + kCrest;
-				/* Clip to title strip only — not the rail width (that crushed the crest). */
+				const float cy1 = win0.y + kTitleH + kHangBot;
+				const float cy0 = cy1 - kCrest;
+				/* Clip to crest bounds (not railW) so overhang is not crushed. */
 				dl->PushClipRect(
-					ImVec2(title0.x - 2.f, win0.y - kHangTop - 2.f),
-					ImVec2(win0.x + winW, win0.y + kTitleH + 2.f),
+					ImVec2(ImMin(title0.x, cx0) - 4.f, cy0 - 2.f),
+					ImVec2(ImMax(win0.x + leftExtend, cx0 + kCrest) + 12.f, cy1 + 2.f),
 					false);
 				dl->AddImage(reinterpret_cast<ImTextureID>(crest->Resource),
 					ImVec2(cx0, cy0), ImVec2(cx0 + kCrest, cy1),
 					ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), col);
 				if (dl->_ClipRectStack.Size > 0)
 					dl->PopClipRect();
-				const float afterCrest = cx0 + kCrest + kCrestGap;
-				textX = afterCrest > (win0.x + kPadX) ? afterCrest : (win0.x + kPadX);
+				float nestled = cx0 + kCrest - kCrestTextInset;
+				if (nestled < win0.x + 4.f)
+					nestled = win0.x + 4.f;
+				textX = nestled;
 			}
 		}
 
