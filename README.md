@@ -8,18 +8,17 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.3.9` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.3.10` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
-**Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
-[`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) ·
-[`docs/PATHING.md`](docs/PATHING.md) · [`docs/COMPLETION.md`](docs/COMPLETION.md) ·
-[`docs/FARMING.md`](docs/FARMING.md) · [`docs/MODULES.md`](docs/MODULES.md)
+**Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) ·
+[`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
+[`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) · [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) ·
+[`docs/API_KEY.md`](docs/API_KEY.md)
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once.
 Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
-(`pages/` for generated HTML, `config/` for notes/profiles/etc; see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
+(`pages/` for generated HTML, `config/` for notes/profiles/etc; see [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md)).
 
 **Changelog:** [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) (version history lives there, not in this README).
 
@@ -52,7 +51,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | Farming (side-rail **Companions**) | Curated + custom farm runs, GPS live nodes, fishing catch log |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
-| Settings (side-rail **Settings**) | ImGui — landing site, opacity, font scale, warm CEF, API key, panel Keybinds |
+| Settings (side-rail **Settings**) | ImGui — landing site, theme folders, opacity, font scale, warm CEF, API key, panel Keybinds |
 | [Guild Wars 2 Wiki](https://wiki.guildwars2.com/) | Wiki |
 | [Game Updates](https://wiki.guildwars2.com/wiki/Game_updates) | Wiki |
 | [Legendaries](https://wiki.guildwars2.com/wiki/Legendary_equipment) | Wiki |
@@ -142,16 +141,14 @@ Works on Windows and on Linux via Wine/Proton.
 > `addons/GW2-InGame-Helper/cef/` (see `src/browser/CefRuntime.h`). Never writes
 > into `bin64/cef`.
 
-Full docs index: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
-listing copy [`docs/description.html`](docs/description.html) ·
+Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
 release notes [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) ·
 [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
-[`docs/CEF_RUNTIME.md`](docs/CEF_RUNTIME.md) ·
+[`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) ·
 DPS Logs / .NET / Proton: [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) ·
 API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 
-Local (gitignored) drafts: `docs/RAIDCORE.md`, `docs/DISCORD.md`, `docs/CODE_AUDIT.md`.
-Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
+Local (gitignored) drafts under `docs/` stay on disk only — see `.gitignore`.
 
 ## Features
 
@@ -160,7 +157,7 @@ Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`d
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
 - **Companions** — Economy, Instances, Completion (checklist/Atlas/routes), Farming (runs + GPS + fishing log)
 - **Overlays** — floating GPS arrow toward active guide; short zone-entry banner
-- **Settings** — landing site, opacity, font scale / auto, warm CEF, API key, **Keybinds** (Nexus Options opens this pad)
+- **Settings** — landing site, **Theme** (drop-in `config/themes/`), opacity, font scale / auto, warm CEF, API key, **Keybinds** (Nexus Options opens this pad)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
 - **GW2-themed** chrome (gold tabs + muted status); Browse picker with section headers (Tools, Guides, Discord, Cheat Sheets, …)
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
@@ -242,7 +239,7 @@ C:\Program Files (x86)\Steam\steamapps\common\Guild Wars 2
 4. Use **Back**, **Forward**, **Home**, and **Reload** as needed.
 5. Click outside the window (on the game) to return movement/skills to Guild Wars 2.
 
-Opacity, font scale, and related options live in the addon’s Nexus options panel. Window size and position are saved automatically.
+Opacity, font scale, theme, and related options live in the addon’s Settings pad (also via Nexus options). Window size and position are saved automatically. Drop-in color themes: `config/themes/` under the addon data folder (see [`CONTRIBUTING.md`](CONTRIBUTING.md)).
 
 ## Updating
 
@@ -429,9 +426,8 @@ Browse rows are labeled hyperlinks into public sites (and built-in `about:` page
 7. Runtime data (helper exe, `pages/` HTML, cheat sheets, settings, caches) lives under `addons/GW2-InGame-Helper/`.
 8. Site list lives in `data/sites.json` (runtime `addons/…/sites.json`); offline sheets in `data/cheatsheets/` (and `src/browse/RaidFood.cpp` for raid food).
 
-Full doc map: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md). Contributor start: [`docs/ONBOARDING.md`](docs/ONBOARDING.md).
-Architecture / design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
-Local drafts (gitignored): `docs/CODE_AUDIT.md`, `docs/RAIDCORE.md`, `docs/DISCORD.md`.
+Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md). Design: [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md).
+Compliance: [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md).
 
 ## License
 

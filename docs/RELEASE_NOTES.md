@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.9
+# GW2 In-Game Helper v2.2.3.10
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -6,10 +6,9 @@ In-game browser for Guild Wars 2 — Wiki, Snow Crows, MetaBattle, Guildjen, and
 One DLL for Nexus — no memory reads. Chromium is **private CEF Stable 150**
 (first-run download into `addons/GW2-InGame-Helper/cef/`).
 
-Docs: [`DOCUMENTATION.md`](DOCUMENTATION.md) · CEF setup [`CEF_RUNTIME.md`](CEF_RUNTIME.md) ·
+Docs: [`CONTRIBUTING.md`](../CONTRIBUTING.md) · CEF / design [`WHITEPAPER.md`](WHITEPAPER.md) ·
 DPS Logs [`DPS_LOGS.md`](DPS_LOGS.md) · API key [`API_KEY.md`](API_KEY.md) ·
-Completion [`COMPLETION.md`](COMPLETION.md) · Farming [`FARMING.md`](FARMING.md)
-(local `CODE_AUDIT.md` is gitignored)
+Compliance [`COMPLIANCE.md`](COMPLIANCE.md)
 
 ## Install
 
@@ -18,7 +17,7 @@ Copy **only** `GW2-InGame-Helper.dll` into `<Guild Wars 2>/addons/`.
 Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows / Wine / Proton).
 
 On first helper open the DLL downloads the CEF runtime (~170MB) once unless you
-pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)).
+pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
 
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper) ·
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
@@ -32,6 +31,25 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.10
+
+- **User themes:** Drop-in `config/themes/<name>/theme.ini` color packs; Settings picker,
+  Open folder / Reload; ImGui tokens + CEF `:root` inject on Home / Live / sheets
+  (hardened against multi-click). See [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+- **UI chrome:** Richer curated plaque pack (btn frame/plate, card-fill, hero plate, …);
+  side-rail hover/selected uses gold frame — stamp `uc31`.
+- **Browse catalog:** Dropped redundant **Browse** row under Help — sites `s2214`.
+- **Browse / Cheat Sheets tiles:** Centered, larger labels on the flat grey of card-fill
+  (Categories, Cheat Sheets hub, Help / Wiki / favorites / every category page) —
+  live panel `59`, cheatsheets `c2226`.
+- **Browse Back / missing live pages:** Stamp-only live-panel invalidate (never delete
+  `.html` CEF history still points at); helper recovers `ERR_FILE_NOT_FOUND` via `about:` —
+  Helper `2242`.
+- **Side rail:** No stretch gaps / gold divider strips between buttons; leftover height
+  expands each row so the stack reaches the bottom (HELPER / TOOLS labels kept).
+- **Stamps:** Helper `2242` · homepage `2228` · sites `s2214` · cheatsheets `c2226`
+  · live panel `59` · raid food `7` · ui-chrome `uc31`
 
 ## What’s new in 2.2.3.9
 
