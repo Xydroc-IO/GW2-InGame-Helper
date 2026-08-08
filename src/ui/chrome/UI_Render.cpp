@@ -125,7 +125,9 @@ void UI_Render()
 
 	if (!sWasOpen)
 	{
-		gUi.forceHelperOnScreen = true; /* always verify visible on each open */
+		/* Re-apply saved G:: geom with Cond_Always (ImGui FirstUseEver otherwise sticks).
+		   ClampHelperGeomToDisplay only relocates if that geom is off-screen. */
+		gUi.forceHelperOnScreen = true;
 		BrowserTabs::NavigateActive();
 		sWasOpen = true;
 	}

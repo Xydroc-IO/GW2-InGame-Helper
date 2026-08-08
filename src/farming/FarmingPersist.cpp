@@ -19,6 +19,7 @@ namespace FarmingDetail
 {
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	int  gDeferHeavy = 0;
 	int gTab = 0;
 	int gSelectedRun = 0;
 	int gFocusStep = -1;

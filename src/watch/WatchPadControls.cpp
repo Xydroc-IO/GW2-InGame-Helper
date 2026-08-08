@@ -25,19 +25,45 @@ namespace WatchPadDetail
 
 	void OpenMirror()
 	{
-		if (!G::ShowWatchMirror)
+		if (G::ShowWatchMirror || gDeferMirrorOpenFrames > 0)
+			return;
+		/* Wine: open Mirror on a later frame than Start — same-click Begin+spawn
+		   has crashed the game process under load. */
+		if (EiRuntime::IsWine())
 		{
-			G::ShowWatchMirror = true;
-			gRequestMirrorDock = true;
-			if (G::PadWatchMirror.w < 80.f || G::PadWatchMirror.h < 80.f)
-			{
-				G::PadWatchMirror.w = 0.f;
-				G::PadWatchMirror.h = 0.f;
-			}
-			if (ImGuiWindow* w = ImGui::FindWindowByName("Watch Mirror###GW2InGameHelperWatchMirror"))
-				w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+			gDeferMirrorOpenFrames = 2;
 			Settings::SetDirty();
+			return;
 		}
+		G::ShowWatchMirror = true;
+		gRequestMirrorDock = true;
+		if (G::PadWatchMirror.w < 80.f || G::PadWatchMirror.h < 80.f)
+		{
+			G::PadWatchMirror.w = 0.f;
+			G::PadWatchMirror.h = 0.f;
+		}
+		if (ImGuiWindow* w = ImGui::FindWindowByName("Watch Mirror###GW2InGameHelperWatchMirror"))
+			w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+		Settings::SetDirty();
+	}
+
+	void TickDeferredMirrorOpen()
+	{
+		if (gDeferMirrorOpenFrames <= 0)
+			return;
+		--gDeferMirrorOpenFrames;
+		if (gDeferMirrorOpenFrames > 0 || G::ShowWatchMirror)
+			return;
+		G::ShowWatchMirror = true;
+		gRequestMirrorDock = true;
+		if (G::PadWatchMirror.w < 80.f || G::PadWatchMirror.h < 80.f)
+		{
+			G::PadWatchMirror.w = 0.f;
+			G::PadWatchMirror.h = 0.f;
+		}
+		if (ImGuiWindow* w = ImGui::FindWindowByName("Watch Mirror###GW2InGameHelperWatchMirror"))
+			w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+		Settings::SetDirty();
 	}
 
 	void DrawWatchControls()

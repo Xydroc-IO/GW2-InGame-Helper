@@ -53,7 +53,9 @@ namespace WatchLinuxDetail
 	void CopyUiStatus(std::string& out);
 
 	void UnmapShm();
+	void UnmapShmUnlocked();
 	bool EnsureShmMapped();
+	bool EnsureShmMappedUnlocked(); /* caller holds gCs */
 	void EnsurePump();
 	void StopPump();
 }

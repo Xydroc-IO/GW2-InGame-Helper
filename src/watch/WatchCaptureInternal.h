@@ -29,8 +29,12 @@ namespace WatchCaptureDetail
 	extern uint32_t                gContentW;
 	extern uint32_t                gContentH;
 	/* Stop/close must not Release() while this frame's ImGui draw list still
-	 * holds the SRV — that use-after-free can take down the game process. */
+	 * holds the SRV — that use-after-free can take down the game process.
+	 * Resize parks the prior set in gDead* for the same reason (Wine). */
 	extern bool                    gDeferGpuRelease;
+	extern ID3D11Texture2D*        gDeadTex;
+	extern ID3D11Texture2D*        gDeadStagingTex;
+	extern ID3D11ShaderResourceView* gDeadSrv;
 
 	extern int                      gRawEnumCount;
 	extern uint64_t                gTarget;

@@ -11,8 +11,10 @@
 #include "Settings.h"
 #include "UnlocksData.h"
 #include "UnlocksPad.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include <algorithm>
 
@@ -26,6 +28,13 @@ namespace
 	bool gFocus = false;
 	bool gPlaceOnce = false;
 	int  gAccountTab = 0; /* Overview / Progress / Unlocks / History */
+	int  gDeferRefresh = 0;
+
+	void KickRefresh()
+	{
+		ProgressData::RefreshIfNeeded(false);
+		UnlocksData::EnsureLoaded(UnlocksData::Kind::Skins, false);
+	}
 
 	void SectionLabel(const char* label)
 	{
@@ -117,14 +126,20 @@ void AccountPad::OpenAndRefresh()
 	gFocus = true;
 	gPlaceOnce = true;
 	Settings::SetDirty();
-	ProgressData::RefreshIfNeeded(false);
-	UnlocksData::EnsureLoaded(UnlocksData::Kind::Skins, false);
+	if (ImGuiWindow* w = ImGui::FindWindowByName("Account###GW2InGameHelperAccount"))
+		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+	gDeferRefresh = WinePadOpen::DeferFrames();
+	if (gDeferRefresh <= 0)
+		KickRefresh();
 }
 
 bool AccountPad::Render()
 {
 	if (!G::ShowAccount)
 		return false;
+
+	if (WinePadOpen::TickDefer(gDeferRefresh))
+		KickRefresh();
 
 	UnlocksData::Tick();
 	SessionHistoryData::Tick();
@@ -141,12 +156,8 @@ bool AccountPad::Render()
 		PadDock::Place(G::PadAccount, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadAccount.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	if (gFocus)
-	{
-		ImGui::SetNextWindowFocus();
-		gFocus = false;
-	}
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	WinePadOpen::ApplyFocus(gFocus);
 
 	HelperTheme::ScopedWindow theme(G::Opacity);
 

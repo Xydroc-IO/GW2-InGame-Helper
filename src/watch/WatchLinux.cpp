@@ -202,10 +202,12 @@ void WatchLinux::Disconnect()
 		closesocket(gSock);
 		gSock = INVALID_SOCKET;
 	}
-	UnmapShm();
 	EnsureCs();
-	gLastPresentedSeq = 0;
+	EnterCriticalSection(&gCs);
 	gPresentSlot = WatchProto::kNoSlot;
+	UnmapShmUnlocked();
+	LeaveCriticalSection(&gCs);
+	gLastPresentedSeq = 0;
 }
 
 void WatchLinux::RefreshWindowList(std::vector<WatchCapture::WindowEntry>& out, std::string& status)
@@ -313,21 +315,34 @@ bool WatchLinux::BeginPresent(const uint8_t*& bgra, uint32_t& w, uint32_t& h, ui
 	bgra = nullptr;
 	w = h = stride = 0;
 	CopyUiStatus(status);
-	if (!gCapturing.load() || !EnsureShmMapped() || !gShmView)
+	if (!gCapturing.load())
 		return false;
+
+	EnsureCs();
+	EnterCriticalSection(&gCs);
+	if (!EnsureShmMappedUnlocked() || !gShmView)
+	{
+		LeaveCriticalSection(&gCs);
+		return false;
+	}
 
 	auto* hdr = reinterpret_cast<WatchProto::ShmHeader*>(gShmView);
 	if (hdr->magic != WatchProto::kShmMagic || hdr->seq == 0 || hdr->seq == gLastPresentedSeq)
+	{
+		LeaveCriticalSection(&gCs);
 		return false;
+	}
 
 	const uint32_t slot = hdr->slot & 1u;
 	const uint32_t fw = hdr->w;
 	const uint32_t fh = hdr->h;
 	const uint32_t fs = hdr->stride;
-	if (fw == 0 || fh == 0 || fs < fw * 4 || fw > WatchProto::kMaxW || fh > WatchProto::kMaxH)
+	if (fw == 0 || fh == 0 || fs < fw * 4 || fw > WatchProto::kMaxW || fh > WatchProto::kMaxH ||
+		static_cast<size_t>(fs) * fh > WatchProto::kSlotBytes)
+	{
+		LeaveCriticalSection(&gCs);
 		return false;
-	if (static_cast<size_t>(fs) * fh > WatchProto::kSlotBytes)
-		return false;
+	}
 
 	hdr->reading = slot;
 	__sync_synchronize();
@@ -337,6 +352,8 @@ bool WatchLinux::BeginPresent(const uint8_t*& bgra, uint32_t& w, uint32_t& h, ui
 	w = fw;
 	h = fh;
 	stride = fs;
+	LeaveCriticalSection(&gCs);
+
 	status = "Capturing (OOP watchd ~60 FPS).";
 	SetUiStatus(status.c_str());
 	return true;
@@ -344,13 +361,14 @@ bool WatchLinux::BeginPresent(const uint8_t*& bgra, uint32_t& w, uint32_t& h, ui
 
 void WatchLinux::EndPresent()
 {
-	if (!gShmView)
+	EnsureCs();
+	EnterCriticalSection(&gCs);
+	if (gShmView)
 	{
-		gPresentSlot = WatchProto::kNoSlot;
-		return;
+		auto* hdr = reinterpret_cast<WatchProto::ShmHeader*>(gShmView);
+		hdr->reading = WatchProto::kNoSlot;
+		__sync_synchronize();
 	}
-	auto* hdr = reinterpret_cast<WatchProto::ShmHeader*>(gShmView);
-	hdr->reading = WatchProto::kNoSlot;
-	__sync_synchronize();
 	gPresentSlot = WatchProto::kNoSlot;
+	LeaveCriticalSection(&gCs);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AspectLayout.h"
+#include "EiRuntime.h"
 #include "Globals.h"
 
 #include "imgui/imgui.h"
@@ -248,7 +249,10 @@ namespace PadDock
 			else
 				ImGui::SetNextWindowSize(ImVec2(useW, useH), ImGuiCond_Always);
 		}
-		ImGui::SetNextWindowFocus();
+		/* Wine: focusing a new pad while Mirror/CEF draw lists are hot has
+		   reordered Nexus windows into crashes — place without stealing focus. */
+		if (!EiRuntime::IsWine())
+			ImGui::SetNextWindowFocus();
 		placeOnce = false;
 	}
 

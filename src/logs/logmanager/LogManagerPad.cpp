@@ -11,6 +11,7 @@
 #include "Gw2Ui.h"
 #include "PadNav.h"
 #include "Settings.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -25,6 +26,17 @@
 
 using namespace LogManagerDetail;
 
+namespace
+{
+	int gDeferHeavy = 0;
+
+	void KickHeavyOpen()
+	{
+		BeginEiEnsure(false);
+		BeginScan();
+	}
+}
+
 void LogManagerPad::OpenAndRefresh()
 {
 	G::ShowLogManager = true;
@@ -34,14 +46,18 @@ void LogManagerPad::OpenAndRefresh()
 	gLogListFrac = G::LogManagerListFrac;
 	EnsureDefaultPaths();
 	Settings::SetDirty();
-	BeginEiEnsure(false);
-	BeginScan();
+	gDeferHeavy = WinePadOpen::DeferFrames();
+	if (gDeferHeavy <= 0)
+		KickHeavyOpen();
 }
 
 bool LogManagerPad::Render()
 {
 	if (!G::ShowLogManager)
 		return false;
+
+	if (WinePadOpen::TickDefer(gDeferHeavy))
+		KickHeavyOpen();
 
 	EnsureDefaultPaths();
 	SyncDraw();
@@ -101,8 +117,7 @@ bool LogManagerPad::Render()
 	}
 	if (gFocus)
 	{
-		ImGui::SetNextWindowFocus();
-		gFocus = false;
+		WinePadOpen::ApplyFocus(gFocus);
 	}
 
 	bool open = G::ShowLogManager;

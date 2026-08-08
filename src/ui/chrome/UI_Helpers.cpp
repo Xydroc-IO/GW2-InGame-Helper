@@ -105,7 +105,10 @@ namespace UIDetail
 			changed = true;
 		}
 
-		if (HelperGeomOffscreen(dw, dh) || gUi.forceHelperOnScreen)
+		/* Rescue only when the saved rect is off-screen. Do NOT treat
+		   forceHelperOnScreen as a relocate — that flag means “apply G:: geom
+		   with Cond_Always on reopen” and was wiping the user’s last position. */
+		if (HelperGeomOffscreen(dw, dh))
 		{
 			G::WindowPosX = lim.posX;
 			G::WindowPosY = lim.posY;
@@ -121,6 +124,7 @@ namespace UIDetail
 			{
 				G::WindowPosX = nx;
 				G::WindowPosY = ny;
+				G::HasSavedPos = true;
 				changed = true;
 			}
 		}

@@ -12,6 +12,7 @@
 #include "PathingTrails.h"
 #include "Settings.h"
 #include "WaypointsData.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -338,8 +339,8 @@ bool FarmingPad::Render()
 		PadDock::Place(G::PadFarming, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadFarming.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	if (gFocus) { ImGui::SetNextWindowFocus(); gFocus = false; }
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	WinePadOpen::ApplyFocus(gFocus);
 
 	bool open = G::ShowFarming;
 	HelperTheme::ScopedWindow theme(G::Opacity);

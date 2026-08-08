@@ -241,6 +241,9 @@ namespace WikiBrowserDetail
 			return;
 		const DWORD lived = GetTickCount() - gHelperSpawnMs;
 		gHelperSpawnMs = 0;
+		/* Stop sampling the last CEF frame immediately — shm may be torn. */
+		gContentW = gContentH = 0;
+		gTexHasContent = false;
 		if (lived < 12000u)
 		{
 			++gQuickDeathCount;

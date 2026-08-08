@@ -13,11 +13,17 @@ namespace WatchCaptureDetail
 	ID3D11Texture2D*         gTex = nullptr;
 	ID3D11Texture2D*         gStagingTex = nullptr;
 	ID3D11ShaderResourceView* gSrv = nullptr;
+	/* Prior live set after resize — ImGui/Wine may still sample until next present. */
+	ID3D11Texture2D*         gDeadTex = nullptr;
+	ID3D11Texture2D*         gDeadStagingTex = nullptr;
+	ID3D11ShaderResourceView* gDeadSrv = nullptr;
 	uint32_t                 gTexW = 0;
 	uint32_t                 gTexH = 0;
 	uint32_t                 gContentW = 0;
 	uint32_t                 gContentH = 0;
 	bool                     gDeferGpuRelease = false;
+	uint32_t                 gGpuTick = 0;
+	uint32_t                 gDeadParkedAt = 0;
 
 	uint64_t                 gTarget = 0;
 	int                      gRawEnumCount = 0;
@@ -26,6 +32,13 @@ namespace WatchCaptureDetail
 	bool                     gLastBlank = false;
 	std::string              gStatus = "Idle — pick a window and Start.";
 	std::vector<WatchCapture::WindowEntry> gWindows;
+
+	void ReleaseDeadGpu()
+	{
+		if (gDeadSrv) { gDeadSrv->Release(); gDeadSrv = nullptr; }
+		if (gDeadTex) { gDeadTex->Release(); gDeadTex = nullptr; }
+		if (gDeadStagingTex) { gDeadStagingTex->Release(); gDeadStagingTex = nullptr; }
+	}
 
 	void ReleaseGpu()
 	{
@@ -38,6 +51,10 @@ namespace WatchCaptureDetail
 
 	void FlushDeferredGpuRelease()
 	{
+		++gGpuTick;
+		/* Keep parked SRVs at least 2 Ticks — Wine Present often lags ImGui NewFrame. */
+		if (gDeadSrv && gGpuTick - gDeadParkedAt >= 2u)
+			ReleaseDeadGpu();
 		if (!gDeferGpuRelease)
 			return;
 		gDeferGpuRelease = false;
@@ -52,9 +69,29 @@ namespace WatchCaptureDetail
 		gDeferGpuRelease = true;
 	}
 
+	/* Move the live SRV/textures aside instead of Release() — Wine can still
+	   be sampling last frame's ImGui draw list when portal size changes. */
+	void ParkLiveGpu()
+	{
+		if (gDeadSrv)
+		{
+			/* Only one parked generation — free the older set if we must park again. */
+			ReleaseDeadGpu();
+		}
+		gDeadSrv = gSrv;
+		gDeadTex = gTex;
+		gDeadStagingTex = gStagingTex;
+		gSrv = nullptr;
+		gTex = nullptr;
+		gStagingTex = nullptr;
+		gTexW = gTexH = 0;
+		gDeadParkedAt = gGpuTick;
+	}
+
 	void ReleaseDevice()
 	{
 		gDeferGpuRelease = false;
+		ReleaseDeadGpu();
 		ReleaseGpu();
 		if (gContext) { gContext->Release(); gContext = nullptr; }
 		if (gDevice) { gDevice->Release(); gDevice = nullptr; }
@@ -62,7 +99,6 @@ namespace WatchCaptureDetail
 
 	bool EnsureDevice()
 	{
-		FlushDeferredGpuRelease();
 		if (gDevice && gContext)
 			return true;
 		if (!G::API || !G::API->SwapChain)
@@ -85,13 +121,16 @@ namespace WatchCaptureDetail
 
 	bool EnsureTexture(uint32_t w, uint32_t h)
 	{
-		FlushDeferredGpuRelease();
+		/* Do not FlushDeferred here — Tick owns lifetime so ImGui can Present first. */
 		if (!EnsureDevice() || w == 0 || h == 0)
 			return false;
 		if (gTex && gStagingTex && gSrv && gTexW == w && gTexH == h)
 			return true;
 
-		ReleaseGpu();
+		/* Do not Release() the live SRV here — park it for later Ticks. */
+		if (gSrv || gTex || gStagingTex)
+			ParkLiveGpu();
+		gContentW = gContentH = 0;
 
 		D3D11_TEXTURE2D_DESC td{};
 		td.Width = w;

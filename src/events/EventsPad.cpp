@@ -9,6 +9,7 @@
 #include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -24,7 +25,9 @@ void EventsPad::OpenAndRefresh()
 	EventsPadDetail::gFocus = true;
 	EventsPadDetail::gPlaceOnce = true;
 	Settings::SetDirty();
-	EventsPadDetail::BeginClaimRefresh();
+	EventsPadDetail::gDeferRefresh = WinePadOpen::DeferFrames();
+	if (EventsPadDetail::gDeferRefresh <= 0)
+		EventsPadDetail::BeginClaimRefresh();
 }
 
 bool EventsPad::Render()
@@ -34,6 +37,9 @@ bool EventsPad::Render()
 	ApplyClaimResult();
 	if (!G::ShowEvents)
 		return false;
+
+	if (WinePadOpen::TickDefer(gDeferRefresh))
+		BeginClaimRefresh();
 
 	size_t nSec = 0;
 	const char* const* sections = EventsData::Sections(&nSec);
@@ -52,12 +58,8 @@ bool EventsPad::Render()
 		PadDock::Place(G::PadEvents, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadEvents.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	if (gFocus)
-	{
-		ImGui::SetNextWindowFocus();
-		gFocus = false;
-	}
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	WinePadOpen::ApplyFocus(gFocus);
 
 	bool open = G::ShowEvents;
 	HelperTheme::ScopedWindow theme(G::Opacity);

@@ -8,7 +8,7 @@ using namespace WatchLinuxDetail;
 
 namespace WatchLinuxDetail
 {
-	void UnmapShm()
+	void UnmapShmUnlocked()
 	{
 		if (gShmView)
 		{
@@ -27,7 +27,21 @@ namespace WatchLinuxDetail
 		}
 	}
 
-	bool MapShmPath(const wchar_t* path)
+	void UnmapShm()
+	{
+		EnsureCs();
+		EnterCriticalSection(&gCs);
+		/* Never tear the map while the game thread is presenting a slot. */
+		if (gPresentSlot != WatchProto::kNoSlot)
+		{
+			LeaveCriticalSection(&gCs);
+			return;
+		}
+		UnmapShmUnlocked();
+		LeaveCriticalSection(&gCs);
+	}
+
+	bool MapShmPathUnlocked(const wchar_t* path)
 	{
 		gShmFile = CreateFileW(path, GENERIC_READ | GENERIC_WRITE,
 			FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS,
@@ -38,36 +52,36 @@ namespace WatchLinuxDetail
 		need.QuadPart = static_cast<LONGLONG>(WatchProto::kShmBytes);
 		if (!SetFilePointerEx(gShmFile, need, nullptr, FILE_BEGIN) || !SetEndOfFile(gShmFile))
 		{
-			UnmapShm();
+			UnmapShmUnlocked();
 			return false;
 		}
 		gShmMap = CreateFileMappingW(gShmFile, nullptr, PAGE_READWRITE, 0,
 			static_cast<DWORD>(WatchProto::kShmBytes), nullptr);
 		if (!gShmMap)
 		{
-			UnmapShm();
+			UnmapShmUnlocked();
 			return false;
 		}
 		gShmView = static_cast<uint8_t*>(MapViewOfFile(gShmMap, FILE_MAP_ALL_ACCESS, 0, 0,
 			WatchProto::kShmBytes));
 		if (!gShmView)
 		{
-			UnmapShm();
+			UnmapShmUnlocked();
 			return false;
 		}
 		return true;
 	}
 
-	bool EnsureShmMapped()
+	bool EnsureShmMappedUnlocked()
 	{
 		if (gShmView)
 			return true;
 
 		static const wchar_t kUnixShm[] = L"\\\\?\\unix\\/dev/shm/gw2igh-watch-frame";
-		if (!MapShmPath(kUnixShm))
+		if (!MapShmPathUnlocked(kUnixShm))
 		{
 			const std::wstring fallback = AddonPaths::DataDir() + L"\\gw2igh-watch-frame";
-			if (!MapShmPath(fallback.c_str()))
+			if (!MapShmPathUnlocked(fallback.c_str()))
 				return false;
 		}
 
@@ -82,6 +96,15 @@ namespace WatchLinuxDetail
 		return true;
 	}
 
+	bool EnsureShmMapped()
+	{
+		EnsureCs();
+		EnterCriticalSection(&gCs);
+		const bool ok = EnsureShmMappedUnlocked();
+		LeaveCriticalSection(&gCs);
+		return ok;
+	}
+
 	/* Status only — pixels are presented directly from shm (CEF-style). */
 	DWORD WINAPI PumpThread(LPVOID)
 	{
@@ -92,13 +115,18 @@ namespace WatchLinuxDetail
 				Sleep(50);
 				continue;
 			}
-			if (!gShmView)
-				EnsureShmMapped();
+			EnsureShmMapped();
 			if (gShmView)
 			{
-				const auto* h = reinterpret_cast<const WatchProto::ShmHeader*>(gShmView);
-				if (h->magic == WatchProto::kShmMagic && h->capturing)
-					gPumpStatus = "Capturing (OOP watchd ~60 FPS).";
+				EnsureCs();
+				EnterCriticalSection(&gCs);
+				if (gShmView)
+				{
+					const auto* h = reinterpret_cast<const WatchProto::ShmHeader*>(gShmView);
+					if (h->magic == WatchProto::kShmMagic && h->capturing)
+						gPumpStatus = "Capturing (OOP watchd ~60 FPS).";
+				}
+				LeaveCriticalSection(&gCs);
 			}
 			Sleep(200);
 		}

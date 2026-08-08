@@ -39,6 +39,7 @@ namespace InstancesDetail
 
 	extern bool gFocus;
 	extern bool gPlaceOnce;
+	extern int  gDeferHeavy;
 	extern Kind gKind;
 	extern int gSelected;
 	extern char gStatus[160];

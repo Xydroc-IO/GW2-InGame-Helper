@@ -1,10 +1,7 @@
 #include "DirectionCompass.h"
+#include "DirectionCompassInternal.h"
 
 #include "Globals.h"
-#include "HelperTheme.h"
-#include "PadNav.h"
-#include "PadDock.h"
-#include "Settings.h"
 
 #include "imgui/imgui.h"
 
@@ -17,6 +14,11 @@
 /* World N/E/S/W around the character (Raidcore-style). Gold theming is ours -
    no Raidcore source copied. Independent of Tekkit CompassOverlay. */
 
+namespace DirectionCompassDetail
+{
+	bool gRequestDock = false;
+}
+
 namespace
 {
 	constexpr float kPi = 3.14159265358979323846f;
@@ -25,7 +27,6 @@ namespace
 	constexpr float kFarClip = 8000.f;
 	constexpr float kDefaultFov = 1.222f;
 	constexpr float kInchesToMeters = 0.0254f;
-	bool gRequestDock = false;
 
 	struct Vec3
 	{
@@ -203,20 +204,43 @@ namespace
 		return d;
 	}
 
-	/* Read Nexus FontBig only - never PushFont (shared ImGui stack). */
+	/* Nexus fonts only via AddText(font, …) — never PushFont (shared ImGui).
+	   Wine sometimes leaves FontBig with FontSize>0 but Glyphs.Size==0 in the
+	   ImFont layout we see; still use the pointer — rejecting it drops us onto
+	   the tiny default and looks like we “lost” the font. */
+	ImFont* TryNexusFont(void* p)
+	{
+		if (!p)
+			return nullptr;
+		auto* font = static_cast<ImFont*>(p);
+		if (!font || !(font->FontSize > 0.f))
+			return nullptr;
+		return font;
+	}
+
 	ImFont* DirectionFontBig()
 	{
-		if (G::NexusLink && G::NexusLink->FontBig)
-			return static_cast<ImFont*>(G::NexusLink->FontBig);
-		return ImGui::GetFont();
+		if (G::NexusLink)
+		{
+			if (ImFont* f = TryNexusFont(G::NexusLink->FontBig))
+				return f;
+			if (ImFont* f = TryNexusFont(G::NexusLink->FontUI))
+				return f;
+			if (ImFont* f = TryNexusFont(G::NexusLink->Font))
+				return f;
+		}
+		ImFont* fallback = ImGui::GetFont();
+		if (fallback && fallback->FontSize > 0.f)
+			return fallback;
+		return nullptr;
 	}
 
 	float LetterPixelSize(ImFont* font)
 	{
-		if (!font)
-			return ImGui::GetFontSize();
-		const float sz = font->FontSize * (font->Scale > 0.f ? font->Scale : 1.f);
-		const float base = (sz > 0.f) ? sz : ImGui::GetFontSize();
+		/* Target ~FontBig on screen. If bake is already large, use it; if we
+		   only have Font/FontUI (~13–18px), lift to a readable compass size. */
+		const float bake = (font && font->FontSize > 0.f) ? font->FontSize : 13.f;
+		const float base = (bake >= 24.f) ? bake : 48.f;
 		return base * std::clamp(G::DirectionLetterScale, 0.5f, 2.5f);
 	}
 
@@ -348,6 +372,8 @@ namespace
 				continue;
 
 			ImFont* font = DirectionFontBig();
+			if (!font)
+				continue;
 			const float fs = LetterPixelSize(font);
 			const ImVec2 ts = font->CalcTextSizeA(fs, FLT_MAX, 0.f, card.label);
 			const ImVec2 p{sx - ts.x * 0.5f, sy - ts.y * 0.5f};
@@ -357,89 +383,6 @@ namespace
 			DrawOutlinedText(dl, font, fs, p, fill, IM_COL32(0, 0, 0, a), card.label);
 		}
 	}
-}
-
-void DirectionCompass::DrawControls()
-{
-	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
-		"World N/E/S/W around your character. Reads Nexus FontBig; does not change Nexus fonts.");
-	PadNav::PopWrap();
-	if (ImGui::Checkbox("Enable direction compass###gw2igh_dircompass_pad", &G::ShowDirectionCompass))
-		Settings::SetDirty();
-
-	/* Labels above sliders — right-side ImGui labels clip in narrow pads. */
-	if (PadNav::SliderFloatRow("Letter size", "gw2igh_dirletters_pad",
-			&G::DirectionLetterScale, 0.5f, 2.5f, "%.2fx"))
-		Settings::SetDirty();
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip(
-			"Scales only our N/E/S/W draw size.\n"
-			"1.00x = Nexus FontBig bake size. Does not touch FontGlobalScale.");
-
-	if (PadNav::SliderFloatRow("World radius", "gw2igh_dirradius_pad",
-			&G::DirectionWorldRadiusScale, 0.4f, 3.0f, "%.2fx"))
-		Settings::SetDirty();
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("How far N/E/S/W sit from your character (hitbox base x this).");
-}
-
-void DirectionCompass::Open()
-{
-	G::ShowCompassPad = true;
-	gRequestDock = true;
-	Settings::SetDirty();
-}
-
-bool DirectionCompass::RenderPad()
-{
-	if (!G::ShowCompassPad)
-		return false;
-
-	constexpr float kPadW = PadDock::kCompactW;
-	constexpr float kPadH = PadDock::kCompassH;
-
-	PadDock::SetSizeConstraints("Compass###GW2InGameHelperCompass", 380.f, 260.f,
-		PadDock::MaxW(520.f), PadDock::MaxH(360.f));
-	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	PadDock::Place(G::PadCompass, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
-	if (!gRequestDock && G::PadCompass.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-
-	bool open = G::ShowCompassPad;
-	HelperTheme::ScopedWindow theme(G::Opacity);
-	const bool padBody = ImGui::Begin("Compass###GW2InGameHelperCompass", &open, HelperTheme::PadFlags());
-	if (!theme.AfterBegin("Compass", &open) || !padBody)
-	{
-		if (PadDock::Capture(G::PadCompass))
-			Settings::SetDirty();
-		const bool hovered = ImGui::IsWindowHovered(
-			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
-			ImGuiHoveredFlags_ChildWindows);
-		HelperTheme::EndPad();
-		if (!open)
-		{
-			G::ShowCompassPad = false;
-			Settings::SetDirty();
-		}
-		return hovered;
-	}
-
-	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
-	DrawControls();
-
-	if (PadDock::Capture(G::PadCompass))
-		Settings::SetDirty();
-	const bool hovered = ImGui::IsWindowHovered(
-		ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
-		ImGuiHoveredFlags_ChildWindows);
-	HelperTheme::EndPad();
-	if (!open)
-	{
-		G::ShowCompassPad = false;
-		Settings::SetDirty();
-	}
-	return hovered;
 }
 
 void DirectionCompass::Render()

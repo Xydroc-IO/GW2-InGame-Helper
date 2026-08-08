@@ -19,6 +19,7 @@ namespace CompletionDetail
 {
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	int  gDeferHeavy = 0;
 	int gTab = 0;
 	bool gTabSelectOnce = false;
 	RouteMode gRouteMode = RouteMode::Nearest;

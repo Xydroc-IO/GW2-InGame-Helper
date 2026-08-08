@@ -10,8 +10,10 @@
 #include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include <atomic>
 #include <cfloat>
@@ -36,6 +38,7 @@ namespace VaultDetail
 	HANDLE gThread = nullptr;
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	int  gDeferRefresh = 0;
 
 	void DrawResetCountdowns()
 	{
@@ -138,11 +141,17 @@ void VaultPad::OpenAndRefresh()
 	gFocus = true;
 	gPlaceOnce = true;
 	Settings::SetDirty();
-	RefreshData();
+	if (ImGuiWindow* w = ImGui::FindWindowByName("Dailies & Vault##GW2InGameHelperVault"))
+		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+	gDeferRefresh = WinePadOpen::DeferFrames();
+	if (gDeferRefresh <= 0)
+		RefreshData();
 }
 
 void VaultPad::RenderContents()
 {
+	if (WinePadOpen::TickDefer(gDeferRefresh))
+		RefreshData();
 	BgFetch::SetWanted(BgFetch::Channel::Vault, true);
 	TickDeferredFetch();
 	SyncDraw();
@@ -208,12 +217,8 @@ bool VaultPad::Render()
 		PadDock::Place(G::PadVault, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadVault.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	if (gFocus)
-	{
-		ImGui::SetNextWindowFocus();
-		gFocus = false;
-	}
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	WinePadOpen::ApplyFocus(gFocus);
 
 	bool open = G::ShowVault;
 	HelperTheme::ScopedWindow theme(G::Opacity);

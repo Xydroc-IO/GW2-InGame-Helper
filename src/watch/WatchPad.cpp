@@ -172,6 +172,7 @@ namespace
 namespace WatchPadDetail
 {
 	bool gRequestMirrorDock = false;
+	int  gDeferMirrorOpenFrames = 0;
 }
 
 void WatchPad::Open()
@@ -193,8 +194,8 @@ void WatchPad::Open()
 	/* Clear sticky minimize so reopen after other pads isn't a dead title strip. */
 	if (ImGuiWindow* w = ImGui::FindWindowByName("Watch###GW2InGameHelperWatch"))
 		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
-	if (WatchLinux::Available())
-		WatchLinux::WarmAsync();
+	/* Do NOT WarmAsync/CreateThread on the side-rail click frame — that has
+	   taken down Wine under load (compass + trails). watchd warms on Start. */
 	Settings::SetDirty();
 }
 
@@ -202,6 +203,7 @@ void WatchPad::CloseAll()
 {
 	G::ShowWatch = false;
 	G::ShowWatchMirror = false;
+	WatchPadDetail::gDeferMirrorOpenFrames = 0;
 	WatchCapture::Stop();
 	Settings::SetDirty();
 }
@@ -212,7 +214,7 @@ void WatchPad::ToggleControl()
 	{
 		G::ShowWatch = false;
 		/* Closing the last Watch UI while idle/picker: drop sticky capture state. */
-		if (!G::ShowWatchMirror)
+		if (!G::ShowWatchMirror && WatchPadDetail::gDeferMirrorOpenFrames <= 0)
 			WatchCapture::Stop();
 		Settings::SetDirty();
 		return;
@@ -223,74 +225,82 @@ void WatchPad::ToggleControl()
 bool WatchPad::Render()
 {
 	bool hovered = false;
+	try
+	{
+		WatchPadDetail::TickDeferredMirrorOpen();
 
-	if (G::ShowWatch || G::ShowWatchMirror)
+		/* Always Tick so deferred/parked SRV free runs even after Mirror closed
+		   (Stop queues Release; Wine still needs a later frame to drop it). */
 		WatchCapture::Tick();
 
-	/* Mirror opens only from Start (OpenMirror). Do NOT auto-reopen here —
-	   that fought closed Mirrors / other pads whenever streaming state was sticky. */
+		/* Mirror opens only from Start (OpenMirror). Do NOT auto-reopen here —
+		   that fought closed Mirrors / other pads whenever streaming state was sticky. */
 
-	if (G::ShowWatch)
-	{
-		constexpr float kPadW = 440.f;
-		constexpr float kPadH = 320.f;
-
-		PadDock::SetSizeConstraints("Watch###GW2InGameHelperWatch", 320.f, 200.f,
-			PadDock::MaxW(640.f), PadDock::MaxH(640.f));
-		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-		PadDock::Place(G::PadWatch, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
-		if (!gRequestDock && (G::PadWatch.w < 80.f || G::PadWatch.h < 80.f))
-			ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
-
-		bool open = G::ShowWatch;
-		HelperTheme::ScopedWindow theme(G::Opacity);
-		const bool padBody = ImGui::Begin("Watch###GW2InGameHelperWatch", &open, HelperTheme::PadFlags());
-		if (!theme.AfterBegin("Watch", &open) || !padBody)
+		if (G::ShowWatch)
 		{
-			if (PadDock::Capture(G::PadWatch))
-				Settings::SetDirty();
-			hovered |= ImGui::IsWindowHovered(
-				ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
-				ImGuiHoveredFlags_ChildWindows);
-			HelperTheme::EndPad();
-			if (!open)
+			constexpr float kPadW = 440.f;
+			constexpr float kPadH = 320.f;
+
+			PadDock::SetSizeConstraints("Watch###GW2InGameHelperWatch", 320.f, 200.f,
+				PadDock::MaxW(640.f), PadDock::MaxH(640.f));
+			ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+			PadDock::Place(G::PadWatch, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
+			if (!gRequestDock && (G::PadWatch.w < 80.f || G::PadWatch.h < 80.f))
+				ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+
+			bool open = G::ShowWatch;
+			HelperTheme::ScopedWindow theme(G::Opacity);
+			const bool padBody = ImGui::Begin("Watch###GW2InGameHelperWatch", &open, HelperTheme::PadFlags());
+			if (!theme.AfterBegin("Watch", &open) || !padBody)
 			{
-				G::ShowWatch = false;
-				if (!G::ShowWatchMirror)
-					WatchCapture::Stop();
-				Settings::SetDirty();
+				if (PadDock::Capture(G::PadWatch))
+					Settings::SetDirty();
+				hovered |= ImGui::IsWindowHovered(
+					ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+					ImGuiHoveredFlags_ChildWindows);
+				HelperTheme::EndPad();
+				if (!open)
+				{
+					G::ShowWatch = false;
+					if (!G::ShowWatchMirror)
+						WatchCapture::Stop();
+					Settings::SetDirty();
+				}
 			}
-		}
-		else
-		{
-			HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
-			ImGui::PushID("gw2igh_watch_pad");
-
-			static const char* kTabs[] = { "Watch", "About" };
-			gControlTab = PadNav::DrawTabs("###gw2igh_watch_ctrl_tabs", kTabs, 2, gControlTab);
-
-			if (gControlTab == 1)
-				WatchPadDetail::DrawHelp();
 			else
-				WatchPadDetail::DrawWatchControls();
-
-			ImGui::PopID();
-			if (PadDock::Capture(G::PadWatch))
-				Settings::SetDirty();
-			hovered |= ImGui::IsWindowHovered(
-				ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
-				ImGuiHoveredFlags_ChildWindows);
-			HelperTheme::EndPad();
-			if (!open)
 			{
-				G::ShowWatch = false;
-				if (!G::ShowWatchMirror)
-					WatchCapture::Stop();
-				Settings::SetDirty();
+				HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
+				ImGui::PushID("gw2igh_watch_pad");
+
+				static const char* kTabs[] = { "Watch", "About" };
+				gControlTab = PadNav::DrawTabs("###gw2igh_watch_ctrl_tabs", kTabs, 2, gControlTab);
+
+				if (gControlTab == 1)
+					WatchPadDetail::DrawHelp();
+				else
+					WatchPadDetail::DrawWatchControls();
+
+				ImGui::PopID();
+				if (PadDock::Capture(G::PadWatch))
+					Settings::SetDirty();
+				hovered |= ImGui::IsWindowHovered(
+					ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+					ImGuiHoveredFlags_ChildWindows);
+				HelperTheme::EndPad();
+				if (!open)
+				{
+					G::ShowWatch = false;
+					if (!G::ShowWatchMirror)
+						WatchCapture::Stop();
+					Settings::SetDirty();
+				}
 			}
+			gRequestDock = false;
 		}
-		gRequestDock = false;
+		hovered |= RenderMirror();
 	}
-	hovered |= RenderMirror();
+	catch (...)
+	{
+	}
 	return hovered;
 }

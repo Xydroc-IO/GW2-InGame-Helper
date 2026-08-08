@@ -120,6 +120,14 @@ void WikiBrowser::PresentFrame()
 	if (!gWantVisible.load() || !gIpc || !gFramePixels)
 		return;
 
+	/* Helper died under Wine (often 0x80000003) — do not touch shm / upload. */
+	if (!HelperAlive())
+	{
+		gContentW = gContentH = 0;
+		gTexHasContent = false;
+		return;
+	}
+
 	FlushPendingCmds();
 	FlushPendingNavigate();
 
@@ -362,7 +370,7 @@ void WikiBrowser::PresentFrame()
 
 bool WikiBrowser::HasFrame()
 {
-	return gSrv && gIpc && gIpc->frame_seq > 0 && gContentW > 0 && gContentH > 0;
+	return HelperAlive() && gSrv && gIpc && gIpc->frame_seq > 0 && gContentW > 0 && gContentH > 0;
 }
 
 const char* WikiBrowser::PaintWaitReasonCStr()

@@ -142,6 +142,7 @@ namespace EventsPadDetail
 	HANDLE gThread = nullptr;
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	int  gDeferRefresh = 0;
 	bool gTrackedOnly = false;
 	bool gSoonOnly = false;
 	bool gThisMapOnly = false;

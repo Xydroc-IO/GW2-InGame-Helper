@@ -13,6 +13,7 @@ namespace InstancesDetail
 {
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	int  gDeferHeavy = 0;
 	Kind gKind = Kind::Raid;
 	int gSelected = -1;
 	char gStatus[160] = {};

@@ -48,6 +48,7 @@ namespace EventsPadDetail
 	extern HANDLE gThread;
 	extern bool gFocus;
 	extern bool gPlaceOnce;
+	extern int  gDeferRefresh;
 	extern bool gTrackedOnly;
 	extern bool gSoonOnly;
 	extern bool gThisMapOnly;

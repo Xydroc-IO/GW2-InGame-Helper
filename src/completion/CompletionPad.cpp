@@ -9,6 +9,7 @@
 #include "PadNav.h"
 #include "PadDock.h"
 #include "Settings.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -31,8 +32,8 @@ bool CompletionPad::Render()
 		PadDock::Place(G::PadCompletion, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadCompletion.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	if (gFocus) { ImGui::SetNextWindowFocus(); gFocus = false; }
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	WinePadOpen::ApplyFocus(gFocus);
 
 	bool open = G::ShowCompletion;
 	HelperTheme::ScopedWindow theme(G::Opacity);

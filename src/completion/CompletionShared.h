@@ -121,6 +121,7 @@ namespace CompletionDetail
 
 	extern bool gFocus;
 	extern bool gPlaceOnce;
+	extern int  gDeferHeavy;
 	extern int gTab; /* 0 checklist | 1 atlas | 2 route | 3 achievements */
 	extern bool gTabSelectOnce; /* apply SetSelected once then clear */
 	extern RouteMode gRouteMode;

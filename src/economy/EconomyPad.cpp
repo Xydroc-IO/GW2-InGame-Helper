@@ -14,6 +14,7 @@
 #include "Settings.h"
 #include "TpWatchPad.h"
 #include "WalletPad.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -157,8 +158,8 @@ bool EconomyPad::Render()
 		PadDock::Place(G::PadEconomy, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadEconomy.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	if (gFocus) { ImGui::SetNextWindowFocus(); gFocus = false; }
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	WinePadOpen::ApplyFocus(gFocus);
 
 	bool open = G::ShowEconomy;
 	HelperTheme::ScopedWindow theme(G::Opacity);

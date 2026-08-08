@@ -12,6 +12,7 @@
 #include "PadLayout.h"
 #include "Settings.h"
 #include "WikiBrowser.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -42,6 +43,12 @@ bool InstancesPad::Render()
 		return false;
 	}
 	BgFetch::SetWanted(BgFetch::Channel::Instances, true);
+	if (WinePadOpen::TickDefer(gDeferHeavy))
+	{
+		EnsureCatalog();
+		LoadProgress();
+		StartRaidSync(true);
+	}
 	EnsureCatalog();
 
 	const ImGuiIO& io = ImGui::GetIO();
@@ -55,8 +62,8 @@ bool InstancesPad::Render()
 		PadDock::Place(G::PadInstances, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
 	}
 	if (!gPlaceOnce && G::PadInstances.w < 80.f)
-		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_FirstUseEver);
-	if (gFocus) { ImGui::SetNextWindowFocus(); gFocus = false; }
+		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
+	WinePadOpen::ApplyFocus(gFocus);
 
 	bool open = G::ShowInstances;
 	HelperTheme::ScopedWindow theme(G::Opacity);

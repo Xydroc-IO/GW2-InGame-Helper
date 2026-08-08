@@ -60,6 +60,7 @@ namespace FarmingDetail
 
 	extern bool gFocus;
 	extern bool gPlaceOnce;
+	extern int  gDeferHeavy;
 	extern int gTab; /* 0 Runs | 1 Fishing */
 	extern int gSelectedRun;
 	extern int gFocusStep; /* step index for GPS next highlight; -1 = none */
