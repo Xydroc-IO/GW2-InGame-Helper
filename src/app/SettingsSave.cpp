@@ -34,7 +34,9 @@ void Settings::Save(bool force)
 	AddonPaths::DataDir(); /* ensure folder exists */
 	char path[MAX_PATH]{};
 	SettingsDetail::SettingsPath(path, sizeof(path));
-	FILE* f = std::fopen(path, "w");
+	char tmpPath[MAX_PATH]{};
+	std::snprintf(tmpPath, sizeof(tmpPath), "%s.tmp", path);
+	FILE* f = std::fopen(tmpPath, "w");
 	if (!f)
 		return;
 
@@ -90,6 +92,10 @@ void Settings::Save(bool force)
 	std::fprintf(f, "FontScale=%.4f\n", G::FontScale);
 	std::fprintf(f, "FontScaleAuto=%d\n", G::FontScaleAuto ? 1 : 0);
 	std::fprintf(f, "ThemeId=%s\n", G::ThemeId);
+	std::fprintf(f, "WatchCropTop=%.4f\n", G::WatchCropTop);
+	std::fprintf(f, "WatchCropBottom=%.4f\n", G::WatchCropBottom);
+	std::fprintf(f, "WatchCropLeft=%.4f\n", G::WatchCropLeft);
+	std::fprintf(f, "WatchCropRight=%.4f\n", G::WatchCropRight);
 	std::fprintf(f, "WindowWidth=%.1f\n", G::WindowWidth);
 	std::fprintf(f, "WindowHeight=%.1f\n", G::WindowHeight);
 	std::fprintf(f, "WindowPosX=%.1f\n", G::WindowPosX);
@@ -125,6 +131,8 @@ void Settings::Save(bool force)
 	PadDock::WriteGeom(f, "PadEvents", G::PadEvents);
 	PadDock::WriteGeom(f, "PadNotes", G::PadNotes);
 	PadDock::WriteGeom(f, "PadCompass", G::PadCompass);
+	PadDock::WriteGeom(f, "PadWatch", G::PadWatch);
+	PadDock::WriteGeom(f, "PadWatchMirror", G::PadWatchMirror);
 	PadDock::WriteGeom(f, "PadSettings", G::PadSettings);
 	PadDock::WriteGeom(f, "PadTp", G::PadTp);
 	PadDock::WriteGeom(f, "PadLookup", G::PadLookup);
@@ -142,6 +150,15 @@ void Settings::Save(bool force)
 	BrowserTabs::WriteSettings(f);
 
 	std::fclose(f);
+	/* Atomic replace — a crash mid-write used to leave a truncated settings.ini
+	   (ghost opacity / tiny window after reload). */
+	if (!MoveFileExA(tmpPath, path, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+	{
+		/* Fallback if Wine rejects MoveFileEx flags. */
+		DeleteFileA(path);
+		if (!MoveFileA(tmpPath, path))
+			DeleteFileA(tmpPath);
+	}
 	SettingsDetail::gDirty = false;
 	sLastSaveMs = now;
 }

@@ -13,14 +13,14 @@ CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/ui/browse -Isrc/ui/settings -Isrc/ui/
 	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/pathing/mapassist \
 	-Isrc/logs -Isrc/logs/logmanager -Isrc/logs/eiruntime \
 	-Isrc/events -Isrc/notes -Isrc/helper \
-	-Isrc/economy -Isrc/instances -Isrc/completion -Isrc/farming -Isrc/overlay
+	-Isrc/economy -Isrc/instances -Isrc/completion -Isrc/farming -Isrc/overlay -Isrc/watch
 CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/lua
 # Dependency files: emit only from the build/%.o rule via -MF (never beside sources).
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
 LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
 LDFLAGS_EXE  = -static -static-libgcc -static-libstdc++ -mwindows -municode -mcrtdll=msvcrt
-LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -luser32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32 -ladvapi32
+LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -luser32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32 -ladvapi32 -lws2_32
 LIBS_EXE = -lgdi32 -lole32 -luuid -lshell32 -lwinhttp
 
 HELPER_SRC = src/helper/main.cpp src/helper/HelperState.cpp src/helper/HelperPaths.cpp \
@@ -112,6 +112,13 @@ DLL_SRC = \
 	src/browse/livepanels/LivePanels_Html.cpp \
 	src/notes/NotesPad.cpp \
 	src/notes/NotesPadWaypoints.cpp \
+	src/watch/WatchPad.cpp \
+	src/watch/WatchCapture.cpp \
+	src/watch/WatchCaptureGpu.cpp \
+	src/watch/WatchCaptureWin.cpp \
+	src/watch/WatchLinux.cpp \
+	src/watch/WatchLinuxDaemon.cpp \
+	src/watch/WatchLinuxShm.cpp \
 	src/pathing/waypoints/WaypointsData.cpp \
 	src/pathing/waypoints/WaypointsDataParse.cpp \
 	src/pathing/waypoints/RoutingSuggest.cpp \
@@ -381,9 +388,33 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
 
-.PHONY: all clean install install-beta install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets pack-ui-chrome test-css test-parse test-ipc ci pack-cef check-stamps
+.PHONY: all clean install install-beta install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets pack-ui-chrome test-css test-parse test-ipc ci pack-cef check-stamps watchd
 
 all: $(DLL_OUT)
+
+# Host ELF for Wine Watch (portal/PipeWire). Prefer system g++ — Cursor AppImage PATH breaks cc1plus.
+HOST_CXX ?= /usr/bin/g++
+WATCHD_OUT = build/bin/gw2igh-watchd
+WATCHD_SRC = tools/watchd/watchd_main.cpp tools/watchd/watchd_shm.cpp \
+	tools/watchd/watchd_scale.cpp tools/watchd/watchd_portal.cpp
+WATCHD_BLOB_SRC = build/watchd_blob
+WATCHD_BLOB_OBJ = build/watchd_blob.o
+WATCHD_CFLAGS := $(shell pkg-config --cflags libpipewire-0.3 gio-2.0 gio-unix-2.0 2>/dev/null)
+WATCHD_LIBS := $(shell pkg-config --libs libpipewire-0.3 gio-2.0 gio-unix-2.0 2>/dev/null)
+
+watchd: $(WATCHD_OUT)
+$(WATCHD_OUT): $(WATCHD_SRC) tools/watchd/watchd_internal.h src/watch/WatchProto.h
+	@mkdir -p build/bin
+	env -i PATH=/usr/bin:/bin HOME="$(HOME)" PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig \
+		$(HOST_CXX) -std=c++17 -O2 -Wall -Wextra -pthread $(WATCHD_CFLAGS) -o $@ $(WATCHD_SRC) $(WATCHD_LIBS)
+	@echo "Built $@ (portal/PipeWire watchd for Wine Watch)"
+
+$(WATCHD_BLOB_SRC): $(WATCHD_OUT)
+	/bin/cp -f $(WATCHD_OUT) $(WATCHD_BLOB_SRC)
+
+$(WATCHD_BLOB_OBJ): $(WATCHD_BLOB_SRC)
+	$(LD) -r -b binary -o $@ $(WATCHD_BLOB_SRC)
+	@echo "Embedded watchd blob $@"
 
 SITES_JSON   = data/sites.json
 CHEATSHEETS_DIR = data/cheatsheets
@@ -561,10 +592,10 @@ $(UI_CHROME_ZIP_OBJ): $(UI_CHROME_ZIP_SRC)
 	$(LD) -r -b binary -o $@ $(UI_CHROME_ZIP_SRC)
 	@echo "Embedded UI chrome pack $@"
 
-$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(UI_CHROME_ZIP_OBJ)
+$(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(UI_CHROME_ZIP_OBJ) $(WATCHD_BLOB_OBJ)
 	@mkdir -p $(dir $@)
-	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(UI_CHROME_ZIP_OBJ) $(LIBS_DLL)
-	@echo "Built $@ (CEF helper + homepage + sites.json + legendaries + cheatsheets + ui-chrome embedded)"
+	$(CXX) $(LDFLAGS_DLL) -o $@ $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(UI_CHROME_ZIP_OBJ) $(WATCHD_BLOB_OBJ) $(LIBS_DLL)
+	@echo "Built $@ (CEF helper + homepage + sites + legendaries + cheatsheets + ui-chrome + watchd embedded)"
 
 build/%.o: %.cpp
 	@mkdir -p $(dir $@)

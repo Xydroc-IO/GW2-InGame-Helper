@@ -25,6 +25,7 @@ namespace PanelBinds
 		TpWatch,
 		Lookup,
 		Marker,
+		Watch,
 		Count
 	};
 

@@ -180,6 +180,7 @@ void Gw2Ui::WarmCommon()
 	Request(Icon::LogsSwords);
 	Request(Icon::EconStack);
 	Request(Icon::InstGate);
+	Request(Icon::WatchView);
 	Request(Icon::SettingsGear);
 	Request(Icon::LmPlayers);
 	Request(Icon::LmKillProof);

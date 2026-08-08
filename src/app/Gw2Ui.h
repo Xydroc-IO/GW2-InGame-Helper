@@ -45,6 +45,7 @@ namespace Gw2Ui
 		LogsSwords   = 240678, /* crossed swords */
 		EconStack    = 1228263, /* gold stacks + chest */
 		InstGate     = 2199974, /* swirling portal */
+		WatchView    = 2604590, /* viewfinder brackets — Watch pad */
 		SettingsGear = 3713037, /* gold gear */
 		LmPlayers    = 866119, /* helmet / character */
 		LmKillProof  = 699005,

@@ -19,6 +19,7 @@
 #include "Sites.h"
 #include "UI.h"
 #include "WikiBrowser.h"
+#include "WatchCapture.h"
 #include "WorldOverlay.h"
 
 using namespace EntryDetail;
@@ -48,6 +49,8 @@ void AddonUnload()
 	G::ShowTrailTools = false;
 	TrailToolsDetail::CloseAllPopouts();
 	G::ShowCompassPad = false;
+	G::ShowWatch = false;
+	G::ShowWatchMirror = false;
 	G::ShowSettings = false;
 	G::ShowDirectionCompass = false;
 	G::ShowOptions = false;
@@ -60,6 +63,7 @@ void AddonUnload()
 
 	HelperQuickAccess::Shutdown();
 	WikiBrowser::Shutdown();
+	WatchCapture::Shutdown();
 	Sites::Shutdown();
 
 	/* Persist pathing toggles before Shutdown clears runtime state. */

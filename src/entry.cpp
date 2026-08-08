@@ -63,6 +63,8 @@ namespace G
 	bool  MapAssistClickWaypoint = false; /* never auto-confirm teleport */
 	bool  ShowDirectionCompass = false;
 	bool  ShowCompassPad = false;
+	bool  ShowWatch = false;
+	bool  ShowWatchMirror = false;
 	bool  ShowSettings = false;
 	float DirectionLetterScale = 1.f;
 	float DirectionWorldRadiusScale = 1.f;
@@ -78,6 +80,11 @@ namespace G
 	float FontScale    = 1.f;
 	bool  FontScaleAuto = false; /* opt-in only - default stays 1.0 */
 	char  ThemeId[64]  = "";
+	/* Default trims a typical browser tab+toolbar strip; tune in Watch pad. */
+	float WatchCropTop = 0.14f;
+	float WatchCropBottom = 0.f;
+	float WatchCropLeft = 0.f;
+	float WatchCropRight = 0.f;
 	float WindowWidth  = 1100.f;
 	float WindowHeight = 760.f;
 	float WindowPosX   = 60.f;
@@ -117,6 +124,8 @@ namespace G
 	PadGeom PadEvents{};
 	PadGeom PadNotes{};
 	PadGeom PadCompass{};
+	PadGeom PadWatch{};
+	PadGeom PadWatchMirror{};
 	PadGeom PadSettings{};
 	PadGeom PadTp{};
 	PadGeom PadLookup{};

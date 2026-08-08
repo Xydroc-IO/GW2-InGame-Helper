@@ -20,6 +20,7 @@
 #include "UiChrome.h"
 #include "UserTheme.h"
 #include "WikiBrowser.h"
+#include "WatchLinux.h"
 #include "AddonPaths.h"
 
 using namespace EntryDetail;
@@ -62,6 +63,8 @@ void AddonLoad(AddonAPI_t* api)
 	G::ShowPathingGuides = false;
 	G::ShowTrailTools = false;
 	G::ShowCompassPad = false;
+	G::ShowWatch = false;
+	G::ShowWatchMirror = false;
 	G::ShowSettings = false;
 	gPollToggleHeld = false;
 	gSwallowHotkeyKeys = false;
@@ -93,6 +96,9 @@ void AddonLoad(AddonAPI_t* api)
 	api->InputBinds_RegisterWithString(KB_TOGGLE, OnToggle, "CTRL+SHIFT+H");
 	api->WndProc_Register(OnWndProc);
 	HelperQuickAccess::Init();
+
+	/* Prefetch host watchd off the game thread so first Start does not hitch. */
+	WatchLinux::WarmAsync();
 
 	api->Log(LOGL_INFO, ADDON_NAME,
 		"Loaded - Ctrl+Shift+H/K helper; panel binds in Settings -> Keybinds.");

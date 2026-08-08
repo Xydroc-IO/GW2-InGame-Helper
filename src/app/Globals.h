@@ -94,6 +94,8 @@ namespace G
 	extern bool  MapAssistClickWaypoint; /* opt-in tap WP after steer; player confirms teleport */
 	extern bool  ShowDirectionCompass; /* world N/E/S/W around the character */
 	extern bool  ShowCompassPad; /* ImGui Compass settings pad (sliders) */
+	extern bool  ShowWatch; /* ImGui Watch control pad (Start/Stop) */
+	extern bool  ShowWatchMirror; /* separate mirror window for captured frames */
 	extern bool  ShowSettings; /* ImGui Settings pad (ex-Nexus Options body) */
 	extern float DirectionLetterScale; /* × Nexus FontBig */
 	extern float DirectionWorldRadiusScale; /* × hitbox-based radius */
@@ -110,6 +112,11 @@ namespace G
 	extern float FontScale;
 	extern bool  FontScaleAuto; /* true: derive FontScale from display / Nexus Scaling */
 	extern char  ThemeId[64]; /* user theme folder under config/themes/; empty = default */
+	/* Watch pad: fraction of captured frame to trim (hide browser chrome). */
+	extern float WatchCropTop;
+	extern float WatchCropBottom;
+	extern float WatchCropLeft;
+	extern float WatchCropRight;
 	extern float WindowWidth;
 	extern float WindowHeight;
 	extern float WindowPosX;
@@ -159,6 +166,8 @@ namespace G
 	extern PadGeom PadEvents;
 	extern PadGeom PadNotes;
 	extern PadGeom PadCompass;
+	extern PadGeom PadWatch;
+	extern PadGeom PadWatchMirror;
 	extern PadGeom PadSettings;
 	extern PadGeom PadTp;
 	extern PadGeom PadLookup;

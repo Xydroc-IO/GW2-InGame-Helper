@@ -23,6 +23,8 @@
 #include "SettingsPad.h"
 #include "TrailToolsPad.h"
 #include "VaultPad.h"
+#include "WatchCapture.h"
+#include "WatchPad.h"
 #include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
@@ -351,6 +353,15 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Account - progress, unlocks, history\nDefault: Ctrl+Shift+A (Settings -> Keybinds)");
+
+		if (PadNav::SideToggle("Watch###gw2igh_watch",
+			G::ShowWatch || G::ShowWatchMirror, static_cast<int>(Gw2Ui::Icon::WatchView), iconSz))
+		{
+			if (G::ShowWatch || G::ShowWatchMirror) WatchPad::CloseAll();
+			else WatchPad::Open();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Watch - mirror a desktop window (system play)\nDefault: Ctrl+Shift+W (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Settings###gw2igh_settings", G::ShowSettings, static_cast<int>(Gw2Ui::Icon::SettingsGear), iconSz))
 		{

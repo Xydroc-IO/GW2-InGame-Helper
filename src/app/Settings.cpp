@@ -12,6 +12,7 @@
 #include "PanelBinds.h"
 #include "UI.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -92,6 +93,8 @@ void Settings::Load()
 		/* Pad open flags are session-only — never restore open pads. */
 		else if (std::strcmp(key, "ShowNotes") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowCompassPad") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowWatch") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowWatchMirror") == 0) { /* ignore — session only */ }
 		else if (std::strcmp(key, "ShowSettings") == 0) { /* ignore — session only */ }
 		else if (std::strcmp(key, "ShowTpWatch") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowLookup") == 0) { /* ignore */ }
@@ -198,6 +201,14 @@ void Settings::Load()
 		}
 		else if (std::strcmp(key, "ThemeId") == 0)
 			std::snprintf(G::ThemeId, sizeof(G::ThemeId), "%s", val);
+		else if (std::strcmp(key, "WatchCropTop") == 0)
+			G::WatchCropTop = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WatchCropBottom") == 0)
+			G::WatchCropBottom = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WatchCropLeft") == 0)
+			G::WatchCropLeft = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WatchCropRight") == 0)
+			G::WatchCropRight = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WindowWidth") == 0)
 		{
 			G::WindowWidth = static_cast<float>(std::atof(val));
@@ -283,6 +294,10 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadNotes);
 		else if (std::strcmp(key, "PadCompass") == 0)
 			PadDock::ParseGeom(val, G::PadCompass);
+		else if (std::strcmp(key, "PadWatch") == 0)
+			PadDock::ParseGeom(val, G::PadWatch);
+		else if (std::strcmp(key, "PadWatchMirror") == 0)
+			PadDock::ParseGeom(val, G::PadWatchMirror);
 		else if (std::strcmp(key, "PadSettings") == 0)
 			PadDock::ParseGeom(val, G::PadSettings);
 		else if (std::strcmp(key, "PadTp") == 0)
@@ -314,6 +329,18 @@ void Settings::Load()
 
 	if (G::Opacity < 0.15f) G::Opacity = 0.15f;
 	if (G::Opacity > 1.f) G::Opacity = 1.f;
+	auto clampCrop = [](float& v) {
+		if (v < 0.f) v = 0.f;
+		if (v > 0.45f) v = 0.45f;
+	};
+	clampCrop(G::WatchCropTop);
+	clampCrop(G::WatchCropBottom);
+	clampCrop(G::WatchCropLeft);
+	clampCrop(G::WatchCropRight);
+	if (G::WatchCropTop + G::WatchCropBottom > 0.85f)
+		G::WatchCropBottom = (std::max)(0.f, 0.85f - G::WatchCropTop);
+	if (G::WatchCropLeft + G::WatchCropRight > 0.85f)
+		G::WatchCropRight = (std::max)(0.f, 0.85f - G::WatchCropLeft);
 	if (G::FontScale < 0.75f) G::FontScale = 0.75f;
 	if (G::FontScale > 2.f) G::FontScale = 2.f;
 	/* One-shot: early auto used Nexus UI scale and pushed many installs to ~2×.

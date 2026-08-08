@@ -28,7 +28,7 @@ namespace SideRail
 		return iconSz + framePadY * 2.f;
 	}
 
-	constexpr int kBtnCount = 17;
+	constexpr int kBtnCount = 18;
 
 	inline float ItemSpacing(float iconSz, bool labels)
 	{

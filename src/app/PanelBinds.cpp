@@ -18,6 +18,8 @@
 #include "TpWatchPad.h"
 #include "TrailToolsPad.h"
 #include "VaultPad.h"
+#include "WatchCapture.h"
+#include "WatchPad.h"
 #include "WalletPad.h"
 
 #include "imgui/imgui.h"
@@ -108,6 +110,10 @@ namespace
 		case Slot::Logs: CloseOrOpen(G::ShowLogManager, &LogManagerPad::OpenAndRefresh); break;
 		case Slot::TrailTools: CloseOrOpen(G::ShowTrailTools, &TrailToolsPad::Open); break;
 		case Slot::Compass: CloseOrOpen(G::ShowCompassPad, &DirectionCompass::Open); break;
+		case Slot::Watch:
+			if (G::ShowWatch || G::ShowWatchMirror) WatchPad::CloseAll();
+			else WatchPad::Open();
+			break;
 		case Slot::SettingsPad: CloseOrOpen(G::ShowSettings, &SettingsPad::Open); break;
 		case Slot::Wallet: CloseOrOpen(G::ShowWallet, &WalletPad::OpenAndRefresh); break;
 		case Slot::Vault: CloseOrOpen(G::ShowVault, &VaultPad::OpenAndRefresh); break;
@@ -164,8 +170,10 @@ namespace
 	const char* kSlotKeys[Count] = {
 		"account", "pathing", "events", "notes", "completion", "farming",
 		"economy", "instances", "logs", "trailtools", "compass", "settings",
-		"wallet", "vault", "tpwatch", "lookup", "marker"
+		"wallet", "vault", "tpwatch", "lookup", "marker", "watch"
 	};
+	static_assert(sizeof(kSlotKeys) / sizeof(kSlotKeys[0]) == static_cast<size_t>(Count),
+		"kSlotKeys must match PanelBinds::Count");
 
 	void EnsureDefaults()
 	{
@@ -197,6 +205,7 @@ const char* PanelBinds::SlotLabel(Slot s)
 	case Slot::Logs: return "DPS Logs";
 	case Slot::TrailTools: return "Trail Tools";
 	case Slot::Compass: return "Compass";
+	case Slot::Watch: return "Watch";
 	case Slot::SettingsPad: return "Settings";
 	case Slot::Wallet: return "Wallet";
 	case Slot::Vault: return "Vault";
@@ -288,6 +297,7 @@ void PanelBinds::SetDefaults()
 	ParseChord("CTRL+SHIFT+L", gState.chords[Logs]);
 	ParseChord("CTRL+SHIFT+B", gState.chords[TrailTools]);
 	ParseChord("CTRL+SHIFT+O", gState.chords[Compass]);
+	ParseChord("CTRL+SHIFT+W", gState.chords[Watch]);
 	ParseChord("CTRL+SHIFT+.", gState.chords[SettingsPad]);
 	ParseChord("CTRL+SHIFT+U", gState.chords[Wallet]);
 	ParseChord("CTRL+SHIFT+V", gState.chords[Vault]);

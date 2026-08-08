@@ -32,6 +32,7 @@
 #include "WorldOverlay.h"
 #include "DirectionCompass.h"
 #include "SettingsPad.h"
+#include "WatchPad.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "AspectLayout.h"
@@ -282,7 +283,7 @@ namespace UIDetail
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
 			G::ShowEconomy || G::ShowInstances || G::ShowCompletion || G::ShowFarming ||
 			G::ShowPathingGuides || TrailToolsPad::AnyOpen() ||
-			G::ShowCompassPad || G::ShowSettings;
+			G::ShowCompassPad || G::ShowWatch || G::ShowWatchMirror || G::ShowSettings;
 	}
 
 	void RenderCompanionPads()
@@ -307,12 +308,13 @@ namespace UIDetail
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
+		const bool watchHover = WatchPad::Render();
 		const bool settingsHover = SettingsPad::Render();
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover ||
 			economyHover || instancesHover || completionHover || farmingHover ||
 			gpsArrowHover || eventAlertHover ||
-			tekkitHover || trailToolsHover || compassHover || settingsHover);
+			tekkitHover || trailToolsHover || compassHover || watchHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
 	}

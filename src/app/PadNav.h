@@ -334,26 +334,34 @@ namespace PadNav
 	{
 		if (!text || !text[0])
 			return;
+		PushWrap();
 		ImGui::TextColored(HelperTheme::GoldMuted, "%s", text);
+		PopWrap();
 	}
 
 	inline void StatusBusy(const char* text = "Updating...")
 	{
+		PushWrap();
 		ImGui::TextColored(HelperTheme::Warn, "%s", text ? text : "Updating...");
+		PopWrap();
 	}
 
 	inline void StatusOk(const char* text)
 	{
 		if (!text || !text[0])
 			return;
+		PushWrap();
 		ImGui::TextColored(HelperTheme::Ok, "%s", text);
+		PopWrap();
 	}
 
 	inline void StatusWarn(const char* text)
 	{
 		if (!text || !text[0])
 			return;
+		PushWrap();
 		ImGui::TextColored(HelperTheme::Warn, "%s", text);
+		PopWrap();
 	}
 
 	/* Primary Refresh control — icon when DAT chrome is ready. */
