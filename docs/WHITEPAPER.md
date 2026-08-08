@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.3.13 |
+| Revision described | 2.2.3.14 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,9 +20,10 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.3.14 | 2.2.3.14 | Watch WGC picker + GDI fallback; title crest (uc35); Watch reopen / chrome stability |
 | 2.2.3.13 | 2.2.3.13 | Watch About tab; rail toggles control only (Mirror stays); deferred GPU + 1280×720 (w10) |
 | 2.2.3.12 | 2.2.3.12 | Watch control + Mirror; portal/PipeWire OOP (w10, 1280×720) / Windows GDI; async spawn |
-| 2.2.3.11 | 2.2.3.11 | CEF --app-h short-page center; chrome/CEF crash fixes; live 62; home 2230; c2228; raid food 9 |
+| 2.2.3.11 | 2.2.3.11 | CEF --app-h short-page center; chrome/CEF crash fixes; live 62; home 2232; c2228; raid food 9 |
 | 2.2.3.10 | 2.2.3.10 | User themes; Browse tile centering; live Back ERR_FILE recovery; side-rail fill; ui-chrome uc31 |
 | 2.2.3.9 | 2.2.3.9 | ApiBudget/BgFetch; MapAssist opt-in + COMPLIANCE exception; Instances soft sync; crafting tabs/chips; event alert place; economy chart poll |
 | 2.2.3.8 | 2.2.3.8 | Economy hub (stash/trading/crafting); Vault side rail; known-recipe load; rail icon UV fit; ui-chrome uc25 |
@@ -898,11 +899,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.2.3.13)
+## Appendix A — Quantitative constants (revision 2.2.3.14)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.2.3.13 |
+| Addon version | 2.2.3.14 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -918,10 +919,10 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2242 / 2230 / s2214 / c2228 |
+| Helper / home / sites / cheatsheets stamps | 2242 / 2232 / s2214 / c2228 |
 | Live panel stamp | 62 |
 | Raid food stamp | 9 |
-| ui-chrome stamp | uc31 |
+| ui-chrome stamp | uc35 |
 | OSR `device_scale_factor` | 1.0 |
 | User-Agent product token | `GW2-InGame-Helper` |
 | Browse catalog entries | ≈ 2719 |
@@ -961,7 +962,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | `src/overlay/*` | GPS arrow + zone banner |
 | `src/events/*` | World Events |
 | `src/notes/*` | Notes + waypoints |
-| `src/watch/*` | Watch control + Mirror (GDI / portal+PipeWire OOP) |
+| `src/watch/*` | Watch control + Mirror (WGC picker / GDI fallback / portal+PipeWire OOP) |
 | `src/app/*` | Settings, paths, AddonVersion, theme, pad dock, PanelBinds, UiChrome, Gw2Ui/Gw2Icons, Mumble identity |
 | `src/api/Gw2Http*` | Blocking WinHTTP (workers only) |
 
@@ -1004,6 +1005,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.3.13 — Watch About + control toggle; portal/PipeWire OOP; helper 2242; home 2230; live 62; c2228; raid food 9; watchd w10 |
+| Last sync | 2.2.3.14 — title crest branding (uc35); Watch WGC/GDI; portal/PipeWire OOP; helper 2242; home 2232; live 62; c2228; raid food 9; watchd w10 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.13
+# GW2 In-Game Helper v2.2.3.14
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,23 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.14
+
+- **Watch on native Windows:** **Start** opens the system **GraphicsCapturePicker**
+  (thumbnail selector). Capture via Windows.Graphics.Capture when exports resolve at
+  runtime; otherwise soft-fail to the classic list. **Classic list…** keeps titled HWND +
+  GDI `PrintWindow` (opaque alpha so Mirror is not blank).
+- **Watch stability:** No `EnumWindows` on the Open/click frame; no sticky auto-reopen
+  Mirror; heal tiny pad geom and sticky minimize when reopening after other companion pads;
+  defensive style/clip pops; streaming vs picker-wait distinguished.
+- **Title chrome:** Minimize matches close-button hit size; Hero-style title fade; IH crest
+  in the title bar (gem silhouette, readable scale); side-rail layout/cap polish.
+- **Branding:** QuickAccess / Home / docs media use the new crest; Nexus tex ids include
+  ui-chrome stamp so crest reloads on pack bump; `make install` writes live `kPackStamp`.
+- **Wine / Proton:** unchanged portal + `watchd` path.
+- **Stamps:** Helper `2242` · homepage `2232` · sites `s2214` · cheatsheets `c2228`
+  · live panel `62` · raid food `9` · ui-chrome `uc35` · watchd `w10`
 
 ## What’s new in 2.2.3.13
 
