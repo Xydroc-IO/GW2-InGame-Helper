@@ -107,7 +107,7 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
   cmds/                    # *-cmd.txt (helper ↔ DLL IPC)
   cef/                     # private CEF 150 (downloaded)
   cheatsheets/
-  pathing/                 # curated Tekkit + Lady + Hero .taco (+ user packs)
+  pathing/                 # curated Tekkit + Lady + Hero + HasKha .taco (+ user packs)
   ei/                      # Elite Insights CLI (optional)
   ei-out/                  # Elite Insights parse output (optional)
 ```
@@ -275,5 +275,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.3.14 — title crest branding (uc35); Watch Windows Graphics Capture picker; GDI classic fallback; portal/PipeWire OOP (w10); live 62; home 2232; cheatsheets c2228; raid food 9 |
+| Last architecture sync | 2.2.3.14 — title crest overhang (~100px); HasKha Markers curated; Watch Windows Graphics Capture picker; GDI classic fallback; portal/PipeWire OOP (w10); live 62; home 2232; cheatsheets c2228; raid food 9; ui-chrome uc35 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

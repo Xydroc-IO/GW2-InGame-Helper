@@ -34,6 +34,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
 
 ## What’s new in 2.2.3.14
 
+- **Title crest:** Larger gem hangs mostly above the title strip; bottom stays near
+  the baseline so the first side-rail icon stays clear.
+- **Curated pathing:** [HasKha Markers](https://github.com/HasKha/gw2-markers) from GitHub
+  Releases (`haskha_markers.zip` → `haskha_markers.taco`); **Update curated** refreshes.
 - **Watch on native Windows:** **Start** opens the system **GraphicsCapturePicker**
   (thumbnail selector). Capture via Windows.Graphics.Capture when exports resolve at
   runtime; otherwise soft-fail to the classic list. **Classic list…** keeps titled HWND +

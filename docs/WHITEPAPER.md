@@ -715,7 +715,7 @@ See [`ACCOUNT.md`](ACCOUNT.md), [`API_KEY.md`](API_KEY.md).
 
 ### 17.2 Pathing and D3D world GPS
 
-**Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, and Hero's Marker Pack download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy. Opt-in **PathingLua** (default off) covers a Blish-shaped `script-*` subset — not the full Pathing libdef host.
+**Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, Hero's Marker Pack, and HasKha Markers download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy. Opt-in **PathingLua** (default off) covers a Blish-shaped `script-*` subset — not the full Pathing libdef host.
 
 **Trail Tools.** Side-rail hub (Live / Trails / Markers / Pack / Keybinds). Trails and Markers are OverlayData project **desks** (shared New/Load/Save/Save As; Combined or Split); desks may open as their own windows. Up to four **TrailsN** / **MarkersN** collapsible raw editors run at once (cascaded; keybind recording targets the focused TrailsN). **Insert into XML** upserts into the project before Save. Pack tab covers Looks / categories / import / build `.taco`. Textured draft preview while hub, desk, or any editor is open—display-first pack creation without TacO/TrlTool embedding.
 
@@ -927,7 +927,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | User-Agent product token | `GW2-InGame-Helper` |
 | Browse catalog entries | ≈ 2719 |
 | World GPS base half-width | \(20''\) (`kBlishHalfM`) |
-| Curated pathing packs | Tekkit AIO; Lady Guides + AP; Hero's Marker Pack |
+| Curated pathing packs | Tekkit AIO; Lady Guides + AP; Hero's Marker Pack; HasKha Markers |
 
 ## Appendix B — Source map (kernel)
 

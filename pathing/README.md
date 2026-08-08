@@ -8,7 +8,7 @@ Engineering systems map: [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) · de
 ## Curated packs (auto-updated)
 
 On first Pathing load (and when you click **Update curated**), the addon downloads
-three shipping packs into this folder (plus any `.taco` files you add yourself):
+these shipping packs into this folder (plus any `.taco` files you add yourself):
 
 | Pack | Source |
 |------|--------|
@@ -16,10 +16,12 @@ three shipping packs into this folder (plus any `.taco` files you add yourself):
 | `LadyElyssa.taco` | [LadyElyssaTacoTrails](https://github.com/LadyElyssa/LadyElyssaTacoTrails) GitHub Releases |
 | `LadyElyssaAP.taco` | [LadyElyssaAchievementGuides](https://github.com/LadyElyssa/LadyElyssaAchievementGuides) GitHub Releases |
 | `Hero.Blish.Pack.taco` | [Heros-Marker-Pack](https://github.com/QuitarHero/Heros-Marker-Pack) GitHub Releases (`Hero.Blish.Pack.zip`) |
+| `haskha_markers.taco` | [HasKha/gw2-markers](https://github.com/HasKha/gw2-markers) GitHub Releases (`haskha_markers.zip`) |
 
 Credits: **Tekkit's Workshop** (All-In-One — used with permission) · **Lady Elyssa**
 ([wiki](https://wiki.guildwars2.com/wiki/User:Lady_Elyssa)) · **QuitarHero**
-([Hero's Marker Pack](https://github.com/QuitarHero/Heros-Marker-Pack)).
+([Hero's Marker Pack](https://github.com/QuitarHero/Heros-Marker-Pack)) · **HasKha**
+([gw2-markers](https://github.com/HasKha/gw2-markers), MIT).
 
 Stamp files (`*.taco.ver`) track the release / size so updates only re-download when needed.
 **Your own `.taco` files are never deleted.**

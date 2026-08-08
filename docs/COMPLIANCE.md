@@ -20,7 +20,7 @@ This file is **normative** (allowed / forbidden). Analysis belongs in the whitep
 - **Completion** / **Farming** companion pads — local checklist / favorites / fishing log under `config/`; Pathing search-guide handoff only (no memory scraping)
 - **PanelBinds** — addon-owned panel chords in Settings → Keybinds (`GetAsyncKeyState` poll); helper open stays Nexus (`Ctrl+Shift+H` / QuickAccess)
 - Item Lookup pad (public `/v2/items` + wiki search), Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories), and Vault pad (Wizard’s Vault / dailies — same Live panel API) — read-only; item name cache in `stash-names.cache`
-- Tekkit’s All-In-One `.taco` (© Tekkit's Workshop, used with permission), Lady Elyssa Guides / Achievements packs, and Hero's Marker Pack (QuitarHero) — curated downloads into `pathing/` for local display; user `.taco` files kept
+- Tekkit’s All-In-One `.taco` (© Tekkit's Workshop, used with permission), Lady Elyssa Guides / Achievements packs, Hero's Marker Pack (QuitarHero), and HasKha Markers ([gw2-markers](https://github.com/HasKha/gw2-markers), MIT) — curated downloads into `pathing/` for local display; user `.taco` files kept
 - Opt-in PathingLua (`EnablePathingLua`, default off) for Blish-shaped pack `script-*` — display/scripting only; never game input or memory automation
 - **Embedded curated GW2 UI chrome** (`data/ui-chrome` → DLL zip → `ui-chrome/` under the addon data folder) for Immersive ImGui pads and HTML backgrounds — ArenaNet retains ownership of those textures; they are **not** relicensed under MIT
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon

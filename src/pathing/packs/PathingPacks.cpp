@@ -165,6 +165,14 @@ const CuratedPack kPacks[] = {
 		"https://github.com/QuitarHero/Heros-Marker-Pack/releases/latest/download/Hero.Blish.Pack.zip",
 	},
 	{
+		/* HasKha raid/strike CM markers — release asset is .zip. */
+		"haskha_markers.taco",
+		"HasKha Markers",
+		"https://api.github.com/repos/HasKha/gw2-markers/releases/latest",
+		"haskha_markers.zip",
+		"https://github.com/HasKha/gw2-markers/releases/latest/download/haskha_markers.zip",
+	},
+	{
 		"tw_ALL_IN_ONE.taco",
 		"Tekkit's All-In-One",
 		nullptr,

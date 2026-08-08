@@ -39,7 +39,7 @@ namespace
 		PadNav::Blurb(
 			"Curated packs auto-update. Drop extra .taco into pathing/ - yours are never deleted.");
 		PadNav::PushWrap();
-		ImGui::TextDisabled("Tekkit | Lady Elyssa | QuitarHero (hover)");
+		ImGui::TextDisabled("Tekkit | Lady Elyssa | QuitarHero | HasKha (hover)");
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
@@ -51,6 +51,9 @@ namespace
 			ImGui::Spacing();
 			ImGui::TextUnformatted("Hero's Marker Pack © QuitarHero");
 			ImGui::TextUnformatted("https://github.com/QuitarHero/Heros-Marker-Pack");
+			ImGui::Spacing();
+			ImGui::TextUnformatted("HasKha Markers © HasKha (MIT)");
+			ImGui::TextUnformatted("https://github.com/HasKha/gw2-markers");
 			ImGui::EndTooltip();
 		}
 		PadNav::PopWrap();
