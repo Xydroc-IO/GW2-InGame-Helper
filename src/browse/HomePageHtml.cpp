@@ -161,17 +161,16 @@ const char* HomePage::Html()
     width: 118px;
     height: 118px;
     display: block;
-    border: 1px solid var(--border);
-    background: rgba(18, 14, 10, 0.72);
+    border: none;
+    background: transparent;
     box-shadow:
-      0 0 0 1px rgba(240, 199, 97, 0.12),
-      0 0 28px rgba(240, 199, 97, 0.18),
-      0 12px 32px rgba(0,0,0,0.5);
+      0 0 28px rgba(240, 199, 97, 0.22),
+      0 12px 32px rgba(0, 0, 0, 0.55);
     animation: logoGlow 4s ease-in-out infinite;
   }
   @keyframes logoGlow {
-    0%, 100% { box-shadow: 0 0 0 1px rgba(235,192,71,0.12), 0 0 22px rgba(235,192,71,0.14), 0 12px 32px rgba(0,0,0,0.5); }
-    50% { box-shadow: 0 0 0 1px rgba(235,192,71,0.28), 0 0 36px rgba(235,192,71,0.28), 0 12px 32px rgba(0,0,0,0.5); }
+    0%, 100% { box-shadow: 0 0 22px rgba(235, 192, 71, 0.16), 0 12px 32px rgba(0, 0, 0, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(235, 192, 71, 0.32), 0 12px 32px rgba(0, 0, 0, 0.5); }
   }
 
   .brand { position: relative; min-width: 0; }

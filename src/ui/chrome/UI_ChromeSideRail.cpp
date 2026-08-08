@@ -69,14 +69,17 @@ namespace UIDetail
 		};
 
 		const bool labels = G::ShowRailLabels;
-		const float railW = HelperSideRailWidth();
+		/* Prefer width stamped during title draw so the strip stays flush with dockX. */
+		float railW = G::SideRailW;
+		if (railW < 40.f)
+			railW = HelperSideRailWidth();
 		G::SideRailW = railW;
 
 		const ImVec2 helperMin = gUi.wikiMin;
 		const ImVec2 helperMax = gUi.wikiMax;
 		const float dockX = helperMin.x - railW;
-		/* Align under the pad title bar. */
-		constexpr float kTitleBarH = 60.f;
+		/* Align under the pad title bar (must match DrawPadTitleBar kTitleH). */
+		constexpr float kTitleBarH = 50.f;
 		const float dockY = helperMin.y + kTitleBarH;
 		float dockH = helperMax.y - dockY;
 		if (dockH < 48.f)
@@ -177,14 +180,14 @@ namespace UIDetail
 				railDl->PopClipRect();
 			}
 
-			/* Plaque corners on the outer (left) edge of the dock. */
+			/* Plaque corners — same size as helper right-edge caps (kCornerCap). */
 			if (Texture_t* corner = Gw2UiDetail::GetChromeNamed("plaque-corner"))
 			{
 				if (corner->Resource)
 				{
 					const ImTextureID cid = reinterpret_cast<ImTextureID>(corner->Resource);
-					const float cs = 22.f;
-					const ImU32 ccol = IM_COL32(255, 255, 255, static_cast<int>(oa * 185.f + 0.5f));
+					const float cs = SideRail::kCornerCap;
+					const ImU32 ccol = IM_COL32(255, 255, 255, static_cast<int>(oa * 200.f + 0.5f));
 					railDl->AddImage(cid,
 						ImVec2(rp0.x - 1.f, rp0.y - 1.f),
 						ImVec2(rp0.x - 1.f + cs, rp0.y - 1.f + cs),

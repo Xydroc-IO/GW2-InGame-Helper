@@ -188,10 +188,12 @@ void UI_Render()
 	if (!helperCollapsed)
 		/* Left joins nav; outer right gets the Hero ink rim (whole plate silhouette). */
 		Gw2Ui::PaintPadChrome(G::Opacity, /*omitLeftEdge=*/true, /*omitRightEdge=*/false);
+	const float railW = HelperSideRailWidth();
+	G::SideRailW = railW;
 	const bool expanded = Gw2Ui::DrawPadTitleBar(
 		"Game Helper", &open, G::Opacity,
 		/* Flush with side-rail outer edge (UiScale uses rail chrome pads, not helper theme). */
-		HelperSideRailWidth());
+		railW);
 	if (!open)
 	{
 		G::ShowWiki = false;

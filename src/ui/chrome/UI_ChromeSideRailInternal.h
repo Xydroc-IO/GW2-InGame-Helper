@@ -30,6 +30,11 @@ namespace SideRail
 
 	constexpr int kBtnCount = 18;
 
+	/* Match PaintPadChrome plaque-corner draw size (helper right edge). */
+	constexpr float kCornerCap = 28.f;
+	/* Keep first/last rail buttons clear of corner ornaments. */
+	constexpr float kCornerClear = 22.f;
+
 	inline float ItemSpacing(float iconSz, bool labels)
 	{
 		if (iconSz < (labels ? 22.f : 28.f))
@@ -54,9 +59,9 @@ namespace SideRail
 		return itemSp;
 	}
 
-	inline float PadY(bool labels)
+	inline float PadY(bool /*labels*/)
 	{
-		return labels ? 6.f : 8.f;
+		return kCornerClear;
 	}
 
 	inline float PackedHeight(float iconSz, bool labels, float itemSp, float framePadY)
@@ -75,7 +80,7 @@ namespace SideRail
 		return h;
 	}
 
-	/* Grow FramePadding.y so the 17 buttons fill dockH (no empty strip under Settings). */
+	/* Grow FramePadding.y so the stack fills dockH (no empty strip under Settings). */
 	inline float FillFramePadY(float dockH, float iconSz, bool labels, float itemSp, float baseFp)
 	{
 		const float packed = PackedHeight(iconSz, labels, itemSp, baseFp);
@@ -90,13 +95,12 @@ namespace SideRail
 		constexpr float kMaxIcon = 52.f;
 		constexpr float kMinIcon = 12.f;
 		const float maxIcon = labels ? 36.f : kMaxIcon;
-		const float bottomExtra = PadY(labels);
 		for (float icon = maxIcon; icon >= kMinIcon - 0.5f; icon -= 1.f)
 		{
 			const float sz = (std::max)(kMinIcon, icon);
 			const float itemSp = ItemSpacing(sz, labels);
 			const float fp = FramePadY(sz, labels);
-			if (PackedHeight(sz, labels, itemSp, fp) + bottomExtra <= dockH + 0.5f)
+			if (PackedHeight(sz, labels, itemSp, fp) <= dockH + 0.5f)
 				return sz;
 		}
 		return kMinIcon;

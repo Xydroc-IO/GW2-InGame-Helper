@@ -6,8 +6,9 @@
 namespace
 {
 	constexpr const char* kQaId       = "QA_GW2_INGAME_HELPER";
-	constexpr const char* kTexId      = "TEX_GW2_HELPER_ICON";
-	constexpr const char* kTexHoverId = "TEX_GW2_HELPER_ICON_HOVER";
+	/* Bump suffix when the baked PNG changes — Nexus caches by id. */
+	constexpr const char* kTexId      = "TEX_GW2_HELPER_ICON_v18";
+	constexpr const char* kTexHoverId = "TEX_GW2_HELPER_ICON_HOVER_v18";
 	constexpr const char* kKbToggle   = "KB_HELPER_TOGGLE";
 	bool gAdded = false;
 }

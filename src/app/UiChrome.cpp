@@ -21,7 +21,7 @@ extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "uc31";
+	constexpr const char* kPackStamp = "uc35";
 	constexpr int kChromeIds[] = {
 		155985, 155981, 156022, 156008, 156009, 156010, 155967, 156260, 155014,
 		/* Curated rail / Log Manager icons (Desktop/icons — current set). */
@@ -193,12 +193,14 @@ namespace
 
 void UiChrome::MakeTexId(int assetId, char* out, size_t outLen)
 {
-	std::snprintf(out, outLen, "GW2IGH_CHROME_%d", assetId);
+	/* Stamp in the id so Nexus drops stale GPU caches when the pack bumps. */
+	std::snprintf(out, outLen, "GW2IGH_CHROME_%s_%d", kPackStamp, assetId);
 }
 
 void UiChrome::MakeNamedTexId(const char* fileStem, char* out, size_t outLen)
 {
-	std::snprintf(out, outLen, "GW2IGH_CHROME_%s", fileStem ? fileStem : "x");
+	std::snprintf(out, outLen, "GW2IGH_CHROME_%s_%s", kPackStamp,
+		fileStem ? fileStem : "x");
 }
 
 bool UiChrome::Ensure(const std::wstring& addonDir)

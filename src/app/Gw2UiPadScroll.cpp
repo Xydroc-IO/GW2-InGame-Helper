@@ -217,7 +217,8 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 				dl->AddRectFilled(ImVec2(gx0, bb.Min.y), ImVec2(gx0 + grabLen, bb.Max.y), grabCol);
 		}
 
-		dl->PopClipRect();
+		if (dl->_ClipRectStack.Size > 0)
+			dl->PopClipRect();
 	};
 
 	auto paintWindow = [&](ImGuiWindow* window) {

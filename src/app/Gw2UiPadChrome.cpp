@@ -155,7 +155,7 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge,
 	const ImVec2 sz = ImGui::GetWindowSize();
 	const ImVec2 p1(p0.x + sz.x, p0.y + sz.y);
 	/* Expanded title strip height — must match DrawPadTitleBar kTitleH. */
-	constexpr float kTitleH = 60.f;
+	constexpr float kTitleH = 50.f;
 	const ImVec2 wash0(p0.x, p0.y + kTitleH);
 
 	Texture_t* wash = Gw2UiDetail::GetChromeNamed("panel-wash");
@@ -204,12 +204,12 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge,
 	Gw2UiDetail::PaintHeroRim(dl, p0, p1, a,
 		omitLeftEdge, omitRightEdge, /*omitTop=*/true, /*omitBottom=*/false);
 
-	/* Curated plaque corners on pad windows (helper dock paints its own). */
+		/* Curated plaque corners on pad windows (helper dock paints its own). */
 	Texture_t* corner = Gw2UiDetail::GetChromeNamed("plaque-corner");
 	if (corner && corner->Resource)
 	{
 		const ImTextureID iid = reinterpret_cast<ImTextureID>(corner->Resource);
-		const float cs = 28.f;
+		constexpr float cs = 28.f; /* keep in sync with SideRail::kCornerCap */
 		const ImU32 ccol = IM_COL32(255, 255, 255, static_cast<int>(a * 200.f + 0.5f));
 		const float y0 = p0.y + kTitleH - 2.f;
 		if (!omitLeftEdge)
