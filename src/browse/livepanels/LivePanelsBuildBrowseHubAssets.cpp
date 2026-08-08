@@ -1,11 +1,15 @@
 #include "LivePanelsBuildBrowseHubInternal.h"
 
 #include "AddonPaths.h"
+#include "Globals.h"
 #include "HelperThemeCss.h"
+#include "LivePanelsInternal.h"
 #include "Sites.h"
 #include "UiChrome.h"
 
 #include <cctype>
+#include <cstdio>
+#include <cstring>
 #include <string>
 
 namespace LivePanelsBuild
@@ -32,14 +36,21 @@ std::string ToLower(std::string s)
 const char* HubCss()
 {
 	static std::string s;
-	static const char* out = nullptr;
-	if (!out)
+	static char sTheme[64]{};
+	static char sVer[16]{};
+	if (s.empty() || std::strcmp(sTheme, G::ThemeId) != 0 ||
+		std::strcmp(sVer, LivePanelsDetail::kPanelVer) != 0)
 	{
+		std::snprintf(sTheme, sizeof(sTheme), "%s", G::ThemeId);
+		std::snprintf(sVer, sizeof(sVer), "%s", LivePanelsDetail::kPanelVer);
 		s = HelperThemeCss::RootVars();
+		HelperThemeCss::AppendUserRoot(s);
 		s += HelperThemeCss::ImmersiveShell();
 		{
-			const std::string fill = UiChrome::FillFileUrl(AddonPaths::DataDir());
+			const std::wstring dir = AddonPaths::DataDir();
+			const std::string fill = UiChrome::FillFileUrl(dir);
 			s += HelperThemeCss::FillBackgroundCss(fill.c_str());
+			s += UiChrome::DecorCss(dir);
 		}
 		s += R"CSS(
 .wrap{max-width:1100px;margin:0 auto;padding:28px 22px 96px;min-height:100vh}
@@ -88,9 +99,10 @@ a.jump{
   display:inline-block;padding:.38rem .75rem;font-size:.76rem;font-weight:650;
   letter-spacing:.04em;text-decoration:none;text-transform:uppercase;
   color:var(--gold-dim);border:1px solid var(--border-deep);background:var(--accent);
+  background-image:none;
 }
-a.jump:hover{color:var(--gold-bright);border-color:var(--gold);
-  box-shadow:inset 0 0 0 1px rgba(232,196,112,.15)}
+a.jump:hover{color:var(--gold-bright);border-color:var(--gold);background-image:none;
+  box-shadow:inset 0 0 0 1px rgba(232,196,112,.22)}
 .sec{margin-top:1.85rem;scroll-margin-top:3.25rem}
 .sec-head{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin:0 0 .85rem}
 .sec-head h2,.sec h2{
@@ -146,7 +158,7 @@ button.btn-plus:hover{border-color:var(--gold);color:var(--gold);
 }
 .modal-actions button:hover{border-color:var(--gold)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.85rem}
-.tile-wrap{position:relative;display:flex;flex-direction:column;min-height:5.4rem}
+.tile-wrap{position:relative;display:flex;flex-direction:column;min-height:6.1rem}
 a.star{
   position:absolute;top:.5rem;right:.55rem;z-index:2;
   width:1.6rem;height:1.6rem;line-height:1.55rem;text-align:center;
@@ -181,10 +193,13 @@ details.move .move-menu .lbl{
   letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
 }
 a.tile{
-  display:flex;flex-direction:column;justify-content:center;gap:.35rem;
-  flex:1;min-height:5.4rem;padding:1.05rem 2.15rem 1.05rem 1.1rem;
+  /* Centered stack on flat grey of card-fill (ragged ink eats outer edges).
+     Side padding clears ☆ / ⇄ overlays on favorites + category site tiles. */
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:.35rem;
+  flex:1;min-height:6.1rem;padding:1.45rem 1.9rem 1.6rem;
   text-decoration:none;color:var(--text);
-  border-left:3px solid var(--gold-dim);
+  border-left:1px solid var(--gold-dim);
   transition:border-color .15s,transform .12s,box-shadow .15s;
 }
 a.tile:hover{
@@ -192,12 +207,26 @@ a.tile:hover{
   transform:translateY(-2px);
   box-shadow:inset 0 1px 0 rgba(255,230,160,.16),0 12px 28px rgba(0,0,0,.5);
 }
+a.tile > *{position:relative;z-index:1}
 a.tile .name{
-  font-size:1.05rem;font-weight:650;color:var(--gold-bright);
-  font-family:var(--font-display);letter-spacing:.01em;
+  font-size:1.22rem;font-weight:700;color:var(--gold-bright);
+  font-family:var(--font-display);letter-spacing:.02em;line-height:1.2;
 }
-a.tile .blurb{font-size:.8rem;color:var(--muted);line-height:1.35}
-a.tile .meta{font-size:.72rem;color:var(--gold-dim);margin-top:.15rem;letter-spacing:.03em}
+a.tile .blurb{font-size:.88rem;color:var(--muted);line-height:1.35}
+a.tile .meta{
+  font-size:.78rem;color:var(--gold-dim);margin-top:.15rem;letter-spacing:.03em;
+  /* Stay in the content stack — never absolute-bottom on the dark fringe. */
+}
+/* Browse Categories — slightly larger title-only tiles. */
+a.tile.tile-cat{
+  min-height:5.9rem;padding:1.45rem 1.15rem 1.6rem;
+}
+a.tile.tile-cat .name{
+  font-size:1.28rem;
+}
+a.tile.tile-cat .blurb{
+  font-size:.9rem;
+}
 .foot{margin-top:2.5rem;font-size:.78rem;color:var(--muted)}
 .credit{
   margin:1.75rem 0 0;padding:1rem 0 3.5rem;
@@ -208,9 +237,8 @@ a.tile .meta{font-size:.72rem;color:var(--gold-dim);margin-top:.15rem;letter-spa
 .empty{margin:2rem 0;color:var(--muted)}
 .hidden{display:none!important}
 )CSS";
-		out = s.c_str();
 	}
-	return out;
+	return s.c_str();
 }
 
 const char* HubJs()

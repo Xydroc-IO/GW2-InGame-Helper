@@ -89,6 +89,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "Opacity=%.4f\n", G::Opacity);
 	std::fprintf(f, "FontScale=%.4f\n", G::FontScale);
 	std::fprintf(f, "FontScaleAuto=%d\n", G::FontScaleAuto ? 1 : 0);
+	std::fprintf(f, "ThemeId=%s\n", G::ThemeId);
 	std::fprintf(f, "WindowWidth=%.1f\n", G::WindowWidth);
 	std::fprintf(f, "WindowHeight=%.1f\n", G::WindowHeight);
 	std::fprintf(f, "WindowPosX=%.1f\n", G::WindowPosX);

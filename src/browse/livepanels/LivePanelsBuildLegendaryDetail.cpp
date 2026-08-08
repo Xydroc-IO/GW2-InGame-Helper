@@ -93,8 +93,11 @@ li.done .nm{color:var(--ok)}li.mat .nm{color:var(--zinc-200)}li.craft .nm{color:
 		html += "</title><style>";
 		html += LedgerDetailCss();
 		{
-			const std::string fill = UiChrome::FillFileUrl(AddonPaths::DataDir());
+			const std::wstring dir = AddonPaths::DataDir();
+			const std::string fill = UiChrome::FillFileUrl(dir);
 			html += HelperThemeCss::FillBackgroundCss(fill.c_str());
+			html += UiChrome::DecorCss(dir);
+			HelperThemeCss::AppendUserRoot(html);
 		}
 		html += "</style></head><body><div class=\"glow\" aria-hidden=\"true\"></div>"
 			"<div class=\"shell\"><main>";

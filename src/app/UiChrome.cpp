@@ -21,7 +21,7 @@ extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "uc28";
+	constexpr const char* kPackStamp = "uc31";
 	constexpr int kChromeIds[] = {
 		155985, 155981, 156022, 156008, 156009, 156010, 155967, 156260, 155014,
 		/* Curated rail / Log Manager icons (Desktop/icons — current set). */
@@ -32,7 +32,9 @@ namespace
 		60970, 155867, /* Pathing diamond + Trail Tools map */
 		561441, /* Vault gold star */
 		/* Scrollbar DAT ids (also as named files below). */
-		154969, 154970, 154971, 154973, 155031, 156078, 154968
+		154969, 154970, 154971, 154973, 155031, 156078, 154968,
+		/* Plaque / button DAT mirrors (named copies preferred). */
+		155146, 1692715, 155084, 155076, 156013, 1701860, 1670507
 	};
 	/* Named pack files (not numeric DAT ids). */
 	constexpr const char* kChromeNamed[] = {
@@ -41,7 +43,11 @@ namespace
 		"panel-wash.png", "title-bar.png", "panel-edge.png", "ink-edge.png",
 		"scroll-thumb.png", "scroll-thumb-mid.png", "scroll-thumb-top.png",
 		"scroll-thumb-cap.png", "scroll-arrow.png", "scroll-arrow-up.png",
-		"scroll-atlas.png", "scroll-track-h.png"
+		"scroll-atlas.png", "scroll-track-h.png",
+		/* HTML + pad plaque set */
+		"card-fill.png", "card-fill-dark.png", "card-border.png",
+		"hero-plate.png", "btn-frame.png", "btn-frame-hover.png", "btn-plate.png",
+		"divider-gold.png", "header-ornament.png", "plaque-corner.png"
 	};
 
 	std::string WideToUtf8(const std::wstring& w)
@@ -246,6 +252,129 @@ std::string UiChrome::NamedFileUrl(const std::wstring& addonDir, const char* fil
 	if (path.empty())
 		return {};
 	return PathToFileUrl(path);
+}
+
+std::string UiChrome::DecorCss(const std::wstring& addonDir)
+{
+	Ensure(addonDir);
+	const std::string card = NamedFileUrl(addonDir, "card-fill.png");
+	const std::string cardDark = NamedFileUrl(addonDir, "card-fill-dark.png");
+	const std::string border = NamedFileUrl(addonDir, "card-border.png");
+	const std::string hero = NamedFileUrl(addonDir, "hero-plate.png");
+	const std::string btn = NamedFileUrl(addonDir, "btn-frame.png");
+	const std::string btnHov = NamedFileUrl(addonDir, "btn-frame-hover.png");
+	const std::string div = NamedFileUrl(addonDir, "divider-gold.png");
+	const std::string corner = NamedFileUrl(addonDir, "plaque-corner.png");
+	const std::string orn = NamedFileUrl(addonDir, "header-ornament.png");
+	if (card.empty() && hero.empty() && btn.empty())
+		return {};
+
+	std::string s;
+	s.reserve(3500);
+	s += "\n/* ui-chrome decor */\n:root {\n";
+	if (!card.empty()) { s += "  --chrome-card: url(\""; s += card; s += "\");\n"; }
+	if (!cardDark.empty()) { s += "  --chrome-card-dark: url(\""; s += cardDark; s += "\");\n"; }
+	if (!border.empty()) { s += "  --chrome-card-border: url(\""; s += border; s += "\");\n"; }
+	if (!hero.empty()) { s += "  --chrome-hero: url(\""; s += hero; s += "\");\n"; }
+	if (!btn.empty()) { s += "  --chrome-btn: url(\""; s += btn; s += "\");\n"; }
+	if (!btnHov.empty()) { s += "  --chrome-btn-hover: url(\""; s += btnHov; s += "\");\n"; }
+	if (!div.empty()) { s += "  --chrome-divider: url(\""; s += div; s += "\");\n"; }
+	if (!corner.empty()) { s += "  --chrome-corner: url(\""; s += corner; s += "\");\n"; }
+	if (!orn.empty()) { s += "  --chrome-ornament: url(\""; s += orn; s += "\");\n"; }
+	s += "}\n";
+
+	s += R"CSS(
+.hero, .plaque, section.block, a.tile, .modal {
+  background-image:
+    linear-gradient(165deg, rgba(48, 38, 22, 0.42) 0%, transparent 48%),
+    linear-gradient(180deg, rgba(20, 16, 12, 0.55), rgba(10, 8, 6, 0.72)),
+    var(--chrome-card, none);
+  background-size: auto, auto, cover;
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+  border: 1px solid var(--border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 160, 0.14),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 10px 32px rgba(0, 0, 0, 0.48);
+  position: relative;
+}
+.hero {
+  background-image:
+    linear-gradient(105deg, rgba(14, 11, 8, 0.55) 0%, rgba(14, 11, 8, 0.12) 55%, transparent 78%),
+    linear-gradient(180deg, rgba(30, 24, 16, 0.35), rgba(10, 8, 6, 0.55)),
+    var(--chrome-hero, var(--chrome-card, none));
+  background-size: auto, auto, cover;
+  background-position: left center, center, center top;
+}
+.plaque::after, section.block::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.55;
+  background-image: var(--chrome-card-border, none);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+}
+/* Hero keeps CSS gold border only — avoid banner overlays (party watermark, etc.). */
+.hero::after { content: none !important; background: none !important; }
+.plaque > *, section.block > *, .hero > * { position: relative; z-index: 1; }
+section.block > .head {
+  background-image:
+    linear-gradient(90deg, rgba(61, 48, 24, 0.92) 0%, rgba(26, 21, 16, 0.85) 70%),
+    var(--chrome-ornament, none);
+  background-size: auto, 100% 100%;
+  background-position: left center, center;
+  background-repeat: no-repeat;
+}
+/* TOC / chips: plain fill + dim gold rim; brighter gold border on hover. */
+nav.toc a, a.chip, a.jump, .cta, button.gw2-btn {
+  color: var(--gold-dim);
+  text-decoration: none;
+  border: 1px solid var(--border-deep);
+  background-color: var(--accent);
+  background-image: none;
+  box-shadow: none;
+}
+nav.toc a:hover, a.chip:hover, a.jump:hover, .cta:hover, button.gw2-btn:hover,
+nav.toc a:focus-visible, a.chip:focus-visible, a.jump:focus-visible,
+.cta:focus-visible, button.gw2-btn:focus-visible {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background-color: rgba(40, 32, 20, 0.55);
+  background-image: none;
+  box-shadow: inset 0 0 0 1px rgba(232, 196, 112, 0.22);
+}
+.hairline, hr.chrome-div {
+  height: 10px;
+  border: 0;
+  margin: 0.85rem 0;
+  background-color: transparent;
+  background-image: var(--chrome-divider, linear-gradient(90deg, transparent, var(--border), transparent));
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+.plaque-corner-tl, .plaque-corner-tr, .plaque-corner-bl, .plaque-corner-br {
+  pointer-events: none;
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  z-index: 2;
+  background-image: var(--chrome-corner, none);
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.85;
+}
+.plaque-corner-tl { top: -2px; left: -2px; }
+.plaque-corner-tr { top: -2px; right: -2px; transform: scaleX(-1); }
+.plaque-corner-bl { bottom: -2px; left: -2px; transform: scaleY(-1); }
+.plaque-corner-br { bottom: -2px; right: -2px; transform: scale(-1); }
+)CSS";
+	return s;
 }
 
 void UiChrome::WarmTextures(const std::wstring& addonDir)

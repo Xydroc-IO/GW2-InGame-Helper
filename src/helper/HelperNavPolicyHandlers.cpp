@@ -162,6 +162,52 @@ namespace HelperDetail
 		if (!isMain)
 			return 0; /* allow iframe / media subloads */
 
+		/* Back/forward onto a wiped live panel file — rewrite before Chromium
+		   paints ERR_FILE_NOT_FOUND. */
+		if (url.rfind("file:", 0) == 0 &&
+			(url.find("live-browse-") != std::string::npos ||
+				url.find("live-cheatsheets-hub") != std::string::npos ||
+				url.find("live-legendary-") != std::string::npos ||
+				url.find("live-dailies") != std::string::npos ||
+				url.find("live-news") != std::string::npos ||
+				url.find("live-fashion") != std::string::npos ||
+				url.find("live-tp.html") != std::string::npos ||
+				url.find("gw2-api-check.html") != std::string::npos))
+		{
+			const std::string about = AboutFromBrowseFileUrl(url);
+			if (!about.empty())
+			{
+				const std::wstring pages = HelperPagesDir();
+				std::wstring leaf;
+				const size_t slash = url.find_last_of('/');
+				if (slash != std::string::npos)
+				{
+					std::string name = url.substr(slash + 1);
+					const size_t q = name.find('?');
+					if (q != std::string::npos)
+						name.resize(q);
+					const size_t hash = name.find('#');
+					if (hash != std::string::npos)
+						name.resize(hash);
+					leaf.reserve(name.size());
+					for (char c : name)
+						leaf.push_back(static_cast<wchar_t>(static_cast<unsigned char>(c)));
+				}
+				if (!pages.empty() && !leaf.empty() &&
+					GetFileAttributesW((pages + L"\\" + leaf).c_str()) == INVALID_FILE_ATTRIBUTES)
+				{
+					const std::string resolved = ResolveBuiltinUrl(about.c_str());
+					NavLog("  missing-live rewrite in=%s about=%s out=%s", url.c_str(),
+						about.c_str(), resolved.empty() ? "(empty)" : resolved.c_str());
+					if (!resolved.empty())
+					{
+						NavigateTo(resolved.c_str());
+						return 1;
+					}
+				}
+			}
+		}
+
 		/* TP watchlist add/remove + any about: builtin — never let Chromium load
 		   raw about:live-* (blocked white page). Rewrite to file:// first. */
 		{

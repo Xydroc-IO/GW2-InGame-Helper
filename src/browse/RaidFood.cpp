@@ -76,10 +76,12 @@ std::string RaidFood::EnsureFileUrl(const std::wstring& addonDir)
 	std::string html = htmlSrc ? htmlSrc : "";
 	{
 		const std::string fill = UiChrome::FillFileUrl(addonDir);
-		const std::string fillCss = HelperThemeCss::FillBackgroundCss(fill.c_str());
-		if (!fillCss.empty())
+		std::string themeCss = HelperThemeCss::FillBackgroundCss(fill.c_str());
+		themeCss += UiChrome::DecorCss(addonDir);
+		HelperThemeCss::AppendUserRoot(themeCss);
+		if (!themeCss.empty())
 		{
-			const std::string inject = std::string("<style>\n") + fillCss + "</style>\n</head>";
+			const std::string inject = std::string("<style>\n") + themeCss + "</style>\n</head>";
 			const size_t pos = html.find("</head>");
 			if (pos != std::string::npos)
 				html.replace(pos, 7, inject);

@@ -4,6 +4,7 @@
 #include "Globals.h"
 #include "HelperThemeCss.h"
 #include "UiChrome.h"
+#include "UserTheme.h"
 
 #include "miniz.h"
 
@@ -20,7 +21,7 @@ extern "C" const unsigned char _binary_build_cheatsheets_zip_end[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "c2224";
+	constexpr const char* kPackStamp = "c2226";
 
 	struct OwnedSheet
 	{
@@ -310,6 +311,29 @@ namespace
 		return !gViews.empty();
 	}
 
+	void PatchSharedCssUserTheme(const std::wstring& addonDir)
+	{
+		const std::wstring cssPath = SheetsDir(addonDir) + L"\\shared.css";
+		std::string css;
+		if (!ReadFileUtf8(cssPath, css))
+			return;
+		const size_t begin = css.find("/* user-theme begin */");
+		if (begin != std::string::npos)
+		{
+			const size_t end = css.find("/* user-theme end */", begin);
+			if (end != std::string::npos)
+				css.erase(begin, end + 20 - begin);
+		}
+		const std::string& ut = UserTheme::CssRootOverride();
+		if (!ut.empty())
+		{
+			css += "\n/* user-theme begin */\n";
+			css += ut;
+			css += "\n/* user-theme end */\n";
+		}
+		WriteBytes(cssPath, css.data(), static_cast<DWORD>(css.size()));
+	}
+
 	bool EnsureCatalog()
 	{
 		if (gReady)
@@ -331,14 +355,19 @@ namespace
 			{
 				const std::string fill = UiChrome::FillFileUrl(addonDir);
 				const std::string fillCss = HelperThemeCss::FillBackgroundCss(fill.c_str());
-				if (!fillCss.empty() && css.find("background-image: url(\"file") == std::string::npos)
+				const std::string decorCss = UiChrome::DecorCss(addonDir);
+				if ((!fillCss.empty() || !decorCss.empty()) &&
+					css.find("/* ui-chrome decor */") == std::string::npos &&
+					css.find("background-image: url(\"file") == std::string::npos)
 				{
 					css += "\n/* ui-chrome fill */\n";
 					css += fillCss;
+					css += decorCss;
 					WriteBytes(cssPath, css.data(), static_cast<DWORD>(css.size()));
 				}
 			}
 		}
+		PatchSharedCssUserTheme(addonDir);
 		std::string json;
 		if (!ReadFileUtf8(SheetsDir(addonDir) + L"\\manifest.json", json) || !ParseManifest(json))
 		{
@@ -356,6 +385,18 @@ namespace
 		return true;
 	}
 } // namespace
+
+void CheatSheets::RefreshUserThemeCss()
+{
+	/* Never extract from Settings — only rewrite if pack already on disk. */
+	const std::wstring addonDir = AddonPaths::DataDir();
+	if (addonDir.empty())
+		return;
+	const std::wstring cssPath = SheetsDir(addonDir) + L"\\shared.css";
+	if (GetFileAttributesW(cssPath.c_str()) == INVALID_FILE_ATTRIBUTES)
+		return;
+	PatchSharedCssUserTheme(addonDir);
+}
 
 const CheatSheets::Sheet* CheatSheets::All(size_t* outCount)
 {

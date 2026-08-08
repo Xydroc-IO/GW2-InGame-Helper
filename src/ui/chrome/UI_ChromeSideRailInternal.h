@@ -1,7 +1,10 @@
 #pragma once
 
+#include "Gw2UiInternal.h"
 #include "HelperTheme.h"
+
 #include "imgui/imgui.h"
+#include "nexus/Nexus.h"
 
 #include <algorithm>
 
@@ -10,39 +13,22 @@ namespace UIDetail
 {
 namespace SideRail
 {
+	/* Section label only — no gold divider Dummy (those read as blank gaps). */
 	inline void SectionGap(bool labels, const char* title)
 	{
+		if (!labels || !title || !title[0])
+			return;
 		ImGui::Spacing();
-		if (labels && title && title[0])
-		{
-			ImGui::TextColored(HelperTheme::GoldDim, "%s", title);
-			ImGui::Separator();
-		}
-		else
-		{
-			const ImVec2 p = ImGui::GetCursorScreenPos();
-			const float w = ImGui::GetContentRegionAvail().x;
-			ImGui::GetWindowDrawList()->AddRectFilled(
-				ImVec2(p.x + 4.f, p.y + 2.f),
-				ImVec2(p.x + w - 4.f, p.y + 3.f),
-				IM_COL32(161, 120, 56, 90));
-			ImGui::Dummy(ImVec2(1.f, 6.f));
-		}
+		ImGui::TextColored(HelperTheme::GoldDim, "%s", title);
 	}
 
-	inline void StretchGap(float stretch)
+	inline float BtnHeight(float iconSz, bool /*labels*/, float framePadY)
 	{
-		if (stretch > 0.5f)
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + stretch);
+		/* Match Gw2Ui::RailToggle — height is icon + FramePadding.y * 2. */
+		return iconSz + framePadY * 2.f;
 	}
 
-	inline float BtnHeight(float iconSz, bool labels, float framePadY)
-	{
-		if (labels)
-			return iconSz + framePadY * 2.f;
-		const float padY = (std::max)(2.f, iconSz * 0.12f);
-		return iconSz + padY;
-	}
+	constexpr int kBtnCount = 17;
 
 	inline float ItemSpacing(float iconSz, bool labels)
 	{
@@ -62,9 +48,10 @@ namespace SideRail
 
 	inline float SectionHeight(float itemSp, bool labels)
 	{
+		/* Label + one Spacing — no divider Dummy height. */
 		if (labels)
-			return itemSp + ImGui::GetTextLineHeight() + itemSp + 4.f + itemSp;
-		return itemSp + 6.f + itemSp;
+			return itemSp + ImGui::GetTextLineHeight() + itemSp;
+		return itemSp;
 	}
 
 	inline float PadY(bool labels)
@@ -74,20 +61,28 @@ namespace SideRail
 
 	inline float PackedHeight(float iconSz, bool labels, float itemSp, float framePadY)
 	{
-		constexpr int kBtns = 17;
-		constexpr int kGaps = 16;
+		constexpr int kGaps = kBtnCount - 1;
 		const float padY = PadY(labels);
 		const float btnH = BtnHeight(iconSz, labels, framePadY);
-		const float sectionH = labels
-			? (SectionHeight(itemSp, true) + SectionHeight(itemSp, false))
-			: (2.f * SectionHeight(itemSp, false));
+		/* TOOLS label (+ HELPER label when shown). No stretch gaps / gold dividers. */
+		const float sectionH = labels ? SectionHeight(itemSp, true) : 0.f;
 		float h = padY * 2.f
-			+ static_cast<float>(kBtns) * btnH
+			+ static_cast<float>(kBtnCount) * btnH
 			+ static_cast<float>(kGaps) * itemSp
 			+ sectionH;
 		if (labels)
-			h += ImGui::GetTextLineHeight() + itemSp + 4.f + itemSp;
+			h += ImGui::GetTextLineHeight() + itemSp;
 		return h;
+	}
+
+	/* Grow FramePadding.y so the 17 buttons fill dockH (no empty strip under Settings). */
+	inline float FillFramePadY(float dockH, float iconSz, bool labels, float itemSp, float baseFp)
+	{
+		const float packed = PackedHeight(iconSz, labels, itemSp, baseFp);
+		const float leftover = dockH - packed;
+		if (leftover <= 0.5f)
+			return baseFp;
+		return baseFp + leftover / (static_cast<float>(kBtnCount) * 2.f);
 	}
 
 	inline float FitIconSize(float dockH, bool labels)

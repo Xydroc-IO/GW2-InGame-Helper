@@ -134,3 +134,8 @@ std::wstring AddonPaths::ConfigDir()
 {
 	return EnsureUnder(DataDir(), L"config");
 }
+
+std::wstring AddonPaths::ThemesDir()
+{
+	return EnsureUnder(DataDir(), L"config\\themes");
+}

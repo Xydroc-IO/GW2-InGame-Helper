@@ -23,4 +23,8 @@ namespace CheatSheets
 
 	/* If url is a known about: cheat sheet, resolve to file:///; else {}. */
 	std::string ResolveAboutUrl(const std::wstring& addonDir, const std::string& url);
+
+	/* Patch user-theme CSS into shared.css only if the pack is already extracted.
+	   Never extracts — safe to call from Settings on the UI thread. */
+	void RefreshUserThemeCss();
 }

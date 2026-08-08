@@ -292,9 +292,8 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, 
 	if (tex)
 	{
 		const ImGuiStyle& st = ImGui::GetStyle();
-		const float padY = showLabel
-			? st.FramePadding.y * 2.f
-			: (iconSize * 0.12f > 2.f ? iconSize * 0.12f : 2.f);
+		/* Side rail grows FramePadding.y to fill dock height — always honor it. */
+		const float padY = st.FramePadding.y * 2.f;
 		const float frameH = ImGui::GetFrameHeight();
 		const float h = showLabel
 			? (frameH > iconSize + padY ? frameH : iconSize + padY)
@@ -303,6 +302,36 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, 
 		const ImVec2 min = ImGui::GetItemRectMin();
 		const ImVec2 max = ImGui::GetItemRectMax();
 		ImDrawList* dl = ImGui::GetWindowDrawList();
+		const bool hover = ImGui::IsItemHovered();
+
+		/* Curated button plate + frame (under icon/text; hit rect unchanged). */
+		if (Texture_t* plate = Gw2UiDetail::GetChromeNamed("btn-plate"))
+		{
+			if (plate->Resource)
+			{
+				const int a = on ? 55 : (hover ? 40 : 28);
+				dl->AddImage(reinterpret_cast<ImTextureID>(plate->Resource),
+					min, max, ImVec2(0.f, 0.f), ImVec2(1.f, 1.f),
+					IM_COL32(255, 255, 255, a));
+			}
+		}
+		{
+			const char* frameStem = (on || hover) ? "btn-frame-hover" : "btn-frame";
+			if (Texture_t* frame = Gw2UiDetail::GetChromeNamed(frameStem))
+			{
+				if (frame->Resource)
+				{
+					const int a = on ? 200 : (hover ? 170 : 95);
+					/* Idle: natural frame. Hover/selected: gold tint (never cool blue). */
+					const ImU32 tint = (on || hover)
+						? IM_COL32(255, 220, 140, a)
+						: IM_COL32(255, 255, 255, a);
+					dl->AddImage(reinterpret_cast<ImTextureID>(frame->Resource),
+						min, max, ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), tint);
+				}
+			}
+		}
+
 		/* Gold plaque rail accent — selected bright, idle dim hairline. */
 		const ImU32 accent = ImGui::GetColorU32(
 			on ? HelperTheme::GoldBright : HelperTheme::GoldDim);
@@ -311,6 +340,12 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, 
 			dl->AddRectFilled(
 				ImVec2(min.x + 3.f, min.y), ImVec2(max.x, max.y),
 				ImGui::GetColorU32(ImVec4(0.94f, 0.77f, 0.35f, 0.06f)));
+		if (on || hover)
+		{
+			const ImU32 goldBorder = ImGui::GetColorU32(
+				on ? HelperTheme::GoldBright : HelperTheme::Gold);
+			dl->AddRect(min, max, goldBorder, 0.f, 0, on ? 1.75f : 1.35f);
+		}
 
 		/* Fit opaque content into a shared slot so padded assets match dense ones. */
 		RailUv uv{ 0.f, 0.f, 1.f, 1.f };

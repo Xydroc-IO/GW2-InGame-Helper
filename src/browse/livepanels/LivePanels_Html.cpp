@@ -1,18 +1,23 @@
 #include "LivePanels_Html.h"
 
+#include "Globals.h"
 #include "HelperThemeCss.h"
 
+#include <cstdio>
+#include <cstring>
 #include <string>
 
 namespace LivePanelsHtml
 {
 	const char* SharedCss()
 	{
-		static const char* kCss = nullptr;
 		static std::string sCss;
-		if (!kCss)
+		static char sTheme[64]{};
+		if (sCss.empty() || std::strcmp(sTheme, G::ThemeId) != 0)
 		{
+			std::snprintf(sTheme, sizeof(sTheme), "%s", G::ThemeId);
 			sCss = HelperThemeCss::RootVars();
+			HelperThemeCss::AppendUserRoot(sCss);
 			sCss += HelperThemeCss::ImmersiveShell();
 			sCss += R"CSS(
   .wrap { max-width: 900px; margin: 0 auto; padding: 28px 22px 64px; }
@@ -27,10 +32,10 @@ namespace LivePanelsHtml
   .meta { margin: 10px 0 0; font-size: 0.82rem; color: var(--muted); }
   nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
   nav.toc a {
-    color: var(--gold); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.03em;
+    color: var(--gold-dim); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.03em;
     padding: 6px 10px; border: 1px solid var(--border-deep); background: var(--accent);
   }
-  nav.toc a:hover { border-color: var(--gold); color: var(--gold-bright); }
+  nav.toc a:hover { border-color: var(--gold); color: var(--gold-bright); background-image: none; }
   section.block { margin-bottom: 16px; }
   section.block > .head {
     padding: 12px 16px; border-bottom: 1px solid var(--border-soft); border-left: 3px solid var(--gold);
@@ -92,8 +97,7 @@ namespace LivePanelsHtml
   .muted { color: var(--muted); font-size: 0.86rem; }
   code { color: var(--gold-dim); font-size: 0.88rem; }
 )CSS";
-			kCss = sCss.c_str();
 		}
-		return kCss;
+		return sCss.c_str();
 	}
 }

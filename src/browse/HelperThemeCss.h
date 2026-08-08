@@ -1,5 +1,7 @@
 #pragma once
 
+#include "UserTheme.h"
+
 #include <string>
 
 /* CSS tokens + immersive shell mirrored from HelperTheme.h.
@@ -8,6 +10,14 @@
 
 namespace HelperThemeCss
 {
+	/* Append user :root overrides (if any) after builtin RootVars. */
+	inline void AppendUserRoot(std::string& css)
+	{
+		const std::string& o = UserTheme::CssRootOverride();
+		if (!o.empty())
+			css += o;
+	}
+
 	/* Shared custom-property block for about:/file: pages. */
 	inline const char* RootVars()
 	{
@@ -203,7 +213,8 @@ namespace HelperThemeCss
     font-family: var(--font-ui);
   }
 
-  /* Double-ruled plaque panel (outer deep, inner soft gold). */
+  /* Double-ruled plaque panel (outer deep, inner soft gold).
+     UiChrome::DecorCss upgrades these with curated texture fills when extracted. */
   .plaque, section.block, a.tile, .modal {
     background:
       linear-gradient(165deg, rgba(48, 38, 22, 0.55) 0%, transparent 42%),
@@ -213,12 +224,13 @@ namespace HelperThemeCss
       inset 0 1px 0 rgba(255, 230, 160, 0.12),
       inset 0 0 0 1px rgba(0, 0, 0, 0.35),
       0 8px 28px rgba(0, 0, 0, 0.45);
+    position: relative;
   }
   .hairline {
-    height: 1px;
+    height: 10px;
     border: 0;
     background: linear-gradient(90deg, transparent, var(--border), transparent);
-    margin: 0.75rem 0;
+    margin: 0.85rem 0;
   }
 )CSS";
 	}

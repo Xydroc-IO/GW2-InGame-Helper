@@ -34,8 +34,21 @@ namespace BrowserTabsDetail
 
 		if (!siteId || !siteId[0])
 			siteId = "browse";
+		const bool wantBrowse = (std::strcmp(siteId, "browse") == 0);
 		if (!Sites::SetActiveById(siteId) && !Sites::SetActiveById("browse"))
 			Sites::SetActiveById("home");
+
+		/* Browse hub is side-rail only — not a Help catalog row. Still land
+		   on about:browse-hub when the catalog omits id "browse". */
+		if (wantBrowse && Sites::IndexOfId("browse") < 0)
+		{
+			std::snprintf(t.tab.siteId, sizeof(t.tab.siteId), "browse");
+			std::snprintf(t.tab.title, sizeof(t.tab.title), "Browse");
+			t.tab.url = "about:browse-hub";
+			t.tab.pinned = false;
+			std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "browse");
+			return;
+		}
 
 		const SiteDef& site = Sites::Active();
 		std::snprintf(t.tab.siteId, sizeof(t.tab.siteId), "%s", Sites::ActiveId());

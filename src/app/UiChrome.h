@@ -19,6 +19,9 @@ namespace UiChrome
 	/* file:/// URL for a named pack PNG (e.g. "browse-hero.png"). */
 	std::string NamedFileUrl(const std::wstring& addonDir, const char* fileName);
 
+	/* CSS that layers curated plaque/button/divider textures onto HTML pages. */
+	std::string DecorCss(const std::wstring& addonDir);
+
 	/* Request Nexus upload from extracted files (prefer over CDN for chrome). */
 	void WarmTextures(const std::wstring& addonDir);
 

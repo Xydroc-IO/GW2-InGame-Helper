@@ -1,7 +1,9 @@
 #include "LivePanelsBuildShared.h"
 
 #include "AddonPaths.h"
+#include "Globals.h"
 #include "HelperThemeCss.h"
+#include "LivePanelsInternal.h"
 #include "Sites.h"
 #include "UiChrome.h"
 
@@ -27,14 +29,21 @@ namespace
 	const char* HubCss()
 	{
 		static std::string s;
-		static const char* out = nullptr;
-		if (!out)
+		static char sTheme[64]{};
+		static char sVer[16]{};
+		if (s.empty() || std::strcmp(sTheme, G::ThemeId) != 0 ||
+			std::strcmp(sVer, LivePanelsDetail::kPanelVer) != 0)
 		{
+			std::snprintf(sTheme, sizeof(sTheme), "%s", G::ThemeId);
+			std::snprintf(sVer, sizeof(sVer), "%s", LivePanelsDetail::kPanelVer);
 			s = HelperThemeCss::RootVars();
+			HelperThemeCss::AppendUserRoot(s);
 			s += HelperThemeCss::ImmersiveShell();
 			{
-				const std::string fill = UiChrome::FillFileUrl(AddonPaths::DataDir());
+				const std::wstring dir = AddonPaths::DataDir();
+				const std::string fill = UiChrome::FillFileUrl(dir);
 				s += HelperThemeCss::FillBackgroundCss(fill.c_str());
+				s += UiChrome::DecorCss(dir);
 			}
 			s += R"CSS(
 .wrap{max-width:960px;margin:0 auto;padding:28px 22px 72px}
@@ -59,9 +68,11 @@ h1{margin:0 0 8px;font-size:2.1rem}
 }
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.85rem}
 a.tile{
-  display:flex;flex-direction:column;justify-content:center;gap:.35rem;
-  min-height:5.4rem;padding:1.05rem 1.1rem;text-decoration:none;color:var(--text);
-  border-left:3px solid var(--gold-dim);
+  /* Centered stack on flat grey of card-fill (ragged ink eats outer edges). */
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:.35rem;
+  min-height:6.1rem;padding:1.45rem 1.15rem 1.6rem;text-decoration:none;color:var(--text);
+  border-left:1px solid var(--gold-dim);
   transition:border-color .15s,transform .12s,box-shadow .15s;
 }
 a.tile:hover{
@@ -69,15 +80,19 @@ a.tile:hover{
   transform:translateY(-2px);
   box-shadow:inset 0 1px 0 rgba(255,230,160,.16),0 12px 28px rgba(0,0,0,.5);
 }
-a.tile .name{font-size:1.05rem;font-weight:650;color:var(--gold-bright);font-family:var(--font-display)}
-a.tile .blurb{font-size:.8rem;color:var(--muted);line-height:1.35}
+a.tile > *{position:relative;z-index:1}
+a.tile .name{
+  font-size:1.22rem;font-weight:700;color:var(--gold-bright);
+  font-family:var(--font-display);letter-spacing:.02em;line-height:1.2;
+}
+a.tile .blurb{font-size:.88rem;color:var(--muted);line-height:1.35}
+a.tile .meta{font-size:.78rem;color:var(--gold-dim);margin-top:.15rem;letter-spacing:.03em}
 .foot{margin-top:2.5rem;font-size:.78rem;color:var(--muted)}
 .empty{margin:2rem 0;color:var(--muted)}
 .hidden{display:none!important}
 )CSS";
-			out = s.c_str();
 		}
-		return out;
+		return s.c_str();
 	}
 
 	const char* HubJs()
@@ -188,6 +203,8 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char
 			html += Esc(e.label);
 			html += "</span><span class=\"blurb\">";
 			html += Esc(e.title);
+			html += "</span><span class=\"meta\">";
+			html += Esc(e.section);
 			html += "</span></a>";
 		}
 		if (open)

@@ -124,7 +124,7 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 			continue;
 		const int count = Sites::CountInCategory(cat);
 		std::string q = ToLower(std::string(cat) + " " + slug);
-		html += "<a class=\"tile\" data-q=\"";
+		html += "<a class=\"tile tile-cat\" data-q=\"";
 		html += Esc(q);
 		html += "\" href=\"?gw2igh-about=browse-cat-";
 		html += Esc(slug);

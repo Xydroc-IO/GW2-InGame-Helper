@@ -26,6 +26,24 @@ scroll-arrow.png	scrollbar_chevron_155031
 scroll-arrow-up.png	scrollbar_chevron_up_155031
 scroll-atlas.png	scrollbar_atlas_156078
 scroll-track-h.png	scrollbar_track_h_154968
+# HTML / pad plaque set (Pictures/Textures/UI Textures → named)
+card-fill.png	plaque_fill_1701860
+card-fill-dark.png	plaque_fill_dark_1701861
+card-border.png	plaque_frame_gold_rim_clean
+hero-plate.png	hero_plate_1670507
+btn-frame.png	button_frame_155146
+btn-frame-hover.png	button_frame_hover_1692715_gold_recolor
+btn-plate.png	button_plate_105752
+divider-gold.png	divider_bar_156072
+header-ornament.png	header_ornament_155076
+plaque-corner.png	plaque_corner_156013
+155146.png	button_frame_raw
+1692715.png	button_frame_hover_raw
+155084.png	plaque_frame_raw
+155076.png	header_ornament_raw
+156013.png	plaque_corner_raw
+1701860.png	plaque_fill_raw
+1670507.png	hero_plate_raw
 # Rail / Log Manager curated icons
 1002138.png	rail_icon
 1002139.png	rail_icon

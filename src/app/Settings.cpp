@@ -196,6 +196,8 @@ void Settings::Load()
 			G::FontScaleAuto = AsBool(val);
 			sawFontScaleAuto = true;
 		}
+		else if (std::strcmp(key, "ThemeId") == 0)
+			std::snprintf(G::ThemeId, sizeof(G::ThemeId), "%s", val);
 		else if (std::strcmp(key, "WindowWidth") == 0)
 		{
 			G::WindowWidth = static_cast<float>(std::atof(val));

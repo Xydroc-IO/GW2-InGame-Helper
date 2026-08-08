@@ -109,6 +109,7 @@ namespace G
 	extern float Opacity;
 	extern float FontScale;
 	extern bool  FontScaleAuto; /* true: derive FontScale from display / Nexus Scaling */
+	extern char  ThemeId[64]; /* user theme folder under config/themes/; empty = default */
 	extern float WindowWidth;
 	extern float WindowHeight;
 	extern float WindowPosX;

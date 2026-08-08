@@ -1,7 +1,7 @@
 {
   "version": 2,
   "source": "data/sites.json",
-  "count": 2720,
+  "count": 2719,
   "sites": [
     {
       "id": "home",
@@ -9,18 +9,6 @@
       "label": "How to use",
       "title": "How to use",
       "homeUrl": "about:helper-home",
-      "searchUrlPrefix": null,
-      "searchUrlSuffix": null,
-      "browsePath": [
-        "Getting Started"
-      ]
-    },
-    {
-      "id": "browse",
-      "category": "Help",
-      "label": "Browse",
-      "title": "Browse sites — categories & favorites",
-      "homeUrl": "about:browse-hub",
       "searchUrlPrefix": null,
       "searchUrlSuffix": null,
       "browsePath": [

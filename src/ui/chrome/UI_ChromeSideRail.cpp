@@ -82,20 +82,14 @@ namespace UIDetail
 
 		/*
 		 * Auto-size icons to the helper height — always fit, never scroll the nav.
-		 * Tall windows: keep max icon + stretch gaps. Short: shrink icons + pad.
+		 * Leftover dock height expands each button (FramePadding) so the stack
+		 * reaches the bottom — no empty strip and no blank gaps between rows.
 		 */
-		constexpr int kStretchGaps = 16;
 		const float iconSz = SideRail::FitIconSize(dockH, labels);
 		const float padY = SideRail::PadY(labels);
 		const float itemSp = SideRail::ItemSpacing(iconSz, labels);
-		const float fp = SideRail::FramePadY(iconSz, labels);
-		const float packedH = SideRail::PackedHeight(iconSz, labels, itemSp, fp);
-		/* Same clear space under Settings as WindowPadding above Browse. */
-		const float bottomExtra = padY;
-		float stretch = 0.f;
-		if (dockH > packedH + bottomExtra + 1.f)
-			stretch = (dockH - packedH - bottomExtra) / static_cast<float>(kStretchGaps);
-		stretch = static_cast<float>(static_cast<int>(stretch + 0.5f));
+		const float baseFp = SideRail::FramePadY(iconSz, labels);
+		const float fp = SideRail::FillFramePadY(dockH, iconSz, labels, itemSp, baseFp);
 
 		ImGui::SetNextWindowPos(ImVec2(dockX, dockY), ImGuiCond_Always);
 		ImGui::SetNextWindowSize(ImVec2(railW, dockH), ImGuiCond_Always);
@@ -137,6 +131,16 @@ namespace UIDetail
 
 			railDl->PushClipRect(rp0, rp1, false);
 			railDl->AddRectFilled(rp0, rp1, under);
+			/* Deeper grain under the wash (curated hero plate). */
+			if (Texture_t* hero = Gw2UiDetail::GetChromeNamed("hero-plate"))
+			{
+				if (hero->Resource)
+				{
+					const ImU32 heroCol = IM_COL32(255, 255, 255, static_cast<int>(oa * 90.f + 0.5f));
+					railDl->AddImage(reinterpret_cast<ImTextureID>(hero->Resource),
+						rp0, rp1, ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), heroCol);
+				}
+			}
 			if (wash && wash->Resource)
 			{
 				const float u0 = (rp0.x - helperX) / helperW;
@@ -170,31 +174,61 @@ namespace UIDetail
 					joinCol);
 				railDl->PopClipRect();
 			}
+
+			/* Plaque corners on the outer (left) edge of the dock. */
+			if (Texture_t* corner = Gw2UiDetail::GetChromeNamed("plaque-corner"))
+			{
+				if (corner->Resource)
+				{
+					const ImTextureID cid = reinterpret_cast<ImTextureID>(corner->Resource);
+					const float cs = 22.f;
+					const ImU32 ccol = IM_COL32(255, 255, 255, static_cast<int>(oa * 185.f + 0.5f));
+					railDl->AddImage(cid,
+						ImVec2(rp0.x - 1.f, rp0.y - 1.f),
+						ImVec2(rp0.x - 1.f + cs, rp0.y - 1.f + cs),
+						ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), ccol);
+					railDl->AddImage(cid,
+						ImVec2(rp0.x - 1.f, rp1.y - cs + 1.f),
+						ImVec2(rp0.x - 1.f + cs, rp1.y + 1.f),
+						ImVec2(0.f, 1.f), ImVec2(1.f, 0.f), ccol);
+				}
+			}
 		}
 
 		if (labels)
 		{
+			/* Soft ornament behind the HELPER label (no extra layout height). */
+			if (Texture_t* orn = Gw2UiDetail::GetChromeNamed("header-ornament"))
+			{
+				if (orn->Resource)
+				{
+					const ImVec2 p = ImGui::GetCursorScreenPos();
+					const float w = ImGui::GetContentRegionAvail().x;
+					const float bandH = ImGui::GetTextLineHeight() + 4.f;
+					ImGui::GetWindowDrawList()->AddImage(
+						reinterpret_cast<ImTextureID>(orn->Resource),
+						ImVec2(p.x, p.y), ImVec2(p.x + w, p.y + bandH),
+						ImVec2(0.f, 0.f), ImVec2(1.f, 1.f),
+						IM_COL32(255, 255, 255, 100));
+				}
+			}
 			ImGui::TextColored(HelperTheme::GoldBright, "HELPER");
-			ImGui::Separator();
 		}
 
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false, static_cast<int>(Gw2Ui::Icon::BrowseInfo), iconSz))
 			openSiteInActive("browse");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Browse sites - categories, favorites (current tab)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Ledger###gw2igh_ledger", false, static_cast<int>(Gw2Ui::Icon::LedgerCoins), iconSz))
 			openSiteNewTab("legvault");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("GW2 Legendary Ledger - owned / missing / craft tree");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Sheets###gw2igh_cheatsheets", false, static_cast<int>(Gw2Ui::Icon::SheetsBook), iconSz))
 			openUrlNewTab("browse", "about:cheatsheets-hub");
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Offline cheat sheets - food, fractals, squad tools, ...");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("API Check###gw2igh_api_check", false, static_cast<int>(Gw2Ui::Icon::ApiHourglass), iconSz))
 		{
@@ -219,7 +253,6 @@ namespace UIDetail
 			ImGui::SetTooltip(
 				"Probe official api.guildwars2.com endpoints (public + your key).\n"
 				"Local page - not a third-party status site.");
-		SideRail::StretchGap(stretch);
 
 		SideRail::SectionGap(labels, "TOOLS");
 
@@ -230,7 +263,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Direction compass - enable + letter size + radius\nDefault: Ctrl+Shift+O (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Vault###gw2igh_vault", G::ShowVault, static_cast<int>(Gw2Ui::Icon::VaultStar), iconSz))
 		{
@@ -239,7 +271,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Vault - dailies & Wizard's Vault\nDefault: Ctrl+Shift+V (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Events###gw2igh_events", G::ShowEvents, static_cast<int>(Gw2Ui::Icon::EventsMedal), iconSz))
 		{
@@ -248,7 +279,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("World events - UTC timers + track list\nDefault: Ctrl+Shift+E (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Instances###gw2igh_instances", G::ShowInstances, static_cast<int>(Gw2Ui::Icon::InstGate), iconSz))
 		{
@@ -257,7 +287,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Instances - story / fractal / raid / strike\nDefault: Ctrl+Shift+I (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Economy###gw2igh_economy", G::ShowEconomy, static_cast<int>(Gw2Ui::Icon::EconStack), iconSz))
 		{
@@ -266,7 +295,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Economy - Flip Finder, charts, cart\nDefault: Ctrl+Shift+Y (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Farming###gw2igh_farming", G::ShowFarming, static_cast<int>(Gw2Ui::Icon::FarmSack), iconSz))
 		{
@@ -275,7 +303,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Farming - curated/custom runs, GPS, fishing log\nDefault: Ctrl+Shift+R (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides, static_cast<int>(Gw2Ui::Icon::PathingMap), iconSz))
 		{
@@ -284,7 +311,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Pathing - Tekkit + Lady Elyssa + Hero packs\nDefault: Ctrl+Shift+G (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Trail Tools###gw2igh_trailtools", G::ShowTrailTools, static_cast<int>(Gw2Ui::Icon::TrailAnvil), iconSz))
 		{
@@ -293,7 +319,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Trail Tools - author packs\nDefault: Ctrl+Shift+B (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Completion###gw2igh_completion", G::ShowCompletion, static_cast<int>(Gw2Ui::Icon::CompletePeak), iconSz))
 		{
@@ -302,7 +327,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Completion - checklist, Atlas, routes, GPS\nDefault: Ctrl+Shift+M (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Notes###gw2igh_notes", G::ShowNotes, static_cast<int>(Gw2Ui::Icon::NotesScroll), iconSz))
 		{
@@ -311,7 +335,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Snippets + Waypoints search\nDefault: Ctrl+Shift+N (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("DPS Logs###gw2igh_logs", G::ShowLogManager, static_cast<int>(Gw2Ui::Icon::LogsSwords), iconSz))
 		{
@@ -320,7 +343,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("DPS Logs - ArcDPS EVTC via Elite Insights\nDefault: Ctrl+Shift+L (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
 
 		if (PadNav::SideToggle("Account###gw2igh_account", G::ShowAccount, static_cast<int>(Gw2Ui::Icon::AccountSword), iconSz))
 		{
@@ -329,9 +351,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Account - progress, unlocks, history\nDefault: Ctrl+Shift+A (Settings -> Keybinds)");
-		SideRail::StretchGap(stretch);
-
-		SideRail::SectionGap(labels, nullptr);
 
 		if (PadNav::SideToggle("Settings###gw2igh_settings", G::ShowSettings, static_cast<int>(Gw2Ui::Icon::SettingsGear), iconSz))
 		{
@@ -340,10 +359,6 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Settings - opacity, font, API key, Keybinds tab\nDefault: Ctrl+Shift+. ");
-
-		/* Match top WindowPadding at the bottom — stretch must not land Settings flush. */
-		if (bottomExtra > 0.5f)
-			ImGui::Dummy(ImVec2(1.f, bottomExtra));
 
 		const bool dockHover = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

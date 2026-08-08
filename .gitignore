@@ -60,8 +60,6 @@ Desktop.ini
 *.tmp
 *.kate-swp
 .WHITE*.kate-swp
-docs/.*.kate-swp
-
 # Local / runtime clutter (never commit)
 *.log
 settings.ini
@@ -120,16 +118,18 @@ pathing/*.zip
 **/addons/GW2-InGame-Helper/**
 **/addons/GW2-InGame-Helper-Beta/**
 
-# Local listing / announcement drafts (keep on disk; do not publish in git)
-# Discord paste drafts, Raidcore listing notes, audits, partner briefs, Beta notes.
-# Most of docs/ is local-only — only these are published in the repo:
-#   RELEASE_NOTES.md · DPS_LOGS.md · WHITEPAPER.md · API_KEY.md · COMPLIANCE.md
+# docs/ — most files are local-only (drafts, listing paste, working notes).
+# Published in git (see CONTRIBUTING.md):
+#   RELEASE_NOTES · DPS_LOGS · WHITEPAPER · API_KEY · COMPLIANCE · THEMES · media/*
 docs/**
 !docs/RELEASE_NOTES.md
 !docs/DPS_LOGS.md
 !docs/WHITEPAPER.md
 !docs/API_KEY.md
 !docs/COMPLIANCE.md
+!docs/THEMES.md
+!docs/media/
+!docs/media/**
 
 # Python
 __pycache__/

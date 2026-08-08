@@ -259,14 +259,9 @@ void LivePanels::InvalidateCaches(const std::wstring& addonDir)
 	};
 	for (const char* stem : stems)
 	{
-		/* Browse HTML stays on disk — stamp wipe only (see InvalidateBrowseHubCaches). */
-		if (std::strcmp(stem, "live-browse-hub") == 0)
-		{
-			DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
-			DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
-			continue;
-		}
-		DeleteFileW(StemPath(addonDir, stem, L".html").c_str());
+		/* Never delete .html — CEF session history keeps file:// entries; wiping
+		   the file surfaces Chromium ERR_FILE_NOT_FOUND on Back. Stamp (+ json)
+		   wipe is enough for EnsurePanel to rebuild on next about: open. */
 		DeleteFileW(StemPath(addonDir, stem, L".ver").c_str());
 		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 		DeleteFileW(StemPath(addonDir, stem, L".json").c_str());

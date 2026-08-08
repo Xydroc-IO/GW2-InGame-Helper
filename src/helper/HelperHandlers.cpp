@@ -67,7 +67,7 @@ namespace HelperDetail
 
 	void CEF_CALLBACK OnLoadError(
 		cef_load_handler_t*, cef_browser_t* browser, cef_frame_t* frame,
-		cef_errorcode_t errorCode, const cef_string_t* errorText, const cef_string_t*)
+		cef_errorcode_t errorCode, const cef_string_t* errorText, const cef_string_t* failedUrl)
 	{
 		if (!IsActiveBrowser(browser))
 			return;
@@ -77,6 +77,17 @@ namespace HelperDetail
 		   subloads. Do not surface it as a hard failure. */
 		if (errorCode == ERR_ABORTED || errorCode == ERR_NONE)
 			return;
+		/* History Back / make install wipe: CEF still has file://live-*.html in
+		   session history after pages/ was cleared — rebuild via about:. */
+		if (errorCode == ERR_FILE_NOT_FOUND && failedUrl)
+		{
+			const std::string failed = CefStringToUtf8(failedUrl);
+			if (RecoverMissingLiveFileUrl(failed))
+			{
+				SetStatus("Restoring page…");
+				return;
+			}
+		}
 		char buf[256];
 		std::snprintf(buf, sizeof(buf), "Load error %d: %s",
 			static_cast<int>(errorCode), CefStringToUtf8(errorText).c_str());

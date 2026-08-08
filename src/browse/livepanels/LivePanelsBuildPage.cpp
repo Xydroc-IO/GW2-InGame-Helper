@@ -20,8 +20,11 @@ std::string BuildPage(const char* title, const char* eyebrow, const char* headin
 	out += "</title>\n<style>\n";
 	out += LivePanelsHtml::SharedCss();
 	{
-		const std::string fill = UiChrome::FillFileUrl(AddonPaths::DataDir());
+		const std::wstring dir = AddonPaths::DataDir();
+		const std::string fill = UiChrome::FillFileUrl(dir);
 		out += HelperThemeCss::FillBackgroundCss(fill.c_str());
+		out += UiChrome::DecorCss(dir);
+		HelperThemeCss::AppendUserRoot(out);
 	}
 	out += "\n</style>\n";
 	out += extraHead;

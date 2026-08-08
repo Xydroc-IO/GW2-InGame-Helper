@@ -120,28 +120,67 @@ namespace HelperDetail
 		return query.substr(p, end - p);
 	}
 
-	/* Map live-browse-*.html file URL → about: for DLL EnsurePanel refresh. */
+	/* Map live panel file:// URL → about: for DLL EnsurePanel refresh. */
 	std::string AboutFromBrowseFileUrl(const std::string& url)
 	{
-		const size_t hub = url.find("live-browse-hub.html");
-		if (hub != std::string::npos)
+		if (url.find("live-browse-hub.html") != std::string::npos)
 			return "about:browse-hub";
+		if (url.find("live-cheatsheets-hub.html") != std::string::npos)
+			return "about:cheatsheets-hub";
+		if (url.find("live-legendary-vault.html") != std::string::npos)
+			return "about:legendary-vault";
+		if (url.find("live-dailies.html") != std::string::npos)
+			return "about:live-dailies";
+		if (url.find("live-news.html") != std::string::npos)
+			return "about:live-news";
+		if (url.find("live-fashion.html") != std::string::npos)
+			return "about:live-fashion";
+		if (url.find("live-tp.html") != std::string::npos)
+			return "about:live-tp";
+		if (url.find("gw2-api-check.html") != std::string::npos)
+			return "about:gw2-api-check";
 		const size_t cat = url.find("live-browse-cat-");
-		if (cat == std::string::npos)
-			return {};
-		size_t start = cat + 15; /* strlen("live-browse-cat-") */
-		size_t end = start;
-		while (end < url.size())
+		if (cat != std::string::npos)
 		{
-			const char c = url[end];
-			if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-')
-				++end;
-			else
-				break;
+			size_t start = cat + 15; /* strlen("live-browse-cat-") */
+			size_t end = start;
+			while (end < url.size())
+			{
+				const char c = url[end];
+				if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-')
+					++end;
+				else
+					break;
+			}
+			if (end > start)
+				return std::string("about:browse-cat-") + url.substr(start, end - start);
 		}
-		if (end <= start)
-			return {};
-		return std::string("about:browse-cat-") + url.substr(start, end - start);
+		const size_t leg = url.find("live-legendary-detail-");
+		if (leg != std::string::npos)
+		{
+			size_t start = leg + 22; /* strlen("live-legendary-detail-") */
+			size_t end = start;
+			while (end < url.size() && url[end] >= '0' && url[end] <= '9')
+				++end;
+			if (end > start)
+				return std::string("about:legendary-vault-item-") + url.substr(start, end - start);
+		}
+		return {};
+	}
+
+	/* History Back / install wipe: missing live panel HTML → rebuild via about:. */
+	bool RecoverMissingLiveFileUrl(const std::string& url)
+	{
+		if (url.rfind("file:", 0) != 0)
+			return false;
+		const std::string about = AboutFromBrowseFileUrl(url);
+		if (about.empty())
+			return false;
+		const std::string resolved = ResolveBuiltinUrl(about.c_str());
+		if (resolved.empty())
+			return false;
+		NavigateTo(resolved.c_str());
+		return true;
 	}
 
 	void InvalidateHelperBrowseCaches()
@@ -149,9 +188,11 @@ namespace HelperDetail
 		const std::wstring pages = HelperPagesDir();
 		if (pages.empty())
 			return;
+		/* Stamp-only — keep .html so CEF history Back does not ERR_FILE_NOT_FOUND. */
 		DeleteFileW((pages + L"\\live-browse-hub.ok").c_str());
 		DeleteFileW((pages + L"\\live-browse-hub.ver").c_str());
-		DeleteFileW((pages + L"\\live-browse-hub.html").c_str());
+		DeleteFileW((pages + L"\\live-cheatsheets-hub.ok").c_str());
+		DeleteFileW((pages + L"\\live-cheatsheets-hub.ver").c_str());
 	}
 
 	void InvalidateHelperBrowsePage(const std::string& fileUrl)
@@ -168,7 +209,7 @@ namespace HelperDetail
 		wstem.reserve(stem.size());
 		for (char c : stem)
 			wstem.push_back(static_cast<wchar_t>(c));
-		DeleteFileW((pages + L"\\" + wstem + L".html").c_str());
+		/* Stamp-only — do not delete category .html while it may be in CEF history. */
 		DeleteFileW((pages + L"\\" + wstem + L".ok").c_str());
 		DeleteFileW((pages + L"\\" + wstem + L".ver").c_str());
 	}

@@ -10,7 +10,7 @@
      live/cache/  live-*.json API caches
      cache/       unlocks / waypoints / stash caches
      cmds/        helper ↔ DLL cmd files
-     config/      notes, profiles, session history, waypoints, log-index, markers, ei-helper.conf
+     config/      notes, profiles, themes/, session history, waypoints, log-index, markers, ei-helper.conf
      cheatsheets/ cef/ pathing/ ei/  (unchanged)
 
    Root keeps: settings.ini, sites.json(+.ver), GW2HelperBrowser.exe(+.ver). */
@@ -25,6 +25,7 @@ namespace AddonPaths
 	std::wstring CacheDir();
 	std::wstring CmdsDir();
 	std::wstring ConfigDir();
+	std::wstring ThemesDir(); /* config/themes — user drop-in color themes */
 
 	/* Join DataDir (or an explicit root) with a relative subpath, ensuring parents exist. */
 	std::wstring EnsureUnder(const std::wstring& root, const wchar_t* relative);

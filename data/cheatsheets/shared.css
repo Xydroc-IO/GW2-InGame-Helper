@@ -60,6 +60,13 @@
     background: linear-gradient(165deg, rgba(48, 38, 22, 0.4), transparent 55%), #14100c;
     border: 1px solid var(--border);
     box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.1), 0 10px 32px rgba(0, 0, 0, 0.4);
+    /* ui-chrome DecorCss upgrades background-image when pack is present */
+    position: relative;
+    overflow: hidden;
+  }
+  .hairline {
+    height: 10px; border: 0; margin: 0.85rem 0;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
   }
   .eyebrow {
     margin: 0 0 8px; font-size: 0.72rem; letter-spacing: 0.18em;
@@ -89,7 +96,8 @@
   }
   section.block > .head h2 { margin: 0; font-size: 1.2rem; color: var(--gold-bright); font-weight: 700; }
   section.block > .head p { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
-  .body { padding: 16px 18px 18px; }
+  /* Extra bottom inset so last rows stay on flat grey when card-fill has ragged edges. */
+  .body { padding: 16px 18px 28px; }
   .note {
     margin: 0 0 14px; padding: 12px 14px; background: var(--accent);
     border-left: 3px solid var(--gold-dim); color: var(--muted); font-size: 0.92rem;
@@ -239,7 +247,7 @@
   .wp-grid.single { grid-template-columns: 1fr; max-width: 420px; }
   .wp {
     display: flex; flex-direction: column; gap: 10px;
-    padding: 14px 14px 12px;
+    padding: 16px 16px 18px;
     background: var(--panel-2);
     border: 1px solid var(--border-soft);
     border-left: 3px solid var(--gold-dim);

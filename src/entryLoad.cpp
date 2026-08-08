@@ -18,6 +18,7 @@
 #include "Sites.h"
 #include "UI.h"
 #include "UiChrome.h"
+#include "UserTheme.h"
 #include "WikiBrowser.h"
 #include "AddonPaths.h"
 
@@ -38,6 +39,7 @@ void AddonLoad(AddonAPI_t* api)
 	G::Mumble = static_cast<MumbleLinkedMem*>(api->DataLink_Get(DL_MUMBLE_LINK));
 
 	Settings::Load();
+	UserTheme::Reload();
 	NotesPad::Load();
 	CharacterProfiles::Load();
 	ConfirmedWaypoints::Load();

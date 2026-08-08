@@ -7,26 +7,46 @@
 
 #include "imgui/imgui.h"
 
-/* Dark-warm parchment + gold with optional local GW2 UI chrome (UiChrome pack). */
+/* Dark-warm parchment + gold with optional local GW2 UI chrome (UiChrome pack).
+   Color tokens are mutable so UserTheme can override them at runtime. */
 namespace HelperTheme
 {
-	inline const ImVec4 Gold(0.96f, 0.82f, 0.42f, 1.f);
-	inline const ImVec4 GoldBright(1.f, 0.92f, 0.68f, 1.f);
-	inline const ImVec4 GoldDim(0.84f, 0.66f, 0.30f, 1.f);
-	inline const ImVec4 GoldMuted(0.82f, 0.70f, 0.44f, 1.f);
+	inline ImVec4 Gold(0.96f, 0.82f, 0.42f, 1.f);
+	inline ImVec4 GoldBright(1.f, 0.92f, 0.68f, 1.f);
+	inline ImVec4 GoldDim(0.84f, 0.66f, 0.30f, 1.f);
+	inline ImVec4 GoldMuted(0.82f, 0.70f, 0.44f, 1.f);
 	/* Readable cream — eased back from pure white so chrome stays warm. */
-	inline const ImVec4 Ink(0.97f, 0.94f, 0.86f, 1.f);
-	inline const ImVec4 Muted(0.86f, 0.78f, 0.64f, 1.f);
+	inline ImVec4 Ink(0.97f, 0.94f, 0.86f, 1.f);
+	inline ImVec4 Muted(0.86f, 0.78f, 0.64f, 1.f);
 	/* Dark leather / aged wood boards. */
-	inline const ImVec4 Bg(0.050f, 0.038f, 0.028f, 0.98f);
-	inline const ImVec4 Panel(0.11f, 0.088f, 0.060f, 1.f);
-	inline const ImVec4 Child(0.07f, 0.055f, 0.040f, 0.90f);
-	inline const ImVec4 Border(0.68f, 0.50f, 0.24f, 0.95f);
-	inline const ImVec4 TabActive(0.28f, 0.21f, 0.11f, 1.f);
-	inline const ImVec4 TabIdle(0.065f, 0.050f, 0.036f, 1.f);
-	inline const ImVec4 Header(0.28f, 0.21f, 0.11f, 0.96f);
-	inline const ImVec4 Warn(0.92f, 0.55f, 0.28f, 1.f);
-	inline const ImVec4 Ok(0.52f, 0.72f, 0.42f, 1.f);
+	inline ImVec4 Bg(0.050f, 0.038f, 0.028f, 0.98f);
+	inline ImVec4 Panel(0.11f, 0.088f, 0.060f, 1.f);
+	inline ImVec4 Child(0.07f, 0.055f, 0.040f, 0.90f);
+	inline ImVec4 Border(0.68f, 0.50f, 0.24f, 0.95f);
+	inline ImVec4 TabActive(0.28f, 0.21f, 0.11f, 1.f);
+	inline ImVec4 TabIdle(0.065f, 0.050f, 0.036f, 1.f);
+	inline ImVec4 Header(0.28f, 0.21f, 0.11f, 0.96f);
+	inline ImVec4 Warn(0.92f, 0.55f, 0.28f, 1.f);
+	inline ImVec4 Ok(0.52f, 0.72f, 0.42f, 1.f);
+
+	inline void ResetToBuiltin()
+	{
+		Gold = ImVec4(0.96f, 0.82f, 0.42f, 1.f);
+		GoldBright = ImVec4(1.f, 0.92f, 0.68f, 1.f);
+		GoldDim = ImVec4(0.84f, 0.66f, 0.30f, 1.f);
+		GoldMuted = ImVec4(0.82f, 0.70f, 0.44f, 1.f);
+		Ink = ImVec4(0.97f, 0.94f, 0.86f, 1.f);
+		Muted = ImVec4(0.86f, 0.78f, 0.64f, 1.f);
+		Bg = ImVec4(0.050f, 0.038f, 0.028f, 0.98f);
+		Panel = ImVec4(0.11f, 0.088f, 0.060f, 1.f);
+		Child = ImVec4(0.07f, 0.055f, 0.040f, 0.90f);
+		Border = ImVec4(0.68f, 0.50f, 0.24f, 0.95f);
+		TabActive = ImVec4(0.28f, 0.21f, 0.11f, 1.f);
+		TabIdle = ImVec4(0.065f, 0.050f, 0.036f, 1.f);
+		Header = ImVec4(0.28f, 0.21f, 0.11f, 0.96f);
+		Warn = ImVec4(0.92f, 0.55f, 0.28f, 1.f);
+		Ok = ImVec4(0.52f, 0.72f, 0.42f, 1.f);
+	}
 
 	inline void Push()
 	{

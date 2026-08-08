@@ -77,6 +77,7 @@ namespace G
 	float Opacity      = 0.97f;
 	float FontScale    = 1.f;
 	bool  FontScaleAuto = false; /* opt-in only - default stays 1.0 */
+	char  ThemeId[64]  = "";
 	float WindowWidth  = 1100.f;
 	float WindowHeight = 760.f;
 	float WindowPosX   = 60.f;

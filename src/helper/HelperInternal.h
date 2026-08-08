@@ -132,6 +132,7 @@ namespace HelperDetail
 	int ParseQueryInt(const std::string& query, const char* key);
 	std::string ParseQueryValue(const std::string& query, const char* key);
 	std::string AboutFromBrowseFileUrl(const std::string& url);
+	bool RecoverMissingLiveFileUrl(const std::string& url);
 	void InvalidateHelperBrowseCaches();
 	void InvalidateHelperBrowsePage(const std::string& fileUrl);
 

@@ -4,17 +4,24 @@
 
 #include "AddonPaths.h"
 #include "AspectLayout.h"
+#include "CheatSheets.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
 #include "HelperTheme.h"
+#include "HomePage.h"
 #include "LivePanels.h"
 #include "PadNav.h"
 #include "PanelBinds.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "UiScale.h"
+#include "UserTheme.h"
 
 #include "imgui/imgui.h"
+
+#include <cstdio>
+#include <string>
+#include <vector>
 
 #include <windows.h>
 #include <shellapi.h>
@@ -37,6 +44,83 @@ namespace
 			PadNav::Meta("Default landing site");
 			UI_Browse_DrawDefaultSitePicker();
 			MutedWrap("Home button uses this. Also used when no tabs are saved yet.");
+		}
+
+		{
+			/* Cache list — do not scan the filesystem every ImGui frame. */
+			static bool sSeeded = false;
+			static std::vector<std::string> sThemes;
+			static DWORD sLastHeavyMs = 0;
+			if (!sSeeded)
+			{
+				UserTheme::EnsureSeed();
+				sThemes = UserTheme::ListThemes();
+				sSeeded = true;
+			}
+
+			int cur = 0; /* 0 = Default */
+			for (size_t i = 0; i < sThemes.size(); ++i)
+			{
+				if (G::ThemeId[0] && sThemes[i] == G::ThemeId)
+				{
+					cur = static_cast<int>(i) + 1;
+					break;
+				}
+			}
+			const char* preview = (cur == 0) ? "Default"
+				: sThemes[static_cast<size_t>(cur - 1)].c_str();
+			PadNav::PushLabeledItemWidth();
+			if (ImGui::BeginCombo("Theme###gw2igh_theme", preview))
+			{
+				if (ImGui::Selectable("Default", cur == 0))
+				{
+					G::ThemeId[0] = 0;
+					UserTheme::Apply("default");
+					Settings::SetDirty();
+				}
+				for (size_t i = 0; i < sThemes.size(); ++i)
+				{
+					const bool sel = (cur == static_cast<int>(i) + 1);
+					if (ImGui::Selectable(sThemes[i].c_str(), sel))
+					{
+						std::snprintf(G::ThemeId, sizeof(G::ThemeId), "%s", sThemes[i].c_str());
+						UserTheme::Apply(G::ThemeId);
+						Settings::SetDirty();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			PadNav::PopLabeledItemWidth();
+			if (ImGui::SmallButton("Open themes folder###gw2igh_theme_open"))
+			{
+				const DWORD now = GetTickCount();
+				if (now - sLastHeavyMs >= 750u)
+				{
+					sLastHeavyMs = now;
+					const std::wstring dir = AddonPaths::ThemesDir();
+					if (!dir.empty())
+						ShellExecuteW(nullptr, L"explore", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Reload themes###gw2igh_theme_reload"))
+			{
+				const DWORD now = GetTickCount();
+				if (now - sLastHeavyMs >= 750u)
+				{
+					sLastHeavyMs = now;
+					UserTheme::EnsureSeed();
+					sThemes = UserTheme::ListThemes();
+					UserTheme::Reload();
+					/* Light page CSS refresh only — never extract packs from Settings. */
+					(void)HomePage::EnsureFileUrl(AddonPaths::DataDir());
+					CheatSheets::RefreshUserThemeCss();
+					Settings::SetDirty();
+				}
+			}
+			MutedWrap(
+				"Drop a folder with theme.ini under config/themes/. "
+				"Pads update immediately; reopen helper pages to refresh colors.");
 		}
 
 		PadNav::PushLabeledItemWidth();

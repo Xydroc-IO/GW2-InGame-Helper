@@ -57,6 +57,7 @@ DLL_SRC = \
 	src/app/Settings.cpp \
 	src/app/SettingsSave.cpp \
 	src/app/AddonPaths.cpp \
+	src/app/UserTheme.cpp \
 	src/app/MumbleIdentity.cpp \
 	src/app/AspectLayout.cpp \
 	src/app/PanelBinds.cpp \
@@ -608,7 +609,7 @@ install: $(DLL_OUT)
 	# Seed Immersive chrome so pads look correct even before first extract.
 	@mkdir -p "$(INSTALL_DIR)/ui-chrome"
 	/bin/cp -f data/ui-chrome/*.png "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
-	@printf 'uc28' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
+	@printf 'uc31' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"

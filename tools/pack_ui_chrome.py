@@ -26,6 +26,16 @@ REQUIRED = (
 	"title-bar.png",
 	"panel-edge.png",
 	"ink-edge.png",
+	"card-fill.png",
+	"card-fill-dark.png",
+	"card-border.png",
+	"hero-plate.png",
+	"btn-frame.png",
+	"btn-frame-hover.png",
+	"btn-plate.png",
+	"divider-gold.png",
+	"header-ornament.png",
+	"plaque-corner.png",
 )
 
 
