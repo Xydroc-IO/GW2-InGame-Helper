@@ -3,6 +3,7 @@
 
 #include "AspectLayout.h"
 #include "CommerceShared.h"
+#include "BgFetch.h"
 #include "CraftingData.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
@@ -85,13 +86,14 @@ namespace
 			int shown = 0;
 			for (const FlipRow& r : gFlips)
 			{
-				if (shown >= 3) break;
 				if (r.spread <= 0) continue;
-				ImGui::TextColored(HelperTheme::Ok, "Flip: %s  net %s",
-					r.name[0] ? r.name : "Item", FormatCoins(r.spread).c_str());
 				++shown;
+				if (shown > 1) break;
 			}
-			if (shown == 0)
+			if (shown > 0)
+				ImGui::TextColored(HelperTheme::Muted,
+					"Best flips: open Flips → Top 10 (fee-adjusted net).");
+			else
 				ImGui::TextColored(HelperTheme::Muted, "Flips: run Rescan on Flips tab.");
 		}
 		ImGui::TextColored(HelperTheme::Muted, "TP cart: %zu line(s)",
@@ -130,7 +132,7 @@ namespace
 		toolCell("Item", "Lookup | wiki | BLTC");
 
 		ImGui::Spacing();
-		toolCell("Crafting", "Dailies | browser | plan");
+		toolCell("Crafting", "Plan | Known | Browse | Craft cart");
 	}
 }
 
@@ -205,6 +207,13 @@ bool EconomyPad::Render()
 	static int sLazyTab = -1;
 	if (sLazyTab != gTab)
 	{
+		/* Pause old heavy channels before kicking the new tab's fetch. */
+		const bool onCraft = (gTab == kTabCrafting);
+		const bool onStash = (gTab == kTabStash);
+		/* Known-detail pump is managed inside Crafting RenderContents (Known sub-tab only). */
+		if (!onCraft)
+			CraftingData::SetKnownDetailsActive(false);
+		BgFetch::SetWanted(BgFetch::Channel::Wallet, onStash || G::ShowWallet);
 		sLazyTab = gTab;
 		switch (gTab)
 		{
@@ -214,9 +223,11 @@ bool EconomyPad::Render()
 				RequestFlipScan();
 			break;
 		case kTabStash:
+			/* Deferred until crafting detail HTTP drains (BgFetch + TickDeferredFetch). */
 			WalletPad::RefreshData(false);
 			break;
 		case kTabTrading:
+			BgFetch::SetWanted(BgFetch::Channel::TpWatch, true);
 			TpWatchPad::RefreshData();
 			Commerce::StartTransactionsFetch();
 			break;
@@ -232,6 +243,8 @@ bool EconomyPad::Render()
 		default:
 			break;
 		}
+		if (gTab != kTabTrading)
+			BgFetch::SetWanted(BgFetch::Channel::TpWatch, false);
 	}
 
 	ImGui::BeginChild("###gw2igh_eco_body", ImVec2(0.f, 0.f), gTab != kTabOverview);

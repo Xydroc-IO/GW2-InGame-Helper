@@ -5,6 +5,7 @@
 #include "HelperTheme.h"
 #include "PadDock.h"
 #include "PadNav.h"
+#include "MapAssist.h"
 #include "PathingFeatures.h"
 #include "PathingPacks.h"
 #include "ConfirmedWaypoints.h"
@@ -181,7 +182,25 @@ namespace
 			PadNav::WrapSameLine(PadNav::ButtonWidth("Copy"));
 			if (ImGui::SmallButton("Copy"))
 				RoutingSuggest::CopyChatLink(c.chatLink.c_str());
+			if (c.hasCoord && G::MapAssistEnabled)
+			{
+				PadNav::WrapSameLine(PadNav::ButtonWidth("Pan map"));
+				if (ImGui::SmallButton("Pan map"))
+					MapAssist::RequestPanTo(c.continentX, c.continentY);
+				if (G::MapAssistClickWaypoint)
+				{
+					PadNav::WrapSameLine(PadNav::ButtonWidth("Travel"));
+					if (ImGui::SmallButton("Travel"))
+						MapAssist::RequestTravelAssist(c.continentX, c.continentY);
+				}
+			}
 			ImGui::PopID();
+		}
+		if (MapAssist::Busy() || (MapAssist::Status()[0] && G::MapAssistEnabled))
+		{
+			PadNav::PushWrap();
+			ImGui::TextColored(HelperTheme::Muted, "%s", MapAssist::Status());
+			PadNav::PopWrap();
 		}
 
 		ImGui::Separator();

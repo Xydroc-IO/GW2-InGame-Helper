@@ -1,5 +1,7 @@
 #include "Gw2Http.h"
 
+#include "ApiBudget.h"
+
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -145,6 +147,25 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 		r.error = "WinHttpConnect failed";
 		return r;
 	}
+
+	/* Cap concurrent api.guildwars2.com GETs across Wallet/Vault/Crafting/Instances. */
+	const bool budgeted = (_wcsicmp(host, L"api.guildwars2.com") == 0);
+	const int budgetWait = timeoutMs > 0 ? (timeoutMs + 8000) : 30000;
+	bool budgetHeld = false;
+	if (budgeted)
+	{
+		if (!ApiBudget::Acquire(budgetWait))
+		{
+			r.error = "api concurrency budget";
+			return r;
+		}
+		budgetHeld = true;
+	}
+	struct BudgetGuard
+	{
+		bool* held = nullptr;
+		~BudgetGuard() { if (held && *held) { ApiBudget::Release(); *held = false; } }
+	} budgetGuard{ budgeted ? &budgetHeld : nullptr };
 
 	/* Short budgets = one shot. Keep-alive per thread — do not open/close per call. */
 	const int maxAttempts = (timeoutMs <= 4000) ? 1 : 4;

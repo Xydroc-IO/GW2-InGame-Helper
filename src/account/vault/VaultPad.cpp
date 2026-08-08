@@ -3,6 +3,7 @@
 #include "VaultPadInternal.h"
 
 #include "AspectLayout.h"
+#include "BgFetch.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PadLayout.h"
@@ -30,6 +31,8 @@ namespace VaultDetail
 	std::atomic<unsigned> gGen{0};
 	unsigned gDrawnGen = 0;
 	std::atomic<bool> gBusy{false};
+	std::atomic<bool> gDeferredFetch{false};
+	std::atomic<bool> gDeferredForce{false};
 	HANDLE gThread = nullptr;
 	bool gFocus = false;
 	bool gPlaceOnce = false;
@@ -140,6 +143,8 @@ void VaultPad::OpenAndRefresh()
 
 void VaultPad::RenderContents()
 {
+	BgFetch::SetWanted(BgFetch::Channel::Vault, true);
+	TickDeferredFetch();
 	SyncDraw();
 	const Snapshot& snap = gDraw;
 

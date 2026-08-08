@@ -2,6 +2,7 @@
 #include "InstancesInternal.h"
 
 #include "AspectLayout.h"
+#include "BgFetch.h"
 #include "BrowserTabs.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
@@ -35,7 +36,12 @@ static void OpenWikiSearch(const char* name)
 bool InstancesPad::Render()
 {
 	using namespace InstancesDetail;
-	if (!G::ShowInstances) return false;
+	if (!G::ShowInstances)
+	{
+		BgFetch::SetWanted(BgFetch::Channel::Instances, false);
+		return false;
+	}
+	BgFetch::SetWanted(BgFetch::Channel::Instances, true);
 	EnsureCatalog();
 
 	const ImGuiIO& io = ImGui::GetIO();
@@ -87,8 +93,9 @@ bool InstancesPad::Render()
 	ImGui::BeginChild("###gw2igh_inst_body", ImVec2(0.f, 0.f), true);
 	TickRaidSync();
 	PadNav::Blurb(
-		"Sync pulls weekly raids, fractal level, daily fractals, CM achievement overlays, "
-		"and story progress via character quests. Strikes stay local (no account strikes API).");
+		"Sync pulls weekly raids, fractal level, and daily fractals first; CM overlays "
+		"load after on open/Sync. Soft refresh while open skips the big achievements "
+		"download. Story stays local (quest crawl was too heavy). Strikes stay local.");
 	ImGui::TextColored(HelperTheme::Muted, "%s cleared: %d / %d",
 		KindName(gKind), CountCleared(gKind), CountEntries(gKind));
 	if (gFractalLevel > 0)

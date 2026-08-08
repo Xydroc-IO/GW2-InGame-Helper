@@ -3,6 +3,7 @@
 #include "CraftingKnownInternal.h"
 #include "CraftingShared.h"
 
+#include "BgFetch.h"
 #include "Gw2Http.h"
 
 #include <atomic>
@@ -22,6 +23,7 @@ namespace CraftingDetail
 	std::unordered_set<int> gDetailQueued;
 	std::atomic<bool> gDetailBusy{false};
 	std::atomic<int> gDetailWorkers{0};
+	std::atomic<bool> gDetailPump{true};
 
 	void SaveKnownDetailsDisk()
 	{
@@ -227,10 +229,30 @@ namespace CraftingDetail
 
 	static DWORD WINAPI KnownDetailProc(void*)
 	{
-		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 		for (;;)
 		{
+			if (!gDetailPump.load())
+			{
+				bool saveDisk = false;
+				{
+					std::lock_guard<std::mutex> lock(gKnownMu);
+					const int left = --gDetailWorkers;
+					if (left <= 0)
+					{
+						gDetailWorkers = 0;
+						gDetailBusy = false;
+						BgFetch::SetCraftingDetailsBusy(false);
+						saveDisk = !gRecipeDetails.empty();
+					}
+				}
+				if (saveDisk)
+					SaveKnownDetailsDisk();
+				return 0;
+			}
+
 			std::vector<int> batch;
+			bool saveDisk = false;
 			{
 				std::lock_guard<std::mutex> lock(gKnownMu);
 				while (!gDetailQueue.empty() && batch.size() < kDetailBatch)
@@ -248,10 +270,17 @@ namespace CraftingDetail
 					{
 						gDetailWorkers = 0;
 						gDetailBusy = false;
-						SaveKnownDetailsDisk();
+						BgFetch::SetCraftingDetailsBusy(false);
+						/* Never call SaveKnownDetailsDisk under gKnownMu — it re-locks. */
+						saveDisk = !gRecipeDetails.empty();
 					}
-					return 0;
 				}
+			}
+			if (batch.empty())
+			{
+				if (saveDisk)
+					SaveKnownDetailsDisk();
+				return 0;
 			}
 			FetchDetailBatch(batch);
 		}
@@ -259,6 +288,8 @@ namespace CraftingDetail
 
 	static void KickDetailWorkers()
 	{
+		if (!gDetailPump.load())
+			return;
 		for (;;)
 		{
 			int cur = gDetailWorkers.load();
@@ -269,9 +300,12 @@ namespace CraftingDetail
 				if (gDetailQueue.empty())
 					return;
 			}
+			if (!gDetailPump.load())
+				return;
 			if (!gDetailWorkers.compare_exchange_weak(cur, cur + 1))
 				continue;
 			gDetailBusy = true;
+			BgFetch::SetCraftingDetailsBusy(true);
 			HANDLE h = CreateThread(nullptr, 0, KnownDetailProc, nullptr, 0, nullptr);
 			if (!h)
 			{
@@ -279,11 +313,26 @@ namespace CraftingDetail
 				{
 					gDetailWorkers = 0;
 					gDetailBusy = false;
+					BgFetch::SetCraftingDetailsBusy(false);
 				}
 				return;
 			}
 			CloseHandle(h); /* fire-and-forget; thread keeps running */
 		}
+	}
+
+	void SetKnownDetailsPump(bool enabled)
+	{
+		gDetailPump.store(enabled);
+		BgFetch::SetWanted(BgFetch::Channel::CraftingDetails, enabled);
+		BgFetch::SetCraftingDetailsBusy(gDetailBusy.load());
+		if (enabled)
+			KickDetailWorkers();
+	}
+
+	bool KnownDetailsBusy()
+	{
+		return gDetailBusy.load();
 	}
 
 	void EnsureKnownRecipeDetails(const std::vector<int>& recipeIds)

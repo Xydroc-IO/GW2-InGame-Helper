@@ -54,6 +54,8 @@ namespace VaultDetail
 	extern std::atomic<unsigned> gGen;
 	extern unsigned gDrawnGen;
 	extern std::atomic<bool> gBusy;
+	extern std::atomic<bool> gDeferredFetch;
+	extern std::atomic<bool> gDeferredForce;
 	extern HANDLE gThread;
 	extern bool gFocus;
 	extern bool gPlaceOnce;
@@ -82,6 +84,7 @@ namespace VaultDetail
 	bool TryLiveCache(const std::wstring& dir, const char* stem, DWORD ttlSec, Gw2Http::Result& out);
 	DWORD WINAPI MasterProc(void*);
 	void StartFetch(bool force);
+	void TickDeferredFetch();
 
 	/* VaultPad.cpp */
 	void DrawResetCountdowns();

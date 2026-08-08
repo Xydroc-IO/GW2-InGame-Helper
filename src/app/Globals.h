@@ -90,6 +90,8 @@ namespace G
 	extern bool  LadyHeroPointTrain; /* legs.hp.* hero point train (current map) */
 	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
 	extern bool  ShowWorldTrails; /* in-world GPS breadcrumbs */
+	extern bool  MapAssistEnabled; /* opt-in world-map steer (default off) */
+	extern bool  MapAssistClickWaypoint; /* opt-in tap WP after steer; player confirms teleport */
 	extern bool  ShowDirectionCompass; /* world N/E/S/W around the character */
 	extern bool  ShowCompassPad; /* ImGui Compass settings pad (sliders) */
 	extern bool  ShowSettings; /* ImGui Settings pad (ex-Nexus Options body) */
@@ -165,4 +167,5 @@ namespace G
 	extern PadGeom PadInstances;
 	extern PadGeom PadCompletion;
 	extern PadGeom PadFarming;
+	extern PadGeom PadEventAlert; /* on-screen event toast placement */
 }

@@ -166,6 +166,8 @@ void Settings::Load()
 			G::LadyHeroPointTrain = AsBool(val);
 		else if (std::strcmp(key, "ShowCompassOverlay") == 0) G::ShowCompassOverlay = AsBool(val);
 		else if (std::strcmp(key, "ShowWorldTrails") == 0) G::ShowWorldTrails = AsBool(val);
+		else if (std::strcmp(key, "MapAssistEnabled") == 0) G::MapAssistEnabled = AsBool(val);
+		else if (std::strcmp(key, "MapAssistClickWaypoint") == 0) G::MapAssistClickWaypoint = AsBool(val);
 		else if (std::strcmp(key, "ShowDirectionCompass") == 0) G::ShowDirectionCompass = AsBool(val);
 		else if (std::strcmp(key, "DirectionLetterScale") == 0)
 			G::DirectionLetterScale = static_cast<float>(std::atof(val));
@@ -296,6 +298,8 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadCompletion);
 		else if (std::strcmp(key, "PadFarming") == 0)
 			PadDock::ParseGeom(val, G::PadFarming);
+		else if (std::strcmp(key, "PadEventAlert") == 0)
+			PadDock::ParseGeom(val, G::PadEventAlert);
 		else if (std::strcmp(key, "FavoriteIds") == 0)
 			Sites::ParseFavorites(val);
 		else if (std::strcmp(key, "BrowseOpen") == 0)
@@ -432,6 +436,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "LadyHeroPointTrain=%d\n", G::LadyHeroPointTrain ? 1 : 0);
 	std::fprintf(f, "ShowCompassOverlay=%d\n", G::ShowCompassOverlay ? 1 : 0);
 	std::fprintf(f, "ShowWorldTrails=%d\n", G::ShowWorldTrails ? 1 : 0);
+	std::fprintf(f, "MapAssistEnabled=%d\n", G::MapAssistEnabled ? 1 : 0);
+	std::fprintf(f, "MapAssistClickWaypoint=%d\n", G::MapAssistClickWaypoint ? 1 : 0);
 	std::fprintf(f, "ShowDirectionCompass=%d\n", G::ShowDirectionCompass ? 1 : 0);
 	std::fprintf(f, "DirectionLetterScale=%.2f\n", G::DirectionLetterScale);
 	std::fprintf(f, "DirectionWorldRadiusScale=%.2f\n", G::DirectionWorldRadiusScale);
@@ -492,6 +498,7 @@ void Settings::Save(bool force)
 	PadDock::WriteGeom(f, "PadInstances", G::PadInstances);
 	PadDock::WriteGeom(f, "PadCompletion", G::PadCompletion);
 	PadDock::WriteGeom(f, "PadFarming", G::PadFarming);
+	PadDock::WriteGeom(f, "PadEventAlert", G::PadEventAlert);
 	char favBuf[4096]{};
 	Sites::SerializeFavorites(favBuf, sizeof(favBuf));
 	std::fprintf(f, "FavoriteIds=%s\n", favBuf);

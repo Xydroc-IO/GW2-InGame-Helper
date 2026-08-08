@@ -48,6 +48,7 @@ set(SRC_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pathing/packs
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pathing/trails
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pathing/waypoints
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/pathing/mapassist
   ${CMAKE_CURRENT_SOURCE_DIR}/src/logs
   ${CMAKE_CURRENT_SOURCE_DIR}/src/logs/logmanager
   ${CMAKE_CURRENT_SOURCE_DIR}/src/logs/eiruntime
@@ -112,6 +113,10 @@ add_library(GW2-InGame-Helper SHARED
   src/app/Gw2UiPadScroll.cpp
   src/app/UiChrome.cpp
   src/api/Gw2Http.cpp
+  src/api/ApiBudget.cpp
+  src/api/BgFetch.cpp
+  src/app/GameLive.cpp
+  src/pathing/mapassist/MapAssist.cpp
   src/browse/sites/Sites.cpp
   src/browse/sites/SitesState.cpp
   src/browse/sites/SitesUrlMatch.cpp

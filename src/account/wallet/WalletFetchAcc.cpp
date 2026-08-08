@@ -2,6 +2,7 @@
 
 #include "WalletShared.h"
 
+#include "BgFetch.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "Settings.h"
@@ -61,6 +62,9 @@ namespace WalletDetail
 		CharJob* job = static_cast<CharJob*>(p);
 		for (;;)
 		{
+			if (gCancel) break;
+			while (!BgFetch::AllowWork(BgFetch::Channel::Wallet) && !gCancel)
+				Sleep(40);
 			if (gCancel) break;
 			const size_t i = job->next.fetch_add(1);
 			if (i >= job->names.size()) break;
@@ -395,9 +399,27 @@ namespace WalletDetail
 		return 0;
 	}
 
+	void TickDeferredFetch()
+	{
+		if (!gDeferredFetch.load())
+			return;
+		if (!BgFetch::AllowWork(BgFetch::Channel::Wallet))
+			return;
+		const bool force = gDeferredForce.load();
+		gDeferredFetch = false;
+		StartFetch(force);
+	}
+
 	void StartFetch(bool force)
 	{
 		LoadNames();
+		BgFetch::SetWanted(BgFetch::Channel::Wallet, true);
+		if (!BgFetch::AllowWork(BgFetch::Channel::Wallet))
+		{
+			gDeferredFetch = true;
+			gDeferredForce = force;
+			return;
+		}
 		if (!force)
 		{
 			std::lock_guard<std::mutex> lock(gMu);
@@ -408,6 +430,7 @@ namespace WalletDetail
 					return;
 			}
 		}
+		gDeferredFetch = false;
 		if (gBusy.exchange(true))
 			return;
 		gCancel = false;

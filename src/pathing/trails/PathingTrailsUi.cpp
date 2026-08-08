@@ -46,6 +46,23 @@ bool PathingTrails::DrawOverlaySettings()
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("3D world breadcrumbs near you (same categories as the compass).");
 
+		dirty |= ImGui::Checkbox("Map assist (pan)", &G::MapAssistEnabled);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Opt-in (default off): steer GW2's world map toward a Pathing target.\n"
+				"Uses OS cursor input + MumbleLink MapCenter only while the map is open.\n"
+				"Never confirms teleports for you.");
+		if (G::MapAssistEnabled)
+		{
+			ImGui::Indent();
+			dirty |= ImGui::Checkbox("Click waypoint after pan", &G::MapAssistClickWaypoint);
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip(
+					"Second opt-in (default off): after steering, tap the waypoint so\n"
+					"GW2 opens its teleport prompt — you still confirm in-game.");
+			ImGui::Unindent();
+		}
+
 		/* Always visible on Overview under the GPS checkbox. */
 		ImGui::Indent();
 		ImGui::TextUnformatted("In-world GPS");

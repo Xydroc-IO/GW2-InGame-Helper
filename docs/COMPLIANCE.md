@@ -35,10 +35,18 @@ This file is **normative** (allowed / forbidden). Analysis belongs in the whitep
 
 - Game memory reads/writes, MinHook, MumbleLink **scraping for automation** (combat/bots/input)
 - Present / `d3d11.dll` wrapper hooks (would conflict with ArcDPS / ReShade)
-- `SendInput` / keybd_event into Guild Wars 2 (1-to-many input / bots)
+- `SendInput` / keybd_event into Guild Wars 2 for **gameplay** (movement, skills, combat, inventory, trading)
 - Combat automation or account-action automation via BootJs
 - **Writing into `bin64/cef`** (private tree stays under the addon data folder)
 - Truncating advertisement click tracker URLs in Open Ext (refuse if too long instead)
+
+## Allowed exception — world-map assist (opt-in)
+
+- **Pathing Map Assist** may use OS cursor `SendInput` **only** while GW2’s **fullscreen world map** is open, and **only** when the player enables it under Pathing → Overview (`MapAssistEnabled`, default **off**).
+- Purpose: pan the map toward a known continent coordinate, optionally click a waypoint to open GW2’s **native teleport prompt**.
+- **Must never** auto-confirm the teleport dialog, inject keybinds for skills/movement, or run while the map is closed.
+- Optional click-after-pan (`MapAssistClickWaypoint`) is a separate opt-in (default **off**).
+- Implementation lives in `src/pathing/mapassist/` — original Helper code; not a third-party paste.
 
 ## Hot-reload
 

@@ -1,6 +1,7 @@
 #include "GpsArrow.h"
 
 #include "CompletionShared.h"
+#include "GameLive.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PathingTrails.h"
@@ -15,6 +16,8 @@ bool GpsArrow::Render()
 	if (!CompletionDetail::gShowGpsArrow)
 		return false;
 	if (!PathingTrails::HasSearchGuideActive())
+		return false;
+	if (!GameLive::IsLive())
 		return false;
 	if (!G::Mumble || G::Mumble->context_len < sizeof(MumbleContext))
 		return false;

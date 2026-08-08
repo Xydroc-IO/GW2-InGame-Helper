@@ -10,7 +10,8 @@ CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/ui/browse -Isrc/ui/settings -Isrc/ui/
 	-Isrc/browse/tabs -Isrc/account -Isrc/account/crafting -Isrc/account/tpwatch -Isrc/account/unlocks \
 	-Isrc/account/wallet -Isrc/account/vault -Isrc/account/lookup -Isrc/account/progress -Isrc/pathing \
 	-Isrc/pathing/trailtools -Isrc/pathing/world -Isrc/pathing/lua -Isrc/pathing/packs \
-	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/logs -Isrc/logs/logmanager -Isrc/logs/eiruntime \
+	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/pathing/mapassist \
+	-Isrc/logs -Isrc/logs/logmanager -Isrc/logs/eiruntime \
 	-Isrc/events -Isrc/notes -Isrc/helper \
 	-Isrc/economy -Isrc/instances -Isrc/completion -Isrc/farming -Isrc/overlay
 CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/lua
@@ -19,7 +20,7 @@ CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
 LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
 LDFLAGS_EXE  = -static -static-libgcc -static-libstdc++ -mwindows -municode -mcrtdll=msvcrt
-LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32 -ladvapi32
+LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -luser32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32 -ladvapi32
 LIBS_EXE = -lgdi32 -lole32 -luuid -lshell32 -lwinhttp
 
 HELPER_SRC = src/helper/main.cpp src/helper/HelperState.cpp src/helper/HelperPaths.cpp \
@@ -66,6 +67,10 @@ DLL_SRC = \
 	src/app/Gw2UiPadScroll.cpp \
 	src/app/UiChrome.cpp \
 	src/api/Gw2Http.cpp \
+	src/api/ApiBudget.cpp \
+	src/api/BgFetch.cpp \
+	src/app/GameLive.cpp \
+	src/pathing/mapassist/MapAssist.cpp \
 	src/browse/sites/Sites.cpp \
 	src/browse/sites/SitesState.cpp \
 	src/browse/sites/SitesUrlMatch.cpp \

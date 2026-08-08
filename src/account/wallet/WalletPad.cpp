@@ -4,6 +4,7 @@
 
 #include "AddonPaths.h"
 #include "AspectLayout.h"
+#include "BgFetch.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "Gw2Icons.h"
@@ -41,6 +42,8 @@ namespace WalletDetail
 
 	std::atomic<bool> gBusy{false};
 	std::atomic<bool> gCancel{false};
+	std::atomic<bool> gDeferredFetch{false};
+	std::atomic<bool> gDeferredForce{false};
 	HANDLE gMasterThread = nullptr;
 	bool gFocus = false;
 	bool gPlaceOnce = false;
@@ -142,6 +145,8 @@ void WalletPad::FocusCharacterBags(const char* characterName)
 
 void WalletPad::RenderContents()
 {
+	BgFetch::SetWanted(BgFetch::Channel::Wallet, true);
+	TickDeferredFetch();
 	SyncDrawCopy();
 	const Snapshot& snap = gDraw;
 

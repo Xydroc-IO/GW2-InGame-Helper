@@ -25,6 +25,7 @@
 #include "FarmingPad.h"
 #include "EventAlert.h"
 #include "GpsArrow.h"
+#include "MapAssist.h"
 #include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
 #include "TrailToolsPad.h"
@@ -73,6 +74,7 @@ void UI_Render()
 	MumbleIdentity::Tick();
 	CharacterProfiles::Tick();
 	ConfirmedWaypoints::Tick();
+	MapAssist::Tick();
 	/* Tekkit overlays - always, even with the browser closed. */
 	CompassOverlay::Render();
 	WorldOverlay::Render();
@@ -133,7 +135,7 @@ void UI_Render()
 		FarmingPad::Tick();
 		const bool gpsArrowHover = GpsArrow::Render();
 		ZoneBanner::Render();
-		EventAlert::Render();
+		const bool eventAlertHover = EventAlert::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
@@ -141,7 +143,7 @@ void UI_Render()
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover ||
 			economyHover || instancesHover || completionHover || farmingHover ||
-			gpsArrowHover ||
+			gpsArrowHover || eventAlertHover ||
 			tekkitHover || trailToolsHover || compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);
@@ -276,7 +278,7 @@ void UI_Render()
 		FarmingPad::Tick();
 		const bool gpsArrowHover = GpsArrow::Render();
 		ZoneBanner::Render();
-		EventAlert::Render();
+		const bool eventAlertHover = EventAlert::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
@@ -284,7 +286,7 @@ void UI_Render()
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover ||
 			economyHover || instancesHover || completionHover || farmingHover ||
-			gpsArrowHover ||
+			gpsArrowHover || eventAlertHover ||
 			tekkitHover || trailToolsHover || compassHover || settingsHover);
 		NotesPad::Save(false);
 		Settings::Save(false);

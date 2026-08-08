@@ -18,7 +18,7 @@ namespace WalletDetail
 	constexpr DWORD kCacheTtlMs = 5 * 60 * 1000; /* soft TTL - still show instantly */
 	constexpr int kItemBatch = 200;
 	constexpr int kMaxChars = 64;
-	constexpr int kCharWorkers = 8;
+	constexpr int kCharWorkers = 4; /* ApiBudget caps total HTTP; keep char fan-out modest */
 
 	enum LocKind : int
 	{
@@ -70,6 +70,8 @@ namespace WalletDetail
 
 	extern std::atomic<bool> gBusy;
 	extern std::atomic<bool> gCancel;
+	extern std::atomic<bool> gDeferredFetch;
+	extern std::atomic<bool> gDeferredForce;
 	extern HANDLE gMasterThread;
 	extern bool gFocus;
 	extern bool gPlaceOnce;
@@ -113,6 +115,7 @@ namespace WalletDetail
 	DWORD WINAPI AccShared(void* p);
 	DWORD WINAPI MasterProc(void*);
 	void StartFetch(bool force);
+	void TickDeferredFetch(); /* retry StartFetch when BgFetch allows */
 
 	/* WalletPad.cpp */
 	void SyncDrawCopy();

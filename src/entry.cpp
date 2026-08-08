@@ -59,6 +59,8 @@ namespace G
 	bool  LadyHeroPointTrain = false; /* legs.hp.* train - own Features toggle */
 	bool  ShowCompassOverlay = true;
 	bool  ShowWorldTrails = true;
+	bool  MapAssistEnabled = false; /* opt-in — Settings / Pathing */
+	bool  MapAssistClickWaypoint = false; /* never auto-confirm teleport */
 	bool  ShowDirectionCompass = false;
 	bool  ShowCompassPad = false;
 	bool  ShowSettings = false;
@@ -123,6 +125,7 @@ namespace G
 	PadGeom PadInstances{};
 	PadGeom PadCompletion{};
 	PadGeom PadFarming{};
+	PadGeom PadEventAlert{};
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)

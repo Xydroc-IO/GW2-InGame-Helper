@@ -1,6 +1,7 @@
 #include "VaultPadInternal.h"
 
 #include "AddonPaths.h"
+#include "BgFetch.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "Settings.h"
@@ -121,9 +122,29 @@ namespace VaultDetail
 		return 0;
 	}
 
+	void TickDeferredFetch()
+	{
+		if (!gDeferredFetch.load())
+			return;
+		if (!BgFetch::AllowWork(BgFetch::Channel::Vault))
+			return;
+		const bool force = gDeferredForce.load();
+		gDeferredFetch = false;
+		StartFetch(force);
+	}
+
 	DWORD WINAPI MasterProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+		while (!BgFetch::AllowWork(BgFetch::Channel::Vault))
+		{
+			if (!BgFetch::Wanted(BgFetch::Channel::Vault))
+			{
+				gBusy = false;
+				return 0;
+			}
+			Sleep(40);
+		}
 		Snapshot snap;
 		snap.hasKey = G::Gw2ApiKey[0] != 0;
 
@@ -200,6 +221,13 @@ namespace VaultDetail
 
 	void StartFetch(bool force)
 	{
+		BgFetch::SetWanted(BgFetch::Channel::Vault, true);
+		if (!BgFetch::AllowWork(BgFetch::Channel::Vault))
+		{
+			gDeferredFetch = true;
+			gDeferredForce = force;
+			return;
+		}
 		if (!force)
 		{
 			std::lock_guard<std::mutex> lock(gMu);
@@ -207,6 +235,7 @@ namespace VaultDetail
 				(GetTickCount() - gSnap.fetchedAt) < kCacheTtlMs)
 				return;
 		}
+		gDeferredFetch = false;
 		if (gBusy.exchange(true))
 			return;
 		if (gThread)
