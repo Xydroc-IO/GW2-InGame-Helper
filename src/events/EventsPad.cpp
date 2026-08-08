@@ -108,39 +108,48 @@ bool EventsPad::Render()
 		"Track items to pin them. This map uses MumbleLink. "
 		"Claim badges need an API key. Wiki / MetaBattle open as links only.");
 
+	/* Filter / alert chips wrap — default pad width cannot fit one long SameLine row. */
+	auto checkW = [](const char* label) -> float {
+		const char* hash = std::strstr(label, "###");
+		const float textW = hash
+			? ImGui::CalcTextSize(label, hash).x
+			: ImGui::CalcTextSize(label).x;
+		return ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + textW;
+	};
+	auto wrapCheck = [&](const char* label, bool* v, bool first) -> bool {
+		if (!first)
+			PadNav::WrapSameLine(checkW(label));
+		return ImGui::Checkbox(label, v);
+	};
+
 	if (PadNav::RefreshButton("###gw2igh_ev_ref"))
 		BeginClaimRefresh();
-	ImGui::SameLine();
-	ImGui::Checkbox("Tracked###gw2igh_ev_trackonly", &gTrackedOnly);
-	ImGui::SameLine();
-	ImGui::Checkbox("<=30m###gw2igh_ev_soon", &gSoonOnly);
-	ImGui::SameLine();
-	ImGui::Checkbox("This map###gw2igh_ev_thismap", &gThisMapOnly);
+	wrapCheck("Tracked###gw2igh_ev_trackonly", &gTrackedOnly, false);
+	wrapCheck("<=30m###gw2igh_ev_soon", &gSoonOnly, false);
+	wrapCheck("This map###gw2igh_ev_thismap", &gThisMapOnly, false);
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Show only events for your current open-world map\n"
 			"(read-only MumbleLink map id).");
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Alerts###gw2igh_ev_alerts", &G::EventAlerts))
+
+	if (wrapCheck("Alerts###gw2igh_ev_alerts", &G::EventAlerts, false))
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"On-screen toast when an event is live or within 10 minutes\n"
 			"(catalog schedule). Default: all events.");
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Alerts tracked###gw2igh_ev_alerts_trk", &G::EventAlertsTrackedOnly))
+	if (wrapCheck("Alert track###gw2igh_ev_alerts_trk", &G::EventAlertsTrackedOnly, false))
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Limit alerts to your Track list only.\n"
 			"Off (default): notify for all catalog events.");
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Alerts map###gw2igh_ev_alerts_map", &G::EventAlertsThisMap))
+	if (wrapCheck("Alert map###gw2igh_ev_alerts_map", &G::EventAlertsThisMap, false))
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Limit alerts to events for your current open-world map\n"
-			"(read-only MumbleLink map id). Combines with Alerts tracked.");
+			"(read-only MumbleLink map id). Combines with Alert track.");
 
 	if (gThisMapOnly)
 	{
