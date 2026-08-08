@@ -66,7 +66,7 @@ namespace InstancesDetail
 	void ApplyAchievementIds(const std::vector<int>& doneIds);
 	void ApplyStoryCompletions(const std::vector<int>& completeStoryIds);
 
-	void StartRaidSync(bool force); /* full sync: raids + fractals + ach + story quests */
+	void StartRaidSync(bool force); /* force: + CM ach; soft: raids/dailies/FR only */
 	void TickRaidSync();
 	bool RaidSyncBusy();
 }
