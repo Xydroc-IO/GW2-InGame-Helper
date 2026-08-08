@@ -5,7 +5,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.3.12` |
+| Addon revision (shipping) | `2.2.3.13` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2242` / `2230` / `s2214` / `c2228` |
@@ -275,5 +275,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.3.12 — Watch portal/PipeWire OOP mirror; CEF --app-h short-page center; live 62; home 2230; cheatsheets c2228; raid food 9 |
+| Last architecture sync | 2.2.3.13 — Watch control toggle + About; portal/PipeWire OOP (w10, 1280×720); live 62; home 2230; cheatsheets c2228; raid food 9 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

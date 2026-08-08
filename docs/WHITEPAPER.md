@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.3.12 |
+| Revision described | 2.2.3.13 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.3.13 | 2.2.3.13 | Watch About tab; rail toggles control only (Mirror stays); deferred GPU + 1280×720 (w10) |
 | 2.2.3.12 | 2.2.3.12 | Watch control + Mirror; portal/PipeWire OOP (w10, 1280×720) / Windows GDI; async spawn |
 | 2.2.3.11 | 2.2.3.11 | CEF --app-h short-page center; chrome/CEF crash fixes; live 62; home 2230; c2228; raid food 9 |
 | 2.2.3.10 | 2.2.3.10 | User themes; Browse tile centering; live Back ERR_FILE recovery; side-rail fill; ui-chrome uc31 |
@@ -897,11 +898,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.2.3.12)
+## Appendix A — Quantitative constants (revision 2.2.3.13)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.2.3.12 |
+| Addon version | 2.2.3.13 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -960,6 +961,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | `src/overlay/*` | GPS arrow + zone banner |
 | `src/events/*` | World Events |
 | `src/notes/*` | Notes + waypoints |
+| `src/watch/*` | Watch control + Mirror (GDI / portal+PipeWire OOP) |
 | `src/app/*` | Settings, paths, AddonVersion, theme, pad dock, PanelBinds, UiChrome, Gw2Ui/Gw2Icons, Mumble identity |
 | `src/api/Gw2Http*` | Blocking WinHTTP (workers only) |
 
@@ -1002,6 +1004,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.3.12 — Watch portal/PipeWire OOP; helper 2242; home 2230; live 62; c2228; raid food 9; watchd w10 |
+| Last sync | 2.2.3.13 — Watch About + control toggle; portal/PipeWire OOP; helper 2242; home 2230; live 62; c2228; raid food 9; watchd w10 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

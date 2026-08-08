@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.12
+# GW2 In-Game Helper v2.2.3.13
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.3.13
+
+- **Watch control pad:** **Watch** / **About** tabs on the Start/Stop pad (how-to + limits).
+- **Watch rail / keybind:** Toggles the control pad only — Mirror keeps running until Stop
+  or Mirror close (no more hard `CloseAll` when reopening controls).
+- **Stamps:** Helper `2242` · homepage `2230` · sites `s2214` · cheatsheets `c2228`
+  · live panel `62` · raid food `9` · ui-chrome `uc31` · watchd `w10`
 
 ## What’s new in 2.2.3.12
 
