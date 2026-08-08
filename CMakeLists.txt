@@ -108,6 +108,8 @@ add_library(GW2-InGame-Helper SHARED
   src/app/Gw2Icons.cpp
   src/app/Gw2Ui.cpp
   src/app/Gw2UiPadChrome.cpp
+  src/app/Gw2UiPadTitle.cpp
+  src/app/Gw2UiPadScroll.cpp
   src/app/UiChrome.cpp
   src/api/Gw2Http.cpp
   src/browse/sites/Sites.cpp
@@ -164,6 +166,7 @@ add_library(GW2-InGame-Helper SHARED
   src/account/tpwatch/TpWatchData.cpp
   src/account/tpwatch/TpWatchResolve.cpp
   src/account/tpwatch/TpWatchFetch.cpp
+  src/account/tpwatch/TpWatchOrdersUi.cpp
   src/account/lookup/LookupPad.cpp
   src/account/lookup/LookupFetch.cpp
   src/account/wallet/WalletPad.cpp
@@ -191,32 +194,60 @@ add_library(GW2-InGame-Helper SHARED
   src/account/crafting/CraftingKnown.cpp
   src/account/crafting/CraftingKnownDetails.cpp
   src/account/crafting/CraftingKnownUi.cpp
+  src/account/crafting/CraftingBrowser.cpp
+  src/account/crafting/CraftingLevelPaths.cpp
+  src/account/crafting/CraftingCart.cpp
+  src/account/crafting/CraftingCartPlan.cpp
+  src/account/crafting/CraftingCartUi.cpp
+  src/account/crafting/CraftingOpts.cpp
+  src/account/crafting/CraftingPlanBuild.cpp
+  src/account/crafting/CraftingPlanDecide.cpp
+  src/account/crafting/CraftingResults.cpp
   src/events/EventsPad.cpp
   src/events/EventsPadState.cpp
   src/events/EventsData.cpp
+  src/events/EventsTiming.cpp
   src/economy/EconomyPad.cpp
   src/economy/EconomyPadUi.cpp
   src/economy/EconomyPadState.cpp
   src/economy/EconomyFetch.cpp
   src/economy/EconomyFetchFlip.cpp
   src/economy/EconomyFetchCart.cpp
+  src/economy/EconomyChartPoll.cpp
+  src/economy/EconomyPadFlips.cpp
+  src/economy/CommercePrices.cpp
+  src/economy/CommerceListings.cpp
+  src/economy/CommerceTransactions.cpp
+  src/economy/CommerceExchange.cpp
+  src/economy/CommerceOwned.cpp
   src/instances/InstancesPad.cpp
   src/instances/InstancesPadState.cpp
   src/instances/InstancesData.cpp
+  src/instances/InstancesFetch.cpp
   src/completion/CompletionPad.cpp
   src/completion/CompletionPadState.cpp
   src/completion/CompletionData.cpp
+  src/completion/CompletionFloors.cpp
   src/completion/CompletionGuide.cpp
   src/completion/CompletionRoute.cpp
   src/completion/CompletionHierarchy.cpp
   src/completion/CompletionFavorites.cpp
   src/completion/CompletionAtlas.cpp
   src/completion/CompletionChecklist.cpp
+  src/completion/CompletionPackMerge.cpp
+  src/completion/CompletionPackClassify.cpp
+  src/completion/CompletionApIds.cpp
+  src/completion/CompletionApFetch.cpp
+  src/completion/CompletionAchievements.cpp
   src/farming/FarmingPad.cpp
   src/farming/FarmingPadState.cpp
   src/farming/FarmingPersist.cpp
+  src/farming/FarmingCatalog.cpp
+  src/farming/FarmingSchedule.cpp
+  src/farming/FarmingNodes.cpp
   src/overlay/GpsArrow.cpp
   src/overlay/ZoneBanner.cpp
+  src/overlay/EventAlert.cpp
   src/logs/logmanager/LogManagerPad.cpp
   src/logs/logmanager/LogManagerPadState.cpp
   src/logs/logmanager/LogManagerParse.cpp
@@ -254,6 +285,7 @@ add_library(GW2-InGame-Helper SHARED
   src/pathing/trails/PathingTrails.cpp
   src/pathing/trails/PathingTrailsQuery.cpp
   src/pathing/trails/PathingTrailsBehaviors.cpp
+  src/pathing/trails/PathingTrailsMarkers.cpp
   src/pathing/trails/PathingTrailsGuide.cpp
   src/pathing/packs/PathingLoad.cpp
   src/pathing/packs/PathingLoadLady.cpp

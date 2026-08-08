@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.8
+# GW2 In-Game Helper v2.2.3.9
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -33,6 +33,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 
 ---
 
+## What’s new in 2.2.3.9
+
+- **Event alerts:** On-screen toasts when events are soon/live; default = all catalog events;
+  **Alerts tracked** / **Alerts map** filters; persisted settings.
+- **Events polish:** Shared UTC timing helpers, next/then clocks, claim badges, wiki/MetaBattle links.
+- **Instances sync:** Fractal level + daily fractal board; CM achievement overlays; story progress via
+  character quests (LWS2–4, HoT, PoF, IBS, EoD, SotO). Raids still weekly `/v2/account/raids`.
+  Strikes stay local (no account strikes API).
+- **Crafting:** Leveling paths for all disciplines + GW2 Crafts links; smarter multi-recipe pick.
+- **Economy charts:** Per-item sample history (up to 120/id) fully persisted; ~90s poll of pinned items.
+- **Completion:** Pack-sourced hearts/HP/AP; Explorer/Been There API overlay; floors/pack structure split.
+- **Farming:** Catalog/schedule modules; Events-linked UTC hints for HoT metas.
+- **Stamps:** Helper `2241` · homepage `2227` · sites `s2213` · cheatsheets `c2224`
+  · live panel `54` · raid food `7` · ui-chrome `uc28`
+
 ## What’s new in 2.2.3.8
 
 - **Economy hub:** Stash, Trading (delivery + watchlist), Item lookup, and Crafting moved under
@@ -42,13 +57,15 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Side rail:** COMPANIONS section removed — tools live under one TOOLS list; reordered
   (Compass → Vault → Events → Instances → Economy → Farming → Pathing…).
 - **Rail icons:** Content UV fit so padded PNGs match dense ones; Pathing / Trail Tools /
-  Vault icons packed in ui-chrome `uc25`.
+  Vault icons packed in ui-chrome `uc27`.
 - **Crafting known recipes:** Parallel bulk detail workers + disk cache; 429 backoff / stubs so
   “Loading details N / M” can finish instead of rate-limit spinning.
 - **Instances / Completion:** Raids weekly clears from `/v2/account/raids`; Atlas strikes +
   festival scopes (carried with this ship).
+- **Browse hub:** Transparent sticky category chips (no full-width dark TOC bar); cropped
+  transparent browse-hero figure bottom-left.
 - **Stamps:** Helper `2241` · homepage `2227` · sites `s2213` · cheatsheets `c2224`
-  · live panel `51` · raid food `7` · ui-chrome `uc25`
+  · live panel `53` · raid food `7` · ui-chrome `uc27`
 
 ## What’s new in 2.2.3.7
 
@@ -162,10 +179,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see [`CEF_RUNTIME.md`](CEF_RUNTIME.md)
 - **Immersive HTML theme:** Homepage, cheat sheets, Browse/CheatSheets hubs, live panels,
   Raid Food, and Legendary Ledger deepen parchment/gold tokens (`HelperTheme` /
   `ImmersiveShell`) to match ImGui pads.
-- **Install:** `make install` keeps Beta DLL in sync with shipping so a leftover Beta
-  entry cannot shadow the new build.
+- **Install:** `make install` removes leftover `GW2-InGame-Helper-Beta.dll` so Beta
+  cannot shadow shipping; use `make install-beta` only when you want Beta.
 - **Version source:** `src/app/AddonVersion.h` is the single shipping revision
-  (feeds `entry.cpp` + CMake `project()` VERSION).
+  (feeds `entry.cpp` / shipping version).
 - **Stamps:** Helper `2233` · homepage `2219` · sites `s2213` · cheatsheets `c2215`
   · live panel `43` · raid food `5` · ui-chrome `uc6`
 

@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.3.8` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.3.9` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) ·
 [`docs/ONBOARDING.md`](docs/ONBOARDING.md) · [`SECURITY.md`](SECURITY.md) ·
@@ -49,7 +49,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | Economy (side-rail **Companions**) | Flip Finder, local price charts, crafting cart (read-only official API) |
 | Instances (side-rail **Companions**) | Story / fractal / raid / strike checklist journal |
 | Completion (side-rail **Companions**) | Checklist + Atlas + Nearest / Zone loop GPS; Open Pathing one-shot |
-| Farming (side-rail **Companions**) | Farm-run checklists + fishing catch log |
+| Farming (side-rail **Companions**) | Curated + custom farm runs, GPS live nodes, fishing catch log |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
 | Settings (side-rail **Settings**) | ImGui — landing site, opacity, font scale, warm CEF, API key, panel Keybinds |
@@ -158,7 +158,7 @@ Published technical reports: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`d
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
 - **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Events · DPS Logs · Notes · Companions · Settings) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
-- **Companions** — Economy, Instances, Completion (checklist/Atlas/routes), Farming (runs + fishing log)
+- **Companions** — Economy, Instances, Completion (checklist/Atlas/routes), Farming (runs + GPS + fishing log)
 - **Overlays** — floating GPS arrow toward active guide; short zone-entry banner
 - **Settings** — landing site, opacity, font scale / auto, warm CEF, API key, **Keybinds** (Nexus Options opens this pad)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
@@ -302,13 +302,6 @@ Clean:
 
 ```bash
 make clean
-```
-
-### CMake (optional)
-
-```bash
-cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake
-cmake --build build -j"$(nproc)"
 ```
 
 ## Adding another site

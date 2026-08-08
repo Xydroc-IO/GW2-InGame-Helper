@@ -120,6 +120,7 @@ DLL_SRC = \
 	src/account/tpwatch/TpWatchData.cpp \
 	src/account/tpwatch/TpWatchResolve.cpp \
 	src/account/tpwatch/TpWatchFetch.cpp \
+	src/account/tpwatch/TpWatchOrdersUi.cpp \
 	src/account/lookup/LookupPad.cpp \
 	src/account/lookup/LookupFetch.cpp \
 	src/account/wallet/WalletPad.cpp \
@@ -148,6 +149,8 @@ DLL_SRC = \
 	src/account/crafting/CraftingKnown.cpp \
 	src/account/crafting/CraftingKnownDetails.cpp \
 	src/account/crafting/CraftingKnownUi.cpp \
+	src/account/crafting/CraftingBrowser.cpp \
+	src/account/crafting/CraftingLevelPaths.cpp \
 	src/account/crafting/CraftingCart.cpp \
 	src/account/crafting/CraftingCartPlan.cpp \
 	src/account/crafting/CraftingCartUi.cpp \
@@ -157,12 +160,20 @@ DLL_SRC = \
 	src/events/EventsPad.cpp \
 	src/events/EventsPadState.cpp \
 	src/events/EventsData.cpp \
+	src/events/EventsTiming.cpp \
 	src/economy/EconomyPad.cpp \
 	src/economy/EconomyPadUi.cpp \
 	src/economy/EconomyPadState.cpp \
 	src/economy/EconomyFetch.cpp \
 	src/economy/EconomyFetchFlip.cpp \
 	src/economy/EconomyFetchCart.cpp \
+	src/economy/EconomyChartPoll.cpp \
+	src/economy/EconomyPadFlips.cpp \
+	src/economy/CommercePrices.cpp \
+	src/economy/CommerceListings.cpp \
+	src/economy/CommerceTransactions.cpp \
+	src/economy/CommerceExchange.cpp \
+	src/economy/CommerceOwned.cpp \
 	src/instances/InstancesPad.cpp \
 	src/instances/InstancesPadState.cpp \
 	src/instances/InstancesData.cpp \
@@ -170,18 +181,27 @@ DLL_SRC = \
 	src/completion/CompletionPad.cpp \
 	src/completion/CompletionPadState.cpp \
 	src/completion/CompletionData.cpp \
+	src/completion/CompletionFloors.cpp \
 	src/completion/CompletionGuide.cpp \
 	src/completion/CompletionRoute.cpp \
 	src/completion/CompletionHierarchy.cpp \
 	src/completion/CompletionFavorites.cpp \
 	src/completion/CompletionChecklist.cpp \
 	src/completion/CompletionAtlas.cpp \
+	src/completion/CompletionPackMerge.cpp \
+	src/completion/CompletionPackClassify.cpp \
+	src/completion/CompletionApIds.cpp \
+	src/completion/CompletionApFetch.cpp \
+	src/completion/CompletionAchievements.cpp \
 	src/farming/FarmingPad.cpp \
 	src/farming/FarmingPadState.cpp \
 	src/farming/FarmingPersist.cpp \
+	src/farming/FarmingCatalog.cpp \
+	src/farming/FarmingSchedule.cpp \
 	src/farming/FarmingNodes.cpp \
 	src/overlay/GpsArrow.cpp \
 	src/overlay/ZoneBanner.cpp \
+	src/overlay/EventAlert.cpp \
 	src/logs/logmanager/LogManagerPad.cpp \
 	src/logs/logmanager/LogManagerPadState.cpp \
 	src/logs/logmanager/LogManagerParse.cpp \
@@ -244,6 +264,7 @@ DLL_SRC = \
 	src/pathing/trails/PathingTrails.cpp \
 	src/pathing/trails/PathingTrailsQuery.cpp \
 	src/pathing/trails/PathingTrailsBehaviors.cpp \
+	src/pathing/trails/PathingTrailsMarkers.cpp \
 	src/pathing/trails/PathingTrailsGuide.cpp \
 	src/pathing/packs/PathingLoad.cpp \
 	src/pathing/packs/PathingLoadLady.cpp \
@@ -352,7 +373,7 @@ GW2_ADDONS ?= $(GW2_ROOT)/addons
 INSTALL_DLL = $(GW2_ADDONS)/GW2-InGame-Helper.dll
 INSTALL_DIR = $(GW2_ADDONS)/GW2-InGame-Helper
 
-.PHONY: all clean install install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets pack-ui-chrome test-css test-parse test-ipc ci pack-cef check-stamps
+.PHONY: all clean install install-beta install-reset validate-sites enrich-sites export-cheatsheets pack-cheatsheets pack-ui-chrome test-css test-parse test-ipc ci pack-cef check-stamps
 
 all: $(DLL_OUT)
 
@@ -551,9 +572,13 @@ install: $(DLL_OUT)
 	@mkdir -p "$(INSTALL_DIR)" "$(INSTALL_DIR)/pathing"
 	/bin/cp -f "$(DLL_OUT)" "$(INSTALL_DLL)"
 	# Nexus loads *-Beta.dll before *.dll (hyphen sorts first). Same signature =
-	# Beta wins and the fresh DLL is ignored as a duplicate. Keep them identical.
-	/bin/cp -f "$(DLL_OUT)" "$(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll"
-	@echo "Also updated GW2-InGame-Helper-Beta.dll (prevents old Beta shadowing)"
+	# Beta wins and the fresh shipping DLL is ignored as a duplicate. On master
+	# installs, remove leftover Beta instead of overwriting it — use
+	# `make install-beta` only when you intentionally want the Beta channel.
+	@if [ -f "$(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll" ]; then \
+		/bin/rm -f "$(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll"; \
+		echo "Removed GW2-InGame-Helper-Beta.dll (was shadowing shipping)"; \
+	fi
 	/bin/cp -f pathing/README.md "$(INSTALL_DIR)/pathing/README.md"
 	# Curated Tekkit is tw_ALL_IN_ONE.taco (PathingPacks download). Never seed
 	# the old "Tekkit's All-In-One.taco" alias — loading both doubles every GPS route.
@@ -576,13 +601,19 @@ install: $(DLL_OUT)
 	# Seed Immersive chrome so pads look correct even before first extract.
 	@mkdir -p "$(INSTALL_DIR)/ui-chrome"
 	/bin/cp -f data/ui-chrome/*.png "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
-	@printf 'uc25' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
+	@printf 'uc28' > "$(INSTALL_DIR)/ui-chrome/ui-chrome.ver"
 	@echo "Installed DLL -> $(INSTALL_DLL)"
 	@echo "Data folder   -> $(INSTALL_DIR)/ (created; runtime extracts here)"
 	@echo "Pathing       -> $(INSTALL_DIR)/pathing/"
 	@ls -lh "$(INSTALL_DLL)"
 	@ls -lh "$(INSTALL_DIR)/pathing/" 2>/dev/null || true
 	@ls -lh "$(INSTALL_DIR)/ui-chrome/" 2>/dev/null || true
+
+# Optional: install shipping build as the Beta DLL too (side-by-side testing).
+install-beta: $(DLL_OUT)
+	@$(MAKE) install
+	/bin/cp -f "$(DLL_OUT)" "$(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll"
+	@echo "Also installed GW2-InGame-Helper-Beta.dll (explicit Beta sync)"
 
 install-reset: $(DLL_OUT)
 	@$(MAKE) install
