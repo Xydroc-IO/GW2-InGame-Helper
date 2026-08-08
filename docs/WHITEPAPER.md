@@ -14,7 +14,7 @@
 | Affiliation | Independent open-source project (MIT License) |
 | Peer review | None (project technical report; not a journal article) |
 | License of this document | MIT (with the repository) |
-| Companions | [`ARCHITECTURE.md`](ARCHITECTURE.md), [`KERNEL.md`](KERNEL.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`NAV_AND_ADS.md`](NAV_AND_ADS.md), [`PATHING.md`](PATHING.md), [`MODULES.md`](MODULES.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`ONBOARDING.md`](ONBOARDING.md) |
+| Companions | [`ARCHITECTURE.md`](ARCHITECTURE.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`PATHING.md`](PATHING.md), [`THEMES.md`](THEMES.md), [`DOCUMENTATION.md`](DOCUMENTATION.md), [`../CONTRIBUTING.md`](../CONTRIBUTING.md) |
 
 ### Revision history (document)
 
