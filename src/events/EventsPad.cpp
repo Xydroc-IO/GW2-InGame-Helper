@@ -104,9 +104,9 @@ bool EventsPad::Render()
 
 	ImGui::BeginChild("###gw2igh_ev_body", ImVec2(0.f, 0.f), true);
 	PadNav::Blurb(
-		"UTC timers for bosses and map metas. Track items you care about - "
-		"they sort up and highlight within 10 minutes. "
-		"Invasions / festivals / fractals stay hidden until you open that section or search/Track them.");
+		"UTC schedule for bosses and map metas (catalog times, not live HP). "
+		"Track items to pin them. This map uses MumbleLink. "
+		"Claim badges need an API key. Wiki / MetaBattle open as links only.");
 
 	if (PadNav::RefreshButton("###gw2igh_ev_ref"))
 		BeginClaimRefresh();
@@ -120,6 +120,27 @@ bool EventsPad::Render()
 		ImGui::SetTooltip(
 			"Show only events for your current open-world map\n"
 			"(read-only MumbleLink map id).");
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Alerts###gw2igh_ev_alerts", &G::EventAlerts))
+		Settings::SetDirty();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"On-screen toast when an event is live or within 10 minutes\n"
+			"(catalog schedule). Default: all events.");
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Alerts tracked###gw2igh_ev_alerts_trk", &G::EventAlertsTrackedOnly))
+		Settings::SetDirty();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Limit alerts to your Track list only.\n"
+			"Off (default): notify for all catalog events.");
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Alerts map###gw2igh_ev_alerts_map", &G::EventAlertsThisMap))
+		Settings::SetDirty();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Limit alerts to events for your current open-world map\n"
+			"(read-only MumbleLink map id). Combines with Alerts tracked.");
 
 	if (gThisMapOnly)
 	{
@@ -195,14 +216,25 @@ bool EventsPad::Render()
 			std::snprintf(title, sizeof(title), "%s", e.title);
 		ImGui::TextUnformatted(title);
 
-		if (r.claimed)
+		if (EntryBossClaimed(e))
 		{
 			ImGui::SameLine();
-			ImGui::TextColored(HelperTheme::Ok, "[claimed]");
+			ImGui::TextColored(HelperTheme::Ok, "[boss]");
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("World boss claimed today (account API).");
+		}
+		if (EntryChestClaimed(e))
+		{
+			ImGui::SameLine();
+			ImGui::TextColored(HelperTheme::Ok, "[chest]");
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Map chest claimed today (account API).");
 		}
 
 		ImGui::TextColored(HelperTheme::Muted, "%s", e.section);
 
+		char utcHint[96]{};
+		EventsData::FormatNextUtcHint(e, now, utcHint, sizeof(utcHint));
 		if (r.timing.live)
 		{
 			ImGui::TextColored(HelperTheme::Ok,
@@ -213,6 +245,8 @@ bool EventsPad::Render()
 			ImGui::TextColored(HelperTheme::Ink,
 				"Next in %s", FmtRemain(r.timing.untilStart).c_str());
 		}
+		if (utcHint[0])
+			ImGui::TextColored(HelperTheme::Muted, "%s", utcHint);
 		if (r.warn && !r.timing.live)
 			ImGui::TextColored(HelperTheme::GoldBright, "Tracked - starting soon");
 
@@ -226,6 +260,14 @@ bool EventsPad::Render()
 			else
 				std::snprintf(gStatus, sizeof(gStatus), "Clipboard failed.");
 		}
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Wiki"))
+			OpenEventWiki(e);
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Meta"))
+			OpenEventMetaBattle(e);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Open MetaBattle in your system browser (link only).");
 
 		if (r.warn)
 			ImGui::PopStyleColor();

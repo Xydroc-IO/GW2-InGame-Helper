@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <ctime>
 
 /* Timetable for EventsPad - UTC clock math only (no game memory / live API state). */
 namespace EventsData
@@ -32,9 +33,22 @@ namespace EventsData
 		int         startCount;
 	};
 
+	struct Timing
+	{
+		bool live = false;
+		int  untilStart = -1; /* 0 when live */
+		int  untilEnd = -1;
+	};
+
 	const Entry* All(size_t* outCount);
 	const char* const* Sections(size_t* outCount);
 	int IndexOfKey(const char* key);
+	const Entry* FindByKey(const char* key);
+
+	Timing ComputeTiming(const Entry& e, time_t now);
+	void FormatUtcClock(time_t t, char* out, size_t outLen);
+	/* One-line "Next HH:MM UTC · then HH:MM UTC" (or LIVE until ...). */
+	void FormatNextUtcHint(const Entry& e, time_t now, char* out, size_t outLen);
 
 	/* True if this timetable row belongs on the given Mumble / API map id. */
 	bool EntryMatchesMap(const Entry& e, unsigned mapId);

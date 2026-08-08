@@ -23,6 +23,7 @@
 #include "InstancesPad.h"
 #include "CompletionPad.h"
 #include "FarmingPad.h"
+#include "EventAlert.h"
 #include "GpsArrow.h"
 #include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
@@ -98,6 +99,7 @@ void UI_Render()
 	static bool sWasOpen = false;
 	if (!G::ShowWiki)
 	{
+		G::SideRailW = 0.f;
 		/* Do NOT clear WantTextInput / WantCaptureKeyboard here - those flags are
 		   shared with Nexus. Wiping them every frame breaks the library search field
 		   (keys fall through to GW2 hotkeys, e.g. G = guild). */
@@ -128,8 +130,10 @@ void UI_Render()
 		const bool completionHover = CompletionPad::Render();
 		const bool farmingHover = FarmingPad::Render();
 		CompletionPad::Tick();
+		FarmingPad::Tick();
 		const bool gpsArrowHover = GpsArrow::Render();
 		ZoneBanner::Render();
+		EventAlert::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();
@@ -222,6 +226,7 @@ void UI_Render()
 	}
 	if (!expanded || !padBody)
 	{
+		G::SideRailW = 0.f; /* nav column only while helper body is expanded */
 		/* Minimized title strip - CEF must be was_hidden (0% viewability otherwise)
 		   but keep the process alive so expand does not hitch. */
 		const ImVec2 pos = ImGui::GetWindowPos();
@@ -268,8 +273,10 @@ void UI_Render()
 		const bool completionHover = CompletionPad::Render();
 		const bool farmingHover = FarmingPad::Render();
 		CompletionPad::Tick();
+		FarmingPad::Tick();
 		const bool gpsArrowHover = GpsArrow::Render();
 		ZoneBanner::Render();
+		EventAlert::Render();
 		const bool tekkitHover = PathingGuidesPad::Render();
 		const bool trailToolsHover = TrailToolsPad::Render();
 		const bool compassHover = DirectionCompass::RenderPad();

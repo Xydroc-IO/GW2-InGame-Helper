@@ -1,9 +1,11 @@
 #include "EventsPadInternal.h"
 
+#include "BrowserTabs.h"
 #include "EventsData.h"
 #include "Globals.h"
 #include "Gw2Http.h"
 #include "Settings.h"
+#include "WikiBrowser.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -16,88 +18,10 @@
 #include <vector>
 
 #include <windows.h>
+#include <shellapi.h>
 
 namespace EventsPadDetail
 {
-	int PosMod(int v, int m)
-	{
-		if (m <= 0) return 0;
-		int r = v % m;
-		if (r < 0) r += m;
-		return r;
-	}
-
-	Timing FromStartList(int nowInCycle, int cycleLen, const int* starts, int n, int activeSec)
-	{
-		Timing t;
-		if (!starts || n <= 0 || activeSec <= 0)
-			return t;
-		for (int i = 0; i < n; ++i)
-		{
-			const int begin = starts[i];
-			if (nowInCycle < begin)
-			{
-				t.untilStart = begin - nowInCycle;
-				return t;
-			}
-			if (nowInCycle < begin + activeSec)
-			{
-				t.live = true;
-				t.untilStart = 0;
-				t.untilEnd = begin + activeSec - nowInCycle;
-				return t;
-			}
-		}
-		t.untilStart = cycleLen - nowInCycle + starts[0];
-		return t;
-	}
-
-	Timing FromRepeat(time_t now, int cycleSec, int phaseSec, int activeSec, int copies)
-	{
-		Timing t;
-		if (cycleSec <= 0 || activeSec <= 0)
-			return t;
-		if (copies < 1) copies = 1;
-		const int nowIn = static_cast<int>(now % cycleSec);
-		const int stride = cycleSec / copies;
-		int bestWait = cycleSec;
-		for (int c = 0; c < copies; ++c)
-		{
-			const int start = phaseSec + c * stride;
-			const int age = PosMod(nowIn - start, cycleSec);
-			if (age < activeSec)
-			{
-				t.live = true;
-				t.untilStart = 0;
-				t.untilEnd = activeSec - age;
-				return t;
-			}
-			const int wait = cycleSec - age;
-			if (wait < bestWait)
-				bestWait = wait;
-		}
-		t.untilStart = bestWait;
-		return t;
-	}
-
-	Timing ComputeTiming(const EventsData::Entry& e, time_t now)
-	{
-		using S = EventsData::Sched;
-		switch (e.sched)
-		{
-		case S::DayList:
-			return FromStartList(static_cast<int>(now % 86400), 86400,
-				e.starts, e.startCount, e.activeSec);
-		case S::CycleList:
-			return FromStartList(static_cast<int>(now % e.cycleSec), e.cycleSec,
-				e.starts, e.startCount, e.activeSec);
-		case S::Repeat:
-		case S::CycleSlot:
-		default:
-			return FromRepeat(now, e.cycleSec, e.phaseSec, e.activeSec, e.copies);
-		}
-	}
-
 	std::string FmtRemain(int secs)
 	{
 		if (secs < 0) return "-";
@@ -358,14 +282,46 @@ namespace EventsPadDetail
 		}
 	}
 
-	bool EntryClaimed(const EventsData::Entry& e)
+	bool EntryBossClaimed(const EventsData::Entry& e)
 	{
 		std::lock_guard<std::mutex> lock(gMu);
-		if (e.bossApi && e.bossApi[0] && gBossDone.count(e.bossApi))
-			return true;
-		if (e.chestApi && e.chestApi[0] && gChestDone.count(e.chestApi))
-			return true;
-		return false;
+		return e.bossApi && e.bossApi[0] && gBossDone.count(e.bossApi) != 0;
+	}
+
+	bool EntryChestClaimed(const EventsData::Entry& e)
+	{
+		std::lock_guard<std::mutex> lock(gMu);
+		return e.chestApi && e.chestApi[0] && gChestDone.count(e.chestApi) != 0;
+	}
+
+	bool EntryClaimed(const EventsData::Entry& e)
+	{
+		return EntryBossClaimed(e) || EntryChestClaimed(e);
+	}
+
+	void OpenEventWiki(const EventsData::Entry& e)
+	{
+		char q[160]{};
+		if (e.mapLabel && e.mapLabel[0])
+			std::snprintf(q, sizeof(q), "%s %s", e.mapLabel, e.title ? e.title : "");
+		else
+			std::snprintf(q, sizeof(q), "%s", e.title ? e.title : "Guild Wars 2");
+		const std::string enc = WikiBrowser::UrlEncode(q);
+		const std::string url =
+			std::string("https://wiki.guildwars2.com/index.php?search=") + enc +
+			"&title=Special%3ASearch&go=Go";
+		if (BrowserTabs::OpenNewUrl("wiki", url) < 0)
+			WikiBrowser::Navigate(url);
+		std::snprintf(gStatus, sizeof(gStatus), "Opened wiki search.");
+	}
+
+	void OpenEventMetaBattle(const EventsData::Entry& e)
+	{
+		(void)e;
+		/* Link out only — do not scrape MetaBattle into the addon. */
+		ShellExecuteA(nullptr, "open", "https://metabattle.com/wiki/MetaBattle",
+			nullptr, nullptr, SW_SHOWNORMAL);
+		std::snprintf(gStatus, sizeof(gStatus), "Opened MetaBattle (external).");
 	}
 
 	void CollectRows(std::vector<Row>& rows, time_t now)
@@ -394,8 +350,6 @@ namespace EventsPadDetail
 			}
 			else
 			{
-				/* Search reaches invasions/festivals; otherwise keep default filter.
-				   This-map mode already reveals invasions/fractals for that map. */
 				if (!searching && !sectionFilter && !e.inDefaultAll && !Tracked(e.key))
 					continue;
 			}
@@ -404,7 +358,7 @@ namespace EventsPadDetail
 
 			Row r;
 			r.index = static_cast<int>(i);
-			r.timing = ComputeTiming(e, now);
+			r.timing = EventsData::ComputeTiming(e, now);
 			r.tracked = Tracked(e.key);
 			r.claimed = EntryClaimed(e);
 			r.warn = r.tracked && !r.claimed &&

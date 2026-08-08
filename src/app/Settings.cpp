@@ -229,8 +229,16 @@ void Settings::Load()
 			std::snprintf(G::TpWatchIds, sizeof(G::TpWatchIds), "%s", val);
 		else if (std::strcmp(key, "TpWatchAlerts") == 0)
 			std::snprintf(G::TpWatchAlerts, sizeof(G::TpWatchAlerts), "%s", val);
+		else if (std::strcmp(key, "TpWatchBuyAlerts") == 0)
+			std::snprintf(G::TpWatchBuyAlerts, sizeof(G::TpWatchBuyAlerts), "%s", val);
 		else if (std::strcmp(key, "EventTrackIds") == 0)
 			std::snprintf(G::EventTrackIds, sizeof(G::EventTrackIds), "%s", val);
+		else if (std::strcmp(key, "EventAlerts") == 0)
+			G::EventAlerts = AsBool(val);
+		else if (std::strcmp(key, "EventAlertsTrackedOnly") == 0)
+			G::EventAlertsTrackedOnly = AsBool(val);
+		else if (std::strcmp(key, "EventAlertsThisMap") == 0)
+			G::EventAlertsThisMap = AsBool(val);
 		else if (std::strcmp(key, "PathingEnabled") == 0 ||
 			std::strcmp(key, "TekkitEnabled") == 0)
 			std::snprintf(G::PathingEnabled, sizeof(G::PathingEnabled), "%s", val);
@@ -452,7 +460,11 @@ void Settings::Save(bool force)
 	std::fprintf(f, "Gw2ApiKey=%s\n", G::Gw2ApiKey);
 	std::fprintf(f, "TpWatchIds=%s\n", G::TpWatchIds);
 	std::fprintf(f, "TpWatchAlerts=%s\n", G::TpWatchAlerts);
+	std::fprintf(f, "TpWatchBuyAlerts=%s\n", G::TpWatchBuyAlerts);
 	std::fprintf(f, "EventTrackIds=%s\n", G::EventTrackIds);
+	std::fprintf(f, "EventAlerts=%d\n", G::EventAlerts ? 1 : 0);
+	std::fprintf(f, "EventAlertsTrackedOnly=%d\n", G::EventAlertsTrackedOnly ? 1 : 0);
+	std::fprintf(f, "EventAlertsThisMap=%d\n", G::EventAlertsThisMap ? 1 : 0);
 	std::fprintf(f, "LogFolder=%s\n", G::LogFolder);
 	std::fprintf(f, "EliteInsightsPath=%s\n", G::EliteInsightsPath);
 	std::fprintf(f, "DpsReportToken=%s\n", G::DpsReportToken);

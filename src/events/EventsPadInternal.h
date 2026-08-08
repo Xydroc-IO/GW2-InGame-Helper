@@ -30,7 +30,7 @@ namespace EventsPadDetail
 	struct Row
 	{
 		int index = 0;
-		Timing timing;
+		EventsData::Timing timing;
 		bool tracked = false;
 		bool claimed = false;
 		bool warn = false;
@@ -55,10 +55,6 @@ namespace EventsPadDetail
 	extern int gSectionPick; /* 0 = default mix */
 	extern char gSearch[96];
 
-	int PosMod(int v, int m);
-	Timing FromStartList(int nowInCycle, int cycleLen, const int* starts, int n, int activeSec);
-	Timing FromRepeat(time_t now, int cycleSec, int phaseSec, int activeSec, int copies);
-	Timing ComputeTiming(const EventsData::Entry& e, time_t now);
 	std::string FmtRemain(int secs);
 	bool CopyText(const char* text);
 	void ParseTrackCsv(const char* csv, std::vector<std::string>& out);
@@ -72,5 +68,9 @@ namespace EventsPadDetail
 	void BeginClaimRefresh();
 	void ApplyClaimResult();
 	bool EntryClaimed(const EventsData::Entry& e);
+	bool EntryBossClaimed(const EventsData::Entry& e);
+	bool EntryChestClaimed(const EventsData::Entry& e);
 	void CollectRows(std::vector<Row>& rows, time_t now);
+	void OpenEventWiki(const EventsData::Entry& e);
+	void OpenEventMetaBattle(const EventsData::Entry& e);
 }

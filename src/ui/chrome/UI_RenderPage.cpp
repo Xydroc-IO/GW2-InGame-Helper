@@ -21,6 +21,7 @@
 #include "InstancesPad.h"
 #include "CompletionPad.h"
 #include "FarmingPad.h"
+#include "EventAlert.h"
 #include "GpsArrow.h"
 #include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
@@ -316,8 +317,10 @@ namespace UIDetail
 	const bool completionHover = CompletionPad::Render();
 	const bool farmingHover = FarmingPad::Render();
 	CompletionPad::Tick();
+	FarmingPad::Tick();
 	const bool gpsArrowHover = GpsArrow::Render();
 	ZoneBanner::Render();
+	EventAlert::Render();
 	const bool tekkitHover = PathingGuidesPad::Render();
 	const bool trailToolsHover = TrailToolsPad::Render();
 	const bool compassHover = DirectionCompass::RenderPad();

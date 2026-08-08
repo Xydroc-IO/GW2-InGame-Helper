@@ -115,13 +115,19 @@ namespace G
 	extern bool  HasSavedSize; /* false until WindowWidth/Height loaded or user resizes */
 	extern bool  KeepHelperWarm; /* hide helper without killing CEF (uses more RAM) */
 	extern bool  ShowRailLabels; /* helper side rail: text under/beside icons (false = game-like icon dock) */
+	/* Last drawn helper nav column width (0 = hidden). Pads dock/clamp clear of it. */
+	extern float SideRailW;
 	extern char  LastQuery[128];
 	extern char  ActiveSiteId[64];
 	extern char  DefaultSiteId[64]; /* Home button + landing when no tabs restored */
 	extern char  Gw2ApiKey[128]; /* optional account API key — Live panels; local only */
 	extern char  TpWatchIds[1024]; /* comma-separated item ids — user TP watchlist */
 	extern char  TpWatchAlerts[2048]; /* id:copperThresh,… — sell ≤ alert; 0/absent = off */
+	extern char  TpWatchBuyAlerts[2048]; /* id:copperThresh,… — buy ≥ alert */
 	extern char  EventTrackIds[4096]; /* comma-separated event ids — user track list */
+	extern bool  EventAlerts; /* toast when events are soon / live */
+	extern bool  EventAlertsTrackedOnly; /* false = all catalog (default); true = Track list only */
+	extern bool  EventAlertsThisMap; /* toast only for current MumbleLink map */
 	extern char  PathingEnabled[8192]; /* '|' separated category paths — persisted (settings also read legacy TekkitEnabled=) */
 	extern char  LogFolder[512]; /* ArcDPS cbtlogs folder */
 	extern char  EliteInsightsPath[512]; /* GuildWars2EliteInsights-CLI.exe */
