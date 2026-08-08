@@ -119,6 +119,7 @@ DLL_SRC = \
 	src/watch/WatchCaptureGpu.cpp \
 	src/watch/WatchCaptureWin.cpp \
 	src/watch/WatchCaptureWgc.cpp \
+	src/watch/WatchCaptureWgcSession.cpp \
 	src/watch/WatchLinux.cpp \
 	src/watch/WatchLinuxDaemon.cpp \
 	src/watch/WatchLinuxShm.cpp \
@@ -311,6 +312,7 @@ DLL_SRC = \
 	src/pathing/world/WorldGpsImgui.cpp \
 	src/pathing/world/WorldOverlay.cpp \
 	src/pathing/world/DirectionCompass.cpp \
+	src/pathing/world/DirectionCompassPad.cpp \
 	src/ui/quickaccess/HelperQuickAccess.cpp \
 	src/browser/WikiBrowser.cpp \
 	src/browser/WikiBrowserApi.cpp \
