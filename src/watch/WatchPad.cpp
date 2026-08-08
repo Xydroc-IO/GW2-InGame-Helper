@@ -22,6 +22,7 @@ namespace
 	bool gRequestDock = false;
 	bool gRequestMirrorDock = false;
 	int  gSelected = -1;
+	int  gControlTab = 0; /* 0 Watch (Start/Stop) · 1 About */
 	char gFilter[64] = {};
 
 	void EnsureList()
@@ -30,6 +31,42 @@ namespace
 			return;
 		if (WatchCapture::Windows().empty())
 			WatchCapture::RefreshWindowList();
+	}
+
+	void DrawWatchHelp()
+	{
+		const bool wine = EiRuntime::IsWine();
+		ImGui::BeginChild("###gw2igh_watch_about", ImVec2(0.f, 0.f), true);
+		PadNav::SectionTitle("What is Watch?");
+		PadNav::Blurb(
+			"A look-only mirror of another desktop window (browser, Twitch app, guide "
+			"video, etc.). Playback stays in that app — Helper only shows pixels inside GW2.");
+		ImGui::Spacing();
+		PadNav::SectionTitle("What it does not do");
+		PadNav::Meta("No click-through, no key inject, no audio routing.");
+		PadNav::Meta("Guild Wars 2 never sees this capture traffic (local only).");
+		PadNav::Meta("Not a CEF/Widevine player — use your system app for DRM video.");
+		ImGui::Spacing();
+		PadNav::SectionTitle("How to use");
+		if (wine)
+		{
+			PadNav::Meta("1. On the Watch tab, press Start — the Linux share picker opens.");
+			PadNav::Meta("2. Pick the window or screen to share.");
+			PadNav::Meta("3. Watch Mirror opens with the picture (~60 FPS, up to 1280×720).");
+			PadNav::Meta("4. Stop on the Watch tab, or close Mirror, to end capture.");
+		}
+		else
+		{
+			PadNav::Meta("1. On the Watch tab, pick a window (Refresh if needed).");
+			PadNav::Meta("2. Press Start — Watch Mirror opens with the picture.");
+			PadNav::Meta("3. Stop on the Watch tab, or close Mirror, to end capture.");
+		}
+		ImGui::Spacing();
+		PadNav::SectionTitle("Tips");
+		PadNav::Meta("Crop chrome on the Watch tab trims browser title bars.");
+		PadNav::Meta("Resize Mirror freely — the picture letterboxes to keep aspect.");
+		PadNav::Meta("Black frames often mean DRM or a hardware overlay in the source app.");
+		ImGui::EndChild();
 	}
 
 	ImU32 ColU32(const ImVec4& c, float aMul = 1.f)
@@ -167,7 +204,7 @@ namespace
 					? (wine
 						? "Waiting for portal / first frame…"
 						: "Waiting for first frame…")
-					: "Stopped.");
+					: "Stopped — use Start on the Watch pad.");
 			ImGui::PopTextWrapPos();
 		}
 
@@ -186,12 +223,188 @@ namespace
 		}
 		return hovered;
 	}
+
+	void DrawWatchControls()
+	{
+		const bool wine = EiRuntime::IsWine();
+		const bool capturing = WatchCapture::IsCapturing();
+
+		PadNav::Blurb(
+			"Mirror a desktop window. Playback stays in that app — Helper only shows pixels.");
+
+		if (wine)
+		{
+			ImGui::Spacing();
+			PadNav::Meta("Linux · portal + PipeWire. Start opens the share picker.");
+			ImGui::Spacing();
+			if (!capturing)
+			{
+				if (ImGui::Button("Start"))
+				{
+					WatchCapture::Start(0);
+					OpenMirror();
+				}
+			}
+			else
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+				ImGui::Button("Start");
+				ImGui::PopStyleVar();
+			}
+			ImGui::SameLine();
+			if (capturing)
+			{
+				if (ImGui::Button("Stop"))
+				{
+					WatchCapture::Stop();
+					G::ShowWatchMirror = false;
+					Settings::SetDirty();
+				}
+			}
+			else
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+				ImGui::Button("Stop");
+				ImGui::PopStyleVar();
+			}
+		}
+		else
+		{
+			EnsureList();
+			const auto& wins = WatchCapture::Windows();
+
+			ImGui::Spacing();
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
+			ImGui::InputTextWithHint("##watch_filter", "Filter titles…", gFilter, sizeof(gFilter));
+			ImGui::SameLine();
+			if (ImGui::Button("Refresh"))
+			{
+				const uint64_t keep = (gSelected >= 0 && gSelected < static_cast<int>(wins.size()))
+					? wins[static_cast<size_t>(gSelected)].id
+					: 0;
+				WatchCapture::RefreshWindowList();
+				gSelected = -1;
+				const auto& again = WatchCapture::Windows();
+				if (keep)
+				{
+					for (int i = 0; i < static_cast<int>(again.size()); ++i)
+					{
+						if (again[static_cast<size_t>(i)].id == keep)
+						{
+							gSelected = i;
+							break;
+						}
+					}
+				}
+			}
+
+			ImGui::SetNextItemWidth(-1.f);
+			const char* preview = wins.empty() ? "(no windows found)" : "(select a window)";
+			if (gSelected >= 0 && gSelected < static_cast<int>(wins.size()))
+				preview = wins[static_cast<size_t>(gSelected)].title.c_str();
+
+			if (ImGui::BeginCombo("##watch_windows", preview))
+			{
+				if (wins.empty())
+					ImGui::TextDisabled("Nothing to list — see status below.");
+				for (int i = 0; i < static_cast<int>(wins.size()); ++i)
+				{
+					const auto& e = wins[static_cast<size_t>(i)];
+					if (gFilter[0] && !std::strstr(e.title.c_str(), gFilter))
+						continue;
+					const bool sel = (i == gSelected);
+					char label[160]{};
+					std::snprintf(label, sizeof(label), "%s###id%llu", e.title.c_str(),
+						static_cast<unsigned long long>(e.id));
+					if (ImGui::Selectable(label, sel))
+						gSelected = i;
+					if (sel)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+			const bool canStart = gSelected >= 0 && gSelected < static_cast<int>(wins.size())
+				&& !capturing;
+			if (canStart)
+			{
+				if (ImGui::Button("Start"))
+				{
+					WatchCapture::Start(wins[static_cast<size_t>(gSelected)].id);
+					OpenMirror();
+				}
+			}
+			else
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+				ImGui::Button("Start");
+				ImGui::PopStyleVar();
+			}
+			ImGui::SameLine();
+			if (capturing)
+			{
+				if (ImGui::Button("Stop"))
+				{
+					WatchCapture::Stop();
+					G::ShowWatchMirror = false;
+					Settings::SetDirty();
+				}
+			}
+			else
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+				ImGui::Button("Stop");
+				ImGui::PopStyleVar();
+			}
+		}
+
+		ImGui::Spacing();
+		if (capturing)
+			PadNav::StatusOk(WatchCapture::StatusText());
+		else
+			PadNav::Meta(WatchCapture::StatusText());
+		if (WatchCapture::LastFrameLookedBlank())
+		{
+			PadNav::StatusWarn(
+				"Black frames often mean DRM or a hardware overlay.");
+		}
+
+		if (ImGui::TreeNode("Crop chrome"))
+		{
+			auto cropSlider = [](const char* label, float* v) {
+				float pct = *v * 100.f;
+				if (ImGui::SliderFloat(label, &pct, 0.f, 45.f, "%.0f%%"))
+				{
+					*v = pct * 0.01f;
+					Settings::SetDirty();
+				}
+			};
+			cropSlider("Top", &G::WatchCropTop);
+			cropSlider("Bottom", &G::WatchCropBottom);
+			cropSlider("Left", &G::WatchCropLeft);
+			cropSlider("Right", &G::WatchCropRight);
+			if (ImGui::Button("Browser preset"))
+			{
+				G::WatchCropTop = 0.14f;
+				G::WatchCropBottom = G::WatchCropLeft = G::WatchCropRight = 0.f;
+				Settings::SetDirty();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("None"))
+			{
+				G::WatchCropTop = G::WatchCropBottom = G::WatchCropLeft = G::WatchCropRight = 0.f;
+				Settings::SetDirty();
+			}
+			ImGui::TreePop();
+		}
+	}
 }
 
 void WatchPad::Open()
 {
 	G::ShowWatch = true;
 	gRequestDock = true;
+	gControlTab = 0;
 	WatchCapture::RefreshWindowList();
 	gSelected = -1;
 	if (WatchLinux::Available())
@@ -222,10 +435,10 @@ bool WatchPad::Render()
 	if (G::ShowWatch)
 	{
 		constexpr float kPadW = 440.f;
-		constexpr float kPadH = 260.f;
+		constexpr float kPadH = 320.f;
 
-		PadDock::SetSizeConstraints("Watch###GW2InGameHelperWatch", 320.f, 180.f,
-			PadDock::MaxW(640.f), PadDock::MaxH(520.f));
+		PadDock::SetSizeConstraints("Watch###GW2InGameHelperWatch", 320.f, 200.f,
+			PadDock::MaxW(640.f), PadDock::MaxH(640.f));
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(G::PadWatch, gRequestDock, kPadW, kPadH, PadDock::BesideHelper(kPadW));
 		if (!gRequestDock && G::PadWatch.w < 80.f)
@@ -253,177 +466,13 @@ bool WatchPad::Render()
 			HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 			ImGui::PushID("gw2igh_watch_pad");
 
-			PadNav::Blurb(
-				"Mirror a desktop window. Playback stays in that app — "
-				"Helper only shows pixels. Look-only.");
+			static const char* kTabs[] = { "Watch", "About" };
+			gControlTab = PadNav::DrawTabs("###gw2igh_watch_ctrl_tabs", kTabs, 2, gControlTab);
 
-			const bool wine = EiRuntime::IsWine();
-			const bool capturing = WatchCapture::IsCapturing();
-			if (wine)
-			{
-				ImGui::Spacing();
-				PadNav::Meta("Linux · portal + PipeWire. Start opens the share picker.");
-				ImGui::Spacing();
-				if (!capturing)
-				{
-					if (ImGui::Button("Start"))
-					{
-						WatchCapture::Start(0);
-						OpenMirror();
-					}
-				}
-				else
-				{
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-					ImGui::Button("Start");
-					ImGui::PopStyleVar();
-				}
-				ImGui::SameLine();
-				if (capturing)
-				{
-					if (ImGui::Button("Stop"))
-					{
-						WatchCapture::Stop();
-						G::ShowWatchMirror = false;
-						Settings::SetDirty();
-					}
-				}
-				else
-				{
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-					ImGui::Button("Stop");
-					ImGui::PopStyleVar();
-				}
-			}
+			if (gControlTab == 1)
+				DrawWatchHelp();
 			else
-			{
-				EnsureList();
-				const auto& wins = WatchCapture::Windows();
-
-				ImGui::Spacing();
-				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
-				ImGui::InputTextWithHint("##watch_filter", "Filter titles…", gFilter, sizeof(gFilter));
-				ImGui::SameLine();
-				if (ImGui::Button("Refresh"))
-				{
-					const uint64_t keep = (gSelected >= 0 && gSelected < static_cast<int>(wins.size()))
-						? wins[static_cast<size_t>(gSelected)].id
-						: 0;
-					WatchCapture::RefreshWindowList();
-					gSelected = -1;
-					const auto& again = WatchCapture::Windows();
-					if (keep)
-					{
-						for (int i = 0; i < static_cast<int>(again.size()); ++i)
-						{
-							if (again[static_cast<size_t>(i)].id == keep)
-							{
-								gSelected = i;
-								break;
-							}
-						}
-					}
-				}
-
-				ImGui::SetNextItemWidth(-1.f);
-				const char* preview = wins.empty() ? "(no windows found)" : "(select a window)";
-				if (gSelected >= 0 && gSelected < static_cast<int>(wins.size()))
-					preview = wins[static_cast<size_t>(gSelected)].title.c_str();
-
-				if (ImGui::BeginCombo("##watch_windows", preview))
-				{
-					if (wins.empty())
-						ImGui::TextDisabled("Nothing to list — see status below.");
-					for (int i = 0; i < static_cast<int>(wins.size()); ++i)
-					{
-						const auto& e = wins[static_cast<size_t>(i)];
-						if (gFilter[0] && !std::strstr(e.title.c_str(), gFilter))
-							continue;
-						const bool sel = (i == gSelected);
-						char label[160]{};
-						std::snprintf(label, sizeof(label), "%s###id%llu", e.title.c_str(),
-							static_cast<unsigned long long>(e.id));
-						if (ImGui::Selectable(label, sel))
-							gSelected = i;
-						if (sel)
-							ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
-				}
-
-				const bool canStart = gSelected >= 0 && gSelected < static_cast<int>(wins.size())
-					&& !capturing;
-				if (canStart)
-				{
-					if (ImGui::Button("Start"))
-					{
-						WatchCapture::Start(wins[static_cast<size_t>(gSelected)].id);
-						OpenMirror();
-					}
-				}
-				else
-				{
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-					ImGui::Button("Start");
-					ImGui::PopStyleVar();
-				}
-				ImGui::SameLine();
-				if (capturing)
-				{
-					if (ImGui::Button("Stop"))
-					{
-						WatchCapture::Stop();
-						G::ShowWatchMirror = false;
-						Settings::SetDirty();
-					}
-				}
-				else
-				{
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-					ImGui::Button("Stop");
-					ImGui::PopStyleVar();
-				}
-			}
-
-			ImGui::Spacing();
-			if (capturing)
-				PadNav::StatusOk(WatchCapture::StatusText());
-			else
-				PadNav::Meta(WatchCapture::StatusText());
-			if (WatchCapture::LastFrameLookedBlank())
-			{
-				PadNav::StatusWarn(
-					"Black frames often mean DRM or a hardware overlay.");
-			}
-
-			if (ImGui::TreeNode("Crop chrome"))
-			{
-				auto cropSlider = [](const char* label, float* v) {
-					float pct = *v * 100.f;
-					if (ImGui::SliderFloat(label, &pct, 0.f, 45.f, "%.0f%%"))
-					{
-						*v = pct * 0.01f;
-						Settings::SetDirty();
-					}
-				};
-				cropSlider("Top", &G::WatchCropTop);
-				cropSlider("Bottom", &G::WatchCropBottom);
-				cropSlider("Left", &G::WatchCropLeft);
-				cropSlider("Right", &G::WatchCropRight);
-				if (ImGui::Button("Browser preset"))
-				{
-					G::WatchCropTop = 0.14f;
-					G::WatchCropBottom = G::WatchCropLeft = G::WatchCropRight = 0.f;
-					Settings::SetDirty();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("None"))
-				{
-					G::WatchCropTop = G::WatchCropBottom = G::WatchCropLeft = G::WatchCropRight = 0.f;
-					Settings::SetDirty();
-				}
-				ImGui::TreePop();
-			}
+				DrawWatchControls();
 
 			ImGui::PopID();
 			if (PadDock::Capture(G::PadWatch))
