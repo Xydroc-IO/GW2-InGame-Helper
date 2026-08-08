@@ -100,10 +100,16 @@ namespace EconomyDetail
 		if (h == INVALID_HANDLE_VALUE)
 			return false;
 		LARGE_INTEGER sz{};
-		if (!GetFileSizeEx(h, &sz) || sz.QuadPart <= 0 || sz.QuadPart > 16 * 1024 * 1024)
+		if (!GetFileSizeEx(h, &sz) || sz.QuadPart < 0 || sz.QuadPart > 16 * 1024 * 1024)
 		{
 			CloseHandle(h);
 			return false;
+		}
+		/* Empty file is valid (cleared cart / charts). */
+		if (sz.QuadPart == 0)
+		{
+			CloseHandle(h);
+			return true;
 		}
 		out.resize(static_cast<size_t>(sz.QuadPart));
 		DWORD got = 0;
@@ -203,9 +209,8 @@ namespace EconomyDetail
 		std::string body;
 		if (!ReadUtf8File(path, body))
 		{
-			/* Migrate: previous builds only had a single gChartItemId. */
-			if (gChartItemId > 0)
-				gChartIds.push_back(gChartItemId);
+			/* Missing file only — do not invent a default chart (ecto used to
+			   come back from gChartItemId static seed + empty-file misread). */
 			return;
 		}
 		size_t i = 0;
@@ -227,8 +232,13 @@ namespace EconomyDetail
 					gChartIds.push_back(id);
 			}
 		}
-		if (!gChartIds.empty() && gChartItemId <= 0)
-			gChartItemId = gChartIds.front();
+		if (!gChartIds.empty())
+		{
+			if (gChartItemId <= 0)
+				gChartItemId = gChartIds.front();
+		}
+		else
+			gChartItemId = 0;
 	}
 
 	static void TrimHistoryLocked()

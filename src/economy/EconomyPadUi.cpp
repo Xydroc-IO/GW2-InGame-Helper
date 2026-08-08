@@ -193,14 +193,14 @@ void DrawCartTab()
 {
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"TP shopping list only — craft projects live on the Crafting tab.");
+		"TP shopping list only — craft projects live on Crafting → Craft cart.");
 	PadNav::PopWrap();
 	if (ImGui::Button("Clear cart###gw2igh_eco_cc"))
 		ClearCart();
 	ImGui::SameLine();
-	if (ImGui::Button("Open Crafting###gw2igh_eco_craft"))
+	if (ImGui::Button("Open Craft cart###gw2igh_eco_craft"))
 	{
-		CraftingData::RequestFocusTab();
+		CraftingData::RequestFocusCraftCart();
 		FocusCraftingTab();
 	}
 	if (!gCart.empty())

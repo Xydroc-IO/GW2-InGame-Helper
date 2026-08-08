@@ -249,9 +249,7 @@ namespace EconomyDetail
 
 	void EnsureSeed()
 	{
-		/* Default focus id only — Charts list is empty until the user pins. */
-		if (gChartItemId == 0 && gChartIds.empty())
-			gChartItemId = 19721;
+		/* Charts stay empty until the user pins — never re-seed ecto/defaults. */
 	}
 
 	static long long ApproxFeeAdjustedSpread(long long buy, long long sell)

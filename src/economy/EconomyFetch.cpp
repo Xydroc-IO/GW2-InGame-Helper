@@ -20,7 +20,7 @@ namespace EconomyDetail
 	std::vector<FlipRow> gFlips;
 	std::vector<PriceSample> gHistory;
 	std::vector<CartItem> gCart;
-	int gChartItemId = 19721; /* Vicious Fang default */
+	int gChartItemId = 0;
 	std::vector<int> gChartIds;
 
 	std::mutex gMu;

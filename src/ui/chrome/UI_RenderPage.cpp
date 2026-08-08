@@ -320,7 +320,7 @@ namespace UIDetail
 	FarmingPad::Tick();
 	const bool gpsArrowHover = GpsArrow::Render();
 	ZoneBanner::Render();
-	EventAlert::Render();
+	const bool eventAlertHover = EventAlert::Render();
 	const bool tekkitHover = PathingGuidesPad::Render();
 	const bool trailToolsHover = TrailToolsPad::Render();
 	const bool compassHover = DirectionCompass::RenderPad();
@@ -328,7 +328,7 @@ namespace UIDetail
 	CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 		walletHover || vaultHover || eventsHover || logsHover ||
 		economyHover || instancesHover || completionHover || farmingHover ||
-		gpsArrowHover ||
+		gpsArrowHover || eventAlertHover ||
 		tekkitHover || trailToolsHover || compassHover || settingsHover);
 	NotesPad::Save(false);
 	Settings::Save(false);

@@ -29,6 +29,8 @@ namespace CompletionDetail
 		HANDLE gThread = nullptr;
 		std::unordered_map<uint32_t, ApProgress> gPend;
 		std::string gPendNote;
+		DWORD gLastFetchMs = 0;
+		constexpr DWORD kMinRefetchMs = 180u * 1000u;
 
 		void CollectIds(const std::string& body, std::unordered_map<uint32_t, ApProgress>& out)
 		{
@@ -117,6 +119,10 @@ namespace CompletionDetail
 
 	void BeginApOverlayRefresh()
 	{
+		const DWORD now = GetTickCount();
+		/* Skip reopen storms — account achievements payload is large. */
+		if (gLastFetchMs != 0 && (now - gLastFetchMs) < kMinRefetchMs)
+			return;
 		if (gBusy.exchange(true))
 			return;
 		if (gThread)
@@ -125,6 +131,7 @@ namespace CompletionDetail
 			CloseHandle(gThread);
 			gThread = nullptr;
 		}
+		gLastFetchMs = now;
 		gThread = CreateThread(nullptr, 0, Worker, nullptr, 0, nullptr);
 		if (!gThread)
 			gBusy = false;

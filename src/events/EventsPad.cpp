@@ -3,6 +3,7 @@
 
 #include "EventsData.h"
 #include "AspectLayout.h"
+#include "EventAlert.h"
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
@@ -150,6 +151,18 @@ bool EventsPad::Render()
 		ImGui::SetTooltip(
 			"Limit alerts to events for your current open-world map\n"
 			"(read-only MumbleLink map id). Combines with Alert track.");
+
+	if (ImGui::SmallButton("Place alert###gw2igh_ev_place"))
+		EventAlert::BeginPlacement();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"Show a sample toast you can drag.\n"
+			"Position is saved for all future event alerts.");
+	ImGui::SameLine();
+	if (ImGui::SmallButton("Reset alert pos###gw2igh_ev_resetpos"))
+		EventAlert::ResetPosition();
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("Restore the default (upper-center) alert position.");
 
 	if (gThisMapOnly)
 	{
