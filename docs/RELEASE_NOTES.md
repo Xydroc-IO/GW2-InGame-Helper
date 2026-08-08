@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.3.15
+# GW2 In-Game Helper v2.2.4.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,22 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.0
+
+- **Branding:** Gem+book title crest (`crest-hero`, ~104px, slight peek above strip);
+  matching QuickAccess 64×64 icon (`v20`); bottom-only plaque corners so the crest
+  stays clear; side rail cleared below the crest.
+- **UI defaults:** Font scale default **1.25x**; side rail is icon-dock only (labels
+  setting removed — hover for names).
+- **Wine / Proton stability:** Soft-open companion pads (defer heavy work off the click
+  frame); skip `SetNextWindowFocus` when placing pads; Watch Mirror deferred open + no
+  WarmAsync on rail click; CEF present stops uploading when the helper process dies;
+  Watch GPU / shm hardening under load.
+- **Maintainability:** `DirectionCompass` and `WatchCaptureWgc` split under the ≤500-line
+  `.cpp` preference.
+- **Stamps:** Helper `2242` · homepage `2232` · sites `s2214` · cheatsheets `c2228`
+  · live panel `62` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.3.15
 

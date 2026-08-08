@@ -1,6 +1,6 @@
 # Pathing — packs, markers, compass, world GPS
 
-**Revision:** 2.2.3.10 · **Audience:** contributors and advanced players  
+**Revision:** 2.2.4.0 · **Audience:** contributors and advanced players  
 **Companions:** [`../pathing/README.md`](../pathing/README.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`COMPLETION.md`](COMPLETION.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.2, [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
 ---

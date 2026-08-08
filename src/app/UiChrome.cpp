@@ -21,7 +21,7 @@ extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
 
 namespace
 {
-	constexpr const char* kPackStamp = "uc35";
+	constexpr const char* kPackStamp = "uc36";
 	constexpr int kChromeIds[] = {
 		155985, 155981, 156022, 156008, 156009, 156010, 155967, 156260, 155014,
 		/* Curated rail / Log Manager icons (Desktop/icons — current set). */

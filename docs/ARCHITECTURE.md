@@ -5,13 +5,13 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.3.15` |
+| Addon revision (shipping) | `2.2.4.0` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2242` / `2232` / `s2214` / `c2228` |
 | Live panel stamp | `62` |
 | Raid food stamp | `9` |
-| ui-chrome stamp | `uc35` |
+| ui-chrome stamp | `uc36` |
 | watchd stamp | `w10` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
@@ -275,5 +275,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.3.15 — title crest overhang + label spacing; HasKha Markers curated; Watch WGC picker; GDI classic; portal/PipeWire (w10); live 62; home 2232; cheatsheets c2228; raid food 9; ui-chrome uc35 |
+| Last architecture sync | 2.2.4.0 — gem+book crest + QA; Wine soft-open pads; Watch/CEF hardening; icon-dock rail; font 1.25; ui-chrome uc36; live 62; home 2232; cheatsheets c2228; raid food 9; watchd w10 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |
