@@ -119,34 +119,7 @@ void UI_Render()
 		/* Notes / TP / Lookup / Wallet can stay open while the helper browser is closed.
 		   Only block GW2 while the pointer is over those windows - do not
 		   force Capture*FromApp(false) every frame (breaks Nexus / open). */
-		const bool notesHover = NotesPad::Render();
-		const bool accountHover = AccountPad::Render();
-		const bool tpHover = TpWatchPad::Render();
-		const bool lookupHover = LookupPad::Render();
-		const bool walletHover = WalletPad::Render();
-		const bool vaultHover = VaultPad::Render();
-		const bool eventsHover = EventsPad::Render();
-		const bool logsHover = LogManagerPad::Render();
-		const bool economyHover = EconomyPad::Render();
-		const bool instancesHover = InstancesPad::Render();
-		const bool completionHover = CompletionPad::Render();
-		const bool farmingHover = FarmingPad::Render();
-		CompletionPad::Tick();
-		FarmingPad::Tick();
-		const bool gpsArrowHover = GpsArrow::Render();
-		ZoneBanner::Render();
-		const bool eventAlertHover = EventAlert::Render();
-		const bool tekkitHover = PathingGuidesPad::Render();
-		const bool trailToolsHover = TrailToolsPad::Render();
-		const bool compassHover = DirectionCompass::RenderPad();
-		const bool settingsHover = SettingsPad::Render();
-		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-			walletHover || vaultHover || eventsHover || logsHover ||
-			economyHover || instancesHover || completionHover || farmingHover ||
-			gpsArrowHover || eventAlertHover ||
-			tekkitHover || trailToolsHover || compassHover || settingsHover);
-		NotesPad::Save(false);
-		Settings::Save(false);
+		RenderCompanionPads();
 		return;
 	}
 
@@ -262,34 +235,7 @@ void UI_Render()
 			Settings::SetDirty();
 		}
 		/* Still draw pads while the main window is collapsed. */
-		const bool notesHover = NotesPad::Render();
-		const bool accountHover = AccountPad::Render();
-		const bool tpHover = TpWatchPad::Render();
-		const bool lookupHover = LookupPad::Render();
-		const bool walletHover = WalletPad::Render();
-		const bool vaultHover = VaultPad::Render();
-		const bool eventsHover = EventsPad::Render();
-		const bool logsHover = LogManagerPad::Render();
-		const bool economyHover = EconomyPad::Render();
-		const bool instancesHover = InstancesPad::Render();
-		const bool completionHover = CompletionPad::Render();
-		const bool farmingHover = FarmingPad::Render();
-		CompletionPad::Tick();
-		FarmingPad::Tick();
-		const bool gpsArrowHover = GpsArrow::Render();
-		ZoneBanner::Render();
-		const bool eventAlertHover = EventAlert::Render();
-		const bool tekkitHover = PathingGuidesPad::Render();
-		const bool trailToolsHover = TrailToolsPad::Render();
-		const bool compassHover = DirectionCompass::RenderPad();
-		const bool settingsHover = SettingsPad::Render();
-		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-			walletHover || vaultHover || eventsHover || logsHover ||
-			economyHover || instancesHover || completionHover || farmingHover ||
-			gpsArrowHover || eventAlertHover ||
-			tekkitHover || trailToolsHover || compassHover || settingsHover);
-		NotesPad::Save(false);
-		Settings::Save(false);
+		RenderCompanionPads();
 		return;
 	}
 
@@ -423,9 +369,13 @@ void UI_Render()
 
 	/* Flush CEF edge-to-edge. Pops MUST happen inside DrawWikiPageSlot
 	   before End/PopWikiTheme — that function owns the window teardown.
-	   Side dock is a separate window locked to the helper's left edge. */
+	   Side dock is a separate window locked to the helper's left edge.
+	   Pads render after the rail; then glue rail under helper so Vault /
+	   Account / Compass cannot sit between nav and body when the helper moves. */
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, ImGui::GetStyle().ItemSpacing.y));
 	DrawWikiPageSlot(open);
 	DrawHelperSideRail();
+	RenderCompanionPads();
+	GlueSideRailDisplayOrder();
 }

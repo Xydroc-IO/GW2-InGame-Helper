@@ -21,7 +21,9 @@
 #include "InstancesPad.h"
 #include "CompletionPad.h"
 #include "FarmingPad.h"
-#include "InstancesPad.h"
+#include "EventAlert.h"
+#include "GpsArrow.h"
+#include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
 #include "PathingTrails.h"
 #include "TrailToolsPad.h"
@@ -29,6 +31,7 @@
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
 #include "DirectionCompass.h"
+#include "SettingsPad.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "AspectLayout.h"
@@ -280,6 +283,69 @@ namespace UIDetail
 			G::ShowEconomy || G::ShowInstances || G::ShowCompletion || G::ShowFarming ||
 			G::ShowPathingGuides || TrailToolsPad::AnyOpen() ||
 			G::ShowCompassPad || G::ShowSettings;
+	}
+
+	void RenderCompanionPads()
+	{
+		const bool notesHover = NotesPad::Render();
+		const bool accountHover = AccountPad::Render();
+		const bool tpHover = TpWatchPad::Render();
+		const bool lookupHover = LookupPad::Render();
+		const bool walletHover = WalletPad::Render();
+		const bool vaultHover = VaultPad::Render();
+		const bool eventsHover = EventsPad::Render();
+		const bool logsHover = LogManagerPad::Render();
+		const bool economyHover = EconomyPad::Render();
+		const bool instancesHover = InstancesPad::Render();
+		const bool completionHover = CompletionPad::Render();
+		const bool farmingHover = FarmingPad::Render();
+		CompletionPad::Tick();
+		FarmingPad::Tick();
+		const bool gpsArrowHover = GpsArrow::Render();
+		ZoneBanner::Render();
+		const bool eventAlertHover = EventAlert::Render();
+		const bool tekkitHover = PathingGuidesPad::Render();
+		const bool trailToolsHover = TrailToolsPad::Render();
+		const bool compassHover = DirectionCompass::RenderPad();
+		const bool settingsHover = SettingsPad::Render();
+		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
+			walletHover || vaultHover || eventsHover || logsHover ||
+			economyHover || instancesHover || completionHover || farmingHover ||
+			gpsArrowHover || eventAlertHover ||
+			tekkitHover || trailToolsHover || compassHover || settingsHover);
+		NotesPad::Save(false);
+		Settings::Save(false);
+	}
+
+	void GlueSideRailDisplayOrder()
+	{
+		/* Nav is a sibling window. Clicking Vault/Account/Compass focuses those
+		   pads above the rail; dragging the helper then fronts the body and
+		   leaves pads between rail and content. Keep rail glued under helper. */
+		ImGuiWindow* helper = ImGui::FindWindowByName("In-Game Helper##GW2InGameHelper");
+		ImGuiWindow* rail = ImGui::FindWindowByName("##gw2igh_side_dock");
+		if (!helper || !rail || !helper->WasActive || !rail->WasActive)
+			return;
+
+		ImGuiContext& g = *GImGui;
+		int helperIdx = -1;
+		int railIdx = -1;
+		for (int i = 0; i < g.Windows.Size; ++i)
+		{
+			if (g.Windows[i] == helper)
+				helperIdx = i;
+			else if (g.Windows[i] == rail)
+				railIdx = i;
+		}
+		if (helperIdx < 0 || railIdx < 0)
+			return;
+		if (railIdx == helperIdx - 1)
+			return;
+
+		g.Windows.erase(&g.Windows[railIdx]);
+		if (railIdx < helperIdx)
+			--helperIdx;
+		g.Windows.insert(&g.Windows[helperIdx], rail);
 	}
 
 	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves

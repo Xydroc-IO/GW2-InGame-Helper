@@ -75,6 +75,14 @@ namespace UIDetail
 	/* Same width DrawHelperSideRail uses (for title-bar left flush). */
 	float HelperSideRailWidth();
 
-	/* OSR page slot + input capture + tool pads (open helper path). */
+	/* Companion ImGui pads — call AFTER DrawHelperSideRail so submit order
+	   cannot leave pads between the nav column and the helper body. */
+	void RenderCompanionPads();
+
+	/* Keep ##gw2igh_side_dock immediately under the helper in display order so
+	   focused pads cannot sandwich between rail and helper content. */
+	void GlueSideRailDisplayOrder();
+
+	/* OSR page slot + input capture (open helper path). Pads render after the rail. */
 	void DrawWikiPageSlot(bool open);
 }

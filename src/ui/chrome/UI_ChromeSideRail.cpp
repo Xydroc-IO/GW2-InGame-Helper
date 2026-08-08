@@ -251,6 +251,7 @@ namespace UIDetail
 			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
 			ImGuiWindowFlags_NoSavedSettings |
 			ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoBringToFrontOnFocus |
 			ImGuiWindowFlags_NoBackground |
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 

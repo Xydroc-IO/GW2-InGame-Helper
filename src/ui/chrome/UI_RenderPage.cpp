@@ -303,35 +303,6 @@ namespace UIDetail
 	ImGui::End();
 	ImGui::PopStyleVar();
 	PopWikiTheme();
-
-	const bool notesHover = NotesPad::Render();
-	const bool accountHover = AccountPad::Render();
-	const bool tpHover = TpWatchPad::Render();
-	const bool lookupHover = LookupPad::Render();
-	const bool walletHover = WalletPad::Render();
-	const bool vaultHover = VaultPad::Render();
-	const bool eventsHover = EventsPad::Render();
-	const bool logsHover = LogManagerPad::Render();
-	const bool economyHover = EconomyPad::Render();
-	const bool instancesHover = InstancesPad::Render();
-	const bool completionHover = CompletionPad::Render();
-	const bool farmingHover = FarmingPad::Render();
-	CompletionPad::Tick();
-	FarmingPad::Tick();
-	const bool gpsArrowHover = GpsArrow::Render();
-	ZoneBanner::Render();
-	const bool eventAlertHover = EventAlert::Render();
-	const bool tekkitHover = PathingGuidesPad::Render();
-	const bool trailToolsHover = TrailToolsPad::Render();
-	const bool compassHover = DirectionCompass::RenderPad();
-	const bool settingsHover = SettingsPad::Render();
-	CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-		walletHover || vaultHover || eventsHover || logsHover ||
-		economyHover || instancesHover || completionHover || farmingHover ||
-		gpsArrowHover || eventAlertHover ||
-		tekkitHover || trailToolsHover || compassHover || settingsHover);
-	NotesPad::Save(false);
-	Settings::Save(false);
-
+	/* Companion pads: RenderCompanionPads() after DrawHelperSideRail() in UI_Render. */
 	}
 } // namespace UIDetail
