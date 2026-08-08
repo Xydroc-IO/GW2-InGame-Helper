@@ -101,6 +101,7 @@ add_library(GW2-InGame-Helper SHARED
   src/entryLoad.cpp
   src/entryUnload.cpp
   src/app/Settings.cpp
+  src/app/SettingsSave.cpp
   src/app/AddonPaths.cpp
   src/app/MumbleIdentity.cpp
   src/app/AspectLayout.cpp
@@ -364,6 +365,7 @@ add_library(GW2-InGame-Helper SHARED
   src/ui/chrome/UI_ChromeTabs.cpp
   src/ui/chrome/UI_ChromeToolbar.cpp
   src/ui/chrome/UI_ChromeSideRail.cpp
+  src/ui/chrome/UI_ChromeSideRailLayout.cpp
   src/ui/chrome/UI_Render.cpp
   src/ui/chrome/UI_RenderPage.cpp
   src/ui/browse/UI_Browse.cpp
