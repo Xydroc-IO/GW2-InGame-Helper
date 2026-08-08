@@ -11,8 +11,8 @@
 
 namespace WatchCaptureDetail
 {
-	constexpr uint32_t kMaxCaptureW = 640;
-	constexpr uint32_t kMaxCaptureH = 360;
+	constexpr uint32_t kMaxCaptureW = 1280;
+	constexpr uint32_t kMaxCaptureH = 720;
 	constexpr DWORD    kMinFrameMs = 16; /* ~60 FPS present */
 
 #ifndef PW_RENDERFULLCONTENT
@@ -28,6 +28,9 @@ namespace WatchCaptureDetail
 	extern uint32_t                gTexH;
 	extern uint32_t                gContentW;
 	extern uint32_t                gContentH;
+	/* Stop/close must not Release() while this frame's ImGui draw list still
+	 * holds the SRV — that use-after-free can take down the game process. */
+	extern bool                    gDeferGpuRelease;
 
 	extern int                      gRawEnumCount;
 	extern uint64_t                gTarget;
@@ -41,6 +44,8 @@ namespace WatchCaptureDetail
 	bool EnsureTexture(uint32_t w, uint32_t h);
 	bool UploadBgra(const uint8_t* bgra, uint32_t w, uint32_t h, uint32_t srcStride);
 	void ReleaseGpu();
+	void FlushDeferredGpuRelease();
+	void RequestGpuRelease();
 	void ReleaseDevice();
 
 	bool SampleLooksBlank(const uint8_t* bgra, uint32_t w, uint32_t h, uint32_t stride);

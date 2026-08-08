@@ -86,10 +86,10 @@ namespace
 		if (!G::ShowWatchMirror)
 			return false;
 
-		constexpr float kPadW = 640.f;
-		constexpr float kPadH = 400.f;
-		PadDock::SetSizeConstraints("Watch Mirror###GW2InGameHelperWatchMirror", 320.f, 220.f,
-			PadDock::MaxW(1200.f), PadDock::MaxH(900.f));
+		constexpr float kPadW = 960.f;
+		constexpr float kPadH = 540.f;
+		PadDock::SetSizeConstraints("Watch Mirror###GW2InGameHelperWatchMirror", 480.f, 300.f,
+			PadDock::MaxW(1600.f), PadDock::MaxH(1000.f));
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(G::PadWatchMirror, gRequestMirrorDock, kPadW, kPadH,
 			PadDock::BesideHelper(kPadW));

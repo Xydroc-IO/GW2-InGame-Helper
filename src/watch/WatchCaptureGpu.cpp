@@ -17,6 +17,7 @@ namespace WatchCaptureDetail
 	uint32_t                 gTexH = 0;
 	uint32_t                 gContentW = 0;
 	uint32_t                 gContentH = 0;
+	bool                     gDeferGpuRelease = false;
 
 	uint64_t                 gTarget = 0;
 	int                      gRawEnumCount = 0;
@@ -35,8 +36,25 @@ namespace WatchCaptureDetail
 		gContentW = gContentH = 0;
 	}
 
+	void FlushDeferredGpuRelease()
+	{
+		if (!gDeferGpuRelease)
+			return;
+		gDeferGpuRelease = false;
+		ReleaseGpu();
+	}
+
+	void RequestGpuRelease()
+	{
+		/* Hide content immediately so this frame won't AddImage after Stop,
+		 * but keep the SRV alive until the next Tick (after ImGui presents). */
+		gContentW = gContentH = 0;
+		gDeferGpuRelease = true;
+	}
+
 	void ReleaseDevice()
 	{
+		gDeferGpuRelease = false;
 		ReleaseGpu();
 		if (gContext) { gContext->Release(); gContext = nullptr; }
 		if (gDevice) { gDevice->Release(); gDevice = nullptr; }
@@ -44,6 +62,7 @@ namespace WatchCaptureDetail
 
 	bool EnsureDevice()
 	{
+		FlushDeferredGpuRelease();
 		if (gDevice && gContext)
 			return true;
 		if (!G::API || !G::API->SwapChain)
@@ -66,6 +85,7 @@ namespace WatchCaptureDetail
 
 	bool EnsureTexture(uint32_t w, uint32_t h)
 	{
+		FlushDeferredGpuRelease();
 		if (!EnsureDevice() || w == 0 || h == 0)
 			return false;
 		if (gTex && gStagingTex && gSrv && gTexW == w && gTexH == h)

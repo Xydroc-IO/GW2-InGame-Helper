@@ -10,7 +10,7 @@ namespace WatchProto
 {
 	constexpr uint32_t kMagic = 0x31484357u; /* 'WCH1' */
 	constexpr uint16_t kPort = 27865;
-	constexpr uint32_t kVersion = 5;
+	constexpr uint32_t kVersion = 6;
 
 	enum : uint32_t
 	{
@@ -35,8 +35,9 @@ namespace WatchProto
 
 	constexpr const char* kShmUnixPath = "/dev/shm/gw2igh-watch-frame";
 	constexpr uint32_t kShmMagic = 0x4D485357u; /* 'WSHM' */
-	constexpr uint32_t kMaxW = 640;
-	constexpr uint32_t kMaxH = 360;
+	/* Match ~720p so the Mirror window is not upscaling mush. */
+	constexpr uint32_t kMaxW = 1280;
+	constexpr uint32_t kMaxH = 720;
 	constexpr uint32_t kNoSlot = 0xFFFFFFFFu;
 	constexpr size_t   kShmHeaderBytes = 4096;
 	constexpr size_t   kSlotBytes = static_cast<size_t>(kMaxW) * kMaxH * 4;

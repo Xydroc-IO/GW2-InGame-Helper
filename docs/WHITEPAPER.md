@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.3.12 | 2.2.3.12 | Watch control + Mirror window; portal/PipeWire OOP (w9) / Windows GDI; async spawn |
+| 2.2.3.12 | 2.2.3.12 | Watch control + Mirror; portal/PipeWire OOP (w10, 1280×720) / Windows GDI; async spawn |
 | 2.2.3.11 | 2.2.3.11 | CEF --app-h short-page center; chrome/CEF crash fixes; live 62; home 2230; c2228; raid food 9 |
 | 2.2.3.10 | 2.2.3.10 | User themes; Browse tile centering; live Back ERR_FILE recovery; side-rail fill; ui-chrome uc31 |
 | 2.2.3.9 | 2.2.3.9 | ApiBudget/BgFetch; MapAssist opt-in + COMPLIANCE exception; Instances soft sync; crafting tabs/chips; event alert place; economy chart poll |
@@ -1002,6 +1002,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.3.12 — Watch portal/PipeWire OOP; helper 2242; home 2230; live 62; c2228; raid food 9; watchd w9 |
+| Last sync | 2.2.3.12 — Watch portal/PipeWire OOP; helper 2242; home 2230; live 62; c2228; raid food 9; watchd w10 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

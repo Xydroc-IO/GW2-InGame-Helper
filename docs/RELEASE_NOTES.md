@@ -37,12 +37,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
 - **Watch pad:** Side-rail companion above Settings — slim Start/Stop control; video
   opens in a separate **Watch Mirror** window. Look-only (playback stays in the
   system app). Unique viewfinder rail icon (`WatchView`).
-- **Wine / Proton:** embedded `gw2igh-watchd` (stamp `w9`) — xdg-desktop-portal
-  ScreenCast + PipeWire → `/dev/shm` (~60 FPS). Daemon spawn/chmod is async with a
+- **Wine / Proton:** embedded `gw2igh-watchd` (stamp `w10`) — xdg-desktop-portal
+  ScreenCast + PipeWire → `/dev/shm` (~60 FPS, up to **1280×720**). Daemon spawn/chmod is async with a
   space-safe `/tmp` binary so Start does not hitch the game thread.
 - **Windows:** async GDI window capture (`PrintWindow` / `BitBlt`) with in-pad picker.
+- **Watch stability / clarity:** Closing Mirror no longer frees the D3D SRV mid-frame
+  (deferred GPU release). Capture max raised from 640×360 → 1280×720 so the mirror is not mush.
 - **Stamps:** Helper `2242` · homepage `2230` · sites `s2214` · cheatsheets `c2228`
-  · live panel `62` · raid food `9` · ui-chrome `uc31` · watchd `w9`
+  · live panel `62` · raid food `9` · ui-chrome `uc31` · watchd `w10`
 
 ## What’s new in 2.2.3.11
 

@@ -12,7 +12,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 | Live panel stamp | `62` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc31` |
-| watchd stamp | `w9` |
+| watchd stamp | `w10` |
 | User-Agent product token | trailing `GW2-InGame-Helper` ([`PUBLISHER_ACCESS.md`](PUBLISHER_ACCESS.md)) |
 | CEF | stock Stable **150.0.14** / Chromium **150.0.7871.129** |
 

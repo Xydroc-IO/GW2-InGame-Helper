@@ -242,7 +242,7 @@ void WatchCapture::Stop()
 	gTarget = 0;
 	gLastBlank = false;
 	ResetWinReady();
-	ReleaseGpu();
+	RequestGpuRelease();
 	if (gStatus != "Stopped." && gStatus.find("daemon") == std::string::npos)
 		gStatus = "Stopped.";
 }
@@ -263,6 +263,8 @@ uint64_t WatchCapture::TargetId()
 
 void WatchCapture::Tick()
 {
+	FlushDeferredGpuRelease();
+
 	if (!IsCapturing())
 		return;
 
@@ -360,6 +362,7 @@ bool WatchCapture::LastFrameLookedBlank()
 void WatchCapture::Shutdown()
 {
 	Stop();
+	FlushDeferredGpuRelease();
 	StopWinPump();
 	WatchLinux::Disconnect();
 	gWindows.clear();
