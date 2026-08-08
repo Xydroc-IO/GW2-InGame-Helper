@@ -57,6 +57,7 @@ namespace CompletionDetail
 			if (!op) continue;
 			const Objective& o = *op;
 			if (o.done || !o.hasCoord) continue;
+			if (!IsMapCompletionRouteKind(o.kind)) continue;
 			if (gFocusMapId != 0 && o.mapId != gFocusMapId) continue;
 			float d = 0.f;
 			if (havePlayer)
@@ -113,7 +114,7 @@ namespace CompletionDetail
 		{
 			const size_t i = idxs[(start + n) % idxs.size()];
 			Objective* o = ObjectiveAt(i);
-			if (o && !o->done && o->hasCoord)
+			if (o && !o->done && o->hasCoord && IsMapCompletionRouteKind(o->kind))
 				return GuideToObjective(i);
 		}
 		std::snprintf(gStatus, sizeof(gStatus), "Zone loop complete - no remaining coords.");
@@ -135,6 +136,25 @@ namespace CompletionDetail
 		PathingGuidesPad::Open();
 		std::snprintf(gStatus, sizeof(gStatus),
 			"Lady Elyssa MC (Barefoot) + hearts - Pathing Features to tune.");
+		Settings::SetDirty();
+		return true;
+	}
+
+	bool OpenLadyAchievementPathing(const char* categoryPath)
+	{
+		if (!categoryPath || !categoryPath[0])
+		{
+			std::snprintf(gStatus, sizeof(gStatus),
+				"Select an achievement category first.");
+			return false;
+		}
+		G::ShowPathingTrails = true;
+		G::ShowWorldTrails = true;
+		PathingTrails::SetCategoryEnabled(categoryPath, true);
+		PathingTrails::NotifyVisibilityFilterChanged();
+		PathingGuidesPad::Open();
+		std::snprintf(gStatus, sizeof(gStatus),
+			"Pathing category on: %s", categoryPath);
 		Settings::SetDirty();
 		return true;
 	}

@@ -40,6 +40,8 @@ namespace CompletionDetail
 			for (int i = 0; i < static_cast<int>(ObjKind::Count); ++i)
 			{
 				const ObjKind k = static_cast<ObjKind>(i);
+				if (!IsMapCompletionRouteKind(k))
+					continue;
 				const bool on = KindVisible(k);
 				if (i) ImGui::SameLine();
 				char lab[32];
@@ -106,6 +108,7 @@ namespace CompletionDetail
 					for (int i = 0; i < static_cast<int>(ObjKind::Count); ++i)
 					{
 						const ObjKind k = static_cast<ObjKind>(i);
+						if (!IsMapCompletionRouteKind(k)) continue;
 						const int kt = CountTotalKind(z.id, k);
 						if (kt <= 0) continue;
 						ImGui::Text("%s: %d / %d", ObjKindName(k), CountDoneKind(z.id, k), kt);

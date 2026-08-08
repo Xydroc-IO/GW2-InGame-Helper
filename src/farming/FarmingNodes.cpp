@@ -22,6 +22,15 @@ namespace FarmingDetail
 		std::vector<LiveNode> gNodes;
 		int gNodesRunId = -1;
 
+		/* Armed by GPS nearest / GPS on a live node — no custom trails required. */
+		bool gArriveArmed = false;
+		float gArriveX = 0.f;
+		float gArriveY = 0.f;
+		char gArriveLabel[96]{};
+		float gLastArriveX = 0.f;
+		float gLastArriveY = 0.f;
+		bool gHaveLastArrive = false;
+
 		bool PlayerContinent(float& px, float& py)
 		{
 			if (!G::Mumble || G::Mumble->context_len < sizeof(MumbleContext))
@@ -31,6 +40,40 @@ namespace FarmingDetail
 			py = ctx->playerY;
 			return true;
 		}
+
+		void ArmArrive(float x, float y, const char* label)
+		{
+			gArriveArmed = true;
+			gArriveX = x;
+			gArriveY = y;
+			std::snprintf(gArriveLabel, sizeof(gArriveLabel), "%s", label ? label : "node");
+		}
+
+		void ClearArrive()
+		{
+			gArriveArmed = false;
+			gArriveLabel[0] = 0;
+		}
+
+		bool TooCloseToLast(float x, float y, float minDist)
+		{
+			if (!gHaveLastArrive) return false;
+			const float dx = x - gLastArriveX;
+			const float dy = y - gLastArriveY;
+			return dx * dx + dy * dy < minDist * minDist;
+		}
+
+		bool GuideLiveNodeSkippingLast(float skipDist)
+		{
+			for (size_t i = 0; i < gNodes.size(); ++i)
+			{
+				if (TooCloseToLast(gNodes[i].continentX, gNodes[i].continentY, skipDist))
+					continue;
+				return GuideLiveNode(i);
+			}
+			ClearArrive();
+			return false;
+		}
 	}
 
 	const std::vector<LiveNode>& LiveNodes() { return gNodes; }
@@ -39,7 +82,7 @@ namespace FarmingDetail
 	{
 		gNodes.clear();
 		gNodesRunId = -1;
-		EnsureSeed();
+		EnsureCatalog();
 		if (run >= gRuns.size())
 		{
 			std::snprintf(gStatus, sizeof(gStatus), "No run selected.");
@@ -94,7 +137,7 @@ namespace FarmingDetail
 				for (const auto& p : pois)
 				{
 					if (!p.hasCoord) continue;
-					if (p.type == "waypoint") continue; /* prefer landmarks/vistas as anchors */
+					if (p.type == "waypoint") continue;
 					LiveNode n{};
 					std::snprintf(n.label, sizeof(n.label), "%s",
 						p.name.empty() ? p.type.c_str() : p.name.c_str());
@@ -136,6 +179,9 @@ namespace FarmingDetail
 		if (idx >= gNodes.size()) return false;
 		const LiveNode& n = gNodes[idx];
 		PathingTrails::SetSearchDestination(n.continentX, n.continentY);
+		ArmArrive(n.continentX, n.continentY, n.label);
+		if (gFocusStep < 0 && gSelectedRun >= 0)
+			gFocusStep = NextUndoneStep(static_cast<size_t>(gSelectedRun));
 		if (PathingTrails::HasSearchGuide())
 			std::snprintf(gStatus, sizeof(gStatus), "GPS trail -> %s", n.label);
 		else if (PathingTrails::HasSearchGuideActive())
@@ -156,6 +202,102 @@ namespace FarmingDetail
 		}
 		if (gNodes.empty())
 			return false;
-		return GuideLiveNode(0);
+		return GuideLiveNodeSkippingLast(gArriveRadius * 0.5f);
+	}
+
+	bool GuideStep(size_t run, size_t step)
+	{
+		EnsureCatalog();
+		if (run >= gRuns.size() || step >= gRuns[run].steps.size()) return false;
+		const RunStep& s = gRuns[run].steps[step];
+		gFocusStep = static_cast<int>(step);
+		if (!s.hasCoord)
+		{
+			std::snprintf(gStatus, sizeof(gStatus),
+				"Step has no GPS coord — use live nodes or Pathing.");
+			return false;
+		}
+		PathingTrails::SetSearchDestination(s.continentX, s.continentY);
+		ArmArrive(s.continentX, s.continentY, s.text);
+		std::snprintf(gStatus, sizeof(gStatus), "GPS -> %s", s.text);
+		Settings::SetDirty();
+		return true;
+	}
+
+	bool GuideNextStep(size_t run)
+	{
+		const int next = NextUndoneStep(run);
+		if (next < 0)
+		{
+			std::snprintf(gStatus, sizeof(gStatus), "All steps done.");
+			ClearArrive();
+			return false;
+		}
+		gFocusStep = next;
+		if (GuideStep(run, static_cast<size_t>(next)))
+			return true;
+		/* No step coords — Pathing pack / landmark nearest (no custom trails). */
+		return GuideNearestLiveNode();
+	}
+
+	void TickAutoArrive()
+	{
+		if (!gAutoArrive || !G::ShowFarming || !gArriveArmed) return;
+		if (gSelectedRun < 0 || static_cast<size_t>(gSelectedRun) >= gRuns.size()) return;
+
+		float px = 0.f, py = 0.f;
+		if (!PlayerContinent(px, py)) return;
+		const float dx = gArriveX - px;
+		const float dy = gArriveY - py;
+		if (dx * dx + dy * dy > gArriveRadius * gArriveRadius) return;
+
+		const int step = (gFocusStep >= 0) ? gFocusStep
+			: NextUndoneStep(static_cast<size_t>(gSelectedRun));
+		if (step < 0)
+		{
+			ClearArrive();
+			std::snprintf(gStatus, sizeof(gStatus), "Arrived at %s — run complete.", gArriveLabel);
+			return;
+		}
+
+		Run& r = gRuns[static_cast<size_t>(gSelectedRun)];
+		if (static_cast<size_t>(step) >= r.steps.size() || r.steps[static_cast<size_t>(step)].done)
+		{
+			gFocusStep = NextUndoneStep(static_cast<size_t>(gSelectedRun));
+			if (gFocusStep < 0)
+			{
+				ClearArrive();
+				return;
+			}
+		}
+
+		char stepBuf[120];
+		const int check = (gFocusStep >= 0) ? gFocusStep : step;
+		std::snprintf(stepBuf, sizeof(stepBuf), "%s",
+			r.steps[static_cast<size_t>(check)].text);
+		char nodeBuf[96];
+		std::snprintf(nodeBuf, sizeof(nodeBuf), "%s", gArriveLabel);
+
+		gLastArriveX = gArriveX;
+		gLastArriveY = gArriveY;
+		gHaveLastArrive = true;
+		ClearArrive();
+
+		if (!r.steps[static_cast<size_t>(check)].done)
+			ToggleStep(static_cast<size_t>(gSelectedRun), static_cast<size_t>(check));
+		gFocusStep = NextUndoneStep(static_cast<size_t>(gSelectedRun));
+
+		RefreshLiveNodes(static_cast<size_t>(gSelectedRun));
+		const float skip = gArriveRadius * 1.5f;
+		if (gFocusStep >= 0 && GuideLiveNodeSkippingLast(skip))
+		{
+			std::snprintf(gStatus, sizeof(gStatus),
+				"Arrived %s — checked \"%s\". GPS -> next marker.", nodeBuf, stepBuf);
+		}
+		else
+		{
+			std::snprintf(gStatus, sizeof(gStatus),
+				"Arrived %s — checked \"%s\".", nodeBuf, stepBuf);
+		}
 	}
 }

@@ -26,6 +26,8 @@ namespace CompletionDetail
 			for (int i = 0; i < static_cast<int>(ObjKind::Count); ++i)
 			{
 				const ObjKind k = static_cast<ObjKind>(i);
+				if (!IsMapCompletionRouteKind(k))
+					continue;
 				const bool on = KindVisible(k);
 				if (i) ImGui::SameLine();
 				char lab[32];
@@ -132,6 +134,17 @@ namespace CompletionDetail
 			ClearDoneForMap(gFocusMapId);
 		ImGui::TextColored(HelperTheme::Muted, "Focus zone: %d / %d",
 			CountDone(gFocusMapId), CountTotal(gFocusMapId));
+		{
+			char apiLine[160]{};
+			if (FormatApOverlayLine(gFocusMapId, nullptr, apiLine, sizeof(apiLine)))
+			{
+				ImGui::TextColored(HelperTheme::GoldMuted, "%s", apiLine);
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip(
+						"Account Explorer achievement (official API).\n"
+						"Local checklist ticks are separate — not map %% sync.");
+			}
+		}
 		DrawKindChips();
 
 		std::map<std::string, std::map<std::string, std::vector<ZoneAgg>>> tree;
@@ -195,7 +208,7 @@ namespace CompletionDetail
 					for (int ki = 0; ki < static_cast<int>(ObjKind::Count); ++ki)
 					{
 						const ObjKind k = static_cast<ObjKind>(ki);
-						if (!KindVisible(k)) continue;
+						if (!IsMapCompletionRouteKind(k) || !KindVisible(k)) continue;
 						const int kt = CountTotalKind(z.id, k);
 						if (kt <= 0) continue;
 						const int kd = CountDoneKind(z.id, k);

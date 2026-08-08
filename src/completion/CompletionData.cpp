@@ -1,13 +1,11 @@
 #include "CompletionShared.h"
+#include "CompletionInternal.h"
 
 #include "AddonPaths.h"
-#include "Globals.h"
-#include "Settings.h"
+#include "PathingTrails.h"
 #include "UiAscii.h"
 #include "WaypointsData.h"
 
-#include <algorithm>
-#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
@@ -32,6 +30,7 @@ namespace CompletionDetail
 	bool gAutoArrive = true;
 	bool gShowGpsArrow = true;
 	float gArriveRadius = 120.f;
+	char gApCategoryPath[160]{};
 
 	namespace
 	{
@@ -42,21 +41,12 @@ namespace CompletionDetail
 		bool gReady = false;
 		bool gChecklistLoaded = false;
 		uint32_t gLiveSyncedMap = 0;
-		std::unordered_set<uint32_t> gMergedMapIds;
-		bool gMapNamesEnriched = false;
-		constexpr int kBgMergePerTick = 8;
+		size_t gPackMergeMarkerCount = 0;
+		uint32_t gPackMergeFetchMap = 0;
 
 		std::wstring ChecklistPath()
 		{
 			return AddonPaths::ConfigDir() + L"\\completion-checklist.txt";
-		}
-
-		ObjKind KindFromApiType(const std::string& type)
-		{
-			if (type == "waypoint") return ObjKind::Waypoint;
-			if (type == "vista") return ObjKind::Vista;
-			if (type == "unlock") return ObjKind::Mastery;
-			return ObjKind::Poi;
 		}
 
 		void UpsertMap(uint32_t id, const char* name, const char* region)
@@ -88,13 +78,23 @@ namespace CompletionDetail
 		}
 
 		void AddObj(uint32_t id, uint32_t mapId, ObjKind kind, const char* name,
-			float cx, float cy, bool hasCoord)
+			float cx, float cy, bool hasCoord, const char* packType)
 		{
 			for (Objective& o : gObjs)
 			{
 				if (o.id == id)
 				{
 					o.done = gDoneIds.count(id) != 0;
+					if (hasCoord && !o.hasCoord)
+					{
+						o.continentX = cx;
+						o.continentY = cy;
+						o.hasCoord = true;
+					}
+					if (name && name[0] && !o.name[0])
+						UiAscii::SanitizeForUi(o.name, sizeof(o.name), name);
+					if (packType && packType[0] && !o.packType[0])
+						std::snprintf(o.packType, sizeof(o.packType), "%s", packType);
 					return;
 				}
 			}
@@ -104,96 +104,13 @@ namespace CompletionDetail
 			o.kind = kind;
 			if (name && name[0])
 				UiAscii::SanitizeForUi(o.name, sizeof(o.name), name);
+			if (packType && packType[0])
+				std::snprintf(o.packType, sizeof(o.packType), "%s", packType);
 			o.continentX = cx;
 			o.continentY = cy;
 			o.hasCoord = hasCoord;
 			o.done = gDoneIds.count(id) != 0;
 			gObjs.push_back(o);
-		}
-
-		void SeedCurated()
-		{
-			/* Official map ids (Public). Hierarchy fills release/region. */
-			UpsertMap(15, "Queensdale", "Kryta");
-			UpsertMap(34, "Caledon Forest", "Maguuma Jungle");
-			UpsertMap(50, "Lion's Arch", "Kryta");
-			UpsertMap(28, "Wayfarer Foothills", "Shiverpeak Mountains");
-			UpsertMap(1015, "The Silverwastes", "Maguuma Wastes");
-			AddObj(900001, 15, ObjKind::Heart, "Help Farmer Diah", 0, 0, false);
-			AddObj(900002, 15, ObjKind::Hero, "Shaemoor Garrison HP", 0, 0, false);
-			AddObj(900003, 34, ObjKind::Heart, "Help the Soundless", 0, 0, false);
-			AddObj(900004, 28, ObjKind::Hero, "Hangrammr Climb", 0, 0, false);
-			AddObj(900005, 15, ObjKind::Mastery, "Gliding Mastery Insight", 0, 0, false);
-
-			/* Seed every curated zone (Public + Strikes + Festival clones) offline. */
-			VisitHierarchy([](uint32_t mapId, const char* /*release*/, const char* region,
-				const char* name, void* /*ctx*/) {
-					UpsertMap(mapId, name, region);
-				}, nullptr);
-		}
-
-		void EnrichExistingMapNames()
-		{
-			if (gMapNamesEnriched)
-				return;
-			std::vector<WaypointsData::MapRow> maps;
-			WaypointsData::ListMaps(nullptr, maps, 4000);
-			for (const auto& mr : maps)
-			{
-				if (mr.id <= 0 || mr.name.empty()) continue;
-				for (MapInfo& m : gMaps)
-				{
-					if (m.id != static_cast<uint32_t>(mr.id))
-						continue;
-					if (!m.name[0])
-						UiAscii::SanitizeForUi(m.name, sizeof(m.name), mr.name.c_str());
-					break;
-				}
-			}
-			gMapNamesEnriched = true;
-		}
-
-		void MergeLivePois(uint32_t mapId)
-		{
-			if (mapId == 0)
-				return;
-			WaypointsData::EnsureLoaded(false);
-			WaypointsData::Tick();
-			if (!WaypointsData::Ready())
-				return;
-			std::vector<WaypointsData::Poi> pois;
-			WaypointsData::ListForMap(static_cast<int>(mapId), false, pois);
-			for (const auto& p : pois)
-			{
-				if (p.id <= 0) continue;
-				const ObjKind k = KindFromApiType(p.type);
-				AddObj(static_cast<uint32_t>(p.id), static_cast<uint32_t>(p.mapId), k,
-					p.name.c_str(), p.continentX, p.continentY, p.hasCoord);
-			}
-			gMergedMapIds.insert(mapId);
-		}
-
-		void MergeCuratedBackground()
-		{
-			struct Pending
-			{
-				std::vector<uint32_t>* ids;
-				const std::unordered_set<uint32_t>* done;
-			};
-			std::vector<uint32_t> pending;
-			Pending ctx{ &pending, &gMergedMapIds };
-			VisitHierarchy([](uint32_t mapId, const char*, const char*, const char*, void* v) {
-					auto* p = static_cast<Pending*>(v);
-					if (p->done->count(mapId) == 0)
-						p->ids->push_back(mapId);
-				}, &ctx);
-			int n = 0;
-			for (uint32_t id : pending)
-			{
-				MergeLivePois(id);
-				if (++n >= kBgMergePerTick)
-					break;
-			}
 		}
 	}
 
@@ -204,13 +121,11 @@ namespace CompletionDetail
 		{
 			gMaps.clear();
 			gObjs.clear();
-			gMergedMapIds.clear();
-			gMapNamesEnriched = false;
-			SeedCurated();
+			ResetFloorMergeState();
+			SeedCatalogMaps();
 			gReady = true;
 		}
 
-		/* Eager floor index — do not wait for a map change to start loading. */
 		WaypointsData::EnsureLoaded(false);
 		WaypointsData::Tick();
 
@@ -221,17 +136,16 @@ namespace CompletionDetail
 
 		if (!WaypointsData::Ready())
 		{
-			/* Keep focus merge pending until the index is ready. */
 			if (gLiveSyncedMap != 0 && want != 0 && want != gLiveSyncedMap)
 				gLiveSyncedMap = 0;
 			return;
 		}
 
-		EnrichExistingMapNames();
+		EnrichMapNamesFromFloors();
 
-		if (want != 0 && gMergedMapIds.count(want) == 0)
+		if (want != 0 && !FloorPoisMerged(want))
 		{
-			MergeLivePois(want);
+			MergeFloorPois(want);
 			gLiveSyncedMap = want;
 			if (gFocusMapId == 0 && cur != 0)
 				gFocusMapId = cur;
@@ -241,9 +155,29 @@ namespace CompletionDetail
 			gLiveSyncedMap = want;
 		}
 
-		/* Fill Atlas counts for curated Strikes / Festival / Public without waiting
-		   for the player to click every zone. */
-		MergeCuratedBackground();
+		MergeFloorPoisBackground();
+
+		const size_t packN = PathingTrails::IndexedMarkerCount();
+		uint32_t fetchMap = gFocusMapId != 0 ? gFocusMapId : cur;
+		if (packN != gPackMergeMarkerCount || fetchMap != gPackMergeFetchMap)
+		{
+			MergePackMarkers();
+			gPackMergeMarkerCount = packN;
+			gPackMergeFetchMap = fetchMap;
+		}
+	}
+
+	void UpsertMapEntry(uint32_t id, const char* name, const char* region)
+	{
+		std::lock_guard<std::recursive_mutex> lock(gMu);
+		UpsertMap(id, name, region);
+	}
+
+	void UpsertObjective(uint32_t id, uint32_t mapId, ObjKind kind, const char* name,
+		float cx, float cy, bool hasCoord, const char* packType)
+	{
+		std::lock_guard<std::recursive_mutex> lock(gMu);
+		AddObj(id, mapId, kind, name, cx, cy, hasCoord, packType);
 	}
 
 	size_t MapCount()
@@ -316,7 +250,7 @@ namespace CompletionDetail
 		std::lock_guard<std::recursive_mutex> lock(gMu);
 		int n = 0;
 		for (const Objective& o : gObjs)
-			if (o.mapId == mapId && o.done) ++n;
+			if (o.mapId == mapId && o.done && IsMapCompletionRouteKind(o.kind)) ++n;
 		return n;
 	}
 
@@ -325,7 +259,7 @@ namespace CompletionDetail
 		std::lock_guard<std::recursive_mutex> lock(gMu);
 		int n = 0;
 		for (const Objective& o : gObjs)
-			if (o.mapId == mapId) ++n;
+			if (o.mapId == mapId && IsMapCompletionRouteKind(o.kind)) ++n;
 		return n;
 	}
 
@@ -412,5 +346,4 @@ namespace CompletionDetail
 		}
 		CloseHandle(h);
 	}
-
 }

@@ -221,6 +221,27 @@ namespace PathingTrails
 	bool HasSearchGuideActive(); /* destination set (may still be rebuilding) */
 	Trail SearchGuide(); /* empty if none found yet */
 
+	/* Full pack POI index snapshot - category-agnostic (Completion marker DB). */
+	struct IndexedMarkerSnapshot
+	{
+		uint32_t mapId = 0;
+		float wx = 0.f;
+		float wy = 0.f;
+		float wz = 0.f;
+		char type[160]{};
+		char guid[96]{};
+		char tipName[96]{};
+		char packLeaf[64]{}; /* .taco leaf, e.g. LadyElyssaAP.taco */
+	};
+	size_t IndexedMarkerCount();
+	void CopyIndexedMarkers(std::vector<IndexedMarkerSnapshot>& out);
+	/* World meters -> continent; may HTTP-fetch /v2/maps rects once per map. */
+	bool WorldToContinentForMap(uint32_t mapId, float wxMeters, float wzMeters,
+		float* outCx, float* outCy);
+	/* Same transform using only cached map rects (no HTTP). */
+	bool TryWorldToContinentCached(uint32_t mapId, float wxMeters, float wzMeters,
+		float* outCx, float* outCy);
+
 	/* First continent point of a trail on the loaded map.
 	   preferEnabled: try category-enabled trails first, then any pack trail. */
 	bool TryTrailStartContinent(float* outX, float* outY,

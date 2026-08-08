@@ -15,6 +15,7 @@ namespace CompletionDetail
 		Hero,
 		Heart,
 		Mastery,
+		Achievement,
 		Count
 	};
 
@@ -28,6 +29,7 @@ namespace CompletionDetail
 		case ObjKind::Hero: return "Hero";
 		case ObjKind::Heart: return "Heart";
 		case ObjKind::Mastery: return "Mastery";
+		case ObjKind::Achievement: return "Achievement";
 		default: return "?";
 		}
 	}
@@ -42,6 +44,7 @@ namespace CompletionDetail
 		case ObjKind::Hero: return "HP";
 		case ObjKind::Heart: return "Heart";
 		case ObjKind::Mastery: return "Mast";
+		case ObjKind::Achievement: return "AP";
 		default: return "?";
 		}
 	}
@@ -52,6 +55,7 @@ namespace CompletionDetail
 		uint32_t mapId = 0;
 		ObjKind kind = ObjKind::Waypoint;
 		char name[96]{};
+		char packType[160]{}; /* pack type path; empty for floors API */
 		float continentX = 0.f;
 		float continentY = 0.f;
 		bool hasCoord = false;
@@ -117,7 +121,7 @@ namespace CompletionDetail
 
 	extern bool gFocus;
 	extern bool gPlaceOnce;
-	extern int gTab; /* 0 checklist | 1 atlas | 2 route */
+	extern int gTab; /* 0 checklist | 1 atlas | 2 route | 3 achievements */
 	extern bool gTabSelectOnce; /* apply SetSelected once then clear */
 	extern RouteMode gRouteMode;
 	extern char gAtlasFilter[96];
@@ -131,6 +135,8 @@ namespace CompletionDetail
 	/* Bit i set = show ObjKind i. Default all bits. */
 	extern uint32_t gKindMask;
 	extern bool gAtlasFavOnly;
+	/* Achievements tab: selected Lady AP category path (prefix filter). */
+	extern char gApCategoryPath[160];
 
 	void EnsureCatalog();
 	size_t MapCount();
@@ -151,6 +157,8 @@ namespace CompletionDetail
 	bool GuideZoneLoopNext();
 	/* One-shot: Lady Elyssa MC Barefoot + open Pathing (not a route mode). */
 	bool OpenLadyMapCompletionPathing();
+	/* One-shot: enable one Lady AP category path + open Pathing. */
+	bool OpenLadyAchievementPathing(const char* categoryPath);
 	void LoadChecklist();
 	void SaveChecklist();
 	bool RunRouteModeAction();
@@ -175,7 +183,25 @@ namespace CompletionDetail
 		const char* name, void* ctx);
 	void VisitHierarchy(HierVisitFn fn, void* ctx);
 
+	bool IsMapCompletionRouteKind(ObjKind k);
+
 	void DrawChecklistTab();
 	void DrawAtlasTab();
 	void DrawRouteTab();
+	void DrawAchievementsTab();
+
+	/* Account achievement overlay (Explorer / curated ids — not map %). */
+	struct ApProgress
+	{
+		uint32_t achievementId = 0;
+		bool known = false;
+		bool done = false;
+		int current = 0;
+		int max = 0;
+	};
+	void BeginApOverlayRefresh();
+	void ApplyApOverlayResult();
+	bool ApOverlayBusy();
+	bool LookupApProgress(uint32_t achievementId, ApProgress& out);
+	bool FormatApOverlayLine(uint32_t mapId, const char* packType, char* out, size_t outLen);
 }

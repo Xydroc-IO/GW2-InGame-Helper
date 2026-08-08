@@ -14,7 +14,9 @@
 
 namespace CompletionDetail
 {
-	uint32_t gKindMask = (1u << static_cast<int>(ObjKind::Count)) - 1u;
+	uint32_t gKindMask =
+		((1u << static_cast<int>(ObjKind::Count)) - 1u) &
+		~(1u << static_cast<int>(ObjKind::Achievement));
 	bool gAtlasFavOnly = false;
 
 	namespace
@@ -37,6 +39,11 @@ namespace CompletionDetail
 		return (gKindMask & (1u << i)) != 0;
 	}
 
+	bool IsMapCompletionRouteKind(ObjKind k)
+	{
+		return k != ObjKind::Achievement;
+	}
+
 	void SetKindVisible(ObjKind k, bool on)
 	{
 		const int i = static_cast<int>(k);
@@ -45,14 +52,21 @@ namespace CompletionDetail
 		if (on) gKindMask |= (1u << i);
 		else gKindMask &= ~(1u << i);
 		if (gKindMask == 0)
-			gKindMask = (1u << static_cast<int>(ObjKind::Count)) - 1u;
+		{
+			gKindMask =
+				((1u << static_cast<int>(ObjKind::Count)) - 1u) &
+				~(1u << static_cast<int>(ObjKind::Achievement));
+		}
 	}
 
 	void SetAllKindsVisible(bool on)
 	{
-		gKindMask = on ? ((1u << static_cast<int>(ObjKind::Count)) - 1u) : 0u;
+		const uint32_t mcMask =
+			((1u << static_cast<int>(ObjKind::Count)) - 1u) &
+			~(1u << static_cast<int>(ObjKind::Achievement));
+		gKindMask = on ? mcMask : 0u;
 		if (gKindMask == 0)
-			gKindMask = (1u << static_cast<int>(ObjKind::Count)) - 1u;
+			gKindMask = mcMask;
 	}
 
 	void LoadFavorites()

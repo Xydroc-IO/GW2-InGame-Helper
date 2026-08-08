@@ -13,6 +13,7 @@ void CompletionPad::OpenAndRefresh()
 	WaypointsData::EnsureLoaded(false);
 	CompletionDetail::EnsureCatalog();
 	CompletionDetail::LoadChecklist();
+	CompletionDetail::BeginApOverlayRefresh();
 	const int cur = WaypointsData::CurrentMapId();
 	if (cur > 0 && CompletionDetail::gFocusMapId == 0)
 		CompletionDetail::SetFocusMap(static_cast<uint32_t>(cur));
@@ -23,5 +24,6 @@ void CompletionPad::Tick()
 {
 	WaypointsData::Tick();
 	CompletionDetail::EnsureCatalog();
+	CompletionDetail::ApplyApOverlayResult();
 	CompletionDetail::TickAutoArrive();
 }

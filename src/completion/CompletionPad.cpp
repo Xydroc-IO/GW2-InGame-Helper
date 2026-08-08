@@ -54,17 +54,19 @@ bool CompletionPad::Render()
 	if (gTabSelectOnce)
 		gTabSelectOnce = false;
 
-	static const char* kTabs[] = { "Checklist", "Atlas", "Route" };
+	static const char* kTabs[] = { "Checklist", "Atlas", "Route", "Achievements" };
 	static const int kTabIcons[] = {
 		static_cast<int>(Gw2Ui::Icon::Check),
 		static_cast<int>(Gw2Ui::Icon::Map),
 		static_cast<int>(Gw2Ui::Icon::Story),
+		static_cast<int>(Gw2Ui::Icon::Achievements),
 	};
-	gTab = PadNav::DrawSideRail("###gw2igh_cmp_nav", kTabs, 3, gTab, 0.f, kTabIcons);
+	gTab = PadNav::DrawSideRail("###gw2igh_cmp_nav", kTabs, 4, gTab, 0.f, kTabIcons);
 
 	ImGui::BeginChild("###gw2igh_cmp_body", ImVec2(0.f, 0.f), true);
 	PadNav::Blurb(
-		"Checklist / Atlas / Route. Local ticks. GPS = orange guide only.");
+		"Checklist / Atlas / Route / Achievements. Local ticks. "
+		"Hearts/HP/AP from curated packs. GPS = orange guide only.");
 	if (const MapInfo* m = FindMap(gFocusMapId))
 		ImGui::TextColored(HelperTheme::Muted, "%s | %s | %s",
 			m->name,
@@ -79,6 +81,7 @@ bool CompletionPad::Render()
 	case 0: DrawChecklistTab(); break;
 	case 1: DrawAtlasTab(); break;
 	case 2: DrawRouteTab(); break;
+	case 3: DrawAchievementsTab(); break;
 	default: break;
 	}
 	if (gStatus[0])
