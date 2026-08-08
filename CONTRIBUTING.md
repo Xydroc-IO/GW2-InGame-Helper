@@ -7,20 +7,25 @@ out-of-process **private CEF 150** helper. Normative allow/deny rules live in
 
 ## Published docs in git
 
-Only these under `docs/` are tracked:
+Tracked under `docs/` (see `.gitignore` allow-list):
 
 | Doc | Role |
 |-----|------|
 | [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) | Changelog + current **Stamps:** line |
 | [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | Allowed / forbidden boundaries |
 | [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) | Design rationale |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Systems map / stamp table |
+| [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) | Doc index + version stamp checklist |
+| [`docs/PATHING.md`](docs/PATHING.md) | Pathing packs / GPS |
 | [`docs/THEMES.md`](docs/THEMES.md) | Drop-in `config/themes/` color themes |
+| [`docs/PUBLISHER_ACCESS.md`](docs/PUBLISHER_ACCESS.md) | User-Agent allow/deny for site operators |
 | [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) | Elite Insights / Proton setup |
 | [`docs/API_KEY.md`](docs/API_KEY.md) | ArenaNet API scopes |
+| [`docs/description.html`](docs/description.html) | Nexus / web listing HTML |
 | [`docs/media/`](docs/media/) | Cover / homepage embed assets |
 
-Everything else under `docs/` is local-only (gitignored drafts, listing paste,
-working notes). Do not force-add them.
+Local drafts (`RAIDCORE.md`, `DISCORD*.md`, `CODE_AUDIT.md`, …) stay gitignored.
+Do not force-add them.
 
 Player-facing overview: [`README.md`](README.md).
 

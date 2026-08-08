@@ -118,9 +118,9 @@ pathing/*.zip
 **/addons/GW2-InGame-Helper/**
 **/addons/GW2-InGame-Helper-Beta/**
 
-# docs/ — most files are local-only (drafts, listing paste, working notes).
-# Published in git (see CONTRIBUTING.md):
-#   RELEASE_NOTES · DPS_LOGS · WHITEPAPER · API_KEY · COMPLIANCE · THEMES · media/*
+# docs/ — drafts stay local; published references are allow-listed below
+# (check_stamps reads ARCHITECTURE / DOCUMENTATION / description.html).
+# Keep drafts such as RAIDCORE.md, DISCORD*.md, CODE_AUDIT.md, SNOWCROWS.md ignored.
 docs/**
 !docs/RELEASE_NOTES.md
 !docs/DPS_LOGS.md
@@ -128,6 +128,11 @@ docs/**
 !docs/API_KEY.md
 !docs/COMPLIANCE.md
 !docs/THEMES.md
+!docs/ARCHITECTURE.md
+!docs/DOCUMENTATION.md
+!docs/PATHING.md
+!docs/PUBLISHER_ACCESS.md
+!docs/description.html
 !docs/media/
 !docs/media/**
 

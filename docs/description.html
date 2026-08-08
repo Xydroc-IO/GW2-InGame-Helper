@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GW2 In-Game Helper — Game Helper</title>
+  <style>
+    :root {
+      --bg: #0e0b08;
+      --ink: #f7f0e2;
+      --muted: #b9ae96;
+      --gold: #efc45a;
+      --gold-soft: #c89a3e;
+      --line: rgba(239, 196, 90, 0.22);
+      --panel: rgba(28, 22, 14, 0.92);
+      --wash: #1a1410;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 120% 70% at 50% -20%, #2a2014 0%, transparent 55%),
+        linear-gradient(180deg, #14100c 0%, var(--bg) 40%, #0a0806 100%);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      line-height: 1.55;
+    }
+    .wrap { max-width: 880px; margin: 0 auto; padding-bottom: 72px; }
+    .hero {
+      width: 100%;
+      display: block;
+      border-bottom: 1px solid var(--gold-soft);
+      max-height: 280px;
+      object-fit: cover;
+      object-position: center top;
+    }
+    .content { padding: 36px 28px 0; }
+    .brand {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+    .brand img {
+      width: 80px; height: 80px;
+      border-radius: 10px;
+      border: 1px solid var(--gold-soft);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.85rem, 4vw, 2.35rem);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: var(--gold);
+      line-height: 1.15;
+    }
+    .tagline {
+      margin: 8px 0 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 36em;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin: 0 0 28px;
+      padding: 12px 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .meta b { color: var(--gold-soft); font-weight: 600; }
+    .lede {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 1.05rem;
+      margin: 0 0 18px;
+      max-width: 42em;
+    }
+    .lede strong { color: var(--gold); font-weight: 600; }
+    .install {
+      margin: 0 0 32px;
+      padding: 16px 18px;
+      background: var(--wash);
+      border-left: 3px solid var(--gold);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--muted);
+    }
+    .install strong { color: var(--ink); }
+    .install code {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      color: var(--gold-soft);
+      font-size: 0.92em;
+    }
+    kbd {
+      display: inline-block;
+      padding: 1px 7px;
+      border: 1px solid var(--gold-soft);
+      border-radius: 4px;
+      background: #3a2d18;
+      color: var(--gold);
+      font-family: Consolas, monospace;
+      font-size: 0.88em;
+    }
+    h2 {
+      margin: 36px 0 12px;
+      font-size: 1.35rem;
+      color: var(--gold);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+    h2 + p.sub {
+      margin: -4px 0 16px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .pillars {
+      display: grid;
+      gap: 14px;
+      margin: 0 0 8px;
+    }
+    @media (min-width: 640px) {
+      .pillars { grid-template-columns: 1fr 1fr; }
+    }
+    .pillar {
+      padding: 16px 16px 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .pillar h3 {
+      margin: 0 0 8px;
+      font-family: "Iowan Old Style", Palatino, Georgia, serif;
+      font-size: 1.1rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+    .pillar p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+    ul.clean {
+      margin: 0 0 16px;
+      padding-left: 1.15em;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    ul.clean li { margin: 7px 0; }
+    ul.clean strong { color: var(--gold-soft); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 18px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.94rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid rgba(140, 107, 51, 0.65);
+    }
+    th { background: #3d301c; color: var(--gold); }
+    td { background: var(--panel); }
+    a { color: var(--gold); text-decoration-thickness: 1px; }
+    a:hover { color: #ffe08a; }
+    .new {
+      margin: 0 0 12px;
+      padding: 14px 16px;
+      background: var(--wash);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .new ul { margin: 8px 0 0; padding-left: 1.15em; }
+    .new li { margin: 6px 0; color: var(--muted); }
+    .new strong { color: var(--ink); }
+    .cats {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.94rem;
+      color: var(--muted);
+      margin: 0 0 14px;
+    }
+    .discord-grid {
+      columns: 1;
+      gap: 0 28px;
+      margin: 0 0 12px;
+      padding-left: 1.15em;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    @media (min-width: 560px) { .discord-grid { columns: 2; } }
+    .discord-grid li { margin: 5px 0; break-inside: avoid; }
+    footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--gold-soft); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <img class="hero" src="media/cover.png" alt="GW2 In-Game Helper"/>
+    <div class="content">
+      <div class="brand">
+        <img src="media/logo.png" alt="GW2 In-Game Helper logo"/>
+        <div>
+          <h1>GW2 In-Game Helper</h1>
+          <p class="tagline">
+            Your Game Helper inside Guild Wars 2 — Browse, Account, Pathing, Economy,
+            and more, without alt-tabbing.
+          </p>
+        </div>
+      </div>
+
+      <div class="meta">
+        <span><b>Version</b> 2.2.3.10</span>
+        <span><b>Signature</b> HELP · 0x48454C50</span>
+        <span><b>Author</b> xydroc</span>
+        <span><b>License</b> MIT</span>
+        <span><b>Requires</b> Raidcore Nexus + GW2</span>
+        <span><b>Updates</b> GitHub Releases</span>
+      </div>
+
+      <p class="lede">
+        <strong>One DLL.</strong> A private Chromium overlay (CEF&nbsp;150) for Wiki, builds,
+        guides, and cheat sheets — plus side-rail tools for account data, world pathing,
+        trading, map completion, farming, and DPS logs.
+        <strong>No game memory reads.</strong> Official Nexus APIs and MumbleLink only.
+      </p>
+
+      <div class="install">
+        <strong>Install:</strong> copy <code>GW2-InGame-Helper.dll</code> into
+        <code>&lt;Guild Wars 2&gt;/addons/</code> only.
+        First open downloads the CEF runtime once into
+        <code>addons/GW2-InGame-Helper/cef/</code>.
+        Open with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> or the QuickAccess icon.
+        Fully restart Guild Wars 2 after updating.
+      </div>
+
+      <h2>What you get</h2>
+      <p class="sub">Four pillars — open anything from the left side rail.</p>
+      <div class="pillars">
+        <div class="pillar">
+          <h3>Browse</h3>
+          <p>
+            <strong style="color:var(--gold-soft)">2,720</strong> catalog entries —
+            Wiki, builds, guides, tools, offline cheat sheets, and community Discords —
+            in up to 8 tabs with Find, Favorites, and Open Ext for system-browser logins.
+          </p>
+        </div>
+        <div class="pillar">
+          <h3>Account &amp; Economy</h3>
+          <p>
+            Official API pads for progress, unlocks, vault, wallet/stash, TP watchlist,
+            item lookup, crafting plans, Flip Finder, and charts. Read-only commerce —
+            no trading automation.
+          </p>
+        </div>
+        <div class="pillar">
+          <h3>Pathing &amp; World</h3>
+          <p>
+            Curated Tekkit, Lady Elyssa, and Hero packs (plus your <code>.taco</code> files),
+            compass, in-world GPS ribbons, Trail Tools for authors, and a floating GPS arrow.
+          </p>
+        </div>
+        <div class="pillar">
+          <h3>Progress tools</h3>
+          <p>
+            Completion checklist + Atlas routes, Farming runs with live map nodes,
+            Instances journal, World Events, Notes/waypoints, and DPS Logs via Elite Insights.
+          </p>
+        </div>
+      </div>
+
+      <h2>Side rail</h2>
+      <ul class="clean">
+        <li><strong>Browse · Ledger · Sheets · API Check</strong> — catalog hub, Legendary Ledger, cheat sheets, endpoint probe</li>
+        <li><strong>Compass · Vault · Events · Instances · Economy · Farming</strong></li>
+        <li><strong>Pathing · Trail Tools · Completion · Notes · DPS Logs · Account · Settings</strong></li>
+      </ul>
+      <p class="cats">
+        Rebind panel chords under <strong>Settings → Keybinds</strong>.
+        Helper open stays on Nexus / QuickAccess (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>).
+      </p>
+
+      <h2>How to use</h2>
+      <table>
+        <thead><tr><th>Action</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td>Open / close helper</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> or QuickAccess</td></tr>
+          <tr><td>New tab / site picker</td><td><kbd>Ctrl</kbd>+<kbd>T</kbd> or <strong>+</strong></td></tr>
+          <tr><td>Close tab</td><td><kbd>Ctrl</kbd>+<kbd>W</kbd> · <strong>x</strong> · middle-click</td></tr>
+          <tr><td>Cycle tabs</td><td><kbd>Ctrl</kbd>+<kbd>Tab</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd></td></tr>
+          <tr><td>Reopen closed tab</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd></td></tr>
+          <tr><td>Find in page</td><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td></tr>
+          <tr><td>Return skills to the game</td><td>Click outside the helper</td></tr>
+        </tbody>
+      </table>
+      <ul class="clean">
+        <li>Open the helper — Home explains the basics.</li>
+        <li>Use <strong>Browse</strong> (or the rail) to search categories and open sites.</li>
+        <li>Click the page to interact; drag the title bar to move; resize from the edges.</li>
+        <li>Use <strong>Open Ext</strong> for Discord invites and Google / Gemini login.</li>
+      </ul>
+
+      <h2>What’s new in 2.2.3.10</h2>
+      <div class="new">
+        <ul>
+          <li><strong>User themes</strong> — drop-in <code>config/themes/</code> color packs; Settings picker.</li>
+          <li><strong>Browse tiles</strong> — centered, larger labels on Categories, Cheat Sheets, Help / Wiki / favorites.</li>
+          <li><strong>Browse Back</strong> — recovers missing live <code>file://</code> pages after cache wipe / install.</li>
+          <li><strong>Side rail</strong> — packed rows that still fill to the bottom (no blank divider strips).</li>
+          <li><strong>UI chrome</strong> — richer plaque pack; gold hover/selected frames — <code>uc31</code>.</li>
+          <li><strong>Stamps</strong> — Helper <code>2242</code> · homepage <code>2228</code> · cheatsheets <code>c2226</code> · live panel <code>59</code> · ui-chrome <code>uc31</code>.</li>
+        </ul>
+        <p style="margin:12px 0 0;font-size:0.9rem;color:var(--muted)">
+          Full history:
+          <a href="https://github.com/Xydroc-IO/GW2-InGame-Helper/blob/master/docs/RELEASE_NOTES.md">RELEASE_NOTES.md</a>
+        </p>
+      </div>
+
+      <h2>Browse catalog</h2>
+      <p class="cats">
+        <strong style="color:var(--gold-soft)">2,720</strong> entries — mostly Wiki pages plus Guildjen / MetaBattle / Snow Crows guides.
+        Favorites, Help, Search, Builds, Tools, Cheat Sheets, Guides, and Discord invites are included.
+      </p>
+      <table>
+        <thead><tr><th>Category</th><th>Highlights</th></tr></thead>
+        <tbody>
+          <tr><td>Help</td><td>How-to, New Player Guide, DPS Log / API Key setup, news, Raidcore</td></tr>
+          <tr><td>Wiki</td><td>Armory, lifestyle, crafting, food, upgrades, mounts, events</td></tr>
+          <tr><td>Builds</td><td>MetaBattle, Snow Crows, AccessiBuilds, Gw2Skills, Accessibility Wars</td></tr>
+          <tr><td>Tools</td><td>gw2efficiency, timers, Wingman, KillProof, BLTC, GW2.app, and more</td></tr>
+          <tr><td>Cheat Sheets</td><td>Offline raid food, utilities, fractals, boons, Uber’s waypoints, dailies…</td></tr>
+          <tr><td>Guides</td><td>Achievements, JP, raids, strikes, fractals, mounts, PvP / WvW beginners</td></tr>
+          <tr><td>Discord</td><td>Official, community, training, farming, trading, Raidcore</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Discord invites</h2>
+      <p class="cats">Prefer <strong>Open Ext</strong> so invites open in your system Discord client.</p>
+      <ul class="discord-grid">
+        <li><a href="https://discord.com/invite/guildwars">Official GW2</a></li>
+        <li><a href="https://discord.com/invite/guildwars2">Community</a></li>
+        <li><a href="https://discord.com/invite/0jdZWe6xdIy46Yp5">MetaBattle</a></li>
+        <li><a href="https://discord.com/invite/8NZNRvC">Guildjen</a></li>
+        <li><a href="https://discord.com/invite/h5qS6Pk">Mukluk Labs</a></li>
+        <li><a href="https://discord.com/invite/bKt2CdS8k3">Accessibility Wars</a></li>
+        <li><a href="https://discord.com/invite/q9E2WDcxXW">Skein Gang</a></li>
+        <li><a href="https://discord.com/invite/zxeVeSqpuS">Fractal Training</a></li>
+        <li><a href="https://discord.com/invite/gw2ra">Raid Academy</a></li>
+        <li><a href="https://discord.com/invite/sSzRQhWEEZ">GW2 University</a></li>
+        <li><a href="https://discord.com/invite/hdhDE3v">Crossroads Inn</a> (EU)</li>
+        <li><a href="https://discord.com/invite/rti">Raid Training Initiative</a> (EU)</li>
+        <li><a href="https://discord.com/invite/fD6VxyW">Welcome to PvP</a></li>
+        <li><a href="https://discord.com/invite/26k9WRZsua">WvW NA Alliance</a></li>
+        <li><a href="https://discord.com/invite/QPHHe8GZrD">WvW EU Alliance</a></li>
+        <li><a href="https://discord.com/invite/PTCp2tC">Fast Farming</a></li>
+        <li><a href="https://discord.com/invite/raidcore">Raidcore</a></li>
+        <li><a href="https://discord.com/invite/gw2overflow">Overflow Trading</a></li>
+        <li><a href="https://discord.com/invite/fnUha3QwmQ">GW2 Central Hub</a></li>
+      </ul>
+
+      <h2>Platform notes</h2>
+      <ul class="clean">
+        <li><strong>Windows / Wine / Proton</strong> — same DLL; CEF extracts under the addon folder.</li>
+        <li><strong>Safe with multiple clients</strong> — PID-scoped IPC; no Present hooks; no bin64 CEF writes.</li>
+        <li><strong>API key</strong> — optional, local only; see Browse → Help → API Key Setup.</li>
+        <li><strong>DPS Logs</strong> — needs Elite Insights (.NET 8); see Browse → Help → DPS Log Setup.</li>
+      </ul>
+
+      <footer>
+        Not affiliated with ArenaNet, NCSoft, or the listed community sites.
+        MIT License ·
+        <a href="https://github.com/Xydroc-IO/GW2-InGame-Helper">GitHub</a> ·
+        <a href="https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest">Latest release</a>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
