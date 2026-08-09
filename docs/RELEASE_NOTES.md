@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.0
+# GW2 In-Game Helper v2.2.4.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,18 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.1
+
+- **Wine / Proton:** Defer Browse / Ledger / Sheets / API Check CEF navigation off the
+  side-rail click frame; defer Watch pad open the same way (after API load tip-over);
+  Cheat Sheets / Browse hubs serve cache or shell + async worker (no sync multi-KB HTML
+  on navigate); skip Trail Tools / helper `SetNextWindowFocus` on Wine.
+- **Cheat Sheets hub:** Same browse-hero mascot on the banner as Browse.
+- **Legendary Ledger:** Correct Gen 3 Aurene weapon types (e.g. Aurene's Rending → Axe;
+  Bite / Fang / Flight / Gaze / Wing aligned to API).
+- **Stamps:** Helper `2242` · homepage `2232` · sites `s2214` · cheatsheets `c2228`
+  · live panel `63` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.0
 

@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.4.0 |
+| Revision described | 2.2.4.1 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.4.1 | 2.2.4.1 | Wine deferred rail CEF + Watch open; Cheat Sheets hub browse-hero; Aurene ledger types; live 63 |
 | 2.2.4.0 | 2.2.4.0 | Gem+book crest + QA; Wine soft-open; Watch/CEF harden; icon dock; font 1.25; uc36 |
 | 2.2.3.15 | 2.2.3.15 | Title crest overhang + label spacing; HasKha Markers curated; stamps (uc35) |
 | 2.2.3.14 | 2.2.3.14 | Watch WGC picker + GDI fallback; title crest branding (uc35); Watch reopen / chrome stability |
@@ -901,11 +902,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.2.4.0)
+## Appendix A — Quantitative constants (revision 2.2.4.1)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.2.4.0 |
+| Addon version | 2.2.4.1 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -922,7 +923,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
 | Helper / home / sites / cheatsheets stamps | 2242 / 2232 / s2214 / c2228 |
-| Live panel stamp | 62 |
+| Live panel stamp | 63 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
 | OSR `device_scale_factor` | 1.0 |
@@ -1007,6 +1008,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.4.0 — gem+book crest + QA; Wine soft-open; Watch/CEF harden; icon dock; font 1.25; helper 2242; home 2232; live 62; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.2.4.1 — Wine deferred rail CEF + Watch open; Cheat Sheets hub browse-hero; Aurene ledger types; helper 2242; home 2232; live 63; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |
