@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.1
+# GW2 In-Game Helper v2.2.4.2
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.2
+
+- **Wine / Proton:** Soft-open companion pads off the ImGui click frame (5-frame defer +
+  settle); keep Watch Mirror streaming while a pad is only queued; skip Wine
+  `PadDock::SetSizeConstraints` `FindWindowByName` (stale ImGui tip on Events re-open);
+  soft-stop Mirror drain phases with GPU flush cooldown so pad open / Mirror stop do not
+  share the same Present pressure.
+- **Diagnostics:** `CrashTrail` flight recorder under `addons/GW2-InGame-Helper/`
+  (`crash-trail.txt`, rotating `crash-0.txt`…`crash-2.txt`, `crash.log` index) with sticky
+  phase marks, Nexus `RT_PreRender` / `RT_Render` / `RT_PostRender` brackets, addon module
+  list (ArcDPS / d912pxy coexistence), and DetailArmed probes around soft-open / soft-stop /
+  companion Begins — survives hard Wine kills that leave empty SEH dumps.
+- **Stamps:** Helper `2242` · homepage `2232` · sites `s2214` · cheatsheets `c2228`
+  · live panel `63` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.1
 

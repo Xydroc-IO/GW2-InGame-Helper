@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.4.1 |
+| Revision described | 2.2.4.2 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.4.2 | 2.2.4.2 | Wine soft-open / Watch soft-stop drain; crash-trail + Nexus Pre/Post phase; PadDock Wine skip |
 | 2.2.4.1 | 2.2.4.1 | Wine deferred rail CEF + Watch open; Cheat Sheets hub browse-hero; Aurene ledger types; live 63 |
 | 2.2.4.0 | 2.2.4.0 | Gem+book crest + QA; Wine soft-open; Watch/CEF harden; icon dock; font 1.25; uc36 |
 | 2.2.3.15 | 2.2.3.15 | Title crest overhang + label spacing; HasKha Markers curated; stamps (uc35) |
@@ -1008,6 +1009,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.4.1 — Wine deferred rail CEF + Watch open; Cheat Sheets hub browse-hero; Aurene ledger types; helper 2242; home 2232; live 63; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.2.4.2 — Wine soft-open / Watch soft-stop drain; crash-trail coexistence; helper 2242; home 2232; live 63; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |
