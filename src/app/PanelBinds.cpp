@@ -21,6 +21,7 @@
 #include "WatchCapture.h"
 #include "WatchPad.h"
 #include "WalletPad.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -82,7 +83,7 @@ namespace
 		return true;
 	}
 
-	void CloseOrOpen(bool& show, void (*open)())
+	void CloseOrOpen(bool& show, void (*open)(), const char* name)
 	{
 		if (show)
 		{
@@ -90,7 +91,7 @@ namespace
 			Settings::SetDirty();
 		}
 		else
-			open();
+			WinePadOpen::SoftOpen(open, name);
 	}
 
 	void FireSlot(Slot s)
@@ -99,25 +100,25 @@ namespace
 			return;
 		switch (s)
 		{
-		case Slot::Account: CloseOrOpen(G::ShowAccount, &AccountPad::OpenAndRefresh); break;
-		case Slot::Pathing: CloseOrOpen(G::ShowPathingGuides, &PathingGuidesPad::Open); break;
-		case Slot::Events: CloseOrOpen(G::ShowEvents, &EventsPad::OpenAndRefresh); break;
-		case Slot::Notes: CloseOrOpen(G::ShowNotes, &NotesPad::Open); break;
-		case Slot::Completion: CloseOrOpen(G::ShowCompletion, &CompletionPad::OpenAndRefresh); break;
-		case Slot::Farming: CloseOrOpen(G::ShowFarming, &FarmingPad::OpenAndRefresh); break;
-		case Slot::Economy: CloseOrOpen(G::ShowEconomy, &EconomyPad::OpenAndRefresh); break;
-		case Slot::Instances: CloseOrOpen(G::ShowInstances, &InstancesPad::OpenAndRefresh); break;
-		case Slot::Logs: CloseOrOpen(G::ShowLogManager, &LogManagerPad::OpenAndRefresh); break;
-		case Slot::TrailTools: CloseOrOpen(G::ShowTrailTools, &TrailToolsPad::Open); break;
-		case Slot::Compass: CloseOrOpen(G::ShowCompassPad, &DirectionCompass::Open); break;
+		case Slot::Account: CloseOrOpen(G::ShowAccount, &AccountPad::OpenAndRefresh, "Account"); break;
+		case Slot::Pathing: CloseOrOpen(G::ShowPathingGuides, &PathingGuidesPad::Open, "Pathing"); break;
+		case Slot::Events: CloseOrOpen(G::ShowEvents, &EventsPad::OpenAndRefresh, "Events"); break;
+		case Slot::Notes: CloseOrOpen(G::ShowNotes, &NotesPad::Open, "Notes"); break;
+		case Slot::Completion: CloseOrOpen(G::ShowCompletion, &CompletionPad::OpenAndRefresh, "Completion"); break;
+		case Slot::Farming: CloseOrOpen(G::ShowFarming, &FarmingPad::OpenAndRefresh, "Farming"); break;
+		case Slot::Economy: CloseOrOpen(G::ShowEconomy, &EconomyPad::OpenAndRefresh, "Economy"); break;
+		case Slot::Instances: CloseOrOpen(G::ShowInstances, &InstancesPad::OpenAndRefresh, "Instances"); break;
+		case Slot::Logs: CloseOrOpen(G::ShowLogManager, &LogManagerPad::OpenAndRefresh, "DPS Logs"); break;
+		case Slot::TrailTools: CloseOrOpen(G::ShowTrailTools, &TrailToolsPad::Open, "Trail Tools"); break;
+		case Slot::Compass: CloseOrOpen(G::ShowCompassPad, &DirectionCompass::Open, "Compass"); break;
 		case Slot::Watch:
 			WatchPad::ToggleControl();
 			break;
-		case Slot::SettingsPad: CloseOrOpen(G::ShowSettings, &SettingsPad::Open); break;
-		case Slot::Wallet: CloseOrOpen(G::ShowWallet, &WalletPad::OpenAndRefresh); break;
-		case Slot::Vault: CloseOrOpen(G::ShowVault, &VaultPad::OpenAndRefresh); break;
-		case Slot::TpWatch: CloseOrOpen(G::ShowTpWatch, &TpWatchPad::OpenAndRefresh); break;
-		case Slot::Lookup: CloseOrOpen(G::ShowLookup, &LookupPad::OpenAndLookup); break;
+		case Slot::SettingsPad: CloseOrOpen(G::ShowSettings, &SettingsPad::Open, "Settings"); break;
+		case Slot::Wallet: CloseOrOpen(G::ShowWallet, &WalletPad::OpenAndRefresh, "Wallet"); break;
+		case Slot::Vault: CloseOrOpen(G::ShowVault, &VaultPad::OpenAndRefresh, "Vault"); break;
+		case Slot::TpWatch: CloseOrOpen(G::ShowTpWatch, &TpWatchPad::OpenAndRefresh, "TP Watch"); break;
+		case Slot::Lookup: CloseOrOpen(G::ShowLookup, &LookupPad::OpenAndLookup, "Lookup"); break;
 		case Slot::Marker: PathingTrails::RequestMarkerInteract(); break;
 		default: break;
 		}

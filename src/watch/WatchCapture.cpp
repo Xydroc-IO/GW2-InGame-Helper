@@ -2,8 +2,12 @@
 #include "WatchCaptureInternal.h"
 #include "WatchCaptureWgc.h"
 #include "WatchLinux.h"
+#include "WatchPadInternal.h"
 
+#include "CrashTrail.h"
 #include "Globals.h"
+#include "EiRuntime.h"
+#include "WinePadOpen.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -239,16 +243,27 @@ bool WatchCapture::StartWgcPicker()
 
 bool WatchCapture::Start(uint64_t id)
 {
-	Stop();
+	/* Avoid Stop→RequestGpuRelease when already idle — reopen was parking
+	   every Soft Start and tipping Wine under load. */
+	if (IsCapturing() || IsStreaming() || WatchCaptureWgc::IsPickerOpen())
+		Stop();
+	/* Do not WatchLinux::Stop when merely IsStarting — that SendCmd on Soft Start
+	   after Soft-stop tipped Wine. Wait for pump / cooldown instead. */
 
 	if (WatchLinux::Available())
 	{
 		if (!WatchLinux::Start(id, gStatus))
 			return false;
-		gTarget = 1;
-		gCapturing = true;
+		/* Capturing flag lives in WatchLinux — only set DLL mirror after Start
+		   actually armed the pump request (not needPump-only). */
+		if (WatchLinux::IsCapturing() || WatchLinux::IsStarting())
+		{
+			gTarget = 1;
+			gCapturing = true;
+		}
 		gLastCaptureMs = 0;
 		gLastBlank = false;
+		gContentW = gContentH = 0;
 		return true;
 	}
 
@@ -279,8 +294,10 @@ bool WatchCapture::Start(uint64_t id)
 
 void WatchCapture::Stop()
 {
-	if (WatchLinux::Available() && WatchLinux::IsCapturing())
+	if (WatchLinux::Available())
 	{
+		/* Always CmdStop on Wine — IsCapturing alone missed sticky sessions and
+		   left Start disabled / Soft-open Soft-stop-looping. */
 		std::string st;
 		WatchLinux::Stop(st);
 		gStatus = st;
@@ -296,6 +313,34 @@ void WatchCapture::Stop()
 		gStatus = "Stopped.";
 }
 
+void WatchCapture::SoftStopCapture()
+{
+	CrashTrail::NoteF("cap:SoftStop enter linux=%d wgc=%d",
+		WatchLinux::Available() ? 1 : 0,
+		WatchCaptureWgc::IsCapturing() ? 1 : 0);
+	if (WatchLinux::Available())
+	{
+		CrashTrail::Note("cap:pre WatchLinux::Stop");
+		std::string st;
+		WatchLinux::Stop(st);
+		gStatus = st;
+		CrashTrail::Note("cap:post WatchLinux::Stop");
+	}
+	CrashTrail::Note("cap:pre Wgc::Stop");
+	WatchCaptureWgc::Stop();
+	CrashTrail::Note("cap:post Wgc::Stop");
+	gCapturing = false;
+	gTarget = 0;
+	gLastBlank = false;
+	ResetWinReady();
+	HideContent();
+	/* Intentionally no RequestGpuRelease — Soft-open after Soft-stop tipped Wine. */
+	if (gStatus != "Stopped." && gStatus.find("daemon") == std::string::npos
+		&& gStatus.find("Picker") == std::string::npos)
+		gStatus = "Stopped.";
+	CrashTrail::Note("cap:SoftStop leave");
+}
+
 bool WatchCapture::IsCapturing()
 {
 	if (WatchLinux::Available())
@@ -309,14 +354,13 @@ bool WatchCapture::IsCapturing()
 
 bool WatchCapture::IsStreaming()
 {
-	/* Frames can arrive — not the system-picker wait (which used to auto-reopen Mirror). */
-	if (WatchLinux::Available())
-		return WatchLinux::IsCapturing();
-	if (WatchCaptureWgc::IsCapturing())
-		return true;
-	if (WatchCaptureWgc::IsPickerOpen())
-		return false;
-	return gCapturing && gTarget != 0;
+	/* Real pixels uploaded — not portal/picker wait (IsCapturing alone is too early). */
+	return IsCapturing() && HasContent();
+}
+
+bool WatchCapture::HasContent()
+{
+	return gSrv != nullptr && gContentW > 0 && gContentH > 0;
 }
 
 uint64_t WatchCapture::TargetId()
@@ -328,13 +372,57 @@ uint64_t WatchCapture::TargetId()
 
 void WatchCapture::Tick()
 {
+	/* Soft-stop quiet: no uploads and do not park/release SRVs mid Soft-stop. */
+	if (WatchPadDetail::gSoftStopPhase > 0)
+		return;
+
+	/* Wine: trail tipped right after softstop:defer_done — first Tick/Flush
+	   after defer often Release()'s parked GPU while Events ImGui is live.
+	   Hold all GPU flush/upload until soft-stop cooldown drains . */
+	if (EiRuntime::IsWine()
+		&& (WatchPadDetail::gDeferStopFrames > 0
+			|| WatchPadDetail::gPostStopCooldown > 0
+			|| WatchPadDetail::gReopenGateFrames > 0))
+	{
+		if (CrashTrail::DetailArmed())
+			CrashTrail::NoteF("cap:Tick skip poststop defer=%d cool=%d gate=%d",
+				WatchPadDetail::gDeferStopFrames,
+				WatchPadDetail::gPostStopCooldown,
+				WatchPadDetail::gReopenGateFrames);
+		return;
+	}
+
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("cap:pre FlushDeferredGpuRelease");
 	FlushDeferredGpuRelease();
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("cap:post FlushDeferredGpuRelease");
 
 	if (!IsCapturing())
 		return;
 
+	/* Soft-stop in flight — no uploads after long sessions (click tipped Wine). */
+	if (WatchPadDetail::gDeferStopFrames > 0 || WatchPadDetail::gSoftStopPhase > 0)
+		return;
+	if (WatchPadDetail::gUploadHoldFrames > 0)
+		return;
+
+	/* Soft companion/rail: never upload while SoftWorkBusy (Present is paused). */
+	if (WinePadOpen::SoftWorkBusy())
+		return;
+	if (WinePadOpen::WatchMirrorQuietFrames() > 0 || WinePadOpen::WatchSoftOpenFired())
+		return;
+	/* Live Mirror being dragged/clicked — skip upload (prior-frame flag). */
+	if (WatchPadDetail::gMirrorInputBusy)
+		return;
+	/* Upload for visible Mirror, Soft-open defer, or silent first-frame wait. */
+	if (!G::ShowWatchMirror && !WatchPadDetail::gWantMirrorWhenReady
+		&& WatchPadDetail::gDeferMirrorOpenFrames <= 0)
+		return;
+
 	const DWORD now = GetTickCount();
-	if (gLastCaptureMs != 0 && (now - gLastCaptureMs) < kMinFrameMs)
+	const DWORD minMs = EiRuntime::IsWine() ? kMinFrameMsWine : kMinFrameMsNative;
+	if (gLastCaptureMs != 0 && (now - gLastCaptureMs) < minMs)
 		return;
 
 	std::vector<uint8_t> bgra;
@@ -442,6 +530,40 @@ uint32_t WatchCapture::ContentW()
 uint32_t WatchCapture::ContentH()
 {
 	return gContentH;
+}
+
+float WatchCapture::ContentU()
+{
+	return (gTexW > 0 && gContentW > 0)
+		? static_cast<float>(gContentW) / static_cast<float>(gTexW) : 1.f;
+}
+
+float WatchCapture::ContentV()
+{
+	return (gTexH > 0 && gContentH > 0)
+		? static_cast<float>(gContentH) / static_cast<float>(gTexH) : 1.f;
+}
+
+bool WatchCapture::GpuParkBusy()
+{
+	/* Dead/deferred GPU only — do not fold in IsStarting (that blocked Soft-open
+	   Watch forever after a Start, and raced reopen Begin). */
+	return gDeferGpuRelease || gDeadSrv != nullptr || gDeadMirrorTex != nullptr;
+}
+
+bool WatchCapture::DedicatedMirrorDevice()
+{
+	return WatchCaptureDetail::gDedicatedMirror;
+}
+
+const char* WatchCapture::MirrorGpuPathText()
+{
+	return WatchCaptureDetail::gMirrorGpuPath;
+}
+
+void WatchCapture::HideContent()
+{
+	WatchCaptureDetail::HideContent();
 }
 
 const char* WatchCapture::StatusText()

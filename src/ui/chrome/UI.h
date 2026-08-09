@@ -4,6 +4,9 @@
 
 void UI_Render();
 void UI_Options();
+/* Nexus RT_PreRender / RT_PostRender — brackets our RT_Render vs other addons / Present. */
+void UI_PreRender();
+void UI_PostRender();
 
 /* True while the wiki UI should eat keyboard (no game skills / movement). */
 bool UI_BlocksGameKeyboard();

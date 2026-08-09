@@ -1,8 +1,10 @@
 #include "WikiBrowser.h"
 #include "WikiBrowserShared.h"
 
+#include "CrashTrail.h"
 #include "Globals.h"
 #include "WikiIpc.h"
+#include "WinePadOpen.h"
 
 #include <cstdint>
 #include <cstring>
@@ -125,6 +127,31 @@ void WikiBrowser::PresentFrame()
 	{
 		gContentW = gContentH = 0;
 		gTexHasContent = false;
+		return;
+	}
+
+	/* Soft rail/companion work: do not Map/upload the same frame as Navigate/Begin.
+	   After Soft clears, keep skipping a few frames so idle→click Map pressure drains. */
+	static int sPresentCooldown = 0;
+	if (WinePadOpen::SoftWorkBusy())
+	{
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("cef:Present skip SoftWorkBusy");
+		sPresentCooldown = 10;
+		gStagingReady = false;
+		gPartialCopySeq = 0;
+		gPartialCopyY = 0;
+		if (!gStagingFrame.empty())
+		{
+			gStagingFrame.clear();
+			gStagingFrame.shrink_to_fit();
+		}
+		return;
+	}
+	CrashTrail::Scope presentScope("cef:Present enter", "cef:Present leave");
+	if (sPresentCooldown > 0)
+	{
+		--sPresentCooldown;
 		return;
 	}
 
@@ -253,12 +280,18 @@ void WikiBrowser::PresentFrame()
 	const bool firstPaint = !gTexHasContent;
 	UINT mapFlags = firstPaint ? 0u : static_cast<UINT>(D3D11_MAP_FLAG_DO_NOT_WAIT);
 	HRESULT hr = gContext->Map(gStagingTex, 0, D3D11_MAP_WRITE, mapFlags, &mapped);
-	if (FAILED(hr) && mapFlags != 0u)
+	/* Wine: never block on Map after DO_NOT_WAIT — idle→interact spikes were
+	   stalling Present under a busy GW2 device and tip-over on first click. */
+	if (FAILED(hr) && mapFlags != 0u && !WinePadOpen::Soft())
 		hr = gContext->Map(gStagingTex, 0, D3D11_MAP_WRITE, 0u, &mapped);
 	gLastMapHr = hr;
 	if (FAILED(hr))
 	{
 		++gMapFailCount;
+		/* Wine: after repeated Map fails, cool Present so side-nav SoftOpen
+		   does not land on a hot D3D device (builds over 10–20 min idle). */
+		if (WinePadOpen::Soft() && gMapFailCount >= 3u)
+			sPresentCooldown = 10;
 		return;
 	}
 	if (!mapped.pData)

@@ -38,6 +38,9 @@
 #include "AspectLayout.h"
 #include "UiScale.h"
 #include "WikiBrowser.h"
+#include "WinePadOpen.h"
+#include "WatchPadInternal.h"
+#include "CrashTrail.h"
 #include "WikiIpc.h"
 #include "AddonPaths.h"
 
@@ -292,35 +295,77 @@ namespace UIDetail
 
 	void RenderCompanionPads()
 	{
-		const bool notesHover = NotesPad::Render();
-		const bool accountHover = AccountPad::Render();
-		const bool tpHover = TpWatchPad::Render();
-		const bool lookupHover = LookupPad::Render();
-		const bool walletHover = WalletPad::Render();
-		const bool vaultHover = VaultPad::Render();
-		const bool eventsHover = EventsPad::Render();
-		const bool logsHover = LogManagerPad::Render();
-		const bool economyHover = EconomyPad::Render();
-		const bool instancesHover = InstancesPad::Render();
-		const bool completionHover = CompletionPad::Render();
-		const bool farmingHover = FarmingPad::Render();
+		/* First soft-open settle frame only: Events Begins before Watch
+		   in this list — trail shows which Begin tips. */
+		/* soft-open settle frame, or any DetailArmed soft-stop /
+		   defer frame: probe all open pads. */
+		const bool settleProbe = WinePadOpen::Soft()
+			&& WinePadOpen::CompanionSettleFrames() == WinePadOpen::DeferFrames() * 4;
+		const bool stopProbe = CrashTrail::DetailArmed()
+			&& (WatchPadDetail::gSoftStopPhase > 0
+				|| WatchPadDetail::gDeferStopFrames > 0);
+		const bool probePads = settleProbe || stopProbe;
+		auto probe = [&](const char* name, bool show, bool (*fn)()) -> bool {
+			if (probePads && show)
+				CrashTrail::NoteF("pads:pre %s", name);
+			const bool h = fn();
+			if (probePads && show)
+				CrashTrail::NoteF("pads:post %s", name);
+			return h;
+		};
+		if (settleProbe)
+			CrashTrail::NoteF("pads:begin settle pending=%s",
+				WinePadOpen::PendingCompanionName());
+		else if (stopProbe)
+			CrashTrail::NoteF("pads:begin softstop phase=%d defer=%d",
+				WatchPadDetail::gSoftStopPhase, WatchPadDetail::gDeferStopFrames);
+		const bool notesHover = probe("Notes", G::ShowNotes, &NotesPad::Render);
+		const bool accountHover = probe("Account", G::ShowAccount, &AccountPad::Render);
+		const bool tpHover = probe("TpWatch", G::ShowTpWatch, &TpWatchPad::Render);
+		const bool lookupHover = probe("Lookup", G::ShowLookup, &LookupPad::Render);
+		const bool walletHover = probe("Wallet", G::ShowWallet, &WalletPad::Render);
+		const bool vaultHover = probe("Vault", G::ShowVault, &VaultPad::Render);
+		const bool eventsHover = probe("Events", G::ShowEvents, &EventsPad::Render);
+		const bool logsHover = probe("Logs", G::ShowLogManager, &LogManagerPad::Render);
+		const bool economyHover = probe("Economy", G::ShowEconomy, &EconomyPad::Render);
+		const bool instancesHover = probe("Instances", G::ShowInstances, &InstancesPad::Render);
+		const bool completionHover = probe("Completion", G::ShowCompletion, &CompletionPad::Render);
+		const bool farmingHover = probe("Farming", G::ShowFarming, &FarmingPad::Render);
 		CompletionPad::Tick();
 		FarmingPad::Tick();
+		if (probePads)
+			CrashTrail::Note("pads:pre GpsArrow");
 		const bool gpsArrowHover = GpsArrow::Render();
+		if (probePads)
+			CrashTrail::Note("pads:pre ZoneBanner");
 		ZoneBanner::Render();
+		if (probePads)
+			CrashTrail::Note("pads:pre EventAlert");
 		const bool eventAlertHover = EventAlert::Render();
-		const bool tekkitHover = PathingGuidesPad::Render();
-		const bool trailToolsHover = TrailToolsPad::Render();
-		const bool compassHover = DirectionCompass::RenderPad();
+		const bool tekkitHover = probe("Pathing", G::ShowPathingGuides, &PathingGuidesPad::Render);
+		const bool trailToolsHover = probe("TrailTools", G::ShowTrailTools, &TrailToolsPad::Render);
+		const bool compassHover = probe("Compass", G::ShowCompassPad, &DirectionCompass::RenderPad);
+		if (probePads)
+			CrashTrail::Note("pads:pre Watch");
 		const bool watchHover = WatchPad::Render();
-		const bool settingsHover = SettingsPad::Render();
+		if (probePads)
+			CrashTrail::Note("pads:post Watch");
+		const bool settingsHover = probe("Settings", G::ShowSettings, &SettingsPad::Render);
+		if (probePads)
+			CrashTrail::NoteF("pads:end %s", settleProbe ? "settle" : "softstop");
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			walletHover || vaultHover || eventsHover || logsHover ||
 			economyHover || instancesHover || completionHover || farmingHover ||
 			gpsArrowHover || eventAlertHover ||
 			tekkitHover || trailToolsHover || compassHover || watchHover || settingsHover);
+		if (probePads)
+			CrashTrail::Note("pads:pre NotesPad::Save");
 		NotesPad::Save(false);
+		if (probePads)
+			CrashTrail::Note("pads:pre Settings::Save");
 		Settings::Save(false);
+		if (probePads)
+			CrashTrail::Note("pads:after Save");
 	}
 
 	void GlueSideRailDisplayOrder()
@@ -328,6 +373,10 @@ namespace UIDetail
 		/* Nav is a sibling window. Clicking Vault/Account/Compass focuses those
 		   pads above the rail; dragging the helper then fronts the body and
 		   leaves pads between rail and content. Keep rail glued under helper. */
+		/* Wine: never erase/insert g.Windows — Soft-busy frames and long-idle
+		   helper sessions both tip over when glue races Present + pad Begin. */
+		if (WinePadOpen::Soft())
+			return;
 		ImGuiWindow* helper = ImGui::FindWindowByName("In-Game Helper##GW2InGameHelper");
 		ImGuiWindow* rail = ImGui::FindWindowByName("##gw2igh_side_dock");
 		if (!helper || !rail || !helper->WasActive || !rail->WasActive)

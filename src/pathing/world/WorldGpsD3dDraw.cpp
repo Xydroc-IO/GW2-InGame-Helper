@@ -36,6 +36,46 @@ bool WorldGpsD3dInternal::EnsureVB(UINT vertexCount)
 	return true;
 }
 
+bool WorldGpsD3dInternal::EnsureBackRtv(IDXGISwapChain* swap, D3D11_TEXTURE2D_DESC* outTd)
+{
+	if (!gDev || !swap)
+		return false;
+	ID3D11Texture2D* back = nullptr;
+	if (FAILED(swap->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&back))) || !back)
+		return false;
+	D3D11_TEXTURE2D_DESC td{};
+	back->GetDesc(&td);
+	const bool needNew =
+		!gBackRtv || gBackTex != back || gBackSwap != swap ||
+		gBackW != td.Width || gBackH != td.Height;
+	if (needNew)
+	{
+		if (gBackRtv)
+		{
+			gBackRtv->Release();
+			gBackRtv = nullptr;
+		}
+		gBackTex = nullptr;
+		const HRESULT hr = gDev->CreateRenderTargetView(back, nullptr, &gBackRtv);
+		if (FAILED(hr) || !gBackRtv)
+		{
+			back->Release();
+			gBackW = 0;
+			gBackH = 0;
+			gBackSwap = nullptr;
+			return false;
+		}
+		gBackTex = back; /* identity only — GetBuffer ref released below */
+		gBackSwap = swap;
+		gBackW = td.Width;
+		gBackH = td.Height;
+	}
+	if (outTd)
+		*outTd = td;
+	back->Release();
+	return gBackRtv != nullptr;
+}
+
 namespace
 {
 	using WorldGpsMath::Vec3;
@@ -285,16 +325,10 @@ bool WorldGpsD3d::DrawTrails(
 		return false;
 
 	auto* swap = static_cast<IDXGISwapChain*>(G::API->SwapChain);
-	ID3D11Texture2D* back = nullptr;
-	if (FAILED(swap->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&back))) || !back)
-		return false;
-	ID3D11RenderTargetView* rtv = nullptr;
-	const HRESULT rtvHr = gDev->CreateRenderTargetView(back, nullptr, &rtv);
 	D3D11_TEXTURE2D_DESC td{};
-	back->GetDesc(&td);
-	back->Release();
-	if (FAILED(rtvHr) || !rtv)
+	if (!EnsureBackRtv(swap, &td) || !gBackRtv)
 		return false;
+	ID3D11RenderTargetView* rtv = gBackRtv;
 
 	float fadeStart = 0.f, fadeEnd = 0.f;
 	WorldGpsMath::TrailFadeRange(maxDist, fadeStart, fadeEnd);
@@ -350,6 +384,5 @@ bool WorldGpsD3d::DrawTrails(
 		gCtx->RSSetViewports(numVp, &prevVp);
 	if (prevRtv) prevRtv->Release();
 	if (prevDsv) prevDsv->Release();
-	rtv->Release();
 	return true;
 }

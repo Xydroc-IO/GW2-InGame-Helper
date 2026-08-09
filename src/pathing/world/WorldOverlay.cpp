@@ -1,9 +1,11 @@
 #include "WorldOverlay.h"
 
+#include "CrashTrail.h"
 #include "Globals.h"
 #include "PathingTrails.h"
 #include "TrailToolsPreview.h"
 #include "TrailToolsShared.h"
+#include "WinePadOpen.h"
 #include "WorldGpsD3d.h"
 #include "WorldGpsImgui.h"
 #include "WorldGpsMath.h"
@@ -59,6 +61,7 @@ void WorldOverlay::Render()
 {
 	try
 	{
+	CrashTrail::Scope worldScope("world:Overlay enter", "world:Overlay leave");
 	if (!G::ShowPathingTrails && !PathingTrails::HasSearchGuideActive() &&
 		!(TrailToolsDetail::AnyAuthoringPadOpen() && TrailToolsDetail::HasDraftPreview()))
 		return;
@@ -317,8 +320,9 @@ void WorldOverlay::Render()
 	const PathingTrails::WorldSnippet* guidePtr =
 		(sGuideCache.points.size() >= 2) ? &sGuideCache : nullptr;
 
-	/* D3D world ribbons only - no ImGui trail billboards. */
-	if (WorldGpsD3d::Available())
+	/* D3D world ribbons only - no ImGui trail billboards.
+	   Wine Soft rail/companion: skip CreateRTV-path draw while Soft work is hot. */
+	if (WorldGpsD3d::Available() && !WinePadOpen::SoftWorkBusy())
 	{
 		static const std::vector<PathingTrails::WorldSnippet> kEmpty;
 		if (guidePtr)

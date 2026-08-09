@@ -10,11 +10,13 @@
 #include "WatchCapture.h"
 #include "WatchLinux.h"
 #include "WinePadOpen.h"
+#include "CrashTrail.h"
 
 #include "imgui/imgui.h"
 
 #include <algorithm>
 #include <d3d11.h>
+#include <windows.h>
 
 namespace
 {
@@ -63,7 +65,33 @@ namespace
 	bool RenderMirror()
 	{
 		if (!G::ShowWatchMirror)
+		{
+			WatchPadDetail::gMirrorInputBusy = false;
 			return false;
+		}
+		/* soft-open settle / fire : skip Mirror Begin briefly . 
+		   Do NOT skip while merely queued (CompanionWaitingOnMirror ) —
+		   that made every rail click look like it closed Mirror. */
+		static bool sLoggedSkipBegin = false;
+		const bool settleBusy = EiRuntime::IsWine()
+			&& (WinePadOpen::CompanionFiredThisFrame()
+				|| WinePadOpen::CompanionSettleFrames() > 0);
+		if (settleBusy)
+		{
+			WatchPadDetail::gMirrorInputBusy = true;
+			if (!sLoggedSkipBegin)
+			{
+				CrashTrail::Note("mirror:skip_begin settle");
+				sLoggedSkipBegin = true;
+			}
+			return false;
+		}
+		sLoggedSkipBegin = false;
+		/* Quiet GPU while soft-open / soft-stop — keep Begin otherwise . */
+		const bool quietUpload = WinePadOpen::SoftWorkBusy()
+			|| WinePadOpen::WatchMirrorQuietFrames() > 0
+			|| WinePadOpen::WatchSoftOpenFired()
+			|| WatchPadDetail::gSoftStopPhase > 0;
 
 		constexpr float kPadW = 960.f;
 		constexpr float kPadH = 540.f;
@@ -79,20 +107,36 @@ namespace
 		HelperTheme::ScopedWindow theme(G::Opacity);
 		const bool padBody = ImGui::Begin("Watch Mirror###GW2InGameHelperWatchMirror", &open,
 			HelperTheme::PadFlags());
+
+		auto closeMirror = [&]() {
+			if (EiRuntime::IsWine())
+			{
+				/* Soft-stop keeps Begin while quieting — never clear flag on X click. */
+				WatchPadDetail::ArmWineSoftStop();
+				return;
+			}
+			G::ShowWatchMirror = false;
+			WatchPadDetail::gWantMirrorWhenReady = false;
+			WatchPadDetail::gDeferMirrorOpenFrames = 0;
+			WatchPadDetail::gMirrorInputBusy = true;
+			WatchCapture::HideContent();
+			WatchCapture::Stop();
+			Settings::SetDirty();
+		};
+
 		if (!theme.AfterBegin("Watch Mirror", &open) || !padBody)
 		{
-			if (PadDock::Capture(G::PadWatchMirror))
+			if (PadDock::Capture(G::PadWatchMirror) && !EiRuntime::IsWine())
 				Settings::SetDirty();
 			const bool hovered = ImGui::IsWindowHovered(
 				ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 				ImGuiHoveredFlags_ChildWindows);
+			WatchPadDetail::gMirrorInputBusy = quietUpload || (hovered &&
+				(ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
+					ImGui::IsMouseDragging(ImGuiMouseButton_Left)));
 			HelperTheme::EndPad();
 			if (!open)
-			{
-				G::ShowWatchMirror = false;
-				WatchCapture::Stop();
-				Settings::SetDirty();
-			}
+				closeMirror();
 			return hovered;
 		}
 
@@ -110,7 +154,7 @@ namespace
 		const ImVec2 stage0 = stageCursor;
 		const ImVec2 stage1(stageCursor.x + stageW, stageCursor.y + stageH);
 		ImDrawList* dl = ImGui::GetWindowDrawList();
-		PaintStageFrame(dl, stage0, stage1, capturing);
+		PaintStageFrame(dl, stage0, stage1, capturing && !quietUpload);
 
 		const uint32_t cw = WatchCapture::ContentW();
 		const uint32_t ch = WatchCapture::ContentH();
@@ -119,7 +163,7 @@ namespace
 		const ImVec2 inner1(stage1.x - kPad, stage1.y - kPad);
 		const float innerW = inner1.x - inner0.x;
 		const float innerH = inner1.y - inner0.y;
-		if (srv && cw > 0 && ch > 0 && innerW > 8.f && innerH > 8.f)
+		if (!quietUpload && srv && cw > 0 && ch > 0 && innerW > 8.f && innerH > 8.f)
 		{
 			const float aspect = static_cast<float>(cw) / static_cast<float>(ch);
 			float drawW = innerW;
@@ -135,7 +179,10 @@ namespace
 			const ImVec2 img1(img0.x + drawW, img0.y + drawH);
 			if (drawW > 1.f && drawH > 1.f && dl)
 			{
-				dl->AddImage(reinterpret_cast<ImTextureID>(srv), img0, img1);
+				const float u1 = WatchCapture::ContentU();
+				const float v1 = WatchCapture::ContentV();
+				dl->AddImage(reinterpret_cast<ImTextureID>(srv), img0, img1,
+					ImVec2(0.f, 0.f), ImVec2(u1, v1));
 				dl->AddRect(img0, img1, ColU32(HelperTheme::GoldDim, 0.35f * G::Opacity), 0.f, 0, 1.f);
 			}
 		}
@@ -143,29 +190,31 @@ namespace
 		{
 			ImGui::SetCursorScreenPos(ImVec2(inner0.x + kInset, inner0.y + kInset));
 			ImGui::PushTextWrapPos(inner1.x - kInset);
-			ImGui::TextColored(HelperTheme::Muted, "%s",
-				capturing
-					? (EiRuntime::IsWine()
-						? "Waiting for portal / first frame…"
-						: "Waiting for first frame…")
-					: "Stopped — use Start on the Watch pad.");
+			if (quietUpload && capturing)
+				ImGui::TextColored(HelperTheme::Muted, "Mirror paused…");
+			else
+				ImGui::TextColored(HelperTheme::Muted, "%s",
+					capturing
+						? (EiRuntime::IsWine()
+							? "Waiting for portal / first frame…"
+							: "Waiting for first frame…")
+						: "Stopped — use Start on the Watch pad.");
 			ImGui::PopTextWrapPos();
 		}
 
 		ImGui::PopID();
-		if (PadDock::Capture(G::PadWatchMirror))
+		if (PadDock::Capture(G::PadWatchMirror) && !EiRuntime::IsWine())
 			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 			ImGuiHoveredFlags_ChildWindows);
+		WatchPadDetail::gMirrorInputBusy = quietUpload || (hovered &&
+			(ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
+				ImGui::IsMouseDragging(ImGuiMouseButton_Left)));
 		HelperTheme::EndPad();
 		WatchPadDetail::gRequestMirrorDock = false;
 		if (!open)
-		{
-			G::ShowWatchMirror = false;
-			WatchCapture::Stop();
-			Settings::SetDirty();
-		}
+			closeMirror();
 		return hovered;
 	}
 }
@@ -173,6 +222,8 @@ namespace
 namespace WatchPadDetail
 {
 	bool gRequestMirrorDock = false;
+	bool gWantMirrorWhenReady = false;
+	bool gMirrorInputBusy = false;
 	int  gDeferMirrorOpenFrames = 0;
 }
 
@@ -183,8 +234,12 @@ void WatchPad::Open()
 	gControlTab = 0;
 	/* Do not EnumWindows/GetWindowText on the ImGui click frame — that has
 	   asserted Size > 0 on native Windows. List refreshes via EnsureList / Refresh. */
-	if (!G::ShowWatchMirror && WatchCapture::IsCapturing())
-		WatchCapture::Stop(); /* drop orphan picker/session left after other pads */
+	/* Wine Soft-open after Soft-stop: never Stop() here — capture may still be
+	   draining (deferStop/phase). Stop on Open was the reopen tip (Soft-stop
+	   survived; Soft-open Begin+Stop did not). Orphan Soft-stop owns Stop. */
+	if (!EiRuntime::IsWine() && !G::ShowWatchMirror && WatchCapture::IsCapturing()
+		&& WatchPadDetail::gDeferStopFrames <= 0 && WatchPadDetail::gSoftStopPhase <= 0)
+		WatchCapture::Stop();
 	if (!WatchCapture::IsStreaming())
 		WatchPadDetail::gSelected = -1;
 	if (G::PadWatch.w < 80.f || G::PadWatch.h < 80.f)
@@ -192,44 +247,111 @@ void WatchPad::Open()
 		G::PadWatch.w = 0.f;
 		G::PadWatch.h = 0.f;
 	}
-	/* Clear sticky minimize so reopen after other pads isn't a dead title strip. */
 	if (ImGuiWindow* w = ImGui::FindWindowByName("Watch###GW2InGameHelperWatch"))
 		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
-	/* Do NOT WarmAsync/CreateThread on the side-rail click frame — that has
-	   taken down Wine under load (compass + trails). watchd warms on Start. */
-	Settings::SetDirty();
+	/* Wine Soft-open: defer SetDirty — Save on Open frame after Soft-stop tipped. */
+	if (!EiRuntime::IsWine())
+		Settings::SetDirty();
 }
 
 void WatchPad::CloseAll()
 {
-	WinePadOpen::CancelWatchOpen();
+	WinePadOpen::CancelCompanionOpen();
 	G::ShowWatch = false;
 	G::ShowWatchMirror = false;
+	WatchPadDetail::gWantMirrorWhenReady = false;
+	WatchPadDetail::gMirrorInputBusy = false;
 	WatchPadDetail::gDeferMirrorOpenFrames = 0;
+	WatchPadDetail::gDeferStartFrames = 0;
+	WatchPadDetail::gDeferStopFrames = 0;
+	WatchPadDetail::gDeferWatchOpenFrames = 0;
+	WatchPadDetail::gReopenGateFrames = 0;
+	WatchPadDetail::gPostStopCooldown = 0;
+	WatchPadDetail::gUploadHoldFrames = 0;
+	WatchPadDetail::gWatchOpenAge = 0;
+	WatchPadDetail::gLastSoftStopMs = 0;
+	WatchPadDetail::gMirrorSessionEndMs = 0;
+	WatchPadDetail::gSoftStopPhase = 0;
+	WatchPadDetail::gSoftStopFrames = 0;
+	WatchPadDetail::gSoftOpenDirtyFrames = 0;
+	WinePadOpen::WatchSoftOpenFrames() = 0;
+	WinePadOpen::WatchSoftOpenFired() = false;
+	WinePadOpen::WatchMirrorQuietFrames() = 0;
 	WatchCapture::Stop();
 	Settings::SetDirty();
 }
 
 void WatchPad::ToggleControl()
 {
+	if (WatchPadDetail::gSoftStopPhase > 0)
+		return; /* Soft-stop draining — ignore side-nav until done */
+
 	if (G::ShowWatch)
 	{
-		WinePadOpen::CancelWatchOpen();
+		/* Close control only — leave Mirror alone. No SetDirty on Wine click
+		   while streaming (Save on Soft-stop tipped after multi-minute runs). */
+		WinePadOpen::CancelCompanionOpen();
 		G::ShowWatch = false;
-		/* Closing the last Watch UI while idle/picker: drop sticky capture state. */
-		if (!G::ShowWatchMirror && WatchPadDetail::gDeferMirrorOpenFrames <= 0)
-			WatchCapture::Stop();
-		Settings::SetDirty();
+		WatchPadDetail::gDeferWatchOpenFrames = 0;
+		WinePadOpen::WatchSoftOpenFrames() = 0;
+		WinePadOpen::WatchSoftOpenFired() = false;
+		WatchPadDetail::gDeferStartFrames = 0;
+		if (!G::ShowWatchMirror)
+		{
+			WatchPadDetail::gDeferMirrorOpenFrames = 0;
+			WatchPadDetail::gWantMirrorWhenReady = false;
+			if (WatchPadDetail::gDeferStopFrames <= 0)
+				WatchCapture::Stop();
+		}
+		if (!(G::ShowWatchMirror || WatchCapture::IsStreaming()) && !EiRuntime::IsWine())
+			Settings::SetDirty();
 		return;
 	}
-	/* Wine under load (API pads / CEF already up): do not Begin Watch on the
-	   same ImGui click frame as the side-rail toggle. */
+
+	/* Live Mirror UI → Wine Soft-stop (keep Begin while quieting). */
+	if (G::ShowWatchMirror || WatchPadDetail::gWantMirrorWhenReady
+		|| WatchPadDetail::gDeferMirrorOpenFrames > 0)
+	{
+		if (EiRuntime::IsWine())
+			WatchPadDetail::ArmWineSoftStop();
+		else
+		{
+			WatchPadDetail::gDeferWatchOpenFrames = 0;
+			WinePadOpen::WatchSoftOpenFrames() = 0;
+			WinePadOpen::WatchSoftOpenFired() = false;
+			WatchPadDetail::gDeferStartFrames = 0;
+			WatchPadDetail::gDeferMirrorOpenFrames = 0;
+			WatchPadDetail::gWantMirrorWhenReady = false;
+			G::ShowWatchMirror = false;
+			WatchPadDetail::gMirrorInputBusy = true;
+			WatchCapture::HideContent();
+			WatchCapture::Stop();
+			Settings::SetDirty();
+		}
+		return;
+	}
+	if ((WatchCapture::IsCapturing() || WatchCapture::IsStreaming())
+		&& WatchPadDetail::gDeferStopFrames <= 0)
+	{
+		WatchCapture::HideContent();
+		if (EiRuntime::IsWine())
+			WatchPadDetail::QueueWineStop();
+		else
+			WatchCapture::Stop();
+		return;
+	}
+
+	/* Soft-open Start/Stop control when safe. */
 	if (WinePadOpen::Soft())
 	{
-		WinePadOpen::QueueWatchOpen();
+		int frames = WinePadOpen::DeferFrames();
+		if (WatchPadDetail::SoftOpenBlocked())
+			frames += 90;
+		WatchPadDetail::gDeferWatchOpenFrames = frames;
+		WinePadOpen::WatchSoftOpenFrames() = frames;
 		return;
 	}
-	Open();
+	WatchPad::Open();
 }
 
 bool WatchPad::Render()
@@ -237,20 +359,42 @@ bool WatchPad::Render()
 	bool hovered = false;
 	try
 	{
+		WatchPadDetail::TickDeferredStartStop();
 		WatchPadDetail::TickDeferredMirrorOpen();
+		WatchPadDetail::TickDeferredWatchOpen();
 
-		/* Always Tick so deferred/parked SRV free runs even after Mirror closed
-		   (Stop queues Release; Wine still needs a later frame to drop it). */
-		WatchCapture::Tick();
+		/* Orphan capture: no UI and no Soft Start/Mirror/open pending — stop watchd. */
+		if (!G::ShowWatch && !G::ShowWatchMirror &&
+			!WatchPadDetail::gWantMirrorWhenReady &&
+			WatchPadDetail::gDeferStartFrames <= 0 &&
+			WatchPadDetail::gDeferMirrorOpenFrames <= 0 &&
+			WatchPadDetail::gDeferStopFrames <= 0 &&
+			WatchPadDetail::gDeferWatchOpenFrames <= 0 &&
+			WatchPadDetail::gSoftStopPhase <= 0 &&
+			WatchCapture::IsCapturing())
+			WatchCapture::Stop();
 
-		/* Mirror opens only from Start (OpenMirror). Do NOT auto-reopen here —
-		   that fought closed Mirrors / other pads whenever streaming state was sticky. */
+		/* Mirror opens via RequestMirrorWhenReady after first uploaded frame. */
 
 		if (G::ShowWatch)
 		{
+			/* Wine soft-stop drain : skip Watch control Begin 
+			   —(Events / etc already drew ; trail died 
+			   right after softstop : done ) . */
+			if (EiRuntime::IsWine()
+				&& (WatchPadDetail::gDeferStopFrames > 0
+					|| WatchPadDetail::gSoftStopPhase > 0))
+			{
+				CrashTrail::NoteF("watch:skip Begin softstop defer=%d phase=%d",
+					WatchPadDetail::gDeferStopFrames, WatchPadDetail::gSoftStopPhase);
+			}
+			else
+			{
 			constexpr float kPadW = 440.f;
 			constexpr float kPadH = 320.f;
 
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("watch:pre Begin");
 			PadDock::SetSizeConstraints("Watch###GW2InGameHelperWatch", 320.f, 200.f,
 				PadDock::MaxW(640.f), PadDock::MaxH(640.f));
 			ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
@@ -261,9 +405,11 @@ bool WatchPad::Render()
 			bool open = G::ShowWatch;
 			HelperTheme::ScopedWindow theme(G::Opacity);
 			const bool padBody = ImGui::Begin("Watch###GW2InGameHelperWatch", &open, HelperTheme::PadFlags());
+			if (CrashTrail::DetailArmed())
+				CrashTrail::NoteF("watch:post Begin body=%d", padBody ? 1 : 0);
 			if (!theme.AfterBegin("Watch", &open) || !padBody)
 			{
-				if (PadDock::Capture(G::PadWatch))
+				if (PadDock::Capture(G::PadWatch) && !EiRuntime::IsWine())
 					Settings::SetDirty();
 				hovered |= ImGui::IsWindowHovered(
 					ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
@@ -274,7 +420,8 @@ bool WatchPad::Render()
 					G::ShowWatch = false;
 					if (!G::ShowWatchMirror)
 						WatchCapture::Stop();
-					Settings::SetDirty();
+					if (!EiRuntime::IsWine())
+						Settings::SetDirty();
 				}
 			}
 			else
@@ -291,7 +438,7 @@ bool WatchPad::Render()
 					WatchPadDetail::DrawWatchControls();
 
 				ImGui::PopID();
-				if (PadDock::Capture(G::PadWatch))
+				if (PadDock::Capture(G::PadWatch) && !EiRuntime::IsWine())
 					Settings::SetDirty();
 				hovered |= ImGui::IsWindowHovered(
 					ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
@@ -302,12 +449,32 @@ bool WatchPad::Render()
 					G::ShowWatch = false;
 					if (!G::ShowWatchMirror)
 						WatchCapture::Stop();
-					Settings::SetDirty();
+					if (!EiRuntime::IsWine())
+						Settings::SetDirty();
 				}
 			}
 			gRequestDock = false;
+			/* Wine Soft-open: one-shot dirty via gSoftOpenDirtyFrames — never every frame. */
+			} /* else: not soft-stop skipping Begin */
 		}
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("watch:pre RenderMirror");
 		hovered |= RenderMirror();
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("watch:post RenderMirror");
+
+		/* Tick after Mirror Begin so click/drag sets gMirrorInputBusy before
+		   UpdateSubresource — same-frame upload+interaction tipped Wine. */
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("watch:pre Capture::Tick");
+		WatchCapture::Tick();
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("watch:post Capture::Tick");
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("watch:pre TickMirrorWhenReady");
+		WatchPadDetail::TickMirrorWhenReady();
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("watch:render_end");
 	}
 	catch (...)
 	{

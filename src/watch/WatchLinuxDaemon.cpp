@@ -171,7 +171,7 @@ namespace WatchLinuxDetail
 			return false;
 		const size_t size = static_cast<size_t>(end - begin);
 		const std::wstring path = AddonPaths::DataDir() + L"\\gw2igh-watchd";
-		static constexpr const char* kStamp = "w10";
+		static constexpr const char* kStamp = "w11";
 		const std::wstring verPath = path + L".ver";
 
 		bool stampOk = false;

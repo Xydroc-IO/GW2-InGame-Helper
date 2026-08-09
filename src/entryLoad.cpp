@@ -6,6 +6,8 @@
 
 #include "imgui/imgui.h"
 
+#include "AddonPaths.h"
+#include "CrashTrail.h"
 #include "CharacterProfiles.h"
 #include "ConfirmedWaypoints.h"
 #include "Globals.h"
@@ -20,8 +22,6 @@
 #include "UiChrome.h"
 #include "UserTheme.h"
 #include "WikiBrowser.h"
-#include "WatchLinux.h"
-#include "AddonPaths.h"
 
 using namespace EntryDetail;
 
@@ -30,6 +30,8 @@ namespace EntryDetail
 void AddonLoad(AddonAPI_t* api)
 {
 	G::API = api;
+
+	CrashTrail::Install();
 
 	ImGui::SetCurrentContext(static_cast<ImGuiContext*>(api->ImguiContext));
 	ImGui::SetAllocatorFunctions(
@@ -88,7 +90,9 @@ void AddonLoad(AddonAPI_t* api)
 		api->Log(LOGL_WARNING, ADDON_NAME, "ui-chrome extract failed at load");
 	UiChrome::WarmTextures(AddonPaths::DataDir());
 
+	api->GUI_Register(RT_PreRender, UI_PreRender);
 	api->GUI_Register(RT_Render, UI_Render);
+	api->GUI_Register(RT_PostRender, UI_PostRender);
 	api->GUI_Register(RT_OptionsRender, UI_Options);
 
 	/* Helper open stays Nexus (QuickAccess). Panel pads are addon-owned binds. */
@@ -97,8 +101,8 @@ void AddonLoad(AddonAPI_t* api)
 	api->WndProc_Register(OnWndProc);
 	HelperQuickAccess::Init();
 
-	/* Prefetch host watchd off the game thread so first Start does not hitch. */
-	WatchLinux::WarmAsync();
+	/* Watch warms on Start — do not spawn watchd/pump for the whole session
+	   when the user never opens Watch (Wine tip-over after long idle). */
 
 	api->Log(LOGL_INFO, ADDON_NAME,
 		"Loaded - Ctrl+Shift+H/K helper; panel binds in Settings -> Keybinds.");

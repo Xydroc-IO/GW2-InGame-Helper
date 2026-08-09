@@ -35,6 +35,7 @@ namespace EconomyDetail
 
 	extern bool gFocus;
 	extern bool gPlaceOnce;
+	extern int gDeferLoads; /* Wine: defer LoadCart/Charts/History off Soft-open frame */
 	extern int gTab;
 	extern int gForceTab; /* -1 none; set to force side-rail tab once */
 	extern char gStatus[192];

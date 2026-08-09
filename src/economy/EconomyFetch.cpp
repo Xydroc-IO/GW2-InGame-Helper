@@ -11,6 +11,7 @@ namespace EconomyDetail
 {
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	int gDeferLoads = 0;
 	int gTab = 0;
 	int gForceTab = -1;
 	char gStatus[192] = {};

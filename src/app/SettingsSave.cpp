@@ -3,6 +3,8 @@
 
 #include "AddonPaths.h"
 #include "BrowserTabs.h"
+#include "CrashTrail.h"
+#include "EiRuntime.h"
 #include "Globals.h"
 #include "PadDock.h"
 #include "Sites.h"
@@ -31,6 +33,11 @@ void Settings::Save(bool force)
 	if (!force && sLastSaveMs != 0 && (now - sLastSaveMs) < 2500u)
 		return;
 
+	if (EiRuntime::IsWine())
+	{
+		CrashTrail::ArmDetail(20);
+		CrashTrail::NoteF("save:Settings force=%d", force ? 1 : 0);
+	}
 	AddonPaths::DataDir(); /* ensure folder exists */
 	char path[MAX_PATH]{};
 	SettingsDetail::SettingsPath(path, sizeof(path));
@@ -38,7 +45,11 @@ void Settings::Save(bool force)
 	std::snprintf(tmpPath, sizeof(tmpPath), "%s.tmp", path);
 	FILE* f = std::fopen(tmpPath, "w");
 	if (!f)
+	{
+		if (EiRuntime::IsWine())
+			CrashTrail::Note("save:Settings fopen fail");
 		return;
+	}
 
 	std::snprintf(G::ActiveSiteId, sizeof(G::ActiveSiteId), "%s", Sites::ActiveId());
 	if (!G::DefaultSiteId[0])

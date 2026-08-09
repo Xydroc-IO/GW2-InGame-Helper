@@ -144,6 +144,13 @@ bool EconomyPad::Render()
 	TickChartPoll();
 	if (!G::ShowEconomy)
 		return false;
+	if (WinePadOpen::TickDefer(gDeferLoads))
+	{
+		LoadCart();
+		LoadCharts();
+		LoadHistory();
+		EnsureSeed();
+	}
 	PollFlipWorker();
 	TpWatchPad::Tick();
 

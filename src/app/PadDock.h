@@ -92,12 +92,15 @@ namespace PadDock
 	}
 
 	/* Size constraints that allow the title-strip while custom-minimized.
-	   Call BEFORE Begin with the same window name string as Begin(...). */
+	   Call BEFORE Begin with the same window name string as Begin(...).
+	   Wine: never FindWindowByName / StateStorage here — crash-trail pinned
+	   tips inside this path on Events re-open while Mirror is hot (stale
+	   ImGuiWindow*). Collapsed min-height is skipped on Wine. */
 	inline void SetSizeConstraints(const char* windowName,
 		float minW, float minH, float maxW, float maxH)
 	{
 		bool collapsed = false;
-		if (windowName && windowName[0])
+		if (!EiRuntime::IsWine() && windowName && windowName[0])
 		{
 			if (ImGuiWindow* w = ImGui::FindWindowByName(windowName))
 				collapsed = w->StateStorage.GetBool(w->GetID("##gw2igh_pad_collapsed"), false);

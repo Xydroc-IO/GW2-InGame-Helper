@@ -125,7 +125,9 @@ void AccountPad::OpenAndRefresh()
 	G::ShowAccount = true;
 	gFocus = true;
 	gPlaceOnce = true;
-	Settings::SetDirty();
+	/* Wine soft-open: Save on Soft Begin after Mirror tipped — Capture dirties later. */
+	if (!WinePadOpen::Soft())
+		Settings::SetDirty();
 	if (ImGuiWindow* w = ImGui::FindWindowByName("Account###GW2InGameHelperAccount"))
 		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
 	gDeferRefresh = WinePadOpen::DeferFrames();

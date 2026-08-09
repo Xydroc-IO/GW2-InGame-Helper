@@ -5,9 +5,11 @@
 #include "AspectLayout.h"
 #include "EventAlert.h"
 #include "Globals.h"
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
 #include "PadDock.h"
+#include "CrashTrail.h"
 #include "Settings.h"
 #include "WinePadOpen.h"
 
@@ -19,12 +21,53 @@
 #include <string>
 #include <vector>
 
+namespace
+{
+	/* Curated GW2.dat UI ids — same CDN / ui-chrome pipeline as the helper rail. */
+	int IconForEventsSection(const char* section)
+	{
+		if (!section || !section[0])
+			return static_cast<int>(Gw2Ui::Icon::EventsMedal);
+		if (std::strcmp(section, "Instanced") == 0)
+			return static_cast<int>(Gw2Ui::Icon::InstGate);
+		if (std::strcmp(section, "Core bosses") == 0)
+			return static_cast<int>(Gw2Ui::Icon::EventsMedal);
+		if (std::strcmp(section, "LLA") == 0)
+			return static_cast<int>(Gw2Ui::Icon::PvP);
+		if (std::strcmp(section, "Invasions") == 0)
+			return static_cast<int>(Gw2Ui::Icon::Alert);
+		if (std::strcmp(section, "Fractal Incursions") == 0)
+			return static_cast<int>(Gw2Ui::Icon::Gem);
+		if (std::strcmp(section, "Festivals") == 0)
+			return static_cast<int>(Gw2Ui::Icon::Contacts);
+		if (std::strcmp(section, "Icebrood Saga") == 0)
+			return static_cast<int>(Gw2Ui::Icon::CompassRadar);
+		if (std::strcmp(section, "Living World") == 0)
+			return static_cast<int>(Gw2Ui::Icon::Story);
+		if (std::strcmp(section, "Heart of Thorns") == 0)
+			return static_cast<int>(Gw2Ui::Icon::PathingMap);
+		if (std::strcmp(section, "Path of Fire") == 0)
+			return static_cast<int>(Gw2Ui::Icon::Key);
+		if (std::strcmp(section, "End of Dragons") == 0)
+			return static_cast<int>(Gw2Ui::Icon::Trophy);
+		if (std::strcmp(section, "Secrets of the Obscure") == 0)
+			return static_cast<int>(Gw2Ui::Icon::ApiHourglass);
+		if (std::strcmp(section, "Janthir Wilds") == 0)
+			return static_cast<int>(Gw2Ui::Icon::FarmSack);
+		if (std::strcmp(section, "Visions of Eternity") == 0)
+			return static_cast<int>(Gw2Ui::Icon::SheetsBook);
+		return static_cast<int>(Gw2Ui::Icon::EventsMedal);
+	}
+}
+
 void EventsPad::OpenAndRefresh()
 {
 	G::ShowEvents = true;
 	EventsPadDetail::gFocus = true;
 	EventsPadDetail::gPlaceOnce = true;
-	Settings::SetDirty();
+	/* Wine soft-open: Save on Soft Begin after Mirror tipped — Capture dirties later. */
+	if (!WinePadOpen::Soft())
+		Settings::SetDirty();
 	EventsPadDetail::gDeferRefresh = WinePadOpen::DeferFrames();
 	if (EventsPadDetail::gDeferRefresh <= 0)
 		EventsPadDetail::BeginClaimRefresh();
@@ -34,6 +77,7 @@ bool EventsPad::Render()
 {
 	using namespace EventsPadDetail;
 
+	const bool detail = CrashTrail::DetailArmed();
 	ApplyClaimResult();
 	if (!G::ShowEvents)
 		return false;
@@ -46,16 +90,51 @@ bool EventsPad::Render()
 	size_t nAll = 0;
 	const EventsData::Entry* all = EventsData::All(&nAll);
 
+	/* Only deep-probe the soft-open settle frame (not every 
+	   detail frame — that flooded the ring ) . */
+	const bool deep = detail
+		&& WinePadOpen::CompanionSettleFrames() == WinePadOpen::DeferFrames() * 4;
+	if (deep)
+		CrashTrail::NoteF("ev:enter nSec=%zu nAll=%zu defer=%d place=%d settle=%d",
+			nSec, nAll, gDeferRefresh, gPlaceOnce ? 1 : 0,
+			WinePadOpen::CompanionSettleFrames());
+
+	if (deep)
+		CrashTrail::Note("ev:pre GetIO");
 	const ImGuiIO& io = ImGui::GetIO();
+	if (deep)
+		CrashTrail::NoteF("ev:post GetIO display=%.0fx%.0f", io.DisplaySize.x, io.DisplaySize.y);
+	if (deep)
+		CrashTrail::Note("ev:pre MaxH");
 	const float maxH = PadDock::MaxH(300.f);
+	if (deep)
+		CrashTrail::NoteF("ev:post MaxH=%.0f", maxH);
+	if (deep)
+		CrashTrail::Note("ev:pre SetSizeConstraints");
+	/* Wine soft-open settle : SetSizeConstraints skips FindWindow 
+	   (stale ImGuiWindow tip ) ; still applies min / max . */
 	PadDock::SetSizeConstraints("World Events##GW2InGameHelperEvents", 380.f, 300.f, PadDock::MaxW(620.f), maxH);
+	if (deep)
+		CrashTrail::Note("ev:post SetSizeConstraints");
+	if (deep)
+		CrashTrail::Note("ev:pre SetNextWindowCollapsed");
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
+	if (deep)
+		CrashTrail::Note("ev:post SetNextWindowCollapsed");
 	{
+		if (deep)
+			CrashTrail::Note("ev:pre PadFallback");
 		const float fx = (io.DisplaySize.x > 100.f)
 			? AspectLayout::PadFallbackX(io.DisplaySize.x, io.DisplaySize.y, 0.46f) : 160.f;
 		const float fy = (io.DisplaySize.y > 100.f)
 			? AspectLayout::PadFallbackY(io.DisplaySize.y, 0.1f) : 80.f;
+		if (deep)
+			CrashTrail::NoteF("ev:post PadFallback fx=%.0f fy=%.0f", fx, fy);
+		if (deep)
+			CrashTrail::Note("ev:pre Place");
 		PadDock::Place(G::PadEvents, gPlaceOnce, kPadW, kPadH, ImVec2(fx, fy));
+		if (deep)
+			CrashTrail::Note("ev:post Place");
 	}
 	if (!gPlaceOnce && G::PadEvents.w < 80.f)
 		ImGui::SetNextWindowSize(ImVec2(kPadW, kPadH), ImGuiCond_Always);
@@ -63,9 +142,15 @@ bool EventsPad::Render()
 
 	bool open = G::ShowEvents;
 	HelperTheme::ScopedWindow theme(G::Opacity);
+	if (deep)
+		CrashTrail::Note("ev:pre Begin");
 	const bool padBody = ImGui::Begin("World Events##GW2InGameHelperEvents", &open, HelperTheme::PadFlags());
+	if (deep)
+		CrashTrail::NoteF("ev:post Begin body=%d open=%d", padBody ? 1 : 0, open ? 1 : 0);
 	if (!theme.AfterBegin("World Events", &open) || !padBody)
 	{
+		if (deep)
+			CrashTrail::Note("ev:early EndPad");
 		if (PadDock::Capture(G::PadEvents))
 			Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
@@ -99,11 +184,15 @@ bool EventsPad::Render()
 	for (int i = 1; i < railCount; ++i)
 		railLabels[i] = sections[static_cast<size_t>(i - 1)];
 	int railIcons[64];
-	railIcons[0] = static_cast<int>(Gw2Ui::Icon::Map);
+	railIcons[0] = static_cast<int>(Gw2Ui::Icon::Map); /* All */
 	for (int i = 1; i < railCount; ++i)
-		railIcons[i] = static_cast<int>(Gw2Ui::Icon::Achievements);
+		railIcons[i] = IconForEventsSection(railLabels[i]);
+	if (deep)
+		CrashTrail::Note("ev:pre rail");
 	gSectionPick = PadNav::DrawSideRail("###gw2igh_ev_nav", railLabels, railCount, gSectionPick,
 		0.f, railIcons);
+	if (deep)
+		CrashTrail::Note("ev:pre body");
 
 	ImGui::BeginChild("###gw2igh_ev_body", ImVec2(0.f, 0.f), true);
 	PadNav::Blurb(
@@ -191,11 +280,17 @@ bool EventsPad::Render()
 
 	const time_t now = std::time(nullptr);
 	std::vector<Row> rows;
+	if (deep)
+		CrashTrail::Note("ev:pre CollectRows");
 	CollectRows(rows, now);
+	if (deep)
+		CrashTrail::NoteF("ev:post CollectRows n=%zu", rows.size());
 
 	const float footerH = ImGui::GetTextLineHeightWithSpacing() * 1.6f;
 	float listH = ImGui::GetContentRegionAvail().y - footerH;
 	if (listH < 120.f) listH = 120.f;
+	if (deep)
+		CrashTrail::Note("ev:pre list");
 	ImGui::BeginChild("###gw2igh_ev_list", ImVec2(0.f, listH), true);
 
 	if (rows.empty())
@@ -317,6 +412,10 @@ bool EventsPad::Render()
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
 		ImGuiHoveredFlags_AllowWhenBlockedByPopup);
+	if (deep)
+		CrashTrail::Note("ev:pre EndPad");
 	HelperTheme::EndPad();
+	if (deep)
+		CrashTrail::Note("ev:end");
 	return hovered;
 }

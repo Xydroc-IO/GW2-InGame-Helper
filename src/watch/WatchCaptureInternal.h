@@ -13,7 +13,10 @@ namespace WatchCaptureDetail
 {
 	constexpr uint32_t kMaxCaptureW = 1280;
 	constexpr uint32_t kMaxCaptureH = 720;
-	constexpr DWORD    kMinFrameMs = 16; /* ~60 FPS present */
+	/* Native ~60 FPS; Wine: ~30 FPS — long Soft-stop tips were worse at 60, but
+	   20 FPS is too choppy for watching. Soft-stop still pauses uploads. */
+	constexpr DWORD    kMinFrameMsNative = 16;
+	constexpr DWORD    kMinFrameMsWine = 33; /* ~30 FPS present */
 
 #ifndef PW_RENDERFULLCONTENT
 #define PW_RENDERFULLCONTENT 0x00000002
@@ -35,6 +38,9 @@ namespace WatchCaptureDetail
 	extern ID3D11Texture2D*        gDeadTex;
 	extern ID3D11Texture2D*        gDeadStagingTex;
 	extern ID3D11ShaderResourceView* gDeadSrv;
+	extern ID3D11Texture2D*        gDeadMirrorTex;
+	extern bool                    gDedicatedMirror;
+	extern char                    gMirrorGpuPath[96];
 
 	extern int                      gRawEnumCount;
 	extern uint64_t                gTarget;
@@ -50,6 +56,7 @@ namespace WatchCaptureDetail
 	void ReleaseGpu();
 	void FlushDeferredGpuRelease();
 	void RequestGpuRelease();
+	void HideContent(); /* Soft-stop: drop AddImage dims now; park on deferred Stop */
 	void ReleaseDevice();
 
 	bool SampleLooksBlank(const uint8_t* bgra, uint32_t w, uint32_t h, uint32_t stride);

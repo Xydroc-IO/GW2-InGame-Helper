@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <d3d11.h>
+#include <dxgi.h>
 #include <windows.h>
 
 /* Shared D3D11 device/shader state for WorldGpsD3dDevice / WorldGpsD3dDraw. */
@@ -39,6 +40,11 @@ namespace WorldGpsD3dInternal
 	extern ID3D11RasterizerState*   gRaster;
 	extern ID3D11DepthStencilState* gDepth;
 	extern ID3D11SamplerState*      gSamp;
+	extern ID3D11RenderTargetView*  gBackRtv;
+	extern ID3D11Texture2D*         gBackTex; /* non-owning identity for cache */
+	extern UINT                     gBackW;
+	extern UINT                     gBackH;
+	extern IDXGISwapChain*          gBackSwap;
 	extern UINT                     gVBCapacity;
 	extern bool                     gHardFail;
 	extern bool                     gOk;
@@ -50,4 +56,6 @@ namespace WorldGpsD3dInternal
 	void ReleaseGpu();
 	bool EnsureDevice();
 	bool EnsureVB(UINT vertexCount);
+	/* Cache swapchain RTV — CreateRenderTargetView every frame tips Wine over ~10–20 min. */
+	bool EnsureBackRtv(IDXGISwapChain* swap, D3D11_TEXTURE2D_DESC* outTd);
 }

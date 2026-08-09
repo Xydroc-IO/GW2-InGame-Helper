@@ -22,6 +22,11 @@ namespace WatchLinux
 	void Stop(std::string& status);
 	bool IsCapturing();
 	bool IsStarting(); /* daemon/portal kickoff in flight */
+	bool PumpRunning();
+	void PollJoinStart(); /* non-blocking reap of legacy StartWorker after Stop */
+	/* Soft Start: create pump only when cooldown is clear (never on click frame). */
+	bool ConsumeNeedPump();
+	void EnsurePumpNow();
 	uint64_t TargetId();
 	void GetStatus(std::string& out);
 

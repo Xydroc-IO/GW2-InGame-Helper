@@ -231,25 +231,28 @@ namespace UIDetail
 
 		if (PadNav::SideToggle("API Check###gw2igh_api_check", false, static_cast<int>(Gw2Ui::Icon::ApiHourglass), iconSz))
 		{
-			const std::wstring dir = AddonPaths::DataDir();
-			if (!dir.empty())
-			{
-				auto kill = [&](const wchar_t* ext) {
-					std::wstring p = dir;
-					if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
-						p.push_back(L'\\');
-					p += L"gw2-api-check";
-					p += ext;
-					DeleteFileW(p.c_str());
-				};
-				kill(L".html");
-				kill(L".ver");
-				kill(L".ok");
-			}
+			/* Wine: DeleteFileW runs when TickRailPending fires — not on the click frame. */
 			if (WinePadOpen::Soft())
 				WinePadOpen::QueueRailUrlNewTab("browse", "about:gw2-api-check");
 			else
+			{
+				const std::wstring dir = AddonPaths::DataDir();
+				if (!dir.empty())
+				{
+					auto kill = [&](const wchar_t* ext) {
+						std::wstring p = dir;
+						if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
+							p.push_back(L'\\');
+						p += L"gw2-api-check";
+						p += ext;
+						DeleteFileW(p.c_str());
+					};
+					kill(L".html");
+					kill(L".ver");
+					kill(L".ok");
+				}
 				openUrlNewTab("browse", "about:gw2-api-check");
+			}
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
@@ -261,98 +264,134 @@ namespace UIDetail
 		if (PadNav::SideToggle("Compass###gw2igh_dircompass", G::ShowCompassPad, static_cast<int>(Gw2Ui::Icon::CompassRadar), iconSz))
 		{
 			if (G::ShowCompassPad) { G::ShowCompassPad = false; Settings::SetDirty(); }
-			else DirectionCompass::Open();
+			else WinePadOpen::SoftOpen(&DirectionCompass::Open, "Compass");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Direction compass - enable + letter size + radius\nDefault: Ctrl+Shift+O (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Direction compass - enable + letter size + radius\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+O (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Vault###gw2igh_vault", G::ShowVault, static_cast<int>(Gw2Ui::Icon::VaultStar), iconSz))
 		{
 			if (G::ShowVault) { G::ShowVault = false; Settings::SetDirty(); }
-			else VaultPad::OpenAndRefresh();
+			else WinePadOpen::SoftOpen(&VaultPad::OpenAndRefresh, "Vault");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Vault - dailies & Wizard's Vault\nDefault: Ctrl+Shift+V (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Vault - dailies & Wizard's Vault\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+V (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Events###gw2igh_events", G::ShowEvents, static_cast<int>(Gw2Ui::Icon::EventsMedal), iconSz))
 		{
 			if (G::ShowEvents) { G::ShowEvents = false; Settings::SetDirty(); }
-			else EventsPad::OpenAndRefresh();
+			else WinePadOpen::SoftOpen(&EventsPad::OpenAndRefresh, "Events");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("World events - UTC timers + track list\nDefault: Ctrl+Shift+E (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"World events - UTC timers + track list\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+E (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Instances###gw2igh_instances", G::ShowInstances, static_cast<int>(Gw2Ui::Icon::InstGate), iconSz))
 		{
 			if (G::ShowInstances) { G::ShowInstances = false; Settings::SetDirty(); }
-			else InstancesPad::OpenAndRefresh();
+			else WinePadOpen::SoftOpen(&InstancesPad::OpenAndRefresh, "Instances");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Instances - story / fractal / raid / strike\nDefault: Ctrl+Shift+I (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Instances - story / fractal / raid / strike\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+I (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Economy###gw2igh_economy", G::ShowEconomy, static_cast<int>(Gw2Ui::Icon::EconStack), iconSz))
 		{
 			if (G::ShowEconomy) { G::ShowEconomy = false; Settings::SetDirty(); }
-			else EconomyPad::OpenAndRefresh();
+			else WinePadOpen::SoftOpen(&EconomyPad::OpenAndRefresh, "Economy");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Economy - Flip Finder, charts, cart\nDefault: Ctrl+Shift+Y (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Economy - Flip Finder, charts, cart\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+Y (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Farming###gw2igh_farming", G::ShowFarming, static_cast<int>(Gw2Ui::Icon::FarmSack), iconSz))
 		{
 			if (G::ShowFarming) { G::ShowFarming = false; Settings::SetDirty(); }
-			else FarmingPad::OpenAndRefresh();
+			else WinePadOpen::SoftOpen(&FarmingPad::OpenAndRefresh, "Farming");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Farming - curated/custom runs, GPS, fishing log\nDefault: Ctrl+Shift+R (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Farming - curated/custom runs, GPS, fishing log\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+R (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides, static_cast<int>(Gw2Ui::Icon::PathingMap), iconSz))
 		{
 			if (G::ShowPathingGuides) { G::ShowPathingGuides = false; Settings::SetDirty(); }
-			else PathingGuidesPad::Open();
+			else WinePadOpen::SoftOpen(&PathingGuidesPad::Open, "Pathing");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Pathing - Tekkit + Lady Elyssa + Hero packs\nDefault: Ctrl+Shift+G (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Pathing - Tekkit + Lady Elyssa + Hero packs\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+G (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Trail Tools###gw2igh_trailtools", G::ShowTrailTools, static_cast<int>(Gw2Ui::Icon::TrailAnvil), iconSz))
 		{
 			if (G::ShowTrailTools) { G::ShowTrailTools = false; Settings::SetDirty(); }
-			else TrailToolsPad::Open();
+			else WinePadOpen::SoftOpen(&TrailToolsPad::Open, "Trail Tools");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Trail Tools - author packs\nDefault: Ctrl+Shift+B (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Trail Tools - author packs\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+B (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Completion###gw2igh_completion", G::ShowCompletion, static_cast<int>(Gw2Ui::Icon::CompletePeak), iconSz))
 		{
 			if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
-			else CompletionPad::OpenAndRefresh();
+			else WinePadOpen::SoftOpen(&CompletionPad::OpenAndRefresh, "Completion");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Completion - checklist, Atlas, routes, GPS\nDefault: Ctrl+Shift+M (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Completion - checklist, Atlas, routes, GPS\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+M (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Notes###gw2igh_notes", G::ShowNotes, static_cast<int>(Gw2Ui::Icon::NotesScroll), iconSz))
 		{
 			if (G::ShowNotes) { G::ShowNotes = false; Settings::SetDirty(); }
-			else NotesPad::Open();
+			else WinePadOpen::SoftOpen(&NotesPad::Open, "Notes");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Snippets + Waypoints search\nDefault: Ctrl+Shift+N (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Snippets + Waypoints search\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+N (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("DPS Logs###gw2igh_logs", G::ShowLogManager, static_cast<int>(Gw2Ui::Icon::LogsSwords), iconSz))
 		{
 			if (G::ShowLogManager) { G::ShowLogManager = false; Settings::SetDirty(); }
-			else LogManagerPad::OpenAndRefresh();
+			else WinePadOpen::SoftOpen(&LogManagerPad::OpenAndRefresh, "DPS Logs");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("DPS Logs - ArcDPS EVTC via Elite Insights\nDefault: Ctrl+Shift+L (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"DPS Logs - ArcDPS EVTC via Elite Insights\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+L (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Account###gw2igh_account", G::ShowAccount, static_cast<int>(Gw2Ui::Icon::AccountSword), iconSz))
 		{
 			if (G::ShowAccount) { G::ShowAccount = false; Settings::SetDirty(); }
-			else AccountPad::OpenAndRefresh();
+			else WinePadOpen::SoftOpen(&AccountPad::OpenAndRefresh, "Account");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Account - progress, unlocks, history\nDefault: Ctrl+Shift+A (Settings -> Keybinds)");
+			ImGui::SetTooltip(
+				"Account - progress, unlocks, history\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+A (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Watch###gw2igh_watch",
 			G::ShowWatch || G::ShowWatchMirror, static_cast<int>(Gw2Ui::Icon::WatchView), iconSz))
@@ -361,16 +400,21 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
-				"Watch - Start/Stop control (Mirror stays until Stop)\n"
+				"Watch - Start/Stop control\n"
+				"Click again while Mirror is up to Soft-stop\n"
+				"(stream stops in ~0.1s; Mirror closes shortly after)\n"
 				"Default: Ctrl+Shift+W (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Settings###gw2igh_settings", G::ShowSettings, static_cast<int>(Gw2Ui::Icon::SettingsGear), iconSz))
 		{
 			if (G::ShowSettings) { G::ShowSettings = false; Settings::SetDirty(); }
-			else SettingsPad::Open();
+			else WinePadOpen::SoftOpen(&SettingsPad::Open, "Settings");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Settings - opacity, font, API key, Keybinds tab\nDefault: Ctrl+Shift+. ");
+			ImGui::SetTooltip(
+				"Settings - opacity, font, API key, Keybinds tab\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+. ");
 
 		const bool dockHover = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

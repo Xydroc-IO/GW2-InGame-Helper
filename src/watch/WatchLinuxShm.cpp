@@ -105,11 +105,18 @@ namespace WatchLinuxDetail
 		return ok;
 	}
 
-	/* Status only — pixels are presented directly from shm (CEF-style). */
+	/* Status only — pixels are presented directly from shm (CEF-style).
+	   Also drains queued portal Start so Soft Start never CreateThreads. */
 	DWORD WINAPI PumpThread(LPVOID)
 	{
 		while (gPumpRun.load())
 		{
+			if (gStartRequested.exchange(false))
+			{
+				const uint32_t epoch = gQueuedStartEpoch.load();
+				RunQueuedStart(epoch);
+			}
+
 			if (!gCapturing.load())
 			{
 				Sleep(50);
@@ -124,7 +131,7 @@ namespace WatchLinuxDetail
 				{
 					const auto* h = reinterpret_cast<const WatchProto::ShmHeader*>(gShmView);
 					if (h->magic == WatchProto::kShmMagic && h->capturing)
-						gPumpStatus = "Capturing (OOP watchd ~60 FPS).";
+						gPumpStatus = "Capturing (OOP watchd).";
 				}
 				LeaveCriticalSection(&gCs);
 			}

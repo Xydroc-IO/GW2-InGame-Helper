@@ -25,6 +25,11 @@ namespace WorldGpsD3dInternal
 	ID3D11RasterizerState*   gRaster = nullptr;
 	ID3D11DepthStencilState* gDepth = nullptr;
 	ID3D11SamplerState*      gSamp = nullptr;
+	ID3D11RenderTargetView*  gBackRtv = nullptr;
+	ID3D11Texture2D*         gBackTex = nullptr;
+	UINT                     gBackW = 0;
+	UINT                     gBackH = 0;
+	IDXGISwapChain*          gBackSwap = nullptr;
 	UINT                     gVBCapacity = 0;
 	bool                     gHardFail = false;
 	bool                     gOk = false;
@@ -159,6 +164,11 @@ float4 PSTextured(PSIn i) : SV_Target
 
 void WorldGpsD3dInternal::ReleaseGpu()
 {
+	if (gBackRtv) { gBackRtv->Release(); gBackRtv = nullptr; }
+	gBackTex = nullptr;
+	gBackW = 0;
+	gBackH = 0;
+	gBackSwap = nullptr;
 	if (gSamp) { gSamp->Release(); gSamp = nullptr; }
 	if (gDepth) { gDepth->Release(); gDepth = nullptr; }
 	if (gRaster) { gRaster->Release(); gRaster = nullptr; }

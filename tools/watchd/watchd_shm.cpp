@@ -72,10 +72,17 @@ namespace WatchdDetail
 		gCapturing = on;
 		if (!gShm)
 			return;
-		Hdr()->capturing = on ? 1u : 0u;
+		auto* h = Hdr();
+		h->capturing = on ? 1u : 0u;
 		if (!on)
 		{
-			/* Keep last frame; just mark idle. */
+			/* Invalidate pixels so Wine cannot present a leftover portal-wait
+			   frame (Mirror used to pop open before the share picker). */
+			h->w = 0;
+			h->h = 0;
+			h->stride = 0;
+			h->seq = h->seq + 1u;
+			__sync_synchronize();
 		}
 	}
 

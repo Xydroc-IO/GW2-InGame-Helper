@@ -244,6 +244,13 @@ void PathingTrails::BeginFrame()
 		gIconRetain.erase(id);
 	}
 
+	/* Wine can stall Nexus decode for a long session — cap retain RAM. */
+	{
+		std::lock_guard<std::mutex> lock(gIconMutex);
+		while (gIconRetain.size() > 64)
+			gIconRetain.erase(gIconRetain.begin());
+	}
+
 	for (int n = 0; n < 72; ++n)
 	{
 		PendingIcon icon;

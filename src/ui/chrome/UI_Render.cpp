@@ -8,6 +8,7 @@
 #include "Globals.h"
 #include "HelperTheme.h"
 #include "WinePadOpen.h"
+#include "CrashTrail.h"
 #include "Gw2Icons.h"
 #include "Gw2Ui.h"
 #include "LivePanels.h"
@@ -61,8 +62,35 @@
 
 using namespace UIDetail;
 
+void UI_PreRender()
+{
+	if (!WinePadOpen::Soft())
+		return;
+	/* Phase is sticky-only (no ring flood). DetailArmed also rings the note. */
+	CrashTrail::SetPhase("RT_PreRender");
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:RT_PreRender");
+}
+
+void UI_PostRender()
+{
+	if (!WinePadOpen::Soft())
+		return;
+	CrashTrail::SetPhase("RT_PostRender");
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:RT_PostRender");
+	/* Heartbeat carries phase= — if orphan tip sticky is phase:RT_Render leave
+	   and never PostRender, tip is Present / other addon after us. */
+}
+
 void UI_Render()
 {
+	if (WinePadOpen::Soft())
+	{
+		CrashTrail::SetPhase("RT_Render");
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:RT_Render enter");
+	}
 	/* Always poll first - must run while the helper is closed too. */
 	HelperHotkeys_Poll();
 	TrailToolsBinds::Poll();
@@ -71,16 +99,38 @@ void UI_Render()
 	Gw2Icons::Tick();
 	Gw2Icons::WarmProfessionIcons();
 	Gw2Ui::WarmCommon();
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:frame");
+	CrashTrail::HeartbeatIfHot();
 	WikiBrowser::Tick();
 	MumbleIdentity::Tick();
 	CharacterProfiles::Tick();
 	ConfirmedWaypoints::Tick();
 	MapAssist::Tick();
-	/* Tekkit overlays - always, even with the browser closed. */
-	CompassOverlay::Render();
-	WorldOverlay::Render();
-	PathingTrails::DrawMarkerBehaviorOverlay();
-	DirectionCompass::Render();
+	/* Tekkit overlays — pause world D3D while soft-open busy
+	   (same swapchain as Mirror / ImGui Begin). */
+	{
+		static bool sLastBusy = false;
+		const bool busy = WinePadOpen::SoftWorkBusy();
+		if (busy != sLastBusy)
+		{
+			CrashTrail::NoteF("ui:SoftWorkBusy %d->%d", sLastBusy ? 1 : 0, busy ? 1 : 0);
+			sLastBusy = busy;
+		}
+		if (!busy)
+		{
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("ui:pre world overlays");
+			CompassOverlay::Render();
+			WorldOverlay::Render();
+			PathingTrails::DrawMarkerBehaviorOverlay();
+			DirectionCompass::Render();
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("ui:post world overlays");
+		}
+		else if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:skip world overlays SoftWorkBusy");
+	}
 	/* URL-index warm: heavier when closed; light drip while open so Browse stays snappy. */
 	if (!G::ShowWiki)
 		Sites::TickWarmUrlKeys(96);
@@ -99,9 +149,8 @@ void UI_Render()
 		ImGui::SetWindowFocus(nullptr);
 	}
 
-	/* Wine: fire deferred Browse/Sheets/Ledger / Watch opens off the prior click frame. */
-	WinePadOpen::TickRailPending();
-	WinePadOpen::TickWatchPending();
+	/* soft-open ticks run at end of UI_Render so OpenAndRefresh
+	   does not Begin same frame as Mirror GPU. */
 
 	static bool sWasOpen = false;
 	if (!G::ShowWiki)
@@ -124,7 +173,21 @@ void UI_Render()
 		/* Notes / TP / Lookup / Wallet can stay open while the helper browser is closed.
 		   Only block GW2 while the pointer is over those windows - do not
 		   force Capture*FromApp(false) every frame (breaks Nexus / open). */
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:pre companion pads (wiki closed)");
 		RenderCompanionPads();
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:post companion pads (wiki closed)");
+		WinePadOpen::TickRailPending();
+		WinePadOpen::TickCompanionPending();
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:frame_end wiki_closed");
+		if (WinePadOpen::Soft())
+		{
+			CrashTrail::SetPhase("RT_Render leave");
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("ui:RT_Render leave");
+		}
 		return;
 	}
 
@@ -246,7 +309,21 @@ void UI_Render()
 			Settings::SetDirty();
 		}
 		/* Still draw pads while the main window is collapsed. */
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:pre companion pads (collapsed)");
 		RenderCompanionPads();
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:post companion pads (collapsed)");
+		WinePadOpen::TickRailPending();
+		WinePadOpen::TickCompanionPending();
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:frame_end collapsed");
+		if (WinePadOpen::Soft())
+		{
+			CrashTrail::SetPhase("RT_Render leave");
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("ui:RT_Render leave");
+		}
 		return;
 	}
 
@@ -387,6 +464,33 @@ void UI_Render()
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, ImGui::GetStyle().ItemSpacing.y));
 	DrawWikiPageSlot(open);
 	DrawHelperSideRail();
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:pre companion pads");
 	RenderCompanionPads();
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:post companion pads");
+	/* Trail tipped here (post pads, no frame_end) — probe each step. */
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:pre GlueSideRail");
 	GlueSideRailDisplayOrder();
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:post GlueSideRail");
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:pre TickRailPending");
+	WinePadOpen::TickRailPending();
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:post TickRailPending");
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:pre TickCompanionPending");
+	WinePadOpen::TickCompanionPending();
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:post TickCompanionPending");
+	if (CrashTrail::DetailArmed())
+		CrashTrail::Note("ui:frame_end");
+	if (WinePadOpen::Soft())
+	{
+		CrashTrail::SetPhase("RT_Render leave");
+		if (CrashTrail::DetailArmed())
+			CrashTrail::Note("ui:RT_Render leave");
+	}
 }

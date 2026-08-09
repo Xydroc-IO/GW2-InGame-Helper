@@ -18,6 +18,10 @@ namespace WatchLinuxDetail
 	std::atomic<bool> gStartBusy{ false };
 	std::atomic<bool> gWarmBusy{ false };
 	std::atomic<bool> gPumpRun{ false };
+	std::atomic<uint32_t> gStartEpoch{ 0 };
+	std::atomic<uint32_t> gQueuedStartEpoch{ 0 };
+	std::atomic<bool> gStartRequested{ false };
+	std::atomic<bool> gNeedPump{ false };
 	HANDLE   gPumpThread = nullptr;
 	HANDLE   gStartThread = nullptr;
 	HANDLE   gWarmThread = nullptr;
@@ -30,6 +34,7 @@ namespace WatchLinuxDetail
 	uint32_t gProtoVer = 0;
 	uint32_t gPresentSlot = WatchProto::kNoSlot;
 	uint32_t gLastPresentedSeq = 0;
+	uint32_t gMinAcceptSeq = 0;
 	std::string gPumpStatus = "Idle.";
 	std::string gUiStatus = "Idle.";
 
@@ -39,6 +44,22 @@ namespace WatchLinuxDetail
 		{
 			InitializeCriticalSection(&gCs);
 			gCsInit = true;
+		}
+	}
+
+	void PinFrameBaselineUnlocked()
+	{
+		/* Caller holds gCs. Next present must be a newer seq after Start. */
+		gMinAcceptSeq = 0;
+		gLastPresentedSeq = 0;
+		if (gShmView)
+		{
+			auto* hdr = reinterpret_cast<WatchProto::ShmHeader*>(gShmView);
+			if (hdr->magic == WatchProto::kShmMagic)
+			{
+				gMinAcceptSeq = hdr->seq;
+				gLastPresentedSeq = hdr->seq;
+			}
 		}
 	}
 
@@ -71,32 +92,49 @@ namespace WatchLinuxDetail
 		return 0;
 	}
 
-	DWORD WINAPI StartWorker(LPVOID)
+	void RunQueuedStart(uint32_t epoch)
 	{
 		EnsureCs();
 		/* Let a warm pass finish so we don't double-spawn. */
 		for (int i = 0; i < 40 && gWarmBusy.load(); ++i)
 			Sleep(50);
+		if (gStartEpoch.load() != epoch)
+		{
+			gStartBusy = false;
+			return;
+		}
 		SetUiStatus("Starting watchd…");
 		if (!ConnectShared())
 		{
-			gCapturing = false;
-			gTarget = 0;
-			SetUiStatus("Could not start watchd (chmod/spawn). "
-				"Need xdg-desktop-portal + PipeWire.");
+			if (gStartEpoch.load() == epoch)
+			{
+				gCapturing = false;
+				gTarget = 0;
+				SetUiStatus("Could not start watchd (chmod/spawn). "
+					"Need xdg-desktop-portal + PipeWire.");
+			}
 			gStartBusy = false;
-			return 0;
+			return;
+		}
+		if (gStartEpoch.load() != epoch)
+		{
+			gStartBusy = false;
+			return;
 		}
 		if (!EnsureShmMapped())
 		{
-			gCapturing = false;
-			gTarget = 0;
-			SetUiStatus("Frame map unavailable (/dev/shm).");
+			if (gStartEpoch.load() == epoch)
+			{
+				gCapturing = false;
+				gTarget = 0;
+				SetUiStatus("Frame map unavailable (/dev/shm).");
+			}
 			gStartBusy = false;
-			return 0;
+			return;
 		}
 
 		EnterCriticalSection(&gCs);
+		PinFrameBaselineUnlocked();
 		uint64_t zero = 0;
 		const bool sent = (gSock != INVALID_SOCKET) &&
 			SendCmd(gSock, WatchProto::CmdStart, &zero, 8);
@@ -119,6 +157,21 @@ namespace WatchLinuxDetail
 		}
 		LeaveCriticalSection(&gCs);
 
+		if (gStartEpoch.load() != epoch)
+		{
+			if (sent)
+			{
+				EnterCriticalSection(&gCs);
+				if (gSock != INVALID_SOCKET)
+					SendCmd(gSock, WatchProto::CmdStop, nullptr, 0);
+				LeaveCriticalSection(&gCs);
+			}
+			gCapturing = false;
+			gTarget = 0;
+			gStartBusy = false;
+			return;
+		}
+
 		if (!sent)
 		{
 			gCapturing = false;
@@ -130,15 +183,50 @@ namespace WatchLinuxDetail
 			}
 			SetUiStatus("START failed.");
 			gStartBusy = false;
-			return 0;
+			return;
+		}
+
+		if (gStartEpoch.load() != epoch)
+		{
+			EnterCriticalSection(&gCs);
+			if (gSock != INVALID_SOCKET)
+				SendCmd(gSock, WatchProto::CmdStop, nullptr, 0);
+			LeaveCriticalSection(&gCs);
+			gCapturing = false;
+			gTarget = 0;
+			gStartBusy = false;
+			return;
 		}
 
 		gTarget = 1;
 		gCapturing = true;
 		SetUiStatus(status.empty()
-			? "Portal picker… then capturing (OOP ~60 FPS)."
+			? "Portal picker… then capturing."
 			: status.c_str());
 		gStartBusy = false;
+	}
+
+	void JoinStartThread(DWORD waitMs)
+	{
+		if (!gStartThread)
+			return;
+		const DWORD r = WaitForSingleObject(gStartThread, waitMs);
+		if (r == WAIT_TIMEOUT)
+			return; /* still running — do not CloseHandle */
+		CloseHandle(gStartThread);
+		gStartThread = nullptr;
+		gStartBusy = false;
+	}
+
+	void PollJoinStartThread()
+	{
+		JoinStartThread(0);
+	}
+
+	DWORD WINAPI StartWorker(LPVOID param)
+	{
+		const uint32_t epoch = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(param));
+		RunQueuedStart(epoch);
 		return 0;
 	}
 }
@@ -180,15 +268,21 @@ bool WatchLinux::EnsureDaemon()
 
 void WatchLinux::Disconnect()
 {
+	gStartEpoch.fetch_add(1u);
+	gStartRequested.store(false);
+	gQueuedStartEpoch.store(0);
+	gNeedPump.store(false);
 	gCapturing = false;
 	gTarget = 0;
 	gStartBusy = false;
 	StopPump();
+	JoinStartThread(1500);
 	if (gStartThread)
 	{
-		WaitForSingleObject(gStartThread, 1500);
+		WaitForSingleObject(gStartThread, 2000);
 		CloseHandle(gStartThread);
 		gStartThread = nullptr;
+		gStartBusy = false;
 	}
 	if (gWarmThread)
 	{
@@ -208,6 +302,7 @@ void WatchLinux::Disconnect()
 	UnmapShmUnlocked();
 	LeaveCriticalSection(&gCs);
 	gLastPresentedSeq = 0;
+	gMinAcceptSeq = 0xFFFFFFFFu; /* reject until next Start pins baseline */
 }
 
 void WatchLinux::RefreshWindowList(std::vector<WatchCapture::WindowEntry>& out, std::string& status)
@@ -229,16 +324,38 @@ bool WatchLinux::Start(uint64_t id, std::string& status)
 {
 	(void)id; /* portal picker owns window selection */
 	EnsureCs();
-	EnsurePump();
-	if (gStartBusy.load())
+	JoinStartThread(0);
+	if (gStartThread)
 	{
-		CopyUiStatus(status);
-		if (status.empty())
-			status = "Starting…";
+		status = "Starting…";
+		SetUiStatus("Starting…");
+		gTarget = 1;
+		gCapturing = true;
 		return true;
 	}
-	if (gCapturing.load() && gTarget != 0)
+
+	/* Never CreateThread on Soft Start frame. If pump is missing, ask Tick to
+	   create it after reopen cooldown — then Soft Start re-queues. */
+	if (!gPumpRun.load())
 	{
+		gNeedPump.store(true);
+		/* Do not set gCapturing yet — that blocked SoftOpenBlocked / pump create. */
+		status = "Starting…";
+		SetUiStatus("Starting…");
+		return true;
+	}
+
+	if (gCapturing.load() && gTarget != 0 && !gStartBusy.load() && !gStartRequested.load())
+	{
+		/* Recover stuck "Starting…" after needPump: pump is up, post CmdStart. */
+		bool expected = false;
+		if (gStartBusy.compare_exchange_strong(expected, true))
+		{
+			gQueuedStartEpoch.store(gStartEpoch.load());
+			gStartRequested.store(true);
+			SetUiStatus("Starting watchd…");
+		}
+		status = "Starting…";
 		CopyUiStatus(status);
 		return true;
 	}
@@ -247,43 +364,47 @@ bool WatchLinux::Start(uint64_t id, std::string& status)
 	if (!gStartBusy.compare_exchange_strong(expected, true))
 	{
 		status = "Starting…";
+		SetUiStatus("Starting…");
+		gTarget = 1;
+		gCapturing = true;
 		return true;
 	}
 
+	const uint32_t epoch = gStartEpoch.load();
 	gTarget = 1;
-	gCapturing = true; /* UI treats as active while portal/daemon comes up */
+	gCapturing = true;
 	SetUiStatus("Starting watchd…");
 	CopyUiStatus(status);
-
-	if (gStartThread)
-	{
-		CloseHandle(gStartThread);
-		gStartThread = nullptr;
-	}
-	gStartThread = CreateThread(nullptr, 0, StartWorker, nullptr, 0, nullptr);
-	if (!gStartThread)
-	{
-		gStartBusy = false;
-		gCapturing = false;
-		gTarget = 0;
-		status = "Could not start worker thread.";
-		SetUiStatus(status.c_str());
-		return false;
-	}
-	SetThreadPriority(gStartThread, THREAD_PRIORITY_BELOW_NORMAL);
+	gQueuedStartEpoch.store(epoch);
+	gStartRequested.store(true);
 	return true;
 }
 
 void WatchLinux::Stop(std::string& status)
 {
+	/* Invalidate in-flight Start / queued Start so Soft-stop cannot revive. */
+	gStartEpoch.fetch_add(1u);
+	gStartRequested.store(false);
+	gQueuedStartEpoch.store(0);
+	gNeedPump.store(false);
 	gCapturing = false;
 	gTarget = 0;
 	EndPresent();
 	EnsureCs();
 	EnterCriticalSection(&gCs);
 	if (gSock != INVALID_SOCKET)
+	{
 		SendCmd(gSock, WatchProto::CmdStop, nullptr, 0);
+		/* Drop the socket so Soft Start reconnects from the pump thread — stale
+		   portal sessions after Soft-stop tipped Wine on reopen. */
+		closesocket(gSock);
+		gSock = INVALID_SOCKET;
+	}
+	PinFrameBaselineUnlocked();
+	gMinAcceptSeq = 0xFFFFFFFFu;
 	LeaveCriticalSection(&gCs);
+	gStartBusy = false;
+	JoinStartThread(0);
 	status = "Stopped.";
 	SetUiStatus("Stopped.");
 }
@@ -295,7 +416,27 @@ bool WatchLinux::IsCapturing()
 
 bool WatchLinux::IsStarting()
 {
-	return gStartBusy.load() || gWarmBusy.load();
+	return gStartBusy.load() || gWarmBusy.load() || gStartRequested.load() || gNeedPump.load();
+}
+
+bool WatchLinux::PumpRunning()
+{
+	return gPumpRun.load();
+}
+
+bool WatchLinux::ConsumeNeedPump()
+{
+	return gNeedPump.exchange(false);
+}
+
+void WatchLinux::EnsurePumpNow()
+{
+	EnsurePump();
+}
+
+void WatchLinux::PollJoinStart()
+{
+	PollJoinStartThread();
 }
 
 void WatchLinux::GetStatus(std::string& out)
@@ -327,7 +468,8 @@ bool WatchLinux::BeginPresent(const uint8_t*& bgra, uint32_t& w, uint32_t& h, ui
 	}
 
 	auto* hdr = reinterpret_cast<WatchProto::ShmHeader*>(gShmView);
-	if (hdr->magic != WatchProto::kShmMagic || hdr->seq == 0 || hdr->seq == gLastPresentedSeq)
+	if (hdr->magic != WatchProto::kShmMagic || hdr->capturing == 0 ||
+		hdr->seq == 0 || hdr->seq <= gMinAcceptSeq || hdr->seq == gLastPresentedSeq)
 	{
 		LeaveCriticalSection(&gCs);
 		return false;
@@ -354,7 +496,7 @@ bool WatchLinux::BeginPresent(const uint8_t*& bgra, uint32_t& w, uint32_t& h, ui
 	stride = fs;
 	LeaveCriticalSection(&gCs);
 
-	status = "Capturing (OOP watchd ~60 FPS).";
+	status = "Capturing (OOP watchd).";
 	SetUiStatus(status.c_str());
 	return true;
 }

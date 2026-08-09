@@ -21,6 +21,12 @@ namespace WatchLinuxDetail
 	extern std::atomic<bool> gStartBusy; /* ConnectShared + portal CmdStart off game thread */
 	extern std::atomic<bool> gWarmBusy;
 	extern std::atomic<bool> gPumpRun;
+	/* Bumped on Stop — queued Start must not revive capture after close/reopen. */
+	extern std::atomic<uint32_t> gStartEpoch;
+	/* Non-zero unused — Start posts via gStartRequested + gQueuedStartEpoch. */
+	extern std::atomic<uint32_t> gQueuedStartEpoch;
+	extern std::atomic<bool> gStartRequested; /* pump should RunQueuedStart */
+	extern std::atomic<bool> gNeedPump; /* Soft Start asked for pump before CreateThread */
 	extern HANDLE   gPumpThread;
 	extern HANDLE   gStartThread;
 	extern HANDLE   gWarmThread;
@@ -34,6 +40,7 @@ namespace WatchLinuxDetail
 	extern uint32_t gProtoVer;
 	extern uint32_t gPresentSlot;
 	extern uint32_t gLastPresentedSeq;
+	extern uint32_t gMinAcceptSeq; /* ignore shm frames at/below this (pre-portal leftovers) */
 	extern std::string gPumpStatus;
 
 	void EnsureCs();
@@ -58,4 +65,6 @@ namespace WatchLinuxDetail
 	bool EnsureShmMappedUnlocked(); /* caller holds gCs */
 	void EnsurePump();
 	void StopPump();
+	void RunQueuedStart(uint32_t epoch); /* ConnectShared + CmdStart — pump thread only */
+	void PollJoinStartThread(); /* non-blocking reap after Stop */
 }

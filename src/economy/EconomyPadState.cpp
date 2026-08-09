@@ -6,6 +6,18 @@
 #include "Settings.h"
 #include "TpWatchPad.h"
 #include "WalletPad.h"
+#include "WinePadOpen.h"
+
+namespace
+{
+	void LoadLocalPadFiles()
+	{
+		EconomyDetail::LoadCart();
+		EconomyDetail::LoadCharts();
+		EconomyDetail::LoadHistory();
+		EconomyDetail::EnsureSeed();
+	}
+}
 
 void EconomyPad::RefreshAll(bool force)
 {
@@ -26,10 +38,9 @@ void EconomyPad::OpenAndRefresh()
 	EconomyDetail::gPlaceOnce = true;
 	/* Local pad state only — stash / TP / crafting / flips start when their
 	   tab needs them (or via Overview → Refresh all). Opening must not fan
-	   out several WinHTTP crawls at once. */
-	EconomyDetail::LoadCart();
-	EconomyDetail::LoadCharts();
-	EconomyDetail::LoadHistory();
-	EconomyDetail::EnsureSeed();
+	   out several WinHTTP crawls at once. Wine: defer file loads off Soft-open. */
+	EconomyDetail::gDeferLoads = WinePadOpen::DeferFrames();
+	if (EconomyDetail::gDeferLoads <= 0)
+		LoadLocalPadFiles();
 	Settings::SetDirty();
 }

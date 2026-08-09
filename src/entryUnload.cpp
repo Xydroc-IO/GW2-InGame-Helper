@@ -21,6 +21,7 @@
 #include "WikiBrowser.h"
 #include "WatchCapture.h"
 #include "WorldOverlay.h"
+#include "CrashTrail.h"
 
 using namespace EntryDetail;
 
@@ -55,7 +56,9 @@ void AddonUnload()
 	G::ShowDirectionCompass = false;
 	G::ShowOptions = false;
 
+	G::API->GUI_Deregister(UI_PreRender);
 	G::API->GUI_Deregister(UI_Render);
+	G::API->GUI_Deregister(UI_PostRender);
 	G::API->GUI_Deregister(UI_Options);
 	G::API->InputBinds_Deregister(KB_TOGGLE);
 	PanelBinds::DeregisterLegacyNexusBinds();
@@ -80,6 +83,8 @@ void AddonUnload()
 
 	if (G::API->Log)
 		G::API->Log(LOGL_INFO, ADDON_NAME, "Unloaded (Nexus disable / hot-reload).");
+
+	CrashTrail::Shutdown();
 
 	G::API = nullptr;
 	G::NexusLink = nullptr;
