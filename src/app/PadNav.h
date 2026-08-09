@@ -252,24 +252,23 @@ namespace PadNav
 		return current;
 	}
 
-	/* Left rail: full-width buttons stacked vertically. Optional DAT icons
-	   (icons[i] > 0). Caller draws content after — rail ends with SameLine.
+	/* Left rail: icon dock (tooltips from labels). Optional DAT icons (icons[i] > 0).
+	   Caller draws content after — rail ends with SameLine.
 	   Pad body order: DrawSideRail → BeginChild body → Blurb → controls → list.
 	   Do not echo the window title in the body (chrome title bar owns it). */
 	inline int DrawSideRail(const char* id, const char* const* labels, int count, int current,
 		float width = 0.f, const int* icons = nullptr)
 	{
+		constexpr float kIconSz = 28.f;
 		if (width <= 1.f)
-			width = UiScale::FitSideRailWidth(labels, count, 80.f, 260.f, icons ? 18.f : 0.f);
+		{
+			if (icons)
+				width = UiScale::IconRailWidth(kIconSz);
+			else
+				width = UiScale::FitSideRailWidth(labels, count, 80.f, 260.f, 0.f);
+		}
 		else
 			width = UiScale::SideRailWidth(width);
-		if (icons)
-		{
-			/* FitSideRailWidth already reserved icon when iconSize passed; keep a floor. */
-			const float minIcons = UiScale::SideRailWidth(108.f);
-			if (width < minIcons)
-				width = minIcons;
-		}
 		if (!labels || count <= 0)
 			return 0;
 		if (current < 0)
@@ -277,8 +276,9 @@ namespace PadNav
 		if (current >= count)
 			current = count - 1;
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.f, 8.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.f, 8.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 5.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, 4.f));
 		ImGui::BeginChild(id, ImVec2(width, 0.f), true,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened);
 
@@ -288,13 +288,13 @@ namespace PadNav
 			char buf[96];
 			std::snprintf(buf, sizeof(buf), "%s###side_%d", labels[i], i);
 			const int asset = (icons && icons[i] > 0) ? icons[i] : 0;
-			if (Gw2Ui::RailToggle(buf, i == current, asset))
+			if (Gw2Ui::RailToggle(buf, i == current, asset, icons ? kIconSz : 18.f, false))
 				current = i;
 			ImGui::PopID();
 		}
 
 		ImGui::EndChild();
-		ImGui::PopStyleVar(2);
+		ImGui::PopStyleVar(3);
 		ImGui::SameLine(0.f, 8.f);
 		return current;
 	}
@@ -304,9 +304,8 @@ namespace PadNav
 	   iconSzOverride < 0 → default 52. */
 	inline bool SideToggle(const char* label, bool on, int assetId = 0, float iconSzOverride = -1.f)
 	{
-		constexpr bool labels = false;
 		const float iconSz = (iconSzOverride > 0.f) ? iconSzOverride : 52.f;
-		return Gw2Ui::RailToggle(label, on, assetId, iconSz, labels);
+		return Gw2Ui::RailToggle(label, on, assetId, iconSz, false);
 	}
 
 	/* Shared pad copy hierarchy — use on every companion / Account tab.

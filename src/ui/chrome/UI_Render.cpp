@@ -7,6 +7,7 @@
 #include "ConfirmedWaypoints.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "WinePadOpen.h"
 #include "Gw2Icons.h"
 #include "Gw2Ui.h"
 #include "LivePanels.h"
@@ -98,6 +99,10 @@ void UI_Render()
 		ImGui::SetWindowFocus(nullptr);
 	}
 
+	/* Wine: fire deferred Browse/Sheets/Ledger / Watch opens off the prior click frame. */
+	WinePadOpen::TickRailPending();
+	WinePadOpen::TickWatchPending();
+
 	static bool sWasOpen = false;
 	if (!G::ShowWiki)
 	{
@@ -170,7 +175,9 @@ void UI_Render()
 	ImGui::SetNextWindowSize(ImVec2(G::WindowWidth, G::WindowHeight), geomCond);
 	ImGui::SetNextWindowPos(ImVec2(G::WindowPosX, G::WindowPosY), geomCond);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
-	if (gUi.forceHelperOnScreen)
+	/* Wine: focusing the helper on the same frame as a rail click has
+	   reordered Nexus windows into crashes — geom apply is enough. */
+	if (gUi.forceHelperOnScreen && !WinePadOpen::Soft())
 		ImGui::SetNextWindowFocus();
 	gUi.forceHelperOnScreen = false;
 

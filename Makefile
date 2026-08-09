@@ -55,6 +55,7 @@ DLL_SRC = \
 	src/entryLoad.cpp \
 	src/entryUnload.cpp \
 	src/app/Settings.cpp \
+	src/app/WinePadOpen.cpp \
 	src/app/SettingsSave.cpp \
 	src/app/AddonPaths.cpp \
 	src/app/UserTheme.cpp \

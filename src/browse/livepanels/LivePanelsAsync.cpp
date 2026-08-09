@@ -229,26 +229,19 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
 		return PathToFileUrl(path);
 	}
-	/* Cheat sheets hub — catalog only, no network. */
-	if (kind == LiveAsyncJob::CheatSheetsHub)
+	/* Cheat sheets / Browse hubs — never build multi-KB HTML on Navigate.
+	   Cache hit (ver + .ok) serves disk; InvalidateBrowseHubCaches clears that
+	   when favorites change. Miss → shell + worker + Reload. */
+	if (kind == LiveAsyncJob::CheatSheetsHub || kind == LiveAsyncJob::BrowseHub)
 	{
-		WriteUtf8File(path, LivePanelsBuild::BuildCheatSheetsHubHtml(addonDir, nullptr));
-		WriteUtf8File(verPath, kPanelVer);
-		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
-		return PathToFileUrl(path);
-	}
-	/* Browse hub — rebuild favorites when changed; skip disk write if identical
-	   so CEF is not forced to reload a file it already has open (Wine crash). */
-	if (kind == LiveAsyncJob::BrowseHub)
-	{
-		const std::string html = LivePanelsBuild::BuildBrowseHubHtml(addonDir, nullptr);
-		if (PanelReady(addonDir, stem) && VerMatches(verPath) &&
-			ReadUtf8File(path) == html)
+		if (PanelReady(addonDir, stem) && VerMatches(verPath))
 			return PathToFileUrl(path);
-		if (!WriteUtf8File(path, html))
+		const char* title = kind == LiveAsyncJob::CheatSheetsHub ? "Cheat Sheets" : "Browse";
+		if (!WriteUtf8File(path, OfflineShellHtml(title, title,
+				"Building catalog… this page will refresh when ready.")))
 			return {};
-		WriteUtf8File(verPath, kPanelVer);
-		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
+		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
+		StartLiveWorker(addonDir, stem, kind, itemId);
 		return PathToFileUrl(path);
 	}
 	/* Browse category (Wiki is huge) — shell now, build on worker, then Reload. */

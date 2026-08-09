@@ -2,6 +2,7 @@
 #include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
 
+#include "EiRuntime.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
 #include "HelperTheme.h"
@@ -65,7 +66,9 @@ namespace
 			ImGui::SetNextWindowSize(ImVec2(defW, defH), ImGuiCond_FirstUseEver);
 		if (focus)
 		{
-			ImGui::SetNextWindowFocus();
+			/* Wine: skip focus steal (same as PadDock / WinePadOpen). */
+			if (!EiRuntime::IsWine())
+				ImGui::SetNextWindowFocus();
 			focus = false;
 		}
 
@@ -225,7 +228,8 @@ bool TrailToolsPad::Render()
 			ImGui::SetNextWindowSize(ImVec2(kHubW, kHubH), ImGuiCond_FirstUseEver);
 		if (gFocus)
 		{
-			ImGui::SetNextWindowFocus();
+			if (!EiRuntime::IsWine())
+				ImGui::SetNextWindowFocus();
 			gFocus = false;
 		}
 

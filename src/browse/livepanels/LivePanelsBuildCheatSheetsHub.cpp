@@ -1,4 +1,5 @@
 #include "LivePanelsBuildShared.h"
+#include "LivePanelsBuildBrowseHubInternal.h"
 
 #include "AddonPaths.h"
 #include "Globals.h"
@@ -26,7 +27,7 @@ namespace
 		std::string section;
 	};
 
-	const char* HubCss()
+	const char* SheetsHubCss()
 	{
 		static std::string s;
 		static char sTheme[64]{};
@@ -48,11 +49,23 @@ namespace
 			s += R"CSS(
 .wrap{max-width:960px;margin-left:auto;margin-right:auto;padding:28px 22px 72px}
 .hero{
+  position:relative;overflow:hidden;isolation:isolate;
   margin-bottom:22px;padding:1.1rem 1.15rem 1.2rem;
+  min-height:11.5rem;
   background:linear-gradient(165deg,rgba(48,38,22,.4),transparent 55%),var(--panel-inset);
   border:1px solid var(--border);
   box-shadow:inset 0 1px 0 rgba(255,230,160,.1),0 10px 32px rgba(0,0,0,.4);
 }
+.hero-copy{position:relative;z-index:1;max-width:min(36rem,calc(100% - 11rem))}
+.hero-art{
+  position:absolute;right:0;bottom:0;top:0;
+  width:min(46%,260px);height:100%;margin:0;padding:0;
+  pointer-events:none;object-fit:contain;object-position:right bottom;
+  opacity:.92;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 22%);
+  mask-image:linear-gradient(90deg,transparent 0%,#000 22%);
+}
+.hero .eyebrow{margin:0 0 8px}
 h1{margin:0 0 8px;font-size:2.1rem}
 .tag{margin:0;color:var(--muted);font-size:.98rem;max-width:38rem}
 .search{
@@ -95,7 +108,7 @@ a.tile .meta{font-size:.78rem;color:var(--gold-dim);margin-top:.15rem;letter-spa
 		return s.c_str();
 	}
 
-	const char* HubJs()
+	const char* SheetsHubJs()
 	{
 		return R"JS(
 (function(){
@@ -117,8 +130,6 @@ a.tile .meta{font-size:.78rem;color:var(--gold-dim);margin-top:.15rem;letter-spa
 })();
 )JS";
 	}
-
-	std::string Esc(const std::string& s) { return HtmlEscape(s); }
 } // namespace
 
 std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char* /*apiKey*/)
@@ -161,16 +172,18 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char
 	html += "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/>"
 		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
 		"<title>Cheat Sheets</title><style>";
-	html += HubCss();
+	html += SheetsHubCss();
 	html += "</style></head><body><div class=\"wrap\">"
-		"<header class=\"hero\">"
+		"<header class=\"hero\">";
+	AppendBrowseHeroArt(html);
+	html += "<div class=\"hero-copy\">"
 		"<p class=\"eyebrow\">GW2 In-Game Helper</p>"
 		"<h1>Cheat Sheets</h1>"
 		"<p class=\"tag\">Offline reference only — food, fractals, legendaries, daily/weekly checklist, "
 		"squad tools, and more. Live Vault / Today board use your API key elsewhere. Each sheet opens in a new tab.</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter cheat sheets…\" "
 		"autocomplete=\"off\"/>"
-		"</header>";
+		"</div></header>";
 
 	if (entries.empty())
 	{
@@ -214,7 +227,7 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char
 	html += "<p class=\"foot\">Legendary Ledger is on the side rail under Notes. "
 		"Sheets open in a <strong>new helper tab</strong>.</p>"
 		"</div><script>";
-	html += HubJs();
+	html += SheetsHubJs();
 	html += "</script>";
 	html += HelperThemeCss::ViewportSyncJs();
 	html += "</body></html>";

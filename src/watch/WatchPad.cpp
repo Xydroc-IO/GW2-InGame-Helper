@@ -9,6 +9,7 @@
 #include "Settings.h"
 #include "WatchCapture.h"
 #include "WatchLinux.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -201,6 +202,7 @@ void WatchPad::Open()
 
 void WatchPad::CloseAll()
 {
+	WinePadOpen::CancelWatchOpen();
 	G::ShowWatch = false;
 	G::ShowWatchMirror = false;
 	WatchPadDetail::gDeferMirrorOpenFrames = 0;
@@ -212,11 +214,19 @@ void WatchPad::ToggleControl()
 {
 	if (G::ShowWatch)
 	{
+		WinePadOpen::CancelWatchOpen();
 		G::ShowWatch = false;
 		/* Closing the last Watch UI while idle/picker: drop sticky capture state. */
 		if (!G::ShowWatchMirror && WatchPadDetail::gDeferMirrorOpenFrames <= 0)
 			WatchCapture::Stop();
 		Settings::SetDirty();
+		return;
+	}
+	/* Wine under load (API pads / CEF already up): do not Begin Watch on the
+	   same ImGui click frame as the side-rail toggle. */
+	if (WinePadOpen::Soft())
+	{
+		WinePadOpen::QueueWatchOpen();
 		return;
 	}
 	Open();

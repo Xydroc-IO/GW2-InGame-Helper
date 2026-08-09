@@ -26,6 +26,7 @@
 #include "WatchCapture.h"
 #include "WatchPad.h"
 #include "WikiBrowser.h"
+#include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
 
@@ -104,9 +105,9 @@ namespace UIDetail
 		ImGui::SetNextWindowBgAlpha(0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(labels ? 6.f : 4.f, padY));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.f, padY));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(3.f, itemSp));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(labels ? 6.f : 4.f, fp));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, fp));
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, G::Opacity);
 
 		const ImGuiWindowFlags dockFlags =
@@ -198,38 +199,33 @@ namespace UIDetail
 			}
 		}
 
-		if (labels)
-		{
-			/* Soft ornament behind the HELPER label (no extra layout height). */
-			if (Texture_t* orn = Gw2UiDetail::GetChromeNamed("header-ornament"))
-			{
-				if (orn->Resource)
-				{
-					const ImVec2 p = ImGui::GetCursorScreenPos();
-					const float w = ImGui::GetContentRegionAvail().x;
-					const float bandH = ImGui::GetTextLineHeight() + 4.f;
-					ImGui::GetWindowDrawList()->AddImage(
-						reinterpret_cast<ImTextureID>(orn->Resource),
-						ImVec2(p.x, p.y), ImVec2(p.x + w, p.y + bandH),
-						ImVec2(0.f, 0.f), ImVec2(1.f, 1.f),
-						IM_COL32(255, 255, 255, 100));
-				}
-			}
-			ImGui::TextColored(HelperTheme::GoldBright, "HELPER");
-		}
-
 		if (PadNav::SideToggle("Browse###gw2igh_browse", false, static_cast<int>(Gw2Ui::Icon::BrowseInfo), iconSz))
-			openSiteInActive("browse");
+		{
+			if (WinePadOpen::Soft())
+				WinePadOpen::QueueRailSiteActive("browse");
+			else
+				openSiteInActive("browse");
+		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Browse sites - categories, favorites (current tab)");
 
 		if (PadNav::SideToggle("Ledger###gw2igh_ledger", false, static_cast<int>(Gw2Ui::Icon::LedgerCoins), iconSz))
-			openSiteNewTab("legvault");
+		{
+			if (WinePadOpen::Soft())
+				WinePadOpen::QueueRailSiteNewTab("legvault");
+			else
+				openSiteNewTab("legvault");
+		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("GW2 Legendary Ledger - owned / missing / craft tree");
 
 		if (PadNav::SideToggle("Sheets###gw2igh_cheatsheets", false, static_cast<int>(Gw2Ui::Icon::SheetsBook), iconSz))
-			openUrlNewTab("browse", "about:cheatsheets-hub");
+		{
+			if (WinePadOpen::Soft())
+				WinePadOpen::QueueRailUrlNewTab("browse", "about:cheatsheets-hub");
+			else
+				openUrlNewTab("browse", "about:cheatsheets-hub");
+		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Offline cheat sheets - food, fractals, squad tools, ...");
 
@@ -250,14 +246,17 @@ namespace UIDetail
 				kill(L".ver");
 				kill(L".ok");
 			}
-			openUrlNewTab("browse", "about:gw2-api-check");
+			if (WinePadOpen::Soft())
+				WinePadOpen::QueueRailUrlNewTab("browse", "about:gw2-api-check");
+			else
+				openUrlNewTab("browse", "about:gw2-api-check");
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
 				"Probe official api.guildwars2.com endpoints (public + your key).\n"
 				"Local page - not a third-party status site.");
 
-		SideRail::SectionGap(labels, "TOOLS");
+		SideRail::SectionGap(false, "TOOLS");
 
 		if (PadNav::SideToggle("Compass###gw2igh_dircompass", G::ShowCompassPad, static_cast<int>(Gw2Ui::Icon::CompassRadar), iconSz))
 		{

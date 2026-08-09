@@ -124,9 +124,9 @@ namespace Gw2Ui
 	bool IconLabelButton(const char* label, int assetId, float iconSize = 20.f);
 	bool IconLabelButton(const char* label, Icon icon, float iconSize = 20.f);
 
-	/* Full-width rail toggle. showLabel=false → square icon dock + tooltip. */
+	/* Full-width rail toggle. Icon dock + tooltip (showLabel kept for rare text rows). */
 	bool RailToggle(const char* label, bool on, int assetId = 0, float iconSize = 18.f,
-		bool showLabel = true);
+		bool showLabel = false);
 	bool RailToggle(const char* label, bool on, Icon icon, float iconSize = 18.f,
-		bool showLabel = true);
+		bool showLabel = false);
 }
