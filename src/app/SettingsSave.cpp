@@ -33,11 +33,11 @@ void Settings::Save(bool force)
 	if (!force && sLastSaveMs != 0 && (now - sLastSaveMs) < 2500u)
 		return;
 
-	if (EiRuntime::IsWine())
-	{
-		CrashTrail::ArmDetail(20);
+	/* Wine: do NOT ArmDetail on routine Save — that kept DetailArmed for ~20
+	   frames every debounce and flooded crash-trail disk writes until tip.
+	   Only note; softopen/softstop own ArmDetail. */
+	if (EiRuntime::IsWine() && force)
 		CrashTrail::NoteF("save:Settings force=%d", force ? 1 : 0);
-	}
 	AddonPaths::DataDir(); /* ensure folder exists */
 	char path[MAX_PATH]{};
 	SettingsDetail::SettingsPath(path, sizeof(path));

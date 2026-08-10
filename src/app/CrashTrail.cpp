@@ -14,6 +14,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <cwchar>
 #include <string>
 
 #include <windows.h>
@@ -23,7 +24,7 @@ namespace
 {
 	constexpr int kRing = 128;
 	constexpr int kTagMax = 192;
-	constexpr int kCrashSlots = 3; /* crash-0 newest … crash-2 oldest */
+	constexpr int kMaxStampFolders = 30; /* retain newest timestamped tip folders */
 	constexpr int kStackFrames = 32;
 
 	struct Entry
@@ -48,6 +49,7 @@ namespace
 	DWORD            gPhaseTick = 0;
 	int              gDetailFrames = 0;
 	unsigned         gNoteSeq = 0;
+	DWORD            gLastFlushMs = 0;
 
 	void EnsureCs()
 	{
@@ -57,46 +59,210 @@ namespace
 		gCsReady = true;
 	}
 
-	std::wstring DataFile(const wchar_t* name)
+	std::wstring JoinUnder(const std::wstring& dir, const wchar_t* name)
 	{
-		std::wstring p = AddonPaths::DataDir();
-		if (p.empty())
+		if (dir.empty() || !name || !name[0])
 			return {};
+		std::wstring p = dir;
 		if (p.back() != L'\\' && p.back() != L'/')
 			p.push_back(L'\\');
 		p += name;
 		return p;
 	}
 
-	std::wstring TrailPath() { return DataFile(L"crash-trail.txt"); }
-	std::wstring CrashLogPath() { return DataFile(L"crash.log"); }
-
-	std::wstring CrashSlotPath(int slot)
+	std::wstring DataRootFile(const wchar_t* name)
 	{
-		wchar_t name[32];
-		std::swprintf(name, 32, L"crash-%d.txt", slot);
-		return DataFile(name);
+		return JoinUnder(AddonPaths::DataDir(), name);
 	}
 
-	bool ShouldFlushTag(const char* tag)
+	std::wstring TrailPath()
+	{
+		return JoinUnder(AddonPaths::CrashLogsDir(), L"crash-trail.txt");
+	}
+
+	std::wstring CrashLogPath()
+	{
+		return JoinUnder(AddonPaths::CrashLogsDir(), L"crash.log");
+	}
+
+	std::wstring LegacyTrailPath() { return DataRootFile(L"crash-trail.txt"); }
+	std::wstring LegacyCrashLogPath() { return DataRootFile(L"crash.log"); }
+
+	/* ASCII snprintf → wide: avoids MinGW/MSVC swprintf size-arg mismatches that
+	   produced a folder literally named "2" instead of YYYY-MM-DD_HH-MM-SS_mmm. */
+	bool FormatStampFolder(SYSTEMTIME st, char* out, size_t outN)
+	{
+		if (!out || outN < 24)
+			return false;
+		const int n = std::snprintf(out, outN, "%04u-%02u-%02u_%02u-%02u-%02u_%03u",
+			static_cast<unsigned>(st.wYear), static_cast<unsigned>(st.wMonth),
+			static_cast<unsigned>(st.wDay), static_cast<unsigned>(st.wHour),
+			static_cast<unsigned>(st.wMinute), static_cast<unsigned>(st.wSecond),
+			static_cast<unsigned>(st.wMilliseconds));
+		return n > 0 && static_cast<size_t>(n) < outN && out[0] >= '0' && out[0] <= '9';
+	}
+
+	std::wstring WidenPathName(const char* utf8)
+	{
+		if (!utf8 || !utf8[0])
+			return {};
+		wchar_t w[128]{};
+		if (MultiByteToWideChar(CP_UTF8, 0, utf8, -1, w, 128) <= 0)
+			return {};
+		return w;
+	}
+
+	/* Crash-Logs/YYYY-MM-DD_HH-MM-SS_mmm[/_N]/ — unique if tips share a ms. */
+	std::wstring MakeStampFolder(SYSTEMTIME st)
+	{
+		const std::wstring root = AddonPaths::CrashLogsDir();
+		if (root.empty())
+			return {};
+		char stamp[40]{};
+		if (!FormatStampFolder(st, stamp, sizeof(stamp)))
+			return {};
+		for (int n = 0; n < 100; ++n)
+		{
+			char name[48]{};
+			if (n == 0)
+				std::snprintf(name, sizeof(name), "%s", stamp);
+			else
+				std::snprintf(name, sizeof(name), "%s_%d", stamp, n);
+			const std::wstring wname = WidenPathName(name);
+			if (wname.empty())
+				continue;
+			const std::wstring dir = JoinUnder(root, wname.c_str());
+			if (dir.empty())
+				continue;
+			if (CreateDirectoryW(dir.c_str(), nullptr))
+				return dir;
+		}
+		return {};
+	}
+
+	void CopyFileBestEffort(const std::wstring& from, const std::wstring& to)
+	{
+		if (from.empty() || to.empty())
+			return;
+		CopyFileW(from.c_str(), to.c_str(), FALSE);
+	}
+
+	void PruneOldStampFolders()
+	{
+		const std::wstring root = AddonPaths::CrashLogsDir();
+		if (root.empty())
+			return;
+		std::wstring pattern = root;
+		if (pattern.back() != L'\\' && pattern.back() != L'/')
+			pattern.push_back(L'\\');
+		pattern += L"*";
+
+		wchar_t names[64][64]{};
+		int count = 0;
+		WIN32_FIND_DATAW fd{};
+		HANDLE h = FindFirstFileW(pattern.c_str(), &fd);
+		if (h == INVALID_HANDLE_VALUE)
+			return;
+		do
+		{
+			if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				continue;
+			if (fd.cFileName[0] == L'.')
+				continue;
+			/* Stamp folders are YYYY-… ; skip anything else. */
+			if (fd.cFileName[0] < L'0' || fd.cFileName[0] > L'9')
+				continue;
+			if (count < 64)
+			{
+				std::swprintf(names[count], 64, L"%s", fd.cFileName);
+				++count;
+			}
+		} while (FindNextFileW(h, &fd));
+		FindClose(h);
+		if (count <= kMaxStampFolders)
+			return;
+
+		/* Lexicographic sort — zero-padded stamps sort by time. */
+		for (int i = 0; i < count; ++i)
+		{
+			for (int j = i + 1; j < count; ++j)
+			{
+				if (std::wcscmp(names[j], names[i]) < 0)
+				{
+					wchar_t tmp[64];
+					std::swprintf(tmp, 64, L"%s", names[i]);
+					std::swprintf(names[i], 64, L"%s", names[j]);
+					std::swprintf(names[j], 64, L"%s", tmp);
+				}
+			}
+		}
+		const int drop = count - kMaxStampFolders;
+		for (int i = 0; i < drop; ++i)
+		{
+			std::wstring dir = JoinUnder(root, names[i]);
+			if (dir.empty())
+				continue;
+			std::wstring snap = JoinUnder(dir, L"snapshot.txt");
+			std::wstring trail = JoinUnder(dir, L"crash-trail.txt");
+			if (!snap.empty())
+				DeleteFileW(snap.c_str());
+			if (!trail.empty())
+				DeleteFileW(trail.c_str());
+			RemoveDirectoryW(dir.c_str());
+		}
+	}
+
+	void MigrateLegacyCrashFiles()
+	{
+		const std::wstring root = AddonPaths::CrashLogsDir();
+		if (root.empty())
+			return;
+
+		auto moveIfPresent = [&](const std::wstring& from, const std::wstring& to) {
+			if (from.empty() || to.empty())
+				return;
+			if (GetFileAttributesW(from.c_str()) == INVALID_FILE_ATTRIBUTES)
+				return;
+			if (GetFileAttributesW(to.c_str()) != INVALID_FILE_ATTRIBUTES)
+				return;
+			MoveFileW(from.c_str(), to.c_str());
+		};
+		moveIfPresent(LegacyTrailPath(), TrailPath());
+		moveIfPresent(LegacyCrashLogPath(), CrashLogPath());
+
+		/* Old flat crash-0..2 → Crash-Logs/migrated-crash-N/snapshot.txt */
+		for (int i = 0; i < 3; ++i)
+		{
+			wchar_t legacyName[32];
+			std::swprintf(legacyName, 32, L"crash-%d.txt", i);
+			const std::wstring from = DataRootFile(legacyName);
+			if (from.empty() || GetFileAttributesW(from.c_str()) == INVALID_FILE_ATTRIBUTES)
+				continue;
+			wchar_t folder[48];
+			std::swprintf(folder, 48, L"migrated-crash-%d", i);
+			const std::wstring dir = AddonPaths::EnsureUnder(root, folder);
+			const std::wstring to = JoinUnder(dir, L"snapshot.txt");
+			if (!to.empty())
+				MoveFileW(from.c_str(), to.c_str());
+		}
+	}
+
+	/* Only high-signal tags force an immediate disk write. Per-frame ui:/watch:/cef:
+	   used to flush every note during DetailArmed and tip Wine (sticky always
+	   landed on ui:pre TickCompanionPending after dozens of fopen/fwrite/frame). */
+	bool CriticalFlushTag(const char* tag)
 	{
 		if (!tag)
 			return false;
 		return std::strstr(tag, "softopen")
 			|| std::strstr(tag, "softfire")
 			|| std::strstr(tag, "softstop")
-			|| std::strstr(tag, "pads:")
-			|| std::strstr(tag, "ev:")
-			|| std::strstr(tag, "cap:")
-			|| std::strstr(tag, "watch:")
-			|| std::strstr(tag, "ui:")
-			|| std::strstr(tag, "world:")
-			|| std::strstr(tag, "cef:")
-			|| std::strstr(tag, "gpu:")
-			|| std::strstr(tag, "save:")
+			|| std::strstr(tag, "mark:")
 			|| std::strstr(tag, "hb:")
-			|| std::strstr(tag, "upload")
-			|| std::strstr(tag, "mark:");
+			|| std::strstr(tag, "save:")
+			|| std::strstr(tag, "install")
+			|| std::strstr(tag, "shutdown")
+			|| std::strstr(tag, "orphan");
 	}
 
 	bool AnyCompanionPadOpen()
@@ -151,6 +317,7 @@ namespace
 		WriteTrailToFile(f);
 		std::fflush(f);
 		std::fclose(f);
+		gLastFlushMs = GetTickCount();
 	}
 
 	void NoteUnlocked(const char* tag)
@@ -167,8 +334,11 @@ namespace
 		++gNoteSeq;
 		std::snprintf(gStickyMark, sizeof(gStickyMark), "%s", tag);
 		gStickyMarkTick = e.tick;
-		const bool flushNow = gNotesSinceFlush >= 3 || ShouldFlushTag(tag);
-		if (flushNow)
+		const bool critical = CriticalFlushTag(tag);
+		const DWORD now = e.tick;
+		const bool rateOk = (gLastFlushMs == 0u) || (now - gLastFlushMs) >= 150u;
+		/* Critical always; else batch ≥24 notes and ≥150ms since last write. */
+		if (critical || (gNotesSinceFlush >= 24 && rateOk))
 		{
 			gNotesSinceFlush = 0;
 			WriteTrailUnlocked();
@@ -526,22 +696,8 @@ namespace
 		WriteTrailToFile(f);
 	}
 
-	void RotateCrashSlots()
-	{
-		const std::wstring oldest = CrashSlotPath(kCrashSlots - 1);
-		if (!oldest.empty())
-			DeleteFileW(oldest.c_str());
-		for (int i = kCrashSlots - 2; i >= 0; --i)
-		{
-			const std::wstring from = CrashSlotPath(i);
-			const std::wstring to = CrashSlotPath(i + 1);
-			if (from.empty() || to.empty())
-				continue;
-			MoveFileExW(from.c_str(), to.c_str(), MOVEFILE_REPLACE_EXISTING);
-		}
-	}
-
-	void AppendIndexLine(const char* how, EXCEPTION_POINTERS* ep)
+	void AppendIndexLine(const SYSTEMTIME& st, const char* how, EXCEPTION_POINTERS* ep,
+		const wchar_t* stampFolder)
 	{
 		const std::wstring path = CrashLogPath();
 		if (path.empty())
@@ -549,8 +705,6 @@ namespace
 		FILE* f = _wfopen(path.c_str(), L"ab");
 		if (!f)
 			return;
-		SYSTEMTIME st{};
-		GetLocalTime(&st);
 		const char* code = "none";
 		char codeBuf[32];
 		if (ep && ep->ExceptionRecord)
@@ -560,9 +714,10 @@ namespace
 			code = codeBuf;
 		}
 		std::fprintf(f,
-			"%04u-%02u-%02u %02u:%02u:%02u.%03u  %s  code=%s  sticky=%s  -> crash-0.txt\n",
+			"%04u-%02u-%02u %02u:%02u:%02u.%03u  %s  code=%s  sticky=%s  -> %ls/snapshot.txt\n",
 			st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-			how ? how : "?", code, gStickyMark[0] ? gStickyMark : "(empty)");
+			how ? how : "?", code, gStickyMark[0] ? gStickyMark : "(empty)",
+			stampFolder ? stampFolder : L"?");
 		std::fflush(f);
 		std::fclose(f);
 	}
@@ -572,8 +727,12 @@ namespace
 		if (InterlockedCompareExchange(&gCrashSnapDone, 1, 0) != 0)
 			return;
 
-		RotateCrashSlots();
-		const std::wstring path = CrashSlotPath(0);
+		SYSTEMTIME st{};
+		GetLocalTime(&st);
+		const std::wstring dir = MakeStampFolder(st);
+		if (dir.empty())
+			return;
+		const std::wstring path = JoinUnder(dir, L"snapshot.txt");
 		if (path.empty())
 			return;
 		FILE* f = _wfopen(path.c_str(), L"wb");
@@ -582,8 +741,18 @@ namespace
 		WriteExceptionDetail(f, ep, how);
 		std::fflush(f);
 		std::fclose(f);
-		AppendIndexLine(how, ep);
+
 		WriteTrailUnlocked();
+		CopyFileBestEffort(TrailPath(), JoinUnder(dir, L"crash-trail.txt"));
+
+		const wchar_t* leaf = dir.c_str();
+		for (const wchar_t* p = dir.c_str(); *p; ++p)
+		{
+			if (*p == L'\\' || *p == L'/')
+				leaf = p + 1;
+		}
+		AppendIndexLine(st, how, ep, leaf);
+		PruneOldStampFolders();
 	}
 
 	bool ReadDiskTrailLastTag(char* out, size_t outN, int* outNotes)
@@ -592,7 +761,9 @@ namespace
 			out[0] = 0;
 		if (outNotes)
 			*outNotes = 0;
-		const std::wstring path = TrailPath();
+		std::wstring path = TrailPath();
+		if (path.empty() || GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
+			path = LegacyTrailPath();
 		if (path.empty())
 			return false;
 		FILE* f = _wfopen(path.c_str(), L"rb");
@@ -661,12 +832,18 @@ namespace
 		if (!ReadDiskTrailLastTag(lastTag, sizeof(lastTag), &notes))
 			return;
 
-		RotateCrashSlots();
-		const std::wstring path = CrashSlotPath(0);
+		SYSTEMTIME st{};
+		GetLocalTime(&st);
+		const std::wstring dir = MakeStampFolder(st);
+		if (dir.empty())
+			return;
+		const std::wstring path = JoinUnder(dir, L"snapshot.txt");
 		if (path.empty())
 			return;
 
-		const std::wstring trail = TrailPath();
+		std::wstring trail = TrailPath();
+		if (trail.empty() || GetFileAttributesW(trail.c_str()) == INVALID_FILE_ATTRIBUTES)
+			trail = LegacyTrailPath();
 		FILE* src = _wfopen(trail.c_str(), L"rb");
 		FILE* dst = _wfopen(path.c_str(), L"wb");
 		if (!dst)
@@ -675,8 +852,6 @@ namespace
 				std::fclose(src);
 			return;
 		}
-		SYSTEMTIME st{};
-		GetLocalTime(&st);
 		std::fprintf(dst, "GW2-InGame-Helper %d.%d.%d.%d crash snapshot\n",
 			ADDON_VERSION_MAJOR, ADDON_VERSION_MINOR,
 			ADDON_VERSION_BUILD, ADDON_VERSION_REVISION);
@@ -701,16 +876,25 @@ namespace
 		std::fflush(dst);
 		std::fclose(dst);
 
+		CopyFileBestEffort(trail, JoinUnder(dir, L"crash-trail.txt"));
+
+		const wchar_t* leaf = dir.c_str();
+		for (const wchar_t* p = dir.c_str(); *p; ++p)
+		{
+			if (*p == L'\\' || *p == L'/')
+				leaf = p + 1;
+		}
 		FILE* idx = _wfopen(CrashLogPath().c_str(), L"ab");
 		if (idx)
 		{
 			std::fprintf(idx,
-				"%04u-%02u-%02u %02u:%02u:%02u.%03u  orphan-trail  last=%s  -> crash-0.txt\n",
+				"%04u-%02u-%02u %02u:%02u:%02u.%03u  orphan-trail  last=%s  -> %ls/snapshot.txt\n",
 				st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-				lastTag);
+				lastTag, leaf);
 			std::fflush(idx);
 			std::fclose(idx);
 		}
+		PruneOldStampFolders();
 	}
 
 	bool InterestingException(DWORD code)
@@ -902,6 +1086,7 @@ void CrashTrail::Install()
 	if (gInstalled)
 		return;
 	EnterCriticalSection(&gCs);
+	MigrateLegacyCrashFiles();
 	PromoteOrphanTrailUnlocked();
 	LeaveCriticalSection(&gCs);
 

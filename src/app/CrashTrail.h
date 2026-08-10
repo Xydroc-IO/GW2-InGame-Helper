@@ -1,12 +1,12 @@
 #pragma once
 
 /* Wine often kills GW2 with no useful dump. Flight-recorder breadcrumbs + a
-   light exception filter write under AddonPaths::DataDir():
-   - crash-trail.txt     — live ring (last N notes; flushed often)
-   - crash-0.txt         — newest crash / hard-tip snapshot (rich)
-   - crash-1.txt         — previous
-   - crash-2.txt         — older (keeps prior 2 + current)
-   - crash.log           — short append index (one line per snapshot) */
+   light exception filter write under AddonPaths::CrashLogsDir() (Crash-Logs/):
+   - crash-trail.txt                 — live ring (last N notes; flushed often)
+   - crash.log                       — short append index (one line per snapshot)
+   - YYYY-MM-DD_HH-MM-SS_mmm/        — one folder per tip / SEH / orphan promote
+       snapshot.txt                  — rich dump
+       crash-trail.txt               — trail copy at snapshot time */
 namespace CrashTrail
 {
 	void Install();

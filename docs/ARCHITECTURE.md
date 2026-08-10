@@ -255,7 +255,7 @@ Same pattern as `WikiBrowserShared.h`: public `.h` stable; `*Shared.h` / `Pathin
 | Target | Notes |
 |--------|--------|
 | **Windows** | Native PE; primary design target. |
-| **Linux (Proton/Wine)** | Same binaries; software CEF flags and DLL-side Open Ext exist largely for this. World GPS needs `d3dcompiler_*.dll`. Soft-open / soft-stop and `CrashTrail` (`crash-trail.txt`, `crash-0.txt`…) pin hard tips that leave empty SEH dumps. |
+| **Linux (Proton/Wine)** | Same binaries; software CEF flags and DLL-side Open Ext exist largely for this. World GPS needs `d3dcompiler_*.dll`. Soft-open / soft-stop and `CrashTrail` (`Crash-Logs/` + timestamped tip folders) pin hard tips that leave empty SEH dumps. |
 
 Performance: OSR is CPU-upload heavy; fine for light wiki use; large overlay + scroll on weak CPUs can hitch.
 

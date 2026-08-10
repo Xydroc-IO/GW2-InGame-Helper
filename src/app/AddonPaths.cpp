@@ -139,3 +139,8 @@ std::wstring AddonPaths::ThemesDir()
 {
 	return EnsureUnder(DataDir(), L"config\\themes");
 }
+
+std::wstring AddonPaths::CrashLogsDir()
+{
+	return EnsureUnder(DataDir(), L"Crash-Logs");
+}
