@@ -79,7 +79,11 @@ void WinePadOpen::TickCompanionPending()
 	CrashTrail::Tick();
 	CompanionFiredThisFrame() = false;
 	if (CompanionSettleFrames() > 0)
+	{
 		--CompanionSettleFrames();
+		if (CompanionSettleFrames() <= 0)
+			CompanionSettleName()[0] = 0;
+	}
 
 	CompanionPending& p = CompanionSlot();
 	if (!p.fn)
@@ -114,14 +118,15 @@ void WinePadOpen::TickCompanionPending()
 		std::snprintf(tag, sizeof(tag), "softfire:%s", pendingName);
 		CrashTrail::Note(tag);
 	}
+	std::snprintf(CompanionSettleName(), 48, "%s", pendingName);
 	CompanionSettleFrames() = std::max(CompanionSettleFrames(), DeferFrames() * 4);
 	WatchMirrorQuietFrames() =
 		std::max(WatchMirrorQuietFrames(), CompanionSettleFrames() + 2);
 	CrashTrail::ArmDetail(CompanionSettleFrames() + 8);
 	CrashTrail::Mark(pendingName);
 	fn();
-	CrashTrail::NoteF("softfire:done settle=%d quiet=%d mirror=%d cap=%d",
-		CompanionSettleFrames(), WatchMirrorQuietFrames(),
+	CrashTrail::NoteF("softfire:done settle=%d quiet=%d name=%s mirror=%d cap=%d",
+		CompanionSettleFrames(), WatchMirrorQuietFrames(), CompanionSettleName(),
 		G::ShowWatchMirror ? 1 : 0, WatchCapture::IsCapturing() ? 1 : 0);
 }
 

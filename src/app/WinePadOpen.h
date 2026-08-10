@@ -155,6 +155,13 @@ namespace WinePadOpen
 		return s;
 	}
 
+	/* Which pad softfire is settling (name survives after queue slot clears). */
+	inline char (&CompanionSettleName())[48]
+	{
+		static char s[48]{};
+		return s;
+	}
+
 	/* True while soft-open is settling / firing (not while only waiting on Mirror). */
 	inline bool CompanionSoftBusy()
 	{
@@ -164,6 +171,20 @@ namespace WinePadOpen
 			return true;
 		/* Queued soft-open after Mirror idle — SoftWorkBusy in .cpp adds Mirror check. */
 		return false;
+	}
+
+	/* Wine: skip Watch control Begin while another companion pad settles
+	   (crash-0 pinned watch:post Begin during Events settle). Not when Watch itself settles. */
+	inline bool SkipWatchControlForSettle()
+	{
+		if (!Soft())
+			return false;
+		if (!CompanionFiredThisFrame() && CompanionSettleFrames() <= 0)
+			return false;
+		const char* n = CompanionSettleName();
+		if (!n || !n[0])
+			return true;
+		return std::strcmp(n, "Watch") != 0;
 	}
 
 	/* Watch soft-open (dedicated timer) — set from WatchPad; SoftWorkBusy reads these. */

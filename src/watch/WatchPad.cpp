@@ -378,15 +378,21 @@ bool WatchPad::Render()
 
 		if (G::ShowWatch)
 		{
-			/* Wine soft-stop drain : skip Watch control Begin 
-			   —(Events / etc already drew ; trail died 
-			   right after softstop : done ) . */
+			/* Wine soft-stop drain: skip Watch control Begin (Events/etc already
+			   drew; trail died right after softstop:done).
+			   Also skip while another companion soft-open settles — crash-0
+			   pinned watch:post Begin during Events settle with SoftWorkBusy. */
 			if (EiRuntime::IsWine()
 				&& (WatchPadDetail::gDeferStopFrames > 0
-					|| WatchPadDetail::gSoftStopPhase > 0))
+					|| WatchPadDetail::gSoftStopPhase > 0
+					|| WinePadOpen::SkipWatchControlForSettle()))
 			{
-				CrashTrail::NoteF("watch:skip Begin softstop defer=%d phase=%d",
-					WatchPadDetail::gDeferStopFrames, WatchPadDetail::gSoftStopPhase);
+				if (CrashTrail::DetailArmed())
+					CrashTrail::NoteF("watch:skip Begin softstop defer=%d phase=%d settle=%d name=%s",
+						WatchPadDetail::gDeferStopFrames, WatchPadDetail::gSoftStopPhase,
+						WinePadOpen::CompanionSettleFrames(),
+						WinePadOpen::CompanionSettleName()[0]
+							? WinePadOpen::CompanionSettleName() : "-");
 			}
 			else
 			{
@@ -464,15 +470,25 @@ bool WatchPad::Render()
 			CrashTrail::Note("watch:post RenderMirror");
 
 		/* Tick after Mirror Begin so click/drag sets gMirrorInputBusy before
-		   UpdateSubresource — same-frame upload+interaction tipped Wine. */
-		if (CrashTrail::DetailArmed())
-			CrashTrail::Note("watch:pre Capture::Tick");
-		WatchCapture::Tick();
-		if (CrashTrail::DetailArmed())
-			CrashTrail::Note("watch:post Capture::Tick");
-		if (CrashTrail::DetailArmed())
-			CrashTrail::Note("watch:pre TickMirrorWhenReady");
-		WatchPadDetail::TickMirrorWhenReady();
+		   UpdateSubresource — same-frame upload+interaction tipped Wine.
+		   Other-pad soft-open settle: skip Tick + Mirror-open (Events Begin
+		   already pressured Present; Watch control is skipped above). */
+		if (WinePadOpen::SkipWatchControlForSettle())
+		{
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("watch:skip Tick settle");
+		}
+		else
+		{
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("watch:pre Capture::Tick");
+			WatchCapture::Tick();
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("watch:post Capture::Tick");
+			if (CrashTrail::DetailArmed())
+				CrashTrail::Note("watch:pre TickMirrorWhenReady");
+			WatchPadDetail::TickMirrorWhenReady();
+		}
 		if (CrashTrail::DetailArmed())
 			CrashTrail::Note("watch:render_end");
 	}
