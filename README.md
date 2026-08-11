@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.4.2` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.4.3` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
@@ -63,7 +63,8 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | Utility (utility item hubs) | Wiki |
 | Upgrades (Superior Runes, Relics, Superior Sigils) | Wiki |
 | [Mounts](https://wiki.guildwars2.com/wiki/Mount) | Wiki |
-| [Special Events](https://wiki.guildwars2.com/wiki/Special_Event) · [World Boss Rush](https://wiki.guildwars2.com/wiki/World_Boss_Rush) · [Fractal Rush](https://wiki.guildwars2.com/wiki/Fractal_Rush) · [WvW Rush](https://wiki.guildwars2.com/wiki/World_vs._World_Rush) · [Dungeon Rush](https://wiki.guildwars2.com/wiki/Dungeon_Rush) · [PvP Rush](https://wiki.guildwars2.com/wiki/Player_vs._Player_Rush) | Wiki |
+| [Special Events](https://wiki.guildwars2.com/wiki/Special_Event) · rushes | Wiki |
+| [Festivals](https://wiki.guildwars2.com/wiki/Festival) (Lunar New Year, Super Adventure, Dragon Bash, Four Winds, Halloween, Wintersday) | Wiki |
 | [SC Raid Builds](https://snowcrows.com/builds/raids) | Builds |
 | SC Raid Elementalist / Mesmer / Necromancer / Engineer / Ranger / Thief / Guardian / Revenant / Warrior | Builds |
 | [MB Raid Builds](https://metabattle.com/wiki/Raid_Builds) | Builds |

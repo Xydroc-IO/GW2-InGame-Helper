@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.2
+# GW2 In-Game Helper v2.2.4.3
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,19 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.3
+
+- **Wine / Proton:** API Check probes join for completion (no Wait timeout UAF); Wine caps
+  parallel probe waves; ignore duplicate side-rail queue while a nav is already pending;
+  crash-trail heartbeat is snapshot-only (no per-interval flush on the render thread).
+- **Browse:** Wiki → **Festivals** (hub + Lunar New Year, Super Adventure Festival,
+  Dragon Bash, Festival of the Four Winds, Halloween, Wintersday). Credit footer:
+  Report any issues here → Discord thread. Nested folders (Legendary Armor, Food
+  attributes, …) use the same gold section chrome as top-level Wiki jumps; long tile
+  titles wrap on word boundaries.
+- **Stamps:** Helper `2242` · homepage `2232` · sites `s2215` · cheatsheets `c2228`
+  · live panel `65` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.2
 

@@ -5,11 +5,11 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.4.2` |
+| Addon revision (shipping) | `2.2.4.3` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2242` / `2232` / `s2214` / `c2228` |
-| Live panel stamp | `63` |
+| Helper / home / sites / cheatsheets stamps | `2242` / `2232` / `s2215` / `c2228` |
+| Live panel stamp | `65` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc36` |
 | watchd stamp | `w10` |
@@ -275,5 +275,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.4.2 — Wine soft-open + crash-trail coexistence breadcrumbs; PadDock Wine FindWindow skip; Watch soft-stop drain; live 63; ui-chrome uc36; home 2232; cheatsheets c2228; raid food 9; watchd w10 |
+| Last architecture sync | 2.2.4.3 — Festivals catalog + Browse credit Discord; nested Wiki folder chrome; API Check join / rail de-dupe; crash-trail heartbeat snapshot-only; live 65; sites s2215; ui-chrome uc36; home 2232; cheatsheets c2228; raid food 9; watchd w10 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

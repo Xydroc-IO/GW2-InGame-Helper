@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.4.2 |
+| Revision described | 2.2.4.3 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.4.3 | 2.2.4.3 | Festivals Browse + Discord credit; nested Wiki chrome; API Check join / rail de-dupe; hb snapshot |
 | 2.2.4.2 | 2.2.4.2 | Wine soft-open / Watch soft-stop drain; crash-trail + Nexus Pre/Post phase; PadDock Wine skip |
 | 2.2.4.1 | 2.2.4.1 | Wine deferred rail CEF + Watch open; Cheat Sheets hub browse-hero; Aurene ledger types; live 63 |
 | 2.2.4.0 | 2.2.4.0 | Gem+book crest + QA; Wine soft-open; Watch/CEF harden; icon dock; font 1.25; uc36 |
@@ -923,13 +924,13 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2242 / 2232 / s2214 / c2228 |
-| Live panel stamp | 63 |
+| Helper / home / sites / cheatsheets stamps | 2242 / 2232 / s2215 / c2228 |
+| Live panel stamp | 65 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
 | OSR `device_scale_factor` | 1.0 |
 | User-Agent product token | `GW2-InGame-Helper` |
-| Browse catalog entries | ≈ 2719 |
+| Browse catalog entries | ≈ 2726 |
 | World GPS base half-width | \(20''\) (`kBlishHalfM`) |
 | Curated pathing packs | Tekkit AIO; Lady Guides + AP; Hero's Marker Pack; HasKha Markers |
 
@@ -1009,6 +1010,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.4.2 — Wine soft-open / Watch soft-stop drain; crash-trail coexistence; helper 2242; home 2232; live 63; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.2.4.3 — Festivals Browse + Discord credit; nested Wiki chrome; API Check join / rail de-dupe; hb snapshot; helper 2242; home 2232; live 65; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |
