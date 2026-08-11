@@ -1,7 +1,7 @@
 {
   "version": 2,
   "source": "data/sites.json",
-  "count": 2719,
+  "count": 2726,
   "sites": [
     {
       "id": "home",
@@ -277,6 +277,90 @@
       "searchUrlSuffix": null,
       "browsePath": [
         "Special Events"
+      ]
+    },
+    {
+      "id": "wiki_festivals",
+      "category": "Wiki",
+      "label": "Festivals",
+      "title": "GW2 Wiki — Festival",
+      "homeUrl": "https://wiki.guildwars2.com/wiki/Festival",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Festivals"
+      ]
+    },
+    {
+      "id": "wiki_festival_lunar_new_year",
+      "category": "Wiki",
+      "label": "Lunar New Year",
+      "title": "GW2 Wiki — Lunar New Year",
+      "homeUrl": "https://wiki.guildwars2.com/wiki/Lunar_New_Year",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Festivals"
+      ]
+    },
+    {
+      "id": "wiki_festival_super_adventure",
+      "category": "Wiki",
+      "label": "Super Adventure Festival",
+      "title": "GW2 Wiki — Super Adventure Festival",
+      "homeUrl": "https://wiki.guildwars2.com/wiki/Super_Adventure_Festival",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Festivals"
+      ]
+    },
+    {
+      "id": "wiki_festival_dragon_bash",
+      "category": "Wiki",
+      "label": "Dragon Bash",
+      "title": "GW2 Wiki — Dragon Bash",
+      "homeUrl": "https://wiki.guildwars2.com/wiki/Dragon_Bash",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Festivals"
+      ]
+    },
+    {
+      "id": "wiki_festival_four_winds",
+      "category": "Wiki",
+      "label": "Festival of the Four Winds",
+      "title": "GW2 Wiki — Festival of the Four Winds",
+      "homeUrl": "https://wiki.guildwars2.com/wiki/Festival_of_the_Four_Winds",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Festivals"
+      ]
+    },
+    {
+      "id": "wiki_festival_halloween",
+      "category": "Wiki",
+      "label": "Halloween",
+      "title": "GW2 Wiki — Halloween",
+      "homeUrl": "https://wiki.guildwars2.com/wiki/Halloween",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Festivals"
+      ]
+    },
+    {
+      "id": "wiki_festival_wintersday",
+      "category": "Wiki",
+      "label": "Wintersday",
+      "title": "GW2 Wiki — Wintersday",
+      "homeUrl": "https://wiki.guildwars2.com/wiki/Wintersday",
+      "searchUrlPrefix": null,
+      "searchUrlSuffix": null,
+      "browsePath": [
+        "Festivals"
       ]
     },
     {
@@ -35464,6 +35548,7 @@
       "Main",
       "News",
       "Special Events",
+      "Festivals",
       "Collections",
       "Legendary Armory",
       "Cosmetic Infusions",

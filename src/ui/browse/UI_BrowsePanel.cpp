@@ -10,6 +10,8 @@
 
 #include <cstdio>
 #include <cstring>
+#include <windows.h>
+#include <shellapi.h>
 
 namespace UIBrowseDetail
 {
@@ -192,6 +194,20 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
 	ImGui::TextUnformatted("Created By Xydroc");
 	ImGui::PopStyleColor();
+	ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+	ImGui::TextWrapped("Report any issues here - "
+		"https://discord.com/channels/410828272679518241/1531031243196727407");
+	ImGui::PopStyleColor();
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		if (ImGui::IsMouseClicked(0))
+		{
+			ShellExecuteA(nullptr, "open",
+				"https://discord.com/channels/410828272679518241/1531031243196727407",
+				nullptr, nullptr, SW_SHOWNORMAL);
+		}
+	}
 }
 
 } // namespace UIBrowseDetail

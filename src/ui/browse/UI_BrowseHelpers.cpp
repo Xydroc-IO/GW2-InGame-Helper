@@ -299,7 +299,8 @@ BrowsePopupLayout CalcBrowsePopupLayout(bool withBanner, bool pickDefaultSite)
 	chrome += 1.f;             /* Separator */
 	chrome += st.ItemSpacing.y;
 	chrome += ImGui::GetTextLineHeightWithSpacing(); /* Created by */
-	chrome += ImGui::GetTextLineHeight();            /* IGN | Discord */
+	chrome += ImGui::GetTextLineHeightWithSpacing(); /* Report issues */
+	chrome += ImGui::GetTextLineHeight();            /* Discord URL wrap */
 	chrome += 8.f;
 
 	const float listH = Clampf(maxOuter - chrome, 160.f, listMax);

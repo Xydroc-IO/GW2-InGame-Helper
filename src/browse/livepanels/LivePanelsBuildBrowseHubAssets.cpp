@@ -111,8 +111,12 @@ a.jump:hover{color:var(--gold-bright);border-color:var(--gold);background-image:
   font-family:var(--font-ui);
 }
 .sec h3{
-  margin:1rem 0 .55rem;font-size:.86rem;letter-spacing:.05em;
-  color:var(--muted);font-weight:600;
+  /* Nested browsePath folders (Legendary Armor under Armory, Food attrs, …).
+     Same language as h2 so they do not look like a leftover ImGui header. */
+  margin:1.15rem 0 .7rem;font-size:.82rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--gold-dim);font-weight:650;
+  border-left:2px solid var(--gold-dim);padding-left:.55rem;
+  font-family:var(--font-ui);
 }
 .fav-fold-head{display:flex;align-items:baseline;gap:.65rem;flex-wrap:wrap;margin:1.1rem 0 .45rem}
 .fav-fold-head h3{
@@ -157,8 +161,8 @@ button.btn-plus:hover{border-color:var(--gold);color:var(--gold);
   border-color:var(--gold);
 }
 .modal-actions button:hover{border-color:var(--gold)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.85rem}
-.tile-wrap{position:relative;display:flex;flex-direction:column;min-height:6.1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.85rem;align-items:stretch}
+.tile-wrap{position:relative;display:flex;flex-direction:column;min-height:6.1rem;height:100%}
 a.star{
   position:absolute;top:.5rem;right:.55rem;z-index:2;
   width:1.6rem;height:1.6rem;line-height:1.55rem;text-align:center;
@@ -197,7 +201,8 @@ a.tile{
      Side padding clears ☆ / ⇄ overlays on favorites + category site tiles. */
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;gap:.35rem;
-  flex:1;min-height:6.1rem;padding:1.45rem 1.9rem 1.6rem;
+  flex:1;height:100%;min-height:6.1rem;padding:1.45rem 1.9rem 1.6rem;
+  box-sizing:border-box;
   text-decoration:none;color:var(--text);
   border-left:1px solid var(--gold-dim);
   transition:border-color .15s,transform .12s,box-shadow .15s;
@@ -211,8 +216,12 @@ a.tile > *{position:relative;z-index:1}
 a.tile .name{
   font-size:1.22rem;font-weight:700;color:var(--gold-bright);
   font-family:var(--font-display);letter-spacing:.02em;line-height:1.2;
+  overflow-wrap:normal;word-break:normal;hyphens:none;max-width:100%;
 }
-a.tile .blurb{font-size:.88rem;color:var(--muted);line-height:1.35}
+a.tile .blurb{
+  font-size:.88rem;color:var(--muted);line-height:1.35;max-width:100%;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
 a.tile .meta{
   font-size:.78rem;color:var(--gold-dim);margin-top:.15rem;letter-spacing:.03em;
   /* Stay in the content stack — never absolute-bottom on the dark fringe. */
@@ -229,11 +238,18 @@ a.tile.tile-cat .blurb{
 }
 .foot{margin-top:2.5rem;font-size:.78rem;color:var(--muted)}
 .credit{
-  margin:1.75rem 0 0;padding:1rem 0 3.5rem;
+  margin:1.75rem 0 0;padding:1rem 0 0;
   border-top:1px solid var(--border-soft);
   font-size:.78rem;color:var(--gold-dim);
   letter-spacing:.06em;text-align:center;text-transform:uppercase;
 }
+.credit-issue{
+  margin:.4rem 0 0;padding:0 0 3.5rem;
+  font-size:.78rem;color:var(--muted);
+  letter-spacing:.02em;text-align:center;line-height:1.45;
+}
+.credit-issue a{color:var(--gold-dim);text-decoration:underline;word-break:break-all}
+.credit-issue a:hover{color:var(--gold)}
 .empty{margin:2rem 0;color:var(--muted)}
 .hidden{display:none!important}
 )CSS";
