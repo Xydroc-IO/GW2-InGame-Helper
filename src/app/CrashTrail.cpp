@@ -50,6 +50,8 @@ namespace
 	int              gDetailFrames = 0;
 	unsigned         gNoteSeq = 0;
 	DWORD            gLastFlushMs = 0;
+	char             gHbStatus[192]{};
+	DWORD            gHbTick = 0;
 
 	void EnsureCs()
 	{
@@ -248,8 +250,9 @@ namespace
 	}
 
 	/* Only high-signal tags force an immediate disk write. Per-frame ui:/watch:/cef:
-	   used to flush every note during DetailArmed and tip Wine (sticky always
-	   landed on ui:pre TickCompanionPending after dozens of fopen/fwrite/frame). */
+	   used to flush every note during DetailArmed and tip Wine. Heartbeat must NOT
+	   flush either — orphan 17:42 sticky was hb:… while Mirror+pads streamed (settle=0);
+	   a full crash-trail rewrite every 2s on the render thread is enough to tip Wine. */
 	bool CriticalFlushTag(const char* tag)
 	{
 		if (!tag)
@@ -258,7 +261,6 @@ namespace
 			|| std::strstr(tag, "softfire")
 			|| std::strstr(tag, "softstop")
 			|| std::strstr(tag, "mark:")
-			|| std::strstr(tag, "hb:")
 			|| std::strstr(tag, "save:")
 			|| std::strstr(tag, "install")
 			|| std::strstr(tag, "shutdown")
@@ -314,6 +316,8 @@ namespace
 		std::fprintf(f, "notes=%d seq=%u sticky=%s phase=%s detail=%d\n",
 			gCount, gNoteSeq, gStickyMark[0] ? gStickyMark : "(none)",
 			gPhase[0] ? gPhase : "idle", gDetailFrames);
+		if (gHbStatus[0])
+			std::fprintf(f, "hb %s (tick=%lu)\n", gHbStatus, static_cast<unsigned long>(gHbTick));
 		WriteTrailToFile(f);
 		std::fflush(f);
 		std::fclose(f);
@@ -533,6 +537,9 @@ namespace
 		std::fprintf(f, "phase tick=%lu name=%s\n",
 			static_cast<unsigned long>(gPhaseTick),
 			gPhase[0] ? gPhase : "idle");
+		if (gHbStatus[0])
+			std::fprintf(f, "hb tick=%lu %s\n",
+				static_cast<unsigned long>(gHbTick), gHbStatus);
 		std::fprintf(f, "coexist ArcDPS=%d d912pxy=%d\n",
 			GetModuleHandleW(L"ArcDPS.dll") ? 1 : 0,
 			GetModuleHandleW(L"d912pxy.dll") ? 1 : 0);
@@ -1019,11 +1026,14 @@ void CrashTrail::HeartbeatIfHot()
 
 	static DWORD sLastHb = 0;
 	const DWORD now = GetTickCount();
-	if (sLastHb != 0 && (now - sLastHb) < 2000u)
+	/* Snapshot-only status — do not Note/flush on the render thread (orphan
+	   17:42 tipped with sticky hb: while Mirror streamed; 2s fwrite was enough). */
+	if (sLastHb != 0 && (now - sLastHb) < 5000u)
 		return;
 	sLastHb = now;
-
-	NoteF("hb:mirror=%d cap=%d stream=%d pads=%d settle=%d softstop=%d deferStop=%d busy=%d wiki=%d phase=%s ArcDPS=%d",
+	gHbTick = now;
+	std::snprintf(gHbStatus, sizeof(gHbStatus),
+		"mirror=%d cap=%d stream=%d pads=%d settle=%d softstop=%d deferStop=%d busy=%d wiki=%d phase=%s ArcDPS=%d",
 		G::ShowWatchMirror ? 1 : 0,
 		WatchCapture::IsCapturing() ? 1 : 0,
 		WatchCapture::IsStreaming() ? 1 : 0,
@@ -1035,8 +1045,6 @@ void CrashTrail::HeartbeatIfHot()
 		G::ShowWiki ? 1 : 0,
 		gPhase[0] ? gPhase : "idle",
 		GetModuleHandleW(L"ArcDPS.dll") ? 1 : 0);
-	/* Do NOT ArmDetail here — that kept DetailArmed forever and flooded the
-	   ring with every-frame ui:/cef:/watch: spam, wiping softopen/softstop pins. */
 }
 
 void CrashTrail::SetPhase(const char* phase)

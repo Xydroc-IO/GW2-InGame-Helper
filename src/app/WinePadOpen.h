@@ -68,28 +68,41 @@ namespace WinePadOpen
 	inline void QueueRailSiteActive(const char* siteId)
 	{
 		RailPending& p = RailSlot();
+		const char* sid = siteId ? siteId : "";
+		if (p.kind == RailNav::SiteActive && std::strcmp(p.siteId, sid) == 0)
+			return;
 		p.kind = RailNav::SiteActive;
 		p.frames = DeferFrames();
-		std::snprintf(p.siteId, sizeof(p.siteId), "%s", siteId ? siteId : "");
+		std::snprintf(p.siteId, sizeof(p.siteId), "%s", sid);
 		p.url[0] = 0;
 	}
 
 	inline void QueueRailSiteNewTab(const char* siteId)
 	{
 		RailPending& p = RailSlot();
+		const char* sid = siteId ? siteId : "";
+		if (p.kind == RailNav::SiteNewTab && std::strcmp(p.siteId, sid) == 0)
+			return;
 		p.kind = RailNav::SiteNewTab;
 		p.frames = DeferFrames();
-		std::snprintf(p.siteId, sizeof(p.siteId), "%s", siteId ? siteId : "");
+		std::snprintf(p.siteId, sizeof(p.siteId), "%s", sid);
 		p.url[0] = 0;
 	}
 
 	inline void QueueRailUrlNewTab(const char* siteId, const char* url)
 	{
 		RailPending& p = RailSlot();
+		const char* sid = siteId ? siteId : "browse";
+		const char* u = url ? url : "";
+		/* Held rail click used to re-queue every frame and fire API Check
+		   ~6× in 70ms (crash-0 17:23 TickRail fire kind=3 storm). */
+		if (p.kind == RailNav::UrlNewTab && std::strcmp(p.url, u) == 0
+			&& std::strcmp(p.siteId, sid) == 0)
+			return;
 		p.kind = RailNav::UrlNewTab;
 		p.frames = DeferFrames();
-		std::snprintf(p.siteId, sizeof(p.siteId), "%s", siteId ? siteId : "browse");
-		std::snprintf(p.url, sizeof(p.url), "%s", url ? url : "");
+		std::snprintf(p.siteId, sizeof(p.siteId), "%s", sid);
+		std::snprintf(p.url, sizeof(p.url), "%s", u);
 	}
 
 	/* Drain deferred rail nav (BrowserTabs / Navigate). Call from UI render. */

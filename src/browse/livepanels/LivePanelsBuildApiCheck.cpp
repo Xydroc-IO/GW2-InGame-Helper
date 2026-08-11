@@ -1,5 +1,6 @@
 #include "LivePanelsBuildShared.h"
 
+#include "EiRuntime.h"
 #include "Gw2Http.h"
 
 #include <cstdio>
@@ -63,34 +64,35 @@ namespace
 		return 0;
 	}
 
-	/* Fire all GETs together — wall clock ≈ slowest call, not the sum. */
+	/* Join every worker before jobs[] is destroyed. A timed wait used to
+	   return while threads still wrote Result/string into freed TimedJob
+	   (crash-0 17:23 — AV write-null in TimedProbeProc, sticky RT_PostRender).
+	   Wine: cap concurrency — 40+ CreateThreads beside Mirror tipped Present. */
 	void RunProbesParallel(TimedJob* jobs, size_t n)
 	{
 		if (!jobs || n == 0)
 			return;
-		std::vector<HANDLE> hs;
-		hs.reserve(n);
-		for (size_t i = 0; i < n; ++i)
+		const size_t wave = EiRuntime::IsWine() ? 4u : 16u;
+		size_t i = 0;
+		while (i < n)
 		{
-			HANDLE h = CreateThread(nullptr, 0, TimedProbeProc, &jobs[i], 0, nullptr);
-			if (h)
-				hs.push_back(h);
-			else
-				TimedProbeProc(&jobs[i]);
+			HANDLE hs[16]{};
+			DWORD nh = 0;
+			while (i < n && nh < wave)
+			{
+				HANDLE h = CreateThread(nullptr, 0, TimedProbeProc, &jobs[i], 0, nullptr);
+				++i;
+				if (h)
+					hs[nh++] = h;
+				else
+					TimedProbeProc(&jobs[i - 1]);
+			}
+			if (nh == 0)
+				continue;
+			WaitForMultipleObjects(nh, hs, TRUE, INFINITE);
+			for (DWORD h = 0; h < nh; ++h)
+				CloseHandle(hs[h]);
 		}
-		if (hs.empty())
-			return;
-		size_t off = 0;
-		while (off < hs.size())
-		{
-			const DWORD chunk = static_cast<DWORD>(
-				(hs.size() - off > 64) ? 64 : (hs.size() - off));
-			WaitForMultipleObjects(chunk, hs.data() + off, TRUE,
-				static_cast<DWORD>(kProbeTimeoutMs + 5000));
-			off += chunk;
-		}
-		for (HANDLE h : hs)
-			CloseHandle(h);
 	}
 
 	ProbeRow RowFromJob(const TimedJob& j)
