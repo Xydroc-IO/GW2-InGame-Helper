@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.3
+# GW2 In-Game Helper v2.2.4.4
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,19 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.4
+
+- **Wine / Proton:** Harden DLL TLS callbacks so Proton Experimental
+  `ntdll!call_tls_callbacks` cannot tip on a poisoned `AddressOfCallBacks` (`-1`)
+  during post-render thread attach (sticky `RT_PostRender` ACCESS_VIOLATION). Pin
+  callbacks + TLS directory in RW storage and retarget the PE DataDirectory;
+  prefer fixed image base `0x180000000`.
+- **Diagnostics:** Crash snapshots unwind `fault_stack` from the exception CONTEXT
+  (handler frames stay labeled separately); skip Toolhelp32 under Wine while
+  snapshotting. CrashTrail and Watch sources split into ≤500-line TUs.
+- **Stamps:** Helper `2242` · homepage `2232` · sites `s2215` · cheatsheets `c2228`
+  · live panel `65` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.3
 
