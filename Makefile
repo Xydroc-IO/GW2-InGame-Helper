@@ -18,7 +18,7 @@ CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/
 # Dependency files: emit only from the build/%.o rule via -MF (never beside sources).
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
 CXXFLAGS_EXE = $(CXXFLAGS) -mcrtdll=msvcrt
-LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++
+LDFLAGS_DLL  = -shared -static -static-libgcc -static-libstdc++ -Wl,--image-base,0x180000000
 LDFLAGS_EXE  = -static -static-libgcc -static-libstdc++ -mwindows -municode -mcrtdll=msvcrt
 LIBS_DLL = -ldxgi -ld3d11 -lgdi32 -luser32 -lole32 -luuid -lshell32 -lwinhttp -lcrypt32 -lbcrypt -lcomdlg32 -ladvapi32 -lws2_32 -lwindowsapp -lruntimeobject
 LIBS_EXE = -lgdi32 -lole32 -luuid -lshell32 -lwinhttp
@@ -57,6 +57,9 @@ DLL_SRC = \
 	src/app/Settings.cpp \
 	src/app/WinePadOpen.cpp \
 	src/app/CrashTrail.cpp \
+	src/app/CrashTrailFiles.cpp \
+	src/app/CrashTrailSnapshot.cpp \
+	src/app/CrashTrailStack.cpp \
 	src/app/SettingsSave.cpp \
 	src/app/AddonPaths.cpp \
 	src/app/UserTheme.cpp \
@@ -117,12 +120,15 @@ DLL_SRC = \
 	src/watch/WatchPad.cpp \
 	src/watch/WatchPadAbout.cpp \
 	src/watch/WatchPadControls.cpp \
+	src/watch/WatchPadControlsUi.cpp \
 	src/watch/WatchCapture.cpp \
+	src/watch/WatchCaptureTick.cpp \
 	src/watch/WatchCaptureGpu.cpp \
 	src/watch/WatchCaptureWin.cpp \
 	src/watch/WatchCaptureWgc.cpp \
 	src/watch/WatchCaptureWgcSession.cpp \
 	src/watch/WatchLinux.cpp \
+	src/watch/WatchLinuxSession.cpp \
 	src/watch/WatchLinuxDaemon.cpp \
 	src/watch/WatchLinuxShm.cpp \
 	src/pathing/waypoints/WaypointsData.cpp \

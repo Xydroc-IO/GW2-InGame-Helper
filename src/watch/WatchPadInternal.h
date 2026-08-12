@@ -40,6 +40,7 @@ namespace WatchPadDetail
 	bool SoftOpenBlocked(); /* Soft-open Watch Begin — wait for idle after Soft-stop */
 	bool SoftStartBlocked(); /* Soft Start — must not wait on IsCapturing (Start sets it) */
 	bool CompanionSoftBlocked(); /* open Events/Account — soft-stop drain only */
+	void ArmReopenGate(); /* after Soft-stop — block Soft-open/Start until park settles */
 	void ArmWineSoftStop(); /* Soft-stop Mirror/stream off side-nav / X — keep Begin while quieting */
 	void TickSoftStopPhase();
 	void MarkMirrorSessionEnded(); /* SoftStopCapture / hard Stop */

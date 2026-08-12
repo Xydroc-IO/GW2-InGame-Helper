@@ -66,5 +66,9 @@ namespace WatchLinuxDetail
 	void EnsurePump();
 	void StopPump();
 	void RunQueuedStart(uint32_t epoch); /* ConnectShared + CmdStart — pump thread only */
+	void JoinStartThread(DWORD waitMs);
 	void PollJoinStartThread(); /* non-blocking reap after Stop */
+	void PinFrameBaselineUnlocked(); /* caller holds gCs */
+	DWORD WINAPI WarmWorker(LPVOID);
+	DWORD WINAPI StartWorker(LPVOID param);
 }

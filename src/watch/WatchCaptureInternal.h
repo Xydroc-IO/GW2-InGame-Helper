@@ -49,6 +49,7 @@ namespace WatchCaptureDetail
 	extern bool                    gLastBlank;
 	extern std::string             gStatus;
 	extern std::vector<WatchCapture::WindowEntry> gWindows;
+	extern bool                    gClassicList;
 
 	bool EnsureDevice();
 	bool EnsureTexture(uint32_t w, uint32_t h);
@@ -59,6 +60,7 @@ namespace WatchCaptureDetail
 	void HideContent(); /* Soft-stop: drop AddImage dims now; park on deferred Stop */
 	void ReleaseDevice();
 
+	bool ApplyChromeCrop(const uint8_t*& ptr, uint32_t& w, uint32_t& h, uint32_t stride);
 	bool SampleLooksBlank(const uint8_t* bgra, uint32_t w, uint32_t h, uint32_t stride);
 	bool CaptureOnce(HWND hwnd, std::vector<uint8_t>& outBgra, uint32_t& outW, uint32_t& outH,
 		uint32_t& outStride);
