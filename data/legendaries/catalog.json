@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "items": [
     {
       "id": "6a714e7816fdb6540c2d55b3",
@@ -14,6 +14,24 @@
         74155
       ],
       "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "a402c9abb06241794077d1e3",
+      "name": "Aetheric Anchor",
+      "category": "Weapon",
+      "item_type": "Spear / Staff",
+      "generation": "VoE",
+      "acquisition": "Visions of Eternity: craft the Aetheric Anchor to unlock Ancora Bellum (spear) and Ancora Pax (staff).",
+      "notes": "One collection unlocks both weapon forms.",
+      "slug": "a402c9abb06241794077d1e3",
+      "itemIds": [
+        106273,
+        105653
+      ],
+      "maxCounts": [
+        1,
         1
       ]
     },
@@ -544,6 +562,92 @@
       ]
     },
     {
+      "id": "bcd3bc3cc3ccf1235b03c120",
+      "name": "Eikasia, Mists-Grasper",
+      "category": "Armor",
+      "item_type": "Gloves",
+      "generation": "SotO",
+      "acquisition": "Secrets of the Obscure legendary gloves (vendor / wiki acquisition).",
+      "notes": "Three weight variants.",
+      "slug": "bcd3bc3cc3ccf1235b03c120",
+      "itemIds": [
+        105317,
+        105171,
+        105293
+      ],
+      "maxCounts": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "f94af35bc214bb646e58fcc1",
+      "name": "Endless Summer",
+      "category": "Trinket",
+      "item_type": "Ring",
+      "generation": "VoE",
+      "acquisition": "Visions of Eternity legendary ring (Raids and Wardrobe update).",
+      "notes": "",
+      "slug": "f94af35bc214bb646e58fcc1",
+      "itemIds": [
+        107022
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "82536183be1a295e99ec8314",
+      "name": "Envoy Armor",
+      "category": "Armor",
+      "item_type": "Full Set",
+      "generation": "Other",
+      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge (18 pieces, all weights).",
+      "notes": "One armory slot per piece. Progress is pieces owned / 18.",
+      "slug": "82536183be1a295e99ec8314",
+      "itemIds": [
+        80281,
+        80254,
+        80248,
+        80205,
+        80111,
+        80557,
+        80384,
+        80578,
+        80252,
+        80131,
+        80296,
+        80356,
+        80435,
+        80399,
+        80145,
+        80277,
+        80161,
+        80190
+      ],
+      "maxCounts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
       "id": "6a714e7816fdb6540c2d557f",
       "name": "Eternity",
       "category": "Weapon",
@@ -720,6 +824,22 @@
       ]
     },
     {
+      "id": "c560eae2a8e99babd92bfda7",
+      "name": "Klobjarne Geirr",
+      "category": "Weapon",
+      "item_type": "Spear",
+      "generation": "JW",
+      "acquisition": "Janthir Wilds legendary spear: complete the Klobjarne Geirr collections and craft in the Mystic Forge.",
+      "notes": "Godspawn legendary spear.",
+      "slug": "c560eae2a8e99babd92bfda7",
+      "itemIds": [
+        103815
+      ],
+      "maxCounts": [
+        4
+      ]
+    },
+    {
       "id": "6a714e7816fdb6540c2d5575",
       "name": "Kraitkin",
       "category": "Weapon",
@@ -838,6 +958,22 @@
       ]
     },
     {
+      "id": "b3c6f2ae25bcf80855adf595",
+      "name": "Legendary Relic",
+      "category": "Relic",
+      "item_type": "Relic",
+      "generation": "SotO",
+      "acquisition": "Craft the Legendary Relic to swap relic bonuses out of combat.",
+      "notes": "",
+      "slug": "b3c6f2ae25bcf80855adf595",
+      "itemIds": [
+        101582
+      ],
+      "maxCounts": [
+        1
+      ]
+    },
+    {
       "id": "6a714e7816fdb6540c2d55b7",
       "name": "Legendary Rune",
       "category": "Rune",
@@ -906,7 +1042,7 @@
       "name": "Obsidian Armor",
       "category": "Armor",
       "item_type": "Full Set",
-      "generation": "Other",
+      "generation": "SotO",
       "acquisition": "Open-world legendary armor from Secrets of the Obscure, crafted with Obsidian Shards and Lucky Rare Draconic Tributes.",
       "notes": "",
       "slug": "6a714e7816fdb6540c2d55ac",
@@ -952,288 +1088,16 @@
       ]
     },
     {
-      "id": "31128071aeb64a19405079d8",
-      "name": "Perfected Envoy Boots",
-      "category": "Armor",
-      "item_type": "Medium Boots",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
+      "id": "86ba481d5191b0cd6a848a77",
+      "name": "Orrax Manifested",
+      "category": "Back Item",
+      "item_type": "Back Item",
+      "generation": "JW",
+      "acquisition": "Janthir Wilds legendary backpack from Absolution / Bava Nisos collections.",
       "notes": "",
-      "slug": "31128071aeb64a19405079d8",
+      "slug": "86ba481d5191b0cd6a848a77",
       "itemIds": [
-        80281
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "6a714e7816fdb6540c2d55a6",
-      "name": "Perfected Envoy Breastplate",
-      "category": "Armor",
-      "item_type": "Heavy Chest",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "6a714e7816fdb6540c2d55a6",
-      "itemIds": [
-        80254
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "f78406dd58340e302d8f841e",
-      "name": "Perfected Envoy Cowl",
-      "category": "Armor",
-      "item_type": "Light Helm",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "f78406dd58340e302d8f841e",
-      "itemIds": [
-        80248
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "2e7970d51a08b28be45805f5",
-      "name": "Perfected Envoy Gauntlets",
-      "category": "Armor",
-      "item_type": "Heavy Gloves",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "2e7970d51a08b28be45805f5",
-      "itemIds": [
-        80205
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "febad9ba7bd1343d83d48c3f",
-      "name": "Perfected Envoy Gloves",
-      "category": "Armor",
-      "item_type": "Light Gloves",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "febad9ba7bd1343d83d48c3f",
-      "itemIds": [
-        80111
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "6a714e7816fdb6540c2d55a9",
-      "name": "Perfected Envoy Greaves",
-      "category": "Armor",
-      "item_type": "Heavy Boots",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "6a714e7816fdb6540c2d55a9",
-      "itemIds": [
-        80557
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "6a714e7816fdb6540c2d55a4",
-      "name": "Perfected Envoy Helmet",
-      "category": "Armor",
-      "item_type": "Heavy Helm",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "6a714e7816fdb6540c2d55a4",
-      "itemIds": [
-        80384
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "c54aed434e4e1fb8749814c2",
-      "name": "Perfected Envoy Jerkin",
-      "category": "Armor",
-      "item_type": "Medium Chest",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "c54aed434e4e1fb8749814c2",
-      "itemIds": [
-        80578
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "76f276bb578b6818a0e85ee0",
-      "name": "Perfected Envoy Leggings",
-      "category": "Armor",
-      "item_type": "Medium Leggings",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "76f276bb578b6818a0e85ee0",
-      "itemIds": [
-        80252
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "bb0ad9c374176c0e02e71015",
-      "name": "Perfected Envoy Mantle",
-      "category": "Armor",
-      "item_type": "Light Shoulders",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "bb0ad9c374176c0e02e71015",
-      "itemIds": [
-        80131
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "9bf960a1e9e429543bcd1c10",
-      "name": "Perfected Envoy Mask",
-      "category": "Armor",
-      "item_type": "Medium Helm",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "9bf960a1e9e429543bcd1c10",
-      "itemIds": [
-        80296
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "ce027b69a85aff1824848b02",
-      "name": "Perfected Envoy Pants",
-      "category": "Armor",
-      "item_type": "Light Leggings",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "ce027b69a85aff1824848b02",
-      "itemIds": [
-        80356
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "6a714e7816fdb6540c2d55a5",
-      "name": "Perfected Envoy Pauldrons",
-      "category": "Armor",
-      "item_type": "Heavy Shoulders",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "6a714e7816fdb6540c2d55a5",
-      "itemIds": [
-        80435
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "64fd81fdac6c259edd44ce77",
-      "name": "Perfected Envoy Shoes",
-      "category": "Armor",
-      "item_type": "Light Boots",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "64fd81fdac6c259edd44ce77",
-      "itemIds": [
-        80399
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "00d0d23445c7996de3b7c2ea",
-      "name": "Perfected Envoy Shoulderpads",
-      "category": "Armor",
-      "item_type": "Medium Shoulders",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "00d0d23445c7996de3b7c2ea",
-      "itemIds": [
-        80145
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "6a714e7816fdb6540c2d55a8",
-      "name": "Perfected Envoy Tassets",
-      "category": "Armor",
-      "item_type": "Heavy Leggings",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "6a714e7816fdb6540c2d55a8",
-      "itemIds": [
-        80277
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "6a714e7816fdb6540c2d55a7",
-      "name": "Perfected Envoy Vambraces",
-      "category": "Armor",
-      "item_type": "Medium Gloves",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "6a714e7816fdb6540c2d55a7",
-      "itemIds": [
-        80161
-      ],
-      "maxCounts": [
-        1
-      ]
-    },
-    {
-      "id": "35c6da7785c81bcaef17b1f5",
-      "name": "Perfected Envoy Vestments",
-      "category": "Armor",
-      "item_type": "Light Chest",
-      "generation": "Other",
-      "acquisition": "Raid legendary armor: complete the Refined Envoy Armor collections and craft in the Mystic Forge.",
-      "notes": "",
-      "slug": "35c6da7785c81bcaef17b1f5",
-      "itemIds": [
-        80190
+        104857
       ],
       "maxCounts": [
         1
@@ -1304,6 +1168,26 @@
       ]
     },
     {
+      "id": "57af5c84789830a1d01bd159",
+      "name": "Selachimorpha",
+      "category": "Armor",
+      "item_type": "Aquatic Headgear",
+      "generation": "VoE",
+      "acquisition": "Visions of Eternity legendary aquabreather. Three weight variants share the collection.",
+      "notes": "",
+      "slug": "57af5c84789830a1d01bd159",
+      "itemIds": [
+        106658,
+        105921,
+        106178
+      ],
+      "maxCounts": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
       "id": "6a714e7816fdb6540c2d558a",
       "name": "Sharur",
       "category": "Weapon",
@@ -1330,6 +1214,38 @@
       "slug": "6a714e7816fdb6540c2d558b",
       "itemIds": [
         79802
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "250130a887d4b0ed1ecc3f66",
+      "name": "Stella Radians",
+      "category": "Trinket",
+      "item_type": "Accessory",
+      "generation": "VoE",
+      "acquisition": "Visions of Eternity PvE legendary accessory (The Only Way).",
+      "notes": "PvE.",
+      "slug": "250130a887d4b0ed1ecc3f66",
+      "itemIds": [
+        109070
+      ],
+      "maxCounts": [
+        2
+      ]
+    },
+    {
+      "id": "c4dc0660b363924fa384d7b2",
+      "name": "Strife Unending",
+      "category": "Trinket",
+      "item_type": "Accessory",
+      "generation": "VoE",
+      "acquisition": "Visions of Eternity WvW legendary accessory (The Only Way).",
+      "notes": "WvW.",
+      "slug": "c4dc0660b363924fa384d7b2",
+      "itemIds": [
+        109012
       ],
       "maxCounts": [
         2
@@ -1524,6 +1440,56 @@
         92991
       ],
       "maxCounts": [
+        1
+      ]
+    },
+    {
+      "id": "966134b12c246581fbc2d025",
+      "name": "Triumphant Hero's Armor (PvP)",
+      "category": "Armor",
+      "item_type": "Full Set",
+      "generation": "Other",
+      "acquisition": "PvP legendary armor: upgrade Triumphant Hero's pieces to legendary.",
+      "notes": "",
+      "slug": "966134b12c246581fbc2d025",
+      "itemIds": [
+        83036,
+        82994,
+        83497,
+        82903,
+        82437,
+        83394,
+        84176,
+        84110,
+        82902,
+        82456,
+        84629,
+        84578,
+        82093,
+        83289,
+        82963,
+        82173,
+        82801,
+        82196
+      ],
+      "maxCounts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
         1
       ]
     },

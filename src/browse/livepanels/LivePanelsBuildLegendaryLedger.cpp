@@ -107,8 +107,13 @@ footer.credit{max-width:56rem;margin:0 auto;padding:0 1.25rem 2.5rem;font-size:.
 h1{margin:0;font-size:1.25rem;font-weight:600;letter-spacing:-.025em;color:var(--gold,#f0c65a)}
 .search{width:100%;height:2.75rem;border:1px solid var(--border);border-radius:.375rem;background:rgba(26,21,16,.95);padding:0 .75rem 0 2.5rem;color:var(--zinc-100);font-size:.875rem}
 .search-wrap{position:relative}.search-wrap svg{position:absolute;left:.875rem;top:50%;width:1rem;height:1rem;transform:translateY(-50%);color:var(--zinc-500);pointer-events:none}
-.cats,.letters{display:flex;flex-wrap:wrap;gap:.5rem}.cat,.letter{border:1px solid var(--border);background:var(--panel);color:var(--zinc-500);border-radius:.375rem;padding:.375rem .75rem;font-size:.75rem;cursor:pointer}
+.cats,.letters,.gens,.needs{display:flex;flex-wrap:wrap;gap:.5rem}.cat,.letter{border:1px solid var(--border);background:var(--panel);color:var(--zinc-500);border-radius:.375rem;padding:.375rem .75rem;font-size:.75rem;cursor:pointer}
 .cat.active,.letter:hover{color:var(--purple-200);border-color:rgba(240,199,97,.45)}.cat.active{background:rgba(240,199,97,.12)}
+.summary{display:flex;flex-wrap:wrap;gap:.6rem 1.1rem;margin:0 0 .85rem;font-size:.8rem;color:var(--zinc-500)}
+.summary b{color:var(--zinc-100);font-weight:600}
+.summary .ok{color:var(--ok)}.summary .miss{color:var(--miss)}.summary .part{color:var(--part)}
+.bar{margin:.4rem 0 0;height:.4rem;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;max-width:12rem}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--ok));border-radius:999px}
 .alpha-bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}.count{font-size:.75rem;color:var(--zinc-500)}
 .letter-sec{margin-top:2rem}.letter-head{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}.letter-head h2{margin:0;font-size:1.125rem;color:var(--purple-300)}.rule{flex:1;height:1px;background:var(--border)}.letter-head .n{font-size:.75rem;color:var(--zinc-500)}
 .grid{display:grid;gap:.5rem}a.card{display:flex;align-items:center;gap:.75rem;padding:.75rem;border:1px solid var(--border);border-left:3px solid #c29438;border-radius:.5rem;background:linear-gradient(165deg,rgba(26,23,16,.95),var(--panel));text-decoration:none;color:inherit}
@@ -132,11 +137,14 @@ a.card:hover{border-color:rgba(240,199,97,.55);border-left-color:#ffe68c}.avatar
 	{
 		return R"JS(
 (function(){
-var CATS=["All","Weapon","Armor","Trinket","Back Item","Sigil","Rune"];
+var CATS=["All","Weapon","Armor","Trinket","Back Item","Relic","Sigil","Rune"];
+var GENS=["All","Gen 1","Gen 2","Gen 3","SotO","JW","VoE","Other"];
+var NEEDS=[{id:"All",lab:"All"},{id:"Need",lab:"Still need"},{id:"Partial",lab:"In progress"},{id:"Done",lab:"Done"}];
+var CAT_ORDER=["Weapon","Armor","Trinket","Back Item","Relic","Sigil","Rune"];
 var items=window.LEGENDARIES||[];
 var owned=window.ARMORY_OWNED||{};
 var hasKey=!!window.GW2IGH_HAS_KEY;
-var state={q:"",cat:"All",missingOnly:false};
+var state={q:"",cat:"All",gen:"All",need:"All"};
 var elList=document.getElementById("view-list");
 var elDetail=document.getElementById("view-detail");
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
@@ -166,14 +174,22 @@ function badgeHtml(st,it){
   if(st==="owned"){
     var t=ownTotals(it);
     var n=t.raw>0?t.raw:t.got;
-    return '<span class="badge owned">Owned ×'+n+"</span>";
+    return '<span class="badge owned">Done'+(t.slots>1?(" "+t.got+"/"+t.slots):"")+"</span>";
   }
-  if(st==="missing") return '<span class="badge missing">Missing</span>';
+  if(st==="missing") return '<span class="badge missing">Need</span>';
   if(st==="partial"){
     var t=ownTotals(it);
     return '<span class="badge partial">'+t.got+"/"+t.slots+"</span>";
   }
   return hasKey?'<span class="badge unknown">—</span>':'<span class="badge unknown">API</span>';
+}
+function barHtml(it){
+  if(!hasKey) return "";
+  var t=ownTotals(it);
+  if(!t.slots) return "";
+  var pct=Math.round(100*t.got/t.slots);
+  if(pct<0)pct=0;if(pct>100)pct=100;
+  return '<div class="bar"><i style="width:'+pct+'%"></i></div>';
 }
 function subLine(it){var p=[];if(it.item_type)p.push(it.item_type);else if(it.category)p.push(it.category);if(it.generation&&it.generation!=="Other")p.push(it.generation);return p.join(" · ");}
 function detailMeta(it){var p=[it.item_type,it.category];if(it.generation&&it.generation!=="Other")p.push(it.generation);return p.filter(Boolean).join(" · ");}
@@ -181,14 +197,22 @@ function filtered(){
   var q=state.q.trim().toLowerCase();
   return items.filter(function(it){
     if(state.cat!=="All"&&it.category!==state.cat)return false;
-    if(state.missingOnly&&ownStatus(it)!=="missing"&&ownStatus(it)!=="partial")return false;
+    if(state.gen!=="All"&&(it.generation||"Other")!==state.gen)return false;
+    var st=ownStatus(it);
+    if(state.need==="Need"&&st!=="missing"&&st!=="partial")return false;
+    if(state.need==="Done"&&st!=="owned")return false;
+    if(state.need==="Partial"&&st!=="partial")return false;
     if(!q)return true;
-    return (it.name||"").toLowerCase().indexOf(q)>=0||(it.item_type||"").toLowerCase().indexOf(q)>=0;
+    var hay=((it.name||"")+" "+(it.item_type||"")+" "+(it.generation||"")+" "+(it.notes||"")).toLowerCase();
+    return hay.indexOf(q)>=0;
   }).slice().sort(function(a,b){return a.name.localeCompare(b.name);});
 }
-function groupByLetter(list){
-  var map={};list.forEach(function(it){var L=((it.name||"#")[0]||"#").toUpperCase();(map[L]=map[L]||[]).push(it);});
-  return Object.keys(map).sort().map(function(L){return{letter:L,items:map[L]};});
+function groupByCat(list){
+  var map={};
+  list.forEach(function(it){var c=it.category||"Other";(map[c]=map[c]||[]).push(it);});
+  var keys=CAT_ORDER.filter(function(c){return map[c];});
+  Object.keys(map).forEach(function(c){if(keys.indexOf(c)<0)keys.push(c);});
+  return keys.map(function(c){return{letter:c,items:map[c]};});
 }
 function craftId(it){var ids=it.itemIds||[];return ids.length?ids[0]:0;}
 function avatarHtml(it,lg){
@@ -226,34 +250,53 @@ function pctBadge(it){
   if(p<0) return "";
   return '<span class="badge '+(p>=100?"owned":(p>0?"partial":"missing"))+'">'+p+"%</span>";
 }
+function tally(){
+  var d=0,n=0,p=0,u=0;
+  items.forEach(function(it){
+    var s=ownStatus(it);
+    if(s==="owned")d++; else if(s==="partial")p++; else if(s==="missing")n++; else u++;
+  });
+  return {d:d,n:n,p:p,u:u,t:items.length};
+}
+function chipRow(arr,key,cur){
+  return arr.map(function(c){
+    var id=typeof c==="string"?c:c.id;
+    var lab=typeof c==="string"?c:c.lab;
+    return '<button type="button" class="cat'+(id===cur?" active":"")+'" data-'+key+'="'+esc(id)+'">'+esc(lab)+"</button>";
+  }).join("");
+}
 function renderList(){
-  var groups=groupByLetter(filtered());
+  var groups=groupByCat(filtered());
   var total=groups.reduce(function(n,g){return n+g.items.length;},0);
-  var catsHtml=CATS.map(function(c){return '<button type="button" class="cat'+(c===state.cat?" active":"")+'" data-cat="'+esc(c)+'">'+esc(c)+"</button>";}).join("");
-  catsHtml+='<button type="button" class="cat'+(state.missingOnly?" active":"")+'" data-missing="1">Missing</button>';
-  var lettersHtml=groups.map(function(g){return '<button type="button" class="letter" data-jump="'+esc(g.letter)+'">'+esc(g.letter)+"</button>";}).join("");
+  var catsHtml=chipRow(CATS,"cat",state.cat);
+  var gensHtml=chipRow(GENS,"gen",state.gen);
+  var needsHtml=chipRow(NEEDS,"need",state.need);
+  var tl=tally();
+  var sum='<div class="summary"><span><b>'+tl.t+"</b> in catalog</span>";
+  if(hasKey) sum+='<span class="ok"><b>'+tl.d+"</b> done</span><span class="part"><b>'+tl.p+"</b> in progress</span><span class="miss"><b>'+tl.n+"</b> still need</span>";
+  sum+="</div>";
   var body;
   if(!items.length) body='<div class="empty">Catalog unavailable.</div>';
-  else if(total===0) body='<div class="empty">No legendaries match your search.</div>';
+  else if(total===0) body='<div class="empty">No legendaries match your filters.</div>';
   else{
-    body='<div class="alpha-bar"><div class="letters">'+lettersHtml+'</div><span class="count">'+total+" items</span></div><div class=\"space-y-8\">"+
+    body='<div class="alpha-bar"><span class="count">Showing '+total+"</span></div><div class=\"space-y-8\">"+
       groups.map(function(g){
-        return '<section class="letter-sec" id="letter-'+esc(g.letter)+'"><div class="letter-head"><h2>'+esc(g.letter)+'</h2><div class="rule"></div><span class="n">'+g.items.length+'</span></div><div class="grid">'+
+        return '<section class="letter-sec"><div class="letter-head"><h2>'+esc(g.letter)+'</h2><div class="rule"></div><span class="n">'+g.items.length+'</span></div><div class="grid">'+
           g.items.map(function(it){
             var st=ownStatus(it);
             var cid=craftId(it);
             var href=cid?('?gw2igh-leg-open='+cid):('#/legendary/'+encodeURIComponent(it.id));
-            return '<a class="card" href="'+href+'">'+avatarHtml(it,false)+'<div class="meta"><p class="name">'+esc(it.name)+'</p><p class="sub">'+esc(subLine(it))+'</p></div>'+pctBadge(it)+badgeHtml(st,it)+'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></a>';
+            return '<a class="card" href="'+href+'">'+avatarHtml(it,false)+'<div class="meta"><p class="name">'+esc(it.name)+'</p><p class="sub">'+esc(subLine(it))+'</p>'+barHtml(it)+'</div>'+pctBadge(it)+badgeHtml(st,it)+'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></a>';
           }).join("")+"</div></section>";
       }).join("")+"</div>";
   }
-  var keyNote=hasKey?'<p class="note">Owned / Missing refreshes when you open the Ledger. Open a legendary to auto-build its craft tree. <strong>Wiki</strong> and <strong>Open in Crafting</strong> are on each detail page.</p>':'<p class="note">Add a GW2 API key in Settings (unlocks + inventories) for Owned / Missing and craft have/need.</p>';
-  elList.innerHTML="<div><h1>The Complete GW2 Legendary Collection</h1></div>"+keyNote+'<div class="space-y-3"><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input class="search" id="q" type="search" placeholder="Search legendaries…" value="'+esc(state.q)+'"/></div><div class="cats">'+catsHtml+"</div></div>"+body;
+  var keyNote=hasKey?'<p class="note">Armory from your API key. Open a row for Wiki, craft tree, and Open in Crafting. JW / VoE / SotO are generation chips.</p>':'<p class="note">Add a GW2 API key in Settings (unlocks + inventories) for Done / Still need.</p>';
+  elList.innerHTML="<div><h1>Legendary Ledger</h1></div>"+sum+keyNote+'<div class="space-y-3"><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input class="search" id="q" type="search" placeholder="Search name, type, or expansion…" value="'+esc(state.q)+'"/></div><div class="cats">'+catsHtml+'</div><div class="gens cats">'+gensHtml+'</div><div class="needs cats">'+needsHtml+"</div></div>"+body;
   var q=document.getElementById("q");
   if(q){q.addEventListener("input",function(){state.q=q.value;renderList();var a=document.getElementById("q");if(a){a.focus();try{a.setSelectionRange(a.value.length,a.value.length);}catch(e){}}});}
-  elList.querySelectorAll("[data-cat]").forEach(function(btn){btn.addEventListener("click",function(){state.cat=btn.getAttribute("data-cat");state.missingOnly=false;renderList();});});
-  elList.querySelectorAll("[data-missing]").forEach(function(btn){btn.addEventListener("click",function(){state.missingOnly=!state.missingOnly;renderList();});});
-  elList.querySelectorAll("[data-jump]").forEach(function(btn){btn.addEventListener("click",function(){var t=document.getElementById("letter-"+btn.getAttribute("data-jump"));if(t)t.scrollIntoView({behavior:"smooth",block:"start"});});});
+  elList.querySelectorAll("[data-cat]").forEach(function(btn){btn.addEventListener("click",function(){state.cat=btn.getAttribute("data-cat");renderList();});});
+  elList.querySelectorAll("[data-gen]").forEach(function(btn){btn.addEventListener("click",function(){state.gen=btn.getAttribute("data-gen");renderList();});});
+  elList.querySelectorAll("[data-need]").forEach(function(btn){btn.addEventListener("click",function(){state.need=btn.getAttribute("data-need");renderList();});});
 }
 function renderDetail(id){
   var it=null;for(var i=0;i<items.length;i++){if(items[i].id===id){it=items[i];break;}}
@@ -372,7 +415,7 @@ std::string BuildLegendaryLedgerHtml(const std::wstring& addonDir, const char* a
 	html.reserve(catalog.size() + 24000);
 	html += "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/>"
 		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
-		"<title>The Complete GW2 Legendary Collection</title><style>";
+		"<title>Legendary Ledger</title><style>";
 	html += LedgerCss();
 	{
 		const std::wstring dir = AddonPaths::DataDir();
