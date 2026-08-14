@@ -111,7 +111,10 @@ namespace EventsData
 		{
 			char endClk[32]{};
 			FormatUtcClock(now + (t.untilEnd > 0 ? t.untilEnd : 0), endClk, sizeof(endClk));
-			std::snprintf(out, outLen, "LIVE until %s", endClk);
+			if (IsSpawnLive(e, t))
+				std::snprintf(out, outLen, "LIVE until %s", endClk);
+			else
+				std::snprintf(out, outLen, "Phase until %s", endClk);
 			return;
 		}
 		if (t.untilStart < 0)

@@ -363,26 +363,41 @@ namespace EventsPadDetail
 			r.tracked = Tracked(e.key);
 			r.claimed = EntryClaimed(e);
 			r.warn = r.tracked && !r.claimed &&
-				(r.timing.live ||
-					(r.timing.untilStart >= 0 && r.timing.untilStart <= kWarnWithinSec));
+				(EventsData::IsSpawnLive(e, r.timing) ||
+					(r.timing.untilStart >= 0 && r.timing.untilStart <= kWarnWithinSec) ||
+					(r.timing.live && r.timing.untilEnd >= 0 &&
+						r.timing.untilEnd <= kWarnWithinSec));
 
 			if (gTrackedOnly && !r.tracked)
 				continue;
 			if (gSoonOnly)
 			{
-				const bool soon = r.timing.live ||
-					(r.timing.untilStart >= 0 && r.timing.untilStart <= kSoonFilterSec);
+				const bool soon = EventsData::IsSpawnLive(e, r.timing) ||
+					(r.timing.untilStart >= 0 && r.timing.untilStart <= kSoonFilterSec) ||
+					(r.timing.live && r.timing.untilEnd >= 0 &&
+						r.timing.untilEnd <= kSoonFilterSec);
 				if (!soon) continue;
 			}
 			rows.push_back(r);
 		}
 
 		std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
+			size_t n = 0;
+			const EventsData::Entry* all = EventsData::All(&n);
+			const EventsData::Entry& ea = all[static_cast<size_t>(a.index)];
+			const EventsData::Entry& eb = all[static_cast<size_t>(b.index)];
+			const bool aSpawn = EventsData::IsSpawnLive(ea, a.timing);
+			const bool bSpawn = EventsData::IsSpawnLive(eb, b.timing);
 			if (a.tracked != b.tracked) return a.tracked > b.tracked;
+			if (aSpawn != bSpawn) return aSpawn > bSpawn;
 			if (a.warn != b.warn) return a.warn > b.warn;
-			if (a.timing.live != b.timing.live) return a.timing.live > b.timing.live;
-			const int as = a.timing.live ? a.timing.untilEnd : a.timing.untilStart;
-			const int bs = b.timing.live ? b.timing.untilEnd : b.timing.untilStart;
+			const bool aLong = a.timing.live && !aSpawn;
+			const bool bLong = b.timing.live && !bSpawn;
+			if (aLong != bLong) return !aLong && bLong;
+			const int as = aSpawn ? a.timing.untilEnd
+				: (aLong ? a.timing.untilEnd : a.timing.untilStart);
+			const int bs = bSpawn ? b.timing.untilEnd
+				: (bLong ? b.timing.untilEnd : b.timing.untilStart);
 			if (as < 0) return false;
 			if (bs < 0) return true;
 			return as < bs;
