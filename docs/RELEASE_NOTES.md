@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.7
+# GW2 In-Game Helper v2.2.4.8
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,17 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.8
+
+- **Legendary Ledger:** Janthir Wilds and Visions of Eternity legendaries are in
+  the catalog (Klobjarne Geirr, Orrax Manifested, Aetheric Anchor / Ancora,
+  Selachimorpha, Endless Summer, Stella Radians, Strife Unending), plus SotO
+  Eikasia gloves and Legendary Relic. Envoy and Triumphant Hero PvP armor are
+  one set card each. List groups by type with Done / Still need / In progress,
+  generation chips (Gen 1–3, SotO, JW, VoE), remaining counts, and progress bars.
+- **Stamps:** Helper `2242` · homepage `2234` · sites `s2215` · cheatsheets `c2228`
+  · live panel `70` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.7
 
