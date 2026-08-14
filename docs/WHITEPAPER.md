@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.4.6 |
+| Revision described | 2.2.4.7 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.4.7 | 2.2.4.7 | Stash/Crafting pads; Achievements layout; Vault remaining; rail order |
 | 2.2.4.6 | 2.2.4.6 | Ledger + Trail Tools standalone; Achievements rail; helper 2242; live 69 |
 | 2.2.4.5 | 2.2.4.5 | Events LIVE ≤45m + 10/5m toasts; dense pads; Discord named credit; live 69 |
 | 2.2.4.4 | 2.2.4.4 | Wine TLS harden (call_tls_callbacks -1); CrashTrail/Watch module splits; fault CONTEXT stacks |
@@ -755,7 +756,7 @@ Schema-v2 `data/sites.json` (~2718 entries) embeds and extracts to runtime `site
 
 ### 17.6 Companions and overlays
 
-**Economy** and **Instances** are read-only side-rail companions (commerce Flip Finder / charts / cart; story/fractal/raid/strike journal). **Completion** provides hierarchical map-completion checklist / Atlas / routes that set Pathing’s orange **search guide** only; auto-arrive uses Mumble proximity. The Achievements tab Account pane reads official `/v2/achievements` groups plus `/v2/account/achievements` (not a third-party layout). **Farming** stores curated run checklists and a fishing catch log with optional Pathing handoff. Persist under `config/` (`completion-checklist.txt`, `completion-favorites.txt`, `farming-state.txt`).
+**Economy** and **Instances** are read-only side-rail companions (commerce Flip Finder / charts / cart; story/fractal/raid/strike journal). **Stash** and **Crafting** are their own rails (wallet/bank/bags; plan / known / browse / cart). **Completion** provides hierarchical map-completion checklist / Atlas / routes that set Pathing’s orange **search guide** only; auto-arrive uses Mumble proximity. **Achievements** is a separate pad that reads official `/v2/achievements` groups plus `/v2/account/achievements` (not a third-party layout). **Farming** stores curated run checklists and a fishing catch log with optional Pathing handoff. Persist under `config/` (`completion-checklist.txt`, `completion-favorites.txt`, `farming-state.txt`).
 
 **Overlays:** `GpsArrow` (floating arrow toward the active search guide) and `ZoneBanner` (short map-change toast) live in `src/overlay/` — ImGui display only.
 
@@ -1012,6 +1013,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.4.6 — Ledger + Trail Tools standalone; Achievements rail; helper 2242; live 69; home 2234; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.2.4.7 — Stash/Crafting/Achievements pads; Vault remaining UI; rail order; helper 2242; live 69; home 2234; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

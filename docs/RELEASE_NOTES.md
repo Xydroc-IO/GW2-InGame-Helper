@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.6
+# GW2 In-Game Helper v2.2.4.7
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,24 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.7
+
+- **Side rail:** Achievements, Stash, and Crafting are their own pads (not
+  Completion / Economy tabs). Pathing sits under Compass; Stash sits above
+  Account. Crafting uses the skeleton-key icon (not Settings gear). Default
+  Crafting bind Ctrl+Shift+K.
+- **Achievements:** Wider category/list split, bit grid/list that does not
+  staircase, and count-tier objectives (e.g. Beachcombing) show named tiers
+  when ANet does not list bits.
+- **Stash:** Currency/material rows stay left-aligned instead of cascading.
+  Parallel inventory fetch is unchanged.
+- **Vault:** Remaining counts, Daily/Weekly/Special filters, Hide done,
+  incomplete-first lists, chips + labeled progress bars.
+- **Wine:** Adding Crafting to PanelBinds without a serialize key hung helper
+  open; `kSlotKeys` includes `crafting`.
+- **Stamps:** Helper `2242` · homepage `2234` · sites `s2215` · cheatsheets `c2228`
+  · live panel `69` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.6
 

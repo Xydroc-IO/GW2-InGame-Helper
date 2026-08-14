@@ -5,7 +5,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.4.6` |
+| Addon revision (shipping) | `2.2.4.7` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2242` / `2234` / `s2215` / `c2228` |
@@ -275,5 +275,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.4.6 — Ledger + Trail Tools standalone; Achievements rail; helper 2242; live 69; home 2234 |
+| Last architecture sync | 2.2.4.7 — Stash/Crafting/Achievements pads; Vault remaining UI; rail order; helper 2242; live 69; home 2234 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

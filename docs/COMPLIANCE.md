@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.2.4.6** — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.2.4.7** — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 This file is **normative** (allowed / forbidden). Analysis belongs in the whitepaper.
 
@@ -17,7 +17,7 @@ This file is **normative** (allowed / forbidden). Analysis belongs in the whitep
 - DLL WinHTTP reads to `api.guildwars2.com`, `guildwars2.com` news feed, and wiki MediaWiki API for **Live** Browse panels and ImGui pads (read-only; optional account API key stored only in local `settings.ini`)
 - DLL WinHTTP reads to **killproof.me** (`/api/kp/…`) for the DPS Logs **KillProof** tab — public profiles only; no killproof.me login; results cached in-memory
 - Local Notes pad (`notes.json` under the addon folder) with clipboard copy helpers — no game injection
-- **Completion** / **Farming** companion pads — local checklist / favorites / fishing log under `config/`; Pathing search-guide handoff only (no memory scraping); Completion Achievements Account pane is read-only official API
+- **Completion** / **Farming** companion pads — local checklist / favorites / fishing log under `config/`; Pathing search-guide handoff only (no memory scraping); Achievements pad is read-only official API
 - **PanelBinds** — addon-owned panel chords in Settings → Keybinds (`GetAsyncKeyState` poll); helper open stays Nexus (`Ctrl+Shift+H` / QuickAccess)
 - Item Lookup pad (public `/v2/items` + wiki search), Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories), and Vault pad (Wizard’s Vault / dailies — same Live panel API) — read-only; item name cache in `stash-names.cache`
 - Tekkit’s All-In-One `.taco` (© Tekkit's Workshop, used with permission), Lady Elyssa Guides / Achievements packs, Hero's Marker Pack (QuitarHero), and HasKha Markers ([gw2-markers](https://github.com/HasKha/gw2-markers), MIT) — curated downloads into `pathing/` for local display; user `.taco` files kept

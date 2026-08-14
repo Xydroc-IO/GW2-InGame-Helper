@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.4.6` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.4.7` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
@@ -36,17 +36,19 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
 | News Digest (built-in) | Help |
-| Account (side-rail **Account** — unlocks, inventory, history, stash, vault, TP, crafting, progress) | ImGui |
+| Account (side-rail **Account** — unlocks, inventory, history, progress) | ImGui |
 | TP Watchlist (Account / pad) | ImGui |
 | Item Lookup (Account / pad) | ImGui |
-| Wallet & Stash (Account / pad) | ImGui |
-| Vault (Account / pad) | ImGui |
+| Stash (side-rail **Stash**) | Wallet, materials, bank, shared, bags |
+| Vault (side-rail **Vault**) | Wizard's Vault / dailies |
+| Crafting (side-rail **Crafting**) | Plan, known recipes, browse, craft cart |
 | DPS Logs (side-rail **DPS Logs**) | ImGui |
 | World Events (side-rail **Events**) | ImGui |
 | Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
 | Economy (side-rail **Companions**) | Flip Finder, local price charts, crafting cart (read-only official API) |
 | Instances (side-rail **Companions**) | Story / fractal / raid / strike checklist journal |
-| Completion (side-rail **Companions**) | Checklist + Atlas + GPS; Achievements tab browses official account AP groups |
+| Completion (side-rail **Companions**) | Checklist + Atlas + Route GPS |
+| Achievements (side-rail **Achievements**) | Official account AP groups |
 | Farming (side-rail **Companions**) | Curated + custom farm runs, GPS live nodes, fishing catch log |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
