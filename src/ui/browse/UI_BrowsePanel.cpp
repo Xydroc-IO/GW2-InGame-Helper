@@ -195,8 +195,25 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	ImGui::TextUnformatted("Created By Xydroc");
 	ImGui::PopStyleColor();
 	ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
-	ImGui::TextWrapped("Report any issues here - "
-		"https://discord.com/channels/410828272679518241/1531031243196727407");
+	ImGui::TextUnformatted("Report any issues here - Discord -");
+	ImGui::SameLine(0.0f, 4.0f);
+	ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
+	ImGui::TextUnformatted("Raidcore");
+	ImGui::PopStyleColor();
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		if (ImGui::IsMouseClicked(0))
+		{
+			ShellExecuteA(nullptr, "open", "https://discord.gg/kA8PvbuymS",
+				nullptr, nullptr, SW_SHOWNORMAL);
+		}
+	}
+	ImGui::SameLine(0.0f, 4.0f);
+	ImGui::TextUnformatted("- Channel -");
+	ImGui::SameLine(0.0f, 4.0f);
+	ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
+	ImGui::TextUnformatted("GW2-InGame-Helper");
 	ImGui::PopStyleColor();
 	if (ImGui::IsItemHovered())
 	{
@@ -208,6 +225,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 				nullptr, nullptr, SW_SHOWNORMAL);
 		}
 	}
+	ImGui::PopStyleColor();
 }
 
 } // namespace UIBrowseDetail

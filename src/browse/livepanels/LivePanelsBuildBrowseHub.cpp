@@ -144,10 +144,12 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 	html += "<p class=\"foot\">Cheat Sheets have their own side-rail button. "
 		"Tab bar <strong>+</strong> still opens the quick picker.</p>"
 		"<p class=\"credit\">Created By Xydroc</p>"
-		"<p class=\"credit-issue\">Report any issues here — "
+		"<p class=\"credit-issue\">Report any issues here — Discord — "
+		"<a href=\"?gw2igh-newtab=https%3A%2F%2Fdiscord.gg%2FkA8PvbuymS\">"
+		"Raidcore</a> — Channel — "
 		"<a href=\"?gw2igh-newtab=https%3A%2F%2Fdiscord.com%2Fchannels%2F"
 		"410828272679518241%2F1531031243196727407\">"
-		"https://discord.com/channels/410828272679518241/1531031243196727407</a></p>"
+		"GW2-InGame-Helper</a></p>"
 		"</div><script>";
 	html += HubJs();
 	html += "</script>";
