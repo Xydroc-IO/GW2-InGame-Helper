@@ -64,8 +64,10 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowEvents=0\n");
 	std::fprintf(f, "ShowLogManager=0\n");
 	std::fprintf(f, "ShowEconomy=0\n");
+	std::fprintf(f, "ShowCrafting=0\n");
 	std::fprintf(f, "ShowInstances=0\n");
 	std::fprintf(f, "ShowCompletion=0\n");
+	std::fprintf(f, "ShowAchievements=0\n");
 	std::fprintf(f, "ShowFarming=0\n");
 	std::fprintf(f, "ShowPathingGuides=0\n");
 	std::fprintf(f, "PanelBinds=%s\n", PanelBinds::Serialize().c_str());
@@ -140,8 +142,10 @@ void Settings::Save(bool force)
 	PadDock::WriteGeom(f, "PadWallet", G::PadWallet);
 	PadDock::WriteGeom(f, "PadVault", G::PadVault);
 	PadDock::WriteGeom(f, "PadEconomy", G::PadEconomy);
+	PadDock::WriteGeom(f, "PadCrafting", G::PadCrafting);
 	PadDock::WriteGeom(f, "PadInstances", G::PadInstances);
 	PadDock::WriteGeom(f, "PadCompletion", G::PadCompletion);
+	PadDock::WriteGeom(f, "PadAchievements", G::PadAchievements);
 	PadDock::WriteGeom(f, "PadFarming", G::PadFarming);
 	PadDock::WriteGeom(f, "PadEventAlert", G::PadEventAlert);
 	char favBuf[4096]{};

@@ -7,6 +7,7 @@
 #include "Gw2Http.h"
 #include "Settings.h"
 
+#include <algorithm>
 #include <atomic>
 #include <cstdio>
 #include <cstring>
@@ -22,6 +23,7 @@ namespace WalletDetail
 	struct AccPack
 	{
 		std::unordered_map<int, Entry> map;
+		std::vector<SlotSection> sections;
 		std::mutex mu;
 		std::string note;
 		bool walletOk = false;
@@ -37,9 +39,33 @@ namespace WalletDetail
 		std::atomic<int> bagsFail{0};
 		std::atomic<int> done{0}; /* inv+eq attempts finished (ok or fail) */
 		std::unordered_map<int, Entry> map;
+		std::vector<SlotSection> sections;
 		std::mutex mu;
 		const char* key = nullptr;
 	};
+
+	void SortSections(std::vector<SlotSection>& secs)
+	{
+		std::stable_sort(secs.begin(), secs.end(),
+			[](const SlotSection& a, const SlotSection& b) {
+				return a.kind < b.kind;
+			});
+	}
+
+	void CopySections(AccPack& acc, CharJob* job, std::vector<SlotSection>& out)
+	{
+		out.clear();
+		{
+			std::lock_guard<std::mutex> lock(acc.mu);
+			out = acc.sections;
+		}
+		if (job)
+		{
+			std::lock_guard<std::mutex> lock(job->mu);
+			out.insert(out.end(), job->sections.begin(), job->sections.end());
+		}
+		SortSections(out);
+	}
 
 	struct CharHttpPair
 	{
@@ -99,6 +125,8 @@ namespace WalletDetail
 			job->bagsOk.fetch_add(1);
 			QtyMap qty;
 			CollectSlots(dual.inv.body, qty);
+			std::vector<SlotSection> bags;
+			CollectCharBagSections(dual.inv.body, name, bags);
 
 			if (dual.eq.ok)
 			{
@@ -120,13 +148,17 @@ namespace WalletDetail
 				}
 			}
 
-			if (!qty.empty())
 			{
-				std::unordered_map<int, Entry> local;
-				for (const auto& kv : qty)
-					MergeLoc(local, kv.first, false, Loc_Character, name, kv.second);
 				std::lock_guard<std::mutex> lock(job->mu);
-				MergeMap(job->map, local);
+				if (!qty.empty())
+				{
+					std::unordered_map<int, Entry> local;
+					for (const auto& kv : qty)
+						MergeLoc(local, kv.first, false, Loc_Character, name, kv.second);
+					MergeMap(job->map, local);
+				}
+				if (!bags.empty())
+					job->sections.insert(job->sections.end(), bags.begin(), bags.end());
 			}
 			job->done.fetch_add(1);
 		}
@@ -192,8 +224,49 @@ namespace WalletDetail
 					static_cast<int>(count));
 			pos = end + 1;
 		}
+		std::string catBody;
+		{
+			auto list = Gw2Http::Api("/v2/materials", nullptr, kHttpTimeoutMs);
+			std::vector<int> ids;
+			if (list.ok)
+			{
+				size_t i = 0;
+				while (i < list.body.size())
+				{
+					if (list.body[i] < '0' || list.body[i] > '9')
+					{
+						++i;
+						continue;
+					}
+					int id = 0;
+					while (i < list.body.size() && list.body[i] >= '0' && list.body[i] <= '9')
+					{
+						id = id * 10 + (list.body[i] - '0');
+						++i;
+					}
+					if (id > 0)
+						ids.push_back(id);
+				}
+			}
+			if (!ids.empty())
+			{
+				std::string path = "/v2/materials?ids=";
+				for (size_t j = 0; j < ids.size(); ++j)
+				{
+					if (j)
+						path += ',';
+					path += std::to_string(ids[j]);
+				}
+				auto cats = Gw2Http::Api(path.c_str(), nullptr, kHttpTimeoutMs);
+				if (cats.ok)
+					catBody = std::move(cats.body);
+			}
+		}
+		std::vector<SlotSection> secs;
+		CollectMaterialSections(r.body, catBody, secs);
 		std::lock_guard<std::mutex> lock(a->mu);
 		MergeMap(a->map, local);
+		a->sections.insert(a->sections.end(), secs.begin(), secs.end());
 		return 0;
 	}
 
@@ -207,8 +280,11 @@ namespace WalletDetail
 		std::unordered_map<int, Entry> local;
 		for (const auto& kv : qty)
 			MergeLoc(local, kv.first, false, Loc_Bank, "Bank", kv.second);
+		std::vector<SlotSection> secs;
+		CollectBankTabs(r.body, secs);
 		std::lock_guard<std::mutex> lock(a->mu);
 		MergeMap(a->map, local);
+		a->sections.insert(a->sections.end(), secs.begin(), secs.end());
 		return 0;
 	}
 
@@ -222,8 +298,11 @@ namespace WalletDetail
 		std::unordered_map<int, Entry> local;
 		for (const auto& kv : qty)
 			MergeLoc(local, kv.first, false, Loc_Shared, "Shared", kv.second);
+		std::vector<SlotSection> secs;
+		CollectSharedSlots(r.body, secs);
 		std::lock_guard<std::mutex> lock(a->mu);
 		MergeMap(a->map, local);
+		a->sections.insert(a->sections.end(), secs.begin(), secs.end());
 		return 0;
 	}
 
@@ -275,9 +354,17 @@ namespace WalletDetail
 
 		/* Fast first paint: account stash only. */
 		{
-			std::lock_guard<std::mutex> lock(acc.mu);
-			ResolveMissingNames(acc.map, G::Gw2ApiKey);
-			Publish(acc.map, "Account stash ready - loading characters...", 0, 0, true, true);
+			std::unordered_map<int, Entry> view;
+			std::vector<SlotSection> secs;
+			{
+				std::lock_guard<std::mutex> lock(acc.mu);
+				view = acc.map;
+				secs = acc.sections;
+			}
+			SortSections(secs);
+			ResolveMissingNames(view, G::Gw2ApiKey);
+			Publish(view, "Account stash ready - loading characters...", 0, 0, true, true,
+				&secs);
 		}
 
 		if (gCancel)
@@ -327,12 +414,14 @@ namespace WalletDetail
 					if (finished || (done > 0 && (done % 4) == 0))
 						ResolveMissingNames(view, G::Gw2ApiKey);
 					const int bagsOk = job.bagsOk.load();
+					std::vector<SlotSection> secs;
+					CopySections(acc, &job, secs);
 					char st[200];
 					if (!finished)
 					{
 						std::snprintf(st, sizeof(st),
 							"Loading characters %d/%d...", done, nChars);
-						Publish(view, st, nChars, bagsOk, true, true);
+						Publish(view, st, nChars, bagsOk, true, true, &secs);
 					}
 				}
 				if (finished)
@@ -349,50 +438,67 @@ namespace WalletDetail
 				}
 			}
 
-			std::lock_guard<std::mutex> lock(acc.mu);
-			std::lock_guard<std::mutex> lock2(job.mu);
-			MergeMap(acc.map, job.map);
-			ResolveMissingNames(acc.map, G::Gw2ApiKey);
+			std::unordered_map<int, Entry> view;
+			std::vector<SlotSection> secs;
+			std::string note;
+			int nNames = 0;
+			int bagItems = 0;
+			{
+				std::lock_guard<std::mutex> lock(acc.mu);
+				std::lock_guard<std::mutex> lock2(job.mu);
+				MergeMap(acc.map, job.map);
+				acc.sections.insert(acc.sections.end(), job.sections.begin(), job.sections.end());
+				view = acc.map;
+				secs = acc.sections;
+				note = acc.note;
+				nNames = static_cast<int>(job.names.size());
+				bagItems = static_cast<int>(job.map.size());
+			}
+			SortSections(secs);
+			ResolveMissingNames(view, G::Gw2ApiKey);
 			char st[240];
 			const int bagsOk = job.bagsOk.load();
 			const int bagsFail = job.bagsFail.load();
-			const int bagItems = static_cast<int>(job.map.size());
 			if (bagsFail > 0 && bagsOk == 0)
 			{
 				std::snprintf(st, sizeof(st),
 					"%d unique | %d toons listed, 0 bags loaded (need characters + inventories?). %s",
-					static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
-					acc.note.c_str());
+					static_cast<int>(view.size()), nNames, note.c_str());
 			}
 			else if (bagsOk > 0 && bagItems == 0)
 			{
 				std::snprintf(st, sizeof(st),
 					"%d unique | %d/%d bag HTTP ok, 0 items parsed. %s",
-					static_cast<int>(acc.map.size()), bagsOk,
-					static_cast<int>(job.names.size()), acc.note.c_str());
+					static_cast<int>(view.size()), bagsOk, nNames, note.c_str());
 			}
 			else if (bagsFail > 0)
 			{
 				std::snprintf(st, sizeof(st),
 					"%d unique | %d/%d toon bags (%d failed, %d char items). %s",
-					static_cast<int>(acc.map.size()), bagsOk,
-					static_cast<int>(job.names.size()), bagsFail, bagItems, acc.note.c_str());
+					static_cast<int>(view.size()), bagsOk, nNames, bagsFail, bagItems,
+					note.c_str());
 			}
 			else
 			{
 				std::snprintf(st, sizeof(st), "%d unique | %d toons | %d on characters. %s",
-					static_cast<int>(acc.map.size()), static_cast<int>(job.names.size()),
-					bagItems, acc.note.c_str());
+					static_cast<int>(view.size()), nNames, bagItems, note.c_str());
 			}
-			Publish(acc.map, st, static_cast<int>(job.names.size()), bagsOk, true, false);
+			Publish(view, st, nNames, bagsOk, true, false, &secs);
 		}
 		else
 		{
-			std::lock_guard<std::mutex> lock(acc.mu);
+			std::unordered_map<int, Entry> view;
+			std::vector<SlotSection> secs;
 			std::string st = "Account stash loaded.";
+			{
+				std::lock_guard<std::mutex> lock(acc.mu);
+				view = acc.map;
+				secs = acc.sections;
+			}
 			if (chars.status == 401 || chars.status == 403)
 				st += " Enable characters scope for per-toon bags.";
-			Publish(acc.map, st.c_str(), 0, 0, true, false);
+			SortSections(secs);
+			Publish(view, st.c_str(), 0, 0, true, false, &secs);
 		}
 
 		gBusy = false;

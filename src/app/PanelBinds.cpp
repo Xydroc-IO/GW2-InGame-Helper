@@ -2,6 +2,7 @@
 
 #include "AccountPad.h"
 #include "CompletionPad.h"
+#include "CraftingPad.h"
 #include "DirectionCompass.h"
 #include "EconomyPad.h"
 #include "EventsPad.h"
@@ -104,15 +105,8 @@ namespace
 		case Slot::Events: CloseOrOpen(G::ShowEvents, &EventsPad::OpenAndRefresh, "Events"); break;
 		case Slot::Notes: CloseOrOpen(G::ShowNotes, &NotesPad::Open, "Notes"); break;
 		case Slot::Completion: CloseOrOpen(G::ShowCompletion, &CompletionPad::OpenAndRefresh, "Completion"); break;
-		case Slot::Achievements:
-			if (CompletionPad::ShowingAchievements())
-			{
-				G::ShowCompletion = false;
-				Settings::SetDirty();
-			}
-			else
-				WinePadOpen::SoftOpen(&CompletionPad::OpenAchievements, "Achievements");
-			break;
+		case Slot::Achievements: CloseOrOpen(G::ShowAchievements, &CompletionPad::OpenAchievements, "Achievements"); break;
+		case Slot::Crafting: CloseOrOpen(G::ShowCrafting, &CraftingPad::OpenAndRefresh, "Crafting"); break;
 		case Slot::Farming: CloseOrOpen(G::ShowFarming, &FarmingPad::OpenAndRefresh, "Farming"); break;
 		case Slot::Economy: CloseOrOpen(G::ShowEconomy, &EconomyPad::OpenAndRefresh, "Economy"); break;
 		case Slot::Instances: CloseOrOpen(G::ShowInstances, &InstancesPad::OpenAndRefresh, "Instances"); break;
@@ -122,7 +116,7 @@ namespace
 			WatchPad::ToggleControl();
 			break;
 		case Slot::SettingsPad: CloseOrOpen(G::ShowSettings, &SettingsPad::Open, "Settings"); break;
-		case Slot::Wallet: CloseOrOpen(G::ShowWallet, &WalletPad::OpenAndRefresh, "Wallet"); break;
+		case Slot::Wallet: CloseOrOpen(G::ShowWallet, &WalletPad::OpenAndRefresh, "Stash"); break;
 		case Slot::Vault: CloseOrOpen(G::ShowVault, &VaultPad::OpenAndRefresh, "Vault"); break;
 		case Slot::TpWatch: CloseOrOpen(G::ShowTpWatch, &TpWatchPad::OpenAndRefresh, "TP Watch"); break;
 		case Slot::Lookup: CloseOrOpen(G::ShowLookup, &LookupPad::OpenAndLookup, "Lookup"); break;
@@ -177,7 +171,8 @@ namespace
 	const char* kSlotKeys[Count] = {
 		"account", "pathing", "events", "notes", "completion", "farming",
 		"economy", "instances", "logs", "compass", "settings",
-		"wallet", "vault", "tpwatch", "lookup", "marker", "watch", "achievements"
+		"wallet", "vault", "tpwatch", "lookup", "marker", "watch", "achievements",
+		"crafting"
 	};
 	static_assert(sizeof(kSlotKeys) / sizeof(kSlotKeys[0]) == static_cast<size_t>(Count),
 		"kSlotKeys must match PanelBinds::Count");
@@ -213,12 +208,13 @@ const char* PanelBinds::SlotLabel(Slot s)
 	case Slot::Compass: return "Compass";
 	case Slot::Watch: return "Watch";
 	case Slot::SettingsPad: return "Settings";
-	case Slot::Wallet: return "Wallet";
+	case Slot::Wallet: return "Stash";
 	case Slot::Vault: return "Vault";
 	case Slot::TpWatch: return "TP Watch";
 	case Slot::Lookup: return "Lookup";
 	case Slot::Marker: return "Marker interact";
 	case Slot::Achievements: return "Achievements";
+	case Slot::Crafting: return "Crafting";
 	default: return "?";
 	}
 }
@@ -311,6 +307,7 @@ void PanelBinds::SetDefaults()
 	ParseChord("CTRL+SHIFT+J", gState.chords[Lookup]);
 	ParseChord("CTRL+SHIFT+F", gState.chords[Marker]);
 	ParseChord("CTRL+SHIFT+Q", gState.chords[Achievements]);
+	ParseChord("CTRL+SHIFT+K", gState.chords[Crafting]);
 	gDefaultsApplied = true;
 }
 

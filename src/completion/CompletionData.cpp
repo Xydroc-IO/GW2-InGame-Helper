@@ -19,6 +19,8 @@ namespace CompletionDetail
 {
 	bool gFocus = false;
 	bool gPlaceOnce = false;
+	bool gAchFocus = false;
+	bool gAchPlaceOnce = false;
 	int  gDeferHeavy = 0;
 	int gTab = 0;
 	bool gTabSelectOnce = false;

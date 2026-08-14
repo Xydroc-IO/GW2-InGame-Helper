@@ -89,5 +89,7 @@ namespace VaultDetail
 	/* VaultPad.cpp */
 	void DrawResetCountdowns();
 	void SyncDraw();
-	void DrawObjList(const char* label, const std::vector<Obj>& list);
+	int CountDone(const std::vector<Obj>& list);
+	int CountLeft(const std::vector<Obj>& list);
+	void DrawObjList(const char* label, const char* id, const std::vector<Obj>& list);
 }

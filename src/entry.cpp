@@ -45,8 +45,10 @@ namespace G
 	bool  ShowEvents   = false;
 	bool  ShowLogManager = false;
 	bool  ShowEconomy = false;
+	bool  ShowCrafting = false;
 	bool  ShowInstances = false;
 	bool  ShowCompletion = false;
+	bool  ShowAchievements = false;
 	bool  ShowFarming = false;
 	bool  ShowPathingGuides = false;
 	bool  ShowPathingTrails = true;
@@ -127,8 +129,10 @@ namespace G
 	PadGeom PadWallet{};
 	PadGeom PadVault{};
 	PadGeom PadEconomy{};
+	PadGeom PadCrafting{};
 	PadGeom PadInstances{};
 	PadGeom PadCompletion{};
+	PadGeom PadAchievements{};
 	PadGeom PadFarming{};
 	PadGeom PadEventAlert{};
 }

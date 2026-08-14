@@ -6,6 +6,7 @@
 #include "AddonPaths.h"
 #include "BrowserTabs.h"
 #include "CompletionPad.h"
+#include "CraftingPad.h"
 #include "DirectionCompass.h"
 #include "EconomyPad.h"
 #include "EventsPad.h"
@@ -22,6 +23,7 @@
 #include "Settings.h"
 #include "SettingsPad.h"
 #include "VaultPad.h"
+#include "WalletPad.h"
 #include "WatchCapture.h"
 #include "WatchPad.h"
 #include "WikiBrowser.h"
@@ -271,6 +273,17 @@ namespace UIDetail
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+O (Settings -> Keybinds)");
 
+		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides, static_cast<int>(Gw2Ui::Icon::PathingMap), iconSz))
+		{
+			if (G::ShowPathingGuides) { G::ShowPathingGuides = false; Settings::SetDirty(); }
+			else WinePadOpen::SoftOpen(&PathingGuidesPad::Open, "Pathing");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Pathing - Tekkit + Lady Elyssa + Hero packs\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+G (Settings -> Keybinds)");
+
 		if (PadNav::SideToggle("Vault###gw2igh_vault", G::ShowVault, static_cast<int>(Gw2Ui::Icon::VaultStar), iconSz))
 		{
 			if (G::ShowVault) { G::ShowVault = false; Settings::SetDirty(); }
@@ -311,9 +324,20 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
-				"Economy - Flip Finder, charts, cart\n"
+				"Economy - Flip Finder, charts, cart, trading\n"
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+Y (Settings -> Keybinds)");
+
+		if (PadNav::SideToggle("Crafting###gw2igh_crafting", G::ShowCrafting, static_cast<int>(Gw2Ui::Icon::Key), iconSz))
+		{
+			if (G::ShowCrafting) { G::ShowCrafting = false; Settings::SetDirty(); }
+			else WinePadOpen::SoftOpen(&CraftingPad::OpenAndRefresh, "Crafting");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Crafting - plan, known recipes, browse, craft cart\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+K (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Farming###gw2igh_farming", G::ShowFarming, static_cast<int>(Gw2Ui::Icon::FarmSack), iconSz))
 		{
@@ -326,30 +350,12 @@ namespace UIDetail
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+R (Settings -> Keybinds)");
 
-		if (PadNav::SideToggle("Pathing###gw2igh_pathing", G::ShowPathingGuides, static_cast<int>(Gw2Ui::Icon::PathingMap), iconSz))
-		{
-			if (G::ShowPathingGuides) { G::ShowPathingGuides = false; Settings::SetDirty(); }
-			else WinePadOpen::SoftOpen(&PathingGuidesPad::Open, "Pathing");
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(
-				"Pathing - Tekkit + Lady Elyssa + Hero packs\n"
-				"Wine: soft-open (deferred a few frames)\n"
-				"Default: Ctrl+Shift+G (Settings -> Keybinds)");
-
 		if (PadNav::SideToggle("Completion###gw2igh_completion",
-			G::ShowCompletion && !CompletionPad::ShowingAchievements(),
+			G::ShowCompletion,
 			static_cast<int>(Gw2Ui::Icon::CompletePeak), iconSz))
 		{
-			if (G::ShowCompletion && !CompletionPad::ShowingAchievements())
-			{
-				G::ShowCompletion = false;
-				Settings::SetDirty();
-			}
-			else if (G::ShowCompletion)
-				CompletionPad::ShowChecklistTab();
-			else
-				WinePadOpen::SoftOpen(&CompletionPad::OpenAndRefresh, "Completion");
+			if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
+			else WinePadOpen::SoftOpen(&CompletionPad::OpenAndRefresh, "Completion");
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
@@ -358,16 +364,11 @@ namespace UIDetail
 				"Default: Ctrl+Shift+M (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Achievements###gw2igh_achievements",
-			CompletionPad::ShowingAchievements(),
+			G::ShowAchievements,
 			static_cast<int>(Gw2Ui::Icon::Achievements), iconSz))
 		{
-			if (CompletionPad::ShowingAchievements())
-			{
-				G::ShowCompletion = false;
-				Settings::SetDirty();
-			}
-			else
-				WinePadOpen::SoftOpen(&CompletionPad::OpenAchievements, "Achievements");
+			if (G::ShowAchievements) { G::ShowAchievements = false; Settings::SetDirty(); }
+			else WinePadOpen::SoftOpen(&CompletionPad::OpenAchievements, "Achievements");
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
@@ -396,6 +397,17 @@ namespace UIDetail
 				"DPS Logs - ArcDPS EVTC via Elite Insights\n"
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+L (Settings -> Keybinds)");
+
+		if (PadNav::SideToggle("Stash###gw2igh_stash", G::ShowWallet, static_cast<int>(Gw2Ui::Icon::Inventory), iconSz))
+		{
+			if (G::ShowWallet) { G::ShowWallet = false; Settings::SetDirty(); }
+			else WinePadOpen::SoftOpen(&WalletPad::OpenAndRefresh, "Stash");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Stash - wallet, materials, bank, shared, bags\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+U (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Account###gw2igh_account", G::ShowAccount, static_cast<int>(Gw2Ui::Icon::AccountSword), iconSz))
 		{

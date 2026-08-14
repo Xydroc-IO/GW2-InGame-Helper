@@ -103,7 +103,7 @@ void WalletPad::RenderContents()
 	SyncDrawCopy();
 	const Snapshot& snap = gDraw;
 
-	PadNav::Blurb("Click a stack to see every bag that holds it.");
+	PadNav::Blurb("Account vault — bank tabs, materials, shared slots, and bags.");
 
 	if (PadNav::RefreshButton("###gw2igh_wallet_ref"))
 		StartFetch(true);
@@ -114,7 +114,7 @@ void WalletPad::RenderContents()
 		PadNav::StatusOk(snap.status.c_str());
 
 	ImGui::SetNextItemWidth(-1.f);
-	ImGui::InputTextWithHint("###gw2igh_wallet_filter", "Filter: ecto, Alice, bank...",
+	ImGui::InputTextWithHint("###gw2igh_wallet_filter", "Search...",
 		gFilter, sizeof(gFilter));
 
 	PadNav::Meta("Location");
@@ -128,13 +128,16 @@ void WalletPad::RenderContents()
 	}
 	ImGui::PopID();
 
-	if (gStashSort != 0 && gStashSort != 1)
-		gStashSort = 0;
-	PadNav::Meta("Sort");
-	if (PadNav::WrapButton("Biggest stacks", gStashSort == 0, true))
-		gStashSort = 0;
-	if (PadNav::WrapButton("A-Z", gStashSort == 1, false))
-		gStashSort = 1;
+	if (snap.sections.empty())
+	{
+		if (gStashSort != 0 && gStashSort != 1)
+			gStashSort = 0;
+		PadNav::Meta("Sort");
+		if (PadNav::WrapButton("Biggest stacks", gStashSort == 0, true))
+			gStashSort = 0;
+		if (PadNav::WrapButton("A-Z", gStashSort == 1, false))
+			gStashSort = 1;
+	}
 
 	ImGui::Separator();
 
@@ -158,7 +161,7 @@ bool WalletPad::Render()
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(280.f);
-	PadDock::SetSizeConstraints("Wallet & Stash##GW2InGameHelperWallet", 360.f, 280.f, PadDock::MaxW(560.f), maxH);
+	PadDock::SetSizeConstraints("Stash##GW2InGameHelperWallet", 360.f, 280.f, PadDock::MaxW(560.f), maxH);
 	ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 	{
 		const float fx = (io.DisplaySize.x > 100.f)
@@ -177,8 +180,8 @@ bool WalletPad::Render()
 
 	bool open = G::ShowWallet;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	const bool padBody = ImGui::Begin("Wallet & Stash##GW2InGameHelperWallet", &open, HelperTheme::PadFlags());
-	if (!theme.AfterBegin("Wallet & Stash", &open) || !padBody)
+	const bool padBody = ImGui::Begin("Stash##GW2InGameHelperWallet", &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin("Stash", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadWallet))
 			Settings::SetDirty();

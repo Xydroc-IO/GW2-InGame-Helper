@@ -3,7 +3,6 @@
 #include "AddonPaths.h"
 #include "BrowserTabs.h"
 #include "CraftingData.h"
-#include "EconomyPad.h"
 #include "Globals.h"
 #include "LivePanels.h"
 #include "Settings.h"
@@ -66,7 +65,6 @@ bool ProcessCraftPlanCmdFile(const std::wstring& addonDir)
 		return false;
 	char buf[32];
 	std::snprintf(buf, sizeof(buf), "%d", id);
-	EconomyPad::OpenAndRefresh();
 	CraftingData::QueuePlan(buf);
 	return true;
 }

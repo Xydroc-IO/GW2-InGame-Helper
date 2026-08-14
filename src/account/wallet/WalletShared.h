@@ -48,6 +48,20 @@ namespace WalletDetail
 		std::vector<LocQty> locs;
 	};
 
+	struct SlotCell
+	{
+		int id = 0;
+		int count = 0;
+	};
+	struct SlotSection
+	{
+		LocKind kind = Loc_Bank;
+		std::string title;
+		int filled = 0;
+		int capacity = 0;
+		std::vector<SlotCell> slots;
+	};
+
 	struct Snapshot
 	{
 		bool ok = false;
@@ -56,6 +70,7 @@ namespace WalletDetail
 		bool charsPending = false; /* true while toon bags still loading */
 		std::string status;
 		std::vector<Entry> entries;
+		std::vector<SlotSection> sections;
 		int charCount = 0;
 		int charBagsOk = 0;
 		int characterLocItems = 0; /* entries that have at least one Loc_Character */
@@ -102,13 +117,22 @@ namespace WalletDetail
 	long long JsonIntAfterKey(const std::string& json, const char* key, size_t from = 0);
 	void ParseStringArray(const std::string& body, std::vector<std::string>& out);
 	void CollectSlots(const std::string& body, QtyMap& m);
+	void CollectOrderedSlots(const std::string& json, size_t openBracket,
+		std::vector<SlotCell>& out);
+	void CollectBankTabs(const std::string& body, std::vector<SlotSection>& out);
+	void CollectSharedSlots(const std::string& body, std::vector<SlotSection>& out);
+	void CollectMaterialSections(const std::string& body, const std::string& catJson,
+		std::vector<SlotSection>& out);
+	void CollectCharBagSections(const std::string& body, const std::string& charName,
+		std::vector<SlotSection>& out);
 	void MergeLoc(std::unordered_map<int, Entry>& byId, int id, bool currency,
 		LocKind kind, const std::string& where, int count);
 	void MergeMap(std::unordered_map<int, Entry>& dst, const std::unordered_map<int, Entry>& src);
 	Snapshot SnapshotFromMap(std::unordered_map<int, Entry>& byId, const char* status,
 		int charCount, int charBagsOk, bool ok, bool charsPending = false);
 	void Publish(const std::unordered_map<int, Entry>& byId, const char* status,
-		int charCount, int charBagsOk, bool ok, bool charsPending = false);
+		int charCount, int charBagsOk, bool ok, bool charsPending = false,
+		const std::vector<SlotSection>* sections = nullptr);
 	void ResolveMissingNames(const std::unordered_map<int, Entry>& byId, const char* apiKey);
 	/* WalletFetchAcc.cpp */
 	DWORD WINAPI CharWorker(void* p);

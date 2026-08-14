@@ -97,6 +97,7 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowTpWatch") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowLookup") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowWallet") == 0) { /* ignore */ }
+		else if (std::strcmp(key, "ShowCrafting") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowVault") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowAccount") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowEvents") == 0) { /* ignore */ }
@@ -299,10 +300,14 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadVault);
 		else if (std::strcmp(key, "PadEconomy") == 0)
 			PadDock::ParseGeom(val, G::PadEconomy);
+		else if (std::strcmp(key, "PadCrafting") == 0)
+			PadDock::ParseGeom(val, G::PadCrafting);
 		else if (std::strcmp(key, "PadInstances") == 0)
 			PadDock::ParseGeom(val, G::PadInstances);
 		else if (std::strcmp(key, "PadCompletion") == 0)
 			PadDock::ParseGeom(val, G::PadCompletion);
+		else if (std::strcmp(key, "PadAchievements") == 0)
+			PadDock::ParseGeom(val, G::PadAchievements);
 		else if (std::strcmp(key, "PadFarming") == 0)
 			PadDock::ParseGeom(val, G::PadFarming);
 		else if (std::strcmp(key, "PadEventAlert") == 0)

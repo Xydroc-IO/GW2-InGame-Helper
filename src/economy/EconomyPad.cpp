@@ -4,7 +4,6 @@
 #include "AspectLayout.h"
 #include "CommerceShared.h"
 #include "BgFetch.h"
-#include "CraftingData.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
 #include "HelperTheme.h"
@@ -13,7 +12,6 @@
 #include "PadDock.h"
 #include "Settings.h"
 #include "TpWatchPad.h"
-#include "WalletPad.h"
 #include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
@@ -36,7 +34,7 @@ namespace
 		const bool hasKey = G::Gw2ApiKey[0] != '\0';
 
 		PadNav::Blurb(
-			"Flips, charts, cart, stash, trading, item lookup, and crafting - read-only.");
+			"Flips, charts, cart, trading, and item lookup - read-only.");
 		ImGui::Spacing();
 
 		ImGui::BeginChild("###gw2igh_eco_keycard", ImVec2(0.f, hasKey ? 110.f : 140.f), true);
@@ -54,7 +52,8 @@ namespace
 			PadNav::PushWrap();
 			ImGui::TextColored(HelperTheme::Muted,
 				"Add one under Settings (helper side rail). "
-				"Stash / delivery need it; flips, charts, item lookup & TP prices work without.");
+				"Delivery needs it; flips, charts, item lookup & TP prices work without. "
+				"Stash and Crafting are their own side-rail pads.");
 			PadNav::PopWrap();
 		}
 		ImGui::EndChild();
@@ -64,7 +63,7 @@ namespace
 			EconomyPad::RefreshAll(true);
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Pulls stash, trading, orders, gem rate, crafting dailies, and flip scan.");
+			"Pulls trading, orders, gem rate, and flip scan.");
 		PadNav::PopWrap();
 
 		SectionLabel("DASHBOARD");
@@ -125,15 +124,14 @@ namespace
 		ImGui::Spacing();
 		toolCell("Cart", "TP shopping list");
 		PadNav::WrapSameLine(colW);
-		toolCell("Stash", "Wallet | mats | bank | bags");
-
-		ImGui::Spacing();
 		toolCell("Trading", "Delivery | orders | watchlist");
-		PadNav::WrapSameLine(colW);
-		toolCell("Item", "Lookup | wiki | BLTC");
 
 		ImGui::Spacing();
-		toolCell("Crafting", "Plan | Known | Browse | Craft cart");
+		toolCell("Item", "Lookup | wiki | BLTC");
+		PadNav::PushWrap();
+		ImGui::TextColored(HelperTheme::Muted,
+			"Crafting is on the helper side rail, under Stash.");
+		PadNav::PopWrap();
 	}
 }
 
@@ -185,19 +183,17 @@ bool EconomyPad::Render()
 	if (PadDock::Capture(G::PadEconomy)) Settings::SetDirty();
 	HelperTheme::ScopedFontScale fontScale(kPadW, kPadH);
 
-	if (CraftingData::ConsumeFocusTab())
-	{
-		gTab = kTabCrafting;
-		gForceTab = -1;
-	}
-	else if (gForceTab >= 0)
+	if (gForceTab >= 0)
 	{
 		gTab = gForceTab;
 		gForceTab = -1;
 	}
 
+	if (gTab < 0 || gTab >= kTabCount)
+		gTab = 0;
+
 	static const char* kTabs[] = {
-		"Overview", "Item", "Trading", "Flips", "Charts", "Cart", "Crafting", "Stash"
+		"Overview", "Item", "Trading", "Flips", "Charts", "Cart"
 	};
 	static const int kTabIcons[] = {
 		static_cast<int>(Gw2Ui::Icon::Hero),
@@ -206,8 +202,6 @@ bool EconomyPad::Render()
 		static_cast<int>(Gw2Ui::Icon::GoldCoins),
 		static_cast<int>(Gw2Ui::Icon::Story),
 		static_cast<int>(Gw2Ui::Icon::Bag),
-		static_cast<int>(Gw2Ui::Icon::Options),
-		static_cast<int>(Gw2Ui::Icon::Inventory),
 	};
 	gTab = PadNav::DrawSideRail("###gw2igh_eco_nav", kTabs, kTabCount, gTab, 0.f, kTabIcons);
 
@@ -215,13 +209,7 @@ bool EconomyPad::Render()
 	static int sLazyTab = -1;
 	if (sLazyTab != gTab)
 	{
-		/* Pause old heavy channels before kicking the new tab's fetch. */
-		const bool onCraft = (gTab == kTabCrafting);
-		const bool onStash = (gTab == kTabStash);
-		/* Known-detail pump is managed inside Crafting RenderContents (Known sub-tab only). */
-		if (!onCraft)
-			CraftingData::SetKnownDetailsActive(false);
-		BgFetch::SetWanted(BgFetch::Channel::Wallet, onStash || G::ShowWallet);
+		BgFetch::SetWanted(BgFetch::Channel::Wallet, G::ShowWallet);
 		sLazyTab = gTab;
 		switch (gTab)
 		{
@@ -229,10 +217,6 @@ bool EconomyPad::Render()
 			EnsureSeed();
 			if (gFlips.empty() && !gFlipBusy)
 				RequestFlipScan();
-			break;
-		case kTabStash:
-			/* Deferred until crafting detail HTTP drains (BgFetch + TickDeferredFetch). */
-			WalletPad::RefreshData(false);
 			break;
 		case kTabTrading:
 			BgFetch::SetWanted(BgFetch::Channel::TpWatch, true);
@@ -244,9 +228,6 @@ bool EconomyPad::Render()
 			break;
 		case kTabCart:
 			Commerce::EnsureOwnedWarm(false);
-			break;
-		case kTabCrafting:
-			CraftingData::RefreshDailiesIfNeeded(false);
 			break;
 		default:
 			break;
@@ -262,10 +243,8 @@ bool EconomyPad::Render()
 	case kTabFlips: DrawFlipsTab(); break;
 	case kTabCharts: DrawChartsTab(); break;
 	case kTabCart: DrawCartTab(); break;
-	case kTabStash: WalletPad::RenderContents(); break;
 	case kTabTrading: TpWatchPad::RenderContents(true); break;
 	case kTabItem: LookupPad::RenderContents(); break;
-	case kTabCrafting: CraftingData::RenderContents(); break;
 	default: break;
 	}
 	ImGui::EndChild();

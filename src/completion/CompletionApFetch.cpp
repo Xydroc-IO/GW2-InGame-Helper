@@ -82,7 +82,12 @@ namespace CompletionDetail
 					const size_t vs = JsonView::ValueStartAfterKey(JsonView::AsView(body),
 						JsonView::View("bits"), brace);
 					if (vs != JsonView::View::npos && vs < end && body[vs] == '[')
-						CollectBitIndices(body, vs, end, p.bits);
+					{
+						const size_t arrEnd = JsonView::ArrayEnd(body, vs);
+						const size_t limit = (arrEnd != JsonView::View::npos && arrEnd <= end)
+							? arrEnd : end;
+						CollectBitIndices(body, vs, limit, p.bits);
+					}
 					out[p.achievementId] = std::move(p);
 				}
 				pos = end + 1;

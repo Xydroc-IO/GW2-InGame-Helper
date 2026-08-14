@@ -32,11 +32,17 @@ namespace
 	};
 
 	std::mutex gMu;
+	enum class ApiKind : uint8_t { Item, Mini, Skin };
+
 	std::unordered_map<int, Slot> gByItem;
+	std::unordered_map<int, Slot> gByMini;
+	std::unordered_map<int, Slot> gBySkin;
 	std::unordered_map<int, Slot> gByCurrency; /* /v2/currencies ids — not items */
 	std::unordered_map<std::string, Slot> gByProfession; /* Guardian, Warrior, … */
 	std::unordered_map<std::string, std::string> gUrlTex; /* url -> texId */
 	std::vector<int> gQueue;
+	std::vector<int> gMiniQueue;
+	std::vector<int> gSkinQueue;
 	std::atomic<bool> gWorker{false};
 	bool gProfessionsWarmed = false;
 
@@ -140,83 +146,135 @@ namespace
 		return true;
 	}
 
-	void WorkerMain(std::vector<int> batch)
+	std::unordered_map<int, Slot>& MapFor(ApiKind k)
+	{
+		if (k == ApiKind::Mini)
+			return gByMini;
+		if (k == ApiKind::Skin)
+			return gBySkin;
+		return gByItem;
+	}
+
+	const char* PathFor(ApiKind k)
+	{
+		if (k == ApiKind::Mini)
+			return "/v2/minis?ids=";
+		if (k == ApiKind::Skin)
+			return "/v2/skins?ids=";
+		return "/v2/items?ids=";
+	}
+
+	void QueueId(std::unordered_map<int, Slot>& map, std::vector<int>& q, int id)
+	{
+		if (id <= 0)
+			return;
+		Slot& s = map[id];
+		if (s.state == State::Ready || s.state == State::Queued || s.state == State::Missing)
+			return;
+		s.state = State::Queued;
+		q.push_back(id);
+	}
+
+	void ApplyObjects(ApiKind kind, const std::string& body)
+	{
+		size_t p = 0;
+		while (p < body.size())
+		{
+			const size_t brace = body.find('{', p);
+			if (brace == std::string::npos)
+				break;
+			size_t depth = 0;
+			size_t end = brace;
+			for (; end < body.size(); ++end)
+			{
+				if (body[end] == '{')
+					++depth;
+				else if (body[end] == '}')
+				{
+					if (--depth == 0)
+					{
+						++end;
+						break;
+					}
+				}
+			}
+			if (depth != 0)
+				break;
+			long long id = 0;
+			{
+				const char* key = std::strstr(body.c_str() + brace, "\"id\"");
+				if (key && static_cast<size_t>(key - body.c_str()) < end)
+				{
+					const char* colon = std::strchr(key, ':');
+					if (colon && static_cast<size_t>(colon - body.c_str()) < end)
+						id = std::strtoll(colon + 1, nullptr, 10);
+				}
+			}
+			const std::string icon = JsonStringKey(body.c_str(), brace, end, "icon");
+			const std::string name = JsonStringKey(body.c_str(), brace, end, "name");
+			if (id > 0)
+			{
+				std::lock_guard<std::mutex> lock(gMu);
+				Slot& s = MapFor(kind)[static_cast<int>(id)];
+				if (!name.empty())
+					s.name = name;
+				if (!icon.empty() && icon.rfind("https://render.guildwars2.com/", 0) == 0)
+				{
+					s.url = icon;
+					s.texId = MakeTexIdFromUrl(icon);
+					s.state = State::Ready;
+					gUrlTex[icon] = s.texId;
+				}
+				else if (!s.name.empty())
+					s.state = State::Ready;
+			}
+			p = end;
+		}
+	}
+
+	void FetchBatch(ApiKind kind, const std::vector<int>& ids)
+	{
+		if (ids.empty())
+			return;
+		std::string path = PathFor(kind);
+		for (size_t i = 0; i < ids.size(); ++i)
+		{
+			if (i)
+				path += ',';
+			path += std::to_string(ids[i]);
+		}
+		auto r = Gw2Http::Api(path.c_str(), nullptr, 10000);
+		if (r.ok && !r.body.empty())
+			ApplyObjects(kind, r.body);
+	}
+
+	void WorkerMain(ApiKind kind, std::vector<int> batch)
 	{
 		if (batch.empty())
 		{
 			gWorker.store(false);
 			return;
 		}
-		std::string path = "/v2/items?ids=";
-		for (size_t i = 0; i < batch.size(); ++i)
-		{
-			if (i)
-				path += ',';
-			path += std::to_string(batch[i]);
-		}
-		auto r = Gw2Http::Api(path.c_str(), nullptr, 10000);
-		if (r.ok && !r.body.empty())
-		{
-			size_t p = 0;
-			while (p < r.body.size())
-			{
-				const size_t brace = r.body.find('{', p);
-				if (brace == std::string::npos)
-					break;
-				size_t depth = 0;
-				size_t end = brace;
-				for (; end < r.body.size(); ++end)
-				{
-					if (r.body[end] == '{')
-						++depth;
-					else if (r.body[end] == '}')
-					{
-						if (--depth == 0)
-						{
-							++end;
-							break;
-						}
-					}
-				}
-				if (depth != 0)
-					break;
-				long long id = 0;
-				{
-					const char* key = std::strstr(r.body.c_str() + brace, "\"id\"");
-					if (key && static_cast<size_t>(key - r.body.c_str()) < end)
-					{
-						const char* colon = std::strchr(key, ':');
-						if (colon && static_cast<size_t>(colon - r.body.c_str()) < end)
-							id = std::strtoll(colon + 1, nullptr, 10);
-					}
-				}
-				const std::string icon = JsonStringKey(r.body.c_str(), brace, end, "icon");
-				const std::string name = JsonStringKey(r.body.c_str(), brace, end, "name");
-				if (id > 0)
-				{
-					std::lock_guard<std::mutex> lock(gMu);
-					Slot& s = gByItem[static_cast<int>(id)];
-					if (!name.empty())
-						s.name = name;
-					if (!icon.empty() && icon.rfind("https://render.guildwars2.com/", 0) == 0)
-					{
-						s.url = icon;
-						s.texId = MakeTexIdFromUrl(icon);
-						s.state = State::Ready;
-						gUrlTex[icon] = s.texId;
-					}
-					else
-						s.state = State::Missing;
-				}
-				p = end;
-			}
-		}
-		/* Mark unresolved batch entries missing so we don't spin. */
+		FetchBatch(kind, batch);
+		std::vector<int> miss;
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			for (int id : batch)
 			{
-				Slot& s = gByItem[id];
+				const Slot& s = MapFor(kind)[id];
+				if (s.state == State::Queued)
+					miss.push_back(id);
+			}
+		}
+		/* Bulk /v2/items 404s if any id is hidden/unknown — retry one at a time. */
+		for (int id : miss)
+			FetchBatch(kind, std::vector<int>{id});
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			auto& map = MapFor(kind);
+			for (int id : batch)
+			{
+				Slot& s = map[id];
 				if (s.state == State::Queued)
 					s.state = State::Missing;
 			}
@@ -251,14 +309,20 @@ void Gw2Icons::RememberIconFromJson(int id, const char* json, size_t brace, size
 
 void Gw2Icons::RequestItem(int itemId)
 {
-	if (itemId <= 0)
-		return;
 	std::lock_guard<std::mutex> lock(gMu);
-	Slot& s = gByItem[itemId];
-	if (s.state == State::Ready || s.state == State::Queued || s.state == State::Missing)
-		return;
-	s.state = State::Queued;
-	gQueue.push_back(itemId);
+	QueueId(gByItem, gQueue, itemId);
+}
+
+void Gw2Icons::RequestMini(int miniId)
+{
+	std::lock_guard<std::mutex> lock(gMu);
+	QueueId(gByMini, gMiniQueue, miniId);
+}
+
+void Gw2Icons::RequestSkin(int skinId)
+{
+	std::lock_guard<std::mutex> lock(gMu);
+	QueueId(gBySkin, gSkinQueue, skinId);
 }
 
 void Gw2Icons::RequestUrl(const char* renderUrl)
@@ -286,6 +350,7 @@ void Gw2Icons::Tick()
 	/* Upload ready textures that Nexus has not seen yet. */
 	std::vector<std::pair<std::string, std::string>> uploads;
 	std::vector<int> batch;
+	ApiKind kind = ApiKind::Item;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
 		auto enqueueReady = [&](std::unordered_map<int, Slot>& map) {
@@ -300,6 +365,8 @@ void Gw2Icons::Tick()
 			}
 		};
 		enqueueReady(gByItem);
+		enqueueReady(gByMini);
+		enqueueReady(gBySkin);
 		enqueueReady(gByCurrency);
 		for (auto& kv : gByProfession)
 		{
@@ -310,20 +377,42 @@ void Gw2Icons::Tick()
 				uploads.emplace_back(s.url, s.texId);
 			}
 		}
-		if (!gWorker.load() && !gQueue.empty())
+		if (!gWorker.load())
 		{
-			const size_t n = gQueue.size() < 50 ? gQueue.size() : 50;
-			batch.assign(gQueue.begin(), gQueue.begin() + static_cast<std::ptrdiff_t>(n));
-			gQueue.erase(gQueue.begin(), gQueue.begin() + static_cast<std::ptrdiff_t>(n));
-			gWorker.store(true);
+			auto take = [&](std::vector<int>& q) {
+				if (q.empty() || !batch.empty())
+					return;
+				const size_t n = q.size() < 50 ? q.size() : 50;
+				batch.assign(q.begin(), q.begin() + static_cast<std::ptrdiff_t>(n));
+				q.erase(q.begin(), q.begin() + static_cast<std::ptrdiff_t>(n));
+			};
+			ApiKind pick = ApiKind::Item;
+			if (!gQueue.empty())
+			{
+				pick = ApiKind::Item;
+				take(gQueue);
+			}
+			else if (!gMiniQueue.empty())
+			{
+				pick = ApiKind::Mini;
+				take(gMiniQueue);
+			}
+			else if (!gSkinQueue.empty())
+			{
+				pick = ApiKind::Skin;
+				take(gSkinQueue);
+			}
+			if (!batch.empty())
+			{
+				gWorker.store(true);
+				kind = pick;
+			}
 		}
 	}
 	for (const auto& u : uploads)
 		TryUpload(u.first, u.second);
 	if (!batch.empty())
-	{
-		std::thread(WorkerMain, std::move(batch)).detach();
-	}
+		std::thread(WorkerMain, kind, std::move(batch)).detach();
 }
 
 void Gw2Icons::RememberCurrencyIcon(int currencyId, const char* renderUrl)
@@ -495,6 +584,71 @@ bool Gw2Icons::ItemName(int itemId, char* out, size_t outLen)
 		return false;
 	std::snprintf(out, outLen, "%s", it->second.name.c_str());
 	return true;
+}
+
+namespace
+{
+	bool DrawFromMap(std::unordered_map<int, Slot>& map, int id, float size)
+	{
+		if (id <= 0 || size < 8.f)
+			return false;
+		std::string texId;
+		std::string url;
+		bool needUpload = false;
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			auto it = map.find(id);
+			if (it == map.end() || it->second.state != State::Ready || it->second.texId.empty())
+				return false;
+			texId = it->second.texId;
+			if (!it->second.uploadTried)
+			{
+				it->second.uploadTried = true;
+				url = it->second.url;
+				needUpload = true;
+			}
+		}
+		if (needUpload)
+			TryUpload(url, texId);
+		return DrawTex(texId, size);
+	}
+
+	bool NameFromMap(std::unordered_map<int, Slot>& map, int id, char* out, size_t outLen)
+	{
+		if (!out || outLen == 0 || id <= 0)
+			return false;
+		out[0] = '\0';
+		std::lock_guard<std::mutex> lock(gMu);
+		const auto it = map.find(id);
+		if (it == map.end() || it->second.name.empty())
+			return false;
+		std::snprintf(out, outLen, "%s", it->second.name.c_str());
+		return true;
+	}
+}
+
+bool Gw2Icons::ImageMini(int miniId, float size)
+{
+	RequestMini(miniId);
+	return DrawFromMap(gByMini, miniId, size);
+}
+
+bool Gw2Icons::MiniName(int miniId, char* out, size_t outLen)
+{
+	RequestMini(miniId);
+	return NameFromMap(gByMini, miniId, out, outLen);
+}
+
+bool Gw2Icons::ImageSkin(int skinId, float size)
+{
+	RequestSkin(skinId);
+	return DrawFromMap(gBySkin, skinId, size);
+}
+
+bool Gw2Icons::SkinName(int skinId, char* out, size_t outLen)
+{
+	RequestSkin(skinId);
+	return NameFromMap(gBySkin, skinId, out, outLen);
 }
 
 bool Gw2Icons::ImageUrl(const char* renderUrl, float size)

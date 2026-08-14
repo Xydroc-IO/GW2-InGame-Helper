@@ -122,8 +122,10 @@ namespace CompletionDetail
 
 	extern bool gFocus;
 	extern bool gPlaceOnce;
+	extern bool gAchFocus;
+	extern bool gAchPlaceOnce;
 	extern int  gDeferHeavy;
-	extern int gTab; /* 0 checklist | 1 atlas | 2 route | 3 achievements */
+	extern int gTab; /* 0 checklist | 1 atlas | 2 route */
 	extern bool gTabSelectOnce; /* apply SetSelected once then clear */
 	extern RouteMode gRouteMode;
 	extern char gAtlasFilter[96];
@@ -252,6 +254,11 @@ namespace CompletionDetail
 		AchBitKind kind = AchBitKind::Text;
 		int targetId = 0;
 	};
+	struct AchTier
+	{
+		int count = 0;
+		int points = 0;
+	};
 	struct AchDef
 	{
 		int id = 0;
@@ -260,8 +267,10 @@ namespace CompletionDetail
 		std::string description;
 		std::string lockedText;
 		std::vector<AchBit> bits;
+		std::vector<AchTier> tiers;
 		int points = 0;
 		bool hidden = false;
+		bool repeatable = false;
 	};
 	void BeginAchCatalogRefresh(bool force);
 	void ApplyAchCatalogResult();

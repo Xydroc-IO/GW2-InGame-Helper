@@ -50,7 +50,7 @@ namespace
 
 		PadNav::Blurb(
 			"Unlocks, legendary progress, and session history - official API, read-only. "
-			"Vault is on the side rail. Stash, trading, item lookup, and crafting live under Economy.");
+			"Vault is on the side rail. Stash and Crafting are their own pads (below Economy). Trading and item lookup live under Economy.");
 		ImGui::Spacing();
 
 		ImGui::BeginChild("###gw2igh_acct_keycard", ImVec2(0.f, hasKey ? 110.f : 140.f), true);
@@ -69,7 +69,7 @@ namespace
 			ImGui::TextColored(HelperTheme::Muted,
 				"Add one under Settings (helper side rail). "
 				"Unlocks / progress need it. Vault is its own pad. "
-				"Economy stash & trading need inventories / wallet / tradingpost.");
+				"Stash & trading need inventories / wallet / tradingpost.");
 			PadNav::PopWrap();
 		}
 		ImGui::EndChild();
@@ -115,7 +115,7 @@ namespace
 		ImGui::Spacing();
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Vault is on the helper side rail. Stash, trading, item lookup, and crafting are on Economy.");
+			"Vault is on the helper side rail. Stash and Crafting are below Economy. Trading and item lookup are on Economy.");
 		PadNav::PopWrap();
 	}
 }

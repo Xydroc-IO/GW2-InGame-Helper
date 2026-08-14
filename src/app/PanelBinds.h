@@ -26,6 +26,7 @@ namespace PanelBinds
 		Marker,
 		Watch,
 		Achievements,
+		Crafting,
 		Count
 	};
 

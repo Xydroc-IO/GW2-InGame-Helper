@@ -6,11 +6,13 @@
 #include "CompletionPad.h"
 #include "DirectionCompass.h"
 #include "EventsPad.h"
+#include "CraftingPad.h"
 #include "FarmingPad.h"
 #include "Globals.h"
 #include "LogManagerPad.h"
 #include "PathingGuidesPad.h"
 #include "Settings.h"
+#include "WalletPad.h"
 #include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
@@ -123,15 +125,20 @@ namespace UIDetail
 				if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
 				else CompletionPad::OpenAndRefresh();
 			}
-			if (ImGui::MenuItem(CompletionPad::ShowingAchievements() ? "Hide Achievements" : "Show Achievements"))
+			if (ImGui::MenuItem(G::ShowAchievements ? "Hide Achievements" : "Show Achievements"))
 			{
-				if (CompletionPad::ShowingAchievements())
-				{
-					G::ShowCompletion = false;
-					Settings::SetDirty();
-				}
-				else
-					CompletionPad::OpenAchievements();
+				if (G::ShowAchievements) { G::ShowAchievements = false; Settings::SetDirty(); }
+				else CompletionPad::OpenAchievements();
+			}
+			if (ImGui::MenuItem(G::ShowWallet ? "Hide Stash" : "Show Stash"))
+			{
+				if (G::ShowWallet) { G::ShowWallet = false; Settings::SetDirty(); }
+				else WalletPad::OpenAndRefresh();
+			}
+			if (ImGui::MenuItem(G::ShowCrafting ? "Hide Crafting" : "Show Crafting"))
+			{
+				if (G::ShowCrafting) { G::ShowCrafting = false; Settings::SetDirty(); }
+				else CraftingPad::OpenAndRefresh();
 			}
 			if (ImGui::MenuItem(G::ShowFarming ? "Hide Farming" : "Show Farming"))
 			{

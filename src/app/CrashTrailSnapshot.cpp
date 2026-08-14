@@ -228,9 +228,9 @@ void WriteUiState(FILE* f)
 		GetModuleHandleW(L"d912pxy.dll") ? 1 : 0);
 	std::fprintf(f,
 		"ui ShowWatchMirror=%d ShowWatch=%d ShowEvents=%d ShowSettings=%d "
-		"ShowInstances=%d ShowVault=%d ShowFarming=%d ShowCompletion=%d "
+		"ShowInstances=%d ShowVault=%d ShowFarming=%d ShowCompletion=%d ShowAchievements=%d "
 		"ShowPathing=%d ShowNotes=%d ShowAccount=%d "
-		"ShowEconomy=%d ShowLogManager=%d ShowCompass=%d ShowWiki=%d\n",
+		"ShowEconomy=%d ShowCrafting=%d ShowLogManager=%d ShowCompass=%d ShowWiki=%d\n",
 		G::ShowWatchMirror ? 1 : 0,
 		G::ShowWatch ? 1 : 0,
 		G::ShowEvents ? 1 : 0,
@@ -239,10 +239,12 @@ void WriteUiState(FILE* f)
 		G::ShowVault ? 1 : 0,
 		G::ShowFarming ? 1 : 0,
 		G::ShowCompletion ? 1 : 0,
+		G::ShowAchievements ? 1 : 0,
 		G::ShowPathingGuides ? 1 : 0,
 		G::ShowNotes ? 1 : 0,
 		G::ShowAccount ? 1 : 0,
 		G::ShowEconomy ? 1 : 0,
+		G::ShowCrafting ? 1 : 0,
 		G::ShowLogManager ? 1 : 0,
 		G::ShowCompassPad ? 1 : 0,
 		G::ShowWiki ? 1 : 0);

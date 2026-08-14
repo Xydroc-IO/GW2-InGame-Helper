@@ -29,6 +29,14 @@ namespace Gw2Icons
 	bool ImageItem(int itemId, float size = 28.f);
 	bool ItemName(int itemId, char* out, size_t outLen);
 
+	/* Achievement bits use /v2/minis and /v2/skins ids (not item ids). */
+	void RequestMini(int miniId);
+	bool ImageMini(int miniId, float size = 28.f);
+	bool MiniName(int miniId, char* out, size_t outLen);
+	void RequestSkin(int skinId);
+	bool ImageSkin(int skinId, float size = 28.f);
+	bool SkinName(int skinId, char* out, size_t outLen);
+
 	/* Wallet currencies — separate from item ids (currency 1 ≠ item 1). */
 	void RememberCurrencyIcon(int currencyId, const char* renderUrl);
 	void RememberCurrencyIconFromJson(int currencyId, const char* json, size_t brace, size_t end);

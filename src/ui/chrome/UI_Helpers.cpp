@@ -13,6 +13,7 @@
 #include "TpWatchPad.h"
 #include "LookupPad.h"
 #include "WalletPad.h"
+#include "CraftingPad.h"
 #include "VaultPad.h"
 #include "AccountPad.h"
 #include "EventsPad.h"
@@ -287,7 +288,7 @@ namespace UIDetail
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowEconomy || G::ShowInstances || G::ShowCompletion || G::ShowFarming ||
+			G::ShowEconomy || G::ShowCrafting || G::ShowInstances || G::ShowCompletion || G::ShowAchievements || G::ShowFarming ||
 			G::ShowPathingGuides ||
 			G::ShowCompassPad || G::ShowWatch || G::ShowWatchMirror || G::ShowSettings;
 	}
@@ -322,13 +323,15 @@ namespace UIDetail
 		const bool accountHover = probe("Account", G::ShowAccount, &AccountPad::Render);
 		const bool tpHover = probe("TpWatch", G::ShowTpWatch, &TpWatchPad::Render);
 		const bool lookupHover = probe("Lookup", G::ShowLookup, &LookupPad::Render);
-		const bool walletHover = probe("Wallet", G::ShowWallet, &WalletPad::Render);
+		const bool stashHover = probe("Stash", G::ShowWallet, &WalletPad::Render);
 		const bool vaultHover = probe("Vault", G::ShowVault, &VaultPad::Render);
 		const bool eventsHover = probe("Events", G::ShowEvents, &EventsPad::Render);
 		const bool logsHover = probe("Logs", G::ShowLogManager, &LogManagerPad::Render);
 		const bool economyHover = probe("Economy", G::ShowEconomy, &EconomyPad::Render);
+		const bool craftingHover = probe("Crafting", G::ShowCrafting, &CraftingPad::Render);
 		const bool instancesHover = probe("Instances", G::ShowInstances, &InstancesPad::Render);
 		const bool completionHover = probe("Completion", G::ShowCompletion, &CompletionPad::Render);
+		const bool achievementsHover = probe("Achievements", G::ShowAchievements, &CompletionPad::RenderAchievements);
 		const bool farmingHover = probe("Farming", G::ShowFarming, &FarmingPad::Render);
 		CompletionPad::Tick();
 		FarmingPad::Tick();
@@ -352,8 +355,8 @@ namespace UIDetail
 		if (probePads)
 			CrashTrail::NoteF("pads:end %s", settleProbe ? "settle" : "softstop");
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
-			walletHover || vaultHover || eventsHover || logsHover ||
-			economyHover || instancesHover || completionHover || farmingHover ||
+			stashHover || vaultHover || eventsHover || logsHover ||
+			economyHover || craftingHover || instancesHover || completionHover || achievementsHover || farmingHover ||
 			gpsArrowHover || eventAlertHover ||
 			tekkitHover || compassHover || watchHover || settingsHover);
 		if (probePads)

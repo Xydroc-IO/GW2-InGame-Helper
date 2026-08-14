@@ -9,16 +9,16 @@ namespace CraftingData
 	/* Pause known-recipe detail fetch when Crafting tab is not visible. */
 	void SetKnownDetailsActive(bool active);
 
-	/* Queue a plan from Progress (or elsewhere) and focus the Crafting tab. */
+	/* Queue a plan and open the Crafting pad. */
 	void QueuePlan(const char* itemNameOrCode);
 
-	/* Focus Economy -> Crafting without starting a plan. */
+	/* Open the Crafting pad. */
 	void RequestFocusTab();
 
-	/* Focus Economy -> Crafting -> Craft cart sub-tab. */
+	/* Open Crafting on the Craft cart sub-tab. */
 	void RequestFocusCraftCart();
 
-	/* True once if QueuePlan / RequestFocusTab asked Economy to select Crafting. */
+	/* True once if QueuePlan / RequestFocusTab asked the Crafting pad to focus. */
 	bool ConsumeFocusTab();
 
 	void RenderContents();

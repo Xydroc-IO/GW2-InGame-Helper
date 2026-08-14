@@ -10,16 +10,14 @@ namespace EconomyDetail
 	constexpr float kPadW = PadDock::kWorkbenchW;
 	constexpr float kPadH = PadDock::kWorkbenchH;
 
-	/* Side-rail indices — Overview → Item → Trading → Flips → Charts → Cart → Crafting → Stash. */
+	/* Side-rail indices — Overview → Item → Trading → Flips → Charts → Cart. */
 	constexpr int kTabOverview = 0;
 	constexpr int kTabItem = 1;
 	constexpr int kTabTrading = 2;
 	constexpr int kTabFlips = 3;
 	constexpr int kTabCharts = 4;
 	constexpr int kTabCart = 5;
-	constexpr int kTabCrafting = 6;
-	constexpr int kTabStash = 7;
-	constexpr int kTabCount = 8;
+	constexpr int kTabCount = 6;
 
 	extern std::mutex gMu;
 	const char* FallbackName(int id);

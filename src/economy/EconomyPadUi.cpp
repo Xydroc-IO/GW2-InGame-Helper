@@ -3,6 +3,7 @@
 #include "BrowserTabs.h"
 #include "CommerceShared.h"
 #include "CraftingData.h"
+#include "CraftingPad.h"
 #include "Globals.h"
 #include "Gw2Icons.h"
 #include "HelperTheme.h"
@@ -183,10 +184,9 @@ void DrawChartsTab()
 	PadLayout::EndList();
 }
 
-static void FocusCraftingTab()
+static void OpenCraftingPad()
 {
-	gTab = kTabCrafting;
-	gForceTab = kTabCrafting;
+	CraftingPad::OpenAndRefresh();
 }
 
 void DrawCartTab()
@@ -201,7 +201,7 @@ void DrawCartTab()
 	if (ImGui::Button("Open Craft cart###gw2igh_eco_craft"))
 	{
 		CraftingData::RequestFocusCraftCart();
-		FocusCraftingTab();
+		OpenCraftingPad();
 	}
 	if (!gCart.empty())
 	{
@@ -214,7 +214,7 @@ void DrawCartTab()
 			else
 				std::snprintf(q, sizeof(q), "%d", gCart[0].id);
 			CraftingData::QueuePlan(q);
-			FocusCraftingTab();
+			OpenCraftingPad();
 		}
 	}
 	PadLayout::BeginList("###gw2igh_eco_cart");
@@ -241,7 +241,7 @@ void DrawCartTab()
 			else
 				std::snprintf(q, sizeof(q), "%d", c.id);
 			CraftingData::QueuePlan(q);
-			FocusCraftingTab();
+			OpenCraftingPad();
 		}
 		ImGui::SameLine();
 		if (ImGui::SmallButton("Watch"))

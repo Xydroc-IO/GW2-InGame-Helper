@@ -263,11 +263,14 @@ namespace WalletDetail
 	void MergeLoc(std::unordered_map<int, Entry>& byId, int id, bool currency,
 		LocKind kind, const std::string& where, int count)
 	{
-		if (id <= 0 || count <= 0) return;
+		if (id <= 0 || count < 0)
+			return;
 		const int key = currency ? -id : id;
 		Entry& e = byId[key];
 		e.id = id;
 		e.isCurrency = currency;
+		if (count == 0)
+			return;
 		e.total += count;
 		for (LocQty& l : e.locs)
 		{
@@ -341,10 +344,13 @@ namespace WalletDetail
 
 	/* Non-destructive publish copy. */
 	void Publish(const std::unordered_map<int, Entry>& byId, const char* status,
-		int charCount, int charBagsOk, bool ok, bool charsPending)
+		int charCount, int charBagsOk, bool ok, bool charsPending,
+		const std::vector<SlotSection>* sections)
 	{
 		std::unordered_map<int, Entry> copy = byId;
 		Snapshot snap = SnapshotFromMap(copy, status, charCount, charBagsOk, ok, charsPending);
+		if (sections)
+			snap.sections = *sections;
 		std::lock_guard<std::mutex> lock(gMu);
 		gSnap = std::move(snap);
 		gGen.fetch_add(1);

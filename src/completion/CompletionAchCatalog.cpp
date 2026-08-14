@@ -199,6 +199,7 @@ namespace CompletionDetail
 					d.points = pts > 0 ? static_cast<int>(pts) : 0;
 					const std::string slice = body.substr(brace, end - brace + 1);
 					d.hidden = slice.find("Hidden") != std::string::npos;
+					d.repeatable = slice.find("Repeatable") != std::string::npos;
 					size_t bp = JsonView::ValueStartAfterKey(JsonView::AsView(body),
 						JsonView::View("bits"), brace);
 					if (bp != JsonView::View::npos && bp < end && body[bp] == '[')
@@ -234,8 +235,36 @@ namespace CompletionDetail
 								bit.kind = AchBitKind::Text;
 							else
 								bit.kind = AchBitKind::Other;
-							if (!bit.text.empty() || bit.targetId > 0)
-								d.bits.push_back(std::move(bit));
+							d.bits.push_back(std::move(bit));
+							q = e2 + 1;
+						}
+					}
+					size_t tp = JsonView::ValueStartAfterKey(JsonView::AsView(body),
+						JsonView::View("tiers"), brace);
+					if (tp != JsonView::View::npos && tp < end && body[tp] == '[')
+					{
+						const size_t arrEnd = JsonView::ArrayEnd(body, tp);
+						const size_t limit = (arrEnd != JsonView::View::npos && arrEnd <= end)
+							? arrEnd : end;
+						size_t q = tp + 1;
+						while (q < limit)
+						{
+							const size_t b2 = body.find('{', q);
+							if (b2 == std::string::npos || b2 >= limit)
+								break;
+							const size_t e2 = JsonView::ObjectEnd(body, b2);
+							if (e2 == std::string::npos || e2 >= limit)
+								break;
+							const std::string tj = body.substr(b2, e2 - b2 + 1);
+							AchTier tier;
+							const long long cnt = JsonView::IntAfterKey(tj, "count", 0);
+							const long long pts = JsonView::IntAfterKey(tj, "points", 0);
+							if (cnt > 0)
+								tier.count = static_cast<int>(cnt);
+							if (pts > 0)
+								tier.points = static_cast<int>(pts);
+							if (tier.count > 0)
+								d.tiers.push_back(tier);
 							q = e2 + 1;
 						}
 					}

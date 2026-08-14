@@ -11,7 +11,7 @@ namespace WalletPad
 	/* Open Wallet on Characters location filtered to this toon name. */
 	void FocusCharacterBags(const char* characterName);
 
-	/* Body only - for EconomyPad Stash tab (no own ImGui::Begin). */
+	/* Body only - for the Stash pad (no own ImGui::Begin). */
 	void RenderContents();
 
 	/* Draw when G::ShowWallet. Returns true if pointer is over the window. */

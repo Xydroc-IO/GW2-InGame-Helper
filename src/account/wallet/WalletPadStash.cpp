@@ -162,11 +162,14 @@ namespace WalletDetail
 
 	constexpr ImGuiTreeNodeFlags kFold = ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	bool BeginFold(const char* id, const char* label)
+	bool BeginFold(const char* id, const char* label, bool startOpen = false)
 	{
 		ImGui::PushID(id);
 		ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldMuted);
-		const bool open = ImGui::TreeNodeEx(label, kFold);
+		ImGuiTreeNodeFlags flags = kFold;
+		if (startOpen)
+			flags |= ImGuiTreeNodeFlags_DefaultOpen;
+		const bool open = ImGui::TreeNodeEx(label, flags);
 		ImGui::PopStyleColor();
 		if (!open)
 			ImGui::PopID();
@@ -247,8 +250,207 @@ namespace WalletDetail
 		PadNav::PopWrap();
 	}
 
+	void DrawBankSlot(const SlotCell& c, float sz, int slotIndex)
+	{
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		const ImVec2 p0 = ImGui::GetCursorScreenPos();
+		const ImVec2 p1(p0.x + sz, p0.y + sz);
+		ImGui::PushID(slotIndex);
+		ImGui::InvisibleButton("###gw2igh_stash_slot", ImVec2(sz, sz));
+		const ImVec2 after = ImGui::GetCursorScreenPos();
+		dl->AddRectFilled(p0, p1, ImGui::GetColorU32(HelperTheme::Child), 2.f);
+		dl->AddRect(p0, p1, ImGui::GetColorU32(HelperTheme::Border), 2.f);
+		if (c.id > 0)
+		{
+			const bool ghost = c.count <= 0;
+			ImGui::SetCursorScreenPos(ImVec2(p0.x + 2.f, p0.y + 2.f));
+			if (ghost)
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.28f);
+			if (!Gw2Icons::ImageItem(c.id, sz - 4.f))
+				ImGui::Dummy(ImVec2(sz - 4.f, sz - 4.f));
+			if (ghost)
+				ImGui::PopStyleVar();
+			if (c.count > 1)
+			{
+				char n[16];
+				std::snprintf(n, sizeof(n), "%d", c.count);
+				const ImVec2 ts = ImGui::CalcTextSize(n);
+				const ImVec2 tp(p1.x - ts.x - 3.f, p0.y + 1.f);
+				dl->AddText(ImVec2(tp.x + 1.f, tp.y + 1.f), IM_COL32(0, 0, 0, 180), n);
+				dl->AddText(tp, ImGui::GetColorU32(HelperTheme::Ink), n);
+			}
+			if (ImGui::IsMouseHoveringRect(p0, p1))
+			{
+				char name[160];
+				if (!Gw2Icons::ItemName(c.id, name, sizeof(name)))
+				{
+					const std::string cached = LookupName(c.id, c.id, false);
+					std::snprintf(name, sizeof(name), "%s",
+						cached.empty() ? "Item" : cached.c_str());
+				}
+				if (c.count > 0)
+					ImGui::SetTooltip("%s\n%d", name, c.count);
+				else
+					ImGui::SetTooltip("%s\nNot collected", name);
+			}
+		}
+		ImGui::SetCursorScreenPos(after);
+		ImGui::PopID();
+	}
+
+	bool SlotMatches(const SlotCell& c, const char* filter)
+	{
+		if (!filter || !filter[0])
+			return true;
+		if (c.id <= 0)
+			return false;
+		Entry e;
+		e.id = c.id;
+		char name[160];
+		if (Gw2Icons::ItemName(c.id, name, sizeof(name)))
+			e.name = name;
+		else
+			e.name = LookupName(c.id, c.id, false);
+		return MatchesFilter(e, filter, 0);
+	}
+
+	void DrawSlotGrid(const std::vector<SlotCell>& slots, const char* filter)
+	{
+		const float sz = 36.f;
+		const float gap = 3.f;
+		const float cell = sz + gap;
+		ImGui::PushTextWrapPos(-1.f);
+		const float avail = ImGui::GetContentRegionAvail().x;
+		int cols = static_cast<int>((avail + gap) / cell);
+		if (cols < 4)
+			cols = 4;
+		if (cols > 10)
+			cols = 10;
+		const ImVec2 origin = ImGui::GetCursorScreenPos();
+		int drawn = 0;
+		int idx = 0;
+		for (const SlotCell& c : slots)
+		{
+			++idx;
+			if (filter && filter[0] && !SlotMatches(c, filter))
+				continue;
+			const int col = drawn % cols;
+			const int row = drawn / cols;
+			ImGui::SetCursorScreenPos(ImVec2(origin.x + col * cell, origin.y + row * cell));
+			DrawBankSlot(c, sz, idx);
+			++drawn;
+		}
+		const int rows = drawn <= 0 ? 0 : (drawn + cols - 1) / cols;
+		ImGui::SetCursorScreenPos(origin);
+		if (rows > 0)
+			ImGui::Dummy(ImVec2(cols * cell - gap, rows * cell - gap));
+		ImGui::PopTextWrapPos();
+	}
+
+	bool CurrencyMatches(const Entry& e, const char* filter)
+	{
+		return e.isCurrency && MatchesFilter(e, filter, 0);
+	}
+
+	bool DrawWalletCurrencies(const Snapshot& snap, const char* filter)
+	{
+		std::vector<const Entry*> cur;
+		cur.reserve(64);
+		for (const Entry& e : snap.entries)
+		{
+			if (CurrencyMatches(e, filter))
+				cur.push_back(&e);
+		}
+		if (cur.empty())
+			return false;
+		std::sort(cur.begin(), cur.end(),
+			[](const Entry* a, const Entry* b) {
+				if (a->id == 1)
+					return b->id != 1;
+				if (b->id == 1)
+					return false;
+				return _stricmp(a->name.c_str(), b->name.c_str()) < 0;
+			});
+		char head[64];
+		std::snprintf(head, sizeof(head), "Wallet  ·  %d", static_cast<int>(cur.size()));
+		if (!BeginFold("Wallet", head, true))
+			return true;
+		for (const Entry* e : cur)
+		{
+			ImGui::PushID(-e->id);
+			const float xLine = ImGui::GetCursorPosX();
+			const float yLine = ImGui::GetCursorPosY();
+			constexpr float kIcon = 22.f;
+			if (!Gw2Icons::ImageCurrency(e->id, kIcon))
+				ImGui::Dummy(ImVec2(kIcon, kIcon));
+			ImGui::SameLine(0.f, 8.f);
+			const std::string amt = e->id == 1
+				? FormatCoins(e->total)
+				: FormatCount(e->total);
+			const char* nm = e->name.empty() ? "Currency" : e->name.c_str();
+			PadLayout::TitleRow(nullptr, HelperTheme::Header, HelperTheme::GoldMuted,
+				nm, amt.c_str(), e->id == 1 ? HelperTheme::GoldBright : HelperTheme::Ink);
+			const float rowH = (std::max)(kIcon, ImGui::GetTextLineHeightWithSpacing());
+			ImGui::SetCursorPos(ImVec2(xLine, yLine + rowH));
+			ImGui::PopID();
+		}
+		EndFold();
+		return true;
+	}
+
 	void DrawStashFolds(const Snapshot& snap, const char* filter, int locFilter, int sortMode)
 	{
+		if (!snap.sections.empty())
+		{
+			PadLayout::BeginList("###gw2igh_wallet_list", 80.f);
+			int shown = 0;
+			const bool wantWallet = (locFilter == 0 || locFilter == 1);
+			if (wantWallet && DrawWalletCurrencies(snap, filter))
+				++shown;
+			if (locFilter != 1)
+			{
+				for (const SlotSection& s : snap.sections)
+				{
+					if (locFilter > 0 && s.kind != static_cast<LocKind>(locFilter - 1))
+						continue;
+					if (s.kind == Loc_Wallet)
+						continue;
+					bool any = !(filter && filter[0]);
+					if (filter && filter[0])
+					{
+						for (const SlotCell& c : s.slots)
+						{
+							if (SlotMatches(c, filter))
+							{
+								any = true;
+								break;
+							}
+						}
+					}
+					if (!any)
+						continue;
+					char head[160];
+					if (s.kind == Loc_Materials && s.capacity > 0)
+						std::snprintf(head, sizeof(head), "%s    %d of %d Types Collected",
+							s.title.c_str(), s.filled, s.capacity);
+					else if (s.kind == Loc_Bank)
+						std::snprintf(head, sizeof(head), "%s", s.title.c_str());
+					else
+						std::snprintf(head, sizeof(head), "%s  ·  %d", s.title.c_str(), s.filled);
+					if (!BeginFold(s.title.c_str(), head,
+						s.kind == Loc_Bank || s.kind == Loc_Shared))
+						continue;
+					DrawSlotGrid(s.slots, filter);
+					EndFold();
+					++shown;
+				}
+			}
+			if (shown == 0 && !gBusy)
+				DrawEmptyStash(snap, filter, locFilter);
+			PadLayout::EndList();
+			return;
+		}
+
 		std::vector<StashRow> rows;
 		CollectStashRows(snap, filter, locFilter, rows);
 		SortStashRows(rows, sortMode);

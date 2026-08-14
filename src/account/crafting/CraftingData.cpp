@@ -1,4 +1,5 @@
 #include "CraftingData.h"
+#include "CraftingPad.h"
 #include "PadLayout.h"
 #include "PadNav.h"
 
@@ -220,17 +221,20 @@ void CraftingData::QueuePlan(const char* itemNameOrCode)
 	gForceCraftSub = kSubPlan;
 	gFocusTab = true;
 	StartPlanWithQty(1);
+	CraftingPad::OpenAndRefresh();
 }
 
 void CraftingData::RequestFocusTab()
 {
 	gFocusTab = true;
+	CraftingPad::OpenAndRefresh();
 }
 
 void CraftingData::RequestFocusCraftCart()
 {
 	gForceCraftSub = kSubCart;
 	gFocusTab = true;
+	CraftingPad::OpenAndRefresh();
 }
 
 bool CraftingData::ConsumeFocusTab()

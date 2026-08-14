@@ -171,6 +171,7 @@ DLL_SRC = \
 	src/account/progress/ProgressDataUi.cpp \
 	src/account/progress/ProgressFetch.cpp \
 	src/account/crafting/CraftingData.cpp \
+	src/account/crafting/CraftingPad.cpp \
 	src/account/crafting/CraftingApi.cpp \
 	src/account/crafting/CraftingApiRecipe.cpp \
 	src/account/crafting/CraftingWikiIds.cpp \

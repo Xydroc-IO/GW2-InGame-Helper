@@ -24,6 +24,8 @@ namespace
 void CompletionPad::OpenAndRefresh()
 {
 	G::ShowCompletion = true;
+	if (CompletionDetail::gTab < 0 || CompletionDetail::gTab > 2)
+		CompletionDetail::gTab = 0;
 	CompletionDetail::gFocus = true;
 	CompletionDetail::gPlaceOnce = true;
 	Settings::SetDirty();
@@ -34,18 +36,12 @@ void CompletionPad::OpenAndRefresh()
 
 void CompletionPad::OpenAchievements()
 {
-	CompletionDetail::gTab = 3;
-	OpenAndRefresh();
-}
-
-void CompletionPad::ShowChecklistTab()
-{
-	CompletionDetail::gTab = 0;
-}
-
-bool CompletionPad::ShowingAchievements()
-{
-	return G::ShowCompletion && CompletionDetail::gTab == 3;
+	G::ShowAchievements = true;
+	CompletionDetail::gAchFocus = true;
+	CompletionDetail::gAchPlaceOnce = true;
+	Settings::SetDirty();
+	CompletionDetail::BeginApOverlayRefresh();
+	CompletionDetail::BeginAchCatalogRefresh(false);
 }
 
 void CompletionPad::Tick()

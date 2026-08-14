@@ -4,9 +4,8 @@ namespace CompletionPad
 {
 	void OpenAndRefresh();
 	void OpenAchievements();
-	void ShowChecklistTab();
-	bool ShowingAchievements();
 	bool Render();
+	bool RenderAchievements();
 	/* Proximity auto-tick + GPS arrow - call every UI frame. */
 	void Tick();
 }

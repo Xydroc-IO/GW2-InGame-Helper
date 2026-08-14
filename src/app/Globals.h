@@ -69,14 +69,16 @@ namespace G
 	extern bool  ShowNotes; /* ImGui Notes + clipboard helpers window */
 	extern bool  ShowTpWatch; /* ImGui TP watchlist (add/remove + prices) */
 	extern bool  ShowLookup; /* ImGui item lookup (chat code / ID / name) — free-floating */
-	extern bool  ShowWallet; /* ImGui wallet + mats snapshot — free-floating */
+	extern bool  ShowWallet; /* Stash pad — wallet, mats, bank, bags */
 	extern bool  ShowVault; /* ImGui Dailies & Vault — side rail + free-floating */
 	extern bool  ShowAccount; /* ImGui Account pad (progress / unlocks / history) */
 	extern bool  ShowEvents; /* ImGui world-boss timers + track list — free-floating */
 	extern bool  ShowLogManager; /* ImGui DPS Logs (ArcDPS EVTC browser) */
-	extern bool  ShowEconomy; /* Flips / charts / cart / stash / trading / item / crafting */
+	extern bool  ShowEconomy; /* Flips / charts / cart / trading / item lookup */
+	extern bool  ShowCrafting; /* Plan / Known / Browse / Craft cart */
 	extern bool  ShowInstances; /* Story / fractal / raid / strike journal */
 	extern bool  ShowCompletion; /* Map completion checklist / Atlas / routes */
+	extern bool  ShowAchievements; /* Account AP groups — own pad, not a Completion tab */
 	extern bool  ShowFarming; /* Farming runs + fishing catch log */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
@@ -169,8 +171,10 @@ namespace G
 	extern PadGeom PadWallet;
 	extern PadGeom PadVault;
 	extern PadGeom PadEconomy;
+	extern PadGeom PadCrafting;
 	extern PadGeom PadInstances;
 	extern PadGeom PadCompletion;
+	extern PadGeom PadAchievements;
 	extern PadGeom PadFarming;
 	extern PadGeom PadEventAlert; /* on-screen event toast placement */
 }
