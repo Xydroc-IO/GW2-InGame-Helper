@@ -40,8 +40,10 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
   Eikasia gloves and Legendary Relic. Envoy and Triumphant Hero PvP armor are
   one set card each. List groups by type with Done / Still need / In progress,
   generation chips (Gen 1–3, SotO, JW, VoE), remaining counts, and progress bars.
+  Blank Ledger page (footer-only) was a JS quote mismatch in the remaining summary
+  line; stamp `71` rebuilds the live HTML.
 - **Stamps:** Helper `2242` · homepage `2234` · sites `s2215` · cheatsheets `c2228`
-  · live panel `70` · raid food `9` · ui-chrome `uc36` · watchd `w10`
+  · live panel `71` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.7
 

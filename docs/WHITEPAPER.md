@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.2.4.8 | 2.2.4.8 | Ledger JW/VoE/SotO catalog; type groups + remaining filters; live 70 |
+| 2.2.4.8 | 2.2.4.8 | Ledger JW/VoE/SotO catalog; type groups + remaining filters; live 71 |
 | 2.2.4.7 | 2.2.4.7 | Stash/Crafting pads; Achievements layout; Vault remaining; rail order |
 | 2.2.4.6 | 2.2.4.6 | Ledger + Trail Tools standalone; Achievements rail; helper 2242; live 69 |
 | 2.2.4.5 | 2.2.4.5 | Events LIVE ≤45m + 10/5m toasts; dense pads; Discord named credit; live 69 |
@@ -930,7 +930,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
 | Helper / home / sites / cheatsheets stamps | 2242 / 2234 / s2215 / c2228 |
-| Live panel stamp | 70 |
+| Live panel stamp | 71 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
 | OSR `device_scale_factor` | 1.0 |
@@ -1014,6 +1014,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.4.8 — Ledger JW/VoE catalog + remaining UI; helper 2242; live 70; home 2234; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.2.4.8 — Ledger JW/VoE catalog + remaining UI; helper 2242; live 71; home 2234; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

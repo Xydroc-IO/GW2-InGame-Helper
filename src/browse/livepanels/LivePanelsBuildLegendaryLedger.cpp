@@ -273,7 +273,7 @@ function renderList(){
   var needsHtml=chipRow(NEEDS,"need",state.need);
   var tl=tally();
   var sum='<div class="summary"><span><b>'+tl.t+"</b> in catalog</span>";
-  if(hasKey) sum+='<span class="ok"><b>'+tl.d+"</b> done</span><span class="part"><b>'+tl.p+"</b> in progress</span><span class="miss"><b>'+tl.n+"</b> still need</span>";
+  if(hasKey) sum+='<span class="ok"><b>'+tl.d+'</b> done</span><span class="part"><b>'+tl.p+'</b> in progress</span><span class="miss"><b>'+tl.n+'</b> still need</span>';
   sum+="</div>";
   var body;
   if(!items.length) body='<div class="empty">Catalog unavailable.</div>';
