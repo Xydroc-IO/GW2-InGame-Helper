@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.4
+# GW2 In-Game Helper v2.2.4.5
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,19 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.5
+
+- **Events:** LIVE chip is timetable spawn only and only while the window is
+  45 minutes or less (hour-plus HoT day phases stay off LIVE). Short windows
+  fire the Event live toast; 10- and 5-minute start and end toasts.
+- **Pads:** Denser Events and Economy title, chip, and gold rows.
+- **Browse:** Credit footer — Report any issues here — Discord —
+  [Raidcore](https://discord.gg/kA8PvbuymS) — Channel —
+  [GW2-InGame-Helper](https://discord.com/channels/410828272679518241/1531031243196727407)
+  (link labels only; URLs not shown).
+- **Stamps:** Helper `2242` · homepage `2232` · sites `s2215` · cheatsheets `c2228`
+  · live panel `69` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.4
 
