@@ -1,6 +1,6 @@
 # Pathing — packs, markers, compass, world GPS
 
-**Revision:** 2.2.4.5 · **Audience:** contributors and advanced players  
+**Revision:** 2.2.4.6 · **Audience:** contributors and advanced players  
 **Companions:** [`../pathing/README.md`](../pathing/README.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`COMPLETION.md`](COMPLETION.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.2, [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
 ---
@@ -182,30 +182,19 @@ Use `mul(M,v)` consistently. Wrong multiply order can “succeed” while drawin
 
 ---
 
-## 8b. Trail Tools (pack authoring)
+## 8b. Pack authoring (not in this addon)
 
-Side-rail **Trail Tools** authors TacO/Blish packs in-addon (counterpart to Pathing, which plays packs).
+Helper Pathing **plays** TacO/Blish packs. Authoring moved to the standalone
+[GW2-TrailTools](https://github.com/Xydroc-IO/GW2-TrailTools) Nexus addon
+(Editor, OverlayData, UberTool, ground snap). Install `GW2-TrailTools.dll`
+beside the helper; do not load both as competing world gizmos if you only
+need playback.
 
-| Tab | Purpose |
-|-----|---------|
-| Live | Map ID + XYZ from Mumble; copy POI attrs / vectors |
-| Trails | **XML project desk** (hub tab or own window) — OverlayData New/Load/Save/Save As; trail list; **Insert into XML**; open **TrailsN** raw `.trl` editors |
-| Markers | **XML project desk** (same OverlayData) — marker list; drop / delete; **Insert into XML**; open **MarkersN** for bound POI attrs |
-| Pack | Looks, texture browser, **XML layout**, Lua list, categories, import, draft, build |
-| Keybinds | Trail start/pause/section/delete; marker delete; **10 place-marker slots** (category + chord; works while pad closed; recording uses focused TrailsN) |
+Built `.taco` files still drop into `addons/GW2-InGame-Helper/pathing/` (or
+copy them there) and **Reload packs**.
 
-Workspace: `addons/GW2-InGame-Helper/pathing/authoring/<PackName>/`  
-Build output: `pathing/<PackName>.taco` (user packs are never deleted by curated updates). Drop `.lua` under authoring (e.g. `Scripts/`) — included in `.taco`.
-
-**Desks + editors:** Trails / Markers desks can leave the hub. Up to **four TrailsN** and **four MarkersN** collapsible editors at once (cascaded beside the desk). Each TrailsN holds its own `.trl` draft; MarkersN binds to a POI index. Collapse the ImGui title-bar arrow to leave only a bar. Unload closes all desks/editors (`CloseAllPopouts`).
-
-**XML layout:** Combined writes `{Pack}.xml` (MarkerCategory + `<POIs>`). Split writes `{Pack}_Menu.xml` (categories) + `{Pack}_Data.xml` (`<POIs>` with Trail + POI). Pathing indexes every `.xml` in the taco and merges both.
-
-**Draft preview:** WYSIWYG — uses category `texture` / `iconFile` / `color` / `trailScale` while the hub, a desk, or any editor is open.
-
-**Schedules:** Pathing honors Blish `schedule` / `schedule-duration` (UTC cron) at draw time.
-
-**Lua:** see §4; enable under Pathing Features.
+Pathing still honors Blish `schedule` / `schedule-duration` (UTC cron) at draw
+time. Lua: see §4; enable under Pathing Features.
 
 ---
 
@@ -215,7 +204,7 @@ Build output: `pathing/<PackName>.taco` (user packs are never deleted by curated
 |--------|------------|
 | Pack download / stamps | `PathingPacks*` |
 | `.trl` / zip parse | `PathingParse*` |
-| Pack authoring (Trail Tools) | `TrailTools*` |
+| Pack authoring | standalone [GW2-TrailTools](https://github.com/Xydroc-IO/GW2-TrailTools) |
 | Categories / Features UI | `PathingTrailsUi` / presets TUs |
 | GPS math / width | `WorldGpsMath` |
 | GPS D3D | `WorldGpsD3d*` — compliance review if touching device acquisition |

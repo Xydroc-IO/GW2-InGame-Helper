@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.5
+# GW2 In-Game Helper v2.2.4.6
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,34 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.6
+
+- **Pathing:** In-addon Trail Tools authoring pad removed. Pack creation lives in
+  standalone [GW2-TrailTools](https://github.com/Xydroc-IO/GW2-TrailTools); copy
+  built `.taco` files into helper `pathing/` and Reload packs. Pathing playback,
+  compass, and world GPS stay in the helper.
+- **Legendary Ledger:** Type and generation chips, Done / Still need / In progress
+  filters, armory counts at the top, grouped by item type. Cards show a progress
+  bar; opening a row shows a short detail page (craft tree is a button, not auto).
+  Catalog adds Visions of Eternity and Janthir Wilds legendaries (Ancora, Selachimorpha,
+  Endless Summer, Stella Radians, Strife Unending, Klobjarne Geirr). Envoy armor is
+  one 0/18 set card. Detail pages list VoE/JW gift have/need from bank+materials,
+  map-mastery collection progress, and TP last-sell; Still need sorts by that
+  ballpark. Pin up to three legendaries as Working on (persists in the helper).
+  Detail actions (craft tree, Wiki, crafting pad) are gold-rimmed buttons; Crafting
+  is a filled gold bar. Open craft tree shows gifts as a two-column grid of cards
+  with their components (have / need). Cached detail HTML is discarded when the
+  live stamp changes, so the old nested list cannot stick after an update.
+- **Achievements:** Helper side rail badge (next to Completion) opens the account
+  AP browser. Default bind Ctrl+Shift+Q. Window title is Achievements on that tab.
+  Pin up to five as Working on (saved under the addon config folder).
+- **Completion:** Achievements tab Account pane lists official API groups and
+  categories with done/open filters and search against `/v2/account/achievements`.
+  Guides pane keeps Lady pack GPS. Helper chrome only — not a clone of third-party
+  achievement sites.
+- **Stamps:** Helper `2242` · homepage `2234` · sites `s2215` · cheatsheets `c2228`
+  · live panel `69` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.5
 

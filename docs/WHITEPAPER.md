@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.4.5 |
+| Revision described | 2.2.4.6 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.2.4.6 | 2.2.4.6 | Ledger + Trail Tools standalone; Achievements rail; helper 2242; live 69 |
 | 2.2.4.5 | 2.2.4.5 | Events LIVE ≤45m + 10/5m toasts; dense pads; Discord named credit; live 69 |
 | 2.2.4.4 | 2.2.4.4 | Wine TLS harden (call_tls_callbacks -1); CrashTrail/Watch module splits; fault CONTEXT stacks |
 | 2.2.4.3 | 2.2.4.3 | Festivals Browse + Discord credit; nested Wiki chrome; API Check join / rail de-dupe; hb snapshot |
@@ -724,7 +725,7 @@ See [`ACCOUNT.md`](ACCOUNT.md), [`API_KEY.md`](API_KEY.md).
 
 **Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, Hero's Marker Pack, and HasKha Markers download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy. Opt-in **PathingLua** (default off) covers a Blish-shaped `script-*` subset — not the full Pathing libdef host.
 
-**Trail Tools.** Side-rail hub (Live / Trails / Markers / Pack / Keybinds). Trails and Markers are OverlayData project **desks** (shared New/Load/Save/Save As; Combined or Split); desks may open as their own windows. Up to four **TrailsN** / **MarkersN** collapsible raw editors run at once (cascaded; keybind recording targets the focused TrailsN). **Insert into XML** upserts into the project before Save. Pack tab covers Looks / categories / import / build `.taco`. Textured draft preview while hub, desk, or any editor is open—display-first pack creation without TacO/TrlTool embedding.
+**Authoring.** Pack creation is not in this addon. Use standalone [GW2-TrailTools](https://github.com/Xydroc-IO/GW2-TrailTools); drop built `.taco` files into helper `pathing/` for playback.
 
 **Lady Features.** Barefoot / With Mounts / WP Only are independent map-completion editions under Lady extras (can combine); separate from Tekkit Map Completion presets.
 
@@ -754,7 +755,7 @@ Schema-v2 `data/sites.json` (~2718 entries) embeds and extracts to runtime `site
 
 ### 17.6 Companions and overlays
 
-**Economy** and **Instances** are read-only side-rail companions (commerce Flip Finder / charts / cart; story/fractal/raid/strike journal). **Completion** provides hierarchical map-completion checklist / Atlas / routes that set Pathing’s orange **search guide** only; auto-arrive uses Mumble proximity. **Farming** stores curated run checklists and a fishing catch log with optional Pathing handoff. Persist under `config/` (`completion-checklist.txt`, `completion-favorites.txt`, `farming-state.txt`).
+**Economy** and **Instances** are read-only side-rail companions (commerce Flip Finder / charts / cart; story/fractal/raid/strike journal). **Completion** provides hierarchical map-completion checklist / Atlas / routes that set Pathing’s orange **search guide** only; auto-arrive uses Mumble proximity. The Achievements tab Account pane reads official `/v2/achievements` groups plus `/v2/account/achievements` (not a third-party layout). **Farming** stores curated run checklists and a fishing catch log with optional Pathing handoff. Persist under `config/` (`completion-checklist.txt`, `completion-favorites.txt`, `farming-state.txt`).
 
 **Overlays:** `GpsArrow` (floating arrow toward the active search guide) and `ZoneBanner` (short map-change toast) live in `src/overlay/` — ImGui display only.
 
@@ -926,7 +927,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2242 / 2232 / s2215 / c2228 |
+| Helper / home / sites / cheatsheets stamps | 2242 / 2234 / s2215 / c2228 |
 | Live panel stamp | 69 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
@@ -960,7 +961,6 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | `src/account/*` | Account hub pads + API fetch/parse (feature subfolders under `src/account/`) |
 | `src/pathing/*` | Packs, trails, markers, compass, world GPS (feature subfolders under `src/pathing/`) |
 | `src/pathing/world/WorldGps*` / `WorldOverlay*` | D3D ribbons + ImGui markers |
-| `src/pathing/trailtools/*` | Trail Tools authoring pad |
 | `src/logs/*` | DPS Logs + EI runtime (`logmanager/`, `eiruntime/`) |
 | `src/economy/*` | Flip Finder / charts / crafting cart |
 | `src/instances/*` | Instance journal |
@@ -1012,6 +1012,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.4.5 — Events LIVE ≤45m + 10/5m start/end toasts; dense Events/Economy pads; Discord named credit (Raidcore / GW2-InGame-Helper); helper 2242; home 2232; live 69; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.2.4.6 — Ledger + Trail Tools standalone; Achievements rail; helper 2242; live 69; home 2234; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

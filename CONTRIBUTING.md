@@ -28,6 +28,8 @@ make check-stamps          # version + extract stamps vs docs
 make ci                    # full local gate (stamps, tests, MinGW build)
 ```
 
+Outputs land under `build/` (`bin/` shipping, `embed/` `ld -r` blobs, `src/` objects, `test/` harnesses). `make clean` wipes the tree.
+
 Install into a GW2 tree (default Steam path; override with `GW2_ROOT=`):
 
 ```bash
@@ -37,8 +39,8 @@ make install
 
 Packaging helpers:
 
-- `python3 tools/pack_ui_chrome.py` — `data/ui-chrome/` → `build/ui_chrome.zip`
-- `python3 tools/pack_cheatsheets.py` — offline sheets zip
+- `python3 tools/pack_ui_chrome.py` — `data/ui-chrome/` → `build/embed/ui_chrome.zip`
+- `python3 tools/pack_cheatsheets.py` — `data/cheatsheets/` → `build/embed/cheatsheets.zip`
 - `make pack-cef` — CEF runtime zip (maintainers)
 
 ## Before you open a PR

@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.4.5` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.4.6` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
@@ -44,10 +44,9 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | DPS Logs (side-rail **DPS Logs**) | ImGui |
 | World Events (side-rail **Events**) | ImGui |
 | Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
-| Trail Tools (side-rail) | Author packs — Trails/Markers desks; up to 4× TrailsN/MarkersN editors; Pack/Keybinds |
 | Economy (side-rail **Companions**) | Flip Finder, local price charts, crafting cart (read-only official API) |
 | Instances (side-rail **Companions**) | Story / fractal / raid / strike checklist journal |
-| Completion (side-rail **Companions**) | Checklist + Atlas + Nearest / Zone loop GPS; Open Pathing one-shot |
+| Completion (side-rail **Companions**) | Checklist + Atlas + GPS; Achievements tab browses official account AP groups |
 | Farming (side-rail **Companions**) | Curated + custom farm runs, GPS live nodes, fishing catch log |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
@@ -153,7 +152,7 @@ API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 ## Features
 
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
-- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Trail Tools · Events · DPS Logs · Notes · Companions · Settings) · `...` menu
+- **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Events · DPS Logs · Notes · Companions · Settings) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
 - **Companions** — Economy, Instances, Completion (checklist/Atlas/routes), Farming (runs + GPS + fishing log)
 - **Overlays** — floating GPS arrow toward active guide; short zone-entry banner

@@ -5,10 +5,10 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.4.5` |
+| Addon revision (shipping) | `2.2.4.6` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2242` / `2232` / `s2215` / `c2228` |
+| Helper / home / sites / cheatsheets stamps | `2242` / `2234` / `s2215` / `c2228` |
 | Live panel stamp | `69` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc36` |
@@ -50,7 +50,7 @@ Guild Wars 2.exe
 
 ### Embedding and extract
 
-1. **Build:** helper compiled → `build/helper_blob.exe` → linked into the DLL as a binary blob.
+1. **Build:** helper compiled → `build/bin/GW2HelperBrowser.exe` → flattened copy `build/embed/helper_blob.exe` → linked into the DLL as a binary blob.
 2. **Runtime:** `ExtractHelper()` writes `GW2HelperBrowser.exe` plus `.ver` (`kHelperStamp`).
 3. **CEF:** `CefRuntime::EnsureInstalled()` finds or downloads `cef-runtime-150-windows64.zip`, verifies SHA-256, extracts to `cef/`, writes `cef.ver`.
 4. **Launch:** `--cef-dir=<addon>/cef` and `--host-pid=<GW2 PID>`. No `bin64/cef` fallback. CreateProcess stays off `RT_Render`.
@@ -226,7 +226,7 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 | Path | Responsibility |
 |------|----------------|
 | `src/account/` | Account hub + profiles/inventory/history; feature pads under `crafting/`, `tpwatch/`, `unlocks/`, … |
-| `src/pathing/` | Feature subfolders: `packs/`, `trails/`, `world/`, `trailtools/`, `lua/`, `waypoints/`, `mapassist/` |
+| `src/pathing/` | Feature subfolders: `packs/`, `trails/`, `world/`, `lua/`, `waypoints/`, `mapassist/` |
 | `src/pathing/world/` (`WorldOverlay*`, `WorldGps*`, …) | GPS orchestrator, math, D3D device/draw, ImGui markers |
 | `src/logs/` | `logmanager/` (DPS Logs) + `eiruntime/` (Elite Insights runtime) |
 | `src/economy/` | Flip Finder, local charts, crafting cart (read-only) |
@@ -275,5 +275,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.4.5 — Events LIVE ≤45m + 10/5m start/end toasts; dense Events/Economy pads; Browse Discord named credit; live 69; sites s2215; ui-chrome uc36; home 2232; cheatsheets c2228; raid food 9; watchd w10 |
+| Last architecture sync | 2.2.4.6 — Ledger + Trail Tools standalone; Achievements rail; helper 2242; live 69; home 2234 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |
