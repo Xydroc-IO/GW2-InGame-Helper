@@ -46,6 +46,13 @@ namespace EventsData
 	const Entry* FindByKey(const char* key);
 
 	Timing ComputeTiming(const Entry& e, time_t now);
+	/* LIVE chip / spawn-live toast: window open and ≤45 minutes.
+	   Hour-plus HoT day/outpost phases (75–90m) stay off LIVE. */
+	constexpr int kSpawnLiveMaxSec = 45 * 60;
+	inline bool IsSpawnLive(const Entry& e, const Timing& t)
+	{
+		return t.live && e.activeSec > 0 && e.activeSec <= kSpawnLiveMaxSec;
+	}
 	void FormatUtcClock(time_t t, char* out, size_t outLen);
 	/* One-line "Next HH:MM UTC · then HH:MM UTC" (or LIVE until ...). */
 	void FormatNextUtcHint(const Entry& e, time_t now, char* out, size_t outLen);

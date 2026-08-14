@@ -7,6 +7,7 @@
 #include "Globals.h"
 #include "Gw2Ui.h"
 #include "HelperTheme.h"
+#include "PadLayout.h"
 #include "PadNav.h"
 #include "PadDock.h"
 #include "CrashTrail.h"
@@ -195,10 +196,13 @@ bool EventsPad::Render()
 		CrashTrail::Note("ev:pre body");
 
 	ImGui::BeginChild("###gw2igh_ev_body", ImVec2(0.f, 0.f), true);
-	PadNav::Blurb(
-		"UTC schedule for bosses and map metas (catalog times, not live HP). "
-		"Track items to pin them. This map uses MumbleLink. "
-		"Claim badges need an API key. Wiki / MetaBattle open as links only.");
+	PadNav::Blurb("Catalog times, not live HP. Hover for Wiki / MetaBattle notes.");
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip(
+			"UTC schedule for bosses and map metas.\n"
+			"Track pins events. This map uses MumbleLink.\n"
+			"Claim badges need an API key.\n"
+			"Wiki / MetaBattle open as links only.");
 
 	/* Filter / alert chips wrap — default pad width cannot fit one long SameLine row. */
 	auto checkW = [](const char* label) -> float {
@@ -228,8 +232,8 @@ bool EventsPad::Render()
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
-			"On-screen toast when an event is live or within 10 minutes\n"
-			"(catalog schedule). Default: all events.");
+			"Toasts: 10 min and 5 min before start, when a spawn goes live\n"
+			"(including short 5-min windows), then 10 min and 5 min before it ends.");
 	if (wrapCheck("Alert track###gw2igh_ev_alerts_trk", &G::EventAlertsTrackedOnly, false))
 		Settings::SetDirty();
 	if (ImGui::IsItemHovered())
@@ -286,6 +290,43 @@ bool EventsPad::Render()
 	if (deep)
 		CrashTrail::NoteF("ev:post CollectRows n=%zu", rows.size());
 
+	if (!rows.empty())
+	{
+		size_t heroI = static_cast<size_t>(-1);
+		int bestSoon = 0x7fffffff;
+		for (size_t i = 0; i < rows.size(); ++i)
+		{
+			const Row& cand = rows[i];
+			const EventsData::Entry& ce = all[static_cast<size_t>(cand.index)];
+			if (EventsData::IsSpawnLive(ce, cand.timing))
+			{
+				heroI = i;
+				break;
+			}
+			if (!cand.timing.live && cand.timing.untilStart >= 0 &&
+				cand.timing.untilStart < bestSoon)
+			{
+				bestSoon = cand.timing.untilStart;
+				heroI = i;
+			}
+		}
+		if (heroI != static_cast<size_t>(-1))
+		{
+			const Row& hr = rows[heroI];
+			const EventsData::Entry& he = all[static_cast<size_t>(hr.index)];
+			const bool heroLive = EventsData::IsSpawnLive(he, hr.timing);
+			char heroVal[48];
+			const char* kicker = heroLive ? "Live now" : "Up next";
+			if (heroLive)
+				std::snprintf(heroVal, sizeof(heroVal), "ends %s",
+					FmtRemain(hr.timing.untilEnd).c_str());
+			else
+				std::snprintf(heroVal, sizeof(heroVal), "%s",
+					FmtRemain(hr.timing.untilStart).c_str());
+			PadLayout::Hero("###gw2igh_ev_hero", kicker, he.title, heroVal);
+		}
+	}
+
 	const float footerH = ImGui::GetTextLineHeightWithSpacing() * 1.6f;
 	float listH = ImGui::GetContentRegionAvail().y - footerH;
 	if (listH < 120.f) listH = 120.f;
@@ -323,51 +364,62 @@ bool EventsPad::Render()
 			lastMap = e.mapLabel;
 		}
 
-		if (r.warn)
-			ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldBright);
-
-		char title[192];
-		if (r.timing.live)
-			std::snprintf(title, sizeof(title), "[LIVE] %s", e.title);
-		else if (r.tracked)
-			std::snprintf(title, sizeof(title), "* %s", e.title);
-		else
-			std::snprintf(title, sizeof(title), "%s", e.title);
-		ImGui::TextUnformatted(title);
-
-		if (EntryBossClaimed(e))
+		char when[48];
+		ImVec4 whenCol = HelperTheme::Muted;
+		const bool spawnLive = EventsData::IsSpawnLive(e, r.timing);
+		if (spawnLive)
 		{
-			ImGui::SameLine();
-			ImGui::TextColored(HelperTheme::Ok, "[boss]");
+			std::snprintf(when, sizeof(when), "%s", FmtRemain(r.timing.untilEnd).c_str());
+			whenCol = HelperTheme::Ok;
+		}
+		else if (r.timing.live)
+		{
+			std::snprintf(when, sizeof(when), "%s", FmtRemain(r.timing.untilEnd).c_str());
+			whenCol = HelperTheme::GoldMuted;
+		}
+		else
+		{
+			std::snprintf(when, sizeof(when), "%s", FmtRemain(r.timing.untilStart).c_str());
+			whenCol = r.warn ? HelperTheme::GoldBright : HelperTheme::Ink;
+		}
+		const char* chip = nullptr;
+		ImVec4 chipFill{}, chipText = HelperTheme::Ink;
+		if (spawnLive)
+		{
+			chip = "LIVE";
+			chipFill = ImVec4(0.22f, 0.38f, 0.18f, 1.f);
+			chipText = HelperTheme::Ok;
+		}
+		else if (r.tracked)
+		{
+			chip = "TRACK";
+			chipFill = ImVec4(0.28f, 0.21f, 0.11f, 1.f);
+			chipText = HelperTheme::GoldBright;
+		}
+		PadLayout::TitleRow(chip, chipFill, chipText, e.title, when, whenCol);
+		if (r.timing.live && !spawnLive && ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Map phase window (not a spawn). Right side is time left in the phase.");
+
+		const bool boss = EntryBossClaimed(e);
+		const bool chest = EntryChestClaimed(e);
+		if (boss)
+		{
+			PadLayout::Chip("boss", ImVec4(0.16f, 0.28f, 0.14f, 1.f), HelperTheme::Ok);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("World boss claimed today (account API).");
+			if (chest)
+				ImGui::SameLine(0.f, 4.f);
 		}
-		if (EntryChestClaimed(e))
+		if (chest)
 		{
-			ImGui::SameLine();
-			ImGui::TextColored(HelperTheme::Ok, "[chest]");
+			PadLayout::Chip("chest", ImVec4(0.16f, 0.28f, 0.14f, 1.f), HelperTheme::Ok);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Map chest claimed today (account API).");
 		}
-
+		if (boss || chest)
+			ImGui::SameLine(0.f, 6.f);
 		ImGui::TextColored(HelperTheme::Muted, "%s", e.section);
-
-		char utcHint[96]{};
-		EventsData::FormatNextUtcHint(e, now, utcHint, sizeof(utcHint));
-		if (r.timing.live)
-		{
-			ImGui::TextColored(HelperTheme::Ok,
-				"Active - ends in %s", FmtRemain(r.timing.untilEnd).c_str());
-		}
-		else
-		{
-			ImGui::TextColored(HelperTheme::Ink,
-				"Next in %s", FmtRemain(r.timing.untilStart).c_str());
-		}
-		if (utcHint[0])
-			ImGui::TextColored(HelperTheme::Muted, "%s", utcHint);
-		if (r.warn && !r.timing.live)
-			ImGui::TextColored(HelperTheme::GoldBright, "Tracked - starting soon");
 
 		if (ImGui::SmallButton(r.tracked ? "Untrack" : "Track"))
 			FlipTrack(e.key);
@@ -388,11 +440,8 @@ bool EventsPad::Render()
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Open MetaBattle in your system browser (link only).");
 
-		if (r.warn)
-			ImGui::PopStyleColor();
-
 		if (i + 1 < rows.size())
-			ImGui::Separator();
+			ImGui::Dummy(ImVec2(0.f, 2.f));
 		ImGui::PopID();
 	}
 

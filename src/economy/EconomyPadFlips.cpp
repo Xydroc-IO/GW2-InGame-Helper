@@ -63,18 +63,24 @@ namespace EconomyDetail
 		if (rank > 0)
 		{
 			ImGui::TextColored(HelperTheme::GoldMuted, "#%d", rank);
-			ImGui::SameLine();
+			ImGui::SameLine(0.f, 6.f);
 		}
 		if (Gw2Icons::ImageItem(r.id, 26.f))
-			ImGui::SameLine();
-		ImGui::TextUnformatted(r.name[0] ? r.name : "Item");
-		ImGui::TextColored(HelperTheme::Muted, "Buy %s | Sell %s | ",
-			FormatCoins(r.buy).c_str(), FormatCoins(r.sell).c_str());
-		ImGui::SameLine(0.f, 0.f);
-		ImGui::TextColored(r.spread > 0 ? ImVec4(0.45f, 0.85f, 0.55f, 1.f) : HelperTheme::Muted,
-			"Net %s (%.0f%%)", FormatCoins(r.spread).c_str(), RoiPct(r));
+			ImGui::SameLine(0.f, 6.f);
+
+		const std::string net = FormatCoins(r.spread);
+		const ImVec4 netCol = r.spread > 0
+			? ImVec4(0.45f, 0.85f, 0.55f, 1.f) : HelperTheme::Muted;
+		PadLayout::NameAndValue(r.name[0] ? r.name : "Item", net.c_str(), netCol);
+
+		char meta[160];
+		std::snprintf(meta, sizeof(meta), "Buy %s  ·  Sell %s  ·  %.0f%%",
+			FormatCoins(r.buy).c_str(), FormatCoins(r.sell).c_str(), RoiPct(r));
+		ImGui::TextColored(HelperTheme::Muted, "%s", meta);
 		if (r.demand > 0 || r.supply > 0)
-			ImGui::TextColored(HelperTheme::Muted, "Demand %d | Supply %d", r.demand, r.supply);
+			ImGui::TextColored(HelperTheme::Muted, "Demand %d  ·  Supply %d",
+				r.demand, r.supply);
+
 		if (ImGui::SmallButton("Cart"))
 		{
 			AddToCart(r.id, r.name, 1);
@@ -124,7 +130,7 @@ namespace EconomyDetail
 			}
 			ImGui::TreePop();
 		}
-		ImGui::Separator();
+		ImGui::Dummy(ImVec2(0.f, 3.f));
 		ImGui::PopID();
 	}
 
@@ -162,11 +168,10 @@ namespace EconomyDetail
 
 		PadNav::PushWrap();
 		if (top10)
-			ImGui::TextColored(HelperTheme::Muted,
-				"Best 10 by fee-adjusted net (~15%% of sell). Same ranking Overview used.");
+			ImGui::TextColored(HelperTheme::Muted, "%s",
+				"Top 10 by net after ~15% fee. Net is the right column.");
 		else
-			ImGui::TextColored(HelperTheme::Muted,
-				"Fee-adjusted net (~15%%). Read-only - trade on BLTC / in-game.");
+			ImGui::TextColored(HelperTheme::Muted, "Fee-adjusted net on the right. Trade on BLTC / in-game.");
 		PadNav::PopWrap();
 
 		std::vector<FlipRow> rows = gFlips;

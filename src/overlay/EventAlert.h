@@ -1,6 +1,6 @@
 #pragma once
 
-/* On-screen toast when a tracked Events timetable row is soon or live. */
+/* On-screen toast when a timetable row is soon, spawn-live, or ending. */
 namespace EventAlert
 {
 	bool Render(); /* returns true if pointer is over the toast (for input capture) */

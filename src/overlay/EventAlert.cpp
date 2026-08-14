@@ -19,23 +19,36 @@
 namespace
 {
 	constexpr int kWarnWithinSec = 10 * 60;
+	constexpr int kWarnFiveSec = 5 * 60;
 	constexpr float kToastSec = 5.5f;
 	constexpr float kPlaceSec = 45.f;
 	constexpr float kScanIntervalSec = 2.0f;
-	constexpr size_t kQueueMax = 6;
+	constexpr size_t kQueueMax = 12;
 
 	enum class Phase : unsigned char
 	{
 		Idle = 0,
 		Soon = 1,
+		Soon5 = 2,
+		Live = 3,
+		Ending = 4,
+		Ending5 = 5,
+	};
+
+	enum class ToastKind : unsigned char
+	{
+		Soon = 0,
+		Soon5 = 1,
 		Live = 2,
+		Ending = 3,
+		Ending5 = 4,
 	};
 
 	struct Toast
 	{
 		char title[96]{};
 		char sub[96]{};
-		bool live = false;
+		ToastKind kind = ToastKind::Soon;
 		bool placing = false;
 		float showUntil = 0.f;
 	};
@@ -98,25 +111,36 @@ namespace
 			std::snprintf(out, outLen, "%ds", s);
 	}
 
-	void Enqueue(const EventsData::Entry& e, bool live, int untilStart)
+	void Enqueue(const EventsData::Entry& e, ToastKind kind, int secs)
 	{
 		if (sQueue.size() >= kQueueMax)
 			return;
 		Toast t{};
-		t.live = live;
+		t.kind = kind;
 		std::snprintf(t.title, sizeof(t.title), "%s", e.title ? e.title : e.key);
-		if (live)
+		const char* map = (e.mapLabel && e.mapLabel[0]) ? e.mapLabel : "";
+		if (kind == ToastKind::Live)
 		{
-			std::snprintf(t.sub, sizeof(t.sub), "LIVE%s%s",
-				(e.mapLabel && e.mapLabel[0]) ? " · " : "",
-				(e.mapLabel && e.mapLabel[0]) ? e.mapLabel : "");
+			if (map[0])
+				std::snprintf(t.sub, sizeof(t.sub), "LIVE · %s", map);
+			else
+				std::snprintf(t.sub, sizeof(t.sub), "LIVE");
+		}
+		else if (kind == ToastKind::Ending || kind == ToastKind::Ending5)
+		{
+			char cd[32]{};
+			FormatCountdown(secs, cd, sizeof(cd));
+			if (map[0])
+				std::snprintf(t.sub, sizeof(t.sub), "Ends in %s · %s", cd, map);
+			else
+				std::snprintf(t.sub, sizeof(t.sub), "Ends in %s", cd);
 		}
 		else
 		{
 			char cd[32]{};
-			FormatCountdown(untilStart, cd, sizeof(cd));
-			if (e.mapLabel && e.mapLabel[0])
-				std::snprintf(t.sub, sizeof(t.sub), "Starts in %s · %s", cd, e.mapLabel);
+			FormatCountdown(secs, cd, sizeof(cd));
+			if (map[0])
+				std::snprintf(t.sub, sizeof(t.sub), "Starts in %s · %s", cd, map);
 			else
 				std::snprintf(t.sub, sizeof(t.sub), "Starts in %s", cd);
 		}
@@ -202,25 +226,39 @@ namespace
 				prev = it->second;
 
 			Phase next = Phase::Idle;
-			if (t.live)
+			if (t.live && t.untilEnd >= 0 && t.untilEnd <= kWarnFiveSec)
+				next = Phase::Ending5;
+			else if (t.live && t.untilEnd >= 0 && t.untilEnd <= kWarnWithinSec)
+				next = Phase::Ending;
+			else if (t.live)
 				next = Phase::Live;
+			else if (t.untilStart >= 0 && t.untilStart <= kWarnFiveSec)
+				next = Phase::Soon5;
 			else if (t.untilStart >= 0 && t.untilStart <= kWarnWithinSec)
 				next = Phase::Soon;
 
 			if (notify)
 			{
-				if (next == Phase::Live && prev != Phase::Live)
-					Enqueue(e, true, 0);
+				const bool nowLive = (next == Phase::Live || next == Phase::Ending ||
+					next == Phase::Ending5);
+				const bool wasLive = (prev == Phase::Live || prev == Phase::Ending ||
+					prev == Phase::Ending5);
+				/* Short windows (Prep is 5m) open already inside the ending
+				   band — still toast LIVE, then skip the same-scan ending toast. */
+				if (nowLive && !wasLive && EventsData::IsSpawnLive(e, t))
+					Enqueue(e, ToastKind::Live, 0);
+				else if (next == Phase::Ending5 && prev != Phase::Ending5)
+					Enqueue(e, ToastKind::Ending5, t.untilEnd);
+				else if (next == Phase::Ending && prev != Phase::Ending &&
+					prev != Phase::Ending5)
+					Enqueue(e, ToastKind::Ending, t.untilEnd);
+				else if (next == Phase::Soon5 && prev != Phase::Soon5)
+					Enqueue(e, ToastKind::Soon5, t.untilStart);
 				else if (next == Phase::Soon && prev == Phase::Idle)
-					Enqueue(e, false, t.untilStart);
+					Enqueue(e, ToastKind::Soon, t.untilStart);
 			}
 
-			if (next == Phase::Idle)
-				keep[e.key] = Phase::Idle;
-			else if (prev == Phase::Live || next == Phase::Live)
-				keep[e.key] = Phase::Live;
-			else
-				keep[e.key] = Phase::Soon;
+			keep[e.key] = next;
 		}
 		sPhase.swap(keep);
 		sPrimed = true;
@@ -282,8 +320,30 @@ namespace
 		}
 		PadDock::KeepOnScreen(sz.y);
 
-		ImGui::TextColored(sActive.live ? HelperTheme::Ok : HelperTheme::Warn, "%s",
-			sActive.placing ? "Place alert" : (sActive.live ? "Event live" : "Event soon"));
+		const char* head = "Place alert";
+		ImVec4 headCol = HelperTheme::Warn;
+		if (!sActive.placing)
+		{
+			if (sActive.kind == ToastKind::Live)
+			{
+				head = "Event live";
+				headCol = HelperTheme::Ok;
+			}
+			else if (sActive.kind == ToastKind::Soon5 ||
+				sActive.kind == ToastKind::Ending5)
+			{
+				head = "5 minutes";
+				headCol = HelperTheme::GoldBright;
+			}
+			else if (sActive.kind == ToastKind::Ending)
+			{
+				head = "Event ending";
+				headCol = HelperTheme::Warn;
+			}
+			else
+				head = "Event soon";
+		}
+		ImGui::TextColored(headCol, "%s", head);
 		ImGui::TextColored(HelperTheme::Gold, "%s", sActive.title);
 		if (sActive.sub[0])
 			ImGui::TextColored(HelperTheme::Muted, "%s", sActive.sub);
@@ -321,7 +381,7 @@ void EventAlert::BeginPlacement()
 	sQueue.clear();
 	sActive = {};
 	sActive.placing = true;
-	sActive.live = false;
+	sActive.kind = ToastKind::Soon;
 	std::snprintf(sActive.title, sizeof(sActive.title), "Event alert");
 	std::snprintf(sActive.sub, sizeof(sActive.sub),
 		"Drag this toast — position is saved for all alerts");
