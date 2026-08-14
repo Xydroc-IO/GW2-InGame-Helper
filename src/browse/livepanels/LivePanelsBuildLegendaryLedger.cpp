@@ -15,8 +15,8 @@
 
 /* Embedded compact legendaries catalog (ld -r -b binary). */
 extern "C" {
-	extern const unsigned char _binary_build_legendaries_catalog_json_start[];
-	extern const unsigned char _binary_build_legendaries_catalog_json_end[];
+	extern const unsigned char _binary_legendaries_catalog_json_start[];
+	extern const unsigned char _binary_legendaries_catalog_json_end[];
 }
 
 namespace LivePanelsBuild
@@ -25,8 +25,8 @@ namespace
 {
 	std::string EmbeddedCatalogJson()
 	{
-		const unsigned char* begin = _binary_build_legendaries_catalog_json_start;
-		const unsigned char* end = _binary_build_legendaries_catalog_json_end;
+		const unsigned char* begin = _binary_legendaries_catalog_json_start;
+		const unsigned char* end = _binary_legendaries_catalog_json_end;
 		if (!begin || !end || end <= begin)
 			return {};
 		return std::string(reinterpret_cast<const char*>(begin),

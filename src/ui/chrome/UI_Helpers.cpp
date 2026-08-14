@@ -26,7 +26,6 @@
 #include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
 #include "PathingTrails.h"
-#include "TrailToolsPad.h"
 #include "PadNav.h"
 #include "CompassOverlay.h"
 #include "WorldOverlay.h"
@@ -289,7 +288,7 @@ namespace UIDetail
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
 			G::ShowEconomy || G::ShowInstances || G::ShowCompletion || G::ShowFarming ||
-			G::ShowPathingGuides || TrailToolsPad::AnyOpen() ||
+			G::ShowPathingGuides ||
 			G::ShowCompassPad || G::ShowWatch || G::ShowWatchMirror || G::ShowSettings;
 	}
 
@@ -343,7 +342,6 @@ namespace UIDetail
 			CrashTrail::Note("pads:pre EventAlert");
 		const bool eventAlertHover = EventAlert::Render();
 		const bool tekkitHover = probe("Pathing", G::ShowPathingGuides, &PathingGuidesPad::Render);
-		const bool trailToolsHover = probe("TrailTools", G::ShowTrailTools, &TrailToolsPad::Render);
 		const bool compassHover = probe("Compass", G::ShowCompassPad, &DirectionCompass::RenderPad);
 		if (probePads)
 			CrashTrail::Note("pads:pre Watch");
@@ -357,7 +355,7 @@ namespace UIDetail
 			walletHover || vaultHover || eventsHover || logsHover ||
 			economyHover || instancesHover || completionHover || farmingHover ||
 			gpsArrowHover || eventAlertHover ||
-			tekkitHover || trailToolsHover || compassHover || watchHover || settingsHover);
+			tekkitHover || compassHover || watchHover || settingsHover);
 		if (probePads)
 			CrashTrail::Note("pads:pre NotesPad::Save");
 		NotesPad::Save(false);

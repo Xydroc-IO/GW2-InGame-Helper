@@ -13,11 +13,11 @@
 
 #include <windows.h>
 
-/* ld -r -b binary build/ui_chrome.zip */
-extern "C" const unsigned char _binary_build_ui_chrome_zip_start[];
-extern "C" const unsigned char _binary_build_ui_chrome_zip_end[];
+/* ld -r -b binary build/embed/ui_chrome.zip */
+extern "C" const unsigned char _binary_ui_chrome_zip_start[];
+extern "C" const unsigned char _binary_ui_chrome_zip_end[];
 /* GNU ld: value of this symbol IS the byte size (not a pointer to size). */
-extern "C" const unsigned char _binary_build_ui_chrome_zip_size[];
+extern "C" const unsigned char _binary_ui_chrome_zip_size[];
 
 namespace
 {
@@ -119,10 +119,10 @@ namespace
 	bool ExtractPack(const std::wstring& addonDir)
 	{
 		/* Prefer size symbol (GNU ld) — more reliable than end-start across PE refptrs. */
-		const unsigned char* begin = _binary_build_ui_chrome_zip_start;
+		const unsigned char* begin = _binary_ui_chrome_zip_start;
 		size_t size = static_cast<size_t>(
-			_binary_build_ui_chrome_zip_end - _binary_build_ui_chrome_zip_start);
-		const size_t sizeSym = reinterpret_cast<size_t>(&_binary_build_ui_chrome_zip_size);
+			_binary_ui_chrome_zip_end - _binary_ui_chrome_zip_start);
+		const size_t sizeSym = reinterpret_cast<size_t>(&_binary_ui_chrome_zip_size);
 		if (sizeSym > 64 && sizeSym < (64ull * 1024ull * 1024ull))
 			size = sizeSym;
 		if (!begin || size < 64)

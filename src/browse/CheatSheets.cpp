@@ -15,9 +15,9 @@
 
 #include <windows.h>
 
-/* ld -r -b binary build/cheatsheets.zip */
-extern "C" const unsigned char _binary_build_cheatsheets_zip_start[];
-extern "C" const unsigned char _binary_build_cheatsheets_zip_end[];
+/* ld -r -b binary build/embed/cheatsheets.zip */
+extern "C" const unsigned char _binary_cheatsheets_zip_start[];
+extern "C" const unsigned char _binary_cheatsheets_zip_end[];
 
 namespace
 {
@@ -115,8 +115,8 @@ namespace
 
 	bool ExtractPack(const std::wstring& addonDir)
 	{
-		const unsigned char* begin = _binary_build_cheatsheets_zip_start;
-		const unsigned char* end = _binary_build_cheatsheets_zip_end;
+		const unsigned char* begin = _binary_cheatsheets_zip_start;
+		const unsigned char* end = _binary_cheatsheets_zip_end;
 		if (end <= begin)
 			return false;
 		const size_t size = static_cast<size_t>(end - begin);

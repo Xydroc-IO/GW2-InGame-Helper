@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pack data/ui-chrome/ into build/ui_chrome.zip for DLL embedding."""
+"""Pack data/ui-chrome/ into build/embed/ui_chrome.zip for DLL embedding."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "data" / "ui-chrome"
-OUT = ROOT / "build" / "ui_chrome.zip"
+OUT = ROOT / "build" / "embed" / "ui_chrome.zip"
 
 REQUIRED = (
 	"manifest.txt",

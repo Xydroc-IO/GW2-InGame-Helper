@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include <vector>
 
 namespace CompletionDetail
@@ -136,6 +137,12 @@ namespace CompletionDetail
 	/* Bit i set = show ObjKind i. Default all bits. */
 	extern uint32_t gKindMask;
 	extern bool gAtlasFavOnly;
+	/* Achievements tab: 0 = account API | 1 = Lady pack GPS. */
+	extern int gApPane;
+	extern char gApSearch[64];
+	extern int gApFilter; /* 0 all | 1 done | 2 open */
+	extern int gApSelCatId;
+	extern int gApSelAchId;
 	/* Achievements tab: selected Lady AP category path (prefix filter). */
 	extern char gApCategoryPath[160];
 
@@ -175,6 +182,13 @@ namespace CompletionDetail
 	void LoadFavorites();
 	void SaveFavorites();
 
+	constexpr int kMaxAchPins = 5;
+	void LoadAchPins();
+	const std::vector<int>& AchPins();
+	bool IsAchPinned(int achievementId);
+	bool ToggleAchPin(int achievementId); /* false if already at kMaxAchPins */
+	void FocusAchPin(int achievementId);
+
 	/* Fill release/region from curated table when empty. */
 	void ApplyHierarchy(MapInfo& m);
 	const char* DefaultRelease();
@@ -199,10 +213,70 @@ namespace CompletionDetail
 		bool done = false;
 		int current = 0;
 		int max = 0;
+		/* Completed bit indices from /v2/account/achievements "bits". */
+		std::vector<int> bits;
 	};
 	void BeginApOverlayRefresh();
 	void ApplyApOverlayResult();
 	bool ApOverlayBusy();
 	bool LookupApProgress(uint32_t achievementId, ApProgress& out);
+	size_t ApProgressCount();
 	bool FormatApOverlayLine(uint32_t mapId, const char* packType, char* out, size_t outLen);
+
+	struct AchGroup
+	{
+		std::string id;
+		std::string name;
+		int order = 0;
+		std::vector<int> categoryIds;
+	};
+	struct AchCategory
+	{
+		int id = 0;
+		std::string name;
+		int order = 0;
+		std::vector<int> achievementIds;
+	};
+	enum class AchBitKind : int
+	{
+		Text = 0,
+		Item,
+		Skin,
+		Mini,
+		Achievement,
+		Other
+	};
+	struct AchBit
+	{
+		std::string text;
+		AchBitKind kind = AchBitKind::Text;
+		int targetId = 0;
+	};
+	struct AchDef
+	{
+		int id = 0;
+		std::string name;
+		std::string requirement;
+		std::string description;
+		std::string lockedText;
+		std::vector<AchBit> bits;
+		int points = 0;
+		bool hidden = false;
+	};
+	void BeginAchCatalogRefresh(bool force);
+	void ApplyAchCatalogResult();
+	bool AchCatalogBusy();
+	bool AchCatalogReady();
+	const std::vector<AchGroup>& AchGroups();
+	const AchCategory* FindAchCategory(int id);
+	int CategoryIdContainingAchievement(int achievementId);
+	void BeginAchDefsRefresh(int categoryId);
+	void BeginAchDefsForIds(const std::vector<int>& ids);
+	void ApplyAchDefsResult();
+	bool AchDefsBusy();
+	const AchDef* FindAchDef(int id);
+
+	void BeginAchWikiThumb(int achievementId, const char* name);
+	void ApplyAchWikiThumbResult();
+	bool LookupAchWikiThumbUrl(int achievementId, std::string& outUrl);
 }

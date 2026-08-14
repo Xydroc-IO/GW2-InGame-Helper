@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -200,31 +201,57 @@ namespace CraftingDetail
 	void FetchNames(std::unordered_map<int, std::string>& names, const std::vector<int>& ids)
 	{
 		std::vector<int> need;
+		need.reserve(ids.size());
 		for (int id : ids)
-			if (names.find(id) == names.end()) need.push_back(id);
-		for (size_t off = 0; off < need.size(); off += 200)
 		{
-			const size_t n = (std::min)(need.size() - off, size_t{200});
+			if (id <= 0)
+				continue;
+			auto it = names.find(id);
+			if (it == names.end() || it->second.empty())
+				need.push_back(id);
+		}
+		auto pull = [&](const std::vector<int>& batch) {
+			if (batch.empty())
+				return true;
 			std::string path = "/v2/items?ids=";
-			for (size_t i = 0; i < n; ++i)
+			for (size_t i = 0; i < batch.size(); ++i)
 			{
-				if (i) path += ',';
-				path += std::to_string(need[off + i]);
+				if (i)
+					path += ',';
+				path += std::to_string(batch[i]);
 			}
 			auto r = Gw2Http::Api(path.c_str(), nullptr, kBulkTimeoutMs);
-			if (!r.ok) continue;
+			if (!r.ok)
+				return false;
 			size_t p = 0;
 			while (p < r.body.size())
 			{
 				size_t brace = r.body.find('{', p);
-				if (brace == std::string::npos) break;
+				if (brace == std::string::npos)
+					break;
 				size_t end = JsonObjectEnd(r.body, brace);
-				if (end == std::string::npos) break;
+				if (end == std::string::npos)
+					break;
 				long long id = JsonIntAfterKey(r.body, "id", brace);
 				std::string name = JsonStringAfterKey(r.body, "name", brace);
 				if (id > 0 && !name.empty())
 					names[static_cast<int>(id)] = name;
 				p = end + 1;
+			}
+			return true;
+		};
+		for (size_t off = 0; off < need.size(); off += 200)
+		{
+			std::vector<int> batch(need.begin() + static_cast<std::ptrdiff_t>(off),
+				need.begin() + static_cast<std::ptrdiff_t>(off) +
+					static_cast<std::ptrdiff_t>((std::min)(need.size() - off, size_t{200})));
+			if (pull(batch))
+				continue;
+			/* One bad id can 404 a bulk list — fall back per-id. */
+			for (int id : batch)
+			{
+				int one[1] = { id };
+				(void)pull(std::vector<int>(one, one + 1));
 			}
 		}
 	}

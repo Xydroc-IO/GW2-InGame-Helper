@@ -2,8 +2,8 @@
 
 #include <cstddef>
 
-/* Official GW2 render-service icons (render.guildwars2.com) — Blish-style,
-   not wiki scrapes. Resolve by item id or full icon URL; Nexus uploads texture. */
+/* Official GW2 render-service icons (render.guildwars2.com) plus wiki CDN
+   thumbs from MediaWiki pageimages (wiki.guildwars2.com/images). Not HTML scrapes. */
 
 namespace Gw2Icons
 {
@@ -27,6 +27,7 @@ namespace Gw2Icons
 
 	/* RequestItem + Image — for commerce / stash item rows. */
 	bool ImageItem(int itemId, float size = 28.f);
+	bool ItemName(int itemId, char* out, size_t outLen);
 
 	/* Wallet currencies — separate from item ids (currency 1 ≠ item 1). */
 	void RememberCurrencyIcon(int currencyId, const char* renderUrl);

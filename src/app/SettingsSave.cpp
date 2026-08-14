@@ -9,8 +9,6 @@
 #include "PadDock.h"
 #include "Sites.h"
 #include "PathingTrails.h"
-#include "TrailToolsShared.h"
-#include "TrailToolsBinds.h"
 #include "PanelBinds.h"
 #include "UI.h"
 
@@ -70,10 +68,6 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowCompletion=0\n");
 	std::fprintf(f, "ShowFarming=0\n");
 	std::fprintf(f, "ShowPathingGuides=0\n");
-	std::fprintf(f, "ShowTrailTools=0\n");
-	std::fprintf(f, "TrailToolsLastTrlDir=%s\n", TrailToolsDetail::gDraft.lastTrlDir);
-	std::fprintf(f, "TrailToolsXmlLayout=%d\n", TrailToolsDetail::gDraft.xmlLayout != 0 ? 1 : 0);
-	std::fprintf(f, "TrailToolsBinds=%s\n", TrailToolsBinds::Serialize().c_str());
 	std::fprintf(f, "PanelBinds=%s\n", PanelBinds::Serialize().c_str());
 	std::fprintf(f, "ShowPathingTrails=%d\n", G::ShowPathingTrails ? 1 : 0);
 	std::fprintf(f, "EnablePathingLua=%d\n", G::EnablePathingLua ? 1 : 0);
@@ -135,9 +129,6 @@ void Settings::Save(bool force)
 	std::fprintf(f, "LogManagerAutoParse=%d\n", G::LogManagerAutoParse ? 1 : 0);
 	PadDock::WriteGeom(f, "PadAccount", G::PadAccount);
 	PadDock::WriteGeom(f, "PadPathing", G::PadPathing);
-	PadDock::WriteGeom(f, "PadTrailTools", G::PadTrailTools);
-	PadDock::WriteGeom(f, "PadTrailEditor", G::PadTrailEditor);
-	PadDock::WriteGeom(f, "PadMarkerEditor", G::PadMarkerEditor);
 	PadDock::WriteGeom(f, "PadEvents", G::PadEvents);
 	PadDock::WriteGeom(f, "PadNotes", G::PadNotes);
 	PadDock::WriteGeom(f, "PadCompass", G::PadCompass);

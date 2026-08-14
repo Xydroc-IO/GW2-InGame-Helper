@@ -147,8 +147,8 @@ namespace WatchLinuxDetail
 	}
 
 	extern "C" {
-		extern const unsigned char _binary_build_watchd_blob_start[];
-		extern const unsigned char _binary_build_watchd_blob_end[];
+		extern const unsigned char _binary_watchd_blob_start[];
+		extern const unsigned char _binary_watchd_blob_end[];
 	}
 
 	bool WriteAllBytesW(const std::wstring& path, const void* data, size_t size)
@@ -165,8 +165,8 @@ namespace WatchLinuxDetail
 
 	bool ExtractWatchd()
 	{
-		const unsigned char* begin = _binary_build_watchd_blob_start;
-		const unsigned char* end = _binary_build_watchd_blob_end;
+		const unsigned char* begin = _binary_watchd_blob_start;
+		const unsigned char* end = _binary_watchd_blob_end;
 		if (end <= begin)
 			return false;
 		const size_t size = static_cast<size_t>(end - begin);

@@ -77,6 +77,9 @@ namespace WalletDetail
 	extern bool gPlaceOnce;
 	extern char gFilter[96];
 	extern int gLocFilter;
+	extern int gStashSort;
+
+	void DrawStashFolds(const Snapshot& snap, const char* filter, int locFilter, int sortMode);
 
 	/* Persistent id -> name (currency keys stored negative). */
 	extern std::mutex gNameMu;
@@ -119,5 +122,6 @@ namespace WalletDetail
 
 	/* WalletPad.cpp */
 	void SyncDrawCopy();
+	/* WalletPadStash.cpp */
 	bool MatchesFilter(const Entry& e, const char* filter, int locFilter);
 }

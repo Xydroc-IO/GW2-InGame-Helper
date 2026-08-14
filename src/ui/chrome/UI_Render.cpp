@@ -30,7 +30,6 @@
 #include "MapAssist.h"
 #include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
-#include "TrailToolsPad.h"
 #include "PathingTrails.h"
 #include "PadNav.h"
 #include "CompassOverlay.h"
@@ -44,7 +43,6 @@
 #include "WikiBrowser.h"
 #include "WikiIpc.h"
 #include "AddonPaths.h"
-#include "TrailToolsBinds.h"
 #include "PanelBinds.h"
 
 #include "imgui/imgui.h"
@@ -93,7 +91,6 @@ void UI_Render()
 	}
 	/* Always poll first - must run while the helper is closed too. */
 	HelperHotkeys_Poll();
-	TrailToolsBinds::Poll();
 	PanelBinds::Poll();
 	UiScale::TickAuto();
 	Gw2Icons::Tick();

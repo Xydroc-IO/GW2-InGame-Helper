@@ -3,18 +3,13 @@
 #include "Globals.h"
 #include "PathingIndex.h"
 #include "PathingTrails.h"
-#include "TrailToolsPreviewCompass.h"
-#include "TrailToolsShared.h"
 
 #include "imgui/imgui.h"
 
 #include <algorithm>
-#include <atomic>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
-#include <mutex>
-#include <thread>
 #include <vector>
 
 /* Compass overlay math mirrors TacO GetMinimapRectangle + Blish Pathing
@@ -290,54 +285,6 @@ void CompassOverlay::Render()
 			prevOk = true;
 			prevCx = tr.points[i].x;
 			prevCy = tr.points[i].y;
-		}
-	}
-
-	/* Trail Tools draft - WYSIWYG Looks (texture/tint/scale). */
-	if (TrailToolsDetail::AnyAuthoringPadOpen() && TrailToolsDetail::gDraft.previewEnabled)
-	{
-		PathingDetail::Rects rects{};
-		bool haveRects = false;
-		{
-			std::lock_guard<std::mutex> lock(PathingDetail::gMutex);
-			auto it = PathingDetail::gRects.find(ctx->mapId);
-			if (it != PathingDetail::gRects.end() && it->second.valid)
-			{
-				rects = it->second;
-				haveRects = true;
-			}
-		}
-		if (!haveRects)
-		{
-			/* Pathing may not have loaded this map yet - fetch rects once async. */
-			static std::atomic<uint32_t> sRectFetchMap{0};
-			const uint32_t want = ctx->mapId;
-			uint32_t expected = 0;
-			if (sRectFetchMap.compare_exchange_strong(expected, want))
-			{
-				std::thread([want]() {
-					PathingDetail::Rects r{};
-					if (PathingDetail::FetchMapRects(want, r) && r.valid)
-					{
-						std::lock_guard<std::mutex> lock(PathingDetail::gMutex);
-						PathingDetail::gRects[want] = r;
-					}
-					sRectFetchMap.store(0, std::memory_order_release);
-				}).detach();
-			}
-		}
-		else
-		{
-			TrailToolsPreviewCompass::Draw(ctx->mapId, dl,
-				[&](float wx, float wz, float& cx, float& cy) -> bool {
-					if (!std::isfinite(wx) || !std::isfinite(wz))
-						return false;
-					PathingDetail::WorldToContinent(rects, wx, wz, cx, cy);
-					return true;
-				},
-				[&](float cx, float cy) { return ToScreen(cx, cy); },
-				[&](ImVec2 p) { return InCompass(p); },
-				mapScale);
 		}
 	}
 

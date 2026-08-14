@@ -7,8 +7,6 @@
 #include "PadDock.h"
 #include "Sites.h"
 #include "PathingTrails.h"
-#include "TrailToolsShared.h"
-#include "TrailToolsBinds.h"
 #include "PanelBinds.h"
 #include "UI.h"
 
@@ -105,18 +103,12 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowLogManager") == 0) { /* ignore */ }
 		else if (std::strcmp(key, "ShowPathingGuides") == 0 ||
 			std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore — session only */ }
-		else if (std::strcmp(key, "ShowTrailTools") == 0) { /* ignore — session only */ }
+		else if (std::strcmp(key, "ShowTrailTools") == 0) { /* ignore — removed */ }
 		else if (std::strcmp(key, "ShowTrailEditor") == 0) { /* ignore — legacy */ }
 		else if (std::strcmp(key, "ShowMarkerEditor") == 0) { /* ignore — legacy */ }
-		else if (std::strcmp(key, "TrailToolsLastTrlDir") == 0)
-		{
-			std::snprintf(TrailToolsDetail::gDraft.lastTrlDir,
-				sizeof(TrailToolsDetail::gDraft.lastTrlDir), "%s", val);
-		}
-		else if (std::strcmp(key, "TrailToolsXmlLayout") == 0)
-			TrailToolsDetail::gDraft.xmlLayout = std::atoi(val) != 0 ? 1 : 0;
-		else if (std::strcmp(key, "TrailToolsBinds") == 0)
-			TrailToolsBinds::Deserialize(val);
+		else if (std::strcmp(key, "TrailToolsLastTrlDir") == 0) { /* ignore — removed */ }
+		else if (std::strcmp(key, "TrailToolsXmlLayout") == 0) { /* ignore — removed */ }
+		else if (std::strcmp(key, "TrailToolsBinds") == 0) { /* ignore — removed */ }
 		else if (std::strcmp(key, "PanelBinds") == 0)
 			PanelBinds::Deserialize(val);
 		else if (std::strcmp(key, "ShowPathingTrails") == 0 ||
@@ -282,12 +274,9 @@ void Settings::Load()
 			PadDock::ParseGeom(val, G::PadAccount);
 		else if (std::strcmp(key, "PadPathing") == 0)
 			PadDock::ParseGeom(val, G::PadPathing);
-		else if (std::strcmp(key, "PadTrailTools") == 0)
-			PadDock::ParseGeom(val, G::PadTrailTools);
-		else if (std::strcmp(key, "PadTrailEditor") == 0)
-			PadDock::ParseGeom(val, G::PadTrailEditor);
-		else if (std::strcmp(key, "PadMarkerEditor") == 0)
-			PadDock::ParseGeom(val, G::PadMarkerEditor);
+		else if (std::strcmp(key, "PadTrailTools") == 0) { /* ignore — removed */ }
+		else if (std::strcmp(key, "PadTrailEditor") == 0) { /* ignore — removed */ }
+		else if (std::strcmp(key, "PadMarkerEditor") == 0) { /* ignore — removed */ }
 		else if (std::strcmp(key, "PadEvents") == 0)
 			PadDock::ParseGeom(val, G::PadEvents);
 		else if (std::strcmp(key, "PadNotes") == 0)

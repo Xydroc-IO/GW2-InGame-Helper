@@ -50,7 +50,6 @@ namespace G
 	bool  ShowFarming = false;
 	bool  ShowPathingGuides = false;
 	bool  ShowPathingTrails = true;
-	bool  ShowTrailTools = false;
 	bool  EnablePathingLua = false; /* opt-in Blish script-* subset */
 	bool  LadyBarefoot = true;  /* Lady map-completion foot routes */
 	bool  LadyWpOnly = false;   /* Lady Core WP Only routes */
@@ -117,9 +116,6 @@ namespace G
 	bool  LogManagerAutoParse = true;
 	PadGeom PadAccount{};
 	PadGeom PadPathing{};
-	PadGeom PadTrailTools{};
-	PadGeom PadTrailEditor{};
-	PadGeom PadMarkerEditor{};
 	PadGeom PadEvents{};
 	PadGeom PadNotes{};
 	PadGeom PadCompass{};

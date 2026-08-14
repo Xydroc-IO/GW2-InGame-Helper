@@ -20,6 +20,7 @@ bool CompletionPad::Render()
 	EnsureCatalog();
 	LoadChecklist();
 	LoadFavorites();
+	LoadAchPins();
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float maxH = PadDock::MaxH(280.f);
@@ -37,8 +38,11 @@ bool CompletionPad::Render()
 
 	bool open = G::ShowCompletion;
 	HelperTheme::ScopedWindow theme(G::Opacity);
-	const bool padBody = ImGui::Begin("Completion##GW2InGameHelperCompletion", &open, HelperTheme::PadFlags());
-	if (!theme.AfterBegin("Completion", &open) || !padBody)
+	const char* winTitle = ShowingAchievements()
+		? "Achievements##GW2InGameHelperCompletion"
+		: "Completion##GW2InGameHelperCompletion";
+	const bool padBody = ImGui::Begin(winTitle, &open, HelperTheme::PadFlags());
+	if (!theme.AfterBegin(ShowingAchievements() ? "Achievements" : "Completion", &open) || !padBody)
 	{
 		if (PadDock::Capture(G::PadCompletion)) Settings::SetDirty();
 		const bool hovered = ImGui::IsWindowHovered(
@@ -55,39 +59,48 @@ bool CompletionPad::Render()
 	if (gTabSelectOnce)
 		gTabSelectOnce = false;
 
-	static const char* kTabs[] = { "Checklist", "Atlas", "Route", "Achievements" };
-	static const int kTabIcons[] = {
-		static_cast<int>(Gw2Ui::Icon::Check),
-		static_cast<int>(Gw2Ui::Icon::Map),
-		static_cast<int>(Gw2Ui::Icon::Story),
-		static_cast<int>(Gw2Ui::Icon::Achievements),
-	};
-	gTab = PadNav::DrawSideRail("###gw2igh_cmp_nav", kTabs, 4, gTab, 0.f, kTabIcons);
-
-	ImGui::BeginChild("###gw2igh_cmp_body", ImVec2(0.f, 0.f), true);
-	PadNav::Blurb(
-		"Checklist / Atlas / Route / Achievements. Local ticks. "
-		"Hearts/HP/AP from curated packs. GPS = orange guide only.");
-	if (const MapInfo* m = FindMap(gFocusMapId))
-		ImGui::TextColored(HelperTheme::Muted, "%s | %s | %s",
-			m->name,
-			m->release[0] ? m->release : DefaultRelease(),
-			m->region[0] ? m->region : DefaultRegion());
-	else
-		ImGui::TextColored(HelperTheme::Muted, "No map selected");
-	ImGui::Separator();
-
-	switch (gTab)
+	if (ShowingAchievements())
 	{
-	case 0: DrawChecklistTab(); break;
-	case 1: DrawAtlasTab(); break;
-	case 2: DrawRouteTab(); break;
-	case 3: DrawAchievementsTab(); break;
-	default: break;
+		ImGui::BeginChild("###gw2igh_cmp_body", ImVec2(0.f, 0.f), true);
+		DrawAchievementsTab();
+		if (gStatus[0])
+			ImGui::TextColored(HelperTheme::Muted, "%s", gStatus);
+		ImGui::EndChild();
 	}
-	if (gStatus[0])
-		ImGui::TextColored(HelperTheme::Muted, "%s", gStatus);
-	ImGui::EndChild();
+	else
+	{
+		static const char* kTabs[] = { "Checklist", "Atlas", "Route" };
+		static const int kTabIcons[] = {
+			static_cast<int>(Gw2Ui::Icon::Check),
+			static_cast<int>(Gw2Ui::Icon::Map),
+			static_cast<int>(Gw2Ui::Icon::Story),
+		};
+		if (gTab > 2)
+			gTab = 0;
+		gTab = PadNav::DrawSideRail("###gw2igh_cmp_nav", kTabs, 3, gTab, 0.f, kTabIcons);
+		ImGui::BeginChild("###gw2igh_cmp_body", ImVec2(0.f, 0.f), true);
+		PadNav::Blurb(
+			"Checklist / Atlas / Route. Local ticks. "
+			"Hearts/HP from curated packs. GPS = orange guide only.");
+		if (const MapInfo* m = FindMap(gFocusMapId))
+			ImGui::TextColored(HelperTheme::Muted, "%s | %s | %s",
+				m->name,
+				m->release[0] ? m->release : DefaultRelease(),
+				m->region[0] ? m->region : DefaultRegion());
+		else
+			ImGui::TextColored(HelperTheme::Muted, "No map selected");
+		ImGui::Separator();
+		switch (gTab)
+		{
+		case 0: DrawChecklistTab(); break;
+		case 1: DrawAtlasTab(); break;
+		case 2: DrawRouteTab(); break;
+		default: break;
+		}
+		if (gStatus[0])
+			ImGui::TextColored(HelperTheme::Muted, "%s", gStatus);
+		ImGui::EndChild();
+	}
 
 	const bool hovered = ImGui::IsWindowHovered(
 		ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);

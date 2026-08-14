@@ -27,6 +27,7 @@ namespace
 		State state = State::Unknown;
 		std::string url;
 		std::string texId;
+		std::string name;
 		bool uploadTried = false;
 	};
 
@@ -74,16 +75,32 @@ namespace
 		return {};
 	}
 
+	bool AllowedIconHost(const char* url)
+	{
+		if (!url)
+			return false;
+		return std::strncmp(url, "https://render.guildwars2.com/", 30) == 0 ||
+			std::strncmp(url, "https://wiki.guildwars2.com/", 28) == 0;
+	}
+
 	bool SplitRenderUrl(const std::string& url, std::string& remote, std::string& endpoint)
 	{
-		static const char kHost[] = "https://render.guildwars2.com";
-		if (url.rfind(kHost, 0) != 0)
-			return false;
-		remote = kHost;
-		endpoint = url.substr(sizeof(kHost) - 1); /* keep leading / */
-		if (endpoint.empty() || endpoint[0] != '/')
-			return false;
-		return true;
+		static const char* kHosts[] = {
+			"https://render.guildwars2.com",
+			"https://wiki.guildwars2.com",
+		};
+		for (const char* host : kHosts)
+		{
+			const size_t n = std::strlen(host);
+			if (url.rfind(host, 0) != 0)
+				continue;
+			if (url.size() <= n || url[n] != '/')
+				return false;
+			remote = host;
+			endpoint = url.substr(n);
+			return true;
+		}
+		return false;
 	}
 
 	std::string MakeTexIdFromUrl(const std::string& url)
@@ -174,10 +191,13 @@ namespace
 					}
 				}
 				const std::string icon = JsonStringKey(r.body.c_str(), brace, end, "icon");
+				const std::string name = JsonStringKey(r.body.c_str(), brace, end, "name");
 				if (id > 0)
 				{
 					std::lock_guard<std::mutex> lock(gMu);
 					Slot& s = gByItem[static_cast<int>(id)];
+					if (!name.empty())
+						s.name = name;
 					if (!icon.empty() && icon.rfind("https://render.guildwars2.com/", 0) == 0)
 					{
 						s.url = icon;
@@ -243,7 +263,7 @@ void Gw2Icons::RequestItem(int itemId)
 
 void Gw2Icons::RequestUrl(const char* renderUrl)
 {
-	if (!renderUrl || std::strncmp(renderUrl, "https://render.guildwars2.com/", 30) != 0)
+	if (!AllowedIconHost(renderUrl))
 		return;
 	std::string url = renderUrl;
 	std::string texId;
@@ -461,6 +481,20 @@ bool Gw2Icons::ImageItem(int itemId, float size)
 {
 	RequestItem(itemId);
 	return Image(itemId, size);
+}
+
+bool Gw2Icons::ItemName(int itemId, char* out, size_t outLen)
+{
+	if (!out || outLen == 0 || itemId <= 0)
+		return false;
+	out[0] = '\0';
+	RequestItem(itemId);
+	std::lock_guard<std::mutex> lock(gMu);
+	const auto it = gByItem.find(itemId);
+	if (it == gByItem.end() || it->second.name.empty())
+		return false;
+	std::snprintf(out, outLen, "%s", it->second.name.c_str());
+	return true;
 }
 
 bool Gw2Icons::ImageUrl(const char* renderUrl, float size)

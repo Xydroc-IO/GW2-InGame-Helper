@@ -115,4 +115,37 @@ namespace PadLayout
 		ImGui::PopStyleVar();
 		ImGui::PopStyleColor();
 	}
+
+	/* Full pad actions — not SmallButton chips. Primary = gold fill. */
+	inline bool GoldButton(const char* label, bool primary = false, bool first = false)
+	{
+		if (!label || !label[0])
+			return false;
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12.f, 7.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
+		const float w = PadNav::VisibleLabelWidth(label) + ImGui::GetStyle().FramePadding.x * 2.f;
+		if (!first)
+			PadNav::WrapSameLine(w);
+		if (primary)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::TabActive);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, HelperTheme::Header);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.40f, 0.30f, 0.14f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldBright);
+			ImGui::PushStyleColor(ImGuiCol_Border, HelperTheme::Gold);
+		}
+		else
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.07f, 0.055f, 0.038f, 0.96f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.18f, 0.14f, 0.08f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
+			ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Ink);
+			ImGui::PushStyleColor(ImGuiCol_Border, HelperTheme::GoldDim);
+		}
+		const bool clicked = ImGui::Button(label);
+		ImGui::PopStyleColor(5);
+		ImGui::PopStyleVar(3);
+		return clicked;
+	}
 }

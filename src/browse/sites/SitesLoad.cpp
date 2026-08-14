@@ -10,8 +10,8 @@
 #include <windows.h>
 
 extern "C" {
-	extern const unsigned char _binary_build_sites_json_start[];
-	extern const unsigned char _binary_build_sites_json_end[];
+	extern const unsigned char _binary_sites_json_start[];
+	extern const unsigned char _binary_sites_json_end[];
 }
 
 namespace SitesDetail
@@ -59,8 +59,8 @@ namespace SitesDetail
 
 	bool ExtractEmbeddedSites()
 	{
-		const unsigned char* begin = _binary_build_sites_json_start;
-		const unsigned char* end = _binary_build_sites_json_end;
+		const unsigned char* begin = _binary_sites_json_start;
+		const unsigned char* end = _binary_sites_json_end;
 		if (end <= begin)
 			return false;
 		const size_t size = static_cast<size_t>(end - begin);

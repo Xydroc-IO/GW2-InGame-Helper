@@ -16,7 +16,6 @@
 #include "Settings.h"
 #include "SettingsPad.h"
 #include "TpWatchPad.h"
-#include "TrailToolsPad.h"
 #include "VaultPad.h"
 #include "WatchCapture.h"
 #include "WatchPad.h"
@@ -105,11 +104,19 @@ namespace
 		case Slot::Events: CloseOrOpen(G::ShowEvents, &EventsPad::OpenAndRefresh, "Events"); break;
 		case Slot::Notes: CloseOrOpen(G::ShowNotes, &NotesPad::Open, "Notes"); break;
 		case Slot::Completion: CloseOrOpen(G::ShowCompletion, &CompletionPad::OpenAndRefresh, "Completion"); break;
+		case Slot::Achievements:
+			if (CompletionPad::ShowingAchievements())
+			{
+				G::ShowCompletion = false;
+				Settings::SetDirty();
+			}
+			else
+				WinePadOpen::SoftOpen(&CompletionPad::OpenAchievements, "Achievements");
+			break;
 		case Slot::Farming: CloseOrOpen(G::ShowFarming, &FarmingPad::OpenAndRefresh, "Farming"); break;
 		case Slot::Economy: CloseOrOpen(G::ShowEconomy, &EconomyPad::OpenAndRefresh, "Economy"); break;
 		case Slot::Instances: CloseOrOpen(G::ShowInstances, &InstancesPad::OpenAndRefresh, "Instances"); break;
 		case Slot::Logs: CloseOrOpen(G::ShowLogManager, &LogManagerPad::OpenAndRefresh, "DPS Logs"); break;
-		case Slot::TrailTools: CloseOrOpen(G::ShowTrailTools, &TrailToolsPad::Open, "Trail Tools"); break;
 		case Slot::Compass: CloseOrOpen(G::ShowCompassPad, &DirectionCompass::Open, "Compass"); break;
 		case Slot::Watch:
 			WatchPad::ToggleControl();
@@ -169,8 +176,8 @@ namespace
 
 	const char* kSlotKeys[Count] = {
 		"account", "pathing", "events", "notes", "completion", "farming",
-		"economy", "instances", "logs", "trailtools", "compass", "settings",
-		"wallet", "vault", "tpwatch", "lookup", "marker", "watch"
+		"economy", "instances", "logs", "compass", "settings",
+		"wallet", "vault", "tpwatch", "lookup", "marker", "watch", "achievements"
 	};
 	static_assert(sizeof(kSlotKeys) / sizeof(kSlotKeys[0]) == static_cast<size_t>(Count),
 		"kSlotKeys must match PanelBinds::Count");
@@ -203,7 +210,6 @@ const char* PanelBinds::SlotLabel(Slot s)
 	case Slot::Economy: return "Economy";
 	case Slot::Instances: return "Instances";
 	case Slot::Logs: return "DPS Logs";
-	case Slot::TrailTools: return "Trail Tools";
 	case Slot::Compass: return "Compass";
 	case Slot::Watch: return "Watch";
 	case Slot::SettingsPad: return "Settings";
@@ -212,6 +218,7 @@ const char* PanelBinds::SlotLabel(Slot s)
 	case Slot::TpWatch: return "TP Watch";
 	case Slot::Lookup: return "Lookup";
 	case Slot::Marker: return "Marker interact";
+	case Slot::Achievements: return "Achievements";
 	default: return "?";
 	}
 }
@@ -295,7 +302,6 @@ void PanelBinds::SetDefaults()
 	ParseChord("CTRL+SHIFT+Y", gState.chords[Economy]);
 	ParseChord("CTRL+SHIFT+I", gState.chords[Instances]);
 	ParseChord("CTRL+SHIFT+L", gState.chords[Logs]);
-	ParseChord("CTRL+SHIFT+B", gState.chords[TrailTools]);
 	ParseChord("CTRL+SHIFT+O", gState.chords[Compass]);
 	ParseChord("CTRL+SHIFT+W", gState.chords[Watch]);
 	ParseChord("CTRL+SHIFT+.", gState.chords[SettingsPad]);
@@ -304,6 +310,7 @@ void PanelBinds::SetDefaults()
 	ParseChord("CTRL+SHIFT+P", gState.chords[TpWatch]);
 	ParseChord("CTRL+SHIFT+J", gState.chords[Lookup]);
 	ParseChord("CTRL+SHIFT+F", gState.chords[Marker]);
+	ParseChord("CTRL+SHIFT+Q", gState.chords[Achievements]);
 	gDefaultsApplied = true;
 }
 

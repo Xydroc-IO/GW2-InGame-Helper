@@ -2,12 +2,9 @@
 
 #include "WalletShared.h"
 
-#include "AddonPaths.h"
 #include "AspectLayout.h"
 #include "BgFetch.h"
 #include "Globals.h"
-#include "Gw2Http.h"
-#include "Gw2Icons.h"
 #include "HelperTheme.h"
 #include "PadLayout.h"
 #include "PadNav.h"
@@ -16,15 +13,12 @@
 
 #include "imgui/imgui.h"
 
-#include <algorithm>
 #include <atomic>
-#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include <windows.h>
 
@@ -38,7 +32,7 @@ namespace WalletDetail
 	Snapshot gSnap;
 	std::atomic<unsigned> gGen{0};
 	unsigned gDrawnGen = 0;
-	Snapshot gDraw; /* UI copy - refreshed only when gGen changes */
+	Snapshot gDraw;
 
 	std::atomic<bool> gBusy{false};
 	std::atomic<bool> gCancel{false};
@@ -48,9 +42,9 @@ namespace WalletDetail
 	bool gFocus = false;
 	bool gPlaceOnce = false;
 	char gFilter[96] = {};
-	int gLocFilter = 0; /* 0=All ... 5=Characters - never touch from worker */
+	int gLocFilter = 0;
+	int gStashSort = 0;
 
-	/* Persistent id -> name (currency keys stored negative). */
 	std::mutex gNameMu;
 	std::unordered_map<int, std::string> gNames;
 	bool gNamesLoaded = false;
@@ -63,46 +57,6 @@ namespace WalletDetail
 		gDraw = gSnap;
 		gDrawnGen = gGen.load();
 	}
-
-	bool MatchesFilter(const Entry& e, const char* filter, int locFilter)
-	{
-		if (locFilter > 0)
-		{
-			const LocKind want = static_cast<LocKind>(locFilter - 1);
-			bool any = false;
-			for (const LocQty& l : e.locs)
-			{
-				if (l.kind == want) { any = true; break; }
-			}
-			if (!any) return false;
-		}
-		if (!filter || !filter[0]) return true;
-		auto has = [](const char* hay, const char* needle) -> bool {
-			if (!hay || !needle || !needle[0]) return true;
-			const size_t nlen = std::strlen(needle);
-			for (const char* p = hay; *p; ++p)
-			{
-				size_t i = 0;
-				while (i < nlen)
-				{
-					const char a = static_cast<char>(std::tolower(static_cast<unsigned char>(p[i])));
-					const char b = static_cast<char>(std::tolower(static_cast<unsigned char>(needle[i])));
-					if (!p[i] || a != b) break;
-					++i;
-				}
-				if (i == nlen) return true;
-			}
-			return false;
-		};
-		if (has(e.name.c_str(), filter)) return true;
-		char idBuf[24];
-		std::snprintf(idBuf, sizeof(idBuf), "%d", e.id);
-		if (has(idBuf, filter)) return true;
-		for (const LocQty& l : e.locs)
-			if (has(l.where.c_str(), filter)) return true;
-		return false;
-	}
-
 } // namespace WalletDetail
 
 using namespace WalletDetail;
@@ -110,7 +64,6 @@ using namespace WalletDetail;
 void WalletPad::RefreshData(bool force)
 {
 	LoadNames();
-	/* InventoryData warms Crafting separately — don't dual-crawl every toon here. */
 	bool need = true;
 	if (!force)
 	{
@@ -122,7 +75,7 @@ void WalletPad::RefreshData(bool force)
 				need = false;
 		}
 	}
-	StartFetch(need); /* force only when nothing fresh to show (or caller forced) */
+	StartFetch(need);
 }
 
 void WalletPad::OpenAndRefresh()
@@ -139,7 +92,7 @@ void WalletPad::FocusCharacterBags(const char* characterName)
 	if (!characterName || !characterName[0])
 		return;
 	std::snprintf(gFilter, sizeof(gFilter), "%s", characterName);
-	gLocFilter = 5; /* Characters chip */
+	gLocFilter = 5;
 	OpenAndRefresh();
 }
 
@@ -150,7 +103,7 @@ void WalletPad::RenderContents()
 	SyncDrawCopy();
 	const Snapshot& snap = gDraw;
 
-	PadNav::Blurb("Scopes: account, wallet, inventories, characters. Reopen uses cache when fresh.");
+	PadNav::Blurb("Click a stack to see every bag that holds it.");
 
 	if (PadNav::RefreshButton("###gw2igh_wallet_ref"))
 		StartFetch(true);
@@ -175,6 +128,14 @@ void WalletPad::RenderContents()
 	}
 	ImGui::PopID();
 
+	if (gStashSort != 0 && gStashSort != 1)
+		gStashSort = 0;
+	PadNav::Meta("Sort");
+	if (PadNav::WrapButton("Biggest stacks", gStashSort == 0, true))
+		gStashSort = 0;
+	if (PadNav::WrapButton("A-Z", gStashSort == 1, false))
+		gStashSort = 1;
+
 	ImGui::Separator();
 
 	if (snap.noKey || snap.scopeFail)
@@ -184,95 +145,7 @@ void WalletPad::RenderContents()
 		PadNav::PopWrap();
 	}
 	else
-	{
-		int shown = 0;
-		PadLayout::BeginList("###gw2igh_wallet_list", 80.f);
-		const int locFilter = gLocFilter; /* stable for this frame */
-		for (const Entry& e : snap.entries)
-		{
-			if (!MatchesFilter(e, gFilter, locFilter))
-				continue;
-			++shown;
-			ImGui::PushID(e.isCurrency ? -e.id : e.id);
-
-			const std::string qty = e.isCurrency && e.id == 1
-				? FormatCoins(e.total)
-				: FormatCount(e.total);
-
-			/* Click row to expand - no TreeNode arrow. */
-			static std::unordered_map<int, bool> sOpen;
-			const int rowKey = e.isCurrency ? -e.id : e.id;
-			bool& open = sOpen[rowKey];
-			char rowLabel[256];
-			std::snprintf(rowLabel, sizeof(rowLabel), "%s###stash_row_%d", e.name.c_str(), rowKey);
-			if (e.isCurrency)
-			{
-				if (Gw2Icons::ImageCurrency(e.id, 22.f))
-					ImGui::SameLine(0.f, 6.f);
-			}
-			else if (Gw2Icons::ImageItem(e.id, 22.f))
-				ImGui::SameLine(0.f, 6.f);
-			if (ImGui::Selectable(rowLabel, open, ImGuiSelectableFlags_AllowDoubleClick))
-				open = !open;
-			ImGui::SameLine();
-			ImGui::TextColored(HelperTheme::Ink, "%s", qty.c_str());
-
-			if (open)
-			{
-				ImGui::Indent();
-				ImGui::TextColored(HelperTheme::Muted,
-					"%s #%d", e.isCurrency ? "Currency" : "Item", e.id);
-				for (const LocQty& l : e.locs)
-				{
-					if (locFilter > 0 && l.kind != static_cast<LocKind>(locFilter - 1))
-						continue;
-					const std::string lq = e.isCurrency && e.id == 1
-						? FormatCoins(l.count)
-						: FormatCount(l.count);
-					ImGui::BulletText("%s - %s", l.where.c_str(), lq.c_str());
-				}
-				ImGui::Unindent();
-			}
-			ImGui::PopID();
-		}
-		if (shown == 0 && !gBusy)
-		{
-			PadNav::PushWrap();
-			if (!snap.ok)
-			{
-				ImGui::TextWrapped("No data yet - click Refresh.");
-			}
-			else if (locFilter == 5) /* Characters location chip */
-			{
-				if (snap.charCount <= 0)
-					ImGui::TextWrapped(
-						"No character bags indexed. Enable the characters + inventories "
-						"scopes on your API key, then click Refresh.");
-				else if (snap.charBagsOk <= 0)
-					ImGui::TextWrapped(
-						"%d characters listed but bag fetch failed. Check inventories "
-						"scope, then Refresh.", snap.charCount);
-				else if (snap.characterLocItems <= 0)
-					ImGui::TextWrapped(
-						"Character bag HTTP ok but no items parsed — click Refresh. "
-						"If this persists after a reload, check inventories scope.");
-				else if (gFilter[0])
-					ImGui::TextWrapped("No matches in character bags for that filter.");
-				else
-					ImGui::TextWrapped("No character-bag items match.");
-			}
-			else if (gFilter[0] || locFilter > 0)
-			{
-				ImGui::TextWrapped("No matches. Clear the filter or pick All locations.");
-			}
-			else
-			{
-				ImGui::TextWrapped("Stash is empty.");
-			}
-			PadNav::PopWrap();
-		}
-		PadLayout::EndList();
-	}
+		DrawStashFolds(snap, gFilter, gLocFilter, gStashSort);
 }
 
 bool WalletPad::Render()

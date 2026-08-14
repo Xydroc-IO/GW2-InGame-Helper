@@ -246,6 +246,35 @@ namespace JsonView
 		return View::npos;
 	}
 
+	inline size_t ArrayEnd(View json, size_t openBracket)
+	{
+		if (openBracket >= json.size() || json[openBracket] != '[')
+			return View::npos;
+		int depth = 0;
+		bool inStr = false;
+		bool esc = false;
+		for (size_t i = openBracket; i < json.size(); ++i)
+		{
+			const char c = json[i];
+			if (inStr)
+			{
+				if (esc) esc = false;
+				else if (c == '\\') esc = true;
+				else if (c == '"') inStr = false;
+				continue;
+			}
+			if (c == '"') inStr = true;
+			else if (c == '[') ++depth;
+			else if (c == ']')
+			{
+				--depth;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return View::npos;
+	}
+
 	inline bool CoordAfterKey(View json, View key, size_t from, float* outX, float* outY)
 	{
 		if (!outX || !outY)
@@ -300,6 +329,10 @@ namespace JsonView
 	inline size_t ObjectEnd(const std::string& json, size_t openBrace)
 	{
 		return ObjectEnd(AsView(json), openBrace);
+	}
+	inline size_t ArrayEnd(const std::string& json, size_t openBracket)
+	{
+		return ArrayEnd(AsView(json), openBracket);
 	}
 	inline std::string ReadQuoted(const std::string& s, size_t openQuote, size_t* after = nullptr)
 	{

@@ -3,8 +3,6 @@
 #include "CrashTrail.h"
 #include "Globals.h"
 #include "PathingTrails.h"
-#include "TrailToolsPreview.h"
-#include "TrailToolsShared.h"
 #include "WinePadOpen.h"
 #include "WorldGpsD3d.h"
 #include "WorldGpsImgui.h"
@@ -62,8 +60,7 @@ void WorldOverlay::Render()
 	try
 	{
 	CrashTrail::Scope worldScope("world:Overlay enter", "world:Overlay leave");
-	if (!G::ShowPathingTrails && !PathingTrails::HasSearchGuideActive() &&
-		!(TrailToolsDetail::AnyAuthoringPadOpen() && TrailToolsDetail::HasDraftPreview()))
+	if (!G::ShowPathingTrails && !PathingTrails::HasSearchGuideActive())
 		return;
 	if (G::HideOutOfGameplay && G::NexusLink && !G::NexusLink->IsGameplay)
 		return;
@@ -77,8 +74,7 @@ void WorldOverlay::Render()
 	PathingTrails::Update(ctx->mapId);
 	PathingTrails::TickMarkerBehaviors();
 
-	if (!G::ShowWorldTrails && !PathingTrails::HasSearchGuideActive() &&
-		!(TrailToolsDetail::AnyAuthoringPadOpen() && TrailToolsDetail::HasDraftPreview()))
+	if (!G::ShowWorldTrails && !PathingTrails::HasSearchGuideActive())
 		return;
 	if (G::HideWhenMapOpen && (ctx->uiState & static_cast<uint32_t>(UiStateBits::MapOpen)))
 		return;
@@ -344,8 +340,6 @@ void WorldOverlay::Render()
 			WorldGpsMath::BuildViewProj(markW, markH, markVp, markCam);
 		WorldGpsImgui::DrawMarkers(dl, markVp, markW, markH, avatar, sMarkerCache);
 	}
-
-	TrailToolsPreview::RenderWorld();
 	}
 	catch (...)
 	{

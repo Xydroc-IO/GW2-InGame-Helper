@@ -25,7 +25,6 @@
 #include "GpsArrow.h"
 #include "ZoneBanner.h"
 #include "PathingGuidesPad.h"
-#include "TrailToolsPad.h"
 #include "PathingTrails.h"
 #include "PadNav.h"
 #include "CompassOverlay.h"

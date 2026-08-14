@@ -29,11 +29,16 @@ namespace CraftingDetail
 	{
 		std::vector<int> allIds;
 		allIds.push_back(plan.outputId);
-		CollectLeafIds(plan.root, allIds);
-		for (const IngNode& k : plan.root.kids)
+		std::vector<IngNode*> walk;
+		walk.push_back(&plan.root);
+		while (!walk.empty())
 		{
-			allIds.push_back(k.itemId);
-			CollectLeafIds(k, allIds);
+			IngNode* cur = walk.back();
+			walk.pop_back();
+			if (cur->itemId > 0)
+				allIds.push_back(cur->itemId);
+			for (IngNode& c : cur->kids)
+				walk.push_back(&c);
 		}
 		std::sort(allIds.begin(), allIds.end());
 		allIds.erase(std::unique(allIds.begin(), allIds.end()), allIds.end());

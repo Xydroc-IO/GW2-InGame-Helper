@@ -11,7 +11,6 @@
 #include "LogManagerPad.h"
 #include "PathingGuidesPad.h"
 #include "Settings.h"
-#include "TrailToolsPad.h"
 #include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
@@ -118,16 +117,21 @@ namespace UIDetail
 				if (G::ShowPathingGuides) { G::ShowPathingGuides = false; Settings::SetDirty(); }
 				else PathingGuidesPad::Open();
 			}
-			if (ImGui::MenuItem(G::ShowTrailTools ? "Hide Trail Tools" : "Show Trail Tools"))
-			{
-				if (G::ShowTrailTools) { G::ShowTrailTools = false; Settings::SetDirty(); }
-				else TrailToolsPad::Open();
-			}
 			ImGui::Separator();
 			if (ImGui::MenuItem(G::ShowCompletion ? "Hide Completion" : "Show Completion"))
 			{
 				if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
 				else CompletionPad::OpenAndRefresh();
+			}
+			if (ImGui::MenuItem(CompletionPad::ShowingAchievements() ? "Hide Achievements" : "Show Achievements"))
+			{
+				if (CompletionPad::ShowingAchievements())
+				{
+					G::ShowCompletion = false;
+					Settings::SetDirty();
+				}
+				else
+					CompletionPad::OpenAchievements();
 			}
 			if (ImGui::MenuItem(G::ShowFarming ? "Hide Farming" : "Show Farming"))
 			{

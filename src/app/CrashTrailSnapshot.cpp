@@ -229,7 +229,7 @@ void WriteUiState(FILE* f)
 	std::fprintf(f,
 		"ui ShowWatchMirror=%d ShowWatch=%d ShowEvents=%d ShowSettings=%d "
 		"ShowInstances=%d ShowVault=%d ShowFarming=%d ShowCompletion=%d "
-		"ShowTrailTools=%d ShowPathing=%d ShowNotes=%d ShowAccount=%d "
+		"ShowPathing=%d ShowNotes=%d ShowAccount=%d "
 		"ShowEconomy=%d ShowLogManager=%d ShowCompass=%d ShowWiki=%d\n",
 		G::ShowWatchMirror ? 1 : 0,
 		G::ShowWatch ? 1 : 0,
@@ -239,7 +239,6 @@ void WriteUiState(FILE* f)
 		G::ShowVault ? 1 : 0,
 		G::ShowFarming ? 1 : 0,
 		G::ShowCompletion ? 1 : 0,
-		G::ShowTrailTools ? 1 : 0,
 		G::ShowPathingGuides ? 1 : 0,
 		G::ShowNotes ? 1 : 0,
 		G::ShowAccount ? 1 : 0,

@@ -387,8 +387,8 @@ const char* HomePage::Html()
           <ul>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> (or <kbd>K</kbd>) — open / close this helper</li>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> — Account · <kbd>G</kbd> Pathing · <kbd>E</kbd> Events · <kbd>N</kbd> Notes</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> — Completion · <kbd>R</kbd> Farming · <kbd>Y</kbd> Economy · <kbd>I</kbd> Instances</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd> — DPS Logs · <kbd>B</kbd> Trail Tools · <kbd>O</kbd> Compass · <kbd>.</kbd> Settings</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> — Completion · <kbd>Q</kbd> Achievements · <kbd>R</kbd> Farming · <kbd>Y</kbd> Economy · <kbd>I</kbd> Instances</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd> — DPS Logs · <kbd>O</kbd> Compass · <kbd>.</kbd> Settings</li>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> Wallet · <kbd>V</kbd> Vault · <kbd>P</kbd> TP Watch · <kbd>J</kbd> Lookup · <kbd>F</kbd> marker interact</li>
             <li><kbd>Ctrl</kbd>+<kbd>T</kbd> — new tab picker · <kbd>Ctrl</kbd>+<kbd>W</kbd> — close tab · <kbd>Ctrl</kbd>+<kbd>Tab</kbd> — cycle tabs</li>
             <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> — reopen last closed tab</li>
@@ -397,7 +397,7 @@ const char* HomePage::Html()
           </ul>
           <p class="muted">Rebind panel pads in <strong>Settings → Keybinds</strong> (addon-owned; not Nexus Options).
             Helper open stays <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> / QuickAccess.
-            Side rail: Completion / Farming under Tools.</p>
+            Side rail: Achievements (badge) next to Completion; Farming under Tools.</p>
         </div>
       </section>
 

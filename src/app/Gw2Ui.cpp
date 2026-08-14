@@ -174,7 +174,6 @@ void Gw2Ui::WarmCommon()
 	Request(Icon::PathingMap);
 	Request(Icon::CompletePeak);
 	Request(Icon::FarmSack);
-	Request(Icon::TrailAnvil);
 	Request(Icon::EventsMedal);
 	Request(Icon::NotesScroll);
 	Request(Icon::LogsSwords);

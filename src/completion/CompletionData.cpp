@@ -31,6 +31,11 @@ namespace CompletionDetail
 	bool gAutoArrive = true;
 	bool gShowGpsArrow = true;
 	float gArriveRadius = 120.f;
+	int gApPane = 0;
+	char gApSearch[64]{};
+	int gApFilter = 0;
+	int gApSelCatId = 0;
+	int gApSelAchId = 0;
 	char gApCategoryPath[160]{};
 
 	namespace

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pack data/cheatsheets/ into build/cheatsheets.zip for DLL embedding."""
+"""Pack data/cheatsheets/ into build/embed/cheatsheets.zip for DLL embedding."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "data" / "cheatsheets"
-OUT = ROOT / "build" / "cheatsheets.zip"
+OUT = ROOT / "build" / "embed" / "cheatsheets.zip"
 
 
 def main() -> int:

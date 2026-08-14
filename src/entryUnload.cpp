@@ -14,7 +14,6 @@
 #include "PanelBinds.h"
 #include "SessionHistoryData.h"
 #include "PathingTrails.h"
-#include "TrailToolsShared.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "UI.h"
@@ -47,8 +46,6 @@ void AddonUnload()
 	G::ShowCompletion = false;
 	G::ShowFarming = false;
 	G::ShowPathingGuides = false;
-	G::ShowTrailTools = false;
-	TrailToolsDetail::CloseAllPopouts();
 	G::ShowCompassPad = false;
 	G::ShowWatch = false;
 	G::ShowWatchMirror = false;

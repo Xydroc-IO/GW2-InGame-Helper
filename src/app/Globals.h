@@ -80,7 +80,6 @@ namespace G
 	extern bool  ShowFarming; /* Farming runs + fishing catch log */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
-	extern bool  ShowTrailTools; /* ImGui Trail Tools authoring pad */
 	extern bool  EnablePathingLua; /* opt-in subset of Blish script-* Lua */
 	/* Lady Elyssa Features - Map Completion + extras; toggles are independent. */
 	extern bool  LadyBarefoot;   /* barefoot trails/markers + bfs shortcuts (current map) */
@@ -159,9 +158,6 @@ namespace G
 	};
 	extern PadGeom PadAccount;
 	extern PadGeom PadPathing;
-	extern PadGeom PadTrailTools;
-	extern PadGeom PadTrailEditor;  /* Trails pop-out */
-	extern PadGeom PadMarkerEditor; /* Markers pop-out */
 	extern PadGeom PadEvents;
 	extern PadGeom PadNotes;
 	extern PadGeom PadCompass;

@@ -4,6 +4,7 @@
 
 #include "Globals.h"
 #include "Gw2Http.h"
+#include "JsonView.h"
 #include "Settings.h"
 
 #include <atomic>
@@ -20,7 +21,7 @@ namespace CompletionDetail
 {
 	namespace
 	{
-		constexpr int kHttpTimeoutMs = 4000;
+		constexpr int kHttpTimeoutMs = 12000;
 		std::mutex gMu;
 		std::unordered_map<uint32_t, ApProgress> gProgress;
 		std::string gNote;
@@ -32,54 +33,59 @@ namespace CompletionDetail
 		DWORD gLastFetchMs = 0;
 		constexpr DWORD kMinRefetchMs = 180u * 1000u;
 
+		void CollectBitIndices(const std::string& json, size_t openBracket, size_t limit,
+			std::vector<int>& out)
+		{
+			if (openBracket >= json.size() || json[openBracket] != '[')
+				return;
+			size_t k = openBracket + 1;
+			while (k < limit && k < json.size() && json[k] != ']')
+			{
+				int idx = -1;
+				size_t after = k;
+				if (JsonView::ParseInt32(JsonView::AsView(json), k, &idx, &after) && idx >= 0)
+					out.push_back(idx);
+				k = (after > k) ? after : k + 1;
+				while (k < limit && k < json.size() && json[k] != ']' &&
+					(json[k] < '0' || json[k] > '9') && json[k] != '-')
+					++k;
+			}
+		}
+
 		void CollectIds(const std::string& body, std::unordered_map<uint32_t, ApProgress>& out)
 		{
 			size_t pos = 0;
 			while (pos < body.size())
 			{
-				const size_t idKey = body.find("\"id\"", pos);
-				if (idKey == std::string::npos)
+				const size_t brace = body.find('{', pos);
+				if (brace == std::string::npos)
 					break;
-				const size_t colon = body.find(':', idKey);
-				if (colon == std::string::npos || colon > idKey + 8)
+				const size_t end = JsonView::ObjectEnd(body, brace);
+				if (end == std::string::npos)
+					break;
+				const long long id = JsonView::IntAfterKey(body, "id", brace);
+				if (id > 0 && id <= 10000000ll)
 				{
-					pos = idKey + 4;
-					continue;
+					ApProgress p{};
+					p.achievementId = static_cast<uint32_t>(id);
+					p.known = true;
+					const std::string slice = body.substr(brace, end - brace + 1);
+					if (slice.find("\"done\":true") != std::string::npos ||
+						slice.find("\"done\": true") != std::string::npos)
+						p.done = true;
+					const long long cur = JsonView::IntAfterKey(body, "current", brace);
+					if (cur > 0)
+						p.current = static_cast<int>(cur);
+					const long long mx = JsonView::IntAfterKey(body, "max", brace);
+					if (mx > 0)
+						p.max = static_cast<int>(mx);
+					const size_t vs = JsonView::ValueStartAfterKey(JsonView::AsView(body),
+						JsonView::View("bits"), brace);
+					if (vs != JsonView::View::npos && vs < end && body[vs] == '[')
+						CollectBitIndices(body, vs, end, p.bits);
+					out[p.achievementId] = std::move(p);
 				}
-				char* end = nullptr;
-				const unsigned long id = std::strtoul(body.c_str() + colon + 1, &end, 10);
-				if (!end || id == 0 || id > 10000000ul)
-				{
-					pos = idKey + 4;
-					continue;
-				}
-				size_t blockEnd = body.find('{', static_cast<size_t>(end - body.c_str()));
-				/* Prefer next object start; fall back to +400 chars. */
-				if (blockEnd == std::string::npos || blockEnd > idKey + 500)
-					blockEnd = (idKey + 500 < body.size()) ? idKey + 500 : body.size();
-				const std::string slice = body.substr(idKey, blockEnd - idKey);
-				ApProgress p{};
-				p.achievementId = static_cast<uint32_t>(id);
-				p.known = true;
-				if (slice.find("\"done\":true") != std::string::npos ||
-					slice.find("\"done\": true") != std::string::npos)
-					p.done = true;
-				const size_t cur = slice.find("\"current\"");
-				if (cur != std::string::npos)
-				{
-					const size_t c2 = slice.find(':', cur);
-					if (c2 != std::string::npos)
-						p.current = static_cast<int>(std::strtol(slice.c_str() + c2 + 1, nullptr, 10));
-				}
-				const size_t mx = slice.find("\"max\"");
-				if (mx != std::string::npos)
-				{
-					const size_t m2 = slice.find(':', mx);
-					if (m2 != std::string::npos)
-						p.max = static_cast<int>(std::strtol(slice.c_str() + m2 + 1, nullptr, 10));
-				}
-				out[p.achievementId] = p;
-				pos = idKey + 4;
+				pos = end + 1;
 			}
 		}
 
@@ -170,6 +176,12 @@ namespace CompletionDetail
 			return false;
 		out = it->second;
 		return true;
+	}
+
+	size_t ApProgressCount()
+	{
+		std::lock_guard<std::mutex> lock(gMu);
+		return gProgress.size();
 	}
 
 	bool FormatApOverlayLine(uint32_t mapId, const char* packType, char* out, size_t outLen)

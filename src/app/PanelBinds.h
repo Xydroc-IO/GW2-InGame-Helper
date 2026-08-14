@@ -17,7 +17,6 @@ namespace PanelBinds
 		Economy,
 		Instances,
 		Logs,
-		TrailTools,
 		Compass,
 		SettingsPad,
 		Wallet,
@@ -26,6 +25,7 @@ namespace PanelBinds
 		Lookup,
 		Marker,
 		Watch,
+		Achievements,
 		Count
 	};
 

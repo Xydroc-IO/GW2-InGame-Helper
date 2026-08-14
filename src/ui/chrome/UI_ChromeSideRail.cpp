@@ -21,7 +21,6 @@
 #include "PathingGuidesPad.h"
 #include "Settings.h"
 #include "SettingsPad.h"
-#include "TrailToolsPad.h"
 #include "VaultPad.h"
 #include "WatchCapture.h"
 #include "WatchPad.h"
@@ -338,27 +337,43 @@ namespace UIDetail
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+G (Settings -> Keybinds)");
 
-		if (PadNav::SideToggle("Trail Tools###gw2igh_trailtools", G::ShowTrailTools, static_cast<int>(Gw2Ui::Icon::TrailAnvil), iconSz))
+		if (PadNav::SideToggle("Completion###gw2igh_completion",
+			G::ShowCompletion && !CompletionPad::ShowingAchievements(),
+			static_cast<int>(Gw2Ui::Icon::CompletePeak), iconSz))
 		{
-			if (G::ShowTrailTools) { G::ShowTrailTools = false; Settings::SetDirty(); }
-			else WinePadOpen::SoftOpen(&TrailToolsPad::Open, "Trail Tools");
+			if (G::ShowCompletion && !CompletionPad::ShowingAchievements())
+			{
+				G::ShowCompletion = false;
+				Settings::SetDirty();
+			}
+			else if (G::ShowCompletion)
+				CompletionPad::ShowChecklistTab();
+			else
+				WinePadOpen::SoftOpen(&CompletionPad::OpenAndRefresh, "Completion");
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
-				"Trail Tools - author packs\n"
-				"Wine: soft-open (deferred a few frames)\n"
-				"Default: Ctrl+Shift+B (Settings -> Keybinds)");
-
-		if (PadNav::SideToggle("Completion###gw2igh_completion", G::ShowCompletion, static_cast<int>(Gw2Ui::Icon::CompletePeak), iconSz))
-		{
-			if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
-			else WinePadOpen::SoftOpen(&CompletionPad::OpenAndRefresh, "Completion");
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(
-				"Completion - checklist, Atlas, routes, GPS\n"
+				"Completion - map checklist, Atlas, routes, GPS\n"
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+M (Settings -> Keybinds)");
+
+		if (PadNav::SideToggle("Achievements###gw2igh_achievements",
+			CompletionPad::ShowingAchievements(),
+			static_cast<int>(Gw2Ui::Icon::Achievements), iconSz))
+		{
+			if (CompletionPad::ShowingAchievements())
+			{
+				G::ShowCompletion = false;
+				Settings::SetDirty();
+			}
+			else
+				WinePadOpen::SoftOpen(&CompletionPad::OpenAchievements, "Achievements");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Achievements - account AP groups (official API)\n"
+				"Wine: soft-open (deferred a few frames)\n"
+				"Default: Ctrl+Shift+Q (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Notes###gw2igh_notes", G::ShowNotes, static_cast<int>(Gw2Ui::Icon::NotesScroll), iconSz))
 		{

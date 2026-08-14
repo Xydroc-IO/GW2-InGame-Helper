@@ -1,5 +1,12 @@
 # Cross-compile GW2-InGame-Helper.dll (+ embedded CEF helper) for Windows / Wine
 # Private CEF 150 runtime downloads into addons/GW2-InGame-Helper/cef/ on first use.
+#
+# build/ layout:
+#   bin/    shipping DLL + GW2HelperBrowser.exe + gw2igh-watchd
+#   embed/  flattened copies for `ld -r -b binary` (stable _binary_<basename>_*)
+#   src/    compile objects (mirrors source tree)
+#   test/   host / Wine test binaries
+#   deps/   vendored C objects
 CXX      = x86_64-w64-mingw32-g++
 LD       = x86_64-w64-mingw32-ld
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
@@ -9,7 +16,7 @@ CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/ui/browse -Isrc/ui/settings -Isrc/ui/
 	-Isrc/ui/chrome -Isrc/api -Isrc/browse -Isrc/browser -Isrc/browse/sites -Isrc/browse/livepanels \
 	-Isrc/browse/tabs -Isrc/account -Isrc/account/crafting -Isrc/account/tpwatch -Isrc/account/unlocks \
 	-Isrc/account/wallet -Isrc/account/vault -Isrc/account/lookup -Isrc/account/progress -Isrc/pathing \
-	-Isrc/pathing/trailtools -Isrc/pathing/world -Isrc/pathing/lua -Isrc/pathing/packs \
+	-Isrc/pathing/world -Isrc/pathing/lua -Isrc/pathing/packs \
 	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/pathing/mapassist \
 	-Isrc/logs -Isrc/logs/logmanager -Isrc/logs/eiruntime \
 	-Isrc/events -Isrc/notes -Isrc/helper \
@@ -33,20 +40,22 @@ HELPER_SRC = src/helper/main.cpp src/helper/HelperState.cpp src/helper/HelperPat
 	src/helper/CssCompatLegacy.cpp src/helper/CssCompatLegacyRewrite.cpp \
 	src/helper/CssProxy.cpp
 HELPER_OUT = build/bin/GW2HelperBrowser.exe
-HELPER_BLOB_SRC = build/helper_blob.exe
-HELPER_BLOB_OBJ = build/helper_blob.o
-HOME_LOGO_SRC  = build/home_logo.png
-HOME_COVER_SRC = build/home_cover.jpg
-HOME_LOGO_OBJ  = build/home_logo.o
-HOME_COVER_OBJ = build/home_cover.o
-SITES_JSON_SRC = build/sites.json
-SITES_JSON_OBJ = build/sites_json.o
-LEGENDARIES_CATALOG_SRC = build/legendaries_catalog.json
-LEGENDARIES_CATALOG_OBJ = build/legendaries_catalog_json.o
-CHEATSHEETS_ZIP_SRC = build/cheatsheets.zip
-CHEATSHEETS_ZIP_OBJ = build/cheatsheets_zip.o
-UI_CHROME_ZIP_SRC = build/ui_chrome.zip
-UI_CHROME_ZIP_OBJ = build/ui_chrome_zip.o
+EMBED_DIR = build/embed
+TEST_DIR  = build/test
+HELPER_BLOB_SRC = $(EMBED_DIR)/helper_blob.exe
+HELPER_BLOB_OBJ = $(EMBED_DIR)/helper_blob.o
+HOME_LOGO_SRC  = $(EMBED_DIR)/home_logo.png
+HOME_COVER_SRC = $(EMBED_DIR)/home_cover.jpg
+HOME_LOGO_OBJ  = $(EMBED_DIR)/home_logo.o
+HOME_COVER_OBJ = $(EMBED_DIR)/home_cover.o
+SITES_JSON_SRC = $(EMBED_DIR)/sites.json
+SITES_JSON_OBJ = $(EMBED_DIR)/sites_json.o
+LEGENDARIES_CATALOG_SRC = $(EMBED_DIR)/legendaries_catalog.json
+LEGENDARIES_CATALOG_OBJ = $(EMBED_DIR)/legendaries_catalog_json.o
+CHEATSHEETS_ZIP_SRC = $(EMBED_DIR)/cheatsheets.zip
+CHEATSHEETS_ZIP_OBJ = $(EMBED_DIR)/cheatsheets_zip.o
+UI_CHROME_ZIP_SRC = $(EMBED_DIR)/ui_chrome.zip
+UI_CHROME_ZIP_OBJ = $(EMBED_DIR)/ui_chrome_zip.o
 
 DLL_SRC = \
 	src/entry.cpp \
@@ -150,6 +159,7 @@ DLL_SRC = \
 	src/account/lookup/LookupPad.cpp \
 	src/account/lookup/LookupFetch.cpp \
 	src/account/wallet/WalletPad.cpp \
+	src/account/wallet/WalletPadStash.cpp \
 	src/account/wallet/WalletFetch.cpp \
 	src/account/wallet/WalletFetchSlots.cpp \
 	src/account/wallet/WalletFetchAcc.cpp \
@@ -218,8 +228,12 @@ DLL_SRC = \
 	src/completion/CompletionPackClassify.cpp \
 	src/completion/CompletionApIds.cpp \
 	src/completion/CompletionApFetch.cpp \
+	src/completion/CompletionAchCatalog.cpp \
 	src/completion/CompletionAchievements.cpp \
+	src/completion/CompletionAchWiki.cpp \
 	src/farming/FarmingPad.cpp \
+	src/farming/FarmingPadRuns.cpp \
+	src/farming/FarmingPadFish.cpp \
 	src/farming/FarmingPadState.cpp \
 	src/farming/FarmingPersist.cpp \
 	src/farming/FarmingCatalog.cpp \
@@ -246,33 +260,6 @@ DLL_SRC = \
 	src/logs/eiruntime/EiRuntimeFs.cpp \
 	src/logs/eiruntime/EiRuntimeHttp.cpp \
 	src/pathing/waypoints/PathingGuidesPad.cpp \
-	src/pathing/trailtools/TrailToolsPad.cpp \
-	src/pathing/trailtools/TrailToolsPadLive.cpp \
-	src/pathing/trailtools/TrailToolsPadTrailDesk.cpp \
-	src/pathing/trailtools/TrailToolsPadTrailHelpers.cpp \
-	src/pathing/trailtools/TrailToolsPadTrailRaw.cpp \
-	src/pathing/trailtools/TrailToolsPadMarkers.cpp \
-	src/pathing/trailtools/TrailToolsPadXmlDesk.cpp \
-	src/pathing/trailtools/TrailToolsPadMarkersScript.cpp \
-	src/pathing/trailtools/TrailToolsPadLua.cpp \
-	src/pathing/trailtools/TrailToolsPadPack.cpp \
-	src/pathing/trailtools/TrailToolsPadKeybinds.cpp \
-	src/pathing/trailtools/TrailToolsBinds.cpp \
-	src/pathing/trailtools/TrailToolsBindsChord.cpp \
-	src/pathing/trailtools/TrailToolsBindsActions.cpp \
-	src/pathing/trailtools/TrailToolsState.cpp \
-	src/pathing/trailtools/TrailToolsStateEditors.cpp \
-	src/pathing/trailtools/TrailToolsStateCategories.cpp \
-	src/pathing/trailtools/TrailToolsStateFs.cpp \
-	src/pathing/trailtools/TrailToolsTrl.cpp \
-	src/pathing/trailtools/TrailToolsXml.cpp \
-	src/pathing/trailtools/TrailToolsBuild.cpp \
-	src/pathing/trailtools/TrailToolsPreview.cpp \
-	src/pathing/trailtools/TrailToolsPreviewCompass.cpp \
-	src/pathing/trailtools/TrailToolsDraftStyle.cpp \
-	src/pathing/trailtools/TrailToolsAssets.cpp \
-	src/pathing/trailtools/TrailToolsPersist.cpp \
-	src/pathing/trailtools/TrailToolsImport.cpp \
 	src/pathing/packs/PathingSchedule.cpp \
 	src/pathing/lua/PathingLua.cpp \
 	src/pathing/lua/PathingLuaApi.cpp \
@@ -410,8 +397,8 @@ HOST_CXX ?= /usr/bin/g++
 WATCHD_OUT = build/bin/gw2igh-watchd
 WATCHD_SRC = tools/watchd/watchd_main.cpp tools/watchd/watchd_shm.cpp \
 	tools/watchd/watchd_scale.cpp tools/watchd/watchd_portal.cpp
-WATCHD_BLOB_SRC = build/watchd_blob
-WATCHD_BLOB_OBJ = build/watchd_blob.o
+WATCHD_BLOB_SRC = $(EMBED_DIR)/watchd_blob
+WATCHD_BLOB_OBJ = $(EMBED_DIR)/watchd_blob.o
 WATCHD_CFLAGS := $(shell pkg-config --cflags libpipewire-0.3 gio-2.0 gio-unix-2.0 2>/dev/null)
 WATCHD_LIBS := $(shell pkg-config --libs libpipewire-0.3 gio-2.0 gio-unix-2.0 2>/dev/null)
 
@@ -423,10 +410,11 @@ $(WATCHD_OUT): $(WATCHD_SRC) tools/watchd/watchd_internal.h src/watch/WatchProto
 	@echo "Built $@ (portal/PipeWire watchd for Wine Watch)"
 
 $(WATCHD_BLOB_SRC): $(WATCHD_OUT)
+	@mkdir -p $(EMBED_DIR)
 	/bin/cp -f $(WATCHD_OUT) $(WATCHD_BLOB_SRC)
 
 $(WATCHD_BLOB_OBJ): $(WATCHD_BLOB_SRC)
-	$(LD) -r -b binary -o $@ $(WATCHD_BLOB_SRC)
+	cd $(EMBED_DIR) && $(LD) -r -b binary -o $(notdir $@) $(notdir $<)
 	@echo "Embedded watchd blob $@"
 
 SITES_JSON   = data/sites.json
@@ -451,30 +439,15 @@ test-css:
 	python3 tools/test_css_downlevel.py
 
 # Host (Linux) parse golden tests — no Wine / GW2 required.
-TEST_PARSE_BIN = build/test_logmanager_parse
-TEST_IPC_BIN = build/test_wiki_ipc
-TEST_JSON_VIEW_BIN = build/test_json_view
+TEST_PARSE_BIN = $(TEST_DIR)/test_logmanager_parse
+TEST_IPC_BIN = $(TEST_DIR)/test_wiki_ipc
+TEST_JSON_VIEW_BIN = $(TEST_DIR)/test_json_view
 
 test-parse: $(TEST_PARSE_BIN)
 	./$(TEST_PARSE_BIN) tools/fixtures/ei_players_sample.json tools/fixtures/dpsreport_players_sample.json
 	python3 tools/test_trl_parse.py
 
-TEST_TRAILTOOLS_BIN = build/test_trailtools_roundtrip.exe
-test-trailtools: $(TEST_TRAILTOOLS_BIN)
-	wine $(TEST_TRAILTOOLS_BIN)
-
-$(TEST_TRAILTOOLS_BIN): tools/test_trailtools_roundtrip.cpp \
-	src/pathing/trailtools/TrailToolsTrl.cpp src/pathing/trailtools/TrailToolsXml.cpp \
-	src/pathing/trailtools/TrailToolsTrl.h src/pathing/trailtools/TrailToolsXml.h \
-	src/pathing/trailtools/TrailToolsShared.h
-	@mkdir -p build
-	$(CXX) $(CXXFLAGS) -static -static-libgcc -static-libstdc++ -o $@ \
-		tools/test_trailtools_roundtrip.cpp \
-		src/pathing/trailtools/TrailToolsTrl.cpp \
-		src/pathing/trailtools/TrailToolsXml.cpp \
-		-lole32 -luuid -lshell32 -lcrypt32
-
-TEST_PATHING_LUA_BIN = build/test_pathing_lua.exe
+TEST_PATHING_LUA_BIN = $(TEST_DIR)/test_pathing_lua.exe
 .PHONY: test-pathing-lua
 test-pathing-lua: $(TEST_PATHING_LUA_BIN)
 	wine $(TEST_PATHING_LUA_BIN)
@@ -501,15 +474,15 @@ LUA_TEST_C = \
 	deps/lua/ltable.c deps/lua/ltablib.c deps/lua/ltm.c deps/lua/lundump.c \
 	deps/lua/lutf8lib.c deps/lua/lvm.c deps/lua/lzio.c
 
-LUA_TEST_COBJ = $(patsubst deps/lua/%.c,build/test_lua/%.o,$(LUA_TEST_C))
+LUA_TEST_COBJ = $(patsubst deps/lua/%.c,$(TEST_DIR)/lua/%.o,$(LUA_TEST_C))
 
-build/test_lua/%.o: deps/lua/%.c
-	@mkdir -p build/test_lua
+$(TEST_DIR)/lua/%.o: deps/lua/%.c
+	@mkdir -p $(TEST_DIR)/lua
 	x86_64-w64-mingw32-gcc -std=c11 -O2 -Ideps/lua -c -o $@ $<
 
 $(TEST_PATHING_LUA_BIN): $(LUA_TEST_CPP) $(LUA_TEST_COBJ) \
 	src/pathing/lua/PathingLua.h src/pathing/lua/PathingLuaInternal.h
-	@mkdir -p build
+	@mkdir -p $(TEST_DIR)
 	$(CXX) $(CXXFLAGS) -static -static-libgcc -static-libstdc++ -o $@ \
 		$(LUA_TEST_CPP) $(LUA_TEST_COBJ) \
 		-lole32 -luuid -lshell32 -lcrypt32 -lwinhttp
@@ -521,15 +494,15 @@ test-json-view: $(TEST_JSON_VIEW_BIN)
 	./$(TEST_JSON_VIEW_BIN)
 
 $(TEST_PARSE_BIN): tools/test_logmanager_parse.cpp src/logs/logmanager/LogManagerParse.cpp src/logs/logmanager/LogManagerParsePlayers.cpp src/logs/logmanager/LogManagerParse.h
-	@mkdir -p build
+	@mkdir -p $(TEST_DIR)
 	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -Isrc/logs -Isrc/logs/logmanager -o $@ tools/test_logmanager_parse.cpp src/logs/logmanager/LogManagerParse.cpp src/logs/logmanager/LogManagerParsePlayers.cpp
 
 $(TEST_IPC_BIN): tools/test_wiki_ipc.cpp src/browser/WikiIpc.h
-	@mkdir -p build
+	@mkdir -p $(TEST_DIR)
 	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -Isrc/browser -o $@ tools/test_wiki_ipc.cpp
 
 $(TEST_JSON_VIEW_BIN): tools/test_json_view.cpp src/api/JsonView.h
-	@mkdir -p build
+	@mkdir -p $(TEST_DIR)
 	g++ -std=c++17 -O2 -Wall -Wextra -Isrc -o $@ tools/test_json_view.cpp
 
 # Local continuous integration. Also used by .githooks/pre-push and GitHub Actions.
@@ -548,52 +521,51 @@ $(HELPER_OUT): $(HELPER_SRC) src/browser/WikiIpc.h src/helper/HelperInternal.h \
 	$(CXX) $(CXXFLAGS_EXE) $(LDFLAGS_EXE) -o $@ $(HELPER_SRC) $(LIBS_EXE)
 	@echo "Built $@"
 
-# Flatten path so ld binary symbols are stable: _binary_helper_blob_exe_*
 $(HELPER_BLOB_SRC): $(HELPER_OUT)
+	@mkdir -p $(EMBED_DIR)
 	/bin/cp -f $(HELPER_OUT) $(HELPER_BLOB_SRC)
 
 $(HELPER_BLOB_OBJ): $(HELPER_BLOB_SRC)
-	$(LD) -r -b binary -o $@ $(HELPER_BLOB_SRC)
+	cd $(EMBED_DIR) && $(LD) -r -b binary -o $(notdir $@) $(notdir $<)
 	@echo "Embedded helper blob $@"
 
-# Flatten asset paths so ld symbols stay stable: _binary_home_logo_png_* / _binary_home_cover_jpg_*
 $(HOME_LOGO_SRC): docs/media/home-logo.png
-	@mkdir -p $(dir $@)
+	@mkdir -p $(EMBED_DIR)
 	/bin/cp -f $< $@
 
 $(HOME_COVER_SRC): docs/media/home-cover.jpg
-	@mkdir -p $(dir $@)
+	@mkdir -p $(EMBED_DIR)
 	/bin/cp -f $< $@
 
 $(HOME_LOGO_OBJ): $(HOME_LOGO_SRC)
-	cd build && $(LD) -r -b binary -o home_logo.o home_logo.png
+	cd $(EMBED_DIR) && $(LD) -r -b binary -o $(notdir $@) $(notdir $<)
 	@echo "Embedded home logo $@"
 
 $(HOME_COVER_OBJ): $(HOME_COVER_SRC)
-	cd build && $(LD) -r -b binary -o home_cover.o home_cover.jpg
+	cd $(EMBED_DIR) && $(LD) -r -b binary -o $(notdir $@) $(notdir $<)
 	@echo "Embedded home cover $@"
 
 $(SITES_JSON_SRC): $(SITES_JSON)
-	@mkdir -p $(dir $@)
+	@mkdir -p $(EMBED_DIR)
 	/bin/cp -f $< $@
 
 $(SITES_JSON_OBJ): $(SITES_JSON_SRC)
-	$(LD) -r -b binary -o $@ $(SITES_JSON_SRC)
+	cd $(EMBED_DIR) && $(LD) -r -b binary -o $(notdir $@) $(notdir $<)
 	@echo "Embedded sites catalog $@"
 
 $(LEGENDARIES_CATALOG_SRC): data/legendaries/catalog.min.json
-	@mkdir -p $(dir $@)
+	@mkdir -p $(EMBED_DIR)
 	/bin/cp -f $< $@
 
 $(LEGENDARIES_CATALOG_OBJ): $(LEGENDARIES_CATALOG_SRC)
-	$(LD) -r -b binary -o $@ $(LEGENDARIES_CATALOG_SRC)
+	cd $(EMBED_DIR) && $(LD) -r -b binary -o $(notdir $@) $(notdir $<)
 	@echo "Embedded legendaries catalog $@"
 
 $(CHEATSHEETS_ZIP_SRC): $(CHEATSHEETS_DIR)/manifest.json $(CHEATSHEETS_DIR)/shared.css $(wildcard $(CHEATSHEETS_DIR)/*.html)
 	python3 tools/pack_cheatsheets.py
 
 $(CHEATSHEETS_ZIP_OBJ): $(CHEATSHEETS_ZIP_SRC)
-	$(LD) -r -b binary -o $@ $(CHEATSHEETS_ZIP_SRC)
+	cd $(EMBED_DIR) && $(LD) -r -b binary -o $(notdir $@) $(notdir $<)
 	@echo "Embedded cheatsheets pack $@"
 
 UI_CHROME_DIR = data/ui-chrome
@@ -602,7 +574,7 @@ $(UI_CHROME_ZIP_SRC): $(UI_CHROME_DIR)/manifest.txt $(wildcard $(UI_CHROME_DIR)/
 	python3 tools/pack_ui_chrome.py
 
 $(UI_CHROME_ZIP_OBJ): $(UI_CHROME_ZIP_SRC)
-	$(LD) -r -b binary -o $@ $(UI_CHROME_ZIP_SRC)
+	cd $(EMBED_DIR) && $(LD) -r -b binary -o $(notdir $@) $(notdir $<)
 	@echo "Embedded UI chrome pack $@"
 
 $(DLL_OUT): $(DLL_OBJ) $(HELPER_BLOB_OBJ) $(HOME_LOGO_OBJ) $(HOME_COVER_OBJ) $(SITES_JSON_OBJ) $(LEGENDARIES_CATALOG_OBJ) $(CHEATSHEETS_ZIP_OBJ) $(UI_CHROME_ZIP_OBJ) $(WATCHD_BLOB_OBJ)

@@ -78,6 +78,8 @@ namespace FarmingDetail
 	extern std::vector<FishEntry> gFishLog;
 
 	const char* TagLabel(RunTag t);
+	void DrawRunsTab();
+	void DrawFishingTab();
 	void EnsureCatalog();
 	void ToggleStep(size_t run, size_t step);
 	void ResetRun(size_t run);

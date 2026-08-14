@@ -69,24 +69,9 @@ Pathing **Route** finds public API waypoints near an anchor and lists chat codes
 2. In-game, open **Pathing** and click **Reload packs** (or **Update curated** to refresh downloads too).
 3. Enable the categories / Features edition you want (first run may auto-enable Lady).
 
-### Trail Tools (author packs)
-
-Side-rail **Trail Tools** creates packs without TacO/TrlTool — Live / Trails / Markers / Pack /
-Keybinds in one hub, plus optional collapsible editors:
-
-1. **Live** — Map ID + XYZ from Mumble.
-2. **Trails** — XML project desk (shared OverlayData) + trail list; **Open Trails1** for raw `.trl`
-   record/edit; **Insert into XML** upserts the active trail.
-3. **Markers** — Same XML desk + marker list; **Open Markers1** for selected POI attrs;
-   **Insert into XML** marks the project dirty for Save.
-4. **Pack** — Looks, categories, import, Build `.taco`.
-5. **Keybinds** — Start/pause trail, section, delete segment; delete marker; **10 place-marker slots**
-   (category + chord each — e.g. CTRL+NumPad for mount markers along a route).
-
-**Trails1 / Markers1** stay separate windows (collapse title bar to a strip); the hub tabs remain
-the desk. Workspace: `pathing/authoring/<PackName>/` under the addon data folder. Drop PNG icons into
-`Data/<PackName>/Markers/` yourself. Textured draft preview shows on compass + world GPS while
-the hub or a pop-out is open. Details: [`docs/PATHING.md`](../docs/PATHING.md) §8b.
+To **author** packs, use standalone
+[GW2-TrailTools](https://github.com/Xydroc-IO/GW2-TrailTools) and copy the built
+`.taco` here.
 
 ### Quick presets
 
