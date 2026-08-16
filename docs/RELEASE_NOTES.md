@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.9
+# GW2 In-Game Helper v2.2.4.10
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,13 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.10
+
+- **Cheat Sheets:** Opening Uber’s All-In-One (and other pack sheets) no longer
+  stays on “Opening cheat sheet…”. The helper no longer treats that loading stub
+  as the real page; the DLL retries once the pack HTML is on disk.
+- **Stamps:** Helper `2243` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `74` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.2.4.9
 
