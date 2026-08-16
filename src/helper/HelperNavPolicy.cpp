@@ -98,7 +98,8 @@ namespace HelperDetail
 	/* Ask the DLL to open a URL in a new helper tab (keeps the current Live page). */
 	void QueueOpenInAddonTab(const std::string& url)
 	{
-		if (url.rfind("https://", 0) != 0 && url.rfind("http://", 0) != 0)
+		if (url.rfind("https://", 0) != 0 && url.rfind("http://", 0) != 0 &&
+			url.rfind("about:", 0) != 0 && url.rfind("file://", 0) != 0)
 			return;
 		if (!gIpc)
 			return;
@@ -115,7 +116,7 @@ namespace HelperDetail
 	}
 
 	/* Browse hub: open catalog site by id in a new addon tab (works for about: homes). */
-	void QueueOpenSiteInAddonTab(const std::string& siteId)
+	void QueueOpenSiteInAddonTab(const std::string& siteId, bool newTab)
 	{
 		if (!gIpc || siteId.empty() || siteId.size() >= sizeof(gIpc->open_site_id))
 			return;
@@ -125,11 +126,19 @@ namespace HelperDetail
 				(c >= '0' && c <= '9') || c == '-' || c == '_'))
 				return;
 		}
-		NavLog("  -> ADDON-SITE %s", siteId.c_str());
+		NavLog("  -> ADDON-SITE %s new=%d", siteId.c_str(), newTab ? 1 : 0);
 		std::snprintf(gIpc->open_site_id, sizeof(gIpc->open_site_id), "%s", siteId.c_str());
+		gIpc->open_site_new_tab = newTab ? 1u : 0u;
 		MemoryBarrier();
 		++gIpc->open_site_seq;
-		SetStatus("Opening in a new tab…");
+		SetStatus(newTab ? "Opening in a new tab…" : "Opening…");
+	}
+
+	bool IsNewTabOrWindowDisposition(cef_window_open_disposition_t d)
+	{
+		/* CEF WOD_NEW_FOREGROUND_TAB..NEW_WINDOW (3–6). */
+		const int v = static_cast<int>(d);
+		return v >= 3 && v <= 6;
 	}
 
 	std::string UrlDecodeQueryValue(const std::string& in)
@@ -386,5 +395,61 @@ namespace HelperDetail
 		const std::string out = FrameUrl(frame);
 		frame->base.release(&frame->base);
 		return out;
+	}
+
+	bool TryOpenUrlInNewAddonTab(const std::string& url)
+	{
+		if (url.empty() || url == "about:blank")
+			return false;
+		if (IsAdClickUrl(url) || IsYoutubeHostUrl(url) || IsTwitchHostUrl(url) ||
+			IsDiscordProtocolUrl(url) || IsExternalSignInUrl(url) || IsMediaOrCdnUrl(url))
+			return false;
+		if (ConsumeHelperNewTabUrl(url))
+			return true;
+		if (HasQueryParam(url, "gw2igh-fav-toggle") ||
+			HasQueryParam(url, "gw2igh-fav-folder-create") ||
+			HasQueryParam(url, "gw2igh-fav-folder-move") ||
+			HasQueryParam(url, "gw2igh-fav-folder-delete"))
+			return false;
+
+		if (url.find("live-browse-") != std::string::npos ||
+			url.find("live-cheatsheets-hub") != std::string::npos)
+		{
+			size_t q = url.find('?');
+			if (q != std::string::npos)
+			{
+				std::string query = url.substr(q + 1);
+				const size_t hash = query.find('#');
+				if (hash != std::string::npos)
+					query.resize(hash);
+				const std::string openSite = ParseQueryValue(query, "gw2igh-open-site");
+				const std::string aboutKey = ParseQueryValue(query, "gw2igh-about");
+				if (!openSite.empty())
+				{
+					QueueOpenSiteInAddonTab(openSite, true);
+					return true;
+				}
+				if (!aboutKey.empty())
+				{
+					for (char c : aboutKey)
+					{
+						if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-'))
+							return false;
+					}
+					if (aboutKey != "browse-hub" && aboutKey.rfind("browse-cat-", 0) != 0)
+						return false;
+					QueueOpenInAddonTab(std::string("about:") + aboutKey);
+					return true;
+				}
+			}
+		}
+
+		if (url.rfind("https://", 0) == 0 || url.rfind("http://", 0) == 0 ||
+			url.rfind("about:", 0) == 0 || url.rfind("file://", 0) == 0)
+		{
+			QueueOpenInAddonTab(url);
+			return true;
+		}
+		return false;
 	}
 }

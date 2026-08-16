@@ -136,8 +136,13 @@ namespace WikiBrowserDetail
 		gLastOpenTabSeq = seq;
 		char url[sizeof(gIpc->open_tab_url)];
 		std::snprintf(url, sizeof(url), "%s", gIpc->open_tab_url);
-		if (!url[0] ||
-			(std::strncmp(url, "http://", 7) != 0 && std::strncmp(url, "https://", 8) != 0))
+		if (!url[0])
+			return;
+		const bool http = std::strncmp(url, "http://", 7) == 0 ||
+			std::strncmp(url, "https://", 8) == 0;
+		const bool about = std::strncmp(url, "about:", 6) == 0;
+		const bool file = std::strncmp(url, "file://", 7) == 0;
+		if (!http && !about && !file)
 			return;
 
 		const char* siteId = "gw2efficiency";
@@ -153,7 +158,7 @@ namespace WikiBrowserDetail
 			SetLocalStatus("Opened in a new tab");
 	}
 
-	/* Browse hub → catalog site id in a new addon tab. */
+	/* Browse hub → catalog site id (current tab, or new tab from Ctrl/middle-click). */
 	void DrainOpenSiteRequests()
 	{
 		if (!gIpc)
@@ -166,13 +171,22 @@ namespace WikiBrowserDetail
 		std::snprintf(id, sizeof(id), "%s", gIpc->open_site_id);
 		if (!id[0] || Sites::IndexOfId(id) < 0)
 			return;
-		if (BrowserTabs::OpenNew(id, true) < 0)
+		const bool newTab = gIpc->open_site_new_tab != 0;
+		if (newTab)
 		{
-			BrowserTabs::OpenInActive(id, true);
-			SetLocalStatus("Tab limit reached — opened in this tab");
+			if (BrowserTabs::OpenNew(id, true) < 0)
+			{
+				BrowserTabs::OpenInActive(id, true);
+				SetLocalStatus("Tab limit reached — opened in this tab");
+			}
+			else
+				SetLocalStatus("Opened in a new tab");
 		}
 		else
-			SetLocalStatus("Opened in a new tab");
+		{
+			BrowserTabs::OpenInActive(id, true);
+			SetLocalStatus("Opened in this tab");
+		}
 	}
 
 	/* Complete a pending QUIT across frames — never Sleep/Terminate mid-SetVisible. */

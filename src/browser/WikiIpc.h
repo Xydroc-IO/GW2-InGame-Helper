@@ -159,8 +159,10 @@ struct WikiIpcState
 	uint32_t open_tab_seq;
 	char     open_tab_url[2048];
 
-	/* Helper → DLL: open catalog site id in a new addon tab (Browse hub). */
+	/* Helper → DLL: open catalog site id (Browse hub). */
 	uint32_t open_site_seq;
 	char     open_site_id[64];
+	/* Non-zero → OpenNew; zero → OpenInActive. Appended — keep last. */
+	uint32_t open_site_new_tab;
 };
 #pragma pack(pop)

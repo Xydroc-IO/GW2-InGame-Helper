@@ -182,8 +182,10 @@ namespace HelperDetail
 	void NavLog(const char* fmt, ...);
 	void OpenExternalUrl(const std::string& url);
 	void QueueOpenInAddonTab(const std::string& url);
-	void QueueOpenSiteInAddonTab(const std::string& siteId);
+	void QueueOpenSiteInAddonTab(const std::string& siteId, bool newTab = false);
 	bool ConsumeHelperNewTabUrl(const std::string& url);
+	bool TryOpenUrlInNewAddonTab(const std::string& url);
+	bool IsNewTabOrWindowDisposition(cef_window_open_disposition_t d);
 	bool IsMediaOrCdnUrl(const std::string& url);
 	bool IsExternalSignInUrl(const std::string& url);
 	bool IsPromotablePopupUrl(const std::string& url);

@@ -105,5 +105,13 @@ namespace SideRail
 		}
 		return kMinIcon;
 	}
+
+	/* After SideToggle: Ctrl+left or middle-click → new tab. */
+	inline bool ItemWantsNewTab()
+	{
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Middle))
+			return true;
+		return ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::GetIO().KeyCtrl;
+	}
 }
 }

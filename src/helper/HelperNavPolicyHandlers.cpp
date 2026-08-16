@@ -21,7 +21,7 @@ namespace HelperDetail
 {
 	int CEF_CALLBACK OnBeforePopup(
 		cef_life_span_handler_t*, cef_browser_t* browser, cef_frame_t* frame, int /*popup_id*/,
-		const cef_string_t* target_url, const cef_string_t*, cef_window_open_disposition_t,
+		const cef_string_t* target_url, const cef_string_t*, cef_window_open_disposition_t disp,
 		int user_gesture, const cef_popup_features_t*, cef_window_info_t*, cef_client_t**,
 		cef_browser_settings_t*, cef_dictionary_value_t**, int*)
 	{
@@ -32,11 +32,15 @@ namespace HelperDetail
 		const std::string url = CefStringToUtf8(target_url);
 		const std::string cur = MainFrameUrl(browser);
 
-		NavLog("POPUP gesture=%d fromMain=%d adclick=%d promo=%d\n  url=%s\n  frame=%s\n  page=%s",
-			user_gesture,
+		NavLog("POPUP gesture=%d disp=%d fromMain=%d adclick=%d promo=%d\n  url=%s\n  frame=%s\n  page=%s",
+			user_gesture, static_cast<int>(disp),
 			frame && frame->is_main && frame->is_main(frame) ? 1 : 0,
 			IsAdClickUrl(url) ? 1 : 0, IsPromotablePopupUrl(url) ? 1 : 0,
 			url.c_str(), FrameUrl(frame).c_str(), cur.c_str());
+
+		/* Middle-click often arrives as a background-tab popup, not OnOpenUrlFromTab. */
+		if (user_gesture && static_cast<int>(disp) == 4 && TryOpenUrlInNewAddonTab(url))
+			return 1;
 
 		/* Some ad wrappers report the popup as main-frame. The tracker URL is the
 		   reliable signal; always preserve it and hand it to the system browser. */
@@ -299,17 +303,19 @@ namespace HelperDetail
 
 	int CEF_CALLBACK OnOpenUrlFromTab(
 		cef_request_handler_t*, cef_browser_t*, cef_frame_t*,
-		const cef_string_t* target_url, cef_window_open_disposition_t, int user_gesture)
+		const cef_string_t* target_url, cef_window_open_disposition_t disp, int user_gesture)
 	{
 		if (target_url && user_gesture)
 		{
 			const std::string url = CefStringToUtf8(target_url);
-			NavLog("OPENFROMTAB gesture=%d promo=%d\n  url=%s", user_gesture,
-				IsPromotablePopupUrl(url) ? 1 : 0, url.c_str());
+			NavLog("OPENFROMTAB gesture=%d disp=%d promo=%d\n  url=%s", user_gesture,
+				static_cast<int>(disp), IsPromotablePopupUrl(url) ? 1 : 0, url.c_str());
+			if (IsNewTabOrWindowDisposition(disp) && TryOpenUrlInNewAddonTab(url))
+				return 1;
 			if (IsPromotablePopupUrl(url))
 				OpenExternalUrl(url);
 		}
-		return 1; /* no new tabs in OSR */
+		return 1; /* cancel Chromium's extra browser — OSR has none */
 	}
 
 }

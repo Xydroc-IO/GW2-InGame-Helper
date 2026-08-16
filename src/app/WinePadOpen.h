@@ -48,6 +48,7 @@ namespace WinePadOpen
 		SiteActive,
 		SiteNewTab,
 		UrlNewTab,
+		UrlActive,
 	};
 
 	struct RailPending
@@ -100,6 +101,20 @@ namespace WinePadOpen
 			&& std::strcmp(p.siteId, sid) == 0)
 			return;
 		p.kind = RailNav::UrlNewTab;
+		p.frames = DeferFrames();
+		std::snprintf(p.siteId, sizeof(p.siteId), "%s", sid);
+		std::snprintf(p.url, sizeof(p.url), "%s", u);
+	}
+
+	inline void QueueRailUrlActive(const char* siteId, const char* url)
+	{
+		RailPending& p = RailSlot();
+		const char* sid = siteId ? siteId : "browse";
+		const char* u = url ? url : "";
+		if (p.kind == RailNav::UrlActive && std::strcmp(p.url, u) == 0
+			&& std::strcmp(p.siteId, sid) == 0)
+			return;
+		p.kind = RailNav::UrlActive;
 		p.frames = DeferFrames();
 		std::snprintf(p.siteId, sizeof(p.siteId), "%s", sid);
 		std::snprintf(p.url, sizeof(p.url), "%s", u);

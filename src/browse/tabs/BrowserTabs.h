@@ -31,8 +31,11 @@ namespace BrowserTabs
 	int  ActiveIndex();
 	const Tab& At(int index);
 
-	/* Replace the active tab with a site (Browse left-click). */
+	/* Replace the active tab with a site (Browse left-click / rail). */
 	void OpenInActive(const char* siteId, bool navigate);
+
+	/* Navigate the active tab to a URL (rail Wiki / Sheets / hub tiles). */
+	void OpenUrlInActive(const char* siteId, const std::string& url);
 
 	/* Open site in a new tab (Browse Ctrl+click / +). Returns new index, or -1. */
 	int  OpenNew(const char* siteId, bool navigate);

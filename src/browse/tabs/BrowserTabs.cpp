@@ -230,6 +230,33 @@ void BrowserTabs::OpenInActive(const char* siteId, bool navigate)
 	}
 }
 
+void BrowserTabs::OpenUrlInActive(const char* siteId, const std::string& url)
+{
+	EnsureDefault();
+	if (url.empty())
+		return;
+	auto sameUrl = [&](const char* u) -> bool {
+		return u && u[0] && url == u;
+	};
+	/* Re-clicking API Check must rebuild; other about: hubs skip a no-op reload. */
+	const bool forceReload = url.find("gw2-api-check") != std::string::npos;
+	const char* cefCur = WikiBrowser::CurrentUrlCStr();
+	if (!forceReload &&
+		(sameUrl(gTabs[gActive].tab.url.c_str()) || sameUrl(cefCur)))
+	{
+		WikiBrowser::ActivateTab(gActive);
+		return;
+	}
+	StashActiveUrl();
+	const bool keepPin = gTabs[gActive].tab.pinned;
+	FillFromSite(gTabs[gActive], siteId && siteId[0] ? siteId : "browse");
+	gTabs[gActive].tab.pinned = keepPin;
+	gTabs[gActive].tab.url = url;
+	Settings::SetDirty();
+	SyncSitesFromTab(gTabs[gActive].tab);
+	SyncSlotToHelper(gActive, true);
+}
+
 int BrowserTabs::OpenNew(const char* siteId, bool navigate)
 {
 	EnsureDefault();

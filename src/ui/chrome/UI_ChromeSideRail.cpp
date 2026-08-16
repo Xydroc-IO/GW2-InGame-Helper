@@ -26,7 +26,6 @@
 #include "WalletPad.h"
 #include "WatchCapture.h"
 #include "WatchPad.h"
-#include "WikiBrowser.h"
 #include "WinePadOpen.h"
 
 #include "imgui/imgui.h"
@@ -53,13 +52,54 @@ namespace UIDetail
 				return;
 			BrowserTabs::OpenInActive(siteId, true);
 		};
+		auto openSiteNewTab = [](const char* siteId) {
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			if (!siteId || !siteId[0])
+				return;
+			if (BrowserTabs::OpenNew(siteId, true) < 0)
+				BrowserTabs::OpenInActive(siteId, true);
+		};
+		auto openUrlInActive = [](const char* siteId, const char* url) {
+			G::ShowWiki = true;
+			Settings::SetDirty();
+			if (!url || !url[0])
+				return;
+			BrowserTabs::OpenUrlInActive(siteId && siteId[0] ? siteId : "browse", url);
+		};
 		auto openUrlNewTab = [](const char* siteId, const char* url) {
 			G::ShowWiki = true;
 			Settings::SetDirty();
 			if (!url || !url[0])
 				return;
 			if (BrowserTabs::OpenNewUrl(siteId && siteId[0] ? siteId : "browse", url) < 0)
-				WikiBrowser::Navigate(url);
+				BrowserTabs::OpenUrlInActive(siteId && siteId[0] ? siteId : "browse", url);
+		};
+		auto fireSite = [&](const char* siteId, bool newTab) {
+			if (WinePadOpen::Soft())
+			{
+				if (newTab)
+					WinePadOpen::QueueRailSiteNewTab(siteId);
+				else
+					WinePadOpen::QueueRailSiteActive(siteId);
+			}
+			else if (newTab)
+				openSiteNewTab(siteId);
+			else
+				openSiteInActive(siteId);
+		};
+		auto fireUrl = [&](const char* siteId, const char* url, bool newTab) {
+			if (WinePadOpen::Soft())
+			{
+				if (newTab)
+					WinePadOpen::QueueRailUrlNewTab(siteId, url);
+				else
+					WinePadOpen::QueueRailUrlActive(siteId, url);
+			}
+			else if (newTab)
+				openUrlNewTab(siteId, url);
+			else
+				openUrlInActive(siteId, url);
 		};
 
 		const bool labels = false; /* icon dock only — hover for names */
@@ -192,59 +232,57 @@ namespace UIDetail
 			}
 		}
 
-		if (PadNav::SideToggle("Browse###gw2igh_browse", false, static_cast<int>(Gw2Ui::Icon::BrowseInfo), iconSz))
 		{
-			if (WinePadOpen::Soft())
-				WinePadOpen::QueueRailSiteActive("browse");
-			else
-				openSiteInActive("browse");
+			const bool hit = PadNav::SideToggle("Browse###gw2igh_browse", false, static_cast<int>(Gw2Ui::Icon::BrowseInfo), iconSz);
+			const bool newTab = SideRail::ItemWantsNewTab();
+			if (hit || newTab)
+				fireSite("browse", newTab);
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Browse sites - categories, favorites (current tab)");
+			ImGui::SetTooltip("Browse sites - categories, favorites\nClick: this tab · Ctrl+click / middle-click: new tab");
 
-		if (PadNav::SideToggle("Wiki###gw2igh_wiki", false, static_cast<int>(Gw2Ui::Icon::SheetsBook), iconSz))
 		{
-			if (WinePadOpen::Soft())
-				WinePadOpen::QueueRailUrlNewTab("browse", "about:browse-cat-wiki");
-			else
-				openUrlNewTab("browse", "about:browse-cat-wiki");
+			const bool hit = PadNav::SideToggle("Wiki###gw2igh_wiki", false, static_cast<int>(Gw2Ui::Icon::SheetsBook), iconSz);
+			const bool newTab = SideRail::ItemWantsNewTab();
+			if (hit || newTab)
+				fireUrl("browse", "about:browse-cat-wiki", newTab);
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Wiki category - Main Page, updates, legendaries, festivals, …");
+			ImGui::SetTooltip("Wiki category - Main Page, updates, legendaries, festivals, …\nClick: this tab · Ctrl+click / middle-click: new tab");
 
-		if (PadNav::SideToggle("Sheets###gw2igh_cheatsheets", false, static_cast<int>(Gw2Ui::Icon::Wiki), iconSz))
 		{
-			if (WinePadOpen::Soft())
-				WinePadOpen::QueueRailUrlNewTab("browse", "about:cheatsheets-hub");
-			else
-				openUrlNewTab("browse", "about:cheatsheets-hub");
+			const bool hit = PadNav::SideToggle("Sheets###gw2igh_cheatsheets", false, static_cast<int>(Gw2Ui::Icon::Wiki), iconSz);
+			const bool newTab = SideRail::ItemWantsNewTab();
+			if (hit || newTab)
+				fireUrl("browse", "about:cheatsheets-hub", newTab);
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Offline cheat sheets - food, fractals, squad tools, ...");
+			ImGui::SetTooltip("Offline cheat sheets - food, fractals, squad tools, ...\nClick: this tab · Ctrl+click / middle-click: new tab");
 
-		if (PadNav::SideToggle("API Check###gw2igh_api_check", false, static_cast<int>(Gw2Ui::Icon::ApiHourglass), iconSz))
 		{
-			/* Wine: DeleteFileW runs when TickRailPending fires — not on the click frame. */
-			if (WinePadOpen::Soft())
-				WinePadOpen::QueueRailUrlNewTab("browse", "about:gw2-api-check");
-			else
+			const bool hit = PadNav::SideToggle("API Check###gw2igh_api_check", false, static_cast<int>(Gw2Ui::Icon::ApiHourglass), iconSz);
+			const bool newTab = SideRail::ItemWantsNewTab();
+			if (hit || newTab)
 			{
-				const std::wstring dir = AddonPaths::DataDir();
-				if (!dir.empty())
+				if (!WinePadOpen::Soft())
 				{
-					auto kill = [&](const wchar_t* ext) {
-						std::wstring p = dir;
-						if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
-							p.push_back(L'\\');
-						p += L"gw2-api-check";
-						p += ext;
-						DeleteFileW(p.c_str());
-					};
-					kill(L".html");
-					kill(L".ver");
-					kill(L".ok");
+					const std::wstring dir = AddonPaths::DataDir();
+					if (!dir.empty())
+					{
+						auto kill = [&](const wchar_t* ext) {
+							std::wstring p = dir;
+							if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
+								p.push_back(L'\\');
+							p += L"gw2-api-check";
+							p += ext;
+							DeleteFileW(p.c_str());
+						};
+						kill(L".html");
+						kill(L".ver");
+						kill(L".ok");
+					}
 				}
-				openUrlNewTab("browse", "about:gw2-api-check");
+				fireUrl("browse", "about:gw2-api-check", newTab);
 			}
 		}
 		if (ImGui::IsItemHovered())

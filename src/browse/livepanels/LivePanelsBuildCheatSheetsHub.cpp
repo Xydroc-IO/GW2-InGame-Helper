@@ -175,7 +175,8 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char
 		"<p class=\"eyebrow\">GW2 In-Game Helper</p>"
 		"<h1>Cheat Sheets</h1>"
 		"<p class=\"tag\">Offline reference only — food, fractals, legendaries, daily/weekly checklist, "
-		"squad tools, and more. Live Vault / Today board use your API key elsewhere. Each sheet opens in a new tab.</p>"
+		"squad tools, and more. Live Vault / Today board use your API key elsewhere. "
+		"Each sheet opens in this tab (+ / Ctrl+T for a new tab).</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter cheat sheets…\" "
 		"autocomplete=\"off\"/>"
 		"</div></header>";

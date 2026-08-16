@@ -184,7 +184,8 @@ void WinePadOpen::TickRailPending()
 	G::ShowWiki = true;
 	Settings::SetDirty();
 
-	if (kind == RailNav::UrlNewTab && std::strstr(url, "gw2-api-check"))
+	if ((kind == RailNav::UrlNewTab || kind == RailNav::UrlActive)
+		&& std::strstr(url, "gw2-api-check"))
 		ClearApiCheckCacheFiles();
 
 	switch (kind)
@@ -199,6 +200,10 @@ void WinePadOpen::TickRailPending()
 			if (BrowserTabs::OpenNew(siteId, true) < 0)
 				BrowserTabs::OpenInActive(siteId, true);
 		}
+		break;
+	case RailNav::UrlActive:
+		if (url[0])
+			BrowserTabs::OpenUrlInActive(siteId[0] ? siteId : "browse", url);
 		break;
 	case RailNav::UrlNewTab:
 		if (url[0])

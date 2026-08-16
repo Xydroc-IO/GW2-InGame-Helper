@@ -143,10 +143,14 @@ namespace UIDetail
 		if (canAdd)
 		{
 			const bool plusClicked = ImGui::Button("+##gw2igh_new_tab");
-			if (plusClicked || UI_Browse_ConsumeNewTabPickerRequest())
+			const bool plusNewTab = ImGui::IsItemClicked(ImGuiMouseButton_Middle) ||
+				(ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::GetIO().KeyCtrl);
+			if (plusNewTab)
+				DuplicateActiveTab();
+			else if (plusClicked || UI_Browse_ConsumeNewTabPickerRequest())
 				UI_Browse_OnNewTabButtonClicked();
 			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Open site in a new tab (Ctrl+T)");
+				ImGui::SetTooltip("New tab: pick a site (Ctrl+T). Ctrl/middle-click duplicates this page.");
 			UI_Browse_DrawNewTabPopup();
 		}
 		else
@@ -221,7 +225,7 @@ namespace UIDetail
 		if (BrowserTabs::Count() >= BrowserTabs::kMaxTabs)
 			return;
 		std::string u = WikiBrowser::CurrentUrl();
-		if (u.empty() || u.rfind("about:", 0) == 0 || u.rfind("file:", 0) == 0)
+		if (u.empty())
 			u = Sites::ResolveUrl(Sites::Active());
 		BrowserTabs::OpenNewUrl(Sites::ActiveId(), u);
 	}
