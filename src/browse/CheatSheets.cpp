@@ -125,16 +125,10 @@ namespace
 		const std::wstring verPath = dir + L"\\cheatsheets.ver";
 		const std::wstring manifestPath = dir + L"\\manifest.json";
 
-		if (StampMatches(verPath))
-		{
-			HANDLE probe = CreateFileW(manifestPath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
-				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-			if (probe != INVALID_HANDLE_VALUE)
-			{
-				CloseHandle(probe);
-				return true;
-			}
-		}
+		if (StampMatches(verPath) &&
+			GetFileAttributesW(manifestPath.c_str()) != INVALID_FILE_ATTRIBUTES &&
+			GetFileAttributesW((dir + L"\\shared.css").c_str()) != INVALID_FILE_ATTRIBUTES)
+			return true;
 
 		CreateDirectoryW(addonDir.c_str(), nullptr);
 		CreateDirectoryW(dir.c_str(), nullptr);
@@ -151,12 +145,11 @@ namespace
 			if (!mz_zip_reader_file_stat(&zip, i, &st) || st.m_is_directory)
 				continue;
 			std::string name = st.m_filename;
-			if (name.empty() || name.find("..") != std::string::npos ||
-				name.find('/') != std::string::npos || name.find('\\') != std::string::npos)
-			{
-				ok = false;
-				break;
-			}
+			if (name.empty() || name.find("..") != std::string::npos)
+				continue;
+			/* Nested zip paths are skipped — do not abort the whole pack. */
+			if (name.find('/') != std::string::npos || name.find('\\') != std::string::npos)
+				continue;
 			size_t outLen = 0;
 			void* mem = mz_zip_reader_extract_to_heap(&zip, i, &outLen, 0);
 			if (!mem)
@@ -175,6 +168,8 @@ namespace
 		}
 		mz_zip_reader_end(&zip);
 		if (!ok)
+			return false;
+		if (GetFileAttributesW(manifestPath.c_str()) == INVALID_FILE_ATTRIBUTES)
 			return false;
 
 		return WriteBytes(verPath, kPackStamp, static_cast<DWORD>(std::strlen(kPackStamp)));
@@ -430,7 +425,11 @@ std::string CheatSheets::EnsureFileUrl(const std::wstring& addonDir, const Sheet
 		std::wstring(sheet.fileStem, sheet.fileStem + std::strlen(sheet.fileStem)) + L".html";
 	std::string html;
 	if (!ReadFileUtf8(path, html))
-		return {};
+	{
+		gReady = false;
+		if (!ExtractPack(addonDir) || !EnsureCatalog() || !ReadFileUtf8(path, html))
+			return {};
+	}
 	/* CEF OSR viewport height for short-page vertical centering. */
 	if (html.find("--app-h") == std::string::npos)
 	{

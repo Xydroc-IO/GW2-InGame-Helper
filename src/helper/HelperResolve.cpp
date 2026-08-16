@@ -247,7 +247,36 @@ namespace HelperDetail
 		const std::wstring pathPages = pages + L"\\" + fileNameW;
 		if (GetFileAttributesW(pathSheets.c_str()) != INVALID_FILE_ATTRIBUTES)
 			return WidePathToFileUrl(pathSheets);
-		if (GetFileAttributesW(pathPages.c_str()) != INVALID_FILE_ATTRIBUTES)
+
+		auto isLoadingShell = [](const std::wstring& path) -> bool {
+			HANDLE in = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
+				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+			if (in == INVALID_HANDLE_VALUE)
+				return false;
+			LARGE_INTEGER li{};
+			if (!GetFileSizeEx(in, &li) || li.QuadPart <= 0)
+			{
+				CloseHandle(in);
+				return false;
+			}
+			if (li.QuadPart > 900)
+			{
+				CloseHandle(in);
+				return false;
+			}
+			char buf[320]{};
+			DWORD got = 0;
+			const BOOL ok = ReadFile(in, buf, sizeof(buf) - 1, &got, nullptr);
+			CloseHandle(in);
+			if (!ok || got == 0)
+				return true;
+			return std::strstr(buf, "Opening cheat sheet") != nullptr;
+		};
+
+		/* Real generated pages (Live / home / raid-food). Never treat the
+		   loading stub as the sheet — same file:// is a CEF / NavigateSlot no-op. */
+		if (GetFileAttributesW(pathPages.c_str()) != INVALID_FILE_ATTRIBUTES &&
+			!isLoadingShell(pathPages))
 			return WidePathToFileUrl(pathPages);
 
 		/* Ask the DLL to Ensure* + Navigate — never hand CEF a raw about:
@@ -272,7 +301,8 @@ namespace HelperDetail
 			"font-family:Segoe UI,sans-serif;padding:2rem\">"
 			"<p>Opening cheat sheet…</p>"
 			"</body></html>";
-		HANDLE hf = CreateFileW(pathPages.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+		const std::wstring pathStub = pages + L"\\opening-cheatsheet.html";
+		HANDLE hf = CreateFileW(pathStub.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hf != INVALID_HANDLE_VALUE)
 		{
@@ -280,9 +310,9 @@ namespace HelperDetail
 			WriteFile(hf, kShell, static_cast<DWORD>(sizeof(kShell) - 1), &written, nullptr);
 			CloseHandle(hf);
 		}
-		if (GetFileAttributesW(pathPages.c_str()) == INVALID_FILE_ATTRIBUTES)
+		if (GetFileAttributesW(pathStub.c_str()) == INVALID_FILE_ATTRIBUTES)
 			return {};
-		return WidePathToFileUrl(pathPages);
+		return WidePathToFileUrl(pathStub);
 	}
 
 } // namespace HelperDetail

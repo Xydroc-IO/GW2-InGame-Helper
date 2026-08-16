@@ -5,6 +5,8 @@
 
 #include "AddonPaths.h"
 #include "BrowserTabs.h"
+#include "CheatSheets.h"
+#include "Sites.h"
 #include "WikiBrowser.h"
 
 #include <cstdio>
@@ -194,6 +196,54 @@ namespace
 			return true;
 		return false;
 	}
+
+	void RetryStuckCheatSheetNav(const std::wstring& dir)
+	{
+		const char* cur = WikiBrowser::CurrentUrlCStr();
+		if (!cur || !cur[0] || dir.empty())
+			return;
+		if (std::strstr(cur, "cheatsheets/") != nullptr)
+			return;
+
+		const bool onStub = std::strstr(cur, "opening-cheatsheet") != nullptr;
+		size_t n = 0;
+		const CheatSheets::Sheet* sheets = CheatSheets::All(&n);
+		const CheatSheets::Sheet* hit = nullptr;
+		for (size_t i = 0; i < n; ++i)
+		{
+			if (sheets[i].fileStem && sheets[i].fileStem[0] &&
+				std::strstr(cur, sheets[i].fileStem) != nullptr)
+			{
+				hit = &sheets[i];
+				break;
+			}
+		}
+		if (!hit)
+		{
+			const std::string home = Sites::ResolveUrl(Sites::Active());
+			hit = CheatSheets::FindByAbout(home.c_str());
+		}
+		if (!hit)
+			return;
+		if (!onStub)
+		{
+			/* Stale pages/<stem>.html loading shell from older helpers. */
+			if (std::strstr(cur, "/pages/") == nullptr && std::strstr(cur, "\\pages\\") == nullptr)
+				return;
+		}
+
+		const std::string fileUrl = CheatSheets::EnsureFileUrl(dir, *hit);
+		if (fileUrl.empty())
+			return;
+		static DWORD sLastMs = 0;
+		static std::string sLastStem;
+		const DWORD now = GetTickCount();
+		if (sLastStem == hit->fileStem && sLastMs != 0 && (now - sLastMs) < 400u)
+			return;
+		sLastMs = now;
+		sLastStem = hit->fileStem ? hit->fileStem : "";
+		WikiBrowser::Navigate(fileUrl);
+	}
 } // namespace
 
 void LivePanels::Tick()
@@ -209,6 +259,7 @@ void LivePanels::Tick()
 			ProcessFavCmdFile(dir);
 			ProcessOpenSiteCmdFile(dir);
 			ProcessOpenAboutCmdFile(dir);
+			RetryStuckCheatSheetNav(dir);
 		}
 	}
 

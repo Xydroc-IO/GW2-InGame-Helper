@@ -2,6 +2,7 @@
 
 #include "AddonPaths.h"
 #include "BrowserTabs.h"
+#include "CheatSheets.h"
 #include "CraftingData.h"
 #include "Globals.h"
 #include "LivePanels.h"
@@ -189,7 +190,10 @@ bool ProcessOpenAboutCmdFile(const std::wstring& addonDir)
 			line.pop_back();
 		if (line.rfind("about:", 0) != 0 || line == "about:blank")
 			continue;
-		WikiBrowser::Navigate(line);
+		std::string dest = CheatSheets::ResolveAboutUrl(addonDir, line);
+		if (dest.empty())
+			dest = LivePanels::ResolveAboutUrl(addonDir, line);
+		WikiBrowser::Navigate(dest.empty() ? line : dest);
 		any = true;
 	}
 	return any;

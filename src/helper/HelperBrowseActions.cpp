@@ -469,7 +469,14 @@ namespace HelperDetail
 						s.resize(h);
 					return s;
 				};
-				if (stem(cur) == stem(resolved) && stem(cur).find("file:") == 0)
+				const std::string a = stem(cur);
+				const std::string b = stem(resolved);
+				const bool pagesToPack =
+					(a.find("/pages/") != std::string::npos || a.find("\\pages\\") != std::string::npos) &&
+					(b.find("/cheatsheets/") != std::string::npos || b.find("\\cheatsheets\\") != std::string::npos);
+				const bool leavingStub = a.find("opening-cheatsheet.html") != std::string::npos &&
+					b.find("opening-cheatsheet.html") == std::string::npos;
+				if (a == b && a.find("file:") == 0 && !pagesToPack && !leavingStub)
 				{
 					frame->base.release(&frame->base);
 					return;
