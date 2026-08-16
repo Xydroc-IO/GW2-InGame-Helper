@@ -11,7 +11,7 @@
 
 namespace LivePanelsDetail
 {
-	constexpr const char* kPanelVer = "71";
+	constexpr const char* kPanelVer = "74";
 	constexpr DWORD kHtmlTtlSec = 10u * 60u;       /* avoid rebuild storms */
 	constexpr DWORD kTpHtmlTtlSec = 60u;
 	constexpr DWORD kApiCheckTtlSec = 45u;         /* diagnostics should re-probe often */
@@ -60,6 +60,7 @@ namespace LivePanelsDetail
 	{
 		std::string stem;
 		std::string fileUrl;
+		int waitTicks = 0;
 	};
 
 	struct LiveAsyncState

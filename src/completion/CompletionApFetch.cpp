@@ -1,6 +1,4 @@
 #include "CompletionShared.h"
-#include "CompletionInternal.h"
-#include "CompletionApIds.h"
 
 #include "Globals.h"
 #include "Gw2Http.h"
@@ -187,32 +185,5 @@ namespace CompletionDetail
 	{
 		std::lock_guard<std::mutex> lock(gMu);
 		return gProgress.size();
-	}
-
-	bool FormatApOverlayLine(uint32_t mapId, const char* packType, char* out, size_t outLen)
-	{
-		if (!out || outLen == 0)
-			return false;
-		out[0] = '\0';
-		const ApIdRow* row = nullptr;
-		if (packType && packType[0])
-			row = ApIdForPackPrefix(packType);
-		if (!row)
-			row = ApIdForMap(mapId);
-		if (!row)
-			return false;
-		ApProgress p{};
-		if (!LookupApProgress(row->achievementId, p))
-		{
-			std::snprintf(out, outLen, "API: %s (refresh / key)", row->label);
-			return true;
-		}
-		if (p.done)
-			std::snprintf(out, outLen, "API: %s [done]", row->label);
-		else if (p.max > 0)
-			std::snprintf(out, outLen, "API: %s %d/%d", row->label, p.current, p.max);
-		else
-			std::snprintf(out, outLen, "API: %s [in progress]", row->label);
-		return true;
 	}
 }

@@ -19,4 +19,6 @@ namespace LivePanelsBuild
 	void AppendTile(std::string& html, const SiteDef& s, const std::string& pathBlurb,
 		bool withFolderMove, int currentFolderId);
 	void AppendTile(std::string& html, const SiteDef& s, const std::string& pathBlurb);
+	/* Browse hub tiles: Builds / Guides / Tools then Help / Search / Discord. */
+	bool BrowseHubShowsCategory(const char* cat);
 }

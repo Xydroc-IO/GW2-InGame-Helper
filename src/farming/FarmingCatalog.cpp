@@ -1,4 +1,4 @@
-/* Curated farm-run catalog — map IDs aligned with CompletionHierarchy. */
+/* Curated farm-run catalog — map IDs match GW2 continent maps. */
 #include "FarmingShared.h"
 
 #include <cstdio>

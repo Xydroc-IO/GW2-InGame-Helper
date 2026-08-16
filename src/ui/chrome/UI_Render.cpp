@@ -23,7 +23,6 @@
 #include "LogManagerPad.h"
 #include "EconomyPad.h"
 #include "InstancesPad.h"
-#include "CompletionPad.h"
 #include "FarmingPad.h"
 #include "EventAlert.h"
 #include "GpsArrow.h"

@@ -4,6 +4,7 @@
 #include "LivePanelsBuild.h"
 
 #include "AddonPaths.h"
+#include "BrowserTabs.h"
 #include "WikiBrowser.h"
 
 #include <cstdio>
@@ -150,6 +151,51 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 	return {};
 }
 
+namespace
+{
+	bool UrlMentionsStem(const char* url, const std::string& stem)
+	{
+		if (!url || !url[0] || stem.empty())
+			return false;
+		if (std::strstr(url, (stem + ".html").c_str()) != nullptr
+			|| std::strstr(url, stem.c_str()) != nullptr)
+			return true;
+		if (stem == "live-dailies" && std::strstr(url, "about:live-dailies"))
+			return true;
+		if (stem == "live-news" && std::strstr(url, "about:live-news"))
+			return true;
+		if (stem == "live-fashion" && std::strstr(url, "about:live-fashion"))
+			return true;
+		if (stem == "live-tp" && std::strstr(url, "about:live-tp"))
+			return true;
+		if (stem == "live-progress" && std::strstr(url, "about:live-progress"))
+			return true;
+		if (stem == "live-legendary-vault" &&
+			(std::strstr(url, "about:legendary-vault") || std::strstr(url, "live-legendary-vault")))
+			return true;
+		if (stem == "live-cheatsheets-hub" &&
+			(std::strstr(url, "about:cheatsheets-hub") || std::strstr(url, "live-cheatsheets-hub")))
+			return true;
+		if (stem == "live-browse-hub" &&
+			(std::strstr(url, "about:browse-hub") || std::strstr(url, "live-browse-hub")))
+			return true;
+		if (stem.rfind("live-browse-cat-", 0) == 0)
+		{
+			const std::string about = std::string("about:browse-cat-") + stem.substr(16);
+			if (std::strstr(url, about.c_str()) || std::strstr(url, stem.c_str()))
+				return true;
+		}
+		if (stem.rfind("live-legendary-detail-", 0) == 0 &&
+			(std::strstr(url, stem.c_str()) ||
+				std::strstr(url, "about:legendary-vault-item-") ||
+				std::strstr(url, "about:legendary-vault-sync-")))
+			return true;
+		if (stem == "gw2-api-check" && std::strstr(url, "about:gw2-api-check"))
+			return true;
+		return false;
+	}
+} // namespace
+
 void LivePanels::Tick()
 {
 	/* Legacy CEF helper cmd file (TP is ImGui now) — keep cheap no-op if absent. */
@@ -177,44 +223,40 @@ void LivePanels::Tick()
 
 	/* Navigate only — HTML already on disk from the worker. */
 	const char* cur = WikiBrowser::CurrentUrlCStr();
-	if (!cur)
-		return;
-	for (const LiveReadyNav& nav : ready)
+	std::vector<LiveReadyNav> keep;
+	keep.reserve(ready.size());
+	for (LiveReadyNav& nav : ready)
 	{
 		if (nav.fileUrl.empty() || nav.stem.empty())
 			continue;
-		const bool onPanel =
-			std::strstr(cur, (nav.stem + ".html").c_str()) != nullptr ||
-			(nav.stem == "live-dailies" && std::strstr(cur, "about:live-dailies")) ||
-			(nav.stem == "live-news" && std::strstr(cur, "about:live-news")) ||
-			(nav.stem == "live-fashion" && std::strstr(cur, "about:live-fashion")) ||
-			(nav.stem == "live-tp" && std::strstr(cur, "about:live-tp")) ||
-			(nav.stem == "live-progress" && std::strstr(cur, "about:live-progress")) ||
-			(nav.stem == "live-legendary-vault" &&
-				(std::strstr(cur, "about:legendary-vault") ||
-					std::strstr(cur, "live-legendary-vault"))) ||
-			(nav.stem == "live-cheatsheets-hub" &&
-				(std::strstr(cur, "about:cheatsheets-hub") ||
-					std::strstr(cur, "live-cheatsheets-hub"))) ||
-			(nav.stem == "live-browse-hub" &&
-				(std::strstr(cur, "about:browse-hub") ||
-					std::strstr(cur, "live-browse-hub"))) ||
-			(nav.stem.rfind("live-browse-cat-", 0) == 0 &&
-				std::strstr(cur, nav.stem.c_str())) ||
-			(nav.stem.rfind("live-legendary-detail-", 0) == 0 &&
-				(std::strstr(cur, nav.stem.c_str()) ||
-					std::strstr(cur, "about:legendary-vault-item-") ||
-					std::strstr(cur, "about:legendary-vault-sync-"))) ||
-			(nav.stem == "gw2-api-check" && std::strstr(cur, "about:gw2-api-check"));
-		if (onPanel)
+		bool activeOn = UrlMentionsStem(cur, nav.stem);
+		const int n = BrowserTabs::Count();
+		const int active = BrowserTabs::ActiveIndex();
+		for (int i = 0; i < n && !activeOn; ++i)
 		{
-			/* Same file:// path as the loading shell — Navigate is a no-op in CEF;
-			   Reload (or cache-bust) is required, same lesson as API Check waits. */
-			if (std::strstr(cur, (nav.stem + ".html").c_str()) != nullptr)
-				WikiBrowser::Reload();
-			else
-				WikiBrowser::Navigate(nav.fileUrl);
+			if (i == active && UrlMentionsStem(BrowserTabs::At(i).url.c_str(), nav.stem))
+				activeOn = true;
 		}
+		if (!activeOn)
+		{
+			if (++nav.waitTicks < 180)
+				keep.push_back(std::move(nav));
+			continue;
+		}
+		/* Same file:// as the loading shell is a CEF no-op; cache-bust so the
+		   finished HTML actually loads (manual Reload used to be required). */
+		std::string dest = nav.fileUrl;
+		dest += (nav.fileUrl.find('?') == std::string::npos) ? "?r=" : "&r=";
+		char tick[16];
+		std::snprintf(tick, sizeof(tick), "%lu", static_cast<unsigned long>(GetTickCount()));
+		dest += tick;
+		WikiBrowser::Navigate(dest);
+	}
+	if (!keep.empty())
+	{
+		std::lock_guard<std::mutex> lock(gAsync.mu);
+		for (LiveReadyNav& nav : keep)
+			gAsync.readyNav.push_back(std::move(nav));
 	}
 }
 

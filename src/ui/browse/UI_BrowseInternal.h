@@ -4,6 +4,7 @@
 
 #include "imgui/imgui.h"
 
+#include <cstring>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -38,6 +39,16 @@ namespace UIBrowseDetail
 	void DrawStarShape(ImDrawList* dl, ImVec2 center, float radius, ImU32 col, bool filled);
 	bool FavoriteToggleButton(const char* id, bool favorited, bool smallBtn);
 	void DrawFavoriteStar(const char* siteId);
+
+	/* Wiki / Cheat Sheets have rail hubs; Addon Development is not in Browse. */
+	inline bool PickerHidesCategory(const char* cat)
+	{
+		if (!cat || !cat[0])
+			return true;
+		return std::strcmp(cat, "Cheat Sheets") == 0
+			|| std::strcmp(cat, "Wiki") == 0
+			|| std::strcmp(cat, "Addon Development") == 0;
+	}
 
 	struct BrowsePopupLayout
 	{

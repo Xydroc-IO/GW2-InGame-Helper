@@ -83,13 +83,13 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 		const int catIdx = pickDefaultSite ? sCategoryIndex : (sCategoryIndex - 1);
 		if (catIdx >= 0 && catIdx < static_cast<int>(catCount))
 			selectedCat = cats[catIdx] ? cats[catIdx] : "";
-		/* Remap if Browse was left on the retired Cheat Sheets category. */
-		if (selectedCat && std::strcmp(selectedCat, "Cheat Sheets") == 0)
+		/* Remap if Browse was left on a category that no longer appears in the picker. */
+		if (PickerHidesCategory(selectedCat))
 		{
 			sCategoryIndex = pickDefaultSite ? 0 : 1;
 			for (int i = 0; i < static_cast<int>(catCount); ++i)
 			{
-				if (cats[i] && std::strcmp(cats[i], "Cheat Sheets") != 0)
+				if (!PickerHidesCategory(cats[i]))
 				{
 					sCategoryIndex = pickDefaultSite ? i : (i + 1);
 					selectedCat = cats[i];
@@ -121,8 +121,8 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	for (int i = 0; i < static_cast<int>(catCount); ++i)
 	{
 		const char* cat = cats[i] ? cats[i] : "";
-		if (std::strcmp(cat, "Cheat Sheets") == 0)
-			continue; /* Side rail hub - about:cheatsheets-hub */
+		if (PickerHidesCategory(cat))
+			continue;
 		const int uiIndex = pickDefaultSite ? i : (i + 1);
 		const bool selected = (uiIndex == sCategoryIndex);
 		char label[96];

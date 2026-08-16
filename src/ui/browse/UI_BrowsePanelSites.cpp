@@ -190,7 +190,7 @@ void DrawBrowseFilterMatches(const BrowseSitesDrawCtx& ctx)
 			if (!Sites::MatchesFilter(ctx.sites[i], sFilter))
 				continue;
 			const char* cat = ctx.sites[i].category ? ctx.sites[i].category : "";
-			if (std::strcmp(cat, "Cheat Sheets") == 0)
+			if (PickerHidesCategory(cat))
 				continue;
 			sFilterMatches.push_back(i);
 		}

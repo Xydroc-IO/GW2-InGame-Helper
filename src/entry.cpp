@@ -47,7 +47,6 @@ namespace G
 	bool  ShowEconomy = false;
 	bool  ShowCrafting = false;
 	bool  ShowInstances = false;
-	bool  ShowCompletion = false;
 	bool  ShowAchievements = false;
 	bool  ShowFarming = false;
 	bool  ShowPathingGuides = false;
@@ -131,7 +130,6 @@ namespace G
 	PadGeom PadEconomy{};
 	PadGeom PadCrafting{};
 	PadGeom PadInstances{};
-	PadGeom PadCompletion{};
 	PadGeom PadAchievements{};
 	PadGeom PadFarming{};
 	PadGeom PadEventAlert{};

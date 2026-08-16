@@ -110,20 +110,22 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		"<button type=\"button\" class=\"primary\" id=\"fav-folder-create\">Create</button>"
 		"</div></div></div>";
 
-	/* Categories */
-	html += "<section class=\"sec\" data-sec=\"1\"><h2>Categories</h2><div class=\"grid\">";
-	size_t catCount = 0;
-	const char* const* cats = Sites::Categories(&catCount);
+	/* Categories — two rows of three: Builds Guides Tools / Help Search Discord */
+	html += "<section class=\"sec\" data-sec=\"1\"><h2>Categories</h2><div class=\"grid grid-cats\">";
+	static const char* kHubCats[] = {
+		"Builds", "Guides", "Tools", "Help", "Search", "Discord",
+	};
 	int shown = 0;
-	for (size_t i = 0; i < catCount; ++i)
+	for (const char* cat : kHubCats)
 	{
-		const char* cat = cats[i] ? cats[i] : "";
-		if (!cat[0] || std::strcmp(cat, "Cheat Sheets") == 0)
+		if (!BrowseHubShowsCategory(cat))
 			continue;
 		const std::string slug = BrowseCategorySlug(cat);
 		if (slug.empty())
 			continue;
 		const int count = Sites::CountInCategory(cat);
+		if (count <= 0)
+			continue;
 		std::string q = ToLower(std::string(cat) + " " + slug);
 		html += "<a class=\"tile tile-cat\" data-q=\"";
 		html += Esc(q);
@@ -141,7 +143,7 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		html += "<p class=\"empty\">No categories found.</p>";
 	html += "</section>";
 
-	html += "<p class=\"foot\">Cheat Sheets have their own side-rail button. "
+	html += "<p class=\"foot\">Wiki and Cheat Sheets have their own side-rail buttons. "
 		"Tab bar <strong>+</strong> still opens the quick picker.</p>"
 		"<p class=\"credit\">Created By Xydroc</p>"
 		"<p class=\"credit-issue\">Report any issues here — Discord — "

@@ -151,6 +151,7 @@ void Gw2Ui::WarmCommon()
 	Request(Icon::Gem);
 	Request(Icon::Achievements);
 	Request(Icon::Story);
+	Request(Icon::Wiki);
 	Request(Icon::Back);
 	Request(Icon::LockBag);
 	Request(Icon::Bag);

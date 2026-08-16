@@ -288,7 +288,7 @@ namespace UIDetail
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowEconomy || G::ShowCrafting || G::ShowInstances || G::ShowCompletion || G::ShowAchievements || G::ShowFarming ||
+			G::ShowEconomy || G::ShowCrafting || G::ShowInstances || G::ShowAchievements || G::ShowFarming ||
 			G::ShowPathingGuides ||
 			G::ShowCompassPad || G::ShowWatch || G::ShowWatchMirror || G::ShowSettings;
 	}
@@ -330,7 +330,6 @@ namespace UIDetail
 		const bool economyHover = probe("Economy", G::ShowEconomy, &EconomyPad::Render);
 		const bool craftingHover = probe("Crafting", G::ShowCrafting, &CraftingPad::Render);
 		const bool instancesHover = probe("Instances", G::ShowInstances, &InstancesPad::Render);
-		const bool completionHover = probe("Completion", G::ShowCompletion, &CompletionPad::Render);
 		const bool achievementsHover = probe("Achievements", G::ShowAchievements, &CompletionPad::RenderAchievements);
 		const bool farmingHover = probe("Farming", G::ShowFarming, &FarmingPad::Render);
 		CompletionPad::Tick();
@@ -356,7 +355,7 @@ namespace UIDetail
 			CrashTrail::NoteF("pads:end %s", settleProbe ? "settle" : "softstop");
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			stashHover || vaultHover || eventsHover || logsHover ||
-			economyHover || craftingHover || instancesHover || completionHover || achievementsHover || farmingHover ||
+			economyHover || craftingHover || instancesHover || achievementsHover || farmingHover ||
 			gpsArrowHover || eventAlertHover ||
 			tekkitHover || compassHover || watchHover || settingsHover);
 		if (probePads)
@@ -404,6 +403,34 @@ namespace UIDetail
 		g.Windows.insert(&g.Windows[helperIdx], rail);
 	}
 
+	/* Nexus shares one ImGui context. Pie UI / other addons also spawn ##Combo
+	   popups — treating those as ours ate their clicks (WndProc return 0 +
+	   CaptureMouseFromApp). Only latch combos whose root window is ours. */
+	bool WindowIsHelperOwned(const ImGuiWindow* w)
+	{
+		if (!w)
+			return false;
+		const ImGuiWindow* root = w->RootWindow ? w->RootWindow : w;
+		const char* n = root->Name;
+		if (!n || !n[0])
+			return false;
+		return std::strstr(n, "GW2InGameHelper") != nullptr
+			|| std::strstr(n, "gw2igh") != nullptr;
+	}
+
+	bool ComboPopupIsOurs(const ImGuiWindow* w)
+	{
+		if (!w || std::strncmp(w->Name, "##Combo", 7) != 0)
+			return false;
+		/* Popup RootWindow is the combo itself (##Combo_…) — walk parents. */
+		for (const ImGuiWindow* p = w->ParentWindow; p; p = p->ParentWindow)
+		{
+			if (WindowIsHelperOwned(p))
+				return true;
+		}
+		return false;
+	}
+
 	/* BeginCombo / ImGui::Combo lists are separate popup windows. Cursor leaves
 	   the pad rect -> pad Hover is false -> we used to stop capturing -> GW2 ate
 	   the click. Latch while a combo popup is up after our pads opened it. */
@@ -413,7 +440,7 @@ namespace UIDetail
 		ImGuiWindow* w = g.HoveredWindow;
 		if (!w || (w->Flags & ImGuiWindowFlags_Popup) == 0)
 			return false;
-		return std::strncmp(w->Name, "##Combo", 7) == 0;
+		return ComboPopupIsOurs(w);
 	}
 
 	bool ComboPopupOpen()
@@ -422,7 +449,7 @@ namespace UIDetail
 		for (int i = 0; i < g.OpenPopupStack.Size; ++i)
 		{
 			ImGuiWindow* w = g.OpenPopupStack[i].Window;
-			if (w && std::strncmp(w->Name, "##Combo", 7) == 0)
+			if (ComboPopupIsOurs(w))
 				return true;
 		}
 		return false;

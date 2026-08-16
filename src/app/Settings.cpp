@@ -105,6 +105,7 @@ void Settings::Load()
 		else if (std::strcmp(key, "ShowPathingGuides") == 0 ||
 			std::strcmp(key, "ShowTekkitGuides") == 0) { /* ignore — session only */ }
 		else if (std::strcmp(key, "ShowTrailTools") == 0) { /* ignore — removed */ }
+		else if (std::strcmp(key, "ShowCompletion") == 0) { /* ignore — pad removed */ }
 		else if (std::strcmp(key, "ShowTrailEditor") == 0) { /* ignore — legacy */ }
 		else if (std::strcmp(key, "ShowMarkerEditor") == 0) { /* ignore — legacy */ }
 		else if (std::strcmp(key, "TrailToolsLastTrlDir") == 0) { /* ignore — removed */ }
@@ -305,7 +306,7 @@ void Settings::Load()
 		else if (std::strcmp(key, "PadInstances") == 0)
 			PadDock::ParseGeom(val, G::PadInstances);
 		else if (std::strcmp(key, "PadCompletion") == 0)
-			PadDock::ParseGeom(val, G::PadCompletion);
+			{ /* removed map-completion pad */ }
 		else if (std::strcmp(key, "PadAchievements") == 0)
 			PadDock::ParseGeom(val, G::PadAchievements);
 		else if (std::strcmp(key, "PadFarming") == 0)

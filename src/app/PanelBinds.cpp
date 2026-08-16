@@ -104,7 +104,6 @@ namespace
 		case Slot::Pathing: CloseOrOpen(G::ShowPathingGuides, &PathingGuidesPad::Open, "Pathing"); break;
 		case Slot::Events: CloseOrOpen(G::ShowEvents, &EventsPad::OpenAndRefresh, "Events"); break;
 		case Slot::Notes: CloseOrOpen(G::ShowNotes, &NotesPad::Open, "Notes"); break;
-		case Slot::Completion: CloseOrOpen(G::ShowCompletion, &CompletionPad::OpenAndRefresh, "Completion"); break;
 		case Slot::Achievements: CloseOrOpen(G::ShowAchievements, &CompletionPad::OpenAchievements, "Achievements"); break;
 		case Slot::Crafting: CloseOrOpen(G::ShowCrafting, &CraftingPad::OpenAndRefresh, "Crafting"); break;
 		case Slot::Farming: CloseOrOpen(G::ShowFarming, &FarmingPad::OpenAndRefresh, "Farming"); break;
@@ -169,7 +168,7 @@ namespace
 	}
 
 	const char* kSlotKeys[Count] = {
-		"account", "pathing", "events", "notes", "completion", "farming",
+		"account", "pathing", "events", "notes", "farming",
 		"economy", "instances", "logs", "compass", "settings",
 		"wallet", "vault", "tpwatch", "lookup", "marker", "watch", "achievements",
 		"crafting"
@@ -200,7 +199,6 @@ const char* PanelBinds::SlotLabel(Slot s)
 	case Slot::Pathing: return "Pathing";
 	case Slot::Events: return "Events";
 	case Slot::Notes: return "Notes";
-	case Slot::Completion: return "Completion";
 	case Slot::Farming: return "Farming";
 	case Slot::Economy: return "Economy";
 	case Slot::Instances: return "Instances";
@@ -293,7 +291,6 @@ void PanelBinds::SetDefaults()
 	ParseChord("CTRL+SHIFT+G", gState.chords[Pathing]);
 	ParseChord("CTRL+SHIFT+E", gState.chords[Events]);
 	ParseChord("CTRL+SHIFT+N", gState.chords[Notes]);
-	ParseChord("CTRL+SHIFT+M", gState.chords[Completion]);
 	ParseChord("CTRL+SHIFT+R", gState.chords[Farming]);
 	ParseChord("CTRL+SHIFT+Y", gState.chords[Economy]);
 	ParseChord("CTRL+SHIFT+I", gState.chords[Instances]);

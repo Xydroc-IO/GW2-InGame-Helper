@@ -23,6 +23,7 @@ namespace Gw2Ui
 		Achievements = 155008, /* A badge */
 		Back         = 155009, /* red B */
 		Story        = 155015, /* journal Y */
+		Wiki         = 155015, /* same journal — GW2 Wiki rail */
 		Key          = 155048, /* skeleton key — tools / authoring */
 		LockBag      = 156669,
 		Bag          = 156670,

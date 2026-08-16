@@ -1,6 +1,5 @@
 #include "GpsArrow.h"
 
-#include "CompletionShared.h"
 #include "GameLive.h"
 #include "Globals.h"
 #include "HelperTheme.h"
@@ -13,9 +12,13 @@
 
 bool GpsArrow::Render()
 {
-	if (!CompletionDetail::gShowGpsArrow)
-		return false;
+	static bool sHidden = false;
 	if (!PathingTrails::HasSearchGuideActive())
+	{
+		sHidden = false;
+		return false;
+	}
+	if (sHidden)
 		return false;
 	if (!GameLive::IsLive())
 		return false;
@@ -24,28 +27,12 @@ bool GpsArrow::Render()
 
 	float destX = 0.f, destY = 0.f;
 	bool haveDest = false;
-	if (CompletionDetail::gFocusObjective >= 0)
+	const PathingTrails::Trail guide = PathingTrails::SearchGuide();
+	if (guide.points.size() >= 2)
 	{
-		if (auto* o = CompletionDetail::ObjectiveAt(
-				static_cast<size_t>(CompletionDetail::gFocusObjective)))
-		{
-			if (o->hasCoord)
-			{
-				destX = o->continentX;
-				destY = o->continentY;
-				haveDest = true;
-			}
-		}
-	}
-	if (!haveDest)
-	{
-		const PathingTrails::Trail guide = PathingTrails::SearchGuide();
-		if (guide.points.size() >= 2)
-		{
-			destX = guide.points.back().x;
-			destY = guide.points.back().y;
-			haveDest = true;
-		}
+		destX = guide.points.back().x;
+		destY = guide.points.back().y;
+		haveDest = true;
 	}
 	if (!haveDest)
 		return false;
@@ -57,7 +44,6 @@ bool GpsArrow::Render()
 	if (dist < 1.f)
 		return false;
 
-	/* Bearing from continent delta; camera yaw from avatar front XZ. */
 	const float targetYaw = std::atan2(dx, dy);
 	const float fx = G::Mumble->fAvatarFront[0];
 	const float fz = G::Mumble->fAvatarFront[2];
@@ -86,7 +72,7 @@ bool GpsArrow::Render()
 	}
 	if (!open)
 	{
-		CompletionDetail::gShowGpsArrow = false;
+		sHidden = true;
 		ImGui::End();
 		return false;
 	}
@@ -115,9 +101,12 @@ bool GpsArrow::Render()
 	if (ImGui::BeginPopup("##gps_arr_ctx"))
 	{
 		if (ImGui::MenuItem("Hide arrow"))
-			CompletionDetail::gShowGpsArrow = false;
+			sHidden = true;
 		if (ImGui::MenuItem("Clear GPS"))
-			CompletionDetail::ClearGpsGuide();
+		{
+			PathingTrails::ClearSearchGuide();
+			sHidden = false;
+		}
 		ImGui::EndPopup();
 	}
 	const bool hovered = ImGui::IsWindowHovered();

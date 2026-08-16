@@ -143,11 +143,6 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char
 		const SiteDef& s = sites[i];
 		if (!s.category || std::strcmp(s.category, "Cheat Sheets") != 0)
 			continue;
-		/* Legendary Ledger has its own side-rail button. */
-		if (s.id && std::strcmp(s.id, "legvault") == 0)
-			continue;
-		if (s.homeUrl && std::strcmp(s.homeUrl, "about:legendary-vault") == 0)
-			continue;
 		if (!s.id || !s.id[0] || !s.label || !s.label[0])
 			continue;
 		HubEntry e;
@@ -224,7 +219,7 @@ std::string BuildCheatSheetsHubHtml(const std::wstring& /*addonDir*/, const char
 			html += "</div></section>";
 	}
 
-	html += "<p class=\"foot\">Legendary Ledger is on the side rail under Notes. "
+	html += "<p class=\"foot\">Legendary Ledger is in this hub (Account). "
 		"Sheets open in a <strong>new helper tab</strong>.</p>"
 		"</div><script>";
 	html += SheetsHubJs();

@@ -162,6 +162,7 @@ button.btn-plus:hover{border-color:var(--gold);color:var(--gold);
 }
 .modal-actions button:hover{border-color:var(--gold)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.85rem;align-items:stretch}
+.grid-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.85rem;align-items:stretch}
 .tile-wrap{position:relative;display:flex;flex-direction:column;min-height:6.1rem;height:100%}
 a.star{
   position:absolute;top:.5rem;right:.55rem;z-index:2;
@@ -440,6 +441,21 @@ void AppendTile(std::string& html, const SiteDef& s, const std::string& pathBlur
 void AppendTile(std::string& html, const SiteDef& s, const std::string& pathBlurb)
 {
 	AppendTile(html, s, pathBlurb, false, 0);
+}
+
+bool BrowseHubShowsCategory(const char* cat)
+{
+	if (!cat || !cat[0])
+		return false;
+	static const char* kOrder[] = {
+		"Builds", "Guides", "Tools", "Help", "Search", "Discord",
+	};
+	for (const char* want : kOrder)
+	{
+		if (std::strcmp(cat, want) == 0)
+			return true;
+	}
+	return false;
 }
 
 } // namespace LivePanelsBuild

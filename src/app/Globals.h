@@ -77,8 +77,7 @@ namespace G
 	extern bool  ShowEconomy; /* Flips / charts / cart / trading / item lookup */
 	extern bool  ShowCrafting; /* Plan / Known / Browse / Craft cart */
 	extern bool  ShowInstances; /* Story / fractal / raid / strike journal */
-	extern bool  ShowCompletion; /* Map completion checklist / Atlas / routes */
-	extern bool  ShowAchievements; /* Account AP groups — own pad, not a Completion tab */
+	extern bool  ShowAchievements; /* Account AP groups — official API */
 	extern bool  ShowFarming; /* Farming runs + fishing catch log */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
@@ -173,7 +172,6 @@ namespace G
 	extern PadGeom PadEconomy;
 	extern PadGeom PadCrafting;
 	extern PadGeom PadInstances;
-	extern PadGeom PadCompletion;
 	extern PadGeom PadAchievements;
 	extern PadGeom PadFarming;
 	extern PadGeom PadEventAlert; /* on-screen event toast placement */

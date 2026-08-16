@@ -53,14 +53,6 @@ namespace UIDetail
 				return;
 			BrowserTabs::OpenInActive(siteId, true);
 		};
-		auto openSiteNewTab = [](const char* siteId) {
-			G::ShowWiki = true;
-			Settings::SetDirty();
-			if (!siteId || !siteId[0])
-				return;
-			if (BrowserTabs::OpenNew(siteId, true) < 0)
-				BrowserTabs::OpenInActive(siteId, true);
-		};
 		auto openUrlNewTab = [](const char* siteId, const char* url) {
 			G::ShowWiki = true;
 			Settings::SetDirty();
@@ -210,17 +202,17 @@ namespace UIDetail
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Browse sites - categories, favorites (current tab)");
 
-		if (PadNav::SideToggle("Ledger###gw2igh_ledger", false, static_cast<int>(Gw2Ui::Icon::LedgerCoins), iconSz))
+		if (PadNav::SideToggle("Wiki###gw2igh_wiki", false, static_cast<int>(Gw2Ui::Icon::SheetsBook), iconSz))
 		{
 			if (WinePadOpen::Soft())
-				WinePadOpen::QueueRailSiteNewTab("legvault");
+				WinePadOpen::QueueRailUrlNewTab("browse", "about:browse-cat-wiki");
 			else
-				openSiteNewTab("legvault");
+				openUrlNewTab("browse", "about:browse-cat-wiki");
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("GW2 Legendary Ledger - owned / missing / craft tree");
+			ImGui::SetTooltip("Wiki category - Main Page, updates, legendaries, festivals, …");
 
-		if (PadNav::SideToggle("Sheets###gw2igh_cheatsheets", false, static_cast<int>(Gw2Ui::Icon::SheetsBook), iconSz))
+		if (PadNav::SideToggle("Sheets###gw2igh_cheatsheets", false, static_cast<int>(Gw2Ui::Icon::Wiki), iconSz))
 		{
 			if (WinePadOpen::Soft())
 				WinePadOpen::QueueRailUrlNewTab("browse", "about:cheatsheets-hub");
@@ -349,19 +341,6 @@ namespace UIDetail
 				"Farming - curated/custom runs, GPS, fishing log\n"
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+R (Settings -> Keybinds)");
-
-		if (PadNav::SideToggle("Completion###gw2igh_completion",
-			G::ShowCompletion,
-			static_cast<int>(Gw2Ui::Icon::CompletePeak), iconSz))
-		{
-			if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
-			else WinePadOpen::SoftOpen(&CompletionPad::OpenAndRefresh, "Completion");
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(
-				"Completion - map checklist, Atlas, routes, GPS\n"
-				"Wine: soft-open (deferred a few frames)\n"
-				"Default: Ctrl+Shift+M (Settings -> Keybinds)");
 
 		if (PadNav::SideToggle("Achievements###gw2igh_achievements",
 			G::ShowAchievements,

@@ -44,7 +44,6 @@ void AddonUnload()
 	G::ShowEconomy = false;
 	G::ShowCrafting = false;
 	G::ShowInstances = false;
-	G::ShowCompletion = false;
 	G::ShowAchievements = false;
 	G::ShowFarming = false;
 	G::ShowPathingGuides = false;

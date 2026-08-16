@@ -217,20 +217,13 @@ DLL_SRC = \
 	src/instances/InstancesFetch.cpp \
 	src/completion/CompletionPad.cpp \
 	src/completion/CompletionPadState.cpp \
-	src/completion/CompletionData.cpp \
-	src/completion/CompletionFloors.cpp \
-	src/completion/CompletionGuide.cpp \
-	src/completion/CompletionRoute.cpp \
-	src/completion/CompletionHierarchy.cpp \
-	src/completion/CompletionFavorites.cpp \
-	src/completion/CompletionChecklist.cpp \
-	src/completion/CompletionAtlas.cpp \
-	src/completion/CompletionPackMerge.cpp \
-	src/completion/CompletionPackClassify.cpp \
-	src/completion/CompletionApIds.cpp \
+	src/completion/CompletionGlobals.cpp \
+	src/completion/CompletionPins.cpp \
 	src/completion/CompletionApFetch.cpp \
+	src/completion/CompletionAchParse.cpp \
 	src/completion/CompletionAchCatalog.cpp \
 	src/completion/CompletionAchievements.cpp \
+	src/completion/CompletionAchDetail.cpp \
 	src/completion/CompletionAchWiki.cpp \
 	src/farming/FarmingPad.cpp \
 	src/farming/FarmingPadRuns.cpp \

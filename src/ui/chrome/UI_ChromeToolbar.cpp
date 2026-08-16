@@ -120,11 +120,6 @@ namespace UIDetail
 				else PathingGuidesPad::Open();
 			}
 			ImGui::Separator();
-			if (ImGui::MenuItem(G::ShowCompletion ? "Hide Completion" : "Show Completion"))
-			{
-				if (G::ShowCompletion) { G::ShowCompletion = false; Settings::SetDirty(); }
-				else CompletionPad::OpenAndRefresh();
-			}
 			if (ImGui::MenuItem(G::ShowAchievements ? "Hide Achievements" : "Show Achievements"))
 			{
 				if (G::ShowAchievements) { G::ShowAchievements = false; Settings::SetDirty(); }
