@@ -27,13 +27,13 @@ Treat it like a password. Revoke or recreate keys anytime on the same page.
 | **wallet** | Wallet pad (currencies) |
 | **inventories** | Bank, material storage, shared inventory, bags / stash |
 | **characters** | Character roster and per-toon bags |
-| **progression** | Wizard’s Vault / Dailies; world-event claim marks; Instances raids/fractal level/CM; Completion Achievements (account groups) |
+| **progression** | Wizard’s Vault / Dailies; world-event claim marks; Instances raids/fractal level/CM; Achievements (account groups) |
 | **unlocks** | Legendary Armory (Account → Progress) |
 | **tradingpost** | Trading Post delivery box, open orders / history |
 
 **Recommended:** enable all of the above on one key. Item lookup and public TP
 prices / listings / gem exchange work without a key; personal Vault, wallet, mats,
-unlocks, delivery, open orders, Instances sync, and Completion AP overlay need
+unlocks, delivery, open orders, Instances sync, and Achievements need
 these scopes (`progression` for raids/fractals/CM overlays; `characters` for bags).
 
 ---

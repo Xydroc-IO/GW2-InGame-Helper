@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.4.8` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.4.9` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
@@ -47,7 +47,6 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
 | Economy (side-rail **Companions**) | Flip Finder, local price charts, crafting cart (read-only official API) |
 | Instances (side-rail **Companions**) | Story / fractal / raid / strike checklist journal |
-| Completion (side-rail **Companions**) | Checklist + Atlas + Route GPS |
 | Achievements (side-rail **Achievements**) | Official account AP groups |
 | Farming (side-rail **Companions**) | Curated + custom farm runs, GPS live nodes, fishing catch log |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
@@ -91,6 +90,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | [GW2BLTC](https://www.gw2bltc.com/) | Tools |
 | [GW2 Treasures](https://gw2treasures.com/) | Tools |
 | Raid Food (built-in) | Cheat Sheets |
+| Legendary Ledger (built-in) | Cheat Sheets |
 | Uber's All-In-One (built-in) | Cheat Sheets |
 | Raid Utilities (built-in) | Cheat Sheets |
 | Fractal Consumables (built-in) | Cheat Sheets |
@@ -156,11 +156,11 @@ API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
 - **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Events · DPS Logs · Notes · Companions · Settings) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
-- **Companions** — Economy, Instances, Completion (checklist/Atlas/routes), Farming (runs + GPS + fishing log)
+- **Companions** — Economy, Instances, Farming (runs + GPS + fishing log)
 - **Overlays** — floating GPS arrow toward active guide; short zone-entry banner
 - **Settings** — landing site, **Theme** (drop-in `config/themes/`), opacity, font scale / auto, warm CEF, API key, **Keybinds** (Nexus Options opens this pad)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
-- **GW2-themed** chrome (gold tabs + muted status); Browse picker with section headers (Tools, Guides, Discord, Cheat Sheets, …)
+- **GW2-themed** chrome (gold tabs + muted status); Browse hub: Builds / Guides / Tools · Help / Search / Discord
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
 - **Find in page** — toolbar Enter or Ctrl+F; **Web** for site/DuckDuckGo search
@@ -172,7 +172,7 @@ API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 - Hotkeys: `Ctrl+Shift+H` (or `K`) helper open (Nexus / QuickAccess) · panel chords in **Settings → Keybinds** (defaults include Account / Pathing / Events / Notes / …)
 - Home / Back / Forward / Reload toolbar
 - Branded how-to homepage (logo + cover art) on first open
-- **Cheat Sheets** category — offline pages including **Daily / Weekly**, **Currency Sinks**, **Ascended Start**, **Portals / Pulls**, **Homestead**, **WvW Consumables**, plus Uber's, Food, Utilities, Fractals, Sigils, Relics, Boons, Squad, Stab/Cleanse, CC, Wings, Strikes, Mats, Legendaries, Mounts, Garden
+- **Cheat Sheets** category — **Legendary Ledger** (owned / missing / craft tree) plus offline pages including **Daily / Weekly**, **Currency Sinks**, **Ascended Start**, **Portals / Pulls**, **Homestead**, **WvW Consumables**, plus Uber's, Food, Utilities, Fractals, Sigils, Relics, Boons, Squad, Stab/Cleanse, CC, Wings, Strikes, Mats, Legendaries, Mounts, Garden
 - **Copy URL** and **Open Ext** (system browser — Discord joins / logins)
 - Single DLL — browser helper and homepage assets are embedded and extracted on first use
 - **No Guild Wars 2 memory reads** — official Nexus APIs only

@@ -3,21 +3,21 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.2.4.8** — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.2.4.9** — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 This file is **normative** (allowed / forbidden). Analysis belongs in the whitepaper.
 
 ## Allowed
 
 - Nexus APIs only for host integration (`RT_Render`, WndProc, keybinds, QuickAccess, paths, swap chain)
-- **Read-only MumbleLink / Nexus DataLink** for display overlays (Pathing compass trails + in-world GPS + direction compass + Completion proximity auto-tick + GPS arrow / zone banner) — never for automation or movement bots
+- **Read-only MumbleLink / Nexus DataLink** for display overlays (Pathing compass trails + in-world GPS + direction compass + GPS arrow / zone banner) — never for automation or movement bots
 - **In-world GPS** draws Blish-style ribbons via the Nexus **`SwapChain`** D3D11 device (runtime HLSL compile). No Present hooks, no game depth buffer / camera-matrix reads from process memory
 - Local IPC shared memory between the DLL and `GW2HelperBrowser.exe` (current-user DACL on named maps/events when ACL APIs succeed)
 - Official `api.guildwars2.com` reads from injected BootJs (credentials omitted; batched; 429 backoff) where pages use them
 - DLL WinHTTP reads to `api.guildwars2.com`, `guildwars2.com` news feed, and wiki MediaWiki API for **Live** Browse panels and ImGui pads (read-only; optional account API key stored only in local `settings.ini`)
 - DLL WinHTTP reads to **killproof.me** (`/api/kp/…`) for the DPS Logs **KillProof** tab — public profiles only; no killproof.me login; results cached in-memory
 - Local Notes pad (`notes.json` under the addon folder) with clipboard copy helpers — no game injection
-- **Completion** / **Farming** companion pads — local checklist / favorites / fishing log under `config/`; Pathing search-guide handoff only (no memory scraping); Achievements pad is read-only official API
+- **Farming** companion pad — local run checklists / fishing log under `config/`; Pathing search-guide handoff only (no memory scraping); **Achievements** pad is read-only official API
 - **PanelBinds** — addon-owned panel chords in Settings → Keybinds (`GetAsyncKeyState` poll); helper open stays Nexus (`Ctrl+Shift+H` / QuickAccess)
 - Item Lookup pad (public `/v2/items` + wiki search), Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories), and Vault pad (Wizard’s Vault / dailies — same Live panel API) — read-only; item name cache in `stash-names.cache`
 - Tekkit’s All-In-One `.taco` (© Tekkit's Workshop, used with permission), Lady Elyssa Guides / Achievements packs, Hero's Marker Pack (QuitarHero), and HasKha Markers ([gw2-markers](https://github.com/HasKha/gw2-markers), MIT) — curated downloads into `pathing/` for local display; user `.taco` files kept

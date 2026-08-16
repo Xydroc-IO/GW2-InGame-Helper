@@ -5,11 +5,11 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.4.8` |
+| Addon revision (shipping) | `2.2.4.9` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2242` / `2234` / `s2215` / `c2228` |
-| Live panel stamp | `71` |
+| Helper / home / sites / cheatsheets stamps | `2242` / `2235` / `s2215` / `c2228` |
+| Live panel stamp | `74` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc36` |
 | watchd stamp | `w10` |
@@ -18,7 +18,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 Shipping install names are `GW2-InGame-Helper` (DLL + data folder). An optional **Beta** branch (`GW2-InGame-Helper-Beta`) may share this architecture with a distinct `ADDON_NAME` / signature `HELB` for side-by-side testing. Never loads game CEF and never writes into `bin64/cef`.
 
-**Companion documents:** [`WHITEPAPER.md`](WHITEPAPER.md) (design rationale), [`KERNEL.md`](KERNEL.md) (change playbooks), [`COMPLIANCE.md`](COMPLIANCE.md), [`NAV_AND_ADS.md`](NAV_AND_ADS.md), [`PATHING.md`](PATHING.md), [`ACCOUNT.md`](ACCOUNT.md), [`COMPLETION.md`](COMPLETION.md), [`FARMING.md`](FARMING.md), [`MODULES.md`](MODULES.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`BUILD.md`](BUILD.md), [`ONBOARDING.md`](ONBOARDING.md).
+**Companion documents:** [`WHITEPAPER.md`](WHITEPAPER.md) (design rationale), [`KERNEL.md`](KERNEL.md) (change playbooks), [`COMPLIANCE.md`](COMPLIANCE.md), [`NAV_AND_ADS.md`](NAV_AND_ADS.md), [`PATHING.md`](PATHING.md), [`ACCOUNT.md`](ACCOUNT.md), [`FARMING.md`](FARMING.md), [`MODULES.md`](MODULES.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`BUILD.md`](BUILD.md), [`ONBOARDING.md`](ONBOARDING.md).
 
 ---
 
@@ -97,7 +97,6 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
   sites.json (+ .ver)
   config/                  # notes, profiles, themes/, session history, waypoints,
                            # log-index, marker behaviors, ei-helper.conf,
-                           # completion-checklist.txt, completion-favorites.txt,
                            # farming-state.txt, favorites.json
   pages/                   # generated HTML + home assets
     helper-home.html (+ .ver), home-logo.png, home-cover.jpg
@@ -231,7 +230,7 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 | `src/logs/` | `logmanager/` (DPS Logs) + `eiruntime/` (Elite Insights runtime) |
 | `src/economy/` | Flip Finder, local charts, crafting cart (read-only) |
 | `src/instances/` | Story / fractal / raid / strike journal |
-| `src/completion/` | Map-completion checklist / Atlas / routes; GPS via Pathing search guide; Mumble proximity auto-tick |
+| `src/completion/` | Achievements pad (official AP groups / account overlay) |
 | `src/farming/` | Farming run checklists + fishing catch log; Pathing handoff |
 | `src/overlay/` | Floating GPS arrow (`GpsArrow`) + zone-entry banner (`ZoneBanner`) |
 | `src/events/` | World Events pad + schedule data |
@@ -275,5 +274,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.4.8 — Ledger JW/VoE catalog + remaining UI; live 71; helper 2242; home 2234 |
+| Last architecture sync | 2.2.4.9 — Completion pad removed; Browse hub; combo capture; home 2235; live 74 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

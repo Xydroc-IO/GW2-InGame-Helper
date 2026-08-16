@@ -1,7 +1,7 @@
 # Pathing — packs, markers, compass, world GPS
 
-**Revision:** 2.2.4.8 · **Audience:** contributors and advanced players  
-**Companions:** [`../pathing/README.md`](../pathing/README.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`COMPLETION.md`](COMPLETION.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.2, [`ARCHITECTURE.md`](ARCHITECTURE.md)
+**Revision:** 2.2.4.9 · **Audience:** contributors and advanced players  
+**Companions:** [`../pathing/README.md`](../pathing/README.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.2, [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
 ---
 
@@ -116,7 +116,7 @@ Uses public waypoint index + chat codes (copy only — no auto-teleport).
 
 Independent systems; both may use Mumble pose read-only.
 
-**Related overlays (not Pathing pad UI):** Completion / Farming routes set the orange **search guide**. `src/overlay/GpsArrow` draws a floating arrow toward that guide; `ZoneBanner` shows a short zone-entry toast on map change. See [`COMPLETION.md`](COMPLETION.md).
+**Related overlays (not Pathing pad UI):** Farming / Pathing search-guide destinations set the orange **search guide**. `src/overlay/GpsArrow` draws a floating arrow toward that guide; `ZoneBanner` shows a short zone-entry toast on map change.
 
 ---
 
@@ -211,7 +211,7 @@ time. Lua: see §4; enable under Pathing Features.
 | Map assist (opt-in) | `MapAssist*` + `GameLive*` |
 | Markers | `MarkerBehaviors*` |
 | Waypoint index | `WaypointsData*` |
-| Completion GPS handoff | `CompletionRoute` + Pathing search guide ([`COMPLETION.md`](COMPLETION.md)) |
+| Farming / Pathing GPS handoff | Pathing search guide + `GpsArrow` |
 | Floating guide arrow / zone banner | `GpsArrow`, `ZoneBanner` (`src/overlay/`) |
 
 Prefer ≤500 lines per `.cpp` (see contributor module notes in [`ARCHITECTURE.md`](ARCHITECTURE.md) / [`ONBOARDING.md`](ONBOARDING.md)).

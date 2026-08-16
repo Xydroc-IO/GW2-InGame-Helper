@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.8
+# GW2 In-Game Helper v2.2.4.9
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.9
+
+- **Completion pad removed:** Map checklist / Atlas / routes are gone. Achievements
+  stays on the rail (official API). Pathing still has Lady/Tekkit Map Completion
+  extras. Ctrl+Shift+M is unbound.
+- **Browse hub:** Builds / Guides / Tools then Help / Search / Discord. Wiki and
+  Addon Development are not listed. Side rail Wiki opens the wiki category (open-book
+  icon); Cheat Sheets uses the journal icon. Legendary Ledger is a Cheat Sheets hub
+  tile. Stamp `74` rebuilds Browse hub HTML.
+- **Input:** Combo capture is limited to this addon’s popups. Shared Nexus ImGui
+  `##Combo` lists from Pie UI / ArcDPS were treated as ours, so WndProc swallowed
+  their clicks until this helper was disabled.
+- **Stamps:** Helper `2242` · homepage `2235` · sites `s2215` · cheatsheets `c2228`
+  · live panel `74` · raid food `9` · ui-chrome `uc36` · watchd `w10`
 
 ## What’s new in 2.2.4.8
 
