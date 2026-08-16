@@ -5,11 +5,11 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.2.4.10` |
+| Addon revision (shipping) | `2.2.4.11` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2243` / `2235` / `s2215` / `c2228` |
-| Live panel stamp | `74` |
+| Helper / home / sites / cheatsheets stamps | `2244` / `2235` / `s2215` / `c2228` |
+| Live panel stamp | `75` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc36` |
 | watchd stamp | `w10` |
@@ -274,5 +274,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.2.4.10 — Cheat sheet open no longer stuck on loading shell; helper 2243; home 2235; live 74 |
+| Last architecture sync | 2.2.4.11 — Ctrl/middle new tab for pages/links; live 75; helper 2244; home 2235 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

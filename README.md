@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.2.4.10` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.2.4.11` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
@@ -162,7 +162,7 @@ API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
 - **GW2-themed** chrome (gold tabs + muted status); Browse hub: Builds / Guides / Tools · Help / Search / Discord
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
-- **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
+- **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+click` / middle-click a link or rail button for a new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
 - **Find in page** — toolbar Enter or Ctrl+F; **Web** for site/DuckDuckGo search
 - **Notes** — snippets + waypoint / POI search; **TP** / **Item** / **Wallet** / **Vault** pads
 - **Favorites** — star, folders (**+ Folder** / **⇄** on Browse hub), drag-reorder

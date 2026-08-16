@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.10
+# GW2 In-Game Helper v2.2.4.11
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -31,6 +31,14 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.2.4.11
+
+- **Tabs:** Rail Wiki / Cheat Sheets / API Check and Browse hub tiles reuse the
+  current tab. **Ctrl+click** or **middle-click** a rail button, in-page link, or
+  hub tile opens a new tab. **+** or **Ctrl+T** picks a site; Ctrl/middle-click **+**
+  duplicates the current page.
+- **Stamps:** Helper `2244` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `75` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.2.4.10
 
