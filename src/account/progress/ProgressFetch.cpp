@@ -172,6 +172,7 @@ namespace ProgressDetail
 				out += ']';
 				if (!first) WriteUtf8File(namesPath, out);
 			}
+			ApplyLegCatalogMeta(snap.legs);
 		}
 
 		if (snap.hasKey)

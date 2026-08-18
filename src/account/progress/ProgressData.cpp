@@ -20,6 +20,7 @@
 #include <cstring>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <windows.h>
@@ -35,6 +36,8 @@ namespace ProgressDetail
 	HANDLE gThread = nullptr;
 	char gFilter[96] = {};
 	int gShowMode = 0; /* 0 all, 1 missing, 2 unlocked */
+	int gCatFilter = 0;
+	int gGenFilter = 0;
 
 	size_t JsonObjectEnd(const std::string& json, size_t openBrace)
 	{
@@ -294,7 +297,13 @@ namespace ProgressDetail
 	{
 		if (!filter || !filter[0]) return true;
 		std::string hay = r.name;
-		if (hay.empty())
+		hay.push_back(' ');
+		hay += r.category;
+		hay.push_back(' ');
+		hay += r.generation;
+		hay.push_back(' ');
+		hay += r.itemType;
+		if (hay.find_first_not_of(' ') == std::string::npos)
 		{
 			char buf[32];
 			std::snprintf(buf, sizeof(buf), "%d", r.id);
@@ -304,6 +313,152 @@ namespace ProgressDetail
 		for (char& c : hay) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 		for (char& c : needle) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 		return hay.find(needle) != std::string::npos;
+	}
+
+	bool RowVisible(const LegRow& r)
+	{
+		if (!FilterMatch(r, gFilter)) return false;
+		const bool have = r.owned > 0;
+		if (gShowMode == 1 && have) return false;
+		if (gShowMode == 2 && !have) return false;
+		if (gCatFilter > 0 && gCatFilter < kArmoryCatCount)
+		{
+			const char* want = kArmoryCats[gCatFilter];
+			const char* haveCat = r.category.empty() ? "Other" : r.category.c_str();
+			if (std::strcmp(haveCat, want) != 0) return false;
+		}
+		if (gGenFilter > 0 && gGenFilter < kArmoryGenCount)
+		{
+			const char* want = kArmoryGens[gGenFilter];
+			const char* haveGen = r.generation.empty() ? "Other" : r.generation.c_str();
+			if (std::strcmp(haveGen, want) != 0) return false;
+		}
+		return true;
+	}
+
+	/* Embedded compact legendaries catalog (same blob as the CEF Ledger). */
+	extern "C" {
+		extern const unsigned char _binary_legendaries_catalog_json_start[];
+		extern const unsigned char _binary_legendaries_catalog_json_end[];
+	}
+
+	std::string JsonStringBounded(const std::string& json, const char* key,
+		size_t from, size_t to)
+	{
+		std::string pat = "\"";
+		pat += key;
+		pat += "\"";
+		size_t k = json.find(pat, from);
+		if (k == std::string::npos || k >= to) return {};
+		k = json.find(':', k + pat.size());
+		if (k == std::string::npos || k >= to) return {};
+		++k;
+		while (k < to && (json[k] == ' ' || json[k] == '\t')) ++k;
+		if (k >= to || json[k] != '"') return {};
+		++k;
+		std::string out;
+		while (k < json.size() && k < to)
+		{
+			char c = json[k++];
+			if (c == '\\' && k < json.size())
+			{
+				char e = json[k++];
+				if (e == 'n') out.push_back('\n');
+				else if (e == 't') out.push_back('\t');
+				else if (e == 'u' && k + 3 < json.size()) k += 4;
+				else out.push_back(e);
+				continue;
+			}
+			if (c == '"') break;
+			out.push_back(c);
+		}
+		return out;
+	}
+
+	void ParseItemIdsBounded(const std::string& json, size_t from, size_t to,
+		std::vector<int>& ids)
+	{
+		size_t key = json.find("\"itemIds\"", from);
+		if (key == std::string::npos || key >= to) return;
+		size_t br = json.find('[', key);
+		if (br == std::string::npos || br >= to) return;
+		size_t end = json.find(']', br);
+		if (end == std::string::npos || end > to) return;
+		size_t i = br + 1;
+		while (i < end)
+		{
+			while (i < end && (json[i] < '0' || json[i] > '9')) ++i;
+			int id = 0;
+			bool any = false;
+			while (i < end && json[i] >= '0' && json[i] <= '9')
+			{
+				any = true;
+				id = id * 10 + (json[i] - '0');
+				++i;
+			}
+			if (any && id > 0)
+				ids.push_back(id);
+		}
+	}
+
+	const std::unordered_map<int, LegRow>& LegCatalogByItemId()
+	{
+		static std::unordered_map<int, LegRow> map;
+		static std::once_flag once;
+		std::call_once(once, []() {
+			const unsigned char* begin = _binary_legendaries_catalog_json_start;
+			const unsigned char* end = _binary_legendaries_catalog_json_end;
+			if (!begin || !end || end <= begin)
+				return;
+			const std::string json(reinterpret_cast<const char*>(begin),
+				static_cast<size_t>(end - begin));
+			const size_t itemsKey = json.find("\"items\"");
+			if (itemsKey == std::string::npos) return;
+			const size_t arr = json.find('[', itemsKey);
+			if (arr == std::string::npos) return;
+			size_t p = arr + 1;
+			while (p < json.size())
+			{
+				size_t brace = json.find('{', p);
+				if (brace == std::string::npos) break;
+				size_t objEnd = JsonObjectEnd(json, brace);
+				if (objEnd == std::string::npos) break;
+				std::string cat = JsonStringBounded(json, "category", brace, objEnd);
+				std::string gen = JsonStringBounded(json, "generation", brace, objEnd);
+				std::string typ = JsonStringBounded(json, "item_type", brace, objEnd);
+				std::vector<int> ids;
+				ParseItemIdsBounded(json, brace, objEnd, ids);
+				for (int id : ids)
+				{
+					if (id <= 0) continue;
+					LegRow& m = map[id];
+					if (m.category.empty()) m.category = cat.empty() ? "Other" : cat;
+					if (m.generation.empty()) m.generation = gen.empty() ? "Other" : gen;
+					if (m.itemType.empty()) m.itemType = typ;
+				}
+				p = objEnd + 1;
+			}
+		});
+		return map;
+	}
+
+	void ApplyLegCatalogMeta(std::vector<LegRow>& rows)
+	{
+		const auto& meta = LegCatalogByItemId();
+		if (meta.empty()) return;
+		for (LegRow& r : rows)
+		{
+			auto it = meta.find(r.id);
+			if (it == meta.end())
+			{
+				if (r.category.empty()) r.category = "Other";
+				if (r.generation.empty()) r.generation = "Other";
+				continue;
+			}
+			if (r.category.empty()) r.category = it->second.category;
+			if (r.generation.empty()) r.generation = it->second.generation;
+			if (r.itemType.empty()) r.itemType = it->second.itemType;
+		}
 	}
 
 	void SyncDraw()
@@ -329,7 +484,7 @@ void ProgressData::RenderContents()
 	const Snapshot& snap = gDraw;
 
 	PadNav::Blurb(
-		"ImGui armory + roster (API). Primary legendary discovery is the side-rail Ledger. "
+		"Armory grouped by type (same catalog as the Ledger). "
 		"Use Plan on a legendary to open Crafting with its gift / forge tree.");
 
 	if (PadNav::RefreshButton("###gw2igh_prog_ref"))
@@ -349,8 +504,30 @@ void ProgressData::RenderContents()
 		PadNav::StatusOk(snap.status.c_str());
 
 	ImGui::SetNextItemWidth(-1.f);
-	ImGui::InputTextWithHint("###gw2igh_prog_filter", "Filter legendaries...",
+	ImGui::InputTextWithHint("###gw2igh_prog_filter", "Filter name, type, set...",
 		gFilter, sizeof(gFilter));
+
+	PadNav::Meta("Type");
+	ImGui::PushID("###gw2igh_prog_cat");
+	for (int i = 0; i < kArmoryCatCount; ++i)
+	{
+		ImGui::PushID(i);
+		if (PadNav::WrapButton(kArmoryCats[i], i == gCatFilter, /*first=*/i == 0))
+			gCatFilter = i;
+		ImGui::PopID();
+	}
+	ImGui::PopID();
+
+	PadNav::Meta("Set");
+	ImGui::PushID("###gw2igh_prog_gen");
+	for (int i = 0; i < kArmoryGenCount; ++i)
+	{
+		ImGui::PushID(i);
+		if (PadNav::WrapButton(kArmoryGens[i], i == gGenFilter, /*first=*/i == 0))
+			gGenFilter = i;
+		ImGui::PopID();
+	}
+	ImGui::PopID();
 
 	PadNav::Meta("Show");
 	if (PadNav::WrapButton("All", gShowMode == 0, /*first=*/true))

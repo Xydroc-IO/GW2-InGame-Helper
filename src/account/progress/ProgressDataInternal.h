@@ -26,7 +26,20 @@ namespace ProgressDetail
 		int maxCount = 1;
 		int owned = -1; /* -1 unknown */
 		std::string name;
+		std::string category;   /* Weapon, Armor, Trinket, ... */
+		std::string generation; /* Gen 1, SotO, JW, VoE, Other */
+		std::string itemType;   /* Spear, Full Set, ... */
 	};
+
+	/* Chip 0 is All. Labels match data/legendaries/catalog.json. */
+	inline constexpr const char* kArmoryCats[] = {
+		"All", "Weapon", "Armor", "Trinket", "Back Item", "Relic", "Sigil", "Rune"
+	};
+	inline constexpr int kArmoryCatCount = 8;
+	inline constexpr const char* kArmoryGens[] = {
+		"All", "Gen 1", "Gen 2", "Gen 3", "SotO", "JW", "VoE", "Other"
+	};
+	inline constexpr int kArmoryGenCount = 8;
 
 	struct CharRow
 	{
@@ -57,6 +70,8 @@ namespace ProgressDetail
 	extern HANDLE gThread;
 	extern char gFilter[96];
 	extern int gShowMode;
+	extern int gCatFilter;
+	extern int gGenFilter;
 
 	/* ProgressData.cpp */
 	size_t JsonObjectEnd(const std::string& json, size_t openBrace);
@@ -69,9 +84,11 @@ namespace ProgressDetail
 	void ParseArmoryCatalog(const std::string& body, std::vector<LegRow>& rows);
 	void ApplyNames(const std::string& json, std::vector<LegRow>& rows);
 	void FetchNames(std::vector<LegRow>& rows);
+	void ApplyLegCatalogMeta(std::vector<LegRow>& rows);
 	std::string WikiTitleToPath(const std::string& title);
 	void OpenWikiItem(int id, const std::string& name);
 	bool FilterMatch(const LegRow& r, const char* filter);
+	bool RowVisible(const LegRow& r);
 	void SyncDraw();
 
 	/* ProgressDataUi.cpp — immersive armory + roster rows. */
