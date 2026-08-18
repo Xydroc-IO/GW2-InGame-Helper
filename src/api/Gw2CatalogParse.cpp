@@ -1,6 +1,7 @@
 #include "Gw2CatalogInternal.h"
 
 #include "AddonPaths.h"
+#include "JsonView.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -15,6 +16,7 @@ namespace Gw2CatalogDetail
 	std::unordered_map<int, Gw2Catalog::Recipe> gRecipes;
 	std::unordered_map<int, std::vector<int>> gByOutput;
 	std::string gBuild;
+	std::string gIconsHash;
 	bool gDiskLoaded = false;
 	bool gRecipesOnDisk = false;
 	std::atomic<bool> gBusy{false};
@@ -23,7 +25,10 @@ namespace Gw2CatalogDetail
 
 	constexpr const char kRenderPrefix[] = "https://render.guildwars2.com/file/";
 
-	std::wstring VerPath() { return AddonPaths::CacheDir() + L"\\gw2-helper-catalog.ver"; }
+	std::wstring ManifestPath()
+	{
+		return AddonPaths::CacheDir() + L"\\gw2-helper-catalog.manifest";
+	}
 	std::wstring TsvPath() { return AddonPaths::CacheDir() + L"\\gw2-names-en.tsv"; }
 	std::wstring RecipesPath() { return AddonPaths::CacheDir() + L"\\gw2-recipes.tsv"; }
 	std::wstring PackCachePath()
@@ -33,10 +38,6 @@ namespace Gw2CatalogDetail
 	std::wstring IconsCachePath()
 	{
 		return AddonPaths::CacheDir() + L"\\gw2-helper-icons.igh";
-	}
-	std::wstring IconsVerPath()
-	{
-		return AddonPaths::CacheDir() + L"\\gw2-helper-icons.ver";
 	}
 
 	std::string ReadAll(const std::wstring& path, size_t maxBytes)
@@ -71,6 +72,71 @@ namespace Gw2CatalogDetail
 		const BOOL ok = WriteFile(h, data.data(), static_cast<DWORD>(data.size()), &wr, nullptr);
 		CloseHandle(h);
 		return ok != FALSE;
+	}
+
+	std::string JsonField(const std::string& json, const char* key)
+	{
+		const JsonView::View v = JsonView::AsView(json);
+		std::string s = JsonView::StringAfterKey(v, key);
+		if (!s.empty())
+			return s;
+		const long long n = JsonView::IntAfterKey(v, key);
+		if (n > 0)
+			return std::to_string(n);
+		return {};
+	}
+
+	bool ParseManifest(const std::string& json, RemoteManifest* out)
+	{
+		if (!out)
+			return false;
+		out->catalog = JsonField(json, "catalog");
+		out->icons = JsonField(json, "icons");
+		out->cef = JsonField(json, "cef");
+		return !out->catalog.empty() || !out->icons.empty() || !out->cef.empty();
+	}
+
+	std::string FormatManifest(const RemoteManifest& m)
+	{
+		std::string out = "{\n";
+		bool any = false;
+		auto add = [&](const char* key, const std::string& val) {
+			if (val.empty())
+				return;
+			if (any)
+				out += ",\n";
+			any = true;
+			out += "  \"";
+			out += key;
+			out += "\": \"";
+			out += val;
+			out += '"';
+		};
+		add("catalog", m.catalog);
+		add("cef", m.cef);
+		add("icons", m.icons);
+		out += "\n}\n";
+		return out;
+	}
+
+	void MergeLocalManifest(const char* catalog, const char* icons, const char* cef)
+	{
+		RemoteManifest m;
+		ParseManifest(ReadAll(ManifestPath(), 4096), &m);
+		if (catalog && catalog[0])
+			m.catalog = catalog;
+		if (icons && icons[0])
+			m.icons = icons;
+		if (cef && cef[0])
+			m.cef = cef;
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			if (!m.catalog.empty())
+				gBuild = m.catalog;
+			if (!m.icons.empty())
+				gIconsHash = m.icons;
+		}
+		WriteAll(ManifestPath(), FormatManifest(m));
 	}
 
 	std::string NormalizeIcon(std::string s)
@@ -276,7 +342,8 @@ namespace Gw2CatalogDetail
 		if (gDiskLoaded)
 			return;
 		gDiskLoaded = true;
-		const std::string ver = ReadAll(VerPath(), 64);
+		RemoteManifest man;
+		ParseManifest(ReadAll(ManifestPath(), 4096), &man);
 		const std::string tsv = ReadAll(TsvPath(), 24u * 1024u * 1024u);
 		if (!tsv.empty())
 			ParseTsv(tsv);
@@ -286,13 +353,13 @@ namespace Gw2CatalogDetail
 		if ((tsv.empty() || rec.empty()) && TryApplyLocalIgh())
 			return;
 		TryOpenLocalIcons();
-		std::string v = ver;
-		while (!v.empty() && (v.back() == '\n' || v.back() == '\r' || v.back() == ' '))
-			v.pop_back();
-		if (!v.empty())
+		if (!man.catalog.empty() || !man.icons.empty())
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			gBuild = std::move(v);
+			if (!man.catalog.empty())
+				gBuild = std::move(man.catalog);
+			if (!man.icons.empty())
+				gIconsHash = std::move(man.icons);
 		}
 	}
 

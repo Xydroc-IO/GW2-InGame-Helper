@@ -1,8 +1,8 @@
 # Rebuild GW2 Helper Catalog from api.guildwars2.com and publish to pre-release
 # tag `gw2-helper-catalog` (not the shipping DLL tag). Title: GW2 Helper Catalog.
 # That tag also hosts cef-runtime-150-windows64.zip and gw2-helper-icons.igh
-# (hand-uploaded). Only clobber catalog files — never delete the release,
-# the CEF zip, or the icons pack.
+# (hand-uploaded). Only clobber catalog manifest + names igh — never delete the
+# release, the CEF zip, or the icons pack.
 name: GW2 Helper Catalog
 
 on:
@@ -21,34 +21,66 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build catalog
-        run: |
-          mkdir -p dist
-          python3 scripts/build-gw2-catalog.py -o dist
-
-      - name: Skip if unchanged
-        id: check
+      - name: Fetch current catalog assets
+        id: prev
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG=gw2-helper-catalog
-          NEW=$(tr -d ' \r\n' < dist/gw2-helper-catalog.ver)
-          echo "build=$NEW" >> "$GITHUB_OUTPUT"
-          hash_pack() {
-            sha256sum "$@" 2>/dev/null | sha256sum | awk '{print $1}'
-          }
-          NEW_HASH=$(hash_pack dist/gw2-helper-catalog.ver dist/gw2-helper-catalog.igh)
-          OLD_HASH=""
+          mkdir -p /tmp/oldcat dist
+          INHERIT=""
+          HAVE_MANIFEST=0
           if gh release view "$TAG" >/dev/null 2>&1; then
-            mkdir -p /tmp/oldcat
-            gh release download "$TAG" -p gw2-helper-catalog.ver -p gw2-helper-catalog.igh \
+            gh release download "$TAG" \
+              -p gw2-helper-catalog.manifest -p gw2-helper-catalog.igh \
+              -p gw2-helper-catalog.json \
+              -p gw2-helper-catalog.ver -p gw2-helper-icons.ver \
               -D /tmp/oldcat --clobber || true
+          fi
+          if [ -f /tmp/oldcat/gw2-helper-catalog.manifest ]; then
+            INHERIT=/tmp/oldcat/gw2-helper-catalog.manifest
+            HAVE_MANIFEST=1
+          elif [ -f /tmp/oldcat/gw2-helper-catalog.json ]; then
+            INHERIT=/tmp/oldcat/gw2-helper-catalog.json
+          else
+            ARGS=()
             if [ -f /tmp/oldcat/gw2-helper-catalog.ver ]; then
-              OLD_HASH=$(hash_pack /tmp/oldcat/gw2-helper-catalog.ver /tmp/oldcat/gw2-helper-catalog.igh)
+              ARGS+=(--catalog "$(tr -d ' \r\n' < /tmp/oldcat/gw2-helper-catalog.ver)")
+            fi
+            if [ -f /tmp/oldcat/gw2-helper-icons.ver ]; then
+              ARGS+=(--icons "$(tr -d ' \r\n' < /tmp/oldcat/gw2-helper-icons.ver)")
+            fi
+            if [ ${#ARGS[@]} -gt 0 ]; then
+              python3 scripts/catalog_manifest.py -o /tmp/oldcat/gw2-helper-catalog.manifest "${ARGS[@]}"
+              INHERIT=/tmp/oldcat/gw2-helper-catalog.manifest
             fi
           fi
+          echo "inherit=$INHERIT" >> "$GITHUB_OUTPUT"
+          echo "have_manifest=$HAVE_MANIFEST" >> "$GITHUB_OUTPUT"
+
+      - name: Build catalog
+        run: |
+          mkdir -p dist
+          INHERIT="${{ steps.prev.outputs.inherit }}"
+          if [ -n "$INHERIT" ]; then
+            python3 scripts/build-gw2-catalog.py -o dist --inherit-manifest "$INHERIT"
+          else
+            python3 scripts/build-gw2-catalog.py -o dist
+          fi
+
+      - name: Skip if unchanged
+        id: check
+        run: |
+          NEW=$(python3 -c "import json; print(json.load(open('dist/gw2-helper-catalog.manifest'))['catalog'])")
+          echo "build=$NEW" >> "$GITHUB_OUTPUT"
+          NEW_HASH=$(sha256sum dist/gw2-helper-catalog.igh | awk '{print $1}')
+          OLD_HASH=""
+          if [ -f /tmp/oldcat/gw2-helper-catalog.igh ]; then
+            OLD_HASH=$(sha256sum /tmp/oldcat/gw2-helper-catalog.igh | awk '{print $1}')
+          fi
           echo "old_hash=$OLD_HASH new_hash=$NEW_HASH"
-          if [ -n "$OLD_HASH" ] && [ "$OLD_HASH" = "$NEW_HASH" ]; then
+          HAVE_MANIFEST="${{ steps.prev.outputs.have_manifest }}"
+          if [ "$HAVE_MANIFEST" = "1" ] && [ -n "$OLD_HASH" ] && [ "$OLD_HASH" = "$NEW_HASH" ]; then
             echo "changed=0" >> "$GITHUB_OUTPUT"
           else
             echo "changed=1" >> "$GITHUB_OUTPUT"
@@ -63,7 +95,7 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             # Named files only — leaves cef zip + gw2-helper-icons.igh in place.
             gh release upload "$TAG" \
-              dist/gw2-helper-catalog.ver dist/gw2-helper-catalog.igh --clobber
+              dist/gw2-helper-catalog.manifest dist/gw2-helper-catalog.igh --clobber
             gh release edit "$TAG" \
               --title "GW2 Helper Catalog" \
               --notes-file docs/CATALOG_RELEASE.md
@@ -72,7 +104,7 @@ jobs:
               --prerelease \
               --title "GW2 Helper Catalog" \
               --notes-file docs/CATALOG_RELEASE.md \
-              dist/gw2-helper-catalog.ver dist/gw2-helper-catalog.igh
+              dist/gw2-helper-catalog.manifest dist/gw2-helper-catalog.igh
           fi
           echo "Assets on $TAG:"
           gh release view "$TAG" --json assets --jq '.assets[].name'

@@ -68,12 +68,12 @@ Keep `src/browser/CefRuntime.h` URL + SHA256 in sync after uploading a new zip. 
 
 Public item/currency names, render icons, station recipes, and the CEF runtime zip are **not** bundled in the DLL. The addon downloads them from **one pre-release** tag `gw2-helper-catalog` (title **GW2 Helper Catalog**; do **not** attach these to every shipping DLL tag):
 
-- `gw2-helper-catalog.ver` — ArenaNet `/v2/build` id (cheap freshness check)
+- `gw2-helper-catalog.manifest` — `{ "catalog", "icons", "cef" }` cheap freshness check
 - `gw2-helper-catalog.igh` — IGH1 (not zip) with gzip `names-en.tsv` + `recipes.tsv`
 - `gw2-helper-icons.igh` — IGH1 unique `render.guildwars2.com` PNGs (~22k); missing icons still use the CDN
 - `cef-runtime-150-windows64.zip` — private CEF 150 (SHA-256 in `CefRuntime.h`; stays a zip)
 
-Catalog URLs in `src/api/Gw2Catalog.h`; CEF URL in `src/browser/CefRuntime.h`. Cache: `addons/.../cache/gw2-names-en.tsv` + `gw2-recipes.tsv` + icon pack. Rebuild: `python3 scripts/build-gw2-catalog.py -o dist` and `python3 scripts/build-gw2-icons.py -o dist` (icons are hand-uploaded; daily Action only refreshes the names pack). Account bank/mats still use the player’s key on the PC.
+Catalog URLs in `src/api/Gw2Catalog.h`; CEF URL in `src/browser/CefRuntime.h`. Cache: `addons/.../cache/gw2-helper-catalog.manifest` + names/recipes TSV + icon pack. Rebuild: `python3 scripts/build-gw2-catalog.py -o dist` and `python3 scripts/build-gw2-icons.py -o dist` (icons are hand-uploaded; daily Action only refreshes the names pack). Account bank/mats still use the player’s key on the PC.
 
 ### Job Object and host watch
 
@@ -114,7 +114,7 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
     raid-food.html, live-*.html / .ver / .ok, gw2-api-check.*
   live/cache/              # live-*.json API caches + live-leg-craft-*.json
   cache/                   # unlocks-*.cache, stash-names.cache, waypoints-index.cache,
-                           # gw2-names-en.tsv, gw2-recipes.tsv, gw2-helper-catalog.ver,
+                           # gw2-names-en.tsv, gw2-recipes.tsv, gw2-helper-catalog.manifest,
                            # gw2-helper-catalog.igh, gw2-helper-icons.igh
   cmds/                    # *-cmd.txt (helper ↔ DLL IPC)
   cef/                     # private CEF 150 (downloaded)
@@ -287,5 +287,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.0 — IGH1 catalog + icons packs + CEF zip; API Check 5 probes; live 79; helper 2244 |
+| Last architecture sync | 2.3.0.0 — IGH1 catalog + icons + `.manifest` + CEF zip; API Check 5 probes; live 79; helper 2244 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

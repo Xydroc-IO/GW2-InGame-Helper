@@ -8,21 +8,28 @@ using namespace Gw2CatalogDetail;
 
 namespace
 {
+	RemoteManifest FetchRemoteManifest()
+	{
+		RemoteManifest remote;
+		auto man = Gw2Http::Get(Gw2Catalog::kManifestUrl, nullptr, 8000);
+		if (man.ok && ParseManifest(man.body, &remote))
+		{
+			WriteAll(ManifestPath(), man.body);
+			std::lock_guard<std::mutex> lock(gMu);
+			if (!remote.catalog.empty())
+				gBuild = remote.catalog;
+			if (!remote.icons.empty())
+				gIconsHash = remote.icons;
+		}
+		return remote;
+	}
+
 	DWORD WINAPI FetchProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 		TryApplyLocalIgh();
 
-		auto ver = Gw2Http::Get(Gw2Catalog::kVerUrl, nullptr, 8000);
-		std::string remote;
-		if (ver.ok && !ver.body.empty())
-		{
-			remote = ver.body;
-			while (!remote.empty() && (remote.back() == '\n' || remote.back() == '\r' ||
-				remote.back() == ' '))
-				remote.pop_back();
-		}
-
+		const RemoteManifest remote = FetchRemoteManifest();
 		std::string local;
 		bool haveRecipes = false;
 		{
@@ -30,9 +37,9 @@ namespace
 			local = gBuild;
 			haveRecipes = gRecipesOnDisk;
 		}
-		if (!remote.empty() && remote == local && haveRecipes)
+		if (!remote.catalog.empty() && remote.catalog == local && haveRecipes)
 		{
-			FetchRemoteIcons();
+			FetchRemoteIcons(remote.icons);
 			gBusy = false;
 			return 0;
 		}
@@ -42,14 +49,10 @@ namespace
 		{
 			WriteAll(PackCachePath(), pack.body);
 			ApplyIghBytes(pack.body);
-			if (!remote.empty())
-			{
-				WriteAll(VerPath(), remote + "\n");
-				std::lock_guard<std::mutex> lock(gMu);
-				gBuild = remote;
-			}
+			if (!remote.catalog.empty())
+				MergeLocalManifest(remote.catalog.c_str(), nullptr, nullptr);
 		}
-		FetchRemoteIcons();
+		FetchRemoteIcons(remote.icons);
 		gBusy = false;
 		return 0;
 	}

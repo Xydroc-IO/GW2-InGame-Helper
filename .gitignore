@@ -111,6 +111,8 @@ GW2EICLI*.zip
 
 # GW2 Helper Catalog / icon packs — GitHub Releases tag gw2-helper-catalog only
 *.igh
+gw2-helper-catalog.manifest
+gw2-helper-catalog.json
 gw2-helper-catalog.ver
 gw2-helper-icons.ver
 gw2-catalog.ver

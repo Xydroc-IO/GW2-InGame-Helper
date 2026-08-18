@@ -25,7 +25,7 @@ GW2 In-Game Helper — where to find what.
 | [`DPS_LOGS.md`](DPS_LOGS.md) | Players | Elite Insights, .NET 8, Protontricks, KillProof |
 | [`API_KEY.md`](API_KEY.md) | Players | ArenaNet API key scopes |
 | [`description.html`](description.html) | Listings | Nexus / web description HTML |
-| [`CATALOG_RELEASE.md`](CATALOG_RELEASE.md) | Maintainers | Pre-release tag `gw2-helper-catalog` (`.igh` + CEF zip) |
+| [`CATALOG_RELEASE.md`](CATALOG_RELEASE.md) | Maintainers | Pre-release tag `gw2-helper-catalog` (`.manifest` + `.igh` + CEF zip) |
 | [`media/`](media/) | Build | Cover / homepage embed assets |
 
 Everything under `docs/` is tracked in git (no draft allow-list).

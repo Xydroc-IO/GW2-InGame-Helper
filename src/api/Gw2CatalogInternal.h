@@ -19,24 +19,33 @@ namespace Gw2CatalogDetail
 	extern std::unordered_map<int, Gw2Catalog::Recipe> gRecipes;
 	extern std::unordered_map<int, std::vector<int>> gByOutput;
 	extern std::string gBuild;
+	extern std::string gIconsHash;
 	extern bool gDiskLoaded;
 	extern bool gRecipesOnDisk;
 	extern std::atomic<bool> gBusy;
 	extern HANDLE gThread;
 	extern DWORD gLastCheckMs;
 
-	std::wstring VerPath();
+	struct RemoteManifest
+	{
+		std::string catalog;
+		std::string icons;
+		std::string cef;
+	};
+
+	std::wstring ManifestPath();
 	std::wstring TsvPath();
 	std::wstring RecipesPath();
 	std::wstring PackCachePath();
 	std::wstring IconsCachePath();
-	std::wstring IconsVerPath();
 	std::string ReadAll(const std::wstring& path, size_t maxBytes);
 	bool WriteAll(const std::wstring& path, const std::string& data);
+	bool ParseManifest(const std::string& json, RemoteManifest* out);
+	void MergeLocalManifest(const char* catalog, const char* icons, const char* cef);
 	bool ApplyIghBytes(const std::string& pack);
 	bool TryApplyLocalIgh();
 	bool TryOpenLocalIcons();
-	void FetchRemoteIcons();
+	void FetchRemoteIcons(const std::string& remoteIcons);
 	bool LookupLocked(const std::unordered_map<int, std::string>& map, int id, std::string* out);
 	bool LookupKind(char kind,
 		const std::unordered_map<char, std::unordered_map<int, std::string>>& root,

@@ -88,11 +88,7 @@ bool Gw2CatalogDetail::ApplyIghBytes(const std::string& pack)
 	WriteAll(RecipesPath(), recipes);
 	TrimLine(ver);
 	if (!ver.empty())
-	{
-		WriteAll(VerPath(), ver + "\n");
-		std::lock_guard<std::mutex> lock(gMu);
-		gBuild = std::move(ver);
-	}
+		MergeLocalManifest(ver.c_str(), nullptr, nullptr);
 	return true;
 }
 
@@ -131,19 +127,20 @@ bool Gw2CatalogDetail::TryOpenLocalIcons()
 	return false;
 }
 
-void Gw2CatalogDetail::FetchRemoteIcons()
+void Gw2CatalogDetail::FetchRemoteIcons(const std::string& remoteIcons)
 {
-	auto ver = Gw2Http::Get(Gw2Catalog::kIconsVerUrl, nullptr, 8000);
-	std::string remote;
-	if (ver.ok && !ver.body.empty())
-	{
-		remote = ver.body;
-		TrimLine(remote);
-	}
+	std::string remote = remoteIcons;
+	TrimLine(remote);
 	if (remote.empty())
+	{
+		TryOpenLocalIcons();
 		return;
-	std::string local = ReadAll(IconsVerPath(), 128);
-	TrimLine(local);
+	}
+	std::string local;
+	{
+		std::lock_guard<std::mutex> lock(gMu);
+		local = gIconsHash;
+	}
 	if (local == remote && FileExists(IconsCachePath()))
 	{
 		OpenIconsPath(IconsCachePath());
@@ -162,7 +159,7 @@ void Gw2CatalogDetail::FetchRemoteIcons()
 		DeleteFileW(tmp.c_str());
 		return;
 	}
-	WriteAll(IconsVerPath(), remote + "\n");
+	MergeLocalManifest(nullptr, remote.c_str(), nullptr);
 	OpenIconsPath(IconsCachePath());
 }
 

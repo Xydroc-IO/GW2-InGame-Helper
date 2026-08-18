@@ -39,9 +39,10 @@ icon packs.
 - **Catalog packs:** Stash names/icons and station recipes download from GitHub
   pre-release **GW2 Helper Catalog** (tag `gw2-helper-catalog`). Packs are IGH1
   (not zip): `gw2-helper-catalog.igh` (names + recipes) and
-  `gw2-helper-icons.igh` (~22k unique ArenaNet render PNGs). Missing ids still
-  fall back to the API / CDN. The CEF runtime zip lives on that same tag, not on
-  each DLL release.
+  `gw2-helper-icons.igh` (~22k unique ArenaNet render PNGs). One tiny
+  `gw2-helper-catalog.manifest` is the freshness check (`catalog` / `icons` / `cef`)
+  so the DLL can skip re-downloading. Missing ids still fall back to the API /
+  CDN. The CEF runtime zip lives on that same tag, not on each DLL release.
 - **API speed:** API Check is five health probes (not ~45). Live pages show the
   last good HTML instantly and refresh in the background. Account stash / vault
   prefetch after helper open or API key save. Gw2Http accepts gzip.

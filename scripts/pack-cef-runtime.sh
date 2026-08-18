@@ -77,3 +77,8 @@ echo "  gh release upload gw2-helper-catalog ${OUT_DIR}/${ZIP_NAME} --clobber"
 echo "  kDownloadUrl = \"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/gw2-helper-catalog/${ZIP_NAME}\""
 echo "  kSha256Hex   = \"${HASH}\""
 echo "  kStamp       = \"150.0.14\"  (already set)"
+if [[ -f "${ROOT}/dist/gw2-helper-catalog.manifest" ]]; then
+	python3 "${ROOT}/scripts/catalog_manifest.py" -o "${ROOT}/dist/gw2-helper-catalog.manifest" --cef 150.0.14
+	echo "Updated dist/gw2-helper-catalog.manifest cef=150.0.14"
+	echo "  gh release upload gw2-helper-catalog ${ROOT}/dist/gw2-helper-catalog.manifest --clobber"
+fi

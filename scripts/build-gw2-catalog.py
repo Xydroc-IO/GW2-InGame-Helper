@@ -3,7 +3,7 @@
 
 Writes (GitHub pre-release tag `gw2-helper-catalog`, title GW2 Helper Catalog;
 that tag also hosts cef-runtime-150-windows64.zip — do not delete that zip):
-  gw2-helper-catalog.ver   ArenaNet /v2/build id (one line; cheap freshness check)
+  gw2-helper-catalog.manifest  catalog / icons / cef stamps (cheap freshness check)
   gw2-helper-catalog.igh   IGH1: catalog.ver, names-en.tsv, recipes.tsv (gzip members)
   gw2-helper-icons.igh     IGH1: unique render PNGs (see build-gw2-icons.py)
 
@@ -18,9 +18,9 @@ Upload (not a shipping DLL tag):
 
   gh release create gw2-helper-catalog --prerelease --title "GW2 Helper Catalog" \\
     --notes-file docs/CATALOG_RELEASE.md \\
-    gw2-helper-catalog.ver gw2-helper-catalog.igh
+    gw2-helper-catalog.manifest gw2-helper-catalog.igh
 
-  gh release upload gw2-helper-catalog gw2-helper-catalog.ver \\
+  gh release upload gw2-helper-catalog gw2-helper-catalog.manifest \\
     gw2-helper-catalog.igh --clobber
 """
 from __future__ import annotations
@@ -34,6 +34,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from catalog_manifest import write_manifest
 from ighpack import write_igh as pack_igh_file
 
 API = "https://api.guildwars2.com"
@@ -198,6 +199,12 @@ def write_igh(path: Path, build_id: str, names: str, recipes: str) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("-o", "--out-dir", default=".", type=Path)
+    ap.add_argument(
+        "--inherit-manifest",
+        type=Path,
+        default=None,
+        help="Keep icons/cef fields from an existing gw2-helper-catalog.manifest",
+    )
     args = ap.parse_args()
     out: Path = args.out_dir
     out.mkdir(parents=True, exist_ok=True)
@@ -244,9 +251,13 @@ def main() -> int:
 
     names_text = "".join(name_lines)
     rec_text = "".join(rec_lines)
-    (out / "gw2-helper-catalog.ver").write_text(build_id + "\n", encoding="utf-8")
     write_igh(out / "gw2-helper-catalog.igh", build_id, names_text, rec_text)
-    print(f"wrote {out / 'gw2-helper-catalog.ver'} build={build_id}")
+    man = write_manifest(
+        out / "gw2-helper-catalog.manifest",
+        inherit=args.inherit_manifest,
+        catalog=build_id,
+    )
+    print(f"wrote {out / 'gw2-helper-catalog.manifest'} catalog={man.get('catalog', '')}")
     bits = " ".join(f"{k}={len(by_kind.get(k, []))}" for k, _ in NAME_PACKS + [("y", "")])
     print(f"names {bits}; recipes={len(recipes)}")
     return 0

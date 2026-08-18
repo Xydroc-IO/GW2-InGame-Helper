@@ -20,6 +20,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from catalog_manifest import write_manifest
 from ighpack import read_igh, write_igh, valid_name
 
 RENDER = "https://render.guildwars2.com/file/"
@@ -115,9 +116,9 @@ def main() -> int:
         print("too few icons fetched", file=sys.stderr)
         return 1
     digest = hashlib.sha256("\n".join(sorted(files)).encode("utf-8")).hexdigest()
-    (out / "gw2-helper-icons.ver").write_text(digest + "\n", encoding="utf-8")
     write_igh(out / "gw2-helper-icons.igh", files, compress=False)
-    print(f"icons {len(files)} miss={miss} ver={digest[:12]}")
+    man = write_manifest(out / "gw2-helper-catalog.manifest", icons=digest)
+    print(f"icons {len(files)} miss={miss} ver={digest[:12]} json={man.get('icons', '')[:12]}")
     return 0
 
 

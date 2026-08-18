@@ -7,25 +7,22 @@
 /* Public ArenaNet data pack (no API keys). GitHub pre-release tag
    `gw2-helper-catalog` (title: GW2 Helper Catalog) — same tag as the CEF zip.
    `.igh` is IGH1 (custom, not zip). Do not attach to DLL tags.
-   Cache: addons/.../cache/gw2-names-en.tsv, gw2-recipes.tsv, .ver, icons.igh. */
+   Cheap check: gw2-helper-catalog.manifest (catalog / icons / cef).
+   Cache: addons/.../cache/ names TSV, recipes TSV, .manifest, icons.igh. */
 namespace Gw2Catalog
 {
 	inline constexpr const char* kReleaseTag = "gw2-helper-catalog";
-	inline constexpr const char* kVerFile = "gw2-helper-catalog.ver";
+	inline constexpr const char* kManifestFile = "gw2-helper-catalog.manifest";
 	inline constexpr const char* kPackFile = "gw2-helper-catalog.igh";
 	inline constexpr const char* kIconsFile = "gw2-helper-icons.igh";
-	inline constexpr const char* kIconsVerFile = "gw2-helper-icons.ver";
 	inline constexpr const char* kManifestMagic = "IGH1";
 
-	inline constexpr const char* kVerUrl =
+	inline constexpr const char* kManifestUrl =
 		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
-		"gw2-helper-catalog/gw2-helper-catalog.ver";
+		"gw2-helper-catalog/gw2-helper-catalog.manifest";
 	inline constexpr const char* kPackUrl =
 		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
 		"gw2-helper-catalog/gw2-helper-catalog.igh";
-	inline constexpr const char* kIconsVerUrl =
-		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
-		"gw2-helper-catalog/gw2-helper-icons.ver";
 	inline constexpr const char* kIconsUrl =
 		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
 		"gw2-helper-catalog/gw2-helper-icons.igh";
