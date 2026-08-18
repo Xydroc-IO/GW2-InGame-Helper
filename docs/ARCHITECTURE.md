@@ -9,7 +9,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2244` / `2235` / `s2215` / `c2228` |
-| Live panel stamp | `81` |
+| Live panel stamp | `82` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc36` |
 | watchd stamp | `w10` |
@@ -287,5 +287,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.0 — IGH1 catalog + icons + `.manifest` + CEF zip; API Check host canaries; live 81; helper 2244 |
+| Last architecture sync | 2.3.0.0 — IGH1 catalog + icons + `.manifest` + CEF zip; API Check 5 probes; live 82; helper 2244 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

@@ -43,17 +43,16 @@ icon packs.
   `gw2-helper-catalog.manifest` is the freshness check (`catalog` / `icons` / `cef`)
   so the DLL can skip re-downloading. Missing ids still fall back to the API /
   CDN. The CEF runtime zip lives on that same tag, not on each DLL release.
-- **API speed:** API Check is ArenaNet canaries plus one GET per other helper
-  host (GitHub catalog manifest, wiki, news feed, killproof.me) — not every
-  `/v2` route. Live pages show the last good HTML instantly and refresh in the
-  background. Account stash / vault prefetch after helper open or API key save.
-  WinHTTP does not request gzip (Wine otherwise returns compressed JSON and
-  every API parse fails). Account probes need a Settings key; pasting one
-  rebuilds the open Live tab. Names pack `gw2-helper-catalog.igh` downloads when
-  cache is missing (not skipped just because icons already landed).
+- **API speed:** API Check is five ArenaNet health probes (not ~45, not wiki/
+  GitHub/killproof). Live pages show the last good HTML instantly and refresh
+  in the background. Account stash / vault prefetch after helper open or API
+  key save. WinHTTP does not request gzip (Wine otherwise returns compressed
+  JSON and every API parse fails). Account probes need a Settings key; pasting
+  one rebuilds the open Live tab. Names pack `gw2-helper-catalog.igh` downloads
+  when cache is missing (not skipped just because icons already landed).
 - **Browse hub:** Favorite folders collapse/expand (state remembered). Donate
   line under Report any issues: Ko-fi (`ko-fi.com/xydroc`).
-- **Stamps:** Helper `2244` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `81` · raid food `9` · ui-chrome `uc36`
+- **Stamps:** Helper `2244` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `82` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.2.4.11
 
