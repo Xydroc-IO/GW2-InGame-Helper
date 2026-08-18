@@ -3,7 +3,6 @@
 #include "AddonPaths.h"
 #include "Gw2Http.h"
 
-#include <atomic>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -65,17 +64,15 @@ namespace
 		};
 
 		bool got = false;
-		if (!havePackFile)
+		/* Tick waits 30 min between attempts. Retry if names never landed,
+		   including when a truncated pack file is already in the cache. */
+		if (!havePackFile || !haveNames)
 		{
-			static std::atomic<bool> sTriedPack;
-			if (!sTriedPack.exchange(true))
+			const std::wstring tmp = PackCachePath() + L".tmp";
+			if (Gw2Http::DownloadToFile(Gw2Catalog::kPackUrl, tmp.c_str(), 120000))
 			{
-				const std::wstring tmp = PackCachePath() + L".tmp";
-				if (Gw2Http::DownloadToFile(Gw2Catalog::kPackUrl, tmp.c_str(), 120000))
-				{
-					got = applyPack(ReadAll(tmp, 32u * 1024u * 1024u));
-					DeleteFileW(tmp.c_str());
-				}
+				got = applyPack(ReadAll(tmp, 32u * 1024u * 1024u));
+				DeleteFileW(tmp.c_str());
 			}
 		}
 		if (got && !remote.catalog.empty())
