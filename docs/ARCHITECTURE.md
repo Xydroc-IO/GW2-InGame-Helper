@@ -70,11 +70,12 @@ Public item/currency names, render icons, station recipes, achievement groups/de
 
 - `gw2-helper-catalog.manifest` — `{ "catalog", "icons", "cef" }` cheap freshness check
 - `gw2-helper-catalog.igh` — IGH1 (not zip) with raw `names-en.tsv` + `recipes.tsv` (~8MB; not gzip members)
+- `gw2-helper-recipes.igh` — IGH1 raw `recipes.tsv` (~700KB); crafting can load this before the full names pack
 - `gw2-helper-achievements.igh` — IGH1 raw `groups.tsv` / `categories.tsv` / `defs.tsv`; Achievements pad uses this, then `/v2/account/achievements` for progress
 - `gw2-helper-icons.igh` — IGH1 unique `render.guildwars2.com` PNGs (~22k); missing icons still use the CDN
 - `cef-runtime-150-windows64.zip` — private CEF 150 (SHA-256 in `CefRuntime.h`; stays a zip)
 
-Catalog URLs in `src/api/Gw2Catalog.h`; CEF URL in `src/browser/CefRuntime.h`. Cache: `addons/.../cache/gw2-helper-catalog.manifest` + names/recipes TSV + catalog/achievements/icon packs. Rebuild: `python3 scripts/build-gw2-catalog.py -o dist` and `python3 scripts/build-gw2-icons.py -o dist` (icons are hand-uploaded; daily Action refreshes the names pack and the achievements pack). Account bank/mats still use the player’s key on the PC.
+Catalog URLs in `src/api/Gw2Catalog.h`; CEF URL in `src/browser/CefRuntime.h`. Cache: `addons/.../cache/gw2-helper-catalog.manifest` + names/recipes TSV + catalog/recipes/achievements/icon packs. Rebuild: `python3 scripts/build-gw2-catalog.py -o dist` and `python3 scripts/build-gw2-icons.py -o dist` (icons are hand-uploaded; daily Action refreshes the names, recipes, and achievements packs). Account bank/mats still use the player’s key on the PC.
 
 ### Job Object and host watch
 
@@ -116,7 +117,8 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
   live/cache/              # live-*.json API caches + live-leg-craft-*.json
   cache/                   # unlocks-*.cache, stash-names.cache, waypoints-index.cache,
                            # gw2-names-en.tsv, gw2-recipes.tsv, gw2-helper-catalog.manifest,
-                           # gw2-helper-catalog.igh, gw2-helper-achievements.igh,
+                           # gw2-helper-catalog.igh, gw2-helper-recipes.igh,
+                           # gw2-helper-achievements.igh,
                            # gw2-helper-icons.igh
   cmds/                    # *-cmd.txt (helper ↔ DLL IPC)
   cef/                     # private CEF 150 (downloaded)

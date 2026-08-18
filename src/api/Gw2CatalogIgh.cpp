@@ -14,6 +14,7 @@ using namespace Gw2CatalogDetail;
 namespace
 {
 	constexpr size_t kMaxCatalogIgh = 32u * 1024u * 1024u;
+	constexpr size_t kMaxRecipesIgh = 8u * 1024u * 1024u;
 	constexpr size_t kMaxAchIgh = 24u * 1024u * 1024u;
 	constexpr size_t kMaxNames = 24u * 1024u * 1024u;
 	constexpr size_t kMaxRecipes = 16u * 1024u * 1024u;
@@ -119,6 +120,38 @@ namespace
 			return AchievementsCachePath();
 		return JoinFile(DllDir(), name);
 	}
+
+	std::wstring RecipesCandidate(int which)
+	{
+		const wchar_t* name = L"gw2-helper-recipes.igh";
+		if (which == 0)
+			return JoinFile(AddonPaths::DataDir(), name);
+		if (which == 1)
+			return RecipesPackCachePath();
+		return JoinFile(DllDir(), name);
+	}
+
+	bool LoadRecipesIgh(const std::string& pack, std::string* ver)
+	{
+		std::string bytes = pack;
+		if (!Gw2Http::GunzipInPlace(bytes))
+			return false;
+		IghPack::Reader r;
+		if (!r.OpenBytes(bytes.data(), bytes.size()))
+			return false;
+		std::string recipes, v;
+		if (!r.Get("recipes.tsv", &recipes, kMaxRecipes) ||
+			!r.Get("recipes.ver", &v, 64))
+			return false;
+		if (recipes.size() < 16)
+			return false;
+		ParseRecipes(recipes);
+		WriteAll(RecipesPath(), recipes);
+		TrimLine(v);
+		if (ver)
+			*ver = std::move(v);
+		return true;
+	}
 }
 
 bool Gw2CatalogDetail::ApplyIghBytes(const std::string& pack)
@@ -143,6 +176,25 @@ bool Gw2CatalogDetail::ApplyIghBytes(const std::string& pack)
 	return true;
 }
 
+bool Gw2CatalogDetail::ApplyRecipesIghBytes(const std::string& pack)
+{
+	return LoadRecipesIgh(pack, nullptr);
+}
+
+bool Gw2CatalogDetail::TryApplyLocalRecipes()
+{
+	for (int i = 0; i < 3; ++i)
+	{
+		const std::wstring p = RecipesCandidate(i);
+		if (!FileExists(p))
+			continue;
+		const std::string bytes = ReadAll(p, kMaxRecipesIgh);
+		if (ApplyRecipesIghBytes(bytes))
+			return true;
+	}
+	return false;
+}
+
 bool Gw2CatalogDetail::TryApplyLocalIgh()
 {
 	const wchar_t* name = L"gw2-helper-catalog.igh";
@@ -160,6 +212,32 @@ bool Gw2CatalogDetail::TryApplyLocalIgh()
 			return true;
 	}
 	return false;
+}
+
+void Gw2CatalogDetail::FetchRemoteRecipes(const std::string& catalogBuild)
+{
+	std::string want = catalogBuild;
+	TrimLine(want);
+	for (int i = 0; i < 3; ++i)
+	{
+		std::string ver;
+		const std::wstring p = RecipesCandidate(i);
+		if (!FileExists(p))
+			continue;
+		if (!LoadRecipesIgh(ReadAll(p, kMaxRecipesIgh), &ver))
+			continue;
+		if (want.empty() || ver == want)
+			return;
+	}
+	const std::wstring dest = RecipesPackCachePath();
+	const std::wstring tmp = dest + L".tmp";
+	if (!Gw2Http::DownloadToFile(Gw2Catalog::kRecipesUrl, tmp.c_str(), 60000))
+		return;
+	std::string bytes = ReadAll(tmp, kMaxRecipesIgh);
+	DeleteFileW(tmp.c_str());
+	if (!Gw2Http::GunzipInPlace(bytes) || !LoadRecipesIgh(bytes, nullptr))
+		return;
+	WriteAll(dest, bytes);
 }
 
 void Gw2CatalogDetail::FetchRemoteAchievements(const std::string& catalogBuild)
@@ -219,6 +297,12 @@ bool Gw2Catalog::AchievementPackReady()
 		}
 	}
 	return false;
+}
+
+bool Gw2Catalog::RecipesReady()
+{
+	LoadDisk();
+	return gRecipesOnDisk;
 }
 
 bool Gw2CatalogDetail::TryOpenLocalIcons()

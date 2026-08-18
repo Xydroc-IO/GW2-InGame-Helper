@@ -9,12 +9,13 @@
    `.igh` is IGH1 (custom, not zip). Do not attach to DLL tags.
    Cheap check: gw2-helper-catalog.manifest (catalog / icons / cef).
    Cache: addons/.../cache/ names TSV, recipes TSV, .manifest, icons.igh,
-   gw2-helper-achievements.igh. */
+   gw2-helper-recipes.igh, gw2-helper-achievements.igh. */
 namespace Gw2Catalog
 {
 	inline constexpr const char* kReleaseTag = "gw2-helper-catalog";
 	inline constexpr const char* kManifestFile = "gw2-helper-catalog.manifest";
 	inline constexpr const char* kPackFile = "gw2-helper-catalog.igh";
+	inline constexpr const char* kRecipesFile = "gw2-helper-recipes.igh";
 	inline constexpr const char* kAchievementsFile = "gw2-helper-achievements.igh";
 	inline constexpr const char* kIconsFile = "gw2-helper-icons.igh";
 	inline constexpr const char* kManifestMagic = "IGH1";
@@ -25,6 +26,9 @@ namespace Gw2Catalog
 	inline constexpr const char* kPackUrl =
 		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
 		"gw2-helper-catalog/gw2-helper-catalog.igh";
+	inline constexpr const char* kRecipesUrl =
+		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
+		"gw2-helper-catalog/gw2-helper-recipes.igh";
 	inline constexpr const char* kAchievementsUrl =
 		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
 		"gw2-helper-catalog/gw2-helper-achievements.igh";
@@ -44,6 +48,7 @@ namespace Gw2Catalog
 
 	/* Cheap: load disk cache; start a download if build id changed. UI-safe. */
 	void Tick();
+	bool RecipesReady();
 
 	bool ItemName(int id, std::string* out);
 	bool CurrencyName(int id, std::string* out);

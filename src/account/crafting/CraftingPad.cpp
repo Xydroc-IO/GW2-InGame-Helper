@@ -3,6 +3,7 @@
 #include "AspectLayout.h"
 #include "CraftingData.h"
 #include "Globals.h"
+#include "Gw2Catalog.h"
 #include "HelperTheme.h"
 #include "PadDock.h"
 #include "Settings.h"
@@ -21,6 +22,8 @@ void CraftingPad::OpenAndRefresh()
 	G::ShowCrafting = true;
 	gFocus = true;
 	gPlaceOnce = true;
+	Gw2Catalog::Tick();
+	(void)Gw2Catalog::RecipesReady();
 	CraftingData::SetKnownDetailsActive(true);
 	CraftingData::RefreshDailiesIfNeeded(false);
 	Settings::SetDirty();

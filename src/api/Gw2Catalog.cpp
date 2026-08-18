@@ -46,6 +46,7 @@ namespace
 			havePackFile)
 		{
 			FetchRemoteIcons(remote.icons);
+			FetchRemoteRecipes(remote.catalog);
 			FetchRemoteAchievements(remote.catalog);
 			gBusy = false;
 			return 0;
@@ -80,6 +81,7 @@ namespace
 		if (got && !remote.catalog.empty())
 			MergeLocalManifest(remote.catalog.c_str(), nullptr, nullptr);
 		FetchRemoteIcons(remote.icons);
+		FetchRemoteRecipes(remote.catalog);
 		FetchRemoteAchievements(remote.catalog);
 		gBusy = false;
 		return 0;
@@ -109,6 +111,9 @@ void Gw2Catalog::Tick()
 		auto it = gNames.find('i');
 		haveNames = it != gNames.end() && !it->second.empty();
 	}
+	if (!haveRecipes &&
+		GetFileAttributesW(RecipesPackCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
+		haveRecipes = true;
 	if (!haveAch &&
 		GetFileAttributesW(AchievementsCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
 		haveAch = true;

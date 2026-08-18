@@ -38,6 +38,7 @@ namespace Gw2CatalogDetail
 	std::wstring TsvPath();
 	std::wstring RecipesPath();
 	std::wstring PackCachePath();
+	std::wstring RecipesPackCachePath();
 	std::wstring AchievementsCachePath();
 	std::wstring IconsCachePath();
 	std::string ReadAll(const std::wstring& path, size_t maxBytes);
@@ -45,9 +46,12 @@ namespace Gw2CatalogDetail
 	bool ParseManifest(const std::string& json, RemoteManifest* out);
 	void MergeLocalManifest(const char* catalog, const char* icons, const char* cef);
 	bool ApplyIghBytes(const std::string& pack);
+	bool ApplyRecipesIghBytes(const std::string& pack);
 	bool TryApplyLocalIgh();
+	bool TryApplyLocalRecipes();
 	bool TryOpenLocalIcons();
 	void FetchRemoteIcons(const std::string& remoteIcons);
+	void FetchRemoteRecipes(const std::string& catalogBuild);
 	void FetchRemoteAchievements(const std::string& catalogBuild);
 	bool LookupLocked(const std::unordered_map<int, std::string>& map, int id, std::string* out);
 	bool LookupKind(char kind,

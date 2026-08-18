@@ -17,7 +17,7 @@ CEF Stable 150** runtime downloaded on first open into
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once,
-plus public item name/icon and achievement packs from GitHub tag `gw2-helper-catalog`.
+plus public item name/icon, recipe, and achievement packs from GitHub tag `gw2-helper-catalog`.
 Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 (`pages/` for generated HTML, `config/` for notes/profiles/etc; see [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md)).
 

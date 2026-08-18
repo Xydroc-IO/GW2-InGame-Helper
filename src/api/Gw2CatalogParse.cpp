@@ -36,6 +36,10 @@ namespace Gw2CatalogDetail
 	{
 		return AddonPaths::CacheDir() + L"\\gw2-helper-catalog.igh";
 	}
+	std::wstring RecipesPackCachePath()
+	{
+		return AddonPaths::CacheDir() + L"\\gw2-helper-recipes.igh";
+	}
 	std::wstring AchievementsCachePath()
 	{
 		return AddonPaths::CacheDir() + L"\\gw2-helper-achievements.igh";
@@ -355,6 +359,8 @@ namespace Gw2CatalogDetail
 		const std::string rec = ReadAll(RecipesPath(), 16u * 1024u * 1024u);
 		if (!rec.empty())
 			ParseRecipes(rec);
+		if (rec.empty())
+			TryApplyLocalRecipes();
 		if ((tsv.empty() || rec.empty()) && TryApplyLocalIgh())
 			return;
 		TryOpenLocalIcons();

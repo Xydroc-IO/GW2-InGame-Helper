@@ -5,6 +5,7 @@ Writes (GitHub pre-release tag `gw2-helper-catalog`, title GW2 Helper Catalog;
 that tag also hosts cef-runtime-150-windows64.zip — do not delete that zip):
   gw2-helper-catalog.manifest  catalog / icons / cef stamps (cheap freshness check)
   gw2-helper-catalog.igh   IGH1: catalog.ver, names-en.tsv, recipes.tsv (raw members, ~8MB)
+  gw2-helper-recipes.igh   IGH1: recipes.ver, recipes.tsv (~700KB; crafting can load before names)
   gw2-helper-achievements.igh  IGH1: ach.ver, groups.tsv, categories.tsv, defs.tsv
   gw2-helper-icons.igh     IGH1: unique render PNGs (see build-gw2-icons.py)
 
@@ -24,10 +25,11 @@ Upload (not a shipping DLL tag):
 
   gh release create gw2-helper-catalog --prerelease --title "GW2 Helper Catalog" \\
     --notes-file docs/CATALOG_RELEASE.md \\
-    gw2-helper-catalog.manifest gw2-helper-catalog.igh gw2-helper-achievements.igh
+    gw2-helper-catalog.manifest gw2-helper-catalog.igh gw2-helper-recipes.igh \\
+    gw2-helper-achievements.igh
 
   gh release upload gw2-helper-catalog gw2-helper-catalog.manifest \\
-    gw2-helper-catalog.igh gw2-helper-achievements.igh --clobber
+    gw2-helper-catalog.igh gw2-helper-recipes.igh gw2-helper-achievements.igh --clobber
 """
 from __future__ import annotations
 
@@ -433,6 +435,17 @@ def fetch_armory(item_names: dict[int, str]) -> list[tuple[int, str, str]]:
     return rows
 
 
+def write_recipes_igh(path: Path, build_id: str, recipes: str) -> None:
+    pack_igh_file(
+        path,
+        {
+            "recipes.ver": (build_id + "\n").encode("utf-8"),
+            "recipes.tsv": recipes.encode("utf-8"),
+        },
+        compress=False,
+    )
+
+
 def write_igh(path: Path, build_id: str, names: str, recipes: str) -> None:
     pack_igh_file(
         path,
@@ -466,6 +479,38 @@ def write_ach_igh(
     )
 
 
+def pack_ach_tsv(
+    path: Path,
+    build_id: str,
+    defs: list,
+    groups: list,
+    cats: list,
+) -> None:
+    g_lines = ["# gw2-ach-groups 1\n", f"# build {build_id}\n"]
+    for gid, order, name, gcats in sorted(groups, key=lambda r: (r[1], r[0])):
+        g_lines.append(f"g\t{gid}\t{order}\t{name}\t{','.join(str(x) for x in gcats)}\n")
+    c_lines = ["# gw2-ach-categories 1\n", f"# build {build_id}\n"]
+    for cid, order, name, aids in sorted(cats):
+        c_lines.append(f"c\t{cid}\t{order}\t{name}\t{','.join(str(x) for x in aids)}\n")
+    d_lines = ["# gw2-ach-defs 1\n", f"# build {build_id}\n"]
+    for row in sorted(defs):
+        d_lines.append(
+            f"d\t{row[0]}\t{row[1]}\t{row[2]}\t{row[3]}\t{row[4]}\t"
+            f"{row[5]}\t{row[6]}\t{row[7]}\t{row[8]}\n"
+        )
+    write_ach_igh(
+        path,
+        build_id,
+        "".join(g_lines),
+        "".join(c_lines),
+        "".join(d_lines),
+    )
+    print(
+        f"ach-groups={len(groups)} ach-cats={len(cats)} ach-defs={len(defs)}",
+        file=sys.stderr,
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("-o", "--out-dir", default=".", type=Path)
@@ -475,6 +520,16 @@ def main() -> int:
         default=None,
         help="Keep icons/cef fields from an existing gw2-helper-catalog.manifest",
     )
+    ap.add_argument(
+        "--achievements-only",
+        action="store_true",
+        help="Write gw2-helper-achievements.igh only (skip items/recipes crawl)",
+    )
+    ap.add_argument(
+        "--recipes-only",
+        action="store_true",
+        help="Write gw2-helper-recipes.igh only (skip items/names crawl)",
+    )
     args = ap.parse_args()
     out: Path = args.out_dir
     out.mkdir(parents=True, exist_ok=True)
@@ -482,6 +537,34 @@ def main() -> int:
     build = get("/v2/build")
     build_id = str(build.get("id") if isinstance(build, dict) else build)
     print(f"build {build_id}", file=sys.stderr)
+
+    if args.achievements_only:
+        print("/v2/achievements…", file=sys.stderr)
+        _names, ach_defs = fetch_achievements()
+        print("achievement groups…", file=sys.stderr)
+        ach_groups = fetch_ach_groups()
+        print("achievement categories…", file=sys.stderr)
+        ach_cats = fetch_ach_categories()
+        pack_ach_tsv(
+            out / "gw2-helper-achievements.igh",
+            build_id,
+            ach_defs,
+            ach_groups,
+            ach_cats,
+        )
+        return 0
+
+    if args.recipes_only:
+        print("recipes…", file=sys.stderr)
+        recipes = fetch_recipes()
+        rec_lines = ["# gw2-recipes 1\n", f"# build {build_id}\n"]
+        for row in sorted(recipes):
+            rec_lines.append(
+                f"r\t{row[0]}\t{row[1]}\t{row[2]}\t{row[3]}\t{row[4]}\t{row[5]}\n"
+            )
+        write_recipes_igh(out / "gw2-helper-recipes.igh", build_id, "".join(rec_lines))
+        print(f"recipes={len(recipes)}", file=sys.stderr)
+        return 0
 
     NAME_PACKS = [
         ("c", "/v2/currencies"),
@@ -521,6 +604,13 @@ def main() -> int:
     ach_groups = fetch_ach_groups()
     print("achievement categories…", file=sys.stderr)
     ach_cats = fetch_ach_categories()
+    pack_ach_tsv(
+        out / "gw2-helper-achievements.igh",
+        build_id,
+        ach_defs,
+        ach_groups,
+        ach_cats,
+    )
 
     name_lines = ["# gw2-helper-catalog 1\n", f"# build {build_id}\n"]
     for kind, _path in NAME_PACKS + [("y", "/v2/legendaryarmory")]:
@@ -532,28 +622,8 @@ def main() -> int:
 
     names_text = "".join(name_lines)
     rec_text = "".join(rec_lines)
+    write_recipes_igh(out / "gw2-helper-recipes.igh", build_id, rec_text)
     write_igh(out / "gw2-helper-catalog.igh", build_id, names_text, rec_text)
-
-    g_lines = ["# gw2-ach-groups 1\n", f"# build {build_id}\n"]
-    for gid, order, name, cats in sorted(ach_groups, key=lambda r: (r[1], r[0])):
-        g_lines.append(f"g\t{gid}\t{order}\t{name}\t{','.join(str(x) for x in cats)}\n")
-    c_lines = ["# gw2-ach-categories 1\n", f"# build {build_id}\n"]
-    for cid, order, name, aids in sorted(ach_cats):
-        c_lines.append(
-            f"c\t{cid}\t{order}\t{name}\t{','.join(str(x) for x in aids)}\n"
-        )
-    d_lines = ["# gw2-ach-defs 1\n", f"# build {build_id}\n"]
-    for row in sorted(ach_defs):
-        d_lines.append(
-            f"d\t{row[0]}\t{row[1]}\t{row[2]}\t{row[3]}\t{row[4]}\t{row[5]}\t{row[6]}\t{row[7]}\t{row[8]}\n"
-        )
-    write_ach_igh(
-        out / "gw2-helper-achievements.igh",
-        build_id,
-        "".join(g_lines),
-        "".join(c_lines),
-        "".join(d_lines),
-    )
 
     man = write_manifest(
         out / "gw2-helper-catalog.manifest",
@@ -562,10 +632,7 @@ def main() -> int:
     )
     print(f"wrote {out / 'gw2-helper-catalog.manifest'} catalog={man.get('catalog', '')}")
     bits = " ".join(f"{k}={len(by_kind.get(k, []))}" for k, _ in NAME_PACKS + [("y", "")])
-    print(
-        f"names {bits}; recipes={len(recipes)}; "
-        f"ach-groups={len(ach_groups)} ach-cats={len(ach_cats)} ach-defs={len(ach_defs)}"
-    )
+    print(f"names {bits}; recipes={len(recipes)}")
     return 0
 
 

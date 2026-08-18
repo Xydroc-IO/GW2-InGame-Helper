@@ -39,13 +39,15 @@ achievement, and icon packs.
 - **Catalog packs:** Stash names/icons and station recipes download from GitHub
   pre-release **GW2 Helper Catalog** (tag `gw2-helper-catalog`). Packs are IGH1
   (not zip): `gw2-helper-catalog.igh` (raw names + recipes, ~8MB, not gzip
-  members), `gw2-helper-achievements.igh` (groups / categories / defs so the
-  Achievements pad does not crawl the public API on open), and
-  `gw2-helper-icons.igh` (~22k unique ArenaNet render PNGs). One tiny
+  members), `gw2-helper-recipes.igh` (~700KB station recipes so Crafting does
+  not wait on the full names pack), `gw2-helper-achievements.igh` (groups /
+  categories / defs so the Achievements pad does not crawl the public API on
+  open), and `gw2-helper-icons.igh` (~22k unique ArenaNet render PNGs). One tiny
   `gw2-helper-catalog.manifest` is the freshness check (`catalog` / `icons` / `cef`)
   so the DLL can skip re-downloading. Missing ids still fall back to the API /
-  CDN. Account achievement progress still uses `/v2/account/achievements`. The
-  CEF runtime zip lives on that same tag, not on each DLL release.
+  CDN. Account achievement progress still uses `/v2/account/achievements`. Known
+  recipes still use the account API. The CEF runtime zip lives on that same tag,
+  not on each DLL release.
 - **API speed:** API Check is five ArenaNet health probes (not ~45, not wiki/
   GitHub/killproof). Live pages show the last good HTML instantly and refresh
   in the background. Account stash / vault prefetch after helper open or API
@@ -64,8 +66,9 @@ achievement, and icon packs.
   per pane instead of nested table+child wheels.
 - **Account Progress:** Legendary Armory is grouped like the Ledger (type chips,
   generation chips, collapsible Weapon/Armor folds) instead of one 200-row dump.
-- **Unlocks:** Dyes draw cloth RGB swatches from the catalog; minis/finishers/…
-  use catalog or public API icon URLs. Titles stay name-only (no item-atlas mixup).
+- **Unlocks:** Dyes are a hue-grouped swatch grid; skins fold by armor/weapon/slot;
+  minis and the rest use lettered icon tiles. Hover a tile for the name. Cloth RGB
+  and wardrobe icon URLs (not item-atlas ids). Titles stay name-only.
 - **Stash:** Materials storage waits longer for `/v2/account/materials`, keeps
   the fold open while filtering, and no longer looks empty when the bag is loaded.
 - **Stamps:** Helper `2244` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `82` · raid food `9` · ui-chrome `uc36`
