@@ -121,6 +121,9 @@ namespace LogManagerDetail
 		std::string profession;
 		int logs = 0;
 		int success = 0;
+		long long dpsSum = 0;
+		int dpsN = 0;
+		time_t lastTime = 0;
 	};
 
 	struct GuildAgg
@@ -129,6 +132,7 @@ namespace LogManagerDetail
 		std::string label;
 		int logs = 0;
 		int players = 0;
+		int success = 0;
 	};
 
 	struct FastestKill
@@ -137,6 +141,36 @@ namespace LogManagerDetail
 		long long durationMs = 0;
 		std::string fileName;
 		std::string pathUtf8;
+		std::string mode;
+		int compDps = 0;
+		time_t encounterTime = 0;
+	};
+
+	struct EncStat
+	{
+		std::string encounter;
+		int attempts = 0;
+		int kills = 0;
+		int fails = 0;
+		long long bestKillMs = 0;
+		long long killDurSum = 0;
+		int killDurN = 0;
+		int bestSquadDps = 0;
+		time_t lastTime = 0;
+		std::string latestPath;
+		std::string bestPath;
+	};
+
+	enum class SideTab : int
+	{
+		Detail = 0,
+		Players,
+		Stats,
+		KillProof,
+		Guilds,
+		Fastest,
+		Setup,
+		Count
 	};
 
 	extern std::mutex gMu;
@@ -181,7 +215,10 @@ namespace LogManagerDetail
 	extern int gDaysCombo;
 	extern int gSelected;
 	extern bool gFocusSetupTab;
-	extern int gSideTab; /* Detail...Setup side rail */
+	extern int gSideTab; /* SideTab */
+	extern int gRosterScope; /* 0 this run, 1 all filtered */
+	extern bool gUploadedOnly;
+	extern bool gParsedOnly;
 	extern float gLogListFrac;
 
 	extern std::vector<std::string> gUploadQueue;
@@ -205,8 +242,13 @@ namespace LogManagerDetail
 	time_t FileTimeToUnix(const FILETIME& ft);
 	std::string FmtDuration(long long ms);
 	std::string FmtTime(time_t t);
+	std::string FmtPct(int num, int den);
 	bool ContainsI(const std::string& hay, const char* needle);
+	bool LogMatchesSearch(const LogEntry& e, const char* q);
 	bool CopyText(const char* text);
+	void SelectLogByPath(const std::string& pathUtf8);
+	void SelectLogAndShowDetail(const std::string& pathUtf8);
+	void SetSearch(const char* q);
 	const char* ResultLabel(int r);
 	void OpenFolderFor(const std::wstring& path);
 
@@ -232,6 +274,8 @@ namespace LogManagerDetail
 	void BuildPlayerAggs(const std::vector<const LogEntry*>& filtered, std::vector<PlayerAgg>& out);
 	void BuildGuildAggs(const std::vector<const LogEntry*>& filtered, std::vector<GuildAgg>& out);
 	void BuildFastest(const std::vector<const LogEntry*>& filtered, std::vector<FastestKill>& out);
+	void BuildEncStats(const std::vector<const LogEntry*>& filtered, std::vector<EncStat>& out);
+	const EncStat* FindEncStat(const std::vector<EncStat>& stats, const std::string& encounter);
 
 	/* Pad orchestration helpers */
 	void SyncDraw();
@@ -242,10 +286,13 @@ namespace LogManagerDetail
 	void DrawToolbar(const std::vector<const LogEntry*>& filtered, bool hasDotNet);
 	void DrawFilterPane();
 	void DrawLogTable(const std::vector<const LogEntry*>& filtered);
-	void DrawDetailTab();
+	void DrawDetailTab(const std::vector<const LogEntry*>& filtered);
 	void DrawPlayersTab(const std::vector<const LogEntry*>& filtered);
+	void DrawStatsTab(const std::vector<const LogEntry*>& filtered);
 	void DrawKillProofTab();
 	void DrawGuildsTab(const std::vector<const LogEntry*>& filtered);
 	void DrawFastestTab(const std::vector<const LogEntry*>& filtered);
 	void DrawSetupTab(bool hasDotNet);
+	void DrawRosterScopeToggle();
+	void DrawLogRowPopup(const LogEntry* e);
 }

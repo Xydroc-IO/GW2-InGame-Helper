@@ -259,6 +259,7 @@ DLL_SRC = \
 	src/logs/logmanager/LogManagerUi.cpp \
 	src/logs/logmanager/LogManagerUiDetail.cpp \
 	src/logs/logmanager/LogManagerUiTabs.cpp \
+	src/logs/logmanager/LogManagerUiStats.cpp \
 	src/logs/eiruntime/EiRuntime.cpp \
 	src/logs/eiruntime/EiRuntimeFs.cpp \
 	src/logs/eiruntime/EiRuntimeHttp.cpp \

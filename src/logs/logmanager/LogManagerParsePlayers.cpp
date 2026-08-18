@@ -86,6 +86,10 @@ void ParsePlayersFromJson(const char* json, std::vector<PlayerInfo>& out)
 		readF("swiftness", pi.swiftness);
 		readF("vigor", pi.vigor);
 		FillPlayerCombatStats(obj.c_str(), pi);
+		if (pi.downCount < 0 && JsonLongAfterKey(obj.c_str(), "downCount", flat))
+			pi.downCount = static_cast<int>(flat);
+		if (pi.deadCount < 0 && JsonLongAfterKey(obj.c_str(), "deadCount", flat))
+			pi.deadCount = static_cast<int>(flat);
 		if (!pi.name.empty() || !pi.account.empty())
 			out.push_back(std::move(pi));
 		p = end;

@@ -62,6 +62,8 @@ int main(int argc, char** argv)
 		Expect(players[0].guildTag == "ABC", "player0 guildTag from name");
 		Expect(players[0].account == "Alice.1234", "player0 account");
 		Expect(players[0].dps == 12000, "player0 dps");
+		Expect(players[0].downCount == 1, "player0 downCount");
+		Expect(players[0].deadCount == 0, "player0 deadCount");
 	}
 
 	const std::string dps = ReadFile(dpsPath);

@@ -73,7 +73,10 @@ namespace LogManagerDetail
 	int gDaysCombo = 0; /* index into kDaysMap */
 	int gSelected = -1;
 	bool gFocusSetupTab = false;
-	int gSideTab = 0;
+	int gSideTab = static_cast<int>(SideTab::Detail);
+	int gRosterScope = 0; /* 0 this run, 1 all filtered */
+	bool gUploadedOnly = false;
+	bool gParsedOnly = false;
 	float gLogListFrac = kLogListFracDef; /* synced from G::LogManagerListFrac */
 
 	std::vector<std::string> gUploadQueue; /* pathUtf8 */
@@ -231,6 +234,14 @@ namespace LogManagerDetail
 		return buf;
 	}
 
+	std::string FmtPct(int num, int den)
+	{
+		if (den <= 0)
+			return "-";
+		char buf[16];
+		std::snprintf(buf, sizeof(buf), "%d%%", (num * 100) / den);
+		return buf;
+	}
 
 	bool ContainsI(const std::string& hay, const char* needle)
 	{
@@ -242,6 +253,49 @@ namespace LogManagerDetail
 		std::transform(h.begin(), h.end(), h.begin(), lower);
 		std::transform(n.begin(), n.end(), n.begin(), lower);
 		return h.find(n) != std::string::npos;
+	}
+
+	bool LogMatchesSearch(const LogEntry& e, const char* q)
+	{
+		if (!q || !q[0])
+			return true;
+		if (ContainsI(e.fileName, q) || ContainsI(e.encounter, q) || ContainsI(e.pathUtf8, q) ||
+			ContainsI(e.dpsReportUrl, q) || ContainsI(e.mode, q))
+			return true;
+		for (const PlayerInfo& p : e.players)
+		{
+			if (ContainsI(p.account, q) || ContainsI(p.name, q) ||
+				ContainsI(p.profession, q) || ContainsI(p.guildTag, q))
+				return true;
+		}
+		return false;
+	}
+
+	void SelectLogByPath(const std::string& pathUtf8)
+	{
+		if (pathUtf8.empty())
+			return;
+		for (int j = 0; j < static_cast<int>(gDraw.size()); ++j)
+		{
+			if (gDraw[static_cast<size_t>(j)].pathUtf8 == pathUtf8)
+			{
+				gSelected = j;
+				return;
+			}
+		}
+	}
+
+	void SelectLogAndShowDetail(const std::string& pathUtf8)
+	{
+		SelectLogByPath(pathUtf8);
+		gSideTab = static_cast<int>(SideTab::Detail);
+	}
+
+	void SetSearch(const char* q)
+	{
+		if (!q)
+			q = "";
+		std::snprintf(gSearch, sizeof(gSearch), "%s", q);
 	}
 
 	bool CopyText(const char* text)
@@ -337,8 +391,7 @@ namespace LogManagerDetail
 		const time_t cut = daysCut > 0 ? now - static_cast<time_t>(daysCut) * 86400 : 0;
 		for (const LogEntry& e : gDraw)
 		{
-			if (gSearch[0] && !ContainsI(e.fileName, gSearch) && !ContainsI(e.encounter, gSearch) &&
-				!ContainsI(e.pathUtf8, gSearch))
+			if (gSearch[0] && !LogMatchesSearch(e, gSearch))
 				continue;
 			const auto rf = static_cast<ResultFilter>(gResultFilter);
 			if (rf == ResultFilter::Success && e.result != 1)
@@ -353,6 +406,10 @@ namespace LogManagerDetail
 			if (mf == ModeFilter::CM && e.mode != "CM")
 				continue;
 			if (mf == ModeFilter::LCM && e.mode != "LCM")
+				continue;
+			if (gUploadedOnly && e.dpsReportUrl.empty())
+				continue;
+			if (gParsedOnly && e.state == ParseState::Pending && e.encounter.empty() && e.result < 0)
 				continue;
 			if (cut > 0)
 			{

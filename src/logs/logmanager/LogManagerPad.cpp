@@ -160,7 +160,7 @@ bool LogManagerPad::Render()
 	{
 		const float g = PadNav::CheckboxWidth("Group by encounter") + filterPad;
 		if (g > filterNeed) filterNeed = g;
-		const float s = ImGui::CalcTextSize("Search file or encounter...").x +
+		const float s = ImGui::CalcTextSize("Search file, encounter, or player...").x +
 			ImGui::GetStyle().FramePadding.x * 2.f + filterPad;
 		if (s > filterNeed) filterNeed = s;
 	}
@@ -242,33 +242,36 @@ bool LogManagerPad::Render()
 	}
 
 	ImGui::SameLine(0.f, kPaneGap);
-	ImGui::BeginChild("###gw2igh_lm_side", ImVec2(0.f, bodyH), true);
+	ImGui::BeginChild("###gw2igh_lm_side", ImVec2(0.f, bodyH), true, PadNav::kLockScroll);
 	if (gFocusSetupTab)
 	{
-		gSideTab = 5;
+		gSideTab = static_cast<int>(SideTab::Setup);
 		gFocusSetupTab = false;
 	}
 	static const char* kTabs[] = {
-		"Detail", "Players", "KillProof", "Guilds", "Fastest", "Setup"
+		"Detail", "Players", "Stats", "KillProof", "Guilds", "Fastest", "Setup"
 	};
 	static const int kTabIcons[] = {
 		static_cast<int>(Gw2Ui::Icon::LmDetail),
 		static_cast<int>(Gw2Ui::Icon::LmPlayers),
+		static_cast<int>(Gw2Ui::Icon::LogsSwords),
 		static_cast<int>(Gw2Ui::Icon::LmKillProof),
 		static_cast<int>(Gw2Ui::Icon::LmGuilds),
 		static_cast<int>(Gw2Ui::Icon::LmFastest),
 		static_cast<int>(Gw2Ui::Icon::SettingsGear),
 	};
-	gSideTab = PadNav::DrawTopBar("###gw2igh_lm_nav", kTabs, 6, gSideTab, kTabIcons);
+	gSideTab = PadNav::DrawTopBar("###gw2igh_lm_nav", kTabs, static_cast<int>(SideTab::Count),
+		gSideTab, kTabIcons);
 	ImGui::BeginChild("###gw2igh_lm_side_body", ImVec2(0.f, 0.f), false);
 	switch (gSideTab)
 	{
-	case 0: DrawDetailTab(); break;
-	case 1: DrawPlayersTab(filtered); break;
-	case 2: DrawKillProofTab(); break;
-	case 3: DrawGuildsTab(filtered); break;
-	case 4: DrawFastestTab(filtered); break;
-	case 5: DrawSetupTab(hasDotNet); break;
+	case static_cast<int>(SideTab::Detail): DrawDetailTab(filtered); break;
+	case static_cast<int>(SideTab::Players): DrawPlayersTab(filtered); break;
+	case static_cast<int>(SideTab::Stats): DrawStatsTab(filtered); break;
+	case static_cast<int>(SideTab::KillProof): DrawKillProofTab(); break;
+	case static_cast<int>(SideTab::Guilds): DrawGuildsTab(filtered); break;
+	case static_cast<int>(SideTab::Fastest): DrawFastestTab(filtered); break;
+	case static_cast<int>(SideTab::Setup): DrawSetupTab(hasDotNet); break;
 	default: break;
 	}
 	ImGui::EndChild();

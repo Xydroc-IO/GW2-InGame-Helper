@@ -296,6 +296,12 @@ namespace LogManagerDetail
 				writeF("regeneration", p.regeneration);
 				writeF("swiftness", p.swiftness);
 				writeF("vigor", p.vigor);
+				out += ",\"downCount\":";
+				std::snprintf(num, sizeof(num), "%d", p.downCount);
+				out += num;
+				out += ",\"deadCount\":";
+				std::snprintf(num, sizeof(num), "%d", p.deadCount);
+				out += num;
 				out += '}';
 			}
 			out += "]}";

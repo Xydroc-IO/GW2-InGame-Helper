@@ -75,11 +75,17 @@ namespace LogManagerDetail
 			if (it == cache.end())
 				continue;
 			const LogEntry& c = it->second;
-			if (c.fileSize.QuadPart == e.fileSize.QuadPart &&
-				c.mtime.dwLowDateTime == e.mtime.dwLowDateTime &&
-				c.mtime.dwHighDateTime == e.mtime.dwHighDateTime &&
-				(c.state == ParseState::Parsed || c.state == ParseState::Uploaded ||
-					c.state == ParseState::Failed))
+			const bool sizeOk = c.fileSize.QuadPart == e.fileSize.QuadPart;
+			const bool timeOk = c.mtime.dwLowDateTime == e.mtime.dwLowDateTime &&
+				c.mtime.dwHighDateTime == e.mtime.dwHighDateTime;
+			/* Wine FILETIME can drift; keep parsed rows when the file size still matches. */
+			if (!sizeOk)
+				continue;
+			if (!timeOk && c.state != ParseState::Parsed && c.state != ParseState::Uploaded &&
+				c.state != ParseState::Failed)
+				continue;
+			if (c.state == ParseState::Parsed || c.state == ParseState::Uploaded ||
+				c.state == ParseState::Failed)
 			{
 				e.state = c.state;
 				e.encounter = c.encounter;
@@ -102,10 +108,18 @@ namespace LogManagerDetail
 			return a.fileName > b.fileName;
 		});
 
+		bool anyParsed = false;
+		for (const LogEntry& e : found)
+		{
+			if (e.state == ParseState::Parsed || e.state == ParseState::Uploaded)
+				anyParsed = true;
+		}
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			gLogs = std::move(found);
-			SaveCacheLocked();
+			/* Do not clobber a good log-index.json with a pending-only scan. */
+			if (anyParsed || cache.empty())
+				SaveCacheLocked();
 			gGen.fetch_add(1);
 		}
 
@@ -148,14 +162,37 @@ namespace LogManagerDetail
 	void MaybeAutoParseAfterScan(bool hasDotNet)
 	{
 		static bool sWasScanBusy = false;
+		static bool sEiWasReady = false;
 		const bool scanning = gScanBusy.load();
 		const bool justFinished = sWasScanBusy && !scanning;
 		sWasScanBusy = scanning;
-		if (!justFinished || !G::LogManagerAutoParse)
+
+		if (!G::LogManagerAutoParse || scanning || gParseBusy.load() || gEiInstallBusy.load())
 			return;
-		if (!hasDotNet || gParseBusy.load() || gEiInstallBusy.load())
+		if (!hasDotNet)
 			return;
+		ApplyManagedCliPath();
 		if (!G::EliteInsightsPath[0] || !PathExistsUtf8(G::EliteInsightsPath))
+			return;
+
+		const bool eiJustReady = !sEiWasReady;
+		sEiWasReady = true;
+
+		bool pending = justFinished;
+		if (!pending && eiJustReady)
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			for (const LogEntry& e : gLogs)
+			{
+				if (e.state == ParseState::Pending || e.encounter.empty() ||
+					e.result < 0 || e.durationMs <= 0)
+				{
+					pending = true;
+					break;
+				}
+			}
+		}
+		if (!pending)
 			return;
 		BeginParsePending();
 	}

@@ -98,6 +98,29 @@ namespace LogManagerDetail
 			OpenConfiguredLogFolder();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Open the ArcDPS combat-log folder in Explorer.");
+		ImGui::SameLine(0.f, 4.f);
+		if (ImGui::Button("Copy links###gw2igh_lm_copylinks"))
+		{
+			std::string all;
+			int n = 0;
+			for (const LogEntry* e : filtered)
+			{
+				if (!e || e->dpsReportUrl.empty())
+					continue;
+				if (!all.empty())
+					all += '\n';
+				all += e->dpsReportUrl;
+				++n;
+			}
+			if (n == 0)
+				std::snprintf(gStatus, sizeof(gStatus), "No dps.report links in the filtered list.");
+			else if (CopyText(all.c_str()))
+				std::snprintf(gStatus, sizeof(gStatus), "Copied %d dps.report link%s.", n, n == 1 ? "" : "s");
+			else
+				std::snprintf(gStatus, sizeof(gStatus), "Clipboard copy failed.");
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Copy dps.report permalinks for the filtered logs.");
 
 		if (!hasDotNet)
 		{
@@ -112,8 +135,18 @@ namespace LogManagerDetail
 		}
 
 		ImGui::SameLine(0.f, 10.f);
-		ImGui::TextColored(HelperTheme::Muted, "%d shown / %d",
-			static_cast<int>(filtered.size()), static_cast<int>(gDraw.size()));
+		int kills = 0, uploaded = 0;
+		for (const LogEntry* e : filtered)
+		{
+			if (!e)
+				continue;
+			if (e->result == 1)
+				++kills;
+			if (!e->dpsReportUrl.empty())
+				++uploaded;
+		}
+		ImGui::TextColored(HelperTheme::Muted, "%d shown / %d  ·  %d kills  ·  %d uploaded",
+			static_cast<int>(filtered.size()), static_cast<int>(gDraw.size()), kills, uploaded);
 		ImGui::SameLine(0.f, 10.f);
 		DrawBusyOrStatus();
 	}
@@ -123,10 +156,10 @@ namespace LogManagerDetail
 		ImGui::TextUnformatted("Filters");
 		ImGui::Separator();
 		ImGui::SetNextItemWidth(-1.f);
-		ImGui::InputTextWithHint("###gw2igh_lm_search", "Search file or encounter...",
+		ImGui::InputTextWithHint("###gw2igh_lm_search", "Search file, encounter, or player...",
 			gSearch, sizeof(gSearch));
 		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-			ImGui::SetTooltip("Match log file name or encounter name.");
+			ImGui::SetTooltip("Match file, encounter, account, character, profession, or guild tag.");
 		ImGui::Spacing();
 		ImGui::TextColored(HelperTheme::Muted, "Result");
 		ImGui::RadioButton("All###gw2igh_lm_res0", &gResultFilter, 0);
@@ -172,6 +205,12 @@ namespace LogManagerDetail
 			Settings::SetDirty();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("After Rescan / open, parse pending logs with Elite Insights automatically.");
+		wrapCheck("###gw2igh_lm_uploaded", "Uploaded only", &gUploadedOnly);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Only logs that already have a dps.report permalink.");
+		wrapCheck("###gw2igh_lm_parsed", "Parsed only", &gParsedOnly);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Hide logs that have not been parsed yet.");
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
 			G::LogManagerGroupByEncounter
@@ -185,19 +224,35 @@ namespace LogManagerDetail
 			gResultFilter = static_cast<int>(ResultFilter::All);
 			gModeFilter = static_cast<int>(ModeFilter::All);
 			gDaysCombo = 0;
+			gUploadedOnly = false;
+			gParsedOnly = false;
 		}
 	}
 
-	void SelectLogByPath(const std::string& pathUtf8)
+	void DrawLogRowPopup(const LogEntry* e)
 	{
-		for (int j = 0; j < static_cast<int>(gDraw.size()); ++j)
+		if (!e)
+			return;
+		if (!ImGui::BeginPopupContextItem("###gw2igh_lm_row"))
+			return;
+		if (ImGui::MenuItem("Parse this"))
+			BeginParseSelected(e->pathUtf8);
+		if (ImGui::MenuItem("Upload this"))
+			BeginUpload({e->pathUtf8});
+		if (ImGui::MenuItem("Open folder"))
+			OpenFolderFor(e->pathW);
+		if (!e->dpsReportUrl.empty())
 		{
-			if (gDraw[static_cast<size_t>(j)].pathUtf8 == pathUtf8)
-			{
-				gSelected = j;
-				break;
-			}
+			if (ImGui::MenuItem("Open report"))
+				ShellExecuteA(nullptr, "open", e->dpsReportUrl.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+			if (ImGui::MenuItem("Copy report link"))
+				CopyText(e->dpsReportUrl.c_str());
 		}
+		if (ImGui::MenuItem("Copy path"))
+			CopyText(e->pathUtf8.c_str());
+		if (ImGui::MenuItem("Copy file name"))
+			CopyText(e->fileName.c_str());
+		ImGui::EndPopup();
 	}
 
 	void DrawLogEntryRow(const LogEntry* e, bool showEncounter)
@@ -213,6 +268,7 @@ namespace LogManagerDetail
 		std::snprintf(label, sizeof(label), "%s", FmtTime(e->encounterTime).c_str());
 		if (ImGui::Selectable(label, sel, ImGuiSelectableFlags_SpanAllColumns))
 			SelectLogByPath(e->pathUtf8);
+		DrawLogRowPopup(e);
 		if (showEncounter)
 		{
 			ImGui::TableNextColumn();
@@ -306,7 +362,6 @@ namespace LogManagerDetail
 			return a->label < b->label;
 		});
 
-		ImGui::BeginChild("###gw2igh_lm_groupscroll", ImVec2(-FLT_MIN, -FLT_MIN), false);
 		const bool forceOpen = gExpandGroupsOnce;
 		for (EncGroup* g : groups)
 		{
@@ -315,14 +370,16 @@ namespace LogManagerDetail
 			});
 
 			const size_t idHash = std::hash<std::string>{}(g->key);
-			char header[288];
+			char header[320];
+			const int n = static_cast<int>(g->logs.size());
+			const std::string pct = FmtPct(g->kills, n);
 			if (g->bestKillMs > 0)
 			{
 				std::snprintf(header, sizeof(header),
-					"%s  (%d) | %d kill%s | best %s | last %s###gw2igh_enc_%zu",
-					g->label.c_str(),
-					static_cast<int>(g->logs.size()),
+					"%s  (%d) | %d kill%s (%s) | best %s | last %s###gw2igh_enc_%zu",
+					g->label.c_str(), n,
 					g->kills, g->kills == 1 ? "" : "s",
+					pct.c_str(),
 					FmtDuration(g->bestKillMs).c_str(),
 					FmtTime(g->lastTime).c_str(),
 					idHash);
@@ -368,7 +425,6 @@ namespace LogManagerDetail
 			}
 		}
 		gExpandGroupsOnce = false;
-		ImGui::EndChild();
 	}
 
 	void DrawLogTable(const std::vector<const LogEntry*>& filtered)
@@ -385,11 +441,9 @@ namespace LogManagerDetail
 			return;
 		}
 
-		const ImVec2 tableSize(-FLT_MIN, -FLT_MIN);
 		if (ImGui::BeginTable("###gw2igh_lm_table", 7,
-				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
-					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
-				tableSize))
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp))
 		{
 			ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthStretch, 0.22f);
 			ImGui::TableSetupColumn("Encounter", ImGuiTableColumnFlags_WidthStretch, 0.36f);

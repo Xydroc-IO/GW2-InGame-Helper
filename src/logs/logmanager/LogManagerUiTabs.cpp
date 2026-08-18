@@ -110,8 +110,8 @@ namespace LogManagerDetail
 			kpCol = bossLabel;
 
 		if (ImGui::BeginTable("###gw2igh_lm_kptab", 8,
-				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
-					ImGuiTableFlags_ScrollX | ImGuiTableFlags_Resizable |
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+					ImGuiTableFlags_Resizable |
 					ImGuiTableFlags_SizingStretchProp,
 				ImVec2(-FLT_MIN, -FLT_MIN)))
 		{
@@ -200,12 +200,60 @@ namespace LogManagerDetail
 		}
 	}
 
-	void DrawGuildsTab(const std::vector<const LogEntry*>& /*filtered*/)
+	void DrawGuildsTab(const std::vector<const LogEntry*>& filtered)
 	{
+		DrawRosterScopeToggle();
+		ImGui::Separator();
+
+		if (gRosterScope == 1)
+		{
+			std::vector<GuildAgg> aggs;
+			BuildGuildAggs(filtered, aggs);
+			ImGui::TextColored(HelperTheme::Muted,
+				"%d guilds across %d filtered logs  (click a tag to search)",
+				static_cast<int>(aggs.size()), static_cast<int>(filtered.size()));
+			if (aggs.empty())
+			{
+				ImGui::TextWrapped("Parse or Load DPS/boons so guild tags exist.");
+				return;
+			}
+			if (ImGui::BeginTable("###gw2igh_lm_gaggs_all", 5,
+					ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+						ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+					ImVec2(-FLT_MIN, -FLT_MIN)))
+			{
+				ImGui::TableSetupColumn("Guild", ImGuiTableColumnFlags_WidthStretch, 2.0f);
+				ImGui::TableSetupColumn("Logs", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+				ImGui::TableSetupColumn("Kills", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+				ImGui::TableSetupColumn("%", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+				ImGui::TableSetupColumn("Players", ImGuiTableColumnFlags_WidthStretch, 0.7f);
+				ImGui::TableHeadersRow();
+				for (const GuildAgg& g : aggs)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::PushID(g.key.c_str());
+					if (ImGui::Selectable(g.label.c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
+						SetSearch(g.label.c_str());
+					ImGui::PopID();
+					ImGui::TableNextColumn();
+					ImGui::Text("%d", g.logs);
+					ImGui::TableNextColumn();
+					ImGui::Text("%d", g.success);
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(FmtPct(g.success, g.logs).c_str());
+					ImGui::TableNextColumn();
+					ImGui::Text("%d", g.players);
+				}
+				ImGui::EndTable();
+			}
+			return;
+		}
+
 		const LogEntry* sel = SelectedDrawEntry();
 		if (!sel)
 		{
-			ImGui::TextWrapped("Select a log to see guilds in that run.");
+			ImGui::TextWrapped("Select a log to see guilds in that run, or switch to All filtered.");
 			return;
 		}
 
@@ -257,7 +305,7 @@ namespace LogManagerDetail
 		}
 
 		if (ImGui::BeginTable("###gw2igh_lm_gaggs", 3,
-				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
 					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
 				ImVec2(-FLT_MIN, -FLT_MIN)))
 		{
@@ -287,21 +335,40 @@ namespace LogManagerDetail
 		std::vector<FastestKill> kills;
 		BuildFastest(filtered, kills);
 		ImGui::TextColored(HelperTheme::Muted,
-			"Best kill time per encounter (filtered)");
-		if (ImGui::BeginTable("###gw2igh_lm_fast", 3,
-				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+			"Best kill time per encounter (filtered) — click a row to open that log");
+		if (ImGui::BeginTable("###gw2igh_lm_fast", 6,
+				ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+					ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp,
+				ImVec2(-FLT_MIN, -FLT_MIN)))
 		{
-			ImGui::TableSetupColumn("Encounter");
-			ImGui::TableSetupColumn("Time");
-			ImGui::TableSetupColumn("File");
+			ImGui::TableSetupColumn("Encounter", ImGuiTableColumnFlags_WidthStretch, 1.6f);
+			ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+			ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+			ImGui::TableSetupColumn("Squad", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+			ImGui::TableSetupColumn("When", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+			ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthStretch, 1.4f);
 			ImGui::TableHeadersRow();
 			for (const FastestKill& k : kills)
 			{
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(k.encounter.c_str());
+				ImGui::PushID(k.pathUtf8.c_str());
+				const bool sel = (gSelected >= 0 && gSelected < static_cast<int>(gDraw.size()) &&
+					gDraw[static_cast<size_t>(gSelected)].pathUtf8 == k.pathUtf8);
+				if (ImGui::Selectable(k.encounter.c_str(), sel, ImGuiSelectableFlags_SpanAllColumns))
+					SelectLogAndShowDetail(k.pathUtf8);
+				ImGui::PopID();
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted(FmtDuration(k.durationMs).c_str());
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(k.mode.empty() ? "N" : k.mode.c_str());
+				ImGui::TableNextColumn();
+				if (k.compDps > 0)
+					ImGui::Text("%d", k.compDps);
+				else
+					ImGui::TextUnformatted("-");
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(FmtTime(k.encounterTime).c_str());
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted(k.fileName.c_str());
 			}

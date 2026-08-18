@@ -270,6 +270,17 @@ void FillPlayerCombatStats(const char* playerObj, PlayerInfo& pi)
 	setBuff(pi.regeneration, BuffUptimePercent(playerObj, kBuffRegen));
 	setBuff(pi.swiftness, BuffUptimePercent(playerObj, kBuffSwiftness));
 	setBuff(pi.vigor, BuffUptimePercent(playerObj, kBuffVigor));
+
+	std::string def0;
+	if (ExtractFirstObjectInArrayAfterKey(playerObj, "defenses", def0) ||
+		ExtractFirstObjectInArrayAfterKey(playerObj, "Defenses", def0))
+	{
+		long long v = 0;
+		if (JsonLongAfterKey(def0.c_str(), "downCount", v) || JsonLongAfterKey(def0.c_str(), "DownCount", v))
+			pi.downCount = static_cast<int>(v);
+		if (JsonLongAfterKey(def0.c_str(), "deadCount", v) || JsonLongAfterKey(def0.c_str(), "DeadCount", v))
+			pi.deadCount = static_cast<int>(v);
+	}
 }
 
 bool PlayersHaveDps(const std::vector<PlayerInfo>& players)

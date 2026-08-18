@@ -6,7 +6,8 @@
       "profession": "Elementalist",
       "guildID": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
       "dps": 12000,
-      "group": 1
+      "group": 1,
+      "defenses": [ { "downCount": 1, "deadCount": 0 } ]
     },
     {
       "name": "Bob",

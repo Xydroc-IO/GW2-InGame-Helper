@@ -17,6 +17,8 @@ namespace LogManagerParse
 		int dps = 0;
 		int powerDps = 0;
 		int condiDps = 0;
+		int downCount = -1; /* -1 unknown */
+		int deadCount = -1;
 		/* Full-fight boon uptimes (%), -1 = unknown */
 		float might = -1.f;
 		float fury = -1.f;
