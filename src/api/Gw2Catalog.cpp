@@ -1,5 +1,6 @@
 #include "Gw2CatalogInternal.h"
 
+#include "AddonPaths.h"
 #include "Gw2Http.h"
 
 #include <cstdlib>
@@ -12,46 +13,64 @@ namespace
 	{
 		RemoteManifest remote;
 		auto man = Gw2Http::Get(Gw2Catalog::kManifestUrl, nullptr, 8000);
-		if (man.ok && ParseManifest(man.body, &remote))
-		{
-			WriteAll(ManifestPath(), man.body);
-			std::lock_guard<std::mutex> lock(gMu);
-			if (!remote.catalog.empty())
-				gBuild = remote.catalog;
-			if (!remote.icons.empty())
-				gIconsHash = remote.icons;
-		}
+		if (man.ok)
+			ParseManifest(man.body, &remote);
 		return remote;
 	}
 
 	DWORD WINAPI FetchProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+		AddonPaths::CacheDir();
 		TryApplyLocalIgh();
 
-		const RemoteManifest remote = FetchRemoteManifest();
 		std::string local;
 		bool haveRecipes = false;
+		bool haveNames = false;
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			local = gBuild;
 			haveRecipes = gRecipesOnDisk;
+			auto it = gNames.find('i');
+			haveNames = it != gNames.end() && !it->second.empty();
 		}
-		if (!remote.catalog.empty() && remote.catalog == local && haveRecipes)
+		const RemoteManifest remote = FetchRemoteManifest();
+		const bool havePackFile =
+			GetFileAttributesW(PackCachePath().c_str()) != INVALID_FILE_ATTRIBUTES;
+		/* Never skip the GitHub names pack just because recipes are in memory.
+		   Icons can succeed while catalog.igh was never requested. */
+		if (!remote.catalog.empty() && remote.catalog == local && haveRecipes && haveNames &&
+			havePackFile)
 		{
 			FetchRemoteIcons(remote.icons);
 			gBusy = false;
 			return 0;
 		}
 
-		auto pack = Gw2Http::Get(Gw2Catalog::kPackUrl, nullptr, 60000);
-		if (pack.ok && pack.body.size() >= 64)
+		auto applyPack = [](const std::string& bytes) -> bool {
+			if (bytes.size() < 64)
+				return false;
+			if (!ApplyIghBytes(bytes))
+				return false;
+			WriteAll(PackCachePath(), bytes);
+			return true;
+		};
+
+		bool got = false;
+		auto pack = Gw2Http::Get(Gw2Catalog::kPackUrl, nullptr, 45000);
+		if (pack.ok)
+			got = applyPack(pack.body);
+		if (!got)
 		{
-			WriteAll(PackCachePath(), pack.body);
-			ApplyIghBytes(pack.body);
-			if (!remote.catalog.empty())
-				MergeLocalManifest(remote.catalog.c_str(), nullptr, nullptr);
+			const std::wstring tmp = PackCachePath() + L".tmp";
+			if (Gw2Http::DownloadToFile(Gw2Catalog::kPackUrl, tmp.c_str(), 120000))
+			{
+				got = applyPack(ReadAll(tmp, 32u * 1024u * 1024u));
+				DeleteFileW(tmp.c_str());
+			}
 		}
+		if (got && !remote.catalog.empty())
+			MergeLocalManifest(remote.catalog.c_str(), nullptr, nullptr);
 		FetchRemoteIcons(remote.icons);
 		gBusy = false;
 		return 0;
@@ -71,7 +90,19 @@ void Gw2Catalog::Tick()
 {
 	LoadDisk();
 	const DWORD now = GetTickCount();
-	if (gLastCheckMs != 0 && (now - gLastCheckMs) < 6u * 60u * 60u * 1000u)
+	bool haveNames = false;
+	bool haveRecipes = false;
+	{
+		std::lock_guard<std::mutex> lock(gMu);
+		haveRecipes = gRecipesOnDisk;
+		auto it = gNames.find('i');
+		haveNames = it != gNames.end() && !it->second.empty();
+	}
+	/* Missing names pack: retry soon. Fresh pack: recheck every 6h. */
+	const DWORD waitMs = (haveNames && haveRecipes)
+		? 6u * 60u * 60u * 1000u
+		: 45u * 1000u;
+	if (gLastCheckMs != 0 && (now - gLastCheckMs) < waitMs)
 		return;
 	if (gBusy.exchange(true))
 		return;

@@ -24,6 +24,8 @@ Direct URLs the DLL uses:
 - https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/gw2-helper-catalog/gw2-helper-icons.igh
 - https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/gw2-helper-catalog/cef-runtime-150-windows64.zip
 
+The addon GETs the manifest first. It downloads `gw2-helper-catalog.igh` unless that file is already in `addons/.../cache/`, names and recipes are loaded, and the manifest `catalog` id matches. A matching icons hash must not skip the names pack.
+
 The **GW2 Helper Catalog** Action only clobbers **catalog manifest + names igh**. It must **not** delete or replace the icons pack or the CEF zip. Daily catalog rebuilds merge into the existing manifest so the `icons` / `cef` fields stay. Never `gh release delete gw2-helper-catalog`.
 
 Offline: drop `gw2-helper-catalog.igh` and/or `gw2-helper-icons.igh` next to the DLL or in `addons/GW2-InGame-Helper/`.

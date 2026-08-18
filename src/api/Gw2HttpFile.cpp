@@ -1,7 +1,6 @@
 #include "Gw2Http.h"
 
 #include <string>
-#include <vector>
 
 #include <windows.h>
 #include <winhttp.h>
@@ -66,10 +65,11 @@ bool Gw2Http::DownloadToFile(const char* url, const wchar_t* outPath, int timeou
 	}
 	DWORD redirect = WINHTTP_OPTION_REDIRECT_POLICY_ALWAYS;
 	WinHttpSetOption(req, WINHTTP_OPTION_REDIRECT_POLICY, &redirect, sizeof(redirect));
+	const wchar_t* hdr = L"Accept-Encoding: identity\r\n";
 
 	bool ok = false;
 	HANDLE out = INVALID_HANDLE_VALUE;
-	if (!WinHttpSendRequest(req, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
+	if (!WinHttpSendRequest(req, hdr, static_cast<DWORD>(-1L),
 			WINHTTP_NO_REQUEST_DATA, 0, 0, 0) ||
 		!WinHttpReceiveResponse(req, nullptr))
 		goto done;
@@ -89,15 +89,19 @@ bool Gw2Http::DownloadToFile(const char* url, const wchar_t* outPath, int timeou
 		unsigned long long total = 0;
 		for (;;)
 		{
-			DWORD avail = 0;
-			if (!WinHttpQueryDataAvailable(req, &avail) || avail == 0)
-				break;
-			std::vector<char> buf(avail);
+			char buf[16384];
 			DWORD got = 0;
-			if (!WinHttpReadData(req, buf.data(), avail, &got) || got == 0)
+			if (!WinHttpReadData(req, buf, sizeof(buf), &got))
+			{
+				CloseHandle(out);
+				out = INVALID_HANDLE_VALUE;
+				DeleteFileW(outPath);
+				goto done;
+			}
+			if (got == 0)
 				break;
 			DWORD wr = 0;
-			if (!WriteFile(out, buf.data(), got, &wr, nullptr) || wr != got)
+			if (!WriteFile(out, buf, got, &wr, nullptr) || wr != got)
 			{
 				CloseHandle(out);
 				out = INVALID_HANDLE_VALUE;

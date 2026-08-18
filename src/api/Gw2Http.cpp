@@ -12,14 +12,6 @@
 
 #include "miniz.h"
 
-#ifndef WINHTTP_OPTION_DECOMPRESSION
-#define WINHTTP_OPTION_DECOMPRESSION 118
-#endif
-#ifndef WINHTTP_DECOMPRESSION_FLAG_GZIP
-#define WINHTTP_DECOMPRESSION_FLAG_GZIP 0x00000001
-#define WINHTTP_DECOMPRESSION_FLAG_DEFLATE 0x00000002
-#endif
-
 namespace
 {
 	/* Per-thread session/connection so Live workers can fetch in parallel.
@@ -84,8 +76,16 @@ namespace
 		s.next_in = p;
 		s.avail_in = static_cast<unsigned int>(body.size());
 		int rc = MZ_OK;
+		unsigned spins = 0;
+		size_t lastOut = 0;
 		while (rc == MZ_OK || rc == MZ_BUF_ERROR)
 		{
+			if (++spins > 64u || (rc == MZ_BUF_ERROR && s.total_out == lastOut))
+			{
+				mz_inflateEnd(&s);
+				return false;
+			}
+			lastOut = static_cast<size_t>(s.total_out);
 			if (s.total_out >= out.size())
 				out.resize(out.size() * 2u);
 			s.next_out = reinterpret_cast<unsigned char*>(&out[s.total_out]);
@@ -110,8 +110,8 @@ namespace
 				WINHTTP_NO_PROXY_BYPASS, 0);
 			if (!t.session)
 				return false;
-			DWORD decomp = WINHTTP_DECOMPRESSION_FLAG_GZIP | WINHTTP_DECOMPRESSION_FLAG_DEFLATE;
-			WinHttpSetOption(t.session, WINHTTP_OPTION_DECOMPRESSION, &decomp, sizeof(decomp));
+			/* Do not set WINHTTP_OPTION_DECOMPRESSION. Wine may add Accept-Encoding
+			   without decoding; ArenaNet then returns gzip and every JSON parse fails. */
 		}
 		if (timeoutMs < 400)
 			timeoutMs = 400;
@@ -231,7 +231,8 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 		std::wstring headers;
 		headers += L"Accept: application/json, application/rss+xml, application/xml, text/xml, */*\r\n";
 		headers += L"Accept-Language: en\r\n";
-		headers += L"Accept-Encoding: gzip, deflate\r\n";
+		/* Identity encoding only. Asking for gzip broke every JSON parse on Wine
+		   (WinHTTP advertised gzip, then returned still-compressed bytes). */
 		headers += L"Connection: keep-alive\r\n";
 		if (bearerToken && bearerToken[0])
 		{
