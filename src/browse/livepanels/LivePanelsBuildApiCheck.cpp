@@ -1,5 +1,7 @@
 #include "LivePanelsBuildShared.h"
 
+#include "AddonPaths.h"
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 
 #include <cstdio>
@@ -13,13 +15,16 @@ namespace LivePanelsBuild
 {
 namespace
 {
-	constexpr int kProbeTimeoutMs = 2000;
+	constexpr int kProbeTimeoutMs = 4000;
 
 	struct Probe
 	{
-		const char* path = nullptr;
+		const char* label = nullptr;
+		const char* apiPath = nullptr; /* /v2/... when url is null */
+		const char* url = nullptr;     /* full URL when not ArenaNet */
 		bool needsAuth = false;
-		const char* group = nullptr; /* Public · Account · Commerce */
+		bool expectJson = true;
+		const char* group = nullptr;
 	};
 
 	struct ProbeRow
@@ -52,6 +57,19 @@ namespace
 		return body[i] == '{' || body[i] == '[';
 	}
 
+	bool LooksLikeBody(const std::string& body)
+	{
+		size_t i = 0;
+		while (i < body.size() && (body[i] == ' ' || body[i] == '\t' ||
+			body[i] == '\r' || body[i] == '\n'))
+			++i;
+		if (i >= body.size())
+			return false;
+		if (LooksLikeJson(body))
+			return true;
+		return body[i] == '<' || body.size() > 32;
+	}
+
 	ProbeRow RowFromJob(const TimedJob& j)
 	{
 		ProbeRow row;
@@ -59,7 +77,8 @@ namespace
 		row.ms = j.ms;
 		row.status = j.result.status;
 		row.online = j.result.ok && j.result.status >= 200 && j.result.status < 300;
-		row.schemaOk = row.online && LooksLikeJson(j.result.body);
+		row.schemaOk = row.online && j.probe && (j.probe->expectJson
+			? LooksLikeJson(j.result.body) : LooksLikeBody(j.result.body));
 		if (!j.result.ok)
 			row.detail = j.result.error.empty() ? "request failed" : j.result.error;
 		else if (!row.online)
@@ -69,7 +88,8 @@ namespace
 			row.detail = buf;
 		}
 		else if (!row.schemaOk)
-			row.detail = "non-JSON body";
+			row.detail = (j.probe && !j.probe->expectJson)
+				? "empty or unexpected body" : "non-JSON body";
 		else
 			row.detail = "ok";
 		return row;
@@ -89,7 +109,7 @@ namespace
 	const char* StatusLabel(const ProbeRow& row)
 	{
 		if (row.skipped)
-			return "Skipped";
+			return "No API key";
 		if (row.online && row.schemaOk)
 			return "Online";
 		if (row.online)
@@ -110,13 +130,19 @@ namespace
 
 std::string BuildApiCheckHtml(const char* apiKey)
 {
-	/* Health check only — catalog spam (~45 GETs) is why this page used to take 10s+. */
+	/* Canary only — not every /v2 route. One GET per helper host besides ArenaNet. */
 	static const Probe kProbes[] = {
-		{ "/v2/build", false, "Public" },
-		{ "/v2/items?ids=19721", false, "Public" },
-		{ "/v2/commerce/prices?ids=19721", false, "Commerce" },
-		{ "/v2/tokeninfo", true, "Account" },
-		{ "/v2/account", true, "Account" },
+		{ "/v2/build", "/v2/build", nullptr, false, true, "Public" },
+		{ "/v2/items?ids=19721", "/v2/items?ids=19721", nullptr, false, true, "Public" },
+		{ "/v2/commerce/prices?ids=19721", "/v2/commerce/prices?ids=19721", nullptr, false, true, "Commerce" },
+		{ "/v2/tokeninfo", "/v2/tokeninfo", nullptr, true, true, "Account" },
+		{ "/v2/account", "/v2/account", nullptr, true, true, "Account" },
+		{ "catalog.manifest", nullptr, Gw2Catalog::kManifestUrl, false, true, "Other" },
+		{ "wiki api.php", nullptr,
+			"https://wiki.guildwars2.com/api.php?action=query&meta=siteinfo&format=json",
+			false, true, "Other" },
+		{ "news feed", nullptr, "https://www.guildwars2.com/en/feed/", false, false, "Other" },
+		{ "killproof.me", nullptr, "https://killproof.me/", false, false, "Other" },
 	};
 	constexpr size_t kCount = sizeof(kProbes) / sizeof(kProbes[0]);
 
@@ -131,7 +157,7 @@ std::string BuildApiCheckHtml(const char* apiKey)
 		if (kProbes[i].needsAuth && (!apiKey || !apiKey[0]))
 		{
 			rows[i].skipped = true;
-			rows[i].detail = "skipped — paste an API key in Settings";
+			rows[i].detail = "Paste a key in Settings (side rail), then Reload this tab.";
 			continue;
 		}
 		TimedJob job;
@@ -141,18 +167,19 @@ std::string BuildApiCheckHtml(const char* apiKey)
 	}
 	if (!jobs.empty())
 	{
-		/* Sequential on this Live worker so Gw2Http keep-alive reuses one TLS session. */
 		for (TimedJob& job : jobs)
 		{
-			if (!job.probe || !job.probe->path)
+			if (!job.probe)
 				continue;
 			const ULONGLONG t0 = GetTickCount64();
-			job.result = Gw2Http::Api(job.probe->path, job.bearer, kProbeTimeoutMs);
+			if (job.probe->url && job.probe->url[0])
+				job.result = Gw2Http::Get(job.probe->url, job.bearer, kProbeTimeoutMs);
+			else if (job.probe->apiPath && job.probe->apiPath[0])
+				job.result = Gw2Http::Api(job.probe->apiPath, job.bearer, kProbeTimeoutMs);
 			job.ms = static_cast<DWORD>(GetTickCount64() - t0);
 		}
 	}
 
-	/* Merge timed results back in probe order. */
 	size_t ji = 0;
 	for (size_t i = 0; i < kCount; ++i)
 	{
@@ -160,6 +187,24 @@ std::string BuildApiCheckHtml(const char* apiKey)
 			continue;
 		if (ji < jobs.size())
 			rows[i] = RowFromJob(jobs[ji++]);
+	}
+	{
+		const std::wstring pack = AddonPaths::CacheDir() + L"\\gw2-helper-catalog.igh";
+		const bool onDisk = GetFileAttributesW(pack.c_str()) != INVALID_FILE_ATTRIBUTES;
+		for (ProbeRow& r : rows)
+		{
+			if (!r.probe || !r.probe->url || !std::strstr(r.probe->url, "catalog.manifest"))
+				continue;
+			if (onDisk)
+			{
+				if (r.detail == "ok")
+					r.detail = "ok · names pack on disk";
+			}
+			else if (r.detail == "ok")
+				r.detail = "ok · names pack not in cache yet";
+			else
+				r.detail += " · names pack not in cache";
+		}
 	}
 	const DWORD wallMs = static_cast<DWORD>(GetTickCount64() - wall0);
 
@@ -192,17 +237,19 @@ std::string BuildApiCheckHtml(const char* apiKey)
 	}
 	summary += "</h3><p>Checked <strong>";
 	summary += std::to_string(rows.size());
-	summary += "</strong> ArenaNet endpoints in <strong>";
+	summary += "</strong> hosts/endpoints in <strong>";
 	summary += std::to_string(wallMs);
-	summary += " ms</strong>. Five health probes (one TLS session). "
+	summary += " ms</strong>. ArenaNet canaries plus one GET per other helper host. "
 		"Reload the tab to re-run.</p></div>\n";
 
-	auto appendGroup = [&](std::string& body, const char* group) {
+	auto appendGroup = [&](std::string& body, const char* group, const char* host) {
 		body += "<section class=\"block\" id=\"";
 		body += group;
 		body += "\"><div class=\"head\"><h2>";
 		body += group;
-		body += "</h2><p>api.guildwars2.com</p></div><div class=\"body\">";
+		body += "</h2><p>";
+		body += host;
+		body += "</p></div><div class=\"body\">";
 		body += "<table class=\"api\"><thead><tr>"
 			"<th>Endpoint</th><th>Status</th><th>HTTP</th><th>Schema</th><th>Time</th>"
 			"</tr></thead><tbody>";
@@ -215,7 +262,7 @@ std::string BuildApiCheckHtml(const char* apiKey)
 			body += "<tr class=\"";
 			body += StatusClass(r);
 			body += "\"><td><code>";
-			body += HtmlEscape(r.probe->path);
+			body += HtmlEscape(r.probe->label ? r.probe->label : "");
 			body += "</code></td><td>";
 			body += StatusLabel(r);
 			body += "</td><td>";
@@ -237,7 +284,7 @@ std::string BuildApiCheckHtml(const char* apiKey)
 				body += " ms";
 			}
 			body += "</td></tr>";
-			if (!r.detail.empty() && r.detail != "ok" && !r.skipped)
+			if (!r.detail.empty() && r.detail != "ok")
 			{
 				body += "<tr class=\"detail ";
 				body += StatusClass(r);
@@ -252,23 +299,27 @@ std::string BuildApiCheckHtml(const char* apiKey)
 	};
 
 	std::string body = summary;
-	appendGroup(body, "Public");
-	appendGroup(body, "Commerce");
-	appendGroup(body, "Account");
+	appendGroup(body, "Public", "api.guildwars2.com");
+	appendGroup(body, "Commerce", "api.guildwars2.com");
+	appendGroup(body, "Account", "api.guildwars2.com");
+	appendGroup(body, "Other", "github.com · wiki · news · killproof.me");
 
 	body += "<section class=\"block\" id=\"about\"><div class=\"head\"><h2>About</h2>"
 		"<p>What this page is</p></div><div class=\"body\">"
-		"<p class=\"note\">Probes <strong>https://api.guildwars2.com</strong> directly from this "
-		"machine (read-only): build, a public item, commerce, tokeninfo, and account. "
-		"Account rows use your saved Settings key when present.</p>"
-		"<p class=\"meta\">Tip: if these fail together, ArenaNet API or your network is likely "
-		"degraded — try again in a few minutes.</p>"
+		"<p class=\"note\">Canaries only (not every <code>/v2</code> route). ArenaNet: build, "
+		"a public item, commerce, tokeninfo, account. Other hosts we actually GET: "
+		"GitHub catalog manifest, wiki MediaWiki API, official news feed, killproof.me. "
+		"Account rows use your Settings key when present. The names pack "
+		"<code>gw2-helper-catalog.igh</code> downloads in the background after helper open.</p>"
+		"<p class=\"meta\">Tip: if ArenaNet rows fail together, that API or your network is "
+		"degraded. If only Other rows fail, that host is down independently.</p>"
 		"</div></section>\n";
 
 	const char* toc =
 		"<a href=\"#Public\">Public</a>"
 		"<a href=\"#Commerce\">Commerce</a>"
 		"<a href=\"#Account\">Account</a>"
+		"<a href=\"#Other\">Other</a>"
 		"<a href=\"#about\">About</a>";
 
 	const char* extraCss =
@@ -287,7 +338,7 @@ std::string BuildApiCheckHtml(const char* apiKey)
 
 	return BuildPage("GW2 API Check", "GW2 In-Game Helper · Diagnostics",
 		"GW2 API Check",
-		"Live health check of api.guildwars2.com from this machine.",
+		"Live health check of ArenaNet plus the other hosts this addon GETs.",
 		toc, body, extraCss);
 }
 

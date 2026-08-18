@@ -9,7 +9,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2244` / `2235` / `s2215` / `c2228` |
-| Live panel stamp | `79` |
+| Live panel stamp | `81` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc36` |
 | watchd stamp | `w10` |
@@ -230,7 +230,7 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 |------|----------------|
 | `src/app/` | `Globals`, `Settings`, `AddonPaths`, **`AddonVersion.h`**, `HelperTheme`, **`UserTheme`** (config/themes), `PadDock`, `PadNav`, `PadLayout`, `MumbleIdentity`, **`AspectLayout`**, **`PanelBinds`**, **`UiChrome`**, **`Gw2Ui`** / **`Gw2Icons`**, **`GameLive`** (UITick / Mumble freshness for overlays) |
 | `src/ui/` | `chrome/` (incl. side rail), `browse/`, `settings/`, `quickaccess/` (ImGui helper chrome + SettingsPad) |
-| `src/api/` | `Gw2Http` (blocking WinHTTP — worker threads only); **`ApiBudget`** (max concurrent HTTP); **`BgFetch`** (channel wanted/busy arbitration); **`JsonView.h`** (bounds-checked GW2 JSON scrapers) |
+| `src/api/` | `Gw2Http` (blocking WinHTTP — worker threads only; identity encoding, no `Accept-Encoding` gzip — Wine otherwise returns compressed JSON); **`ApiBudget`** (max concurrent HTTP); **`BgFetch`** (channel wanted/busy arbitration); **`JsonView.h`** (bounds-checked GW2 JSON scrapers) |
 | `src/browse/` | Homepage / CheatSheets / RaidFood at root; `sites/`, `livepanels/`, `tabs/` for catalog, HTML builders, tabs |
 
 ### Feature domains
@@ -287,5 +287,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.0 — IGH1 catalog + icons + `.manifest` + CEF zip; API Check 5 probes; live 79; helper 2244 |
+| Last architecture sync | 2.3.0.0 — IGH1 catalog + icons + `.manifest` + CEF zip; API Check host canaries; live 81; helper 2244 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

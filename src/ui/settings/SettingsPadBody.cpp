@@ -4,6 +4,7 @@
 
 #include "AddonPaths.h"
 #include "AspectLayout.h"
+#include "BrowserTabs.h"
 #include "CheatSheets.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
@@ -16,6 +17,7 @@
 #include "Sites.h"
 #include "UiScale.h"
 #include "UserTheme.h"
+#include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
 
@@ -182,21 +184,27 @@ namespace
 			"Read-only key from account.arena.net (account, progression, wallet, "
 			"inventories, unlocks, tradingpost as needed). Stored only in this addon's settings.ini.");
 		ImGui::SetNextItemWidth(-1.f);
+		auto refreshLiveAfterKeyChange = []() {
+			LivePanels::InvalidateCaches(AddonPaths::DataDir());
+			const char* cur = WikiBrowser::CurrentUrlCStr();
+			if (cur && (LivePanels::IsLiveUrl(cur) || LivePanels::IsLiveAbout(cur)))
+				BrowserTabs::Reload();
+		};
 		if (ImGui::InputTextWithHint("###gw2igh_apikey", "Paste API key here...", G::Gw2ApiKey, sizeof(G::Gw2ApiKey),
 				ImGuiInputTextFlags_Password | ImGuiInputTextFlags_AutoSelectAll))
 		{
 			Settings::SetDirty();
-			LivePanels::InvalidateCaches(AddonPaths::DataDir());
+			refreshLiveAfterKeyChange();
 		}
 		if (G::Gw2ApiKey[0])
-			ImGui::TextColored(HelperTheme::Ok, "Key saved - Reload Live tabs to refresh.");
+			ImGui::TextColored(HelperTheme::Ok, "Key saved - Live tabs refresh when this page is open.");
 		else
 			MutedWrap("No key - Vault/Progress show public data until you add one.");
 		if (ImGui::Button("Clear API key###gw2igh_apikey_clear"))
 		{
 			G::Gw2ApiKey[0] = 0;
 			Settings::SetDirty();
-			LivePanels::InvalidateCaches(AddonPaths::DataDir());
+			refreshLiveAfterKeyChange();
 		}
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Create key on account.arena.net"));
 		if (ImGui::Button("Create key on account.arena.net###gw2igh_apikey_web"))

@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.3.0.0 | 2.3.0.0 | IGH1 catalog+icons + `.manifest` + CEF zip; API Check 5 probes; live 79; helper 2244 |
+| 2.3.0.0 | 2.3.0.0 | IGH1 catalog+icons + `.manifest` + CEF zip; API Check host canaries; live 81; helper 2244 |
 | 2.2.4.11 | 2.2.4.11 | Rail/hub current tab; Ctrl/middle new tab; live 75; helper 2244 |
 | 2.2.4.10 | 2.2.4.10 | Cheat sheet pack open (Uber’s AIO) no longer stuck on loading shell; helper 2243 |
 | 2.2.4.9 | 2.2.4.9 | Completion pad removed; Browse hub; combo capture; live 74 |
@@ -934,7 +934,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
 | Helper / home / sites / cheatsheets stamps | 2244 / 2235 / s2215 / c2228 |
-| Live panel stamp | 79 |
+| Live panel stamp | 81 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
 | OSR `device_scale_factor` | 1.0 |
@@ -1019,6 +1019,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.3.0.0 — IGH1 catalog+icons + `.manifest` + CEF zip; API Check 5 probes; helper 2244; live 79; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.3.0.0 — IGH1 catalog+icons + `.manifest` + CEF zip; API Check host canaries; helper 2244; live 81; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |
