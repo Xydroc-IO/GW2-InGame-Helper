@@ -292,7 +292,9 @@ bool WorldGpsD3dInternal::EnsureDevice()
 	D3D11_RASTERIZER_DESC rd{};
 	rd.FillMode = D3D11_FILL_SOLID;
 	rd.CullMode = D3D11_CULL_NONE;
-	rd.DepthClipEnable = TRUE;
+	/* Near-plane clip ate one edge of the ground ribbon in first-person
+	   (right chevron row vanished before the left). No game DSV anyway. */
+	rd.DepthClipEnable = FALSE;
 	gDev->CreateRasterizerState(&rd, &gRaster);
 
 	D3D11_DEPTH_STENCIL_DESC dd{};

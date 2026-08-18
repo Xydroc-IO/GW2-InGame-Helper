@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.3.0.0 |
+| Revision described | 2.3.0.1 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.3.0.1 | 2.3.0.1 | Camera-facing world GPS (height bias, no near clip); pad rail icon scale; compacted-window GetID crash fix; stamps unchanged |
 | 2.3.0.0 | 2.3.0.0 | IGH1 catalog+recipes+achievements+icons + `.manifest` + CEF zip; grouped Progress armory; API Check 5 probes; live 82; helper 2244 |
 | 2.2.4.11 | 2.2.4.11 | Rail/hub current tab; Ctrl/middle new tab; live 75; helper 2244 |
 | 2.2.4.10 | 2.2.4.10 | Cheat sheet pack open (Uber’s AIO) no longer stuck on loading shell; helper 2243 |
@@ -199,7 +200,7 @@ This work is a **systems engineering report** for a shipping community addon, no
 | Multi-client | PID-scoped IPC object names | Slightly more complex naming |
 | Partner ad revenue | Allow ad loads; externalise click URLs when detected | Mixed in-tab versus external UX |
 | Hot-reload | `AF_None` (unload stops CEF first) | Prefer full GW2 restart after DLL replace |
-| World GPS parity | D3D upright ribbons + pack textures | Requires `d3dcompiler`; no ImGui billboard fallback if init fails |
+| World GPS parity | D3D camera-facing ribbons + pack textures | Requires `d3dcompiler`; no ImGui billboard fallback if init fails |
 | Maintainability | ≤500-line `.cpp` preference; Shared/Internal splits | Higher file count; more include discipline |
 
 ### 3.1 Objective function
@@ -432,7 +433,7 @@ Full \(1920\times1200\) BGRA ≈ 8.8 MiB. At 60 Hz full frames ≈ 528 MiB/s bef
 
 ### 6.5 Relationship to world GPS drawing
 
-CEF present and Pathing world GPS both use the Nexus SwapChain **device**, but they are separate pipelines: CEF uploads OSR bitmaps to ImGui textures; world GPS builds upright ribbon meshes in world space. Neither hooks Present. See §17.2.
+CEF present and Pathing world GPS both use the Nexus SwapChain **device**, but they are separate pipelines: CEF uploads OSR bitmaps to ImGui textures; world GPS builds camera-facing ribbon meshes in world space. Neither hooks Present. See §17.2.
 
 
 
@@ -672,7 +673,7 @@ Memory-safety tooling cannot fully validate this stack: the DLL loads into a non
 | Zero-copy GPU | Not met (explicitly deferred) |
 | Sandbox parity with Chrome | Not met (documented) |
 | Low-end hitch-free interaction | Not guaranteed under heavy overlay use |
-| World GPS Blish-like readability | Met for upright ribbons + pack chevrons when D3D init succeeds |
+| World GPS Blish-like readability | Met for camera-facing ribbons + pack chevrons when D3D init succeeds |
 | Pathing Lua parity | Not met (documented non-goal) |
 
 ### 14.2 Threats to validity
@@ -870,7 +871,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 ### 20.3 World GPS on a Lady Barefoot route
 
 1. Pathing enables Lady Barefoot; categories load `.trl` geometry.
-2. `WorldOverlay` samples nearby along-path segments; builds upright ribbon vertices.
+2. `WorldOverlay` samples nearby along-path segments; builds camera-facing ribbon vertices.
 3. `WorldGpsD3dDraw` binds pack chevron SRV, updates UV scroll, soft-clears near the player.
 4. Markers draw in ImGui; compass pad remains independent.
 5. If `D3DCompile` fails, ribbons are absent—no silent ImGui billboard substitute.
@@ -913,11 +914,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.3.0.0)
+## Appendix A — Quantitative constants (revision 2.3.0.1)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.3.0.0 |
+| Addon version | 2.3.0.1 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -1019,6 +1020,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.3.0.0 — IGH1 catalog+recipes+achievements+icons + `.manifest` + CEF zip; API Check 5 probes; grouped Progress armory; helper 2244; live 82; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.3.0.1 — camera-facing world GPS; pad rail icons; compacted-window GetID crash fix; helper 2244; live 82; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

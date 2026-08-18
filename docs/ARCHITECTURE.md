@@ -5,7 +5,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.3.0.0` |
+| Addon revision (shipping) | `2.3.0.1` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2244` / `2235` / `s2215` / `c2228` |
@@ -24,7 +24,7 @@ Shipping install names are `GW2-InGame-Helper` (DLL + data folder). An optional 
 
 ## 1. One-line summary
 
-A **Raidcore Nexus** ImGui DLL opens an **out-of-process CEF off-screen (OSR)** browser that paints BGRA frames into **PID-scoped shared memory**. The DLL uploads those frames to a D3D11 texture (via Nexus `SwapChain`) and draws them with ImGui. Separately, **Pathing world GPS** draws Blish-style upright ribbons with the same SwapChain device (no Present hooks). Players ship **one DLL**; the helper EXE and homepage assets are embedded and extracted on first use. Chromium is a **private copy of stock CEF 150** downloaded once into `addons/<addon-name>/cef/`.
+A **Raidcore Nexus** ImGui DLL opens an **out-of-process CEF off-screen (OSR)** browser that paints BGRA frames into **PID-scoped shared memory**. The DLL uploads those frames to a D3D11 texture (via Nexus `SwapChain`) and draws them with ImGui. Separately, **Pathing world GPS** draws Blish-style camera-facing ribbons with the same SwapChain device (no Present hooks). Players ship **one DLL**; the helper EXE and homepage assets are embedded and extracted on first use. Chromium is a **private copy of stock CEF 150** downloaded once into `addons/<addon-name>/cef/`.
 
 ---
 
@@ -184,7 +184,7 @@ Analytical depth: [`WHITEPAPER.md`](WHITEPAPER.md) §5.
 
 ### 5.3 World GPS present (separate pipeline)
 
-`WorldGpsD3d*` obtains `ID3D11Device` / context from Nexus SwapChain, runtime-compiles HLSL, draws upright ribbons. Markers: `WorldGpsImgui`. Orchestrator: `WorldOverlay`. **No** Present hooks. See [`PATHING.md`](PATHING.md).
+`WorldGpsD3d*` obtains `ID3D11Device` / context from Nexus SwapChain, runtime-compiles HLSL, draws camera-facing ribbons (lift + no near-plane clip). Markers: `WorldGpsImgui`. Orchestrator: `WorldOverlay`. **No** Present hooks. See [`PATHING.md`](PATHING.md).
 
 ---
 
@@ -291,5 +291,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.0 — IGH1 catalog + achievements + icons + `.manifest` + CEF zip; API Check 5 probes; grouped Progress armory; live 82; helper 2244 |
+| Last architecture sync | 2.3.0.1 — camera-facing world GPS; pad rail icons; compacted-window GetID crash fix; live 82; helper 2244 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

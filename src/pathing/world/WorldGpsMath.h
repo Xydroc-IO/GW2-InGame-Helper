@@ -5,10 +5,12 @@
 /* Shared camera / projection math for ImGui GPS and D3D world ribbons. */
 namespace WorldGpsMath
 {
-	constexpr float kNearClip = 0.5f;
+	constexpr float kNearClip = 0.08f;
 	constexpr float kFarClip = 8000.f;
 	constexpr float kDefaultFov = 1.222f;
-	constexpr float kHeightBias = 0.f;
+	/* Lift ribbons off authored terrain so first-person grazing views do not
+	   sink chevrons into rocks (taco points sit on / slightly under the mesh). */
+	constexpr float kHeightBias = 0.42f;
 	constexpr float kInchesToMeters = 1.f / 39.3700787f;
 	constexpr float kAvatarMarkerHideAt1 = 2.0f; /* meters - soft-clear hole at Player-clear 1x */
 	constexpr float kAvatarMarkerFadeExtraAt1 = 3.5f; /* fade band beyond hide (-> ~5.5m at 1x) */

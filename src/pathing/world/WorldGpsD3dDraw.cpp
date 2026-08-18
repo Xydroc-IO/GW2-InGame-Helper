@@ -90,8 +90,43 @@ namespace
 			std::strstr(snip.textureId, "Heart_png") != nullptr;
 	}
 
-	bool ResamplePath(const std::vector<Vec3>& rawIn, std::vector<Vec3>& pts,
-		std::vector<Vec3>& sides)
+	Vec3 CamForward()
+	{
+		if (!G::Mumble)
+			return {0.f, 0.f, 1.f};
+		const float* cf = G::Mumble->fCameraFront;
+		Vec3 f{cf[0], cf[1], cf[2]};
+		if (!WorldGpsMath::Finite3(f.x, f.y, f.z))
+			return {0.f, 0.f, 1.f};
+		f = f.Normalised();
+		return (f.LengthSq() > 0.5f) ? f : Vec3{0.f, 0.f, 1.f};
+	}
+
+	/* Pull off the mesh so grazing first-person views do not bury chevrons. */
+	Vec3 LiftTowardCam(const Vec3& p, const Vec3& cam)
+	{
+		Vec3 toCam = cam - p;
+		const float d2 = toCam.LengthSq();
+		if (!(d2 > 1e-6f) || !std::isfinite(d2))
+			return p;
+		const float d = std::sqrt(d2);
+		const float pull = std::min(0.22f, d * 0.045f);
+		return p + toCam * (pull / d);
+	}
+
+	/* Depth-clip off + vertices behind the camera explode to huge tris. */
+	Vec3 KeepInFront(const Vec3& p, const Vec3& cam, const Vec3& camFwd)
+	{
+		constexpr float kMinAlong = 0.28f;
+		const Vec3 d = p - cam;
+		const float along = d.Dot(camFwd);
+		if (along >= kMinAlong)
+			return p;
+		return cam + camFwd * kMinAlong + (d - camFwd * along);
+	}
+
+	bool ResamplePath(const std::vector<Vec3>& rawIn, const Vec3& cam,
+		std::vector<Vec3>& pts, std::vector<Vec3>& sides)
 	{
 		pts.clear();
 		sides.clear();
@@ -125,12 +160,21 @@ namespace
 				: (pts[i] - pts[i - 1]).Normalised();
 			if (pathDir.LengthSq() < 0.5f)
 				pathDir = {1.f, 0.f, 0.f};
-			Vec3 side = pathDir.Cross(Vec3{0.f, 1.f, 0.f}).Normalised();
+			/* Camera-facing strip (Blish): width lies in the plane that faces
+			   the camera so first-person along-path views keep projected area. */
+			Vec3 toCam = (cam - pts[i]).Normalised();
+			if (toCam.LengthSq() < 0.5f)
+				toCam = {0.f, 1.f, 0.f};
+			Vec3 side = pathDir.Cross(toCam).Normalised();
 			if (side.LengthSq() < 0.5f)
 			{
-				side = pathDir.Cross(Vec3{0.f, 0.f, -1.f}).Normalised();
+				side = pathDir.Cross(Vec3{0.f, 1.f, 0.f}).Normalised();
 				if (side.LengthSq() < 0.5f)
-					side = {1.f, 0.f, 0.f};
+				{
+					side = pathDir.Cross(Vec3{0.f, 0.f, -1.f}).Normalised();
+					if (side.LengthSq() < 0.5f)
+						side = {1.f, 0.f, 0.f};
+				}
 			}
 			if (lastSide.LengthSq() > 0.5f && side.Dot(lastSide) < 0.f)
 				flip = -flip;
@@ -147,11 +191,12 @@ namespace
 	}
 
 	void EmitRibbonRun(std::vector<Vertex>& out, const std::vector<Vec3>& rawIn,
+		const Vec3& cam, const Vec3& camFwd,
 		float halfW, float uvPeriod, float flowScroll,
 		float cr, float cg, float cb, float baseA, float along0)
 	{
 		std::vector<Vec3> pts, sides;
-		if (!ResamplePath(rawIn, pts, sides))
+		if (!ResamplePath(rawIn, cam, pts, sides))
 			return;
 		float along = along0;
 		for (size_t i = 0; i + 1 < pts.size(); ++i)
@@ -165,13 +210,17 @@ namespace
 			const Vec3 r0 = pts[i] + sides[i] * halfW;
 			const Vec3 l1 = pts[i + 1] - sides[i + 1] * halfW;
 			const Vec3 r1 = pts[i + 1] + sides[i + 1] * halfW;
+			const Vec3 cl0 = KeepInFront(l0, cam, camFwd);
+			const Vec3 cr0v = KeepInFront(r0, cam, camFwd);
+			const Vec3 cl1 = KeepInFront(l1, cam, camFwd);
+			const Vec3 cr1v = KeepInFront(r1, cam, camFwd);
 			const Vertex verts[6] = {
-				{l0.x, l0.y, l0.z, 0.f, v0, cr, cg, cb, baseA},
-				{r0.x, r0.y, r0.z, 1.f, v0, cr, cg, cb, baseA},
-				{l1.x, l1.y, l1.z, 0.f, v1, cr, cg, cb, baseA},
-				{r0.x, r0.y, r0.z, 1.f, v0, cr, cg, cb, baseA},
-				{r1.x, r1.y, r1.z, 1.f, v1, cr, cg, cb, baseA},
-				{l1.x, l1.y, l1.z, 0.f, v1, cr, cg, cb, baseA},
+				{cl0.x, cl0.y, cl0.z, 0.f, v0, cr, cg, cb, baseA},
+				{cr0v.x, cr0v.y, cr0v.z, 1.f, v0, cr, cg, cb, baseA},
+				{cl1.x, cl1.y, cl1.z, 0.f, v1, cr, cg, cb, baseA},
+				{cr0v.x, cr0v.y, cr0v.z, 1.f, v0, cr, cg, cb, baseA},
+				{cr1v.x, cr1v.y, cr1v.z, 1.f, v1, cr, cg, cb, baseA},
+				{cl1.x, cl1.y, cl1.z, 0.f, v1, cr, cg, cb, baseA},
 			};
 			out.insert(out.end(), verts, verts + 6);
 			along += segLen;
@@ -181,6 +230,7 @@ namespace
 	}
 
 	void AppendRibbon(std::vector<Vertex>& out, const PathingTrails::WorldSnippet& snip,
+		const Vec3& cam, const Vec3& camFwd,
 		float thickness, bool bright, float flowScroll)
 	{
 		if (snip.points.size() < 2)
@@ -208,7 +258,7 @@ namespace
 				raw.clear();
 				return;
 			}
-			EmitRibbonRun(out, raw, halfW, WorldGpsMath::kBlishUvPeriodM, flowScroll,
+			EmitRibbonRun(out, raw, cam, camFwd, halfW, WorldGpsMath::kBlishUvPeriodM, flowScroll,
 				cr, cg, cb, baseA, along);
 			for (size_t i = 0; i + 1 < raw.size(); ++i)
 				along += std::sqrt((raw[i + 1] - raw[i]).LengthSq());
@@ -221,7 +271,8 @@ namespace
 				flush();
 				continue;
 			}
-			raw.push_back({wp.x, wp.y + WorldGpsMath::kHeightBias, wp.z});
+			raw.push_back(LiftTowardCam(
+				{wp.x, wp.y + WorldGpsMath::kHeightBias, wp.z}, cam));
 		}
 		flush();
 	}
@@ -264,7 +315,7 @@ namespace
 
 bool WorldGpsD3d::DrawTrails(
 	const WorldGpsMath::Mat4& viewProj,
-	const WorldGpsMath::Vec3& /*cam*/,
+	const WorldGpsMath::Vec3& cam,
 	const WorldGpsMath::Vec3& avatar,
 	float maxDist,
 	float thickness,
@@ -299,6 +350,7 @@ bool WorldGpsD3d::DrawTrails(
 			static_cast<double>(sQpcFreq.QuadPart)
 		: 0.0;
 	const float flow = static_cast<float>(std::fmod(sec * 0.45, 1024.0));
+	const Vec3 camFwd = CamForward();
 
 	auto addSnip = [&](const PathingTrails::WorldSnippet& snip, bool bright, float thick) {
 		Batch b;
@@ -306,7 +358,7 @@ bool WorldGpsD3d::DrawTrails(
 		/* Hearts without texture would fall back to a solid yellow ribbon - skip. */
 		if (IsHeartTrail(snip) && !b.srv)
 			return;
-		AppendRibbon(b.verts, snip, thick, bright, flow);
+		AppendRibbon(b.verts, snip, cam, camFwd, thick, bright, flow);
 		if (!b.verts.empty())
 			batches.push_back(std::move(b));
 	};
@@ -340,7 +392,7 @@ bool WorldGpsD3d::DrawTrails(
 	std::memcpy(cb.viewProj, viewProj.m, sizeof(cb.viewProj));
 	cb.avatar[0] = avatar.x; cb.avatar[1] = avatar.y; cb.avatar[2] = avatar.z;
 	cb.avatar[3] = clearMul;
-	cb.camPos[0] = avatar.x; cb.camPos[1] = avatar.y; cb.camPos[2] = avatar.z;
+	cb.camPos[0] = cam.x; cb.camPos[1] = cam.y; cb.camPos[2] = cam.z;
 	cb.camPos[3] = 0.f; /* flow baked into ribbon verts */
 	cb.fade[0] = fadeStart; cb.fade[1] = fadeEnd; cb.fade[2] = hideM; cb.fade[3] = fadeM;
 

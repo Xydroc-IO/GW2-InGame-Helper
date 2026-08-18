@@ -263,11 +263,12 @@ namespace PadNav
 	inline int DrawSideRail(const char* id, const char* const* labels, int count, int current,
 		float width = 0.f, const int* icons = nullptr)
 	{
-		constexpr float kIconSz = 28.f;
+		const float fontMul = UiScale::Clampf((G::FontScale > 0.1f) ? G::FontScale : 1.f, 1.f, 1.35f);
+		const float railIconSz = UiScale::Clampf(30.f * fontMul, 30.f, 40.f);
 		if (width <= 1.f)
 		{
 			if (icons)
-				width = UiScale::IconRailWidth(kIconSz);
+				width = UiScale::IconRailWidth(railIconSz);
 			else
 				width = UiScale::FitSideRailWidth(labels, count, 80.f, 260.f, 0.f);
 		}
@@ -283,20 +284,19 @@ namespace PadNav
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.f, 8.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 5.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, 4.f));
-		ImGui::BeginChild(id, ImVec2(width, 0.f), true,
+		const bool railOpen = ImGui::BeginChild(id, ImVec2(width, 0.f), true,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened);
-
-		for (int i = 0; i < count; ++i)
+		if (railOpen)
 		{
-			ImGui::PushID(i);
-			char buf[96];
-			std::snprintf(buf, sizeof(buf), "%s###side_%d", labels[i], i);
-			const int asset = (icons && icons[i] > 0) ? icons[i] : 0;
-			if (Gw2Ui::RailToggle(buf, i == current, asset, icons ? kIconSz : 18.f, false))
-				current = i;
-			ImGui::PopID();
+			for (int i = 0; i < count; ++i)
+			{
+				char buf[96];
+				std::snprintf(buf, sizeof(buf), "%s###side_%d", labels[i], i);
+				const int asset = (icons && icons[i] > 0) ? icons[i] : 0;
+				if (Gw2Ui::RailToggle(buf, i == current, asset, icons ? railIconSz : 18.f, false))
+					current = i;
+			}
 		}
-
 		ImGui::EndChild();
 		ImGui::PopStyleVar(3);
 		ImGui::SameLine(0.f, 8.f);

@@ -100,10 +100,17 @@ namespace PadDock
 		float minW, float minH, float maxW, float maxH)
 	{
 		bool collapsed = false;
-		if (!EiRuntime::IsWine() && windowName && windowName[0])
+		if (windowName && windowName[0])
 		{
 			if (ImGuiWindow* w = ImGui::FindWindowByName(windowName))
-				collapsed = w->StateStorage.GetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+			{
+				/* Never w->GetID() here — compacted windows have an empty
+				   IDStack, and GetID → ImVector::back() Size > 0 aborts
+				   (Windows native). Wine already skipped this path. Seed is
+				   window->ID, same as GetID after Begin. */
+				const ImGuiID collapsedId = ImHashStr("##gw2igh_pad_collapsed", 0, w->ID);
+				collapsed = w->StateStorage.GetBool(collapsedId, false);
+			}
 		}
 		const float useMinH = collapsed ? 28.f : minH;
 		ImGui::SetNextWindowSizeConstraints(ImVec2(minW, useMinH), ImVec2(maxW, maxH));

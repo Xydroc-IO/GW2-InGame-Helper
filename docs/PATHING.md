@@ -1,6 +1,6 @@
 # Pathing — packs, markers, compass, world GPS
 
-**Revision:** 2.3.0.0 · **Audience:** contributors and advanced players  
+**Revision:** 2.3.0.1 · **Audience:** contributors and advanced players  
 **Companions:** [`../pathing/README.md`](../pathing/README.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.2, [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
 ---
@@ -111,7 +111,7 @@ Uses public waypoint index + chat codes (copy only — no auto-teleport).
 | | Compass pad | World GPS |
 |--|-------------|-----------|
 | UI | Side-rail **Compass** | Pathing Overview → In-world GPS |
-| Draw | ImGui / Nexus fonts (N/E/S/W) | D3D11 upright ribbons |
+| Draw | ImGui / Nexus fonts (N/E/S/W) | D3D11 camera-facing ribbons |
 | Purpose | Cardinal orientation | Follow trail geometry |
 
 Independent systems; both may use Mumble pose read-only.
@@ -146,7 +146,10 @@ Implementation: `src/pathing/mapassist/MapAssist*` + `src/app/GameLive*` (UITick
 
 ### Visual model
 
-- Blish-style upright strips + pack chevron textures.
+- Blish-style camera-facing strips + pack chevron textures. Vertices are lifted
+  (`kHeightBias`) and pulled slightly toward the Mumble camera so uneven terrain
+  does not swallow the path; rasterizer depth-clip is off so a near-plane edge
+  does not drop one chevron row in first-person.
 - Base half-width \(20''\) (`WorldGpsMath::kBlishHalfM`) × soft-clamped pack `trailScale` × user **GPS width** (default **1.0×** = authored scale; Lady width-bias removed).
 - Fixed UV tile period; animspeed flow **forward** along route (heart trails use the same scroll + pack yellow tint; **1.5×** ribbon width).
 - Soft **Player clear** (default 1; **0** = full path).

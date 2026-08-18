@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.3.0.0
+# GW2 In-Game Helper v2.3.0.1
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -33,6 +33,13 @@ achievement, and icon packs.
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.3.0.1
+
+- **Pad rail:** Side-rail tab icons scale with font size so they stay readable when Windows UI scale shrinks the pad.
+- **World GPS:** Camera-facing ribbons with a small height bias and no near-plane clip, so first-person / grazing views no longer punch holes in the foot path.
+- **Windows crash:** Compacted pads no longer call `GetID()` on a window with an empty ImGui ID stack (`PadDock::SetSizeConstraints`). Native Windows was aborting (`0x80000003`); Wine already skipped this path.
+- **Stamps:** Helper `2244` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `82` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.3.0.0
 
