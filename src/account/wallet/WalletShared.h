@@ -57,6 +57,8 @@ namespace WalletDetail
 	{
 		LocKind kind = Loc_Bank;
 		std::string title;
+		int itemId = 0; /* character bag container id; 0 = none */
+		int bagN = 0;
 		int filled = 0;
 		int capacity = 0;
 		std::vector<SlotCell> slots;
@@ -115,6 +117,7 @@ namespace WalletDetail
 	size_t JsonObjectEnd(const std::string& json, size_t openBrace);
 	std::string JsonStringAfterKey(const std::string& json, const char* key, size_t from = 0);
 	long long JsonIntAfterKey(const std::string& json, const char* key, size_t from = 0);
+	long long IntKeyInObject(const std::string& json, size_t brace, size_t end, const char* key);
 	void ParseStringArray(const std::string& body, std::vector<std::string>& out);
 	void CollectSlots(const std::string& body, QtyMap& m);
 	void CollectOrderedSlots(const std::string& json, size_t openBracket,
@@ -133,7 +136,8 @@ namespace WalletDetail
 	void Publish(const std::unordered_map<int, Entry>& byId, const char* status,
 		int charCount, int charBagsOk, bool ok, bool charsPending = false,
 		const std::vector<SlotSection>* sections = nullptr);
-	void ResolveMissingNames(const std::unordered_map<int, Entry>& byId, const char* apiKey);
+	void ResolveMissingNames(const std::unordered_map<int, Entry>& byId, const char* apiKey,
+		const std::vector<SlotSection>* sections = nullptr);
 	/* WalletFetchAcc.cpp */
 	DWORD WINAPI CharWorker(void* p);
 	DWORD WINAPI AccWallet(void* p);

@@ -243,6 +243,10 @@ namespace WalletDetail
 			else
 				ImGui::TextWrapped("No character-bag items match.");
 		}
+		else if (locFilter == 2)
+			ImGui::TextWrapped(
+				"Materials storage did not load. Click Refresh. "
+				"The API key needs the inventories scope.");
 		else if ((filter && filter[0]) || locFilter > 0)
 			ImGui::TextWrapped("No matches. Clear the filter or pick All locations.");
 		else
@@ -429,20 +433,57 @@ namespace WalletDetail
 					}
 					if (!any)
 						continue;
+					if (s.kind == Loc_Character && s.filled <= 0)
+						continue;
 					char head[160];
+					char foldId[96];
 					if (s.kind == Loc_Materials && s.capacity > 0)
 						std::snprintf(head, sizeof(head), "%s    %d of %d Types Collected",
 							s.title.c_str(), s.filled, s.capacity);
 					else if (s.kind == Loc_Bank)
 						std::snprintf(head, sizeof(head), "%s", s.title.c_str());
+					else if (s.kind == Loc_Character)
+					{
+						std::string bag;
+						if (s.itemId > 0)
+							bag = LookupName(s.itemId, s.itemId, false);
+						if (bag.rfind("Item #", 0) == 0 || bag.rfind("Currency #", 0) == 0)
+							bag.clear();
+						if (!bag.empty())
+							std::snprintf(head, sizeof(head), "%s — %s  ·  %d",
+								s.title.c_str(), bag.c_str(), s.filled);
+						else
+							std::snprintf(head, sizeof(head), "%s — Bag %d  ·  %d",
+								s.title.c_str(), s.bagN > 0 ? s.bagN : 1, s.filled);
+					}
 					else
 						std::snprintf(head, sizeof(head), "%s  ·  %d", s.title.c_str(), s.filled);
-					if (!BeginFold(s.title.c_str(), head,
-						s.kind == Loc_Bank || s.kind == Loc_Shared))
+					std::snprintf(foldId, sizeof(foldId), "%s/%d/%d",
+						s.title.c_str(), s.bagN, s.itemId);
+					const bool startOpen = s.kind == Loc_Bank || s.kind == Loc_Shared ||
+						(locFilter > 0 && locFilter != 1);
+					if (!BeginFold(foldId, head, startOpen))
+					{
+						++shown;
 						continue;
+					}
 					DrawSlotGrid(s.slots, filter);
 					EndFold();
 					++shown;
+				}
+			}
+			if (shown == 0 && locFilter == 2)
+			{
+				std::vector<StashRow> rows;
+				CollectStashRows(snap, filter, locFilter, rows);
+				SortStashRows(rows, sortMode);
+				if (!rows.empty())
+				{
+					ImGui::TextColored(HelperTheme::Muted, "%d stacks",
+						static_cast<int>(rows.size()));
+					for (const StashRow& row : rows)
+						DrawStashRow(row, locFilter, false);
+					shown = static_cast<int>(rows.size());
 				}
 			}
 			if (shown == 0 && !gBusy)

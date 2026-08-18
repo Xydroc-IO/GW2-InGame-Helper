@@ -366,7 +366,8 @@ namespace WalletDetail
 		gGen.fetch_add(1);
 	}
 
-	void ResolveMissingNames(const std::unordered_map<int, Entry>& byId, const char* apiKey)
+	void ResolveMissingNames(const std::unordered_map<int, Entry>& byId, const char* apiKey,
+		const std::vector<SlotSection>* sections)
 	{
 		std::vector<int> curIds;
 		std::vector<int> itemIds;
@@ -384,6 +385,15 @@ namespace WalletDetail
 				}
 				if (gNames.count(kv.first)) continue;
 				pendingItem.push_back({ kv.first, kv.second.id });
+			}
+			if (sections)
+			{
+				for (const SlotSection& s : *sections)
+				{
+					if (s.itemId <= 0 || gNames.count(s.itemId))
+						continue;
+					pendingItem.push_back({ s.itemId, s.itemId });
+				}
 			}
 		}
 		for (const auto& p : pendingCur)

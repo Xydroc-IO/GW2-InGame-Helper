@@ -200,14 +200,15 @@ namespace WalletDetail
 	DWORD WINAPI AccMats(void* p)
 	{
 		AccPack* a = static_cast<AccPack*>(p);
-		auto r = Gw2Http::Api("/v2/account/materials", G::Gw2ApiKey, kHttpTimeoutMs);
+		/* Full materials storage is a large JSON; 8s often dies on Wine. */
+		auto r = Gw2Http::Api("/v2/account/materials", G::Gw2ApiKey, 20000);
 		if (!r.ok)
 		{
+			std::lock_guard<std::mutex> lock(a->mu);
 			if (r.status == 401 || r.status == 403)
-			{
-				std::lock_guard<std::mutex> lock(a->mu);
 				a->note += "Need inventories. ";
-			}
+			else
+				a->note += "Materials failed. ";
 			return 0;
 		}
 		std::unordered_map<int, Entry> local;
@@ -218,12 +219,12 @@ namespace WalletDetail
 			if (brace == std::string::npos) break;
 			size_t end = JsonObjectEnd(r.body, brace);
 			if (end == std::string::npos) break;
-			long long id = JsonIntAfterKey(r.body, "id", brace);
-			long long count = JsonIntAfterKey(r.body, "count", brace);
+			long long id = IntKeyInObject(r.body, brace, end, "id");
+			long long count = IntKeyInObject(r.body, brace, end, "count");
 			if (id > 0 && count > 0)
 				MergeLoc(local, static_cast<int>(id), false, Loc_Materials, "Materials",
-					static_cast<int>(count));
-			pos = end + 1;
+					static_cast<int>(count > 2147483647LL ? 2147483647LL : count));
+			pos = brace + 1;
 		}
 		std::string catBody;
 		if (!Gw2Catalog::HasMaterialCategories())
@@ -343,7 +344,7 @@ namespace WalletDetail
 		{
 			if (h)
 			{
-				WaitForSingleObject(h, 15000);
+				WaitForSingleObject(h, 45000);
 				CloseHandle(h);
 			}
 		}
@@ -372,7 +373,7 @@ namespace WalletDetail
 				secs = acc.sections;
 			}
 			SortSections(secs);
-			ResolveMissingNames(view, G::Gw2ApiKey);
+			ResolveMissingNames(view, G::Gw2ApiKey, &secs);
 			Publish(view, "Account stash ready - loading characters...", 0, 0, true, true,
 				&secs);
 		}
@@ -420,12 +421,12 @@ namespace WalletDetail
 						std::lock_guard<std::mutex> lock(job.mu);
 						MergeMap(view, job.map);
 					}
-					/* Skip name HTTP on mid-progress ticks unless finishing — keeps feed snappy. */
-					if (finished || (done > 0 && (done % 4) == 0))
-						ResolveMissingNames(view, G::Gw2ApiKey);
 					const int bagsOk = job.bagsOk.load();
 					std::vector<SlotSection> secs;
 					CopySections(acc, &job, secs);
+					/* Skip name HTTP on mid-progress ticks unless finishing — keeps feed snappy. */
+					if (finished || (done > 0 && (done % 4) == 0))
+						ResolveMissingNames(view, G::Gw2ApiKey, &secs);
 					char st[200];
 					if (!finished)
 					{
@@ -465,7 +466,7 @@ namespace WalletDetail
 				bagItems = static_cast<int>(job.map.size());
 			}
 			SortSections(secs);
-			ResolveMissingNames(view, G::Gw2ApiKey);
+			ResolveMissingNames(view, G::Gw2ApiKey, &secs);
 			char st[240];
 			const int bagsOk = job.bagsOk.load();
 			const int bagsFail = job.bagsFail.load();

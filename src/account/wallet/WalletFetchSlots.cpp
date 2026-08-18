@@ -11,7 +11,7 @@
 namespace WalletDetail
 {
 	/* Int for a key on THIS object only (depth 1) — ignores nested stats/ids. */
-	static long long IntKeyInObject(const std::string& json, size_t brace, size_t end, const char* key)
+	long long IntKeyInObject(const std::string& json, size_t brace, size_t end, const char* key)
 	{
 		if (!key || brace >= end || brace >= json.size() || json[brace] != '{')
 			return -1;
@@ -120,10 +120,11 @@ namespace WalletDetail
 				SlotCell c;
 				const long long id = IntKeyInObject(json, i, end, "id");
 				const long long count = IntKeyInObject(json, i, end, "count");
-				if (id > 0)
+				if (id > 0 && count > 0)
 				{
 					c.id = static_cast<int>(id);
-					c.count = count > 0 ? static_cast<int>(count) : 1;
+					c.count = static_cast<int>(
+						count > 2147483647LL ? 2147483647LL : count);
 				}
 				out.push_back(c);
 				i = end + 1;
@@ -195,7 +196,7 @@ namespace WalletDetail
 			const size_t end = JsonObjectEnd(catJson, brace);
 			if (end == std::string::npos)
 				break;
-			const long long id = JsonIntAfterKey(catJson, "id", brace);
+			const long long id = IntKeyInObject(catJson, brace, end, "id");
 			const std::string name = JsonStringAfterKey(catJson, "name", brace);
 			if (id > 0 && !name.empty())
 				catNames[static_cast<int>(id)] = name;
@@ -213,9 +214,9 @@ namespace WalletDetail
 			const size_t end = JsonObjectEnd(body, brace);
 			if (end == std::string::npos)
 				break;
-			const long long id = JsonIntAfterKey(body, "id", brace);
-			const long long count = JsonIntAfterKey(body, "count", brace);
-			long long cat = JsonIntAfterKey(body, "category", brace);
+			const long long id = IntKeyInObject(body, brace, end, "id");
+			const long long count = IntKeyInObject(body, brace, end, "count");
+			const long long cat = IntKeyInObject(body, brace, end, "category");
 			if (id > 0)
 			{
 				const int cid = cat > 0 ? static_cast<int>(cat) : 0;
@@ -295,19 +296,9 @@ namespace WalletDetail
 			const size_t inv = body.find("\"inventory\"", i);
 			SlotSection s;
 			s.kind = Loc_Character;
-			char title[128];
-			if (bagId > 0)
-			{
-				const std::string nm = LookupName(static_cast<int>(bagId),
-					static_cast<int>(bagId), false);
-				if (!nm.empty())
-					std::snprintf(title, sizeof(title), "%s — %s", charName.c_str(), nm.c_str());
-				else
-					std::snprintf(title, sizeof(title), "%s — Bag %d", charName.c_str(), bagN);
-			}
-			else
-				std::snprintf(title, sizeof(title), "%s — Bag %d", charName.c_str(), bagN);
-			s.title = title;
+			s.title = charName;
+			s.itemId = bagId > 0 ? static_cast<int>(bagId) : 0;
+			s.bagN = bagN;
 			if (inv != std::string::npos && inv < end)
 			{
 				const size_t ibr = body.find('[', inv);
@@ -315,7 +306,7 @@ namespace WalletDetail
 					CollectOrderedSlots(body, ibr, s.slots);
 			}
 			FinishSection(s);
-			if (!s.slots.empty())
+			if (s.filled > 0)
 				out.push_back(std::move(s));
 			i = end + 1;
 			++bagN;
