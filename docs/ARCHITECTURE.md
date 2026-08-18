@@ -66,14 +66,15 @@ Keep `src/browser/CefRuntime.h` URL + SHA256 in sync after uploading a new zip. 
 
 ### GW2 Helper Catalog + CEF (GitHub, no API keys)
 
-Public item/currency names, render icons, station recipes, and the CEF runtime zip are **not** bundled in the DLL. The addon downloads them from **one pre-release** tag `gw2-helper-catalog` (title **GW2 Helper Catalog**; do **not** attach these to every shipping DLL tag):
+Public item/currency names, render icons, station recipes, achievement groups/defs, and the CEF runtime zip are **not** bundled in the DLL. The addon downloads them from **one pre-release** tag `gw2-helper-catalog` (title **GW2 Helper Catalog**; do **not** attach these to every shipping DLL tag):
 
 - `gw2-helper-catalog.manifest` — `{ "catalog", "icons", "cef" }` cheap freshness check
-- `gw2-helper-catalog.igh` — IGH1 (not zip) with gzip `names-en.tsv` + `recipes.tsv`
+- `gw2-helper-catalog.igh` — IGH1 (not zip) with raw `names-en.tsv` + `recipes.tsv` (~8MB; not gzip members)
+- `gw2-helper-achievements.igh` — IGH1 raw `groups.tsv` / `categories.tsv` / `defs.tsv`; Achievements pad uses this, then `/v2/account/achievements` for progress
 - `gw2-helper-icons.igh` — IGH1 unique `render.guildwars2.com` PNGs (~22k); missing icons still use the CDN
 - `cef-runtime-150-windows64.zip` — private CEF 150 (SHA-256 in `CefRuntime.h`; stays a zip)
 
-Catalog URLs in `src/api/Gw2Catalog.h`; CEF URL in `src/browser/CefRuntime.h`. Cache: `addons/.../cache/gw2-helper-catalog.manifest` + names/recipes TSV + icon pack. Rebuild: `python3 scripts/build-gw2-catalog.py -o dist` and `python3 scripts/build-gw2-icons.py -o dist` (icons are hand-uploaded; daily Action only refreshes the names pack). Account bank/mats still use the player’s key on the PC.
+Catalog URLs in `src/api/Gw2Catalog.h`; CEF URL in `src/browser/CefRuntime.h`. Cache: `addons/.../cache/gw2-helper-catalog.manifest` + names/recipes TSV + catalog/achievements/icon packs. Rebuild: `python3 scripts/build-gw2-catalog.py -o dist` and `python3 scripts/build-gw2-icons.py -o dist` (icons are hand-uploaded; daily Action refreshes the names pack and the achievements pack). Account bank/mats still use the player’s key on the PC.
 
 ### Job Object and host watch
 
@@ -115,7 +116,8 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
   live/cache/              # live-*.json API caches + live-leg-craft-*.json
   cache/                   # unlocks-*.cache, stash-names.cache, waypoints-index.cache,
                            # gw2-names-en.tsv, gw2-recipes.tsv, gw2-helper-catalog.manifest,
-                           # gw2-helper-catalog.igh, gw2-helper-icons.igh
+                           # gw2-helper-catalog.igh, gw2-helper-achievements.igh,
+                           # gw2-helper-icons.igh
   cmds/                    # *-cmd.txt (helper ↔ DLL IPC)
   cef/                     # private CEF 150 (downloaded)
   cheatsheets/
@@ -237,13 +239,13 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 
 | Path | Responsibility |
 |------|----------------|
-| `src/account/` | Account hub + profiles/inventory/history; feature pads under `crafting/`, `tpwatch/`, `unlocks/`, … |
+| `src/account/` | Account hub + profiles/inventory/history; feature pads under `crafting/`, `tpwatch/`, `unlocks/`, `progress/` (Ledger-grouped armory), `wallet/` (stash/materials), … |
 | `src/pathing/` | Feature subfolders: `packs/`, `trails/`, `world/`, `lua/`, `waypoints/`, `mapassist/` |
 | `src/pathing/world/` (`WorldOverlay*`, `WorldGps*`, …) | GPS orchestrator, math, D3D device/draw, ImGui markers |
-| `src/logs/` | `logmanager/` (DPS Logs) + `eiruntime/` (Elite Insights runtime) |
+| `src/logs/` | `logmanager/` (DPS Logs: list, Stats, career Players/Guilds, EI parse, dps.report, KillProof) + `eiruntime/` |
 | `src/economy/` | Flip Finder, local charts, crafting cart (read-only) |
 | `src/instances/` | Story / fractal / raid / strike journal |
-| `src/completion/` | Achievements pad (official AP groups / account overlay) |
+| `src/completion/` | Achievements pad (catalog pack groups/defs + account overlay) |
 | `src/farming/` | Farming run checklists + fishing catch log; Pathing handoff |
 | `src/overlay/` | Floating GPS arrow (`GpsArrow`) + zone-entry banner (`ZoneBanner`) |
 | `src/events/` | World Events pad + schedule data |
@@ -287,5 +289,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.0 — IGH1 catalog + icons + `.manifest` + CEF zip; API Check 5 probes; live 82; helper 2244 |
+| Last architecture sync | 2.3.0.0 — IGH1 catalog + achievements + icons + `.manifest` + CEF zip; API Check 5 probes; grouped Progress armory; live 82; helper 2244 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

@@ -18,8 +18,8 @@ Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows
 
 On first helper open the DLL downloads the CEF runtime (~170MB) once unless you
 pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes). The same
-GitHub pre-release (`gw2-helper-catalog`) also serves the IGH1 name/recipe and
-icon packs.
+GitHub pre-release (`gw2-helper-catalog`) also serves the IGH1 name/recipe,
+achievement, and icon packs.
 
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper) ·
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
@@ -38,11 +38,14 @@ icon packs.
 
 - **Catalog packs:** Stash names/icons and station recipes download from GitHub
   pre-release **GW2 Helper Catalog** (tag `gw2-helper-catalog`). Packs are IGH1
-  (not zip): `gw2-helper-catalog.igh` (names + recipes) and
+  (not zip): `gw2-helper-catalog.igh` (raw names + recipes, ~8MB, not gzip
+  members), `gw2-helper-achievements.igh` (groups / categories / defs so the
+  Achievements pad does not crawl the public API on open), and
   `gw2-helper-icons.igh` (~22k unique ArenaNet render PNGs). One tiny
   `gw2-helper-catalog.manifest` is the freshness check (`catalog` / `icons` / `cef`)
   so the DLL can skip re-downloading. Missing ids still fall back to the API /
-  CDN. The CEF runtime zip lives on that same tag, not on each DLL release.
+  CDN. Account achievement progress still uses `/v2/account/achievements`. The
+  CEF runtime zip lives on that same tag, not on each DLL release.
 - **API speed:** API Check is five ArenaNet health probes (not ~45, not wiki/
   GitHub/killproof). Live pages show the last good HTML instantly and refresh
   in the background. Account stash / vault prefetch after helper open or API
@@ -52,6 +55,19 @@ icon packs.
   when cache is missing (not skipped just because icons already landed).
 - **Browse hub:** Favorite folders collapse/expand (state remembered). Donate
   line under Report any issues: Ko-fi (`ko-fi.com/xydroc`).
+- **DPS Logs:** Stats tab (kill rate / PB / avg per encounter), Players and Guilds
+  **All filtered** career totals, clickable Fastest rows, player search,
+  uploaded/parsed filters, right-click log actions, Copy links, downs/deaths
+  from Elite Insights.
+- **Pad scroll:** Root plates no longer micro-scroll under the wheel (DAT title
+  hitch). Native scrollbar thumb tracks ImGui’s grab. DPS Logs uses one scroller
+  per pane instead of nested table+child wheels.
+- **Account Progress:** Legendary Armory is grouped like the Ledger (type chips,
+  generation chips, collapsible Weapon/Armor folds) instead of one 200-row dump.
+- **Unlocks:** Dyes draw cloth RGB swatches from the catalog; minis/finishers/…
+  use catalog or public API icon URLs. Titles stay name-only (no item-atlas mixup).
+- **Stash:** Materials storage waits longer for `/v2/account/materials`, keeps
+  the fold open while filtering, and no longer looks empty when the bag is loaded.
 - **Stamps:** Helper `2244` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `82` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.2.4.11

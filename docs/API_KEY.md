@@ -28,7 +28,7 @@ Treat it like a password. Revoke or recreate keys anytime on the same page.
 | **inventories** | Bank, material storage, shared inventory, bags / stash |
 | **characters** | Character roster and per-toon bags |
 | **progression** | Wizard’s Vault / Dailies; world-event claim marks; Instances raids/fractal level/CM; Achievements (account groups) |
-| **unlocks** | Legendary Armory (Account → Progress) |
+| **unlocks** | Legendary Armory (Account → Progress); skins, dyes, minis, finishers, outfits, gliders, mail carriers, novelties (Account → Unlocks) |
 | **tradingpost** | Trading Post delivery box, open orders / history |
 
 **Recommended:** enable all of the above on one key. Item lookup and public TP

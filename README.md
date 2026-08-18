@@ -17,7 +17,7 @@ CEF Stable 150** runtime downloaded on first open into
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once,
-plus public item name/icon packs from GitHub tag `gw2-helper-catalog`.
+plus public item name/icon and achievement packs from GitHub tag `gw2-helper-catalog`.
 Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 (`pages/` for generated HTML, `config/` for notes/profiles/etc; see [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md)).
 
@@ -37,10 +37,10 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | [DuckDuckGo](https://duckduckgo.com/) | Search |
 | [Gemini](https://gemini.google.com/app) | Search |
 | News Digest (built-in) | Help |
-| Account (side-rail **Account** — unlocks, inventory, history, progress) | ImGui |
+| Account (side-rail **Account** — unlocks, inventory, history, grouped legendary armory) | ImGui |
 | TP Watchlist (Account / pad) | ImGui |
 | Item Lookup (Account / pad) | ImGui |
-| Stash (side-rail **Stash**) | Wallet, materials, bank, shared, bags |
+| Stash (side-rail **Stash**) | Wallet, materials storage, bank, shared, bags |
 | Vault (side-rail **Vault**) | Wizard's Vault / dailies |
 | Crafting (side-rail **Crafting**) | Plan, known recipes, browse, craft cart |
 | DPS Logs (side-rail **DPS Logs**) | ImGui |
@@ -48,7 +48,7 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | Pathing (side-rail) | ImGui + MumbleLink · Tekkit + Lady + Hero + user `.taco` |
 | Economy (side-rail **Companions**) | Flip Finder, local price charts, crafting cart (read-only official API) |
 | Instances (side-rail **Companions**) | Story / fractal / raid / strike checklist journal |
-| Achievements (side-rail **Achievements**) | Official account AP groups |
+| Achievements (side-rail **Achievements**) | Catalog pack groups/defs; API for account progress |
 | Farming (side-rail **Companions**) | Curated + custom farm runs, GPS live nodes, fishing catch log |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |

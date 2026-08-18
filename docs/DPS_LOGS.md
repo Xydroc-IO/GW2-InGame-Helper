@@ -156,15 +156,27 @@ Some Steam Deck setups use Discover / flatpak `com.github.Matoking.protontricks`
 | **Install / Update EI** | Refreshes EI from GitHub latest |
 | **Upload** / **Upload filtered** | Uploads to dps.report (`uploadContent?json=1`); stores permalink + basic encounter info. Queue drains until empty (files enqueued mid-run still upload). Soft cap ~48 MB per file; status line reports progress / errors. |
 | **Load DPS/boons** | Fills encounter, squad DPS, and boon uptimes from dps.report (`getJson`) for existing links |
+| **Copy links** | Copies dps.report permalinks for the **filtered** list |
 | Optional **dps.report user token** | Associates uploads with your dps.report account (treat like a password) |
+| Right-click a log | Parse / upload / open folder / copy path or report link |
 
-Detail tab shows squad **DPS / Power / Condi** and key boon uptimes
-(**Quick / Alac / Might / Fury / Prot**). Open the full HTML report with
-**Open report** when you need everything Elite Insights renders in a browser.
+Detail tab shows squad **DPS / Power / Condi**, downs / deaths, and key boon uptimes
+(**Quick / Alac / Might / Fury / Prot**), plus this encounter’s kill rate and personal
+best in the **filtered** set. Open the full HTML report with **Open report** when you
+need everything Elite Insights renders in a browser.
+
+### Stats / Players / Guilds / Fastest
+
+| Tab | What it does |
+|-----|----------------|
+| **Stats** | Kill rate, attempts, best / average kill, squad PB per encounter (filtered). Click a name for the latest log; click the best time for the PB. |
+| **Players** | **This run** = squad for the selected log. **All filtered** = career logs / kills / avg DPS. Click an account to search the list. |
+| **Guilds** | Same This run / All filtered split; click a tag to search. |
+| **Fastest** | Best kill per encounter; click a row to open that log. |
 
 ### KillProof tab
 
-Right-pane tab **KillProof** (alongside Detail / Players / Guilds / Fastest / Setup)
+Right-pane tab **KillProof** (alongside Detail / Players / Stats / Guilds / Fastest / Setup)
 loads public [killproof.me](https://killproof.me/) profiles for the **selected log’s
 squad**:
 
@@ -183,13 +195,14 @@ profiles show **—**.
 Filters | log list | Detail / Players / **KillProof** / … — drag the vertical
 splitter between the list and the right pane to resize (saved).
 
-**Search** matches filename, encounter name, or path (one field). Result / Mode /
-Time filters use **stacked radios**. **Group by encounter** is **on by default**:
-collapsible sections per boss with count / kills / best kill / last time; newest
-encounters first. Uncheck for a flat list. **Auto-parse after scan** (default on)
-runs Elite Insights when a Rescan finishes if .NET 8 + EI are ready. The filters
-column sizes from label width (font scale aware) so search and checkbox text are
-not clipped; long labels wrap beside the box.
+**Search** matches filename, encounter, path, account, character, profession, or guild
+tag. **Uploaded only** / **Parsed only** hide logs without a permalink or parse.
+Result / Mode / Time filters use **stacked radios**. **Group by encounter** is **on by
+default**: collapsible sections per boss with count / kills / kill % / best kill / last
+time; newest encounters first. Uncheck for a flat list. **Auto-parse after scan**
+(default on) runs Elite Insights when a Rescan finishes if .NET 8 + EI are ready. The
+filters column sizes from label width (font scale aware) so search and checkbox text
+are not clipped; long labels wrap beside the box.
 
 Window size and position are remembered; first-open size uses most of the game
 client (~92%×84%, e.g. ~1760×900 on 1080p) so filters | list | Detail/KillProof

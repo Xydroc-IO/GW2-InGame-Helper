@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.3.0.0 | 2.3.0.0 | IGH1 catalog+icons + `.manifest` + CEF zip; API Check 5 probes; live 82; helper 2244 |
+| 2.3.0.0 | 2.3.0.0 | IGH1 catalog+achievements+icons + `.manifest` + CEF zip; grouped Progress armory; API Check 5 probes; live 82; helper 2244 |
 | 2.2.4.11 | 2.2.4.11 | Rail/hub current tab; Ctrl/middle new tab; live 75; helper 2244 |
 | 2.2.4.10 | 2.2.4.10 | Cheat sheet pack open (Uber’s AIO) no longer stuck on loading shell; helper 2243 |
 | 2.2.4.9 | 2.2.4.9 | Completion pad removed; Browse hub; combo capture; live 74 |
@@ -265,7 +265,7 @@ Orphan Chromium trees after a hard game kill are a historical failure mode under
 - **Toolchain.** `x86_64-w64-mingw32-g++` (C++17), static `libgcc` / `libstdc++` for shipping PE.
 - **Helper.** Compiled against `deps/cef` 150 C API headers; embedded as a binary blob in the DLL.
 - **CEF archive.** `scripts/pack-cef-runtime.sh` flattens official minimal packages; SHA-256 in `CefRuntime.h`; zip hosted on pre-release tag `gw2-helper-catalog` with the public catalog pack.
-- **Catalog.** `data/sites.json` embedded and extracted at runtime. Public item names / recipes / unique render icons download from tag `gw2-helper-catalog` as IGH1 packs (`Gw2Catalog.h`); cheap freshness is `gw2-helper-catalog.manifest`.
+- **Catalog.** `data/sites.json` embedded and extracted at runtime. Public item names / recipes / achievement groups+defs / unique render icons download from tag `gw2-helper-catalog` as IGH1 packs (`Gw2Catalog.h`); cheap freshness is `gw2-helper-catalog.manifest`.
 - **Updates.** Nexus `UP_GitHub` for DLL; CEF stamped separately (`cef.ver` = `150.0.14`).
 
 Operational detail: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`BUILD.md`](BUILD.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
@@ -749,7 +749,7 @@ Module map: `WorldOverlay` orchestrates `WorldGpsMath`, `WorldGpsD3dDevice` / `W
 
 ### 17.3 DPS Logs
 
-ArcDPS EVTC browsing via optional Elite Insights CLI under `eiruntime/` (SHA-verified download; requires user .NET 8). Upload to dps.report; KillProof.me public profiles. Parse fixtures gated in `make test-parse`. See [`DPS_LOGS.md`](DPS_LOGS.md).
+ArcDPS EVTC browsing via optional Elite Insights CLI under `eiruntime/` (SHA-verified download; requires user .NET 8). Upload to dps.report; KillProof.me public profiles. Encounter Stats, career Players/Guilds, and player search make the pad a local log manager. Parse fixtures gated in `make test-parse`. See [`DPS_LOGS.md`](DPS_LOGS.md).
 
 ### 17.4 Events and Notes
 
@@ -761,7 +761,7 @@ Schema-v2 `data/sites.json` (~2718 entries) embeds and extracts to runtime `site
 
 ### 17.6 Companions and overlays
 
-**Economy** and **Instances** are read-only side-rail companions (commerce Flip Finder / charts / cart; story/fractal/raid/strike journal). **Stash** and **Crafting** are their own rails (wallet/bank/bags; plan / known / browse / cart). **Achievements** reads official `/v2/achievements` groups plus `/v2/account/achievements`. **Farming** stores curated run checklists and a fishing catch log with optional Pathing handoff. Persist under `config/` (`achievement-pins.txt`, `farming-state.txt`).
+**Economy** and **Instances** are read-only side-rail companions (commerce Flip Finder / charts / cart; story/fractal/raid/strike journal). **Stash** and **Crafting** are their own rails (wallet/bank/bags/materials; plan / known / browse / cart). **Account → Progress** groups the legendary armory with the embedded Ledger catalog. **Unlocks** draws dye cloth RGB and wardrobe icon URLs (not item-atlas ids). **Achievements** loads groups/defs from `gw2-helper-achievements.igh` and overlays `/v2/account/achievements`. **Farming** stores curated run checklists and a fishing catch log with optional Pathing handoff. Persist under `config/` (`achievement-pins.txt`, `farming-state.txt`).
 
 **Overlays:** `GpsArrow` (floating arrow toward the active search guide) and `ZoneBanner` (short map-change toast) live in `src/overlay/` — ImGui display only.
 
@@ -970,7 +970,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | `src/logs/*` | DPS Logs + EI runtime (`logmanager/`, `eiruntime/`) |
 | `src/economy/*` | Flip Finder / charts / crafting cart |
 | `src/instances/*` | Instance journal |
-| `src/completion/*` | Achievements pad (official API) |
+| `src/completion/*` | Achievements pad (catalog pack + account API overlay) |
 | `src/farming/*` | Farming runs + fishing log |
 | `src/overlay/*` | GPS arrow + zone banner |
 | `src/events/*` | World Events |
@@ -978,7 +978,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | `src/watch/*` | Watch control + Mirror (WGC picker / GDI fallback / portal+PipeWire OOP) |
 | `src/app/*` | Settings, paths, AddonVersion, theme, pad dock, PanelBinds, UiChrome, Gw2Ui/Gw2Icons, Mumble identity |
 | `src/api/Gw2Http*` | Blocking WinHTTP (workers only) |
-| `src/api/Gw2Catalog*` / `IghPack*` | Public names/recipes/icons from IGH1 packs (`gw2-helper-catalog`) |
+| `src/api/Gw2Catalog*` / `IghPack*` | Public names/recipes/achievements/icons from IGH1 packs (`gw2-helper-catalog`) |
 
 ## Appendix D — IPC command and input sketch
 
@@ -1019,6 +1019,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.3.0.0 — IGH1 catalog+icons + `.manifest` + CEF zip; API Check 5 probes; helper 2244; live 82; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.3.0.0 — IGH1 catalog+achievements+icons + `.manifest` + CEF zip; API Check 5 probes; grouped Progress armory; helper 2244; live 82; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |
