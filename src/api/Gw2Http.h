@@ -23,6 +23,9 @@ namespace Gw2Http
 	Result Api(const char* pathAndQuery, const char* bearerToken = nullptr,
 		int timeoutMs = 4000);
 
+	/* Unwrap gzip if body starts with 1f 8b. True if uncompressed or decoded. */
+	bool GunzipInPlace(std::string& body);
+
 	/* Stream a URL to disk (icon packs, large binaries). Not for JSON. */
 	bool DownloadToFile(const char* url, const wchar_t* outPath, int timeoutMs = 120000);
 }

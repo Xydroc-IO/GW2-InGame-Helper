@@ -8,12 +8,14 @@
    `gw2-helper-catalog` (title: GW2 Helper Catalog) — same tag as the CEF zip.
    `.igh` is IGH1 (custom, not zip). Do not attach to DLL tags.
    Cheap check: gw2-helper-catalog.manifest (catalog / icons / cef).
-   Cache: addons/.../cache/ names TSV, recipes TSV, .manifest, icons.igh. */
+   Cache: addons/.../cache/ names TSV, recipes TSV, .manifest, icons.igh,
+   gw2-helper-achievements.igh. */
 namespace Gw2Catalog
 {
 	inline constexpr const char* kReleaseTag = "gw2-helper-catalog";
 	inline constexpr const char* kManifestFile = "gw2-helper-catalog.manifest";
 	inline constexpr const char* kPackFile = "gw2-helper-catalog.igh";
+	inline constexpr const char* kAchievementsFile = "gw2-helper-achievements.igh";
 	inline constexpr const char* kIconsFile = "gw2-helper-icons.igh";
 	inline constexpr const char* kManifestMagic = "IGH1";
 
@@ -23,6 +25,9 @@ namespace Gw2Catalog
 	inline constexpr const char* kPackUrl =
 		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
 		"gw2-helper-catalog/gw2-helper-catalog.igh";
+	inline constexpr const char* kAchievementsUrl =
+		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
+		"gw2-helper-catalog/gw2-helper-achievements.igh";
 	inline constexpr const char* kIconsUrl =
 		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
 		"gw2-helper-catalog/gw2-helper-icons.igh";
@@ -54,6 +59,10 @@ namespace Gw2Catalog
 	/* Any names-pack kind: i c s n m d f o g u v t a y */
 	bool Name(char kind, int id, std::string* out);
 	bool Icon(char kind, int id, std::string* out);
+	/* 4th TSV column when it is not a render icon (armory max_count, dye rgb). */
+	bool Extra(char kind, int id, std::string* out);
+	/* Cloth/leather/metal RGB from names-pack extra (`r,g,b` or hex). */
+	bool DyeRgb(int id, int* r, int* g, int* b);
 
 	struct ArmoryRow
 	{
@@ -69,4 +78,9 @@ namespace Gw2Catalog
 
 	/* PNG from gw2-helper-icons.igh (render.guildwars2.com keys). */
 	bool IconPng(const char* renderUrl, std::vector<unsigned char>* out);
+
+	/* Groups / categories / defs TSV from gw2-helper-achievements.igh. */
+	bool AchievementPack(std::string* groupsTsv, std::string* categoriesTsv,
+		std::string* defsTsv);
+	bool AchievementPackReady();
 }

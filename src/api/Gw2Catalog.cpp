@@ -3,7 +3,10 @@
 #include "AddonPaths.h"
 #include "Gw2Http.h"
 
+#include <atomic>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 using namespace Gw2CatalogDetail;
 
@@ -43,11 +46,15 @@ namespace
 			havePackFile)
 		{
 			FetchRemoteIcons(remote.icons);
+			FetchRemoteAchievements(remote.catalog);
 			gBusy = false;
 			return 0;
 		}
 
-		auto applyPack = [](const std::string& bytes) -> bool {
+		auto applyPack = [](std::string bytes) -> bool {
+			/* Outer GitHub Content-Encoding gzip only. Members are raw TSV. */
+			if (!Gw2Http::GunzipInPlace(bytes))
+				return false;
 			if (bytes.size() < 64)
 				return false;
 			if (!ApplyIghBytes(bytes))
@@ -57,21 +64,23 @@ namespace
 		};
 
 		bool got = false;
-		auto pack = Gw2Http::Get(Gw2Catalog::kPackUrl, nullptr, 45000);
-		if (pack.ok)
-			got = applyPack(pack.body);
-		if (!got)
+		if (!havePackFile)
 		{
-			const std::wstring tmp = PackCachePath() + L".tmp";
-			if (Gw2Http::DownloadToFile(Gw2Catalog::kPackUrl, tmp.c_str(), 120000))
+			static std::atomic<bool> sTriedPack;
+			if (!sTriedPack.exchange(true))
 			{
-				got = applyPack(ReadAll(tmp, 32u * 1024u * 1024u));
-				DeleteFileW(tmp.c_str());
+				const std::wstring tmp = PackCachePath() + L".tmp";
+				if (Gw2Http::DownloadToFile(Gw2Catalog::kPackUrl, tmp.c_str(), 120000))
+				{
+					got = applyPack(ReadAll(tmp, 32u * 1024u * 1024u));
+					DeleteFileW(tmp.c_str());
+				}
 			}
 		}
 		if (got && !remote.catalog.empty())
 			MergeLocalManifest(remote.catalog.c_str(), nullptr, nullptr);
 		FetchRemoteIcons(remote.icons);
+		FetchRemoteAchievements(remote.catalog);
 		gBusy = false;
 		return 0;
 	}
@@ -92,16 +101,22 @@ void Gw2Catalog::Tick()
 	const DWORD now = GetTickCount();
 	bool haveNames = false;
 	bool haveRecipes = false;
+	bool haveAch = false;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
 		haveRecipes = gRecipesOnDisk;
+		haveAch = gAchievementsOnDisk.load();
 		auto it = gNames.find('i');
 		haveNames = it != gNames.end() && !it->second.empty();
 	}
-	/* Missing names pack: retry soon. Fresh pack: recheck every 6h. */
-	const DWORD waitMs = (haveNames && haveRecipes)
+	if (!haveAch &&
+		GetFileAttributesW(AchievementsCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
+		haveAch = true;
+	/* Missing names pack: retry every 30 min (not every few seconds — that
+	   hammered the GitHub catalog.igh counter). Fresh pack: recheck every 6h. */
+	const DWORD waitMs = (haveNames && haveRecipes && haveAch)
 		? 6u * 60u * 60u * 1000u
-		: 45u * 1000u;
+		: 30u * 60u * 1000u;
 	if (gLastCheckMs != 0 && (now - gLastCheckMs) < waitMs)
 		return;
 	if (gBusy.exchange(true))
@@ -137,6 +152,53 @@ bool Gw2Catalog::MaterialCategoryName(int id, std::string* out) { return Name('m
 
 bool Gw2Catalog::Name(char kind, int id, std::string* out) { return Lookup(kind, id, out, false); }
 bool Gw2Catalog::Icon(char kind, int id, std::string* out) { return Lookup(kind, id, out, true); }
+
+bool Gw2Catalog::Extra(char kind, int id, std::string* out)
+{
+	if (id <= 0 || !out)
+		return false;
+	LoadDisk();
+	std::lock_guard<std::mutex> lock(gMu);
+	return LookupKind(kind, gExtra, id, out);
+}
+
+static int ClampByte(int n)
+{
+	if (n < 0)
+		return 0;
+	if (n > 255)
+		return 255;
+	return n;
+}
+
+bool Gw2Catalog::DyeRgb(int id, int* r, int* g, int* b)
+{
+	if (!r || !g || !b)
+		return false;
+	std::string extra;
+	if (!Extra('d', id, &extra) || extra.empty())
+		return false;
+	int rv = 0, gv = 0, bv = 0;
+	if (std::sscanf(extra.c_str(), "%d,%d,%d", &rv, &gv, &bv) == 3)
+	{
+		*r = ClampByte(rv);
+		*g = ClampByte(gv);
+		*b = ClampByte(bv);
+		return true;
+	}
+	const char* p = extra.c_str();
+	if (*p == '#')
+		++p;
+	unsigned u = 0;
+	if (std::strlen(p) == 6 && std::sscanf(p, "%6x", &u) == 1)
+	{
+		*r = static_cast<int>((u >> 16) & 255);
+		*g = static_cast<int>((u >> 8) & 255);
+		*b = static_cast<int>(u & 255);
+		return true;
+	}
+	return false;
+}
 
 bool Gw2Catalog::HasMaterialCategories()
 {

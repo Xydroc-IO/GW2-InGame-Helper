@@ -19,6 +19,7 @@ namespace Gw2CatalogDetail
 	std::string gIconsHash;
 	bool gDiskLoaded = false;
 	bool gRecipesOnDisk = false;
+	std::atomic<bool> gAchievementsOnDisk{false};
 	std::atomic<bool> gBusy{false};
 	HANDLE gThread = nullptr;
 	DWORD gLastCheckMs = 0;
@@ -34,6 +35,10 @@ namespace Gw2CatalogDetail
 	std::wstring PackCachePath()
 	{
 		return AddonPaths::CacheDir() + L"\\gw2-helper-catalog.igh";
+	}
+	std::wstring AchievementsCachePath()
+	{
+		return AddonPaths::CacheDir() + L"\\gw2-helper-achievements.igh";
 	}
 	std::wstring IconsCachePath()
 	{
@@ -353,6 +358,8 @@ namespace Gw2CatalogDetail
 		if ((tsv.empty() || rec.empty()) && TryApplyLocalIgh())
 			return;
 		TryOpenLocalIcons();
+		if (GetFileAttributesW(AchievementsCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
+			gAchievementsOnDisk = true;
 		if (!man.catalog.empty() || !man.icons.empty())
 		{
 			std::lock_guard<std::mutex> lock(gMu);

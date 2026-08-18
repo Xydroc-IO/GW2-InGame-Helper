@@ -8,8 +8,12 @@ Little-endian:
   u32  entry count
   u32  index bytes
   index:
-    u16 name_len, name utf-8, u8 packed (1=gzip), u32 uncomp, u32 stored, u64 offset
+    u16 name_len, name utf-8, u8 packed (0=raw, 1=gzip), u32 uncomp, u32 stored, u64 offset
   payloads at offset (from start of file)
+
+Catalog names pack uses packed=0 (~8MB). Achievement pack is the same
+(raw groups/categories/defs TSV). Icon pack is also raw PNGs.
+The reader still accepts packed=1 so older catalog.igh files load.
 """
 from __future__ import annotations
 

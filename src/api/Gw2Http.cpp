@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
-#include <vector>
 
 #include <windows.h>
 #include <winhttp.h>
@@ -61,46 +60,6 @@ namespace
 		t.port = 0;
 	}
 
-	/* Wine may ignore WINHTTP_OPTION_DECOMPRESSION and still return gzip bytes. */
-	bool GunzipIfNeeded(std::string& body)
-	{
-		if (body.size() < 18)
-			return true;
-		const auto* p = reinterpret_cast<const unsigned char*>(body.data());
-		if (p[0] != 0x1f || p[1] != 0x8b)
-			return true;
-		mz_stream s{};
-		if (mz_inflateInit2(&s, 15 + 16) != MZ_OK)
-			return false;
-		std::string out(body.size() * 4u + 256u, '\0');
-		s.next_in = p;
-		s.avail_in = static_cast<unsigned int>(body.size());
-		int rc = MZ_OK;
-		unsigned spins = 0;
-		size_t lastOut = 0;
-		while (rc == MZ_OK || rc == MZ_BUF_ERROR)
-		{
-			if (++spins > 64u || (rc == MZ_BUF_ERROR && s.total_out == lastOut))
-			{
-				mz_inflateEnd(&s);
-				return false;
-			}
-			lastOut = static_cast<size_t>(s.total_out);
-			if (s.total_out >= out.size())
-				out.resize(out.size() * 2u);
-			s.next_out = reinterpret_cast<unsigned char*>(&out[s.total_out]);
-			s.avail_out = static_cast<unsigned int>(out.size() - s.total_out);
-			rc = mz_inflate(&s, MZ_FINISH);
-		}
-		const size_t n = static_cast<size_t>(s.total_out);
-		mz_inflateEnd(&s);
-		if (rc != MZ_STREAM_END)
-			return false;
-		out.resize(n);
-		body.swap(out);
-		return true;
-	}
-
 	bool EnsureSession(TlsHttp& t, int timeoutMs)
 	{
 		if (!t.session)
@@ -137,6 +96,45 @@ namespace
 		}
 		return true;
 	}
+}
+
+bool Gw2Http::GunzipInPlace(std::string& body)
+{
+	if (body.size() < 18)
+		return true;
+	const auto* p = reinterpret_cast<const unsigned char*>(body.data());
+	if (p[0] != 0x1f || p[1] != 0x8b)
+		return true;
+	mz_stream s{};
+	if (mz_inflateInit2(&s, 15 + 16) != MZ_OK)
+		return false;
+	std::string out(body.size() * 4u + 256u, '\0');
+	s.next_in = p;
+	s.avail_in = static_cast<unsigned int>(body.size());
+	int rc = MZ_OK;
+	unsigned spins = 0;
+	size_t lastOut = 0;
+	while (rc == MZ_OK || rc == MZ_BUF_ERROR)
+	{
+		if (++spins > 64u || (rc == MZ_BUF_ERROR && s.total_out == lastOut))
+		{
+			mz_inflateEnd(&s);
+			return false;
+		}
+		lastOut = static_cast<size_t>(s.total_out);
+		if (s.total_out >= out.size())
+			out.resize(out.size() * 2u);
+		s.next_out = reinterpret_cast<unsigned char*>(&out[s.total_out]);
+		s.avail_out = static_cast<unsigned int>(out.size() - s.total_out);
+		rc = mz_inflate(&s, MZ_FINISH);
+	}
+	const size_t n = static_cast<size_t>(s.total_out);
+	mz_inflateEnd(&s);
+	if (rc != MZ_STREAM_END)
+		return false;
+	out.resize(n);
+	body.swap(out);
+	return true;
 }
 
 Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeoutMs)
@@ -278,16 +276,13 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 		body.reserve(8192);
 		for (;;)
 		{
-			DWORD avail = 0;
-			if (!WinHttpQueryDataAvailable(req, &avail))
-				break;
-			if (avail == 0)
-				break;
-			std::vector<char> chunk(avail);
+			char chunk[16384];
 			DWORD read = 0;
-			if (!WinHttpReadData(req, chunk.data(), avail, &read) || read == 0)
+			if (!WinHttpReadData(req, chunk, sizeof(chunk), &read))
 				break;
-			body.append(chunk.data(), read);
+			if (read == 0)
+				break;
+			body.append(chunk, read);
 			if (body.size() > 16u * 1024u * 1024u)
 			{
 				r.error = "response too large";
@@ -301,7 +296,7 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 		if (r.error == "response too large")
 			break;
 
-		if (!GunzipIfNeeded(body))
+		if (!Gw2Http::GunzipInPlace(body))
 		{
 			r.error = "gzip decode failed";
 			break;

@@ -22,6 +22,7 @@ namespace Gw2CatalogDetail
 	extern std::string gIconsHash;
 	extern bool gDiskLoaded;
 	extern bool gRecipesOnDisk;
+	extern std::atomic<bool> gAchievementsOnDisk;
 	extern std::atomic<bool> gBusy;
 	extern HANDLE gThread;
 	extern DWORD gLastCheckMs;
@@ -37,6 +38,7 @@ namespace Gw2CatalogDetail
 	std::wstring TsvPath();
 	std::wstring RecipesPath();
 	std::wstring PackCachePath();
+	std::wstring AchievementsCachePath();
 	std::wstring IconsCachePath();
 	std::string ReadAll(const std::wstring& path, size_t maxBytes);
 	bool WriteAll(const std::wstring& path, const std::string& data);
@@ -46,6 +48,7 @@ namespace Gw2CatalogDetail
 	bool TryApplyLocalIgh();
 	bool TryOpenLocalIcons();
 	void FetchRemoteIcons(const std::string& remoteIcons);
+	void FetchRemoteAchievements(const std::string& catalogBuild);
 	bool LookupLocked(const std::unordered_map<int, std::string>& map, int id, std::string* out);
 	bool LookupKind(char kind,
 		const std::unordered_map<char, std::unordered_map<int, std::string>>& root,

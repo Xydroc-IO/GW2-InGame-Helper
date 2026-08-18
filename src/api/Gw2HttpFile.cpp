@@ -65,11 +65,12 @@ bool Gw2Http::DownloadToFile(const char* url, const wchar_t* outPath, int timeou
 	}
 	DWORD redirect = WINHTTP_OPTION_REDIRECT_POLICY_ALWAYS;
 	WinHttpSetOption(req, WINHTTP_OPTION_REDIRECT_POLICY, &redirect, sizeof(redirect));
-	const wchar_t* hdr = L"Accept-Encoding: identity\r\n";
+	/* Do not send Accept-Encoding. Wine may leave gzip bytes. Caller gunzips
+	   if the body still starts with 1f 8b (GitHub Content-Encoding). */
 
 	bool ok = false;
 	HANDLE out = INVALID_HANDLE_VALUE;
-	if (!WinHttpSendRequest(req, hdr, static_cast<DWORD>(-1L),
+	if (!WinHttpSendRequest(req, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
 			WINHTTP_NO_REQUEST_DATA, 0, 0, 0) ||
 		!WinHttpReceiveResponse(req, nullptr))
 		goto done;

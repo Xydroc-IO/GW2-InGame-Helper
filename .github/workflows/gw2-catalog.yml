@@ -1,8 +1,8 @@
 # Rebuild GW2 Helper Catalog from api.guildwars2.com and publish to pre-release
 # tag `gw2-helper-catalog` (not the shipping DLL tag). Title: GW2 Helper Catalog.
 # That tag also hosts cef-runtime-150-windows64.zip and gw2-helper-icons.igh
-# (hand-uploaded). Only clobber catalog manifest + names igh — never delete the
-# release, the CEF zip, or the icons pack.
+# (hand-uploaded). Only clobber catalog manifest + names igh + achievements igh
+# — never delete the release, the CEF zip, or the icons pack.
 name: GW2 Helper Catalog
 
 on:
@@ -33,6 +33,7 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release download "$TAG" \
               -p gw2-helper-catalog.manifest -p gw2-helper-catalog.igh \
+              -p gw2-helper-achievements.igh \
               -p gw2-helper-catalog.json \
               -p gw2-helper-catalog.ver -p gw2-helper-icons.ver \
               -D /tmp/oldcat --clobber || true
@@ -74,13 +75,19 @@ jobs:
           NEW=$(python3 -c "import json; print(json.load(open('dist/gw2-helper-catalog.manifest'))['catalog'])")
           echo "build=$NEW" >> "$GITHUB_OUTPUT"
           NEW_HASH=$(sha256sum dist/gw2-helper-catalog.igh | awk '{print $1}')
+          NEW_ACH=$(sha256sum dist/gw2-helper-achievements.igh | awk '{print $1}')
           OLD_HASH=""
+          OLD_ACH=""
           if [ -f /tmp/oldcat/gw2-helper-catalog.igh ]; then
             OLD_HASH=$(sha256sum /tmp/oldcat/gw2-helper-catalog.igh | awk '{print $1}')
           fi
-          echo "old_hash=$OLD_HASH new_hash=$NEW_HASH"
+          if [ -f /tmp/oldcat/gw2-helper-achievements.igh ]; then
+            OLD_ACH=$(sha256sum /tmp/oldcat/gw2-helper-achievements.igh | awk '{print $1}')
+          fi
+          echo "old_hash=$OLD_HASH new_hash=$NEW_HASH old_ach=$OLD_ACH new_ach=$NEW_ACH"
           HAVE_MANIFEST="${{ steps.prev.outputs.have_manifest }}"
-          if [ "$HAVE_MANIFEST" = "1" ] && [ -n "$OLD_HASH" ] && [ "$OLD_HASH" = "$NEW_HASH" ]; then
+          if [ "$HAVE_MANIFEST" = "1" ] && [ -n "$OLD_HASH" ] && [ "$OLD_HASH" = "$NEW_HASH" ] \
+            && [ -n "$OLD_ACH" ] && [ "$OLD_ACH" = "$NEW_ACH" ]; then
             echo "changed=0" >> "$GITHUB_OUTPUT"
           else
             echo "changed=1" >> "$GITHUB_OUTPUT"
@@ -95,7 +102,8 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             # Named files only — leaves cef zip + gw2-helper-icons.igh in place.
             gh release upload "$TAG" \
-              dist/gw2-helper-catalog.manifest dist/gw2-helper-catalog.igh --clobber
+              dist/gw2-helper-catalog.manifest dist/gw2-helper-catalog.igh \
+              dist/gw2-helper-achievements.igh --clobber
             gh release edit "$TAG" \
               --title "GW2 Helper Catalog" \
               --notes-file docs/CATALOG_RELEASE.md
@@ -104,7 +112,8 @@ jobs:
               --prerelease \
               --title "GW2 Helper Catalog" \
               --notes-file docs/CATALOG_RELEASE.md \
-              dist/gw2-helper-catalog.manifest dist/gw2-helper-catalog.igh
+              dist/gw2-helper-catalog.manifest dist/gw2-helper-catalog.igh \
+              dist/gw2-helper-achievements.igh
           fi
           echo "Assets on $TAG:"
           gh release view "$TAG" --json assets --jq '.assets[].name'
