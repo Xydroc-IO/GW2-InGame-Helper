@@ -347,8 +347,7 @@ namespace WatchPadDetail
 			G::PadWatchMirror.w = 0.f;
 			G::PadWatchMirror.h = 0.f;
 		}
-		if (ImGuiWindow* w = ImGui::FindWindowByName("Watch Mirror###GW2InGameHelperWatchMirror"))
-			w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+		PadDock::ClearCustomCollapsed("Watch Mirror###GW2InGameHelperWatchMirror");
 		Settings::SetDirty();
 	}
 
@@ -420,8 +419,7 @@ namespace WatchPadDetail
 			G::PadWatchMirror.w = 0.f;
 			G::PadWatchMirror.h = 0.f;
 		}
-		if (ImGuiWindow* w = ImGui::FindWindowByName("Watch Mirror###GW2InGameHelperWatchMirror"))
-			w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+		PadDock::ClearCustomCollapsed("Watch Mirror###GW2InGameHelperWatchMirror");
 		if (!EiRuntime::IsWine())
 			Settings::SetDirty();
 	}

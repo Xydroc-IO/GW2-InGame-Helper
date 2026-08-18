@@ -18,7 +18,6 @@ namespace ProgressDetail
 	constexpr int kBulkTimeoutMs = 10000;
 	constexpr DWORD kAccountTtlMs = 3 * 60 * 1000;
 	constexpr DWORD kArmoryTtlMs = 24 * 60 * 60 * 1000;
-	constexpr size_t kMaxCharDetails = 50;
 
 	struct LegRow
 	{
@@ -41,14 +40,6 @@ namespace ProgressDetail
 	};
 	inline constexpr int kArmoryGenCount = 8;
 
-	struct CharRow
-	{
-		std::string name;
-		std::string profession;
-		std::string race;
-		long long level = -1;
-	};
-
 	struct Snapshot
 	{
 		bool ok = false;
@@ -56,7 +47,6 @@ namespace ProgressDetail
 		bool scopeFail = false;
 		std::string status;
 		std::vector<LegRow> legs;
-		std::vector<CharRow> chars;
 		int unlocked = 0;
 		DWORD fetchedAt = 0;
 	};
@@ -80,7 +70,6 @@ namespace ProgressDetail
 	std::string ReadUtf8File(const std::wstring& path);
 	void WriteUtf8File(const std::wstring& path, const std::string& body);
 	bool FileFresh(const std::wstring& path, DWORD ttlMs);
-	std::string UrlEncodePathSegment(const std::string& s);
 	void ParseArmoryCatalog(const std::string& body, std::vector<LegRow>& rows);
 	void ApplyNames(const std::string& json, std::vector<LegRow>& rows);
 	void FetchNames(std::vector<LegRow>& rows);
@@ -91,9 +80,8 @@ namespace ProgressDetail
 	bool RowVisible(const LegRow& r);
 	void SyncDraw();
 
-	/* ProgressDataUi.cpp — immersive armory + roster rows. */
+	/* ProgressDataUi.cpp — immersive armory rows. */
 	void DrawArmoryList(const Snapshot& snap);
-	void DrawCharacterRoster(const Snapshot& snap);
 
 	/* ProgressFetch.cpp */
 	DWORD WINAPI FetchProc(void*);

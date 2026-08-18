@@ -7,12 +7,15 @@
 /* Shared layout helpers for floating companion pads. */
 namespace PadLayout
 {
-	/* Height left in the current window for a scroll child (after header/tabs). */
+	/* Height left in the current window for a scroll child (after header/tabs).
+	   Never taller than remaining space — inflating past the parent makes the
+	   outer plate hitch under the wheel while the list also scrolls. */
 	inline float RemainingListH(float minH = 120.f, float reserveBelow = 4.f)
 	{
+		(void)minH;
 		float h = ImGui::GetContentRegionAvail().y - reserveBelow;
-		if (h < minH)
-			h = minH;
+		if (h < 1.f)
+			h = 1.f;
 		return h;
 	}
 

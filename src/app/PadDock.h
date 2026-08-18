@@ -116,6 +116,19 @@ namespace PadDock
 		ImGui::SetNextWindowSizeConstraints(ImVec2(minW, useMinH), ImVec2(maxW, maxH));
 	}
 
+	/* Expand a custom-minimized pad without Begin — OpenAndRefresh / rail
+	   clicks run while IDStack is empty (Wine crash-trail: mark:Account). */
+	inline void ClearCustomCollapsed(const char* windowName)
+	{
+		if (!windowName || !windowName[0])
+			return;
+		ImGuiWindow* w = ImGui::FindWindowByName(windowName);
+		if (!w)
+			return;
+		const ImGuiID collapsedId = ImHashStr("##gw2igh_pad_collapsed", 0, w->ID);
+		w->StateStorage.SetBool(collapsedId, false);
+	}
+
 	inline ImVec2 ClampPos(float x, float y, float padW, float padH = 0.f)
 	{
 		const ImGuiIO& io = ImGui::GetIO();

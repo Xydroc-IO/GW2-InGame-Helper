@@ -170,27 +170,6 @@ namespace ProgressDetail
 		return age100ns <= (static_cast<ULONGLONG>(ttlMs) * 10000ULL);
 	}
 
-	std::string UrlEncodePathSegment(const std::string& s)
-	{
-		std::string o;
-		o.reserve(s.size() * 3);
-		for (unsigned char c : s)
-		{
-			if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
-				c == '-' || c == '_' || c == '.' || c == '~')
-				o.push_back(static_cast<char>(c));
-			else if (c == ' ')
-				o += "%20";
-			else
-			{
-				char buf[8];
-				std::snprintf(buf, sizeof(buf), "%%%02X", c);
-				o += buf;
-			}
-		}
-		return o;
-	}
-
 	void ParseArmoryCatalog(const std::string& body, std::vector<LegRow>& rows)
 	{
 		rows.clear();
@@ -542,10 +521,6 @@ void ProgressData::RenderContents()
 	PadLayout::BeginList("###gw2igh_prog_list", 80.f);
 
 	DrawArmoryList(snap);
-
-	ImGui::Spacing();
-	ImGui::Separator();
-	DrawCharacterRoster(snap);
 
 	PadLayout::EndList();
 }

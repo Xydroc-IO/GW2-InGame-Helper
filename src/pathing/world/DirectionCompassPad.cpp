@@ -46,8 +46,7 @@ void DirectionCompass::Open()
 		G::PadCompass.w = 0.f;
 		G::PadCompass.h = 0.f;
 	}
-	if (ImGuiWindow* w = ImGui::FindWindowByName("Compass###GW2InGameHelperCompass"))
-		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+	PadDock::ClearCustomCollapsed("Compass###GW2InGameHelperCompass");
 	Settings::SetDirty();
 }
 

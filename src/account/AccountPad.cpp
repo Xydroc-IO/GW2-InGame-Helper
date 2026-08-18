@@ -128,8 +128,7 @@ void AccountPad::OpenAndRefresh()
 	/* Wine soft-open: Save on Soft Begin after Mirror tipped — Capture dirties later. */
 	if (!WinePadOpen::Soft())
 		Settings::SetDirty();
-	if (ImGuiWindow* w = ImGui::FindWindowByName("Account###GW2InGameHelperAccount"))
-		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+	PadDock::ClearCustomCollapsed("Account###GW2InGameHelperAccount");
 	gDeferRefresh = WinePadOpen::DeferFrames();
 	if (gDeferRefresh <= 0)
 		KickRefresh();
@@ -203,7 +202,8 @@ bool AccountPad::Render()
 		gAccountTab = 0;
 	gAccountTab = PadNav::DrawSideRail("###gw2igh_acct_nav", kTabs, 4, gAccountTab, 0.f, kTabIcons);
 
-	ImGui::BeginChild("###gw2igh_acct_body", ImVec2(0.f, 0.f), gAccountTab != 0);
+	const ImGuiWindowFlags bodyFlags = (gAccountTab == 0) ? 0 : PadNav::kLockScroll;
+	ImGui::BeginChild("###gw2igh_acct_body", ImVec2(0.f, 0.f), gAccountTab != 0, bodyFlags);
 	switch (gAccountTab)
 	{
 	case 0: DrawOverview(); break;

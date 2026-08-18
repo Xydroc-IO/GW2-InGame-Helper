@@ -4,11 +4,8 @@
 #include "Globals.h"
 #include "Gw2Catalog.h"
 #include "Gw2Http.h"
-#include "Settings.h"
 
-#include <atomic>
 #include <cstdio>
-#include <cstring>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -17,91 +14,6 @@
 
 namespace ProgressDetail
 {
-	void FetchCharacterRoster(Snapshot& snap)
-	{
-		auto chars = Gw2Http::Api("/v2/characters", G::Gw2ApiKey, kHttpTimeoutMs);
-		if (chars.ok)
-		{
-			std::vector<std::string> names;
-			size_t i = 0;
-			while (i < chars.body.size() && names.size() < 64)
-			{
-				while (i < chars.body.size() && chars.body[i] != '"') ++i;
-				if (i >= chars.body.size()) break;
-				++i;
-				std::string val;
-				while (i < chars.body.size() && chars.body[i] != '"')
-				{
-					if (chars.body[i] == '\\' && i + 1 < chars.body.size())
-					{
-						val.push_back(chars.body[i + 1]);
-						i += 2;
-						continue;
-					}
-					val.push_back(chars.body[i++]);
-				}
-				if (i < chars.body.size()) ++i;
-				if (!val.empty()) names.push_back(val);
-			}
-			for (const std::string& nm : names)
-			{
-				CharRow cr;
-				cr.name = nm;
-				snap.chars.push_back(std::move(cr));
-			}
-			const size_t detailN = (std::min)(snap.chars.size(), kMaxCharDetails);
-			if (detailN > 0)
-			{
-				std::string path = "/v2/characters?ids=";
-				for (size_t ci = 0; ci < detailN; ++ci)
-				{
-					if (ci) path += ',';
-					path += UrlEncodePathSegment(snap.chars[ci].name);
-				}
-				auto detail = Gw2Http::Api(path.c_str(), G::Gw2ApiKey, kBulkTimeoutMs);
-				if (detail.ok)
-				{
-					size_t p = 0;
-					while (p < detail.body.size())
-					{
-						size_t brace = detail.body.find('{', p);
-						if (brace == std::string::npos) break;
-						size_t end = JsonObjectEnd(detail.body, brace);
-						if (end == std::string::npos) break;
-						std::string nm = JsonStringAfterKey(detail.body, "name", brace);
-						std::string profession = JsonStringAfterKey(detail.body, "profession", brace);
-						std::string race = JsonStringAfterKey(detail.body, "race", brace);
-						long long level = JsonIntAfterKey(detail.body, "level", brace);
-						if (!nm.empty())
-						{
-							for (CharRow& cr : snap.chars)
-							{
-								if (cr.name == nm)
-								{
-									cr.profession = profession;
-									cr.race = race;
-									cr.level = level;
-									break;
-								}
-							}
-						}
-						p = end + 1;
-					}
-				}
-			}
-			if (!snap.ok && !snap.scopeFail)
-				snap.ok = true;
-		}
-		else if (chars.status == 401 || chars.status == 403)
-		{
-			snap.scopeFail = true;
-			if (snap.status.empty())
-				snap.status = "Character roster needs the characters scope.";
-		}
-		else if (snap.status.empty())
-			snap.status = "Character roster request failed.";
-	}
-
 	DWORD WINAPI FetchProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
@@ -212,36 +124,25 @@ namespace ProgressDetail
 				else if (acc.status == 401 || acc.status == 403)
 				{
 					snap.scopeFail = true;
-					snap.status = "Need API scopes: account + inventories + unlocks (+ characters).";
+					snap.status = "Need API scopes: account + inventories + unlocks.";
 				}
 				else if (snap.status.empty())
 					snap.status = "Armory unlocks failed - showing public catalog.";
 			}
-
-			/* Roster is independent of armory catalog — always attempt with a key. */
-			FetchCharacterRoster(snap);
 		}
 		else
 		{
 			if (snap.status.empty())
-				snap.status = "Public catalog - add an API key for unlocks + roster.";
+				snap.status = "Public catalog - add an API key for unlocks.";
 			snap.ok = !snap.legs.empty();
 		}
 
-		if (snap.status.empty() ||
-			(!snap.chars.empty() && snap.status.find("armory catalog") != std::string::npos))
+		if (snap.status.empty())
 		{
 			char buf[96];
-			if (snap.hasKey && !snap.scopeFail)
-			{
-				if (!snap.legs.empty())
-					std::snprintf(buf, sizeof(buf), "%d / %d unlocked | %d characters",
-						snap.unlocked, static_cast<int>(snap.legs.size()),
-						static_cast<int>(snap.chars.size()));
-				else
-					std::snprintf(buf, sizeof(buf), "%d characters (armory catalog unavailable)",
-						static_cast<int>(snap.chars.size()));
-			}
+			if (snap.hasKey && !snap.scopeFail && !snap.legs.empty())
+				std::snprintf(buf, sizeof(buf), "%d / %d unlocked",
+					snap.unlocked, static_cast<int>(snap.legs.size()));
 			else
 				std::snprintf(buf, sizeof(buf), "%d legendary armory items",
 					static_cast<int>(snap.legs.size()));
@@ -263,9 +164,8 @@ namespace ProgressDetail
 		if (!force)
 		{
 			std::lock_guard<std::mutex> lock(gMu);
-			/* Retry while both armory and roster are empty (prior abort / outage). */
 			if (gSnap.fetchedAt != 0 && (GetTickCount() - gSnap.fetchedAt) < kAccountTtlMs
-				&& (!gSnap.legs.empty() || !gSnap.chars.empty()))
+				&& !gSnap.legs.empty())
 				return;
 		}
 		if (gBusy.exchange(true))

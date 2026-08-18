@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.3.0.1
+# GW2 In-Game Helper v2.3.0.2
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -33,6 +33,14 @@ achievement, and icon packs.
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.3.0.2
+
+- **Account Progress:** Character roster is gone — Progress is legendary armory only. Character bags stay on Stash.
+- **Stash:** Search no longer matches toon names (and leftover Bags filters that stuffed a character name into the box are cleared). Search is item name / id.
+- **Pad scroll:** List children use remaining height instead of overflowing the plate; Account tabs lock the outer body so the wheel stays in the list.
+- **Wine/Windows crash:** Opening Account (and Vault / Compass / Watch / Mirror) no longer calls `GetID()` on a compacted window. Same empty-ID-stack abort as 2.3.0.1, now on the OpenAndRefresh path (`PadDock::ClearCustomCollapsed`).
+- **Stamps:** Helper `2244` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `82` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.3.0.1
 

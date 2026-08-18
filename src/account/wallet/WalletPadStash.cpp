@@ -57,8 +57,6 @@ namespace WalletDetail
 		char idBuf[24];
 		std::snprintf(idBuf, sizeof(idBuf), "%d", e.id);
 		if (has(idBuf, filter)) return true;
-		for (const LocQty& l : e.locs)
-			if (has(l.where.c_str(), filter)) return true;
 		return false;
 	}
 

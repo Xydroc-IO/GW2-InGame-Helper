@@ -1,6 +1,6 @@
 #pragma once
 
-/* Account Progress - legendary armory + character roster (official API).
+/* Account Progress - legendary armory (official API).
    Drawn inside AccountPad; no third-party site ties. */
 namespace ProgressData
 {

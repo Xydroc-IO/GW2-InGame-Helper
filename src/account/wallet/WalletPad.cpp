@@ -87,13 +87,24 @@ void WalletPad::OpenAndRefresh()
 	RefreshData();
 }
 
-void WalletPad::FocusCharacterBags(const char* characterName)
+static bool FilterIsCharacterName(const Snapshot& snap, const char* filter)
 {
-	if (!characterName || !characterName[0])
-		return;
-	std::snprintf(gFilter, sizeof(gFilter), "%s", characterName);
-	gLocFilter = 5;
-	OpenAndRefresh();
+	if (!filter || !filter[0])
+		return false;
+	for (const SlotSection& s : snap.sections)
+	{
+		if (s.kind == Loc_Character && _stricmp(s.title.c_str(), filter) == 0)
+			return true;
+	}
+	for (const Entry& e : snap.entries)
+	{
+		for (const LocQty& l : e.locs)
+		{
+			if (l.kind == Loc_Character && _stricmp(l.where.c_str(), filter) == 0)
+				return true;
+		}
+	}
+	return false;
 }
 
 void WalletPad::RenderContents()
@@ -102,6 +113,12 @@ void WalletPad::RenderContents()
 	TickDeferredFetch();
 	SyncDrawCopy();
 	const Snapshot& snap = gDraw;
+	if (FilterIsCharacterName(snap, gFilter))
+	{
+		gFilter[0] = '\0';
+		if (gLocFilter == 5)
+			gLocFilter = 0;
+	}
 
 	PadNav::Blurb("Account vault — bank tabs, materials, shared slots, and bags.");
 

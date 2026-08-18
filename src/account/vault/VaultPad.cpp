@@ -181,8 +181,7 @@ void VaultPad::OpenAndRefresh()
 	gFocus = true;
 	gPlaceOnce = true;
 	Settings::SetDirty();
-	if (ImGuiWindow* w = ImGui::FindWindowByName("Dailies & Vault##GW2InGameHelperVault"))
-		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+	PadDock::ClearCustomCollapsed("Dailies & Vault##GW2InGameHelperVault");
 	gDeferRefresh = WinePadOpen::DeferFrames();
 	if (gDeferRefresh <= 0)
 		RefreshData();

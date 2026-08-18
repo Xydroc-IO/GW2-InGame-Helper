@@ -8,9 +8,6 @@ namespace WalletPad
 	void OpenAndRefresh();
 	void RefreshData(bool force = false); /* fetch without opening the floating window */
 
-	/* Open Wallet on Characters location filtered to this toon name. */
-	void FocusCharacterBags(const char* characterName);
-
 	/* Body only - for the Stash pad (no own ImGui::Begin). */
 	void RenderContents();
 

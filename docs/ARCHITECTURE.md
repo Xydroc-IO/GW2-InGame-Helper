@@ -5,7 +5,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.3.0.1` |
+| Addon revision (shipping) | `2.3.0.2` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2244` / `2235` / `s2215` / `c2228` |
@@ -291,5 +291,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.1 — camera-facing world GPS; pad rail icons; compacted-window GetID crash fix; live 82; helper 2244 |
+| Last architecture sync | 2.3.0.2 — Progress roster removed; Stash search not toon-name; pad list scroll; OpenAndRefresh GetID crash; live 82; helper 2244 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

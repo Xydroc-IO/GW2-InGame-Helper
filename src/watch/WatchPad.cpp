@@ -247,8 +247,7 @@ void WatchPad::Open()
 		G::PadWatch.w = 0.f;
 		G::PadWatch.h = 0.f;
 	}
-	if (ImGuiWindow* w = ImGui::FindWindowByName("Watch###GW2InGameHelperWatch"))
-		w->StateStorage.SetBool(w->GetID("##gw2igh_pad_collapsed"), false);
+	PadDock::ClearCustomCollapsed("Watch###GW2InGameHelperWatch");
 	/* Wine Soft-open: defer SetDirty — Save on Open frame after Soft-stop tipped. */
 	if (!EiRuntime::IsWine())
 		Settings::SetDirty();
