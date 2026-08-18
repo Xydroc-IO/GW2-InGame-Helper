@@ -127,6 +127,9 @@ pathing/*.taco
 pathing/*.zip
 !pathing/README.md
 
+# Generated/internal docs snapshots
+docs/reports/*.pdf
+
 # Installed addon trees if ever nested under the repo
 **/addons/GW2-InGame-Helper/**
 **/addons/GW2-InGame-Helper-Beta/**
