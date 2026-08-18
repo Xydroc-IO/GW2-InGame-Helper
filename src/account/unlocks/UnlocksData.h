@@ -46,5 +46,5 @@ namespace UnlocksData
 
 	size_t Count(Kind k);
 	bool Has(Kind k, int id);
-	void Search(Kind k, const char* query, std::vector<Row>& out, size_t maxN = 200);
+	void Search(Kind k, const char* query, std::vector<Row>& out, size_t maxN = 10000);
 }

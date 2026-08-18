@@ -232,7 +232,7 @@ void UnlocksData::Search(Kind k, const char* query, std::vector<Row>& out, size_
 	KindState& st = gKinds[KindIndex(k)];
 	const std::string q = query ? ToLowerCopy(query) : std::string{};
 	std::vector<int> ids(st.ids.begin(), st.ids.end());
-	std::sort(ids.begin(), ids.end());
+	out.reserve((std::min)(ids.size(), maxN));
 	for (int id : ids)
 	{
 		Row row;
@@ -256,7 +256,12 @@ void UnlocksData::Search(Kind k, const char* query, std::vector<Row>& out, size_
 				continue;
 		}
 		out.push_back(std::move(row));
-		if (out.size() >= maxN)
-			break;
 	}
+	std::sort(out.begin(), out.end(), [](const Row& a, const Row& b) {
+		if (a.name != b.name)
+			return a.name < b.name;
+		return a.id < b.id;
+	});
+	if (out.size() > maxN)
+		out.resize(maxN);
 }
