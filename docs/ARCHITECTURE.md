@@ -5,11 +5,11 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.3.0.2` |
+| Addon revision (shipping) | `2.3.0.3` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2244` / `2235` / `s2215` / `c2228` |
-| Live panel stamp | `82` |
+| Helper / home / sites / cheatsheets stamps | `2245` / `2235` / `s2215` / `c2228` |
+| Live panel stamp | `83` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc36` |
 | watchd stamp | `w10` |
@@ -75,7 +75,7 @@ Public item/currency names, render icons, station recipes, achievement groups/de
 - `gw2-helper-icons.igh` — IGH1 unique `render.guildwars2.com` PNGs (~22k); missing icons still use the CDN
 - `cef-runtime-150-windows64.zip` — private CEF 150 (SHA-256 in `CefRuntime.h`; stays a zip)
 
-Catalog URLs in `src/api/Gw2Catalog.h`; CEF URL in `src/browser/CefRuntime.h`. Cache: `addons/.../cache/gw2-helper-catalog.manifest` + names/recipes TSV + catalog/recipes/achievements/icon packs. Rebuild: `python3 scripts/build-gw2-catalog.py -o dist` and `python3 scripts/build-gw2-icons.py -o dist` (icons are hand-uploaded; daily Action refreshes the names, recipes, and achievements packs). Account bank/mats still use the player’s key on the PC.
+Catalog URLs in `src/api/Gw2Catalog.h`; CEF URL in `src/browser/CefRuntime.h`. Cache: `addons/.../cache/gw2-helper-catalog.manifest` + names/recipes TSV + catalog/recipes/achievements/icon packs. A cold first fetch pulls every missing `.igh` in one worker. The GitHub manifest is GETed **once per shipping DLL version** (not every 6 hours); later sessions skip packs whose ids already match. Rebuild: `python3 scripts/build-gw2-catalog.py -o dist` and `python3 scripts/build-gw2-icons.py -o dist` (icons are hand-uploaded; daily Action refreshes the names, recipes, and achievements packs — players pick those up on the next DLL). Account bank/mats still use the player’s key on the PC.
 
 ### Job Object and host watch
 
@@ -199,6 +199,7 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 - Popups always cancelled (OSR has no native windows).
 - Ad / tracker / click-id routes → `OpenExternalUrl` (full URL; refuse if still > 8 KB).
 - Same-site new-window links may navigate in-tab.
+- `file://` / `about:` new tabs only from bundled helper pages (`file:` / `about:` other than `about:blank`). Web origins cannot open local files.
 - Native `<select>` polyfilled in-page (BootJs) — PET_POPUP under OSR crashed the helper on Windows.
 - `GetViewRect` = ImGui panel; `GetScreenInfo` = primary monitor + work area (`device_scale_factor` = 1.0).
 
@@ -291,5 +292,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.2 — Progress roster removed; Stash search not toon-name; pad list scroll; OpenAndRefresh GetID crash; live 82; helper 2244 |
+| Last architecture sync | 2.3.0.3 — address bar + URL bookmark bar; catalog once-per-DLL; file:// new-tab origin check; live 83; helper 2245 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

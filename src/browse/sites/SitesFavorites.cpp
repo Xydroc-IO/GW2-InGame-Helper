@@ -5,6 +5,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 using SitesRuntimeDetail::FolderIdKnown;
 using SitesRuntimeDetail::gFavoriteCount;
@@ -12,34 +13,152 @@ using SitesRuntimeDetail::gFavoriteFolderIds;
 using SitesRuntimeDetail::gFavoriteFolders;
 using SitesRuntimeDetail::gFavoriteFolderCount;
 using SitesRuntimeDetail::gFavoriteGeneration;
-using SitesRuntimeDetail::gFavoriteIds;
+using SitesRuntimeDetail::gFavoriteTitles;
+using SitesRuntimeDetail::gFavoriteUrls;
 using SitesRuntimeDetail::gFavoriteNextFolderId;
 using SitesRuntimeDetail::kMaxFavoriteFolders;
+using SitesRuntimeDetail::kMaxFavoriteTitle;
+using SitesRuntimeDetail::kMaxFavoriteUrl;
 using SitesRuntimeDetail::kMaxFavorites;
 using SitesRuntimeDetail::kUnfiledFavoriteFolderId;
 
 namespace
 {
-	int FindFavoriteSlot(const char* id)
+	std::string StripUrlNoise(const char* url)
 	{
-		if (!id || !id[0])
+		if (!url || !url[0])
+			return {};
+		std::string u = url;
+		const size_t hash = u.find('#');
+		if (hash != std::string::npos)
+			u.resize(hash);
+		while (!u.empty() && u.back() == '/')
+			u.pop_back();
+		return u;
+	}
+
+	int FindFavoriteSlot(const char* key)
+	{
+		if (!key || !key[0])
 			return -1;
 		for (int i = 0; i < gFavoriteCount; ++i)
 		{
-			if (std::strcmp(gFavoriteIds[i], id) == 0)
+			if (SitesRuntimeDetail::FavoriteUrlsMatch(gFavoriteUrls[i], key))
+				return i;
+		}
+		const int si = Sites::IndexOfId(key);
+		if (si < 0)
+			return -1;
+		size_t n = 0;
+		const SiteDef* sites = Sites::All(&n);
+		if (!sites || si >= static_cast<int>(n) || !sites[si].homeUrl)
+			return -1;
+		for (int i = 0; i < gFavoriteCount; ++i)
+		{
+			if (SitesRuntimeDetail::FavoriteUrlsMatch(gFavoriteUrls[i], sites[si].homeUrl))
 				return i;
 		}
 		return -1;
 	}
 
+	void FillTitle(int slot, const char* title, const char* url)
+	{
+		if (title && title[0])
+			std::snprintf(gFavoriteTitles[slot], kMaxFavoriteTitle, "%s", title);
+		else
+			SitesRuntimeDetail::FavoriteTitleFromUrl(gFavoriteTitles[slot], kMaxFavoriteTitle, url);
+	}
+
 	void MarkChanged(bool saveNow)
 	{
-		++gFavoriteGeneration;
-		Settings::SetDirty();
-		Sites::SaveFavoritesStore();
-		if (saveNow)
-			Settings::SaveNow();
+		SitesRuntimeDetail::MarkFavoritesChanged(saveNow);
 	}
+
+	bool RemoveSlot(int slot)
+	{
+		if (slot < 0 || slot >= gFavoriteCount)
+			return false;
+		for (int j = slot; j < gFavoriteCount - 1; ++j)
+		{
+			std::snprintf(gFavoriteUrls[j], kMaxFavoriteUrl, "%s", gFavoriteUrls[j + 1]);
+			std::snprintf(gFavoriteTitles[j], kMaxFavoriteTitle, "%s", gFavoriteTitles[j + 1]);
+			gFavoriteFolderIds[j] = gFavoriteFolderIds[j + 1];
+		}
+		gFavoriteUrls[gFavoriteCount - 1][0] = 0;
+		gFavoriteTitles[gFavoriteCount - 1][0] = 0;
+		gFavoriteFolderIds[gFavoriteCount - 1] = kUnfiledFavoriteFolderId;
+		--gFavoriteCount;
+		return true;
+	}
+}
+
+bool SitesRuntimeDetail::FavoriteUrlsMatch(const char* a, const char* b)
+{
+	if (!a || !b || !a[0] || !b[0])
+		return false;
+	if (std::strcmp(a, b) == 0)
+		return true;
+	return StripUrlNoise(a) == StripUrlNoise(b);
+}
+
+void SitesRuntimeDetail::FavoriteTitleFromUrl(char* dst, size_t dstLen, const char* url)
+{
+	if (!dst || dstLen == 0)
+		return;
+	dst[0] = 0;
+	if (!url || !url[0])
+		return;
+	const char* p = std::strstr(url, "://");
+	p = p ? p + 3 : url;
+	if (std::strncmp(p, "www.", 4) == 0)
+		p += 4;
+	const char* slash = std::strchr(p, '/');
+	const char* q = std::strchr(p, '?');
+	const char* end = p + std::strlen(p);
+	if (slash && slash < end)
+		end = slash;
+	if (q && q < end)
+		end = q;
+	if (end <= p)
+	{
+		std::snprintf(dst, dstLen, "%s", url);
+		return;
+	}
+	const size_t n = static_cast<size_t>(end - p);
+	if (n >= dstLen)
+	{
+		std::memcpy(dst, p, dstLen - 1);
+		dst[dstLen - 1] = 0;
+		return;
+	}
+	std::memcpy(dst, p, n);
+	dst[n] = 0;
+}
+
+void SitesRuntimeDetail::MigrateFavoriteSiteIds()
+{
+	size_t n = 0;
+	const SiteDef* sites = Sites::All(&n);
+	for (int i = 0; i < gFavoriteCount; ++i)
+	{
+		if (std::strstr(gFavoriteUrls[i], "://"))
+			continue;
+		const int si = Sites::IndexOfId(gFavoriteUrls[i]);
+		if (si < 0 || !sites || si >= static_cast<int>(n) || !sites[si].homeUrl)
+			continue;
+		if (!gFavoriteTitles[i][0] && sites[si].label)
+			std::snprintf(gFavoriteTitles[i], kMaxFavoriteTitle, "%s", sites[si].label);
+		std::snprintf(gFavoriteUrls[i], kMaxFavoriteUrl, "%s", sites[si].homeUrl);
+	}
+}
+
+void SitesRuntimeDetail::MarkFavoritesChanged(bool saveNow)
+{
+	++gFavoriteGeneration;
+	Settings::SetDirty();
+	Sites::SaveFavoritesStore();
+	if (saveNow)
+		Settings::SaveNow();
 }
 
 bool Sites::IsFavorite(const char* id)
@@ -47,29 +166,48 @@ bool Sites::IsFavorite(const char* id)
 	return FindFavoriteSlot(id) >= 0;
 }
 
+bool Sites::IsFavoriteUrl(const char* url)
+{
+	if (!url || !url[0])
+		return false;
+	for (int i = 0; i < gFavoriteCount; ++i)
+	{
+		if (SitesRuntimeDetail::FavoriteUrlsMatch(gFavoriteUrls[i], url))
+			return true;
+	}
+	return false;
+}
+
 bool Sites::ToggleFavorite(const char* id)
 {
-	if (!id || !id[0] || IndexOfId(id) < 0)
+	if (!id || !id[0])
 		return false;
+	const int si = Sites::IndexOfId(id);
+	if (si < 0)
+		return false;
+	size_t n = 0;
+	const SiteDef* sites = Sites::All(&n);
+	if (!sites || si >= static_cast<int>(n) || !sites[si].homeUrl || !sites[si].homeUrl[0])
+		return false;
+	const char* title = sites[si].label ? sites[si].label : sites[si].title;
+	return ToggleFavoriteUrl(title, sites[si].homeUrl);
+}
 
-	const int slot = FindFavoriteSlot(id);
+bool Sites::ToggleFavoriteUrl(const char* title, const char* url)
+{
+	if (!url || !url[0] || std::strlen(url) >= kMaxFavoriteUrl)
+		return false;
+	const int slot = FindFavoriteSlot(url);
 	if (slot >= 0)
 	{
-		for (int j = slot; j < gFavoriteCount - 1; ++j)
-		{
-			std::snprintf(gFavoriteIds[j], sizeof(gFavoriteIds[j]), "%s", gFavoriteIds[j + 1]);
-			gFavoriteFolderIds[j] = gFavoriteFolderIds[j + 1];
-		}
-		gFavoriteIds[gFavoriteCount - 1][0] = 0;
-		gFavoriteFolderIds[gFavoriteCount - 1] = kUnfiledFavoriteFolderId;
-		--gFavoriteCount;
+		RemoveSlot(slot);
 		MarkChanged(false);
 		return false;
 	}
-
 	if (gFavoriteCount >= kMaxFavorites)
 		return false;
-	std::snprintf(gFavoriteIds[gFavoriteCount], sizeof(gFavoriteIds[gFavoriteCount]), "%s", id);
+	std::snprintf(gFavoriteUrls[gFavoriteCount], kMaxFavoriteUrl, "%s", url);
+	FillTitle(gFavoriteCount, title, url);
 	gFavoriteFolderIds[gFavoriteCount] = kUnfiledFavoriteFolderId;
 	++gFavoriteCount;
 	MarkChanged(false);
@@ -86,11 +224,51 @@ unsigned Sites::FavoritesGeneration()
 	return gFavoriteGeneration;
 }
 
+const char* Sites::FavoriteUrlAt(int slot)
+{
+	if (slot < 0 || slot >= gFavoriteCount)
+		return "";
+	return gFavoriteUrls[slot];
+}
+
+const char* Sites::FavoriteTitleAt(int slot)
+{
+	if (slot < 0 || slot >= gFavoriteCount)
+		return "";
+	if (gFavoriteTitles[slot][0])
+		return gFavoriteTitles[slot];
+	return gFavoriteUrls[slot];
+}
+
 int Sites::FavoriteSiteIndex(int favSlot)
 {
 	if (favSlot < 0 || favSlot >= gFavoriteCount)
 		return -1;
-	return IndexOfId(gFavoriteIds[favSlot]);
+	return BestMatchForUrl(gFavoriteUrls[favSlot]);
+}
+
+bool Sites::RenameFavorite(int slot, const char* title)
+{
+	if (slot < 0 || slot >= gFavoriteCount || !title || !title[0])
+		return false;
+	char cleaned[kMaxFavoriteTitle]{};
+	std::snprintf(cleaned, sizeof(cleaned), "%s", title);
+	size_t len = std::strlen(cleaned);
+	while (len > 0 && (cleaned[len - 1] == ' ' || cleaned[len - 1] == '\t'))
+		cleaned[--len] = 0;
+	if (len == 0)
+		return false;
+	std::snprintf(gFavoriteTitles[slot], kMaxFavoriteTitle, "%s", cleaned);
+	MarkChanged(true);
+	return true;
+}
+
+bool Sites::RemoveFavoriteSlot(int slot)
+{
+	if (!RemoveSlot(slot))
+		return false;
+	MarkChanged(true);
+	return true;
 }
 
 int Sites::FavoriteFolderCount()
@@ -117,9 +295,9 @@ const char* Sites::FavoriteFolderName(int folderId)
 	return "Unfiled";
 }
 
-int Sites::FavoriteFolderOf(const char* siteId)
+int Sites::FavoriteFolderOf(const char* siteIdOrUrl)
 {
-	const int slot = FindFavoriteSlot(siteId);
+	const int slot = FindFavoriteSlot(siteIdOrUrl);
 	if (slot < 0)
 		return kUnfiledFavoriteFolderId;
 	return gFavoriteFolderIds[slot];
@@ -136,7 +314,7 @@ int Sites::FavoriteCountInFolder(int folderId)
 	return n;
 }
 
-int Sites::FavoriteSiteIndexInFolder(int folderId, int slotInFolder)
+int Sites::FavoriteSlotInFolder(int folderId, int slotInFolder)
 {
 	if (slotInFolder < 0)
 		return -1;
@@ -146,10 +324,15 @@ int Sites::FavoriteSiteIndexInFolder(int folderId, int slotInFolder)
 		if (gFavoriteFolderIds[i] != folderId)
 			continue;
 		if (seen == slotInFolder)
-			return IndexOfId(gFavoriteIds[i]);
+			return i;
 		++seen;
 	}
 	return -1;
+}
+
+int Sites::FavoriteSiteIndexInFolder(int folderId, int slotInFolder)
+{
+	return FavoriteSiteIndex(FavoriteSlotInFolder(folderId, slotInFolder));
 }
 
 bool Sites::CreateFavoriteFolder(const char* name)
@@ -237,9 +420,30 @@ bool Sites::DeleteFavoriteFolder(int folderId)
 	return true;
 }
 
-bool Sites::SetFavoriteFolder(const char* siteId, int folderId)
+bool Sites::MoveFavoriteFolder(int fromIndex, int toIndex)
 {
-	const int slot = FindFavoriteSlot(siteId);
+	if (fromIndex < 0 || toIndex < 0 || fromIndex >= gFavoriteFolderCount ||
+		toIndex >= gFavoriteFolderCount || fromIndex == toIndex)
+		return false;
+	const SitesRuntimeDetail::FavoriteFolder tmp = gFavoriteFolders[fromIndex];
+	if (fromIndex < toIndex)
+	{
+		for (int i = fromIndex; i < toIndex; ++i)
+			gFavoriteFolders[i] = gFavoriteFolders[i + 1];
+	}
+	else
+	{
+		for (int i = fromIndex; i > toIndex; --i)
+			gFavoriteFolders[i] = gFavoriteFolders[i - 1];
+	}
+	gFavoriteFolders[toIndex] = tmp;
+	MarkChanged(true);
+	return true;
+}
+
+bool Sites::SetFavoriteFolder(const char* siteIdOrUrl, int folderId)
+{
+	const int slot = FindFavoriteSlot(siteIdOrUrl);
 	if (slot < 0 || !FolderIdKnown(folderId))
 		return false;
 	if (gFavoriteFolderIds[slot] == folderId)
@@ -247,150 +451,4 @@ bool Sites::SetFavoriteFolder(const char* siteId, int folderId)
 	gFavoriteFolderIds[slot] = folderId;
 	MarkChanged(true);
 	return true;
-}
-
-void Sites::ParseFavorites(const char* csv)
-{
-	gFavoriteCount = 0;
-	gFavoriteFolderCount = 0;
-	gFavoriteNextFolderId = 1;
-	++gFavoriteGeneration;
-	if (!csv || !csv[0])
-		return;
-
-	const char* p = csv;
-	while (*p && gFavoriteCount < kMaxFavorites)
-	{
-		while (*p == ' ' || *p == ',')
-			++p;
-		if (!*p)
-			break;
-		const char* start = p;
-		while (*p && *p != ',')
-			++p;
-		size_t len = static_cast<size_t>(p - start);
-		while (len > 0 && start[len - 1] == ' ')
-			--len;
-		if (len == 0 || len >= sizeof(gFavoriteIds[0]))
-			continue;
-		std::memcpy(gFavoriteIds[gFavoriteCount], start, len);
-		gFavoriteIds[gFavoriteCount][len] = 0;
-		gFavoriteFolderIds[gFavoriteCount] = kUnfiledFavoriteFolderId;
-		++gFavoriteCount;
-	}
-	/* Do not prune here — Settings::Load runs before Sites::Init(). */
-}
-
-void Sites::SerializeFavorites(char* out, size_t outLen)
-{
-	if (!out || outLen == 0)
-		return;
-	out[0] = 0;
-	size_t used = 0;
-	for (int i = 0; i < gFavoriteCount; ++i)
-	{
-		const char* id = gFavoriteIds[i];
-		if (!id || !id[0])
-			continue;
-		const size_t idLen = std::strlen(id);
-		const size_t need = idLen + (used ? 1u : 0u);
-		if (used + need + 1 >= outLen)
-			break;
-		if (used)
-			out[used++] = ',';
-		std::memcpy(out + used, id, idLen);
-		used += idLen;
-		out[used] = 0;
-	}
-}
-
-void Sites::PruneFavorites()
-{
-	int w = 0;
-	for (int i = 0; i < gFavoriteCount; ++i)
-	{
-		if (IndexOfId(gFavoriteIds[i]) < 0)
-			continue;
-		bool dup = false;
-		for (int j = 0; j < w; ++j)
-		{
-			if (std::strcmp(gFavoriteIds[j], gFavoriteIds[i]) == 0)
-			{
-				dup = true;
-				break;
-			}
-		}
-		if (dup)
-			continue;
-		if (w != i)
-		{
-			std::snprintf(gFavoriteIds[w], sizeof(gFavoriteIds[w]), "%s", gFavoriteIds[i]);
-			gFavoriteFolderIds[w] = gFavoriteFolderIds[i];
-		}
-		if (!FolderIdKnown(gFavoriteFolderIds[w]))
-			gFavoriteFolderIds[w] = kUnfiledFavoriteFolderId;
-		++w;
-	}
-	for (int i = w; i < gFavoriteCount; ++i)
-	{
-		gFavoriteIds[i][0] = 0;
-		gFavoriteFolderIds[i] = kUnfiledFavoriteFolderId;
-	}
-	if (w != gFavoriteCount)
-		++gFavoriteGeneration;
-	gFavoriteCount = w;
-}
-
-bool Sites::MoveFavorite(int fromSlot, int toSlot)
-{
-	if (fromSlot < 0 || toSlot < 0 || fromSlot >= gFavoriteCount || toSlot >= gFavoriteCount)
-		return false;
-	if (fromSlot == toSlot)
-		return false;
-
-	char tmp[64];
-	const int tmpFolder = gFavoriteFolderIds[fromSlot];
-	std::snprintf(tmp, sizeof(tmp), "%s", gFavoriteIds[fromSlot]);
-	if (fromSlot < toSlot)
-	{
-		for (int i = fromSlot; i < toSlot; ++i)
-		{
-			std::snprintf(gFavoriteIds[i], sizeof(gFavoriteIds[i]), "%s", gFavoriteIds[i + 1]);
-			gFavoriteFolderIds[i] = gFavoriteFolderIds[i + 1];
-		}
-	}
-	else
-	{
-		for (int i = fromSlot; i > toSlot; --i)
-		{
-			std::snprintf(gFavoriteIds[i], sizeof(gFavoriteIds[i]), "%s", gFavoriteIds[i - 1]);
-			gFavoriteFolderIds[i] = gFavoriteFolderIds[i - 1];
-		}
-	}
-	std::snprintf(gFavoriteIds[toSlot], sizeof(gFavoriteIds[toSlot]), "%s", tmp);
-	gFavoriteFolderIds[toSlot] = tmpFolder;
-	MarkChanged(true);
-	return true;
-}
-
-bool Sites::MoveFavoriteInFolder(int folderId, int fromSlot, int toSlot)
-{
-	if (fromSlot == toSlot || fromSlot < 0 || toSlot < 0)
-		return false;
-	int fromGlobal = -1;
-	int toGlobal = -1;
-	int seen = 0;
-	for (int i = 0; i < gFavoriteCount; ++i)
-	{
-		if (gFavoriteFolderIds[i] != folderId)
-			continue;
-		if (seen == fromSlot)
-			fromGlobal = i;
-		if (seen == toSlot)
-			toGlobal = i;
-		++seen;
-	}
-	if (fromGlobal < 0 || toGlobal < 0)
-		return false;
-	return MoveFavorite(fromGlobal, toGlobal);
 }

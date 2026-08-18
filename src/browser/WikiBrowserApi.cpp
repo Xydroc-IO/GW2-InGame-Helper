@@ -8,6 +8,7 @@
 #include "WikiIpc.h"
 
 #include <atomic>
+#include <cctype>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -155,6 +156,49 @@ void WikiBrowser::Search(const std::string& query)
 		NavigateHome();
 	else
 		Navigate(url);
+}
+
+void WikiBrowser::GoTyped(const char* typed)
+{
+	if (!typed)
+		return;
+	while (*typed == ' ' || *typed == '\t')
+		++typed;
+	std::string s = typed;
+	while (!s.empty() && (s.back() == ' ' || s.back() == '\t' || s.back() == '\r' || s.back() == '\n'))
+		s.pop_back();
+	if (s.empty())
+		return;
+	auto hasScheme = [](const std::string& u, const char* sch) -> bool {
+		const size_t n = std::strlen(sch);
+		if (u.size() < n)
+			return false;
+		for (size_t i = 0; i < n; ++i)
+		{
+			const unsigned char a = static_cast<unsigned char>(u[i]);
+			const unsigned char b = static_cast<unsigned char>(sch[i]);
+			if (std::tolower(a) != b)
+				return false;
+		}
+		return true;
+	};
+	if (hasScheme(s, "javascript:") || hasScheme(s, "data:") || hasScheme(s, "vbscript:") ||
+		hasScheme(s, "file:"))
+		return;
+	if (hasScheme(s, "https://") || hasScheme(s, "http://") || hasScheme(s, "about:"))
+	{
+		Navigate(s);
+		return;
+	}
+	bool host = s.find(' ') == std::string::npos && s.find('.') != std::string::npos;
+	if (!host && s.rfind("localhost", 0) == 0)
+		host = true;
+	if (host)
+	{
+		Navigate(std::string("https://") + s);
+		return;
+	}
+	Search(s);
 }
 
 void WikiBrowser::GoBack() { PostCmd(WIKI_CMD_BACK); }

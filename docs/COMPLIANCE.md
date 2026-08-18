@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.3.0.2** (helper stamp `2244`) — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.3.0.3** (helper stamp `2245`) — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 This file is **normative** (allowed / forbidden). Analysis belongs in the whitepaper.
 
@@ -22,7 +22,7 @@ This file is **normative** (allowed / forbidden). Analysis belongs in the whitep
 - **PanelBinds** — addon-owned panel chords in Settings → Keybinds (`GetAsyncKeyState` poll); helper open stays Nexus (`Ctrl+Shift+H` / QuickAccess)
 - Item Lookup pad (public `/v2/items` + wiki search), **Unlocks** pad (skins/dyes/minis/…), Wallet & Stash pad (`/v2/account/wallet`, materials, bank, shared inventory, character inventories), Account **Progress** legendary armory, and Vault pad (Wizard’s Vault / dailies — same Live panel API) — read-only; item name cache in `stash-names.cache`
 - Tekkit’s All-In-One `.taco` (© Tekkit's Workshop, used with permission), Lady Elyssa Guides / Achievements packs, Hero's Marker Pack (QuitarHero), and HasKha Markers ([gw2-markers](https://github.com/HasKha/gw2-markers), MIT) — curated downloads into `pathing/` for local display; user `.taco` files kept
-- Opt-in PathingLua (`EnablePathingLua`, default off) for Blish-shaped pack `script-*` — display/scripting only; never game input or memory automation
+- Opt-in PathingLua (`EnablePathingLua`, default off) for Blish-shaped pack `script-*` — display/scripting only; never game input or memory automation. Runtime opens base/table/string/math/utf8/coroutine plus `os.time`/`clock`/`date`; not `os.execute`, `io`, `package`, `debug`, `loadfile`, or `dofile`.
 - **Embedded curated GW2 UI chrome** (`data/ui-chrome` → DLL zip → `ui-chrome/` under the addon data folder) for Immersive ImGui pads and HTML backgrounds — ArenaNet retains ownership of those textures; they are **not** relicensed under MIT
 - `OpenProcess(PROCESS_TERMINATE)` **only** for the helper PID owned by this addon
 - **Private CEF 150** under `addons/GW2-InGame-Helper/cef/` (first-run download + SHA-256 verify)

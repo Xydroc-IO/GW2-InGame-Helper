@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.3.0.2
+# GW2 In-Game Helper v2.3.0.3
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -33,6 +33,16 @@ achievement, and icon packs.
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.3.0.3
+
+- **Address bar:** Type a website (or a search) and press Enter. Ctrl+L focuses the bar. Find in page stays on Ctrl+F.
+- **Bookmarks:** Star saves the current page. A bookmark bar under the toolbar has folders you can create, rename, reorder, and delete. Old catalog stars migrate to that site’s home URL.
+- **Catalog:** GitHub manifest is checked once per shipping DLL when cache is already complete. Missing names/recipes/achievements/icons still retry every 30 minutes (a failed first download is no longer permanent).
+- **Known recipes:** Status text copies under the lock so a background refresh cannot free the string ImGui is still drawing.
+- **New tabs:** `file://` / `about:` tabs only open from bundled helper pages — not from https.
+- **PathingLua:** Opt-in scripts no longer get `os.execute`, `io`, or `package.loadlib`. `os.time` / `clock` / `date` stay.
+- **Stamps:** Helper `2245` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `83` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.3.0.2
 

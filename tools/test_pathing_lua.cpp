@@ -34,6 +34,7 @@ namespace G
 namespace PathingTrails
 {
 	void SetCategoryEnabled(const std::string&, bool) {}
+	std::vector<std::string> EnabledPaths() { return {}; }
 }
 
 namespace MarkerBehaviors
@@ -76,6 +77,16 @@ namespace PathingLuaDetail
 	}
 	void ClearMenus(lua_State*) {}
 	void DrawMenus() {}
+	void RegisterStorage(lua_State* L)
+	{
+		lua_newtable(L);
+		lua_setglobal(L, "Storage");
+	}
+	void RegisterInstance(lua_State* L)
+	{
+		lua_newtable(L);
+		lua_setglobal(L, "I");
+	}
 }
 
 namespace PathingDetail
@@ -102,6 +113,15 @@ int main()
 	PathingLua::Init();
 
 	PathingLua::AddScriptSource("follow.lua", R"LUA(
+assert(io == nil)
+assert(package == nil)
+assert(debug == nil)
+assert(loadfile == nil)
+assert(dofile == nil)
+assert(os.execute == nil)
+assert(os.getenv == nil)
+assert(type(os.time) == "function")
+
 function FollowPlayer(marker)
   local x, y, z = Mumble.PlayerPosition()
   marker:SetPos(x + 1, y, z)
@@ -112,6 +132,8 @@ function AlwaysShow(marker)
   return true
 end
 )LUA");
+	PathingLua::AddScriptSource("pack.lua", "Pack:Require('follow.lua')");
+	PathingLua::RunPendingPackEntries();
 
 	std::vector<PathingTrails::Marker> markers(1);
 	auto& m = markers[0];
@@ -145,10 +167,11 @@ end
 	if (m.color != 0xFF00FF00u)
 		return Fail("Tint write failed");
 
-	PathingLua::AddScriptSource("spawn.lua", R"LUA(
+	PathingLua::AddScriptSource("spawn/pack.lua", R"LUA(
 local m = Pack:CreateMarker({ type = "demo.spawn", xpos = 1, ypos = 2, zpos = 3 })
 m:SetPos(9, 8, 7)
 )LUA");
+	PathingLua::RunPendingPackEntries();
 
 	std::vector<PathingTrails::Marker> dyn;
 	PathingLua::AppendDynamicMarkers(50, dyn);
@@ -166,7 +189,7 @@ m:SetPos(9, 8, 7)
 	PathingLuaDetail::gTickMarkers = &markers;
 	PathingLuaDetail::gTickTrails = &trails;
 
-	PathingLua::AddScriptSource("gaps.lua", R"LUA(
+	PathingLua::AddScriptSource("gaps/pack.lua", R"LUA(
 local b = World:MarkerByGuid("testguid==")
 assert(b ~= nil)
 local beh = b:GetBehavior()
@@ -187,6 +210,7 @@ assert(t.TrailScale == 2)
 t:Remove()
 b:SetTexture(102491)
 )LUA");
+	PathingLua::RunPendingPackEntries();
 
 	if (!trails[0].luaRemoved)
 		return Fail("Trail:Remove did not set luaRemoved");

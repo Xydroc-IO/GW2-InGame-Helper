@@ -111,7 +111,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	if (!pickDefaultSite)
 	{
 		char favLabel[64];
-		std::snprintf(favLabel, sizeof(favLabel), "Favorites (%d)", Sites::FavoriteCount());
+		std::snprintf(favLabel, sizeof(favLabel), "Bookmarks (%d)", Sites::FavoriteCount());
 		if (ImGui::Selectable(favLabel, sCategoryIndex == 0))
 		{
 			sCategoryIndex = 0;
@@ -182,7 +182,7 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 		if (filtering)
 			ImGui::TextUnformatted("No matches.");
 		else if (showFavorites)
-			ImGui::TextUnformatted("No favorites yet. Click the star next to a site.");
+			ImGui::TextUnformatted("No bookmarks yet. Star the address bar to pin this page.");
 		else
 			ImGui::TextUnformatted("No sites in this category.");
 		ImGui::PopStyleColor();

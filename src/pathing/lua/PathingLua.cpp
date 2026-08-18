@@ -57,7 +57,7 @@ namespace PathingLuaDetail
 		gScriptSources[key] = source;
 		/* Track pack.lua entry points (any path ending in /pack.lua or pack.lua). */
 		if (key == "pack.lua" ||
-			(key.size() >= 8 && key.compare(key.size() - 8, 8, "/pack.lua") == 0))
+			(key.size() >= 9 && key.compare(key.size() - 9, 9, "/pack.lua") == 0))
 			gPendingPackEntries.push_back(key);
 	}
 
@@ -173,6 +173,51 @@ namespace
 		lua_settop(L, 0);
 		return true;
 	}
+
+	void NilField(lua_State* L, const char* name)
+	{
+		lua_pushnil(L);
+		lua_setfield(L, -2, name);
+	}
+
+	/* Blish script-* needs base/table/string/math. Do not open io / package / debug.
+	   Keep os.time / os.clock / os.date; strip execute, filesystem, getenv. */
+	void OpenSafeLibs(lua_State* L)
+	{
+		static const luaL_Reg kLibs[] = {
+			{LUA_GNAME, luaopen_base},
+			{LUA_COLIBNAME, luaopen_coroutine},
+			{LUA_TABLIBNAME, luaopen_table},
+			{LUA_STRLIBNAME, luaopen_string},
+			{LUA_MATHLIBNAME, luaopen_math},
+			{LUA_UTF8LIBNAME, luaopen_utf8},
+			{LUA_OSLIBNAME, luaopen_os},
+			{nullptr, nullptr}
+		};
+		for (const luaL_Reg* lib = kLibs; lib->func; ++lib)
+		{
+			luaL_requiref(L, lib->name, lib->func, 1);
+			lua_pop(L, 1);
+		}
+
+		lua_pushnil(L);
+		lua_setglobal(L, "loadfile");
+		lua_pushnil(L);
+		lua_setglobal(L, "dofile");
+
+		lua_getglobal(L, "os");
+		if (lua_istable(L, -1))
+		{
+			NilField(L, "execute");
+			NilField(L, "remove");
+			NilField(L, "rename");
+			NilField(L, "exit");
+			NilField(L, "setlocale");
+			NilField(L, "tmpname");
+			NilField(L, "getenv");
+		}
+		lua_pop(L, 1);
+	}
 }
 
 void PathingLua::Init()
@@ -183,7 +228,7 @@ void PathingLua::Init()
 	gL = luaL_newstate();
 	if (!gL)
 		return;
-	luaL_openlibs(gL);
+	OpenSafeLibs(gL);
 	PathingLuaDetail::RegisterApi(gL);
 }
 
@@ -229,7 +274,7 @@ void PathingLua::ClearScripts()
 	gL = luaL_newstate();
 	if (gL)
 	{
-		luaL_openlibs(gL);
+		OpenSafeLibs(gL);
 		PathingLuaDetail::RegisterApi(gL);
 	}
 }

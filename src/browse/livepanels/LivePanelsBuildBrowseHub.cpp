@@ -22,12 +22,12 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 	html += "<div class=\"hero-copy\">"
 		"<p class=\"eyebrow\">GW2 In-Game Helper</p>"
 		"<h1>Browse</h1>"
-		"<p class=\"tag\">Pick a category or a favorite — it opens in this tab. "
+		"<p class=\"tag\">Pick a category or a bookmark — it opens in this tab. "
 		"Use <strong>+</strong> or <strong>Ctrl+T</strong> when you want a new tab. "
-		"Star sites to pin them, create folders with <strong>+ Folder</strong> "
-		"(click a folder name to collapse it), tap <strong>⇄</strong> to move a favorite, "
-		"or <strong>Delete</strong> on a folder header to remove a mistaken folder "
-		"(sites return to Unfiled).</p>"
+		"Star the address bar to pin the current page. Create folders with <strong>+ Folder</strong> "
+		"(click a folder name to collapse it), tap <strong>⇄</strong> to move a bookmark, "
+		"or <strong>Delete</strong> on a folder header "
+		"(bookmarks return to Unfiled).</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter favorites &amp; categories…\" "
 		"autocomplete=\"off\"/>"
 		"</div></header>";
@@ -35,7 +35,7 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 	/* Favorites (folder sections) — + Folder creates via helper IPC. */
 	html += "<section class=\"sec\" data-sec=\"1\" data-keep=\"1\">"
 		"<div class=\"sec-head\">"
-		"<h2>Favorites</h2>"
+		"<h2>Bookmarks</h2>"
 		"<button type=\"button\" class=\"btn-plus\" id=\"fav-add-folder\" "
 		"title=\"Create a folder to organize favorites\">+ Folder</button>"
 		"</div>";
@@ -43,13 +43,11 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 	const int folderN = Sites::FavoriteFolderCount();
 	if (favCount <= 0 && folderN <= 0)
 	{
-		html += "<p class=\"empty\">No favorites yet — open a category and tap ☆ on a site, "
-			"or create a folder first with <strong>+ Folder</strong>.</p>";
+		html += "<p class=\"empty\">No bookmarks yet — star the address bar on any page, "
+			"or ☆ a catalog site, or create a folder with <strong>+ Folder</strong>.</p>";
 	}
 	else
 	{
-		size_t n = 0;
-		const SiteDef* sites = Sites::All(&n);
 		auto AppendFolder = [&](int folderId) {
 			const int count = Sites::FavoriteCountInFolder(folderId);
 			/* Always show user folders (even empty) so + Folder is useful immediately. */
@@ -74,25 +72,13 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 			html += "</summary><div class=\"grid fold-body\">";
 			for (int i = 0; i < count; ++i)
 			{
-				const int idx = Sites::FavoriteSiteIndexInFolder(folderId, i);
-				if (idx < 0 || idx >= static_cast<int>(n))
+				const int slot = Sites::FavoriteSlotInFolder(folderId, i);
+				if (slot < 0)
 					continue;
-				const SiteDef& s = sites[idx];
-				std::string path;
-				if (s.browsePath && s.browsePathCount > 0)
-				{
-					for (int p = 0; p < s.browsePathCount; ++p)
-					{
-						if (p)
-							path += " / ";
-						if (s.browsePath[p])
-							path += s.browsePath[p];
-					}
-				}
-				AppendTile(html, s, path, true, folderId);
+				AppendBookmarkTile(html, slot, folderId);
 			}
 			if (count <= 0)
-				html += "<p class=\"empty\">Empty — open <strong>⇄</strong> on a starred site "
+				html += "<p class=\"empty\">Empty — open <strong>⇄</strong> on a bookmark "
 					"and pick this folder.</p>";
 			html += "</div></details>";
 		};

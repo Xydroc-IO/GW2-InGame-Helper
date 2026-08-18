@@ -234,12 +234,15 @@ namespace HelperDetail
 		const std::string openSite = ParseQueryValue(query, "gw2igh-open-site");
 		const std::string aboutKey = ParseQueryValue(query, "gw2igh-about");
 		const std::string favId = ParseQueryValue(query, "gw2igh-fav-toggle");
+		const std::string favUnstar = ParseQueryValue(query, "gw2igh-fav-unstar");
 		const std::string folderCreateEnc = ParseQueryValue(query, "gw2igh-fav-folder-create");
 		const std::string folderMoveId = ParseQueryValue(query, "gw2igh-fav-folder-move");
+		const std::string folderMoveSlot = ParseQueryValue(query, "gw2igh-fav-folder-move-slot");
 		const std::string folderMoveTo = ParseQueryValue(query, "to");
 		const std::string folderDeleteId = ParseQueryValue(query, "gw2igh-fav-folder-delete");
-		if (openSite.empty() && aboutKey.empty() && favId.empty() &&
-			folderCreateEnc.empty() && folderMoveId.empty() && folderDeleteId.empty())
+		if (openSite.empty() && aboutKey.empty() && favId.empty() && favUnstar.empty() &&
+			folderCreateEnc.empty() && folderMoveId.empty() && folderMoveSlot.empty() &&
+			folderDeleteId.empty())
 			return false;
 
 		if (!openSite.empty())
@@ -350,6 +353,53 @@ namespace HelperDetail
 			SetStatus("Moving favorite…");
 			return true;
 		}
+		if (!folderMoveSlot.empty())
+		{
+			int slot = 0;
+			for (char c : folderMoveSlot)
+			{
+				if (c < '0' || c > '9')
+				{
+					slot = -1;
+					break;
+				}
+				slot = slot * 10 + (c - '0');
+				if (slot > 1000000)
+				{
+					slot = -1;
+					break;
+				}
+			}
+			int toFolder = -1;
+			if (!folderMoveTo.empty())
+			{
+				toFolder = 0;
+				for (char c : folderMoveTo)
+				{
+					if (c < '0' || c > '9')
+					{
+						toFolder = -1;
+						break;
+					}
+					toFolder = toFolder * 10 + (c - '0');
+					if (toFolder > 1000000)
+					{
+						toFolder = -1;
+						break;
+					}
+				}
+			}
+			if (slot < 0 || toFolder < 0)
+			{
+				SetStatus("Invalid folder");
+				return true;
+			}
+			AppendCmdLine(L"fav-cmd.txt",
+				std::string("folder-move-slot ") + std::to_string(slot) + " " +
+				std::to_string(toFolder) + "\n");
+			SetStatus("Moving favorite…");
+			return true;
+		}
 		if (!folderDeleteId.empty())
 		{
 			int folderId = 0;
@@ -389,6 +439,31 @@ namespace HelperDetail
 		/* fav toggle — queue DLL only; do NOT delete/rebuild the open page.
 		   Wiki category HTML is ~1MB; wipe+EnsurePanel races CEF and logs
 		   "Failed to write Live panel HTML". Update the star in-page instead. */
+		if (!favUnstar.empty())
+		{
+			int slot = 0;
+			for (char c : favUnstar)
+			{
+				if (c < '0' || c > '9')
+				{
+					slot = -1;
+					break;
+				}
+				slot = slot * 10 + (c - '0');
+				if (slot > 1000000)
+				{
+					slot = -1;
+					break;
+				}
+			}
+			if (slot < 0)
+				return false;
+			AppendCmdLine(L"fav-cmd.txt", std::string("unstar-slot ") + std::to_string(slot) + "\n");
+			SetStatus("Favorites updated");
+			return true;
+		}
+		if (favId.empty())
+			return false;
 		for (char c : favId)
 		{
 			if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||

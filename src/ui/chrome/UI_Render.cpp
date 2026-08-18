@@ -332,6 +332,7 @@ void UI_Render()
 	BrowserTabs::Tick();
 
 	DrawToolbar();
+	DrawBookmarkBar();
 
 	/* Tab / find hotkeys - use ImGuiIO (Nexus-filled KeysDown), not GetAsyncKeyState. */
 	{
@@ -344,16 +345,19 @@ void UI_Render()
 			return vk >= 0 && vk < IM_ARRAYSIZE(io.KeysDown) && io.KeysDown[vk];
 		};
 		const bool keyF = keyDown('F');
+		const bool keyL = keyDown('L');
 		const bool keyT = keyDown('T');
 		const bool keyW = keyDown('W');
 		const bool keyTab = ImGui::IsKeyDown(ImGuiKey_Tab);
 
 		static bool sCtrlFWasDown = false;
+		static bool sCtrlLWasDown = false;
 		static bool sCtrlTWasDown = false;
 		static bool sCtrlWWasDown = false;
 		static bool sCtrlTabWasDown = false;
 
 		const bool ctrlF = !typing && ctrl && !shift && !alt && keyF;
+		const bool ctrlL = ctrl && !shift && !alt && keyL;
 		const bool ctrlT = !typing && ctrl && !shift && !alt && keyT;
 		const bool ctrlW = !typing && ctrl && !shift && !alt && keyW;
 		const bool ctrlShiftT = !typing && ctrl && shift && !alt && keyT;
@@ -364,6 +368,8 @@ void UI_Render()
 			sShowFind = true;
 			sFocusFind = true;
 		}
+		if (ctrlL && !sCtrlLWasDown)
+			sFocusAddress = true;
 		if (ctrlT && !sCtrlTWasDown)
 			UI_Browse_RequestNewTabPicker();
 		if (ctrlW && !sCtrlWWasDown)
@@ -387,6 +393,7 @@ void UI_Render()
 		}
 
 		sCtrlFWasDown = ctrlF;
+		sCtrlLWasDown = ctrlL;
 		sCtrlTWasDown = ctrlT || ctrlShiftT;
 		sCtrlWWasDown = ctrlW;
 		sCtrlTabWasDown = ctrlTab;
@@ -442,14 +449,6 @@ void UI_Render()
 	}
 
 	DrawTabBar();
-
-	const char* url = WikiBrowser::CurrentUrlCStr();
-	if (url && url[0] && std::strncmp(url, "about:", 6) != 0)
-	{
-		ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
-		ImGui::TextUnformatted(url);
-		ImGui::PopStyleColor();
-	}
 
 	ImGui::Separator();
 

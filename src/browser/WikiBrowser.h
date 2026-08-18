@@ -22,6 +22,8 @@ namespace WikiBrowser
 	void NavigateHome();       /* Browse hub (about:browse-hub) */
 	void NavigateActiveSite(); /* active site's home / help URL */
 	void Search(const std::string& query);
+	/* Address bar: URL, host, or search. Rejects javascript/data/file. */
+	void GoTyped(const char* typed);
 	void GoBack();
 	void GoForward();
 	void Reload();

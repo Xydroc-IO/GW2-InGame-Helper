@@ -281,6 +281,7 @@ namespace UIDetail
 	bool sHelperPopupHovered = false;
 
 	bool sFocusFind = false;
+	bool sFocusAddress = false;
 	char sFindQuery[128] = {};
 	bool sFindMatchCase = false;
 

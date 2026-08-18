@@ -310,8 +310,10 @@ namespace CraftingDetail
 
 	const char* KnownStatus()
 	{
+		static char buf[256];
 		std::lock_guard<std::mutex> lock(gKnownMu);
-		return gKnownStatus.c_str();
+		std::snprintf(buf, sizeof(buf), "%s", gKnownStatus.c_str());
+		return buf;
 	}
 
 	std::vector<std::string> KnownCharacterNames()

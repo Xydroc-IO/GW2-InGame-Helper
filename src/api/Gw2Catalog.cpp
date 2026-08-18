@@ -1,9 +1,9 @@
 #include "Gw2CatalogInternal.h"
 
 #include "AddonPaths.h"
+#include "AddonVersion.h"
 #include "Gw2Http.h"
 
-#include <atomic>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -12,12 +12,42 @@ using namespace Gw2CatalogDetail;
 
 namespace
 {
+	std::string ShippingVersion()
+	{
+		char buf[24];
+		std::snprintf(buf, sizeof(buf), "%d.%d.%d.%d", ADDON_VERSION_MAJOR,
+			ADDON_VERSION_MINOR, ADDON_VERSION_BUILD, ADDON_VERSION_REVISION);
+		return buf;
+	}
+
+	bool CachePacksComplete()
+	{
+		bool haveNames = false;
+		bool haveRecipes = false;
+		bool haveAch = false;
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			haveRecipes = gRecipesOnDisk;
+			haveAch = gAchievementsOnDisk.load();
+			auto it = gNames.find('i');
+			haveNames = it != gNames.end() && !it->second.empty();
+		}
+		if (!haveRecipes &&
+			GetFileAttributesW(RecipesPackCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
+			haveRecipes = true;
+		if (!haveAch &&
+			GetFileAttributesW(AchievementsCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
+			haveAch = true;
+		return haveNames && haveRecipes && haveAch && HaveIconsPackFile();
+	}
+
 	RemoteManifest FetchRemoteManifest()
 	{
 		RemoteManifest remote;
 		auto man = Gw2Http::Get(Gw2Catalog::kManifestUrl, nullptr, 8000);
 		if (man.ok)
 			ParseManifest(man.body, &remote);
+		remote.addon.clear(); /* GitHub file must not stamp a local check. */
 		return remote;
 	}
 
@@ -28,29 +58,21 @@ namespace
 		TryApplyLocalIgh();
 
 		std::string local;
-		bool haveRecipes = false;
 		bool haveNames = false;
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			local = gBuild;
-			haveRecipes = gRecipesOnDisk;
 			auto it = gNames.find('i');
 			haveNames = it != gNames.end() && !it->second.empty();
 		}
 		const RemoteManifest remote = FetchRemoteManifest();
 		const bool havePackFile =
 			GetFileAttributesW(PackCachePath().c_str()) != INVALID_FILE_ATTRIBUTES;
-		/* Never skip the GitHub names pack just because recipes are in memory.
-		   Icons can succeed while catalog.igh was never requested. */
-		if (!remote.catalog.empty() && remote.catalog == local && haveRecipes && haveNames &&
-			havePackFile)
-		{
-			FetchRemoteIcons(remote.icons);
-			FetchRemoteRecipes(remote.catalog);
-			FetchRemoteAchievements(remote.catalog);
-			gBusy = false;
-			return 0;
-		}
+		/* Cold cache (or stale / unreadable pack): GET catalog.igh. Matching
+		   cache still pulls any missing recipes / achievements / icons below. */
+		bool needPack = !havePackFile || !haveNames;
+		if (!remote.catalog.empty() && remote.catalog != local)
+			needPack = true;
 
 		auto applyPack = [](std::string bytes) -> bool {
 			/* Outer GitHub Content-Encoding gzip only. Members are raw TSV. */
@@ -64,25 +86,22 @@ namespace
 			return true;
 		};
 
-		bool got = false;
-		if (!havePackFile)
+		if (needPack)
 		{
-			static std::atomic<bool> sTriedPack;
-			if (!sTriedPack.exchange(true))
+			const std::wstring tmp = PackCachePath() + L".tmp";
+			if (Gw2Http::DownloadToFile(Gw2Catalog::kPackUrl, tmp.c_str(), 120000))
 			{
-				const std::wstring tmp = PackCachePath() + L".tmp";
-				if (Gw2Http::DownloadToFile(Gw2Catalog::kPackUrl, tmp.c_str(), 120000))
-				{
-					got = applyPack(ReadAll(tmp, 32u * 1024u * 1024u));
-					DeleteFileW(tmp.c_str());
-				}
+				const bool got = applyPack(ReadAll(tmp, 32u * 1024u * 1024u));
+				DeleteFileW(tmp.c_str());
+				if (got && !remote.catalog.empty())
+					MergeLocalManifest(remote.catalog.c_str(), nullptr, nullptr);
 			}
 		}
-		if (got && !remote.catalog.empty())
-			MergeLocalManifest(remote.catalog.c_str(), nullptr, nullptr);
 		FetchRemoteIcons(remote.icons);
 		FetchRemoteRecipes(remote.catalog);
 		FetchRemoteAchievements(remote.catalog);
+		if (CachePacksComplete() && (!remote.catalog.empty() || !remote.icons.empty()))
+			MergeLocalManifest(nullptr, nullptr, nullptr, ShippingVersion().c_str());
 		gBusy = false;
 		return 0;
 	}
@@ -100,33 +119,33 @@ namespace
 void Gw2Catalog::Tick()
 {
 	LoadDisk();
-	const DWORD now = GetTickCount();
-	bool haveNames = false;
-	bool haveRecipes = false;
-	bool haveAch = false;
+	const bool complete = CachePacksComplete();
+	std::string checked;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
-		haveRecipes = gRecipesOnDisk;
-		haveAch = gAchievementsOnDisk.load();
-		auto it = gNames.find('i');
-		haveNames = it != gNames.end() && !it->second.empty();
+		checked = gAddonChecked;
 	}
-	if (!haveRecipes &&
-		GetFileAttributesW(RecipesPackCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
-		haveRecipes = true;
-	if (!haveAch &&
-		GetFileAttributesW(AchievementsCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
-		haveAch = true;
-	/* Missing names pack: retry every 30 min (not every few seconds — that
-	   hammered the GitHub catalog.igh counter). Fresh pack: recheck every 6h. */
-	const DWORD waitMs = (haveNames && haveRecipes && haveAch)
-		? 6u * 60u * 60u * 1000u
-		: 30u * 60u * 1000u;
-	if (gLastCheckMs != 0 && (now - gLastCheckMs) < waitMs)
+	if (complete && checked == ShippingVersion())
 		return;
+
+	const DWORD now = GetTickCount();
+	static bool sTriedReleaseCheck;
+	if (!complete)
+	{
+		/* Missing any pack: retry every 30 min (not a tight loop). */
+		if (gLastCheckMs != 0 && (now - gLastCheckMs) < 30u * 60u * 1000u)
+			return;
+	}
+	else if (sTriedReleaseCheck)
+	{
+		/* New shipping DLL: GET the GitHub manifest once this process. */
+		return;
+	}
 	if (gBusy.exchange(true))
 		return;
 	gLastCheckMs = now;
+	if (complete)
+		sTriedReleaseCheck = true;
 	if (gThread)
 	{
 		if (WaitForSingleObject(gThread, 0) == WAIT_OBJECT_0)
@@ -136,13 +155,19 @@ void Gw2Catalog::Tick()
 		}
 		else
 		{
+			if (complete)
+				sTriedReleaseCheck = false;
 			gBusy = false;
 			return;
 		}
 	}
 	gThread = CreateThread(nullptr, 0, FetchProc, nullptr, 0, nullptr);
 	if (!gThread)
+	{
+		if (complete)
+			sTriedReleaseCheck = false;
 		gBusy = false;
+	}
 }
 
 bool Gw2Catalog::ItemName(int id, std::string* out) { return Name('i', id, out); }

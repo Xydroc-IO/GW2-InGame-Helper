@@ -149,10 +149,14 @@ void UI_Browse_DrawDefaultSitePicker()
 
 bool UI_Browse_ToolbarFavoriteToggle()
 {
-	const bool fav = Sites::IsFavorite(Sites::ActiveId());
+	const char* url = WikiBrowser::CurrentUrlCStr();
+	if (!url || !url[0])
+		return false;
+	const bool fav = Sites::IsFavoriteUrl(url);
 	if (FavoriteToggleButton("toolbar", fav, false))
 	{
-		Sites::ToggleFavorite(Sites::ActiveId());
+		const std::string title = WikiBrowser::CurrentTitle();
+		Sites::ToggleFavoriteUrl(title.empty() ? nullptr : title.c_str(), url);
 		Settings::SaveNow();
 		LivePanels::NotifyFavoritesChanged();
 		return true;

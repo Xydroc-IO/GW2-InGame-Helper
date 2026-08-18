@@ -56,6 +56,7 @@ namespace UIDetail
 	extern bool sShowFind;
 	extern bool sHelperPopupHovered;
 	extern bool sFocusFind;
+	extern bool sFocusAddress;
 	extern char sFindQuery[128];
 	extern bool sFindMatchCase;
 
@@ -71,6 +72,7 @@ namespace UIDetail
 	void DrawStatusChip();
 	void DrawMoreMenu();
 	void DrawToolbar();
+	void DrawBookmarkBar();
 	void DrawHelperSideRail();
 	/* Same width DrawHelperSideRail uses (for title-bar left flush). */
 	float HelperSideRailWidth();

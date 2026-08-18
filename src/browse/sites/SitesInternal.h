@@ -37,6 +37,8 @@ namespace SitesRuntimeDetail
 	constexpr int kMaxFavorites = 48;
 	constexpr int kMaxFavoriteFolders = 16;
 	constexpr int kUnfiledFavoriteFolderId = 0;
+	constexpr int kMaxFavoriteUrl = 512;
+	constexpr int kMaxFavoriteTitle = 64;
 
 	struct FavoriteFolder
 	{
@@ -44,7 +46,8 @@ namespace SitesRuntimeDetail
 		char name[48] = {};
 	};
 
-	extern char gFavoriteIds[kMaxFavorites][64];
+	extern char gFavoriteUrls[kMaxFavorites][kMaxFavoriteUrl];
+	extern char gFavoriteTitles[kMaxFavorites][kMaxFavoriteTitle];
 	extern int gFavoriteFolderIds[kMaxFavorites];
 	extern int gFavoriteCount;
 	extern FavoriteFolder gFavoriteFolders[kMaxFavoriteFolders];
@@ -53,6 +56,10 @@ namespace SitesRuntimeDetail
 	extern unsigned gFavoriteGeneration;
 
 	bool FolderIdKnown(int folderId);
+	bool FavoriteUrlsMatch(const char* a, const char* b);
+	void FavoriteTitleFromUrl(char* dst, size_t dstLen, const char* url);
+	void MigrateFavoriteSiteIds();
+	void MarkFavoritesChanged(bool saveNow);
 
 	struct SiteUrlKey
 	{

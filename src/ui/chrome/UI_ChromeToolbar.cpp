@@ -172,24 +172,41 @@ namespace UIDetail
 
 		ImGui::SameLine(0.f, 12.f);
 		{
-			float avail = ImGui::GetContentRegionAvail().x - 200.f;
-			if (avail < 140.f) avail = 140.f;
-			if (avail > 420.f) avail = 420.f;
+			float avail = ImGui::GetContentRegionAvail().x - 168.f;
+			if (avail < 160.f) avail = 160.f;
 			ImGui::SetNextItemWidth(avail);
 		}
-		if (ImGui::InputTextWithHint("###gw2igh_site_query", "Find in page...", G::LastQuery, sizeof(G::LastQuery),
-			ImGuiInputTextFlags_EnterReturnsTrue))
+		static char sAddress[2048]{};
+		static bool sEditingAddress = false;
+		if (sFocusAddress)
 		{
-			if (G::LastQuery[0])
+			ImGui::SetKeyboardFocusHere();
+			sFocusAddress = false;
+			sEditingAddress = true;
+		}
+		if (!sEditingAddress)
+		{
+			const char* cur = WikiBrowser::CurrentUrlCStr();
+			if (cur && cur[0] && std::strncmp(cur, "about:", 6) != 0)
+				std::snprintf(sAddress, sizeof(sAddress), "%s", cur);
+			else if (!sAddress[0] && cur && std::strncmp(cur, "about:", 6) == 0)
+				std::snprintf(sAddress, sizeof(sAddress), "%s", cur);
+		}
+		if (ImGui::InputTextWithHint("###gw2igh_address", "Search or enter address", sAddress,
+			sizeof(sAddress),
+			ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+		{
+			if (sAddress[0])
 			{
-				sShowFind = true;
-				std::snprintf(sFindQuery, sizeof(sFindQuery), "%s", G::LastQuery);
-				WikiBrowser::Find(sFindQuery, true, sFindMatchCase, false);
+				WikiBrowser::GoTyped(sAddress);
 				Settings::SetDirty();
 			}
+			sEditingAddress = false;
 		}
+		else
+			sEditingAddress = ImGui::IsItemActive();
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Find text on this page. Enter = next match.\nUse Web for DuckDuckGo / site search.");
+			ImGui::SetTooltip("Type a website and press Enter.\nCtrl+L focuses this bar. Find in page is Ctrl+F.");
 
 		ImGui::SameLine(0.f, 4.f);
 		if (UI_Browse_ToolbarFavoriteToggle())
@@ -200,18 +217,6 @@ namespace UIDetail
 			BrowserTabs::Reload();
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Reload");
-
-		ImGui::SameLine(0.f, 4.f);
-		if (ImGui::Button("Web###gw2igh_web"))
-		{
-			if (G::LastQuery[0])
-			{
-				WikiBrowser::Search(G::LastQuery);
-				Settings::SetDirty();
-			}
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Search the active site (or DuckDuckGo).");
 
 		ImGui::SameLine(0.f, 8.f);
 		DrawMoreMenu();

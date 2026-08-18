@@ -17,6 +17,7 @@ namespace Gw2CatalogDetail
 	std::unordered_map<int, std::vector<int>> gByOutput;
 	std::string gBuild;
 	std::string gIconsHash;
+	std::string gAddonChecked;
 	bool gDiskLoaded = false;
 	bool gRecipesOnDisk = false;
 	std::atomic<bool> gAchievementsOnDisk{false};
@@ -102,6 +103,7 @@ namespace Gw2CatalogDetail
 		out->catalog = JsonField(json, "catalog");
 		out->icons = JsonField(json, "icons");
 		out->cef = JsonField(json, "cef");
+		out->addon = JsonField(json, "addon");
 		return !out->catalog.empty() || !out->icons.empty() || !out->cef.empty();
 	}
 
@@ -121,6 +123,7 @@ namespace Gw2CatalogDetail
 			out += val;
 			out += '"';
 		};
+		add("addon", m.addon);
 		add("catalog", m.catalog);
 		add("cef", m.cef);
 		add("icons", m.icons);
@@ -128,7 +131,8 @@ namespace Gw2CatalogDetail
 		return out;
 	}
 
-	void MergeLocalManifest(const char* catalog, const char* icons, const char* cef)
+	void MergeLocalManifest(const char* catalog, const char* icons, const char* cef,
+		const char* addon)
 	{
 		RemoteManifest m;
 		ParseManifest(ReadAll(ManifestPath(), 4096), &m);
@@ -138,12 +142,16 @@ namespace Gw2CatalogDetail
 			m.icons = icons;
 		if (cef && cef[0])
 			m.cef = cef;
+		if (addon && addon[0])
+			m.addon = addon;
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			if (!m.catalog.empty())
 				gBuild = m.catalog;
 			if (!m.icons.empty())
 				gIconsHash = m.icons;
+			if (!m.addon.empty())
+				gAddonChecked = m.addon;
 		}
 		WriteAll(ManifestPath(), FormatManifest(m));
 	}
@@ -366,13 +374,15 @@ namespace Gw2CatalogDetail
 		TryOpenLocalIcons();
 		if (GetFileAttributesW(AchievementsCachePath().c_str()) != INVALID_FILE_ATTRIBUTES)
 			gAchievementsOnDisk = true;
-		if (!man.catalog.empty() || !man.icons.empty())
+		if (!man.catalog.empty() || !man.icons.empty() || !man.addon.empty())
 		{
 			std::lock_guard<std::mutex> lock(gMu);
 			if (!man.catalog.empty())
 				gBuild = std::move(man.catalog);
 			if (!man.icons.empty())
 				gIconsHash = std::move(man.icons);
+			if (!man.addon.empty())
+				gAddonChecked = std::move(man.addon);
 		}
 	}
 

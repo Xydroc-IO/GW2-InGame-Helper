@@ -16,9 +16,12 @@ using SitesRuntimeDetail::gFavoriteFolderIds;
 using SitesRuntimeDetail::gFavoriteFolders;
 using SitesRuntimeDetail::gFavoriteFolderCount;
 using SitesRuntimeDetail::gFavoriteGeneration;
-using SitesRuntimeDetail::gFavoriteIds;
+using SitesRuntimeDetail::gFavoriteTitles;
+using SitesRuntimeDetail::gFavoriteUrls;
 using SitesRuntimeDetail::gFavoriteNextFolderId;
 using SitesRuntimeDetail::kMaxFavoriteFolders;
+using SitesRuntimeDetail::kMaxFavoriteTitle;
+using SitesRuntimeDetail::kMaxFavoriteUrl;
 using SitesRuntimeDetail::kMaxFavorites;
 using SitesRuntimeDetail::kUnfiledFavoriteFolderId;
 
@@ -134,7 +137,8 @@ namespace
 		gFavoriteNextFolderId = 1;
 		for (int i = 0; i < kMaxFavorites; ++i)
 		{
-			gFavoriteIds[i][0] = 0;
+			gFavoriteUrls[i][0] = 0;
+			gFavoriteTitles[i][0] = 0;
 			gFavoriteFolderIds[i] = kUnfiledFavoriteFolderId;
 		}
 
@@ -219,15 +223,39 @@ namespace
 					if (objEnd == std::string::npos)
 						break;
 					const std::string obj = json.substr(i, objEnd - i + 1);
-					size_t p = FindKey(obj, "id");
-					std::string id;
+					size_t p = FindKey(obj, "url");
+					std::string url;
 					if (p != std::string::npos)
 					{
 						p = obj.find(':', p);
 						if (p != std::string::npos)
 						{
 							++p;
-							id = ParseJsonString(obj, p);
+							url = ParseJsonString(obj, p);
+						}
+					}
+					if (url.empty())
+					{
+						p = FindKey(obj, "id");
+						if (p != std::string::npos)
+						{
+							p = obj.find(':', p);
+							if (p != std::string::npos)
+							{
+								++p;
+								url = ParseJsonString(obj, p);
+							}
+						}
+					}
+					p = FindKey(obj, "title");
+					std::string title;
+					if (p != std::string::npos)
+					{
+						p = obj.find(':', p);
+						if (p != std::string::npos)
+						{
+							++p;
+							title = ParseJsonString(obj, p);
 						}
 					}
 					p = FindKey(obj, "folder");
@@ -241,12 +269,17 @@ namespace
 							folder = ParseJsonInt(obj, p);
 						}
 					}
-					if (!id.empty() && id.size() < sizeof(gFavoriteIds[0]))
+					if (!url.empty() && url.size() < kMaxFavoriteUrl)
 					{
 						if (!FolderIdKnown(folder))
 							folder = kUnfiledFavoriteFolderId;
-						std::snprintf(gFavoriteIds[gFavoriteCount], sizeof(gFavoriteIds[0]), "%s",
-							id.c_str());
+						std::snprintf(gFavoriteUrls[gFavoriteCount], kMaxFavoriteUrl, "%s",
+							url.c_str());
+						if (!title.empty() && title.size() < kMaxFavoriteTitle)
+							std::snprintf(gFavoriteTitles[gFavoriteCount], kMaxFavoriteTitle, "%s",
+								title.c_str());
+						else
+							gFavoriteTitles[gFavoriteCount][0] = 0;
 						gFavoriteFolderIds[gFavoriteCount] = folder;
 						++gFavoriteCount;
 					}
@@ -261,7 +294,7 @@ namespace
 
 void Sites::SaveFavoritesStore()
 {
-	std::string out = "{\n  \"version\": 1,\n  \"folders\": [\n";
+	std::string out = "{\n  \"version\": 2,\n  \"folders\": [\n";
 	for (int i = 0; i < gFavoriteFolderCount; ++i)
 	{
 		if (i)
@@ -277,8 +310,10 @@ void Sites::SaveFavoritesStore()
 	{
 		if (i)
 			out += ",\n";
-		out += "    {\"id\":\"";
-		out += JsonEsc(gFavoriteIds[i]);
+		out += "    {\"title\":\"";
+		out += JsonEsc(gFavoriteTitles[i]);
+		out += "\",\"url\":\"";
+		out += JsonEsc(gFavoriteUrls[i]);
 		out += "\",\"folder\":";
 		out += std::to_string(gFavoriteFolderIds[i]);
 		out += "}";
@@ -293,9 +328,177 @@ void Sites::LoadFavoritesStore()
 	if (!json.empty())
 	{
 		LoadFromJson(json);
+		SitesRuntimeDetail::MigrateFavoriteSiteIds();
 		return;
 	}
 	/* Migrate legacy FavoriteIds= from settings (already parsed into memory). */
 	if (gFavoriteCount > 0)
+	{
+		SitesRuntimeDetail::MigrateFavoriteSiteIds();
 		SaveFavoritesStore();
+	}
+}
+
+void Sites::ParseFavorites(const char* csv)
+{
+	gFavoriteCount = 0;
+	gFavoriteFolderCount = 0;
+	gFavoriteNextFolderId = 1;
+		++gFavoriteGeneration;
+	if (!csv || !csv[0])
+		return;
+	const char* p = csv;
+	while (*p && gFavoriteCount < kMaxFavorites)
+	{
+		while (*p == ' ' || *p == ',')
+			++p;
+		if (!*p)
+			break;
+		const char* start = p;
+		while (*p && *p != ',')
+			++p;
+		size_t len = static_cast<size_t>(p - start);
+		while (len > 0 && start[len - 1] == ' ')
+			--len;
+		if (len == 0 || len >= kMaxFavoriteUrl)
+			continue;
+		std::memcpy(gFavoriteUrls[gFavoriteCount], start, len);
+		gFavoriteUrls[gFavoriteCount][len] = 0;
+		gFavoriteTitles[gFavoriteCount][0] = 0;
+		gFavoriteFolderIds[gFavoriteCount] = kUnfiledFavoriteFolderId;
+		++gFavoriteCount;
+	}
+}
+
+void Sites::SerializeFavorites(char* out, size_t outLen)
+{
+	if (!out || outLen == 0)
+		return;
+	out[0] = 0;
+	size_t used = 0;
+	for (int i = 0; i < gFavoriteCount; ++i)
+	{
+		const int si = Sites::FavoriteSiteIndex(i);
+		const char* id = nullptr;
+		if (si >= 0)
+		{
+			size_t n = 0;
+			const SiteDef* sites = Sites::All(&n);
+			if (sites && si < static_cast<int>(n))
+				id = sites[si].id;
+		}
+		if (!id || !id[0])
+			continue;
+		const size_t idLen = std::strlen(id);
+		const size_t need = idLen + (used ? 1u : 0u);
+		if (used + need + 1 >= outLen)
+			break;
+		if (used)
+			out[used++] = ',';
+		std::memcpy(out + used, id, idLen);
+		used += idLen;
+		out[used] = 0;
+	}
+}
+
+void Sites::PruneFavorites()
+{
+	SitesRuntimeDetail::MigrateFavoriteSiteIds();
+	int w = 0;
+	for (int i = 0; i < gFavoriteCount; ++i)
+	{
+		if (!gFavoriteUrls[i][0])
+			continue;
+		bool dup = false;
+		for (int j = 0; j < w; ++j)
+		{
+			if (SitesRuntimeDetail::FavoriteUrlsMatch(gFavoriteUrls[j], gFavoriteUrls[i]))
+			{
+				dup = true;
+				break;
+			}
+		}
+		if (dup)
+			continue;
+		if (w != i)
+		{
+			std::snprintf(gFavoriteUrls[w], kMaxFavoriteUrl, "%s", gFavoriteUrls[i]);
+			std::snprintf(gFavoriteTitles[w], kMaxFavoriteTitle, "%s", gFavoriteTitles[i]);
+			gFavoriteFolderIds[w] = gFavoriteFolderIds[i];
+		}
+		if (!FolderIdKnown(gFavoriteFolderIds[w]))
+			gFavoriteFolderIds[w] = kUnfiledFavoriteFolderId;
+		if (!gFavoriteTitles[w][0])
+			SitesRuntimeDetail::FavoriteTitleFromUrl(gFavoriteTitles[w], kMaxFavoriteTitle,
+				gFavoriteUrls[w]);
+		++w;
+	}
+	for (int i = w; i < gFavoriteCount; ++i)
+	{
+		gFavoriteUrls[i][0] = 0;
+		gFavoriteTitles[i][0] = 0;
+		gFavoriteFolderIds[i] = kUnfiledFavoriteFolderId;
+	}
+	if (w != gFavoriteCount)
+		++gFavoriteGeneration;
+	gFavoriteCount = w;
+}
+
+bool Sites::MoveFavorite(int fromSlot, int toSlot)
+{
+	if (fromSlot < 0 || toSlot < 0 || fromSlot >= gFavoriteCount || toSlot >= gFavoriteCount)
+		return false;
+	if (fromSlot == toSlot)
+		return false;
+
+	char tmpUrl[kMaxFavoriteUrl];
+	char tmpTitle[kMaxFavoriteTitle];
+	const int tmpFolder = gFavoriteFolderIds[fromSlot];
+	std::snprintf(tmpUrl, sizeof(tmpUrl), "%s", gFavoriteUrls[fromSlot]);
+	std::snprintf(tmpTitle, sizeof(tmpTitle), "%s", gFavoriteTitles[fromSlot]);
+	if (fromSlot < toSlot)
+	{
+		for (int i = fromSlot; i < toSlot; ++i)
+		{
+			std::snprintf(gFavoriteUrls[i], kMaxFavoriteUrl, "%s", gFavoriteUrls[i + 1]);
+			std::snprintf(gFavoriteTitles[i], kMaxFavoriteTitle, "%s", gFavoriteTitles[i + 1]);
+			gFavoriteFolderIds[i] = gFavoriteFolderIds[i + 1];
+		}
+	}
+	else
+	{
+		for (int i = fromSlot; i > toSlot; --i)
+		{
+			std::snprintf(gFavoriteUrls[i], kMaxFavoriteUrl, "%s", gFavoriteUrls[i - 1]);
+			std::snprintf(gFavoriteTitles[i], kMaxFavoriteTitle, "%s", gFavoriteTitles[i - 1]);
+			gFavoriteFolderIds[i] = gFavoriteFolderIds[i - 1];
+		}
+	}
+	std::snprintf(gFavoriteUrls[toSlot], kMaxFavoriteUrl, "%s", tmpUrl);
+	std::snprintf(gFavoriteTitles[toSlot], kMaxFavoriteTitle, "%s", tmpTitle);
+	gFavoriteFolderIds[toSlot] = tmpFolder;
+	SitesRuntimeDetail::MarkFavoritesChanged(true);
+	return true;
+}
+
+bool Sites::MoveFavoriteInFolder(int folderId, int fromSlot, int toSlot)
+{
+	if (fromSlot == toSlot || fromSlot < 0 || toSlot < 0)
+		return false;
+	int fromGlobal = -1;
+	int toGlobal = -1;
+	int seen = 0;
+	for (int i = 0; i < gFavoriteCount; ++i)
+	{
+		if (gFavoriteFolderIds[i] != folderId)
+			continue;
+		if (seen == fromSlot)
+			fromGlobal = i;
+		if (seen == toSlot)
+			toGlobal = i;
+		++seen;
+	}
+	if (fromGlobal < 0 || toGlobal < 0)
+		return false;
+	return MoveFavorite(fromGlobal, toGlobal);
 }

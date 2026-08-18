@@ -317,6 +317,39 @@ bool ProcessFavCmdFile(const std::wstring& addonDir)
 				changed = true;
 			continue;
 		}
+		if (line.rfind("folder-move-slot ", 0) == 0)
+		{
+			const char* p = line.c_str() + 17;
+			while (*p == ' ' || *p == '\t')
+				++p;
+			char* end = nullptr;
+			const long slot = std::strtol(p, &end, 10);
+			if (end == p || slot < 0 || slot > 1000000)
+				continue;
+			p = end;
+			while (*p == ' ' || *p == '\t')
+				++p;
+			const long folderId = std::strtol(p, &end, 10);
+			if (end == p || folderId < 0 || folderId > 1000000)
+				continue;
+			const char* url = Sites::FavoriteUrlAt(static_cast<int>(slot));
+			if (url && url[0] && Sites::SetFavoriteFolder(url, static_cast<int>(folderId)))
+				changed = true;
+			continue;
+		}
+		if (line.rfind("unstar-slot ", 0) == 0)
+		{
+			const char* p = line.c_str() + 12;
+			while (*p == ' ' || *p == '\t')
+				++p;
+			char* end = nullptr;
+			const long slot = std::strtol(p, &end, 10);
+			if (end == p || slot < 0 || slot > 1000000)
+				continue;
+			if (Sites::RemoveFavoriteSlot(static_cast<int>(slot)))
+				changed = true;
+			continue;
+		}
 		if (line.rfind("folder-move ", 0) == 0)
 		{
 			const char* p = line.c_str() + 12;
@@ -335,7 +368,13 @@ bool ProcessFavCmdFile(const std::wstring& addonDir)
 			if (end == p || folderId < 0 || folderId > 1000000)
 				continue;
 			if (Sites::IndexOfId(siteId.c_str()) < 0)
+			{
+				if (siteId.find("://") == std::string::npos)
+					continue;
+				if (Sites::SetFavoriteFolder(siteId.c_str(), static_cast<int>(folderId)))
+					changed = true;
 				continue;
+			}
 			if (!Sites::IsFavorite(siteId.c_str()))
 				continue;
 			if (Sites::SetFavoriteFolder(siteId.c_str(), static_cast<int>(folderId)))

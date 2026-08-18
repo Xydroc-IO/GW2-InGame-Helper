@@ -8,7 +8,7 @@ Raidcore Nexus in-game browser for Guild Wars 2. Chromium comes from a **private
 CEF Stable 150** runtime downloaded on first open into
 `addons/GW2-InGame-Helper/cef/` — not from Guild Wars 2 `bin64/cef`.
 
-**Version:** `2.3.0.2` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
+**Version:** `2.3.0.3` · **Signature:** `0x48454C50` (`HELP`) · **License:** MIT
 
 **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
@@ -164,9 +164,9 @@ API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 - **GW2-themed** chrome (gold tabs + muted status); Browse hub: Builds / Guides / Tools · Help / Search / Discord
 - **Tabs** — up to 8 live pages; **pin** (gold mark), reopen closed; titles follow the page; persisted
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+click` / middle-click a link or rail button for a new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
-- **Find in page** — toolbar Enter or Ctrl+F; **Web** for site/DuckDuckGo search
+- **Find in page** — Ctrl+F; type a site in the **address bar** (Enter) or a search (DuckDuckGo)
 - **Notes** — snippets + waypoint / POI search; **TP** / **Item** / **Wallet** / **Vault** pads
-- **Favorites** — star, folders (**+ Folder** / **⇄** on Browse hub), drag-reorder
+- **Bookmarks** — star the current page; folder bar under the address bar (create / rename / reorder / delete)
 - **Keep browser warm** — optional hide without killing CEF (collapse also keeps the helper alive)
 - **Default landing site** — Settings picker; used by the Home button and when no tabs are saved
 - Nexus **QuickAccess** icon at the top of the screen

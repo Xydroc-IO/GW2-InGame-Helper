@@ -330,6 +330,7 @@ DLL_SRC = \
 	src/ui/chrome/UI_Helpers.cpp \
 	src/ui/chrome/UI_ChromeTabs.cpp \
 	src/ui/chrome/UI_ChromeToolbar.cpp \
+	src/ui/chrome/UI_ChromeBookmarks.cpp \
 	src/ui/chrome/UI_ChromeSideRail.cpp \
 	src/ui/chrome/UI_ChromeSideRailLayout.cpp \
 	src/ui/chrome/UI_Render.cpp \

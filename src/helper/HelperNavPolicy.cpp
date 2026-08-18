@@ -174,14 +174,46 @@ namespace HelperDetail
 		return out;
 	}
 
-	/* Character → gw2efficiency: file://…?gw2igh-newtab=https%3A%2F%2F…
-	   (about: is blocked from file:// pages — same lesson as TP watchlist). */
-	bool ConsumeHelperNewTabUrl(const std::string& url)
+	/* Bundled helper HTML (file:// after about: rewrite). about:blank is not. */
+	bool IsTrustedHelperSource(const std::string& url)
 	{
+		if (url.rfind("file:", 0) == 0)
+			return true;
+		if (url.rfind("about:", 0) != 0)
+			return false;
+		if (url == "about:blank" || url.rfind("about:blank?", 0) == 0)
+			return false;
+		return true;
+	}
+
+	std::string NavSourceUrl(cef_browser_t* browser, cef_frame_t* frame)
+	{
+		std::string src = FrameUrl(frame);
+		if (src.empty())
+			src = MainFrameUrl(browser);
+		return src;
+	}
+
+	static bool IsHttpOrHttpsUrl(const std::string& url)
+	{
+		return url.rfind("https://", 0) == 0 || url.rfind("http://", 0) == 0;
+	}
+
+	/* Character → gw2efficiency: file://…?gw2igh-newtab=https%3A%2F%2F…
+	   (about: is blocked from file:// pages — same lesson as TP watchlist).
+	   Only helper pages may use this gadget, and only for http(s) targets. */
+	bool ConsumeHelperNewTabUrl(const std::string& url, const std::string& sourceUrl)
+	{
+		if (!IsTrustedHelperSource(sourceUrl))
+			return false;
+
 		static const char kAbout[] = "about:helper-newtab:";
 		if (url.rfind(kAbout, 0) == 0)
 		{
-			QueueOpenInAddonTab(url.substr(sizeof(kAbout) - 1));
+			const std::string target = url.substr(sizeof(kAbout) - 1);
+			if (!IsHttpOrHttpsUrl(target))
+				return false;
+			QueueOpenInAddonTab(target);
 			return true;
 		}
 
@@ -193,7 +225,7 @@ namespace HelperDetail
 		if (cut != std::string::npos)
 			enc.resize(cut);
 		const std::string target = UrlDecodeQueryValue(enc);
-		if (target.rfind("https://", 0) != 0 && target.rfind("http://", 0) != 0)
+		if (!IsHttpOrHttpsUrl(target))
 			return false;
 		QueueOpenInAddonTab(target);
 		return true;
@@ -397,18 +429,20 @@ namespace HelperDetail
 		return out;
 	}
 
-	bool TryOpenUrlInNewAddonTab(const std::string& url)
+	bool TryOpenUrlInNewAddonTab(const std::string& url, const std::string& sourceUrl)
 	{
 		if (url.empty() || url == "about:blank")
 			return false;
 		if (IsAdClickUrl(url) || IsYoutubeHostUrl(url) || IsTwitchHostUrl(url) ||
 			IsDiscordProtocolUrl(url) || IsExternalSignInUrl(url) || IsMediaOrCdnUrl(url))
 			return false;
-		if (ConsumeHelperNewTabUrl(url))
+		if (ConsumeHelperNewTabUrl(url, sourceUrl))
 			return true;
 		if (HasQueryParam(url, "gw2igh-fav-toggle") ||
+			HasQueryParam(url, "gw2igh-fav-unstar") ||
 			HasQueryParam(url, "gw2igh-fav-folder-create") ||
 			HasQueryParam(url, "gw2igh-fav-folder-move") ||
+			HasQueryParam(url, "gw2igh-fav-folder-move-slot") ||
 			HasQueryParam(url, "gw2igh-fav-folder-delete"))
 			return false;
 
@@ -431,6 +465,8 @@ namespace HelperDetail
 				}
 				if (!aboutKey.empty())
 				{
+					if (!IsTrustedHelperSource(sourceUrl))
+						return false;
 					for (char c : aboutKey)
 					{
 						if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-'))
@@ -444,8 +480,16 @@ namespace HelperDetail
 			}
 		}
 
-		if (url.rfind("https://", 0) == 0 || url.rfind("http://", 0) == 0 ||
-			url.rfind("about:", 0) == 0 || url.rfind("file://", 0) == 0)
+		const bool targetLocal =
+			url.rfind("about:", 0) == 0 || url.rfind("file:", 0) == 0;
+		if (targetLocal && !IsTrustedHelperSource(sourceUrl))
+		{
+			NavLog("  -> BLOCKED local new-tab from web origin\n  src=%s",
+				sourceUrl.c_str());
+			return false;
+		}
+
+		if (IsHttpOrHttpsUrl(url) || targetLocal)
 		{
 			QueueOpenInAddonTab(url);
 			return true;

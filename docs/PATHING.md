@@ -1,6 +1,6 @@
 # Pathing — packs, markers, compass, world GPS
 
-**Revision:** 2.3.0.1 · **Audience:** contributors and advanced players  
+**Revision:** 2.3.0.3 · **Audience:** contributors and advanced players  
 **Companions:** [`../pathing/README.md`](../pathing/README.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.2, [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
 ---
@@ -82,7 +82,7 @@ Implemented: behaviors 0–7 and 101, AutoTrigger, hide=/show=, tips, info, copy
 | Menu | `Add(name, onClick, canCheck?, checked?, tooltip?)`, `Remove` — drawn under Pathing → Features |
 | Mumble | `PlayerPosition`, `PlayerCharacter`, `PlayerCamera`, `CurrentMap`, `Info` |
 | Event | `OnTick(fn)` |
-| Other | `Vector3`, `Color.FromArgb`, `User:SetClipboard` |
+| Other | `Vector3`, `Color.FromArgb`, `User:SetClipboard`. Stdlib: base/table/string/math/utf8/coroutine + `os.time`/`clock`/`date`. Not `os.execute`, `io`, `package`, `debug`, `loadfile`, `dofile`. |
 
 CDN textures use `assets.gw2dat.com/{id}.png` (Nexus FromURL, or WinHttp → pack icon upload).
 

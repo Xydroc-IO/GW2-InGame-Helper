@@ -305,6 +305,22 @@ bool Gw2Catalog::RecipesReady()
 	return gRecipesOnDisk;
 }
 
+bool Gw2CatalogDetail::HaveIconsPackFile()
+{
+	const wchar_t* name = L"gw2-helper-icons.igh";
+	const std::wstring cands[] = {
+		JoinFile(AddonPaths::DataDir(), name),
+		IconsCachePath(),
+		JoinFile(DllDir(), name),
+	};
+	for (const std::wstring& p : cands)
+	{
+		if (FileExists(p))
+			return true;
+	}
+	return false;
+}
+
 bool Gw2CatalogDetail::TryOpenLocalIcons()
 {
 	const wchar_t* name = L"gw2-helper-icons.igh";
@@ -325,19 +341,16 @@ void Gw2CatalogDetail::FetchRemoteIcons(const std::string& remoteIcons)
 {
 	std::string remote = remoteIcons;
 	TrimLine(remote);
-	if (remote.empty())
-	{
-		TryOpenLocalIcons();
-		return;
-	}
 	std::string local;
 	{
 		std::lock_guard<std::mutex> lock(gMu);
 		local = gIconsHash;
 	}
-	if (local == remote && FileExists(IconsCachePath()))
+	/* Keep a matching local pack. Empty remote (manifest GET failed) still
+	   downloads when the file is missing so a cold first load gets icons. */
+	if (HaveIconsPackFile() && (remote.empty() || local == remote))
 	{
-		OpenIconsPath(IconsCachePath());
+		TryOpenLocalIcons();
 		return;
 	}
 	const std::wstring tmp = IconsCachePath() + L".tmp";

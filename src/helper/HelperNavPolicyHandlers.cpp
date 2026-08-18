@@ -39,7 +39,8 @@ namespace HelperDetail
 			url.c_str(), FrameUrl(frame).c_str(), cur.c_str());
 
 		/* Middle-click often arrives as a background-tab popup, not OnOpenUrlFromTab. */
-		if (user_gesture && static_cast<int>(disp) == 4 && TryOpenUrlInNewAddonTab(url))
+		if (user_gesture && static_cast<int>(disp) == 4 &&
+			TryOpenUrlInNewAddonTab(url, NavSourceUrl(browser, frame)))
 			return 1;
 
 		/* Some ad wrappers report the popup as main-frame. The tracker URL is the
@@ -147,6 +148,17 @@ namespace HelperDetail
 			user_gesture, isMain ? 1 : 0, fromAdFrame ? 1 : 0, IsAdClickUrl(url) ? 1 : 0,
 			url.c_str(), FrameUrl(frame).c_str(), referrer.c_str());
 
+		/* https/http pages must not load file:// (local or UNC) in any frame. */
+		{
+			const std::string src = NavSourceUrl(browser, frame);
+			if (url.rfind("file:", 0) == 0 &&
+				(src.rfind("https://", 0) == 0 || src.rfind("http://", 0) == 0))
+			{
+				NavLog("  -> BLOCKED file:// from web origin");
+				return 1;
+			}
+		}
+
 		/* Ads may navigate either their own iframe or the top-level document.
 		   A creative targeting _top arrives as a main-frame request, so the frame
 		   no longer identifies it as an ad — the referrer still names the ad host,
@@ -215,7 +227,7 @@ namespace HelperDetail
 		/* TP watchlist add/remove + any about: builtin — never let Chromium load
 		   raw about:live-* (blocked white page). Rewrite to file:// first. */
 		{
-			if (ConsumeHelperNewTabUrl(url))
+			if (ConsumeHelperNewTabUrl(url, NavSourceUrl(browser, frame)))
 				return 1;
 			std::string navTo;
 			if (ConsumeTpActionUrl(url, &navTo))
@@ -302,7 +314,7 @@ namespace HelperDetail
 	}
 
 	int CEF_CALLBACK OnOpenUrlFromTab(
-		cef_request_handler_t*, cef_browser_t*, cef_frame_t*,
+		cef_request_handler_t*, cef_browser_t* browser, cef_frame_t* frame,
 		const cef_string_t* target_url, cef_window_open_disposition_t disp, int user_gesture)
 	{
 		if (target_url && user_gesture)
@@ -310,7 +322,8 @@ namespace HelperDetail
 			const std::string url = CefStringToUtf8(target_url);
 			NavLog("OPENFROMTAB gesture=%d disp=%d promo=%d\n  url=%s", user_gesture,
 				static_cast<int>(disp), IsPromotablePopupUrl(url) ? 1 : 0, url.c_str());
-			if (IsNewTabOrWindowDisposition(disp) && TryOpenUrlInNewAddonTab(url))
+			if (IsNewTabOrWindowDisposition(disp) &&
+				TryOpenUrlInNewAddonTab(url, NavSourceUrl(browser, frame)))
 				return 1;
 			if (IsPromotablePopupUrl(url))
 				OpenExternalUrl(url);

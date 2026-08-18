@@ -481,6 +481,66 @@ void AppendTile(std::string& html, const SiteDef& s, const std::string& pathBlur
 	AppendTile(html, s, pathBlurb, false, 0);
 }
 
+void AppendBookmarkTile(std::string& html, int slot, int currentFolderId)
+{
+	const int si = Sites::FavoriteSiteIndex(slot);
+	if (si >= 0)
+	{
+		size_t n = 0;
+		const SiteDef* sites = Sites::All(&n);
+		if (sites && si < static_cast<int>(n))
+		{
+			AppendTile(html, sites[si], "", true, currentFolderId);
+			return;
+		}
+	}
+	const char* title = Sites::FavoriteTitleAt(slot);
+	const char* url = Sites::FavoriteUrlAt(slot);
+	if (!url || !url[0])
+		return;
+	const std::string label = (title && title[0]) ? title : url;
+	html += "<div class=\"tile-wrap\" data-q=\"";
+	html += Esc(ToLower(std::string(label) + " " + url));
+	html += "\"><a class=\"star on\" href=\"?gw2igh-fav-unstar=";
+	html += std::to_string(slot);
+	html += "\" title=\"Remove bookmark\">★</a>";
+	if (Sites::FavoriteFolderCount() > 0)
+	{
+		html += "<details class=\"move\"><summary title=\"Move to folder\">⇄</summary>"
+			"<div class=\"move-menu\"><span class=\"lbl\">Move to</span>";
+		auto AppendMoveLink = [&](int folderId, const char* name) {
+			html += "<a class=\"";
+			if (folderId == currentFolderId)
+				html += "cur";
+			html += "\" href=\"?gw2igh-fav-folder-move-slot=";
+			html += std::to_string(slot);
+			html += "&amp;to=";
+			html += std::to_string(folderId);
+			html += "\">";
+			html += Esc(name ? name : "Folder");
+			html += "</a>";
+		};
+		AppendMoveLink(0, "Unfiled");
+		const int folderN = Sites::FavoriteFolderCount();
+		for (int fi = 0; fi < folderN; ++fi)
+		{
+			const int fid = Sites::FavoriteFolderIdAt(fi);
+			AppendMoveLink(fid, Sites::FavoriteFolderName(fid));
+		}
+		html += "</div></details>";
+	}
+	html += "<a class=\"tile\" href=\"";
+	if (std::strncmp(url, "https://", 8) == 0 || std::strncmp(url, "http://", 7) == 0)
+		html += Esc(url);
+	else
+		html += "#";
+	html += "\"><span class=\"name\">";
+	html += Esc(label);
+	html += "</span><span class=\"blurb\">";
+	html += Esc(url);
+	html += "</span></a></div>";
+}
+
 bool BrowseHubShowsCategory(const char* cat)
 {
 	if (!cat || !cat[0])

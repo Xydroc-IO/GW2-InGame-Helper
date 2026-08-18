@@ -15,7 +15,8 @@ namespace SitesRuntimeDetail
 	int gCategoryCounts[kMaxCategories] = {};
 	int gCategoryCount = -1;
 
-	char gFavoriteIds[kMaxFavorites][64] = {};
+	char gFavoriteUrls[kMaxFavorites][kMaxFavoriteUrl] = {};
+	char gFavoriteTitles[kMaxFavorites][kMaxFavoriteTitle] = {};
 	int gFavoriteFolderIds[kMaxFavorites] = {};
 	int gFavoriteCount = 0;
 	FavoriteFolder gFavoriteFolders[kMaxFavoriteFolders] = {};

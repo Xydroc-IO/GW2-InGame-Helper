@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.3.0.2 |
+| Revision described | 2.3.0.3 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.3.0.3 | 2.3.0.3 | Address bar + URL bookmark bar; catalog once-per-DLL; Known/file:// / PathingLua hardening; live 83; helper 2245 |
 | 2.3.0.2 | 2.3.0.2 | Progress roster removed; Stash item search; pad list scroll; OpenAndRefresh GetID crash; stamps unchanged |
 | 2.3.0.1 | 2.3.0.1 | Camera-facing world GPS (height bias, no near clip); pad rail icon scale; compacted-window GetID crash fix; stamps unchanged |
 | 2.3.0.0 | 2.3.0.0 | IGH1 catalog+recipes+achievements+icons + `.manifest` + CEF zip; grouped Progress armory; API Check 5 probes; live 82; helper 2244 |
@@ -267,7 +268,7 @@ Orphan Chromium trees after a hard game kill are a historical failure mode under
 - **Toolchain.** `x86_64-w64-mingw32-g++` (C++17), static `libgcc` / `libstdc++` for shipping PE.
 - **Helper.** Compiled against `deps/cef` 150 C API headers; embedded as a binary blob in the DLL.
 - **CEF archive.** `scripts/pack-cef-runtime.sh` flattens official minimal packages; SHA-256 in `CefRuntime.h`; zip hosted on pre-release tag `gw2-helper-catalog` with the public catalog pack.
-- **Catalog.** `data/sites.json` embedded and extracted at runtime. Public item names / station recipes (`gw2-helper-recipes.igh`) / achievement groups+defs / unique render icons download from tag `gw2-helper-catalog` as IGH1 packs (`Gw2Catalog.h`); cheap freshness is `gw2-helper-catalog.manifest`.
+- **Catalog.** `data/sites.json` embedded and extracted at runtime. Public item names / station recipes (`gw2-helper-recipes.igh`) / achievement groups+defs / unique render icons download from tag `gw2-helper-catalog` as IGH1 packs (`Gw2Catalog.h`); cheap freshness is `gw2-helper-catalog.manifest`, GETed once per shipping DLL version.
 - **Updates.** Nexus `UP_GitHub` for DLL; CEF stamped separately (`cef.ver` = `150.0.14`).
 
 Operational detail: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`BUILD.md`](BUILD.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
@@ -499,6 +500,7 @@ Route to the system browser (via Open Ext) when user-gesture navigations match a
 4. Navigations whose **referrer** is an ad frame (SafeFrame / DoubleClick), even if the destination is a plain advertiser domain.
 5. Subframe-originated promotable URLs from known ad iframes.
 6. Cross-site `target=_blank` popups (same-site and bundled `file://` may remain in-tab).
+7. **New addon tabs** to `file://` / `about:` only when the initiating frame is a bundled helper page. `https` may not open local files.
 
 YouTube and `discord://` deep links also prefer external handling where OSR cannot complete the flow.
 
@@ -731,7 +733,7 @@ See [`ACCOUNT.md`](ACCOUNT.md), [`API_KEY.md`](API_KEY.md).
 
 ### 17.2 Pathing and D3D world GPS
 
-**Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, Hero's Marker Pack, and HasKha Markers download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy. Opt-in **PathingLua** (default off) covers a Blish-shaped `script-*` subset — not the full Pathing libdef host.
+**Packs.** Curated Tekkit All-In-One, Lady Elyssa Guides/Achievements, Hero's Marker Pack, and HasKha Markers download into `pathing/` with `.ver` stamps; user `.taco` files are retained. Marker behaviors cover TacO/Blish 0–7 and 101, AutoTrigger, hide/show, tips, info, copy. Opt-in **PathingLua** (default off) covers a Blish-shaped `script-*` subset — not the full Pathing libdef host. The Lua state opens base/table/string/math/utf8/coroutine and a reduced `os` (`time`/`clock`/`date`); it does not open `io`, `package`, or `debug`, and `loadfile`/`dofile`/`os.execute` are unset.
 
 **Authoring.** Pack creation is not in this addon. Use standalone [GW2-TrailTools](https://github.com/Xydroc-IO/GW2-TrailTools); drop built `.taco` files into helper `pathing/` for playback.
 
@@ -915,11 +917,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.3.0.2)
+## Appendix A — Quantitative constants (revision 2.3.0.3)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.3.0.2 |
+| Addon version | 2.3.0.3 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -935,8 +937,8 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2244 / 2235 / s2215 / c2228 |
-| Live panel stamp | 82 |
+| Helper / home / sites / cheatsheets stamps | 2245 / 2235 / s2215 / c2228 |
+| Live panel stamp | 83 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
 | OSR `device_scale_factor` | 1.0 |
@@ -1021,6 +1023,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.3.0.2 — Progress roster removed; Stash item search; pad list scroll; OpenAndRefresh GetID crash; helper 2244; live 82; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.3.0.3 — address bar + URL bookmark bar; catalog once-per-DLL; file:// new-tab origin check; PathingLua stdlib subset; helper 2245; live 83; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

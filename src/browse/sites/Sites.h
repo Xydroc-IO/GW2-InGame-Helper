@@ -59,11 +59,17 @@ namespace Sites
 	/* Resolve the URL to open for a site (help page or homeUrl). */
 	std::string ResolveUrl(const SiteDef& site);
 
-	/* Favorites — persisted site ids (order preserved) + optional folders. */
-	bool IsFavorite(const char* id);
-	bool ToggleFavorite(const char* id); /* returns true if now favorited */
+	/* Bookmarks — page URL + title, folders in config/favorites.json. */
+	bool IsFavorite(const char* id); /* catalog site whose homeUrl is bookmarked */
+	bool IsFavoriteUrl(const char* url);
+	bool ToggleFavorite(const char* id); /* star a catalog site home */
+	bool ToggleFavoriteUrl(const char* title, const char* url); /* true if now bookmarked */
 	int  FavoriteCount();
-	int  FavoriteSiteIndex(int favSlot); /* registry index, or -1 */
+	int  FavoriteSiteIndex(int favSlot); /* catalog index for a bookmark, or -1 */
+	const char* FavoriteUrlAt(int slot);
+	const char* FavoriteTitleAt(int slot);
+	bool RenameFavorite(int slot, const char* title);
+	bool RemoveFavoriteSlot(int slot);
 	/* Bumps when favorites add/remove/reorder/load — Browse cache invalidation. */
 	unsigned FavoritesGeneration();
 	int  IndexOfId(const char* id);      /* registry index, or -1 */
@@ -78,20 +84,22 @@ namespace Sites
 
 	void ParseFavorites(const char* csv);
 	void SerializeFavorites(char* out, size_t outLen);
-	void PruneFavorites(); /* drop unknown / empty ids */
+	void PruneFavorites(); /* drop empty / duplicate URLs */
 	bool MoveFavorite(int fromSlot, int toSlot); /* reorder; returns true if moved */
 
-	/* Favorite folders (id 0 = Unfiled). Stored in config/favorites.json. */
+	/* Bookmark folders (id 0 = Unfiled). */
 	int  FavoriteFolderCount(); /* user folders only (excludes Unfiled) */
 	int  FavoriteFolderIdAt(int index);
 	const char* FavoriteFolderName(int folderId);
-	int  FavoriteFolderOf(const char* siteId);
+	int  FavoriteFolderOf(const char* siteIdOrUrl);
 	int  FavoriteCountInFolder(int folderId);
 	int  FavoriteSiteIndexInFolder(int folderId, int slotInFolder);
+	int  FavoriteSlotInFolder(int folderId, int slotInFolder); /* global slot, or -1 */
 	bool CreateFavoriteFolder(const char* name);
 	bool RenameFavoriteFolder(int folderId, const char* name);
 	bool DeleteFavoriteFolder(int folderId); /* items move to Unfiled */
-	bool SetFavoriteFolder(const char* siteId, int folderId);
+	bool MoveFavoriteFolder(int fromIndex, int toIndex);
+	bool SetFavoriteFolder(const char* siteIdOrUrl, int folderId);
 	bool MoveFavoriteInFolder(int folderId, int fromSlot, int toSlot);
 	void LoadFavoritesStore();
 	void SaveFavoritesStore();

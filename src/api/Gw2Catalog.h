@@ -46,7 +46,8 @@ namespace Gw2Catalog
 		std::vector<std::pair<int, int>> ings; /* item_id, count */
 	};
 
-	/* Cheap: load disk cache; start a download if build id changed. UI-safe. */
+	/* Load disk cache; GET GitHub manifest on a new shipping revision or while
+	   packs are still missing. UI-safe. */
 	void Tick();
 	bool RecipesReady();
 

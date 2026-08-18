@@ -20,6 +20,7 @@ namespace Gw2CatalogDetail
 	extern std::unordered_map<int, std::vector<int>> gByOutput;
 	extern std::string gBuild;
 	extern std::string gIconsHash;
+	extern std::string gAddonChecked; /* shipping version that last GETed GitHub */
 	extern bool gDiskLoaded;
 	extern bool gRecipesOnDisk;
 	extern std::atomic<bool> gAchievementsOnDisk;
@@ -32,6 +33,7 @@ namespace Gw2CatalogDetail
 		std::string catalog;
 		std::string icons;
 		std::string cef;
+		std::string addon; /* local cache only — do not upload to GitHub */
 	};
 
 	std::wstring ManifestPath();
@@ -44,12 +46,14 @@ namespace Gw2CatalogDetail
 	std::string ReadAll(const std::wstring& path, size_t maxBytes);
 	bool WriteAll(const std::wstring& path, const std::string& data);
 	bool ParseManifest(const std::string& json, RemoteManifest* out);
-	void MergeLocalManifest(const char* catalog, const char* icons, const char* cef);
+	void MergeLocalManifest(const char* catalog, const char* icons, const char* cef,
+		const char* addon = nullptr);
 	bool ApplyIghBytes(const std::string& pack);
 	bool ApplyRecipesIghBytes(const std::string& pack);
 	bool TryApplyLocalIgh();
 	bool TryApplyLocalRecipes();
 	bool TryOpenLocalIcons();
+	bool HaveIconsPackFile();
 	void FetchRemoteIcons(const std::string& remoteIcons);
 	void FetchRemoteRecipes(const std::string& catalogBuild);
 	void FetchRemoteAchievements(const std::string& catalogBuild);
