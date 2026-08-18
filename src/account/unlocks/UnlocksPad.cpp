@@ -66,22 +66,21 @@ namespace
 
 	bool BeginFold(const char* id, const char* label, bool startOpen)
 	{
-		ImGui::PushID(id);
+		char treeId[192];
+		std::snprintf(treeId, sizeof(treeId), "%s###gw2igh_unlock_fold_%s",
+			label ? label : "(group)", id ? id : "x");
 		ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldMuted);
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth;
 		if (startOpen)
 			flags |= ImGuiTreeNodeFlags_DefaultOpen;
-		const bool open = ImGui::TreeNodeEx(label, flags);
+		const bool open = ImGui::TreeNodeEx(treeId, flags);
 		ImGui::PopStyleColor();
-		if (!open)
-			ImGui::PopID();
 		return open;
 	}
 
 	void EndFold()
 	{
 		ImGui::TreePop();
-		ImGui::PopID();
 	}
 
 	/* --- classifiers --- */

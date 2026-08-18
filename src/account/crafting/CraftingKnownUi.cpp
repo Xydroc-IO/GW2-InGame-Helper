@@ -46,7 +46,7 @@ namespace CraftingDetail
 		if (!G::Gw2ApiKey[0])
 		{
 			ImGui::TextColored(HelperTheme::Muted,
-				"API key needs unlocks + characters + inventories scopes.");
+				"API key needs progression + characters scopes.");
 			return;
 		}
 		if (KnownBusy() && !KnownHasFetched())
@@ -116,6 +116,9 @@ namespace CraftingDetail
 		}
 
 		ImGui::TextColored(HelperTheme::Muted, "%zu recipes", sIds.size());
+		const char* knownStatus = KnownStatus();
+		if (knownStatus && knownStatus[0])
+			ImGui::TextColored(HelperTheme::Muted, "%s", knownStatus);
 		if (sIds.empty()) return;
 
 		/* Cap enqueue per frame — scanning/queuing the full set under lock freezes Present. */

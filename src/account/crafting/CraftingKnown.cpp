@@ -30,6 +30,7 @@ namespace CraftingDetail
 	static std::atomic<bool> gKnownFetched{false};
 	static HANDLE gKnownThread = nullptr;
 	static DWORD gKnownFetchedAt = 0;
+	static std::string gKnownStatus;
 
 	struct CharRecipeJob
 	{
@@ -130,10 +131,14 @@ namespace CraftingDetail
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 		std::unordered_set<int> account;
 		std::unordered_map<std::string, std::unordered_set<int>> chars;
+		std::string status;
+		unsigned accStatus = 0;
+		unsigned chStatus = 0;
 
 		if (G::Gw2ApiKey[0])
 		{
 			auto acc = Gw2Http::Api("/v2/account/recipes", G::Gw2ApiKey, kHttpTimeoutMs);
+			accStatus = acc.status;
 			if (acc.ok)
 			{
 				std::vector<int> list;
@@ -142,6 +147,7 @@ namespace CraftingDetail
 			}
 
 			auto ch = Gw2Http::Api("/v2/characters", G::Gw2ApiKey, kHttpTimeoutMs);
+			chStatus = ch.status;
 			std::vector<std::string> names;
 			if (ch.ok) ParseQuotedStringArray(ch.body, names);
 			/* Parallel char recipe pulls — sequential N×HTTP stalls the known list for minutes. */
@@ -160,6 +166,23 @@ namespace CraftingDetail
 				WaitForMultipleObjects(static_cast<DWORD>(nH), hs, TRUE, INFINITE);
 			for (int w = 0; w < nH; ++w)
 				CloseHandle(hs[w]);
+			if (acc.ok && ch.ok)
+			{
+				char buf[96];
+				std::snprintf(buf, sizeof(buf), "Known recipes: %d account, %d characters.",
+					static_cast<int>(account.size()), static_cast<int>(chars.size()));
+				status = buf;
+			}
+			else if (accStatus == 401 || chStatus == 401)
+				status = "API key rejected. Paste a valid GW2 API key in Settings.";
+			else if (accStatus == 403 || chStatus == 403)
+				status = "API key missing scopes. Known recipes needs progression + characters.";
+			else
+				status = "Could not sync known recipes from the API.";
+		}
+		else
+		{
+			status = "Add a GW2 API key with progression + characters to load known recipes.";
 		}
 
 		{
@@ -175,6 +198,7 @@ namespace CraftingDetail
 				gPendingAccount = gAccount;
 				gPendingChars = gChars;
 			}
+			gKnownStatus = std::move(status);
 			gKnownReadyFlag = true;
 			gKnownBusy = false;
 			gKnownFetchedAt = GetTickCount();
@@ -282,6 +306,12 @@ namespace CraftingDetail
 	{
 		KnownTick();
 		return gKnownFetched.load();
+	}
+
+	const char* KnownStatus()
+	{
+		std::lock_guard<std::mutex> lock(gKnownMu);
+		return gKnownStatus.c_str();
 	}
 
 	std::vector<std::string> KnownCharacterNames()

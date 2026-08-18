@@ -253,6 +253,7 @@ namespace CraftingDetail
 	void StartKnown(bool force);
 	bool KnownBusy();
 	bool KnownHasFetched();
+	const char* KnownStatus();
 	void KnownTick();
 	std::vector<std::string> KnownCharacterNames();
 	bool KnownByAccount(int recipeId);
