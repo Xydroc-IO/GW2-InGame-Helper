@@ -149,9 +149,13 @@ void UnlocksData::Tick()
 			continue;
 		st.ids = std::move(st.pendingIds);
 		st.names = std::move(st.pendingNames);
+		st.rgb = std::move(st.pendingRgb);
+		st.icons = std::move(st.pendingIcons);
 		st.status = std::move(st.pendingStatus);
 		st.pendingIds.clear();
 		st.pendingNames.clear();
+		st.pendingRgb.clear();
+		st.pendingIcons.clear();
 		st.pendingStatus.clear();
 		st.pending = false;
 		st.ready = !st.ids.empty() || st.status.find("Indexed") != std::string::npos ||
@@ -235,6 +239,15 @@ void UnlocksData::Search(Kind k, const char* query, std::vector<Row>& out, size_
 		row.id = id;
 		auto it = st.names.find(id);
 		row.name = (it != st.names.end()) ? it->second : ("#" + std::to_string(id));
+		auto rit = st.rgb.find(id);
+		if (rit != st.rgb.end())
+		{
+			row.rgb = rit->second;
+			row.hasRgb = true;
+		}
+		auto iit = st.icons.find(id);
+		if (iit != st.icons.end())
+			row.iconUrl = iit->second;
 		if (!q.empty())
 		{
 			const std::string n = ToLowerCopy(row.name);

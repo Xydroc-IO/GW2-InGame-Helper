@@ -22,12 +22,16 @@ namespace UnlocksDetail
 	{
 		std::unordered_set<int> ids;
 		std::unordered_map<int, std::string> names;
+		std::unordered_map<int, unsigned> rgb; /* dyes: 0xRRGGBB */
+		std::unordered_map<int, std::string> icons; /* render URLs; titles stay empty */
 		std::string status = "Not loaded.";
 		std::atomic<bool> busy{false};
 		std::atomic<bool> ready{false};
 		std::atomic<bool> pending{false};
 		std::unordered_set<int> pendingIds;
 		std::unordered_map<int, std::string> pendingNames;
+		std::unordered_map<int, unsigned> pendingRgb;
+		std::unordered_map<int, std::string> pendingIcons;
 		std::string pendingStatus;
 		HANDLE thread = nullptr;
 		DWORD loadedAt = 0;
@@ -52,13 +56,25 @@ namespace UnlocksDetail
 	long long JsonIntAfterKey(const std::string& json, const char* key, size_t from = 0);
 	void ParseIdArray(const std::string& body, std::unordered_set<int>& out);
 	void ParseFinisherIds(const std::string& body, std::unordered_set<int>& out);
-	void ParseNameObjects(const std::string& body, std::unordered_map<int, std::string>& names);
+	void ParseNameObjects(const std::string& body, std::unordered_map<int, std::string>& names,
+		std::unordered_map<int, unsigned>* rgb = nullptr,
+		std::unordered_map<int, std::string>* icons = nullptr);
 	bool LoadCache(UnlocksData::Kind k, std::unordered_set<int>& ids,
-		std::unordered_map<int, std::string>& names);
+		std::unordered_map<int, std::string>& names,
+		std::unordered_map<int, unsigned>* rgb,
+		std::unordered_map<int, std::string>* icons);
 	void SaveCache(UnlocksData::Kind k, const std::unordered_set<int>& ids,
-		const std::unordered_map<int, std::string>& names);
+		const std::unordered_map<int, std::string>& names,
+		const std::unordered_map<int, unsigned>* rgb,
+		const std::unordered_map<int, std::string>* icons);
 	void ResolveNames(UnlocksData::Kind k, const std::unordered_set<int>& ids,
 		std::unordered_map<int, std::string>& names, const char* key);
+	void ResolveDyeRgb(const std::unordered_set<int>& ids,
+		std::unordered_map<int, std::string>& names,
+		std::unordered_map<int, unsigned>& rgb);
+	void ResolveUnlockIcons(UnlocksData::Kind k, const std::unordered_set<int>& ids,
+		std::unordered_map<int, std::string>& names,
+		std::unordered_map<int, std::string>& icons);
 
 	struct LoadArg
 	{

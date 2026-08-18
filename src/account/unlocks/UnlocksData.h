@@ -28,6 +28,9 @@ namespace UnlocksData
 	{
 		int id = 0;
 		std::string name;
+		unsigned rgb = 0; /* 0xRRGGBB — dyes only */
+		bool hasRgb = false;
+		std::string iconUrl; /* render.guildwars2.com — never an item-id lookup */
 	};
 
 	const char* KindLabel(Kind k);

@@ -10,8 +10,34 @@
 #include "imgui/imgui.h"
 
 #include <cstdio>
-#include <cstring>
 #include <vector>
+
+namespace
+{
+	bool DrawUnlockIcon(UnlocksData::Kind kind, const UnlocksData::Row& r, float sz)
+	{
+		if (kind == UnlocksData::Kind::Dyes)
+		{
+			if (!r.hasRgb)
+				return false;
+			char id[40];
+			std::snprintf(id, sizeof(id), "###gw2igh_dye_%d", r.id);
+			const ImVec4 col(
+				static_cast<float>((r.rgb >> 16) & 255) / 255.f,
+				static_cast<float>((r.rgb >> 8) & 255) / 255.f,
+				static_cast<float>(r.rgb & 255) / 255.f,
+				1.f);
+			ImGui::ColorButton(id, col,
+				ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoTooltip |
+				ImGuiColorEditFlags_NoDragDrop,
+				ImVec2(sz, sz));
+			return true;
+		}
+		if (r.iconUrl.empty())
+			return false;
+		return Gw2Icons::ImageUrl(r.iconUrl.c_str(), sz);
+	}
+}
 
 void UnlocksPad::RenderContents()
 {
@@ -86,7 +112,7 @@ void UnlocksPad::RenderContents()
 			for (int n = clipper.DisplayStart; n < clipper.DisplayEnd; ++n)
 			{
 				const UnlocksData::Row& r = rows[static_cast<size_t>(n)];
-				if (Gw2Icons::Image(r.id, 22.f))
+				if (DrawUnlockIcon(kind, r, 22.f))
 					ImGui::SameLine(0.f, 6.f);
 				ImGui::Text("%s", r.name.c_str());
 				ImGui::SameLine();
