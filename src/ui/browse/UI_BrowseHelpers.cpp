@@ -300,6 +300,8 @@ BrowsePopupLayout CalcBrowsePopupLayout(bool withBanner, bool pickDefaultSite)
 	chrome += st.ItemSpacing.y;
 	chrome += ImGui::GetTextLineHeightWithSpacing(); /* Created by */
 	chrome += ImGui::GetTextLineHeightWithSpacing(); /* Report issues */
+	chrome += ImGui::GetTextLineHeightWithSpacing(); /* Donate (may wrap) */
+	chrome += ImGui::GetTextLineHeightWithSpacing(); /* Donate URL wrap */
 	chrome += ImGui::GetTextLineHeight();            /* Discord URL wrap */
 	chrome += 8.f;
 

@@ -10,6 +10,16 @@
 #include <windows.h>
 #include <winhttp.h>
 
+#include "miniz.h"
+
+#ifndef WINHTTP_OPTION_DECOMPRESSION
+#define WINHTTP_OPTION_DECOMPRESSION 118
+#endif
+#ifndef WINHTTP_DECOMPRESSION_FLAG_GZIP
+#define WINHTTP_DECOMPRESSION_FLAG_GZIP 0x00000001
+#define WINHTTP_DECOMPRESSION_FLAG_DEFLATE 0x00000002
+#endif
+
 namespace
 {
 	/* Per-thread session/connection so Live workers can fetch in parallel.
@@ -59,6 +69,38 @@ namespace
 		t.port = 0;
 	}
 
+	/* Wine may ignore WINHTTP_OPTION_DECOMPRESSION and still return gzip bytes. */
+	bool GunzipIfNeeded(std::string& body)
+	{
+		if (body.size() < 18)
+			return true;
+		const auto* p = reinterpret_cast<const unsigned char*>(body.data());
+		if (p[0] != 0x1f || p[1] != 0x8b)
+			return true;
+		mz_stream s{};
+		if (mz_inflateInit2(&s, 15 + 16) != MZ_OK)
+			return false;
+		std::string out(body.size() * 4u + 256u, '\0');
+		s.next_in = p;
+		s.avail_in = static_cast<unsigned int>(body.size());
+		int rc = MZ_OK;
+		while (rc == MZ_OK || rc == MZ_BUF_ERROR)
+		{
+			if (s.total_out >= out.size())
+				out.resize(out.size() * 2u);
+			s.next_out = reinterpret_cast<unsigned char*>(&out[s.total_out]);
+			s.avail_out = static_cast<unsigned int>(out.size() - s.total_out);
+			rc = mz_inflate(&s, MZ_FINISH);
+		}
+		const size_t n = static_cast<size_t>(s.total_out);
+		mz_inflateEnd(&s);
+		if (rc != MZ_STREAM_END)
+			return false;
+		out.resize(n);
+		body.swap(out);
+		return true;
+	}
+
 	bool EnsureSession(TlsHttp& t, int timeoutMs)
 	{
 		if (!t.session)
@@ -68,6 +110,8 @@ namespace
 				WINHTTP_NO_PROXY_BYPASS, 0);
 			if (!t.session)
 				return false;
+			DWORD decomp = WINHTTP_DECOMPRESSION_FLAG_GZIP | WINHTTP_DECOMPRESSION_FLAG_DEFLATE;
+			WinHttpSetOption(t.session, WINHTTP_OPTION_DECOMPRESSION, &decomp, sizeof(decomp));
 		}
 		if (timeoutMs < 400)
 			timeoutMs = 400;
@@ -187,6 +231,7 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 		std::wstring headers;
 		headers += L"Accept: application/json, application/rss+xml, application/xml, text/xml, */*\r\n";
 		headers += L"Accept-Language: en\r\n";
+		headers += L"Accept-Encoding: gzip, deflate\r\n";
 		headers += L"Connection: keep-alive\r\n";
 		if (bearerToken && bearerToken[0])
 		{
@@ -242,7 +287,7 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 			if (!WinHttpReadData(req, chunk.data(), avail, &read) || read == 0)
 				break;
 			body.append(chunk.data(), read);
-			if (body.size() > 8u * 1024u * 1024u)
+			if (body.size() > 16u * 1024u * 1024u)
 			{
 				r.error = "response too large";
 				body.clear();
@@ -254,6 +299,12 @@ Gw2Http::Result Gw2Http::Get(const char* url, const char* bearerToken, int timeo
 
 		if (r.error == "response too large")
 			break;
+
+		if (!GunzipIfNeeded(body))
+		{
+			r.error = "gzip decode failed";
+			break;
+		}
 
 		r.body = std::move(body);
 		if (statusCode >= 200 && statusCode < 300)

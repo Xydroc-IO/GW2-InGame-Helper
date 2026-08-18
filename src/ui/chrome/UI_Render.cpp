@@ -2,6 +2,7 @@
 #include "UIInternal.h"
 #include "UI_Browse.h"
 
+#include "ApiWarm.h"
 #include "BrowserTabs.h"
 #include "CharacterProfiles.h"
 #include "ConfirmedWaypoints.h"
@@ -99,6 +100,7 @@ void UI_Render()
 		CrashTrail::Note("ui:frame");
 	CrashTrail::HeartbeatIfHot();
 	WikiBrowser::Tick();
+	ApiWarm::Tick();
 	MumbleIdentity::Tick();
 	CharacterProfiles::Tick();
 	ConfirmedWaypoints::Tick();

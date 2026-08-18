@@ -1,6 +1,5 @@
 #include "LivePanelsBuildShared.h"
 
-#include "EiRuntime.h"
 #include "Gw2Http.h"
 
 #include <cstdio>
@@ -51,48 +50,6 @@ namespace
 		if (i >= body.size())
 			return false;
 		return body[i] == '{' || body[i] == '[';
-	}
-
-	DWORD WINAPI TimedProbeProc(void* param)
-	{
-		auto* j = static_cast<TimedJob*>(param);
-		if (!j || !j->probe || !j->probe->path)
-			return 0;
-		const ULONGLONG t0 = GetTickCount64();
-		j->result = Gw2Http::Api(j->probe->path, j->bearer, kProbeTimeoutMs);
-		j->ms = static_cast<DWORD>(GetTickCount64() - t0);
-		return 0;
-	}
-
-	/* Join every worker before jobs[] is destroyed. A timed wait used to
-	   return while threads still wrote Result/string into freed TimedJob
-	   (crash-0 17:23 — AV write-null in TimedProbeProc, sticky RT_PostRender).
-	   Wine: cap concurrency — 40+ CreateThreads beside Mirror tipped Present. */
-	void RunProbesParallel(TimedJob* jobs, size_t n)
-	{
-		if (!jobs || n == 0)
-			return;
-		const size_t wave = EiRuntime::IsWine() ? 4u : 16u;
-		size_t i = 0;
-		while (i < n)
-		{
-			HANDLE hs[16]{};
-			DWORD nh = 0;
-			while (i < n && nh < wave)
-			{
-				HANDLE h = CreateThread(nullptr, 0, TimedProbeProc, &jobs[i], 0, nullptr);
-				++i;
-				if (h)
-					hs[nh++] = h;
-				else
-					TimedProbeProc(&jobs[i - 1]);
-			}
-			if (nh == 0)
-				continue;
-			WaitForMultipleObjects(nh, hs, TRUE, INFINITE);
-			for (DWORD h = 0; h < nh; ++h)
-				CloseHandle(hs[h]);
-		}
 	}
 
 	ProbeRow RowFromJob(const TimedJob& j)
@@ -153,53 +110,13 @@ namespace
 
 std::string BuildApiCheckHtml(const char* apiKey)
 {
-	/* Curated probes — our own checks against api.guildwars2.com (not a third-party status site). */
+	/* Health check only — catalog spam (~45 GETs) is why this page used to take 10s+. */
 	static const Probe kProbes[] = {
 		{ "/v2/build", false, "Public" },
-		{ "/v2/", false, "Public" },
-		{ "/v2/colors?ids=1", false, "Public" },
-		{ "/v2/worlds?ids=1001", false, "Public" },
-		{ "/v2/maps?ids=50", false, "Public" },
 		{ "/v2/items?ids=19721", false, "Public" },
-		{ "/v2/recipes?ids=1", false, "Public" },
-		{ "/v2/skins?ids=1", false, "Public" },
-		{ "/v2/achievements?ids=1", false, "Public" },
-		{ "/v2/currencies?ids=1", false, "Public" },
-		{ "/v2/professions", false, "Public" },
-		{ "/v2/races", false, "Public" },
-		{ "/v2/specializations?ids=1", false, "Public" },
-		{ "/v2/skills?ids=5503", false, "Public" },
-		{ "/v2/traits?ids=21", false, "Public" },
-		{ "/v2/quaggans", false, "Public" },
-		{ "/v2/files?ids=map_complete", false, "Public" },
-		{ "/v2/minis?ids=1", false, "Public" },
-		{ "/v2/titles?ids=1", false, "Public" },
-		{ "/v2/outfits?ids=1", false, "Public" },
-		{ "/v2/finishers?ids=1", false, "Public" },
-		{ "/v2/gliders?ids=1", false, "Public" },
-		{ "/v2/mailcarriers?ids=1", false, "Public" },
-		{ "/v2/novelties?ids=1", false, "Public" },
-		{ "/v2/pets?ids=1", false, "Public" },
-		{ "/v2/mounts/types", false, "Public" },
-		{ "/v2/legends", false, "Public" },
-		{ "/v2/dailycrafting", false, "Public" },
-		{ "/v2/mapchests", false, "Public" },
-		{ "/v2/worldbosses", false, "Public" },
-		{ "/v2/wizardsvault/listings", false, "Public" },
 		{ "/v2/commerce/prices?ids=19721", false, "Commerce" },
-		{ "/v2/commerce/listings?ids=19721", false, "Commerce" },
-		{ "/v2/commerce/exchange/coins?quantity=10000", false, "Commerce" },
 		{ "/v2/tokeninfo", true, "Account" },
 		{ "/v2/account", true, "Account" },
-		{ "/v2/characters", true, "Account" },
-		{ "/v2/account/wallet", true, "Account" },
-		{ "/v2/account/bank", true, "Account" },
-		{ "/v2/account/materials", true, "Account" },
-		{ "/v2/account/inventory", true, "Account" },
-		{ "/v2/account/achievements", true, "Account" },
-		{ "/v2/account/wizardsvault/daily", true, "Account" },
-		{ "/v2/commerce/transactions/current/buys", true, "Commerce" },
-		{ "/v2/pvp/stats", true, "Account" },
 	};
 	constexpr size_t kCount = sizeof(kProbes) / sizeof(kProbes[0]);
 
@@ -223,7 +140,17 @@ std::string BuildApiCheckHtml(const char* apiKey)
 		jobs.push_back(job);
 	}
 	if (!jobs.empty())
-		RunProbesParallel(jobs.data(), jobs.size());
+	{
+		/* Sequential on this Live worker so Gw2Http keep-alive reuses one TLS session. */
+		for (TimedJob& job : jobs)
+		{
+			if (!job.probe || !job.probe->path)
+				continue;
+			const ULONGLONG t0 = GetTickCount64();
+			job.result = Gw2Http::Api(job.probe->path, job.bearer, kProbeTimeoutMs);
+			job.ms = static_cast<DWORD>(GetTickCount64() - t0);
+		}
+	}
 
 	/* Merge timed results back in probe order. */
 	size_t ji = 0;
@@ -267,7 +194,7 @@ std::string BuildApiCheckHtml(const char* apiKey)
 	summary += std::to_string(rows.size());
 	summary += "</strong> ArenaNet endpoints in <strong>";
 	summary += std::to_string(wallMs);
-	summary += " ms</strong> (parallel). Hosted by this addon — not a third-party status mirror. "
+	summary += " ms</strong>. Five health probes (one TLS session). "
 		"Reload the tab to re-run.</p></div>\n";
 
 	auto appendGroup = [&](std::string& body, const char* group) {
@@ -331,11 +258,11 @@ std::string BuildApiCheckHtml(const char* apiKey)
 
 	body += "<section class=\"block\" id=\"about\"><div class=\"head\"><h2>About</h2>"
 		"<p>What this page is</p></div><div class=\"body\">"
-		"<p class=\"note\">Probes <strong>https://api.guildwars2.com</strong> directly from the "
-		"helper DLL (read-only). Account rows use your saved Settings key when present. "
-		"This is not affiliated with gw2efficiency or any other status dashboard.</p>"
-		"<p class=\"meta\">Tip: if many endpoints fail together, ArenaNet API or your network "
-		"is likely degraded — try again in a few minutes.</p>"
+		"<p class=\"note\">Probes <strong>https://api.guildwars2.com</strong> directly from this "
+		"machine (read-only): build, a public item, commerce, tokeninfo, and account. "
+		"Account rows use your saved Settings key when present.</p>"
+		"<p class=\"meta\">Tip: if these fail together, ArenaNet API or your network is likely "
+		"degraded — try again in a few minutes.</p>"
 		"</div></section>\n";
 
 	const char* toc =
@@ -360,7 +287,7 @@ std::string BuildApiCheckHtml(const char* apiKey)
 
 	return BuildPage("GW2 API Check", "GW2 In-Game Helper · Diagnostics",
 		"GW2 API Check",
-		"Live probe of official Guild Wars 2 API endpoints from this machine.",
+		"Live health check of api.guildwars2.com from this machine.",
 		toc, body, extraCss);
 }
 

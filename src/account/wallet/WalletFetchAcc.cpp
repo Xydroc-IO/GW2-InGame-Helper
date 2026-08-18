@@ -4,6 +4,7 @@
 
 #include "BgFetch.h"
 #include "Globals.h"
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 #include "Settings.h"
 
@@ -225,6 +226,7 @@ namespace WalletDetail
 			pos = end + 1;
 		}
 		std::string catBody;
+		if (!Gw2Catalog::HasMaterialCategories())
 		{
 			auto list = Gw2Http::Api("/v2/materials", nullptr, kHttpTimeoutMs);
 			std::vector<int> ids;
@@ -310,6 +312,14 @@ namespace WalletDetail
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 		LoadNames();
+		struct UnpinIfClosed
+		{
+			~UnpinIfClosed()
+			{
+				if (!G::ShowWallet)
+					BgFetch::SetWanted(BgFetch::Channel::Wallet, false);
+			}
+		} unpin;
 
 		if (!G::Gw2ApiKey[0])
 		{

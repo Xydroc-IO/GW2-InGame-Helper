@@ -11,10 +11,10 @@
 
 namespace LivePanelsDetail
 {
-	constexpr const char* kPanelVer = "75";
+	constexpr const char* kPanelVer = "79";
 	constexpr DWORD kHtmlTtlSec = 10u * 60u;       /* avoid rebuild storms */
 	constexpr DWORD kTpHtmlTtlSec = 60u;
-	constexpr DWORD kApiCheckTtlSec = 45u;         /* diagnostics should re-probe often */
+	constexpr DWORD kApiCheckTtlSec = 60u;         /* short TTL; last HTML still paints instantly */
 	constexpr DWORD kLegendaryVaultTtlSec = 45u;   /* Owned/Missing should stay near-live */
 	constexpr int kMaxLiveWorkers = 3;
 

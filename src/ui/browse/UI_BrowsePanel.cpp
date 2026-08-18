@@ -226,6 +226,22 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 		}
 	}
 	ImGui::PopStyleColor();
+	ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+	ImGui::TextUnformatted("If you would like to donate or support GW2-InGame-Helper, you can do so here -");
+	ImGui::SameLine(0.0f, 4.0f);
+	ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
+	ImGui::TextUnformatted("ko-fi.com/xydroc");
+	ImGui::PopStyleColor();
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		if (ImGui::IsMouseClicked(0))
+		{
+			ShellExecuteA(nullptr, "open", "https://ko-fi.com/xydroc",
+				nullptr, nullptr, SW_SHOWNORMAL);
+		}
+	}
+	ImGui::PopStyleColor();
 }
 
 } // namespace UIBrowseDetail

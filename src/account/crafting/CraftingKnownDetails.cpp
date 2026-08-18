@@ -4,6 +4,7 @@
 #include "CraftingShared.h"
 
 #include "BgFetch.h"
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 
 #include <atomic>
@@ -106,11 +107,55 @@ namespace CraftingDetail
 	static void FetchDetailBatch(const std::vector<int>& batch)
 	{
 		if (batch.empty()) return;
+		std::vector<int> miss;
+		std::vector<KnownRecipeInfo> parsed;
+		std::vector<int> outIds;
+		for (int id : batch)
+		{
+			Gw2Catalog::Recipe rec;
+			if (id <= 0 || !Gw2Catalog::RecipeById(id, &rec) || rec.recipeId <= 0)
+			{
+				if (id > 0)
+					miss.push_back(id);
+				continue;
+			}
+			KnownRecipeInfo info;
+			info.recipeId = rec.recipeId;
+			info.outputId = rec.outputId;
+			info.outCount = rec.outputCount > 0 ? rec.outputCount : 1;
+			const size_t bar = rec.disciplines.find('|');
+			info.discipline = bar == std::string::npos ? rec.disciplines
+				: rec.disciplines.substr(0, bar);
+			if (info.discipline.empty())
+				info.discipline = "Other";
+			if (info.outputId > 0)
+				outIds.push_back(info.outputId);
+			else
+				info.outputName = "(unavailable)";
+			parsed.push_back(std::move(info));
+		}
+		if (miss.empty())
+		{
+			std::unordered_map<int, std::string> names;
+			if (!outIds.empty())
+				FetchNames(names, outIds);
+			for (KnownRecipeInfo& info : parsed)
+			{
+				auto nit = names.find(info.outputId);
+				if (nit != names.end())
+					info.outputName = nit->second;
+			}
+			std::lock_guard<std::mutex> lock(gKnownMu);
+			for (KnownRecipeInfo& info : parsed)
+				gRecipeDetails[info.recipeId] = std::move(info);
+			return;
+		}
+
 		std::string path = "/v2/recipes?ids=";
-		for (size_t i = 0; i < batch.size(); ++i)
+		for (size_t i = 0; i < miss.size(); ++i)
 		{
 			if (i) path += ',';
-			path += std::to_string(batch[i]);
+			path += std::to_string(miss[i]);
 		}
 
 		Gw2Http::Result r;
@@ -123,11 +168,22 @@ namespace CraftingDetail
 				gotBody = true;
 				break;
 			}
-			/* Every id invalid — mark stubs so the UI can finish. */
+			/* Every remaining id invalid — keep catalog hits, stub the rest. */
 			if (r.status == 404)
 			{
+				std::unordered_map<int, std::string> names;
+				if (!outIds.empty())
+					FetchNames(names, outIds);
+				for (KnownRecipeInfo& info : parsed)
+				{
+					auto nit = names.find(info.outputId);
+					if (nit != names.end())
+						info.outputName = nit->second;
+				}
 				std::lock_guard<std::mutex> lock(gKnownMu);
-				for (int id : batch)
+				for (KnownRecipeInfo& info : parsed)
+					gRecipeDetails[info.recipeId] = std::move(info);
+				for (int id : miss)
 				{
 					if (id > 0 && !gRecipeDetails.count(id))
 						gRecipeDetails[id] = MakeDetailStub(id);
@@ -143,10 +199,12 @@ namespace CraftingDetail
 
 		if (!gotBody)
 		{
-			/* Re-queue so a later worker pass can try again after the bucket refills. */
+			/* Catalog hits stay; re-queue only the miss list. */
 			{
 				std::lock_guard<std::mutex> lock(gKnownMu);
-				for (int id : batch)
+				for (KnownRecipeInfo& info : parsed)
+					gRecipeDetails[info.recipeId] = std::move(info);
+				for (int id : miss)
 				{
 					if (id <= 0 || gRecipeDetails.count(id) || gDetailQueued.count(id))
 						continue;
@@ -158,8 +216,6 @@ namespace CraftingDetail
 			return;
 		}
 
-		std::vector<KnownRecipeInfo> parsed;
-		std::vector<int> outIds;
 		size_t p = 0;
 		while (p < r.body.size())
 		{

@@ -1,5 +1,7 @@
 #include "WalletShared.h"
 
+#include "Gw2Catalog.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <string>
@@ -223,12 +225,21 @@ namespace WalletDetail
 					SlotSection s;
 					s.kind = Loc_Materials;
 					auto nm = catNames.find(cid);
-					s.title = (nm != catNames.end()) ? nm->second : "Materials";
-					if (cid > 0 && nm == catNames.end())
+					if (nm != catNames.end())
+						s.title = nm->second;
+					else
 					{
-						char buf[40];
-						std::snprintf(buf, sizeof(buf), "Materials %d", cid);
-						s.title = buf;
+						std::string cat;
+						if (cid > 0 && Gw2Catalog::MaterialCategoryName(cid, &cat))
+							s.title = std::move(cat);
+						else if (cid > 0)
+						{
+							char buf[40];
+							std::snprintf(buf, sizeof(buf), "Materials %d", cid);
+							s.title = buf;
+						}
+						else
+							s.title = "Materials";
 					}
 					order.push_back(cid);
 					it = byCat.emplace(cid, std::move(s)).first;

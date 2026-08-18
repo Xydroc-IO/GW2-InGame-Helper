@@ -4,6 +4,7 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 #include "Gw2Icons.h"
 #include "InventoryData.h"
@@ -88,9 +89,18 @@ namespace WalletDetail
 
 	std::string LookupName(int mapKey, int id, bool currency)
 	{
-		std::lock_guard<std::mutex> lock(gNameMu);
-		auto it = gNames.find(mapKey);
-		if (it != gNames.end()) return it->second;
+		{
+			std::lock_guard<std::mutex> lock(gNameMu);
+			auto it = gNames.find(mapKey);
+			if (it != gNames.end()) return it->second;
+		}
+		std::string cat;
+		if (currency)
+		{
+			if (Gw2Catalog::CurrencyName(id, &cat)) return cat;
+		}
+		else if (Gw2Catalog::ItemName(id, &cat))
+			return cat;
 		char buf[48];
 		std::snprintf(buf, sizeof(buf), currency ? "Currency #%d" : "Item #%d", id);
 		return buf;
@@ -360,20 +370,48 @@ namespace WalletDetail
 	{
 		std::vector<int> curIds;
 		std::vector<int> itemIds;
+		std::vector<std::pair<int, int>> pendingCur; /* mapKey, id */
+		std::vector<std::pair<int, int>> pendingItem;
 		{
 			std::lock_guard<std::mutex> lock(gNameMu);
 			for (const auto& kv : byId)
 			{
 				if (kv.second.isCurrency)
 				{
-					/* Resolve when name or icon is missing (icons skipped if names cached). */
 					if (!gNames.count(kv.first) || !Gw2Icons::HasCurrencyIcon(kv.second.id))
-						curIds.push_back(kv.second.id);
+						pendingCur.push_back({ kv.first, kv.second.id });
 					continue;
 				}
 				if (gNames.count(kv.first)) continue;
-				itemIds.push_back(kv.second.id);
+				pendingItem.push_back({ kv.first, kv.second.id });
 			}
+		}
+		for (const auto& p : pendingCur)
+		{
+			std::string cat;
+			if (Gw2Catalog::CurrencyName(p.second, &cat))
+			{
+				RememberName(p.first, cat);
+				std::string icon;
+				if (Gw2Catalog::CurrencyIcon(p.second, &icon))
+					Gw2Icons::RememberCurrencyIcon(p.second, icon.c_str());
+				if (Gw2Icons::HasCurrencyIcon(p.second))
+					continue;
+			}
+			curIds.push_back(p.second);
+		}
+		for (const auto& p : pendingItem)
+		{
+			std::string cat;
+			if (Gw2Catalog::ItemName(p.second, &cat))
+			{
+				RememberName(p.first, cat);
+				std::string icon;
+				if (Gw2Catalog::ItemIcon(p.second, &icon))
+					Gw2Icons::RememberIcon(p.second, icon.c_str());
+				continue;
+			}
+			itemIds.push_back(p.second);
 		}
 		bool saved = false;
 		for (size_t i = 0; i < curIds.size() && !gCancel; i += static_cast<size_t>(kItemBatch))

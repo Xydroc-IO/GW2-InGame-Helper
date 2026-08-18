@@ -1,0 +1,78 @@
+# Rebuild GW2 Helper Catalog from api.guildwars2.com and publish to pre-release
+# tag `gw2-helper-catalog` (not the shipping DLL tag). Title: GW2 Helper Catalog.
+# That tag also hosts cef-runtime-150-windows64.zip and gw2-helper-icons.igh
+# (hand-uploaded). Only clobber catalog files — never delete the release,
+# the CEF zip, or the icons pack.
+name: GW2 Helper Catalog
+
+on:
+  schedule:
+    - cron: "20 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build catalog
+        run: |
+          mkdir -p dist
+          python3 scripts/build-gw2-catalog.py -o dist
+
+      - name: Skip if unchanged
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=gw2-helper-catalog
+          NEW=$(tr -d ' \r\n' < dist/gw2-helper-catalog.ver)
+          echo "build=$NEW" >> "$GITHUB_OUTPUT"
+          hash_pack() {
+            sha256sum "$@" 2>/dev/null | sha256sum | awk '{print $1}'
+          }
+          NEW_HASH=$(hash_pack dist/gw2-helper-catalog.ver dist/gw2-helper-catalog.igh)
+          OLD_HASH=""
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            mkdir -p /tmp/oldcat
+            gh release download "$TAG" -p gw2-helper-catalog.ver -p gw2-helper-catalog.igh \
+              -D /tmp/oldcat --clobber || true
+            if [ -f /tmp/oldcat/gw2-helper-catalog.ver ]; then
+              OLD_HASH=$(hash_pack /tmp/oldcat/gw2-helper-catalog.ver /tmp/oldcat/gw2-helper-catalog.igh)
+            fi
+          fi
+          echo "old_hash=$OLD_HASH new_hash=$NEW_HASH"
+          if [ -n "$OLD_HASH" ] && [ "$OLD_HASH" = "$NEW_HASH" ]; then
+            echo "changed=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish release assets
+        if: steps.check.outputs.changed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=gw2-helper-catalog
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # Named files only — leaves cef zip + gw2-helper-icons.igh in place.
+            gh release upload "$TAG" \
+              dist/gw2-helper-catalog.ver dist/gw2-helper-catalog.igh --clobber
+            gh release edit "$TAG" \
+              --title "GW2 Helper Catalog" \
+              --notes-file docs/CATALOG_RELEASE.md
+          else
+            gh release create "$TAG" \
+              --prerelease \
+              --title "GW2 Helper Catalog" \
+              --notes-file docs/CATALOG_RELEASE.md \
+              dist/gw2-helper-catalog.ver dist/gw2-helper-catalog.igh
+          fi
+          echo "Assets on $TAG:"
+          gh release view "$TAG" --json assets --jq '.assets[].name'

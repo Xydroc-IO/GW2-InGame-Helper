@@ -24,9 +24,10 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		"<h1>Browse</h1>"
 		"<p class=\"tag\">Pick a category or a favorite — it opens in this tab. "
 		"Use <strong>+</strong> or <strong>Ctrl+T</strong> when you want a new tab. "
-		"Star sites to pin them, create folders with <strong>+ Folder</strong>, "
-		"tap <strong>⇄</strong> to move a favorite, or <strong>Delete</strong> on a folder "
-		"header to remove a mistaken folder (sites return to Unfiled).</p>"
+		"Star sites to pin them, create folders with <strong>+ Folder</strong> "
+		"(click a folder name to collapse it), tap <strong>⇄</strong> to move a favorite, "
+		"or <strong>Delete</strong> on a folder header to remove a mistaken folder "
+		"(sites return to Unfiled).</p>"
 		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter favorites &amp; categories…\" "
 		"autocomplete=\"off\"/>"
 		"</div></header>";
@@ -55,20 +56,22 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 			if (count <= 0 && folderId == 0)
 				return;
 			const char* fname = Sites::FavoriteFolderName(folderId);
-			html += "<div class=\"fav-fold-head\"><h3>";
+			html += "<details class=\"fav-fold\" data-fold=\"";
+			html += std::to_string(folderId);
+			html += "\" open><summary class=\"fav-fold-head\"><span class=\"fold-title\">";
 			html += Esc(fname ? fname : "Folder");
 			html += " (";
 			html += std::to_string(count);
-			html += ")</h3>";
+			html += ")</span>";
 			if (folderId != 0)
 			{
 				html += "<a class=\"fold-del\" href=\"?gw2igh-fav-folder-delete=";
 				html += std::to_string(folderId);
 				html += "\" title=\"Delete folder — favorites in it return to Unfiled\" "
-					"onclick=\"return confirm('Delete this folder? Favorites inside move to Unfiled.');\">"
-					"Delete</a>";
+					"onclick=\"event.stopPropagation();return confirm('Delete this folder? "
+					"Favorites inside move to Unfiled.');\">Delete</a>";
 			}
-			html += "</div><div class=\"grid\">";
+			html += "</summary><div class=\"grid fold-body\">";
 			for (int i = 0; i < count; ++i)
 			{
 				const int idx = Sites::FavoriteSiteIndexInFolder(folderId, i);
@@ -91,7 +94,7 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 			if (count <= 0)
 				html += "<p class=\"empty\">Empty — open <strong>⇄</strong> on a starred site "
 					"and pick this folder.</p>";
-			html += "</div>";
+			html += "</div></details>";
 		};
 		AppendFolder(0);
 		for (int fi = 0; fi < folderN; ++fi)
@@ -153,6 +156,10 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 		"<a href=\"?gw2igh-newtab=https%3A%2F%2Fdiscord.com%2Fchannels%2F"
 		"410828272679518241%2F1531031243196727407\">"
 		"GW2-InGame-Helper</a></p>"
+		"<p class=\"credit-donate\">If you would like to donate or support GW2-InGame-Helper, "
+		"you can do so here — "
+		"<a href=\"?gw2igh-newtab=https%3A%2F%2Fko-fi.com%2Fxydroc\">"
+		"ko-fi.com/xydroc</a></p>"
 		"</div><script>";
 	html += HubJs();
 	html += "</script>";

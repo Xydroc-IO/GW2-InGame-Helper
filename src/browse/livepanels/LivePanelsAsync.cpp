@@ -260,6 +260,16 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		return PathToFileUrl(path);
 	}
 
+	/* Stale-while-revalidate: paint last good Live HTML instantly, refresh behind it. */
+	if (kind != LiveAsyncJob::BrowseHub && kind != LiveAsyncJob::CheatSheetsHub &&
+		kind != LiveAsyncJob::BrowseCategory && kind != LiveAsyncJob::Tp &&
+		VerMatches(verPath) && PanelReady(addonDir, stem) &&
+		GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES)
+	{
+		StartLiveWorker(addonDir, stem, kind, itemId);
+		return PathToFileUrl(path);
+	}
+
 	const std::string shell = kind == LiveAsyncJob::LegendaryDetail
 		? LivePanelsBuild::BuildLegendaryDetailShellHtml(itemId)
 		: OfflineShellHtml(offlineTitle, offlineHeading,

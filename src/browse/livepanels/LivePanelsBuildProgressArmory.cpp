@@ -1,5 +1,6 @@
 #include "LivePanelsBuildProgressInternal.h"
 
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 
 #include <cstdio>
@@ -24,18 +25,34 @@ std::string IdsQuery(const std::vector<int>& ids, size_t from, size_t count)
 
 void FetchItemNames(const std::vector<int>& ids, std::vector<PriceRow>& rows, int timeoutMs)
 {
-	if (ids.empty())
+	std::vector<int> need;
+	need.reserve(ids.size());
+	for (int id : ids)
+	{
+		std::string cat;
+		if (Gw2Catalog::ItemName(id, &cat))
+		{
+			for (PriceRow& row : rows)
+			{
+				if (row.id == id && row.name.empty())
+					row.name = cat;
+			}
+		}
+		else
+			need.push_back(id);
+	}
+	if (need.empty())
 		return;
-	const size_t batches = (ids.size() + 199) / 200;
+	const size_t batches = (need.size() + 199) / 200;
 	std::vector<std::string> paths(batches);
 	std::vector<Gw2Http::Result> results(batches);
 	std::vector<ParallelApiJob> jobs(batches);
 	for (size_t bi = 0; bi < batches; ++bi)
 	{
 		const size_t off = bi * 200;
-		const size_t n = (ids.size() - off > 200) ? 200 : (ids.size() - off);
+		const size_t n = (need.size() - off > 200) ? 200 : (need.size() - off);
 		paths[bi] = "/v2/items?ids=";
-		paths[bi] += IdsQuery(ids, off, n);
+		paths[bi] += IdsQuery(need, off, n);
 		jobs[bi].path = paths[bi].c_str();
 		jobs[bi].bearer = nullptr;
 		jobs[bi].timeoutMs = timeoutMs;
@@ -223,6 +240,23 @@ void ParseArmoryCatalog(const std::string& body,
 
 std::string EnsureArmoryCatalogJson(const std::wstring& addonDir)
 {
+	std::vector<Gw2Catalog::ArmoryRow> packed;
+	if (Gw2Catalog::ArmoryAll(&packed) && !packed.empty())
+	{
+		std::string json = "[";
+		for (size_t i = 0; i < packed.size(); ++i)
+		{
+			if (i)
+				json += ',';
+			json += "{\"id\":";
+			json += std::to_string(packed[i].id);
+			json += ",\"max_count\":";
+			json += std::to_string(packed[i].maxCount > 0 ? packed[i].maxCount : 1);
+			json += '}';
+		}
+		json += ']';
+		return json;
+	}
 	const std::wstring path = StemPath(addonDir, "live-armory", L".json");
 	if (FileFresh(path, kArmoryTtlSec))
 	{

@@ -118,9 +118,19 @@ a.jump:hover{color:var(--gold-bright);border-color:var(--gold);background-image:
   border-left:2px solid var(--gold-dim);padding-left:.55rem;
   font-family:var(--font-ui);
 }
-.fav-fold-head{display:flex;align-items:baseline;gap:.65rem;flex-wrap:wrap;margin:1.1rem 0 .45rem}
-.fav-fold-head h3{
-  margin:0;flex:1;min-width:8rem;font-size:.86rem;letter-spacing:.04em;
+.fav-fold-head{display:flex;align-items:baseline;gap:.65rem;flex-wrap:wrap;margin:0}
+details.fav-fold{margin:1.1rem 0 0;border:none}
+details.fav-fold>summary.fav-fold-head{
+  cursor:pointer;list-style:none;margin:0 0 .45rem;
+}
+details.fav-fold>summary.fav-fold-head::-webkit-details-marker{display:none}
+details.fav-fold>summary.fav-fold-head::before{
+  content:"▾";flex:0 0 auto;width:1rem;color:var(--gold-dim);font-size:.85rem;
+  transition:transform .15s ease;
+}
+details.fav-fold:not([open])>summary.fav-fold-head::before{transform:rotate(-90deg)}
+.fold-title{
+  flex:1;min-width:8rem;font-size:.86rem;letter-spacing:.04em;
   color:var(--muted);font-weight:600;
 }
 a.fold-del{
@@ -245,12 +255,17 @@ a.tile.tile-cat .blurb{
   letter-spacing:.06em;text-align:center;text-transform:uppercase;
 }
 .credit-issue{
-  margin:.4rem 0 0;padding:0 0 3.5rem;
+  margin:.4rem 0 0;padding:0;
   font-size:.78rem;color:var(--muted);
   letter-spacing:.02em;text-align:center;line-height:1.45;
 }
-.credit-issue a{color:var(--gold-dim);text-decoration:underline;word-break:break-all}
-.credit-issue a:hover{color:var(--gold)}
+.credit-donate{
+  margin:.35rem 0 0;padding:0 0 3.5rem;
+  font-size:.78rem;color:var(--muted);
+  letter-spacing:.02em;text-align:center;line-height:1.45;
+}
+.credit-issue a,.credit-donate a{color:var(--gold-dim);text-decoration:underline;word-break:break-all}
+.credit-issue a:hover,.credit-donate a:hover{color:var(--gold)}
 .empty{margin:2rem 0;color:var(--muted)}
 .hidden{display:none!important}
 )CSS";
@@ -280,6 +295,17 @@ const char* HubJs()
             if(!el.classList.contains("hidden"))anySub=true;
           });
           sub.classList.toggle("hidden",!anySub);
+        });
+        document.querySelectorAll("details.fav-fold").forEach(function(fold){
+          var anySub=false;
+          fold.querySelectorAll("[data-q]").forEach(function(el){
+            if(!el.classList.contains("hidden"))anySub=true;
+          });
+          var titleEl=fold.querySelector(".fold-title");
+          var title=(titleEl&&titleEl.textContent)?titleEl.textContent.toLowerCase():"";
+          var show=anySub||!needle||title.indexOf(needle)>=0;
+          fold.classList.toggle("hidden",!show);
+          if(anySub&&needle)fold.setAttribute("open","");
         });
         /* Favorites keeps the + Folder header visible while filtering tiles. */
         if(sec.getAttribute("data-keep")!=="1")
@@ -345,6 +371,18 @@ const char* HubJs()
   });
   modal.addEventListener("click",function(e){
     if(e.target===modal)closeModal();
+  });
+
+  document.querySelectorAll("details.fav-fold").forEach(function(fold){
+    var id=fold.getAttribute("data-fold");
+    if(!id)return;
+    var key="gw2igh-fav-fold-"+id;
+    try{
+      if(localStorage.getItem(key)==="0")fold.removeAttribute("open");
+      fold.addEventListener("toggle",function(){
+        localStorage.setItem(key,fold.open?"1":"0");
+      });
+    }catch(e){}
   });
 })();
 )JS";

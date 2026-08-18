@@ -4,6 +4,7 @@
 
 #include "CommerceShared.h"
 #include "Globals.h"
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 
 #include "AddonPaths.h"
@@ -191,6 +192,9 @@ namespace CraftingDetail
 	}
 	std::string ItemName(int id)
 	{
+		std::string cat;
+		if (Gw2Catalog::ItemName(id, &cat))
+			return cat;
 		char path[64];
 		std::snprintf(path, sizeof(path), "/v2/items/%d", id);
 		auto r = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
@@ -207,8 +211,15 @@ namespace CraftingDetail
 			if (id <= 0)
 				continue;
 			auto it = names.find(id);
-			if (it == names.end() || it->second.empty())
-				need.push_back(id);
+			if (it != names.end() && !it->second.empty())
+				continue;
+			std::string cat;
+			if (Gw2Catalog::ItemName(id, &cat))
+			{
+				names[id] = std::move(cat);
+				continue;
+			}
+			need.push_back(id);
 		}
 		auto pull = [&](const std::vector<int>& batch) {
 			if (batch.empty())

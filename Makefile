@@ -77,14 +77,22 @@ DLL_SRC = \
 	src/app/PanelBinds.cpp \
 	src/app/PanelBindsUi.cpp \
 	src/app/Gw2Icons.cpp \
+	src/app/Gw2IconsFetch.cpp \
 	src/app/Gw2Ui.cpp \
 	src/app/Gw2UiPadChrome.cpp \
 	src/app/Gw2UiPadTitle.cpp \
 	src/app/Gw2UiPadScroll.cpp \
 	src/app/UiChrome.cpp \
 	src/api/Gw2Http.cpp \
+	src/api/Gw2HttpFile.cpp \
+	src/api/IghPack.cpp \
+	src/api/Gw2Catalog.cpp \
+	src/api/Gw2CatalogIgh.cpp \
+	src/api/Gw2CatalogParse.cpp \
+	src/api/Gw2CatalogRecipes.cpp \
 	src/api/ApiBudget.cpp \
 	src/api/BgFetch.cpp \
+	src/api/ApiWarm.cpp \
 	src/app/GameLive.cpp \
 	src/pathing/mapassist/MapAssist.cpp \
 	src/browse/sites/Sites.cpp \
@@ -174,6 +182,7 @@ DLL_SRC = \
 	src/account/crafting/CraftingPad.cpp \
 	src/account/crafting/CraftingApi.cpp \
 	src/account/crafting/CraftingApiRecipe.cpp \
+	src/account/crafting/CraftingApiRecipeTry.cpp \
 	src/account/crafting/CraftingWikiIds.cpp \
 	src/account/crafting/CraftingWikiFetch.cpp \
 	src/account/crafting/CraftingWikiAcquire.cpp \

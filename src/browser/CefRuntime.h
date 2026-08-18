@@ -13,11 +13,11 @@ namespace CefRuntime
 	inline constexpr const char* kChromium = "150.0.7871.129";
 	inline constexpr const char* kZipFileName = "cef-runtime-150-windows64.zip";
 
-	/* Temporary host while testing first-run download (tag 1.0.0.0).
-	   Move back to cef-runtime-150/ when that dedicated release is published. */
+	/* Same pre-release as the public catalog pack (tag gw2-helper-catalog).
+	   Do not attach this zip to shipping DLL tags. */
 	inline constexpr const char* kDownloadUrl =
 		"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/"
-		"1.0.0.0/cef-runtime-150-windows64.zip";
+		"gw2-helper-catalog/cef-runtime-150-windows64.zip";
 
 	inline constexpr const char* kSha256Hex =
 		"d08859aa99266566f5ba51be4cacc7ec57265bcc4b84436151410553c7d82943";

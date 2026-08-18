@@ -2,6 +2,7 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 #include "Gw2Icons.h"
 #include "JsonView.h"
@@ -199,6 +200,23 @@ namespace UnlocksDetail
 		WriteUtf8File(CachePathW(k), out);
 	}
 
+	char CatalogKind(UnlocksData::Kind k)
+	{
+		switch (k)
+		{
+		case UnlocksData::Kind::Skins: return 's';
+		case UnlocksData::Kind::Dyes: return 'd';
+		case UnlocksData::Kind::Minis: return 'n';
+		case UnlocksData::Kind::Finishers: return 'f';
+		case UnlocksData::Kind::Outfits: return 'o';
+		case UnlocksData::Kind::Gliders: return 'g';
+		case UnlocksData::Kind::MailCarriers: return 'u';
+		case UnlocksData::Kind::Novelties: return 'v';
+		case UnlocksData::Kind::Titles: return 't';
+		default: return 0;
+		}
+	}
+
 	void ResolveNames(UnlocksData::Kind k, const std::unordered_set<int>& ids,
 		std::unordered_map<int, std::string>& names, const char* key)
 	{
@@ -206,7 +224,13 @@ namespace UnlocksDetail
 		missing.reserve(ids.size());
 		for (int id : ids)
 		{
-			if (names.find(id) == names.end())
+			if (names.find(id) != names.end())
+				continue;
+			std::string cat;
+			const char ck = CatalogKind(k);
+			if (ck && Gw2Catalog::Name(ck, id, &cat))
+				names[id] = std::move(cat);
+			else
 				missing.push_back(id);
 		}
 		std::sort(missing.begin(), missing.end());

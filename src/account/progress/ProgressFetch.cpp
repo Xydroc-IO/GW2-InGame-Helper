@@ -2,6 +2,7 @@
 
 #include "AddonPaths.h"
 #include "Globals.h"
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 #include "Settings.h"
 
@@ -111,20 +112,37 @@ namespace ProgressDetail
 		const std::wstring namesPath = cache + L"\\live-armory-names.json";
 
 		std::string catalog;
-		if (FileFresh(catPath, kArmoryTtlMs))
-			catalog = ReadUtf8File(catPath);
-		if (catalog.empty() || catalog.find('{') == std::string::npos)
+		std::vector<Gw2Catalog::ArmoryRow> packed;
+		if (Gw2Catalog::ArmoryAll(&packed) && !packed.empty())
 		{
-			auto r = Gw2Http::Api("/v2/legendaryarmory?ids=all", nullptr, kBulkTimeoutMs);
-			if (r.ok && r.body.find("\"id\"") != std::string::npos)
+			snap.legs.clear();
+			snap.legs.reserve(packed.size());
+			for (auto& p : packed)
 			{
-				catalog = r.body;
-				WriteUtf8File(catPath, catalog);
+				LegRow r;
+				r.id = p.id;
+				r.maxCount = p.maxCount > 0 ? p.maxCount : 1;
+				r.name = std::move(p.name);
+				snap.legs.push_back(std::move(r));
 			}
-			else
-				catalog = ReadUtf8File(catPath);
 		}
-		ParseArmoryCatalog(catalog, snap.legs);
+		if (snap.legs.empty())
+		{
+			if (FileFresh(catPath, kArmoryTtlMs))
+				catalog = ReadUtf8File(catPath);
+			if (catalog.empty() || catalog.find('{') == std::string::npos)
+			{
+				auto r = Gw2Http::Api("/v2/legendaryarmory?ids=all", nullptr, kBulkTimeoutMs);
+				if (r.ok && r.body.find("\"id\"") != std::string::npos)
+				{
+					catalog = r.body;
+					WriteUtf8File(catPath, catalog);
+				}
+				else
+					catalog = ReadUtf8File(catPath);
+			}
+			ParseArmoryCatalog(catalog, snap.legs);
+		}
 		if (snap.legs.empty())
 			snap.status = "Could not load legendary armory catalog.";
 

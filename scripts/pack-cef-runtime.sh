@@ -71,7 +71,9 @@ echo
 echo "Wrote ${OUT_DIR}/${ZIP_NAME} (${SIZE} bytes)"
 echo "SHA256 ${HASH}"
 echo
-echo "Upload to a GitHub Release, then set in src/CefRuntime.h:"
-echo "  kDownloadUrl = \"https://github.com/<org>/<repo>/releases/download/<tag>/${ZIP_NAME}\""
+echo "Upload to pre-release tag gw2-helper-catalog (GW2 Helper Catalog; same as the .igh pack), then set in"
+echo "src/browser/CefRuntime.h:"
+echo "  gh release upload gw2-helper-catalog ${OUT_DIR}/${ZIP_NAME} --clobber"
+echo "  kDownloadUrl = \"https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/download/gw2-helper-catalog/${ZIP_NAME}\""
 echo "  kSha256Hex   = \"${HASH}\""
 echo "  kStamp       = \"150.0.14\"  (already set)"

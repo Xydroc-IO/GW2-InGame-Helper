@@ -109,6 +109,17 @@ cef-runtime*.zip
 GW2EICLI.zip
 GW2EICLI*.zip
 
+# GW2 Helper Catalog / icon packs — GitHub Releases tag gw2-helper-catalog only
+*.igh
+gw2-helper-catalog.ver
+gw2-helper-icons.ver
+gw2-catalog.ver
+gw2-names-en.tsv
+gw2-names-en.tsv.gz
+gw2-recipes.tsv
+gw2-recipes.tsv.gz
+icon-cache/
+
 # Pathing packs (large binaries; ship separately / make install)
 pathing/*.taco
 pathing/*.zip

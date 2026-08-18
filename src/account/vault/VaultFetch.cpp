@@ -136,6 +136,14 @@ namespace VaultDetail
 	DWORD WINAPI MasterProc(void*)
 	{
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+		struct UnpinIfClosed
+		{
+			~UnpinIfClosed()
+			{
+				if (!G::ShowVault)
+					BgFetch::SetWanted(BgFetch::Channel::Vault, false);
+			}
+		} unpin;
 		while (!BgFetch::AllowWork(BgFetch::Channel::Vault))
 		{
 			if (!BgFetch::Wanted(BgFetch::Channel::Vault))

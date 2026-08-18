@@ -22,4 +22,7 @@ namespace Gw2Http
 	/* Convenience: GET https://api.guildwars2.com/v2/... */
 	Result Api(const char* pathAndQuery, const char* bearerToken = nullptr,
 		int timeoutMs = 4000);
+
+	/* Stream a URL to disk (icon packs, large binaries). Not for JSON. */
+	bool DownloadToFile(const char* url, const wchar_t* outPath, int timeoutMs = 120000);
 }

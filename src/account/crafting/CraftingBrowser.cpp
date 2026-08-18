@@ -2,6 +2,7 @@
 
 #include "CraftingShared.h"
 
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
@@ -42,7 +43,7 @@ namespace CraftingDetail
 		PadNav::SectionTitle("Recipe browser");
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
-			"Search by output item id (public /v2/recipes/search).");
+			"Search by output item id (catalog, then /v2/recipes/search).");
 		PadNav::PopWrap();
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
 		ImGui::InputTextWithHint("###gw2igh_rb_q", "Output item id…", gBrowseQ, sizeof(gBrowseQ));
@@ -59,17 +60,11 @@ namespace CraftingDetail
 			{
 				std::snprintf(gBrowseStatus, sizeof(gBrowseStatus), "Searching…");
 				std::thread([outId]() {
-					char path[96];
-					std::snprintf(path, sizeof(path), "/v2/recipes/search?output=%d", outId);
-					auto r = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
 					std::vector<std::pair<int, std::string>> hits;
 					char status[96] = {};
-					if (!r.ok)
-						std::snprintf(status, sizeof(status), "Search failed.");
-					else
+					std::vector<int> ids;
+					if (Gw2Catalog::RecipesForOutput(outId, &ids))
 					{
-						std::vector<int> ids;
-						ParseIntArray(r.body, ids);
 						for (int rid : ids)
 						{
 							if (rid <= 0) continue;
@@ -79,6 +74,27 @@ namespace CraftingDetail
 						}
 						std::snprintf(status, sizeof(status), "%d recipe(s).",
 							static_cast<int>(hits.size()));
+					}
+					else
+					{
+						char path[96];
+						std::snprintf(path, sizeof(path), "/v2/recipes/search?output=%d", outId);
+						auto r = Gw2Http::Api(path, nullptr, kHttpTimeoutMs);
+						if (!r.ok)
+							std::snprintf(status, sizeof(status), "Search failed.");
+						else
+						{
+							ParseIntArray(r.body, ids);
+							for (int rid : ids)
+							{
+								if (rid <= 0) continue;
+								char label[96];
+								std::snprintf(label, sizeof(label), "Recipe #%d → item %d", rid, outId);
+								hits.emplace_back(rid, label);
+							}
+							std::snprintf(status, sizeof(status), "%d recipe(s).",
+								static_cast<int>(hits.size()));
+						}
 					}
 					{
 						std::lock_guard<std::mutex> lock(gBrowseMu);
