@@ -113,56 +113,69 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 		if (!dl)
 			return;
 
-		const ImRect bb = ImGui::GetWindowScrollbarRect(window, axis);
-		if (bb.GetWidth() < 2.f || bb.GetHeight() < 2.f)
+		const ImRect bbFrame = ImGui::GetWindowScrollbarRect(window, axis);
+		if (bbFrame.GetWidth() < 2.f || bbFrame.GetHeight() < 2.f)
 			return;
 
-		dl->PushClipRect(bb.Min, bb.Max, /*intersect_with_current=*/false);
-		dl->AddRectFilled(bb.Min, bb.Max, cover);
-
-		const float size = (axis == ImGuiAxis_Y) ? bb.GetWidth() : bb.GetHeight();
-		const float trackLen = (axis == ImGuiAxis_Y) ? bb.GetHeight() : bb.GetWidth();
-		const float arrowH = size;
+		/* Match imgui_widgets.cpp ScrollbarEx grab so DAT thumb tracks the real hit box.
+		   Inventing arrow gutters used to offset the thumb from the drag target. */
+		ImRect bb = bbFrame;
+		bb.Expand(ImVec2(
+			-ImClamp(IM_FLOOR((bbFrame.GetWidth() - 2.f) * 0.5f), 0.f, 3.f),
+			-ImClamp(IM_FLOOR((bbFrame.GetHeight() - 2.f) * 0.5f), 0.f, 3.f)));
+		const float sizeAvail = window->InnerRect.Max[axis] - window->InnerRect.Min[axis];
+		const float sizeContents = window->ContentSize[axis] + window->WindowPadding[axis] * 2.f;
+		const float winSizeV = ImMax(ImMax(sizeContents, sizeAvail), 1.f);
+		const float trackV = (axis == ImGuiAxis_X) ? bb.GetWidth() : bb.GetHeight();
+		const float grabPx = ImClamp(trackV * (sizeAvail / winSizeV),
+			ImGui::GetStyle().GrabMinSize, trackV);
+		const float scrollMax = ImMax(1.f, sizeContents - sizeAvail);
 		const float scroll = (axis == ImGuiAxis_Y) ? window->Scroll.y : window->Scroll.x;
-		const float scrollMax = (axis == ImGuiAxis_Y) ? window->ScrollMax.y : window->ScrollMax.x;
-		const float winSize = (axis == ImGuiAxis_Y) ? window->InnerRect.GetHeight() : window->InnerRect.GetWidth();
-		const float content = winSize + scrollMax;
-		float grabLen = (content > 1.f) ? (winSize / content) * (trackLen - arrowH * 2.f) : trackLen;
-		if (grabLen < size * 1.25f)
-			grabLen = size * 1.25f;
-		if (grabLen > trackLen - arrowH * 2.f)
-			grabLen = (std::max)(size, trackLen - arrowH * 2.f);
-		const float travel = (std::max)(0.f, trackLen - arrowH * 2.f - grabLen);
-		const float t = (scrollMax > 0.f) ? (scroll / scrollMax) : 0.f;
-		const float grabOff = arrowH + travel * t;
+		const float scrollRatio = ImSaturate(scroll / scrollMax);
+		const float grabOffNorm = scrollRatio * (trackV - grabPx) / trackV;
+
+		dl->PushClipRect(bbFrame.Min, bbFrame.Max, /*intersect_with_current=*/false);
+		dl->AddRectFilled(bbFrame.Min, bbFrame.Max, cover);
+
+		ImVec2 g0, g1;
+		if (axis == ImGuiAxis_Y)
+		{
+			g0 = ImVec2(bb.Min.x, bb.Min.y + grabOffNorm * trackV);
+			g1 = ImVec2(bb.Max.x, g0.y + grabPx);
+		}
+		else
+		{
+			g0 = ImVec2(bb.Min.x + grabOffNorm * trackV, bb.Min.y);
+			g1 = ImVec2(g0.x + grabPx, bb.Max.y);
+		}
+
+		const float size = (axis == ImGuiAxis_Y) ? bbFrame.GetWidth() : bbFrame.GetHeight();
+		const float grabLen = (axis == ImGuiAxis_Y) ? (g1.y - g0.y) : (g1.x - g0.x);
+		const float trackLen = (axis == ImGuiAxis_Y) ? bbFrame.GetHeight() : bbFrame.GetWidth();
 
 		if (axis == ImGuiAxis_Y)
 		{
-			const ImVec2 top0(bb.Min.x, bb.Min.y);
-			const ImVec2 top1(bb.Max.x, bb.Min.y + arrowH);
-			const ImVec2 bot0(bb.Min.x, bb.Max.y - arrowH);
-			const ImVec2 bot1(bb.Max.x, bb.Max.y);
+			/* Chevrons only when the grab leaves room — they are decoration, not hit targets. */
+			if (grabLen < trackLen - size * 2.2f)
+			{
+				const ImVec2 top0(bbFrame.Min.x, bbFrame.Min.y);
+				const ImVec2 top1(bbFrame.Max.x, bbFrame.Min.y + size);
+				const ImVec2 bot0(bbFrame.Min.x, bbFrame.Max.y - size);
+				const ImVec2 bot1(bbFrame.Max.x, bbFrame.Max.y);
+				if (arrowUp && arrowUp->Resource)
+					BlitCentered(dl, arrowUp, top0, top1, false, tint);
+				else if (arrowDown && arrowDown->Resource)
+					BlitCentered(dl, arrowDown, top0, top1, true, tint);
+				else
+					DrawChevron(dl, ImVec2((top0.x + top1.x) * 0.5f, (top0.y + top1.y) * 0.5f),
+						size * 0.42f, true, chevronCol, 1.6f);
+				if (arrowDown && arrowDown->Resource)
+					BlitCentered(dl, arrowDown, bot0, bot1, false, tint);
+				else
+					DrawChevron(dl, ImVec2((bot0.x + bot1.x) * 0.5f, (bot0.y + bot1.y) * 0.5f),
+						size * 0.42f, false, chevronCol, 1.6f);
+			}
 
-			if (arrowUp && arrowUp->Resource)
-				BlitCentered(dl, arrowUp, top0, top1, false, tint);
-			else if (arrowDown && arrowDown->Resource)
-				BlitCentered(dl, arrowDown, top0, top1, true, tint);
-			else
-				DrawChevron(dl, ImVec2((top0.x + top1.x) * 0.5f, (top0.y + top1.y) * 0.5f),
-					size * 0.42f, true, chevronCol, 1.6f);
-
-			if (arrowDown && arrowDown->Resource)
-				BlitCentered(dl, arrowDown, bot0, bot1, false, tint);
-			else
-				DrawChevron(dl, ImVec2((bot0.x + bot1.x) * 0.5f, (bot0.y + bot1.y) * 0.5f),
-					size * 0.42f, false, chevronCol, 1.6f);
-
-			/* Thumb: 154969 top + 154970 mid + 154971 grip + 154973 bottom.
-			   Textures already include dark side gutters — blit full gutter width. */
-			const float gy0 = bb.Min.y + grabOff;
-			const float gy1 = gy0 + grabLen;
-			const ImVec2 g0(bb.Min.x, gy0);
-			const ImVec2 g1(bb.Max.x, gy1);
 			const float endH = size * 0.55f;
 			Texture_t* body = (mid && mid->Resource) ? mid : thumb;
 			Texture_t* topCap = (top && top->Resource) ? top : cap;
@@ -179,7 +192,6 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 				const float mid0 = g0.y + endH * 0.85f;
 				const float mid1 = g1.y - endH * 0.85f;
 				Blit(dl, body, ImVec2(g0.x, mid0), ImVec2(g1.x, mid1), false, tint);
-				/* Grip hash marks (154971) over the mid when tall enough. */
 				if (thumb && thumb->Resource && (mid1 - mid0) > size * 1.2f)
 				{
 					const float gh = size * 1.1f;
@@ -210,11 +222,10 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 		else
 		{
 			Texture_t* body = (mid && mid->Resource) ? mid : thumb;
-			const float gx0 = bb.Min.x + grabOff;
 			if (body && body->Resource)
-				Blit(dl, body, ImVec2(gx0, bb.Min.y), ImVec2(gx0 + grabLen, bb.Max.y), false, tint);
+				Blit(dl, body, g0, g1, false, tint);
 			else
-				dl->AddRectFilled(ImVec2(gx0, bb.Min.y), ImVec2(gx0 + grabLen, bb.Max.y), grabCol);
+				dl->AddRectFilled(g0, g1, grabCol);
 		}
 
 		if (dl->_ClipRectStack.Size > 0)

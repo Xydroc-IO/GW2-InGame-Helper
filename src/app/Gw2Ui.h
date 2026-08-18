@@ -114,7 +114,10 @@ namespace Gw2Ui
 	/* Flags for pads that use PaintPadChrome + DrawPadTitleBar. */
 	inline ImGuiWindowFlags PadWindowFlags(ImGuiWindowFlags extra = 0)
 	{
-		return ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | extra;
+		/* Root pad must not scroll — DAT title/chrome live in the window; a 1px
+		   leftover scrollbar makes the whole plate hitch under the wheel. */
+		return ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
+			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | extra;
 	}
 
 	/* ImageButton; falls back to text label if texture not ready. */

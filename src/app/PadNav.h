@@ -17,6 +17,10 @@ namespace PadNav
 	/* Breathing room between content / slider labels and the scrollbar gutter. */
 	constexpr float kScrollGutterPad = 10.f;
 
+	/* Child is a frame only — wheel/scroll belong to an inner list or table. */
+	constexpr ImGuiWindowFlags kLockScroll =
+		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+
 	/* Visible right edge in screen space. Prefer ContentRegionMax over
 	   WindowContentRegionMax — the latter can overshoot the clip rect after a
 	   side-rail SameLine + BeginChild, so text never wraps and just clips. */
@@ -241,7 +245,7 @@ namespace PadNav
 			ImGui::PopStyleColor(4);
 			if (clicked)
 				current = i;
-			if (i + 1 < count)
+			if (i + 1 < count && ImGui::GetContentRegionAvail().x > 72.f)
 				ImGui::SameLine(0.f, 4.f);
 			ImGui::PopID();
 		}
