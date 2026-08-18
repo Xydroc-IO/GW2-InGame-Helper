@@ -2,6 +2,7 @@
 #include "CompletionInternal.h"
 
 #include "AddonPaths.h"
+#include "Gw2Catalog.h"
 #include "Gw2Http.h"
 #include "JsonView.h"
 
@@ -32,6 +33,7 @@ namespace CompletionDetail
 		std::atomic<bool> gCatTried{ false };
 		std::atomic<bool> gCatBusy{ false };
 		std::atomic<bool> gCatReady{ false };
+		std::atomic<bool> gUsedPack{ false };
 		std::atomic<bool> gDefBusy{ false };
 		std::atomic<bool> gDefReady{ false };
 		HANDLE gCatTh = nullptr;
@@ -134,75 +136,131 @@ namespace CompletionDetail
 			}
 		}
 
+		void FetchDefsByIds(const std::vector<int>& ids, std::unordered_map<int, AchDef>& out)
+		{
+			std::string path;
+			for (size_t i = 0; i < ids.size(); )
+			{
+				path = "/v2/achievements?ids=";
+				const size_t end = (std::min)(i + 180u, ids.size());
+				for (size_t j = i; j < end; ++j)
+				{
+					if (j > i)
+						path += ',';
+					char buf[16];
+					std::snprintf(buf, sizeof(buf), "%d", ids[j]);
+					path += buf;
+				}
+				auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpMs);
+				if (r.ok)
+					ParseAchDefs(r.body, out);
+				i = end;
+			}
+		}
+
+		void FetchGroupsCatsFromApi(std::vector<AchGroup>& groups,
+			std::unordered_map<int, AchCategory>& cats)
+		{
+			auto listG = Gw2Http::Api("/v2/achievements/groups", nullptr, kHttpMs);
+			std::vector<std::string> guids;
+			if (listG.ok)
+				CollectQuotedIds(listG.body, guids);
+			std::string gJoin;
+			std::string path;
+			for (size_t i = 0; i < guids.size(); )
+			{
+				path = "/v2/achievements/groups?ids=";
+				const size_t end = (std::min)(i + 12u, guids.size());
+				for (size_t j = i; j < end; ++j)
+				{
+					if (j > i)
+						path += ',';
+					path += guids[j];
+				}
+				auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpMs);
+				if (r.ok)
+				{
+					ParseAchGroups(r.body, groups);
+					gJoin += r.body;
+				}
+				i = end;
+			}
+			auto listC = Gw2Http::Api("/v2/achievements/categories", nullptr, kHttpMs);
+			std::vector<int> cids;
+			if (listC.ok)
+				CollectBareInts(listC.body, cids);
+			std::string cJoin;
+			path.clear();
+			for (size_t i = 0; i < cids.size(); )
+			{
+				path = "/v2/achievements/categories?ids=";
+				const size_t end = (std::min)(i + 180u, cids.size());
+				for (size_t j = i; j < end; ++j)
+				{
+					if (j > i)
+						path += ',';
+					char buf[16];
+					std::snprintf(buf, sizeof(buf), "%d", cids[j]);
+					path += buf;
+				}
+				auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpMs);
+				if (r.ok)
+				{
+					ParseAchCategories(r.body, cats);
+					cJoin += r.body;
+				}
+				i = end;
+			}
+			if (!gJoin.empty())
+				WriteUtf8(GroupsCachePath(), gJoin);
+			if (!cJoin.empty())
+				WriteUtf8(CatsCachePath(), cJoin);
+		}
+
 		DWORD WINAPI CatalogWorker(LPVOID)
 		{
 			std::vector<AchGroup> groups;
 			std::unordered_map<int, AchCategory> cats;
-			const std::wstring gp = GroupsCachePath();
-			const std::wstring cp = CatsCachePath();
-			std::string gBody, cBody;
-			if (FileFresh(gp, kCatalogTtlSec) && FileFresh(cp, kCatalogTtlSec) &&
-				ReadUtf8(gp, gBody) && ReadUtf8(cp, cBody))
+			std::unordered_map<int, AchDef> defs;
+			std::string packG, packC, packD;
+			if (Gw2Catalog::AchievementPack(&packG, &packC, &packD))
 			{
-				ParseAchGroups(gBody, groups);
-				ParseAchCategories(cBody, cats);
+				gUsedPack = true;
+				ParseAchGroupsTsv(packG, groups);
+				ParseAchCategoriesTsv(packC, cats);
+				ParseAchDefsTsv(packD, defs);
+				auto list = Gw2Http::Api("/v2/achievements", nullptr, kHttpMs);
+				std::vector<int> liveIds;
+				if (list.ok)
+					CollectBareInts(list.body, liveIds);
+				std::vector<int> missing;
+				for (int id : liveIds)
+				{
+					if (defs.find(id) == defs.end())
+						missing.push_back(id);
+				}
+				if (!missing.empty())
+				{
+					FetchDefsByIds(missing, defs);
+					groups.clear();
+					cats.clear();
+					FetchGroupsCatsFromApi(groups, cats);
+				}
 			}
 			else
 			{
-				auto listG = Gw2Http::Api("/v2/achievements/groups", nullptr, kHttpMs);
-				std::vector<std::string> guids;
-				if (listG.ok)
-					CollectQuotedIds(listG.body, guids);
-				std::string gJoin;
-				std::string path;
-				for (size_t i = 0; i < guids.size(); )
+				gUsedPack = false;
+				const std::wstring gp = GroupsCachePath();
+				const std::wstring cp = CatsCachePath();
+				std::string gBody, cBody;
+				if (FileFresh(gp, kCatalogTtlSec) && FileFresh(cp, kCatalogTtlSec) &&
+					ReadUtf8(gp, gBody) && ReadUtf8(cp, cBody))
 				{
-					path = "/v2/achievements/groups?ids=";
-					const size_t end = (std::min)(i + 12u, guids.size());
-					for (size_t j = i; j < end; ++j)
-					{
-						if (j > i)
-							path += ',';
-						path += guids[j];
-					}
-					auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpMs);
-					if (r.ok)
-					{
-						ParseAchGroups(r.body, groups);
-						gJoin += r.body;
-					}
-					i = end;
+					ParseAchGroups(gBody, groups);
+					ParseAchCategories(cBody, cats);
 				}
-				auto listC = Gw2Http::Api("/v2/achievements/categories", nullptr, kHttpMs);
-				std::vector<int> cids;
-				if (listC.ok)
-					CollectBareInts(listC.body, cids);
-				std::string cJoin;
-				path.clear();
-				for (size_t i = 0; i < cids.size(); )
-				{
-					path = "/v2/achievements/categories?ids=";
-					const size_t end = (std::min)(i + 180u, cids.size());
-					for (size_t j = i; j < end; ++j)
-					{
-						if (j > i)
-							path += ',';
-						char buf[16];
-						std::snprintf(buf, sizeof(buf), "%d", cids[j]);
-						path += buf;
-					}
-					auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpMs);
-					if (r.ok)
-					{
-						ParseAchCategories(r.body, cats);
-						cJoin += r.body;
-					}
-					i = end;
-				}
-				if (!gJoin.empty())
-					WriteUtf8(gp, gJoin);
-				if (!cJoin.empty())
-					WriteUtf8(cp, cJoin);
+				else
+					FetchGroupsCatsFromApi(groups, cats);
 			}
 			std::sort(groups.begin(), groups.end(),
 				[](const AchGroup& a, const AchGroup& b) { return a.order < b.order; });
@@ -210,6 +268,8 @@ namespace CompletionDetail
 				std::lock_guard<std::mutex> lock(gMu);
 				gPendGroups = std::move(groups);
 				gPendCats = std::move(cats);
+				if (!defs.empty())
+					gPendDefs = std::move(defs);
 				gCatReady = true;
 			}
 			gCatTried = true;
@@ -229,24 +289,7 @@ namespace CompletionDetail
 			std::unordered_map<int, AchDef> local;
 			if (job)
 			{
-				std::string path;
-				for (size_t i = 0; i < job->ids.size(); )
-				{
-					path = "/v2/achievements?ids=";
-					const size_t end = (std::min)(i + 180u, job->ids.size());
-					for (size_t j = i; j < end; ++j)
-					{
-						if (j > i)
-							path += ',';
-						char buf[16];
-						std::snprintf(buf, sizeof(buf), "%d", job->ids[j]);
-						path += buf;
-					}
-					auto r = Gw2Http::Api(path.c_str(), nullptr, kHttpMs);
-					if (r.ok)
-						ParseAchDefs(r.body, local);
-					i = end;
-				}
+				FetchDefsByIds(job->ids, local);
 				std::lock_guard<std::mutex> lock(gMu);
 				gPendDefs = std::move(local);
 				gDefReady = true;
@@ -259,10 +302,16 @@ namespace CompletionDetail
 
 	void BeginAchCatalogRefresh(bool force)
 	{
-		if (!force && (gCatBusy.load() || gCatTried.load()))
-			return;
 		if (force)
 			gCatTried = false;
+		if (!force && gCatTried.load())
+		{
+			/* Pack downloaded after an API fallback — reload once. */
+			if (gUsedPack.load() || !Gw2Catalog::AchievementPackReady())
+				return;
+		}
+		if (!force && gCatBusy.load())
+			return;
 		if (gCatBusy.exchange(true))
 			return;
 		if (gCatTh)
@@ -285,8 +334,11 @@ namespace CompletionDetail
 			return;
 		gGroups = std::move(gPendGroups);
 		gCats = std::move(gPendCats);
+		for (auto& kv : gPendDefs)
+			gDefs[kv.first] = std::move(kv.second);
+		gPendDefs.clear();
 		gCatReady = false;
-		if (gCatTh)
+		if (gCatTh && !gCatBusy.load())
 		{
 			WaitForSingleObject(gCatTh, 0);
 			CloseHandle(gCatTh);
@@ -332,6 +384,18 @@ namespace CompletionDetail
 	{
 		if (ids.empty())
 			return;
+		std::vector<int> missing;
+		missing.reserve(ids.size());
+		{
+			std::lock_guard<std::mutex> lock(gMu);
+			for (int id : ids)
+			{
+				if (gDefs.find(id) == gDefs.end())
+					missing.push_back(id);
+			}
+		}
+		if (missing.empty())
+			return;
 		if (gDefBusy.exchange(true))
 			return;
 		if (gDefTh)
@@ -341,7 +405,7 @@ namespace CompletionDetail
 			gDefTh = nullptr;
 		}
 		auto* job = new DefJob();
-		job->ids = ids;
+		job->ids = std::move(missing);
 		gDefTh = CreateThread(nullptr, 0, DefsWorker, job, 0, nullptr);
 		if (!gDefTh)
 		{

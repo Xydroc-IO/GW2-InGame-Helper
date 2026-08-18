@@ -46,7 +46,7 @@ namespace CompletionDetail
 		if (!G::Gw2ApiKey[0])
 			PadNav::Blurb("Add a GW2 API key with progression in Settings.");
 		else
-			PadNav::Blurb("Pick a category, then an achievement for what to do.");
+			PadNav::Blurb("Groups come from the catalog pack; the API only syncs your progress.");
 
 		if (PadNav::RefreshButton("###gw2igh_ap_api"))
 		{

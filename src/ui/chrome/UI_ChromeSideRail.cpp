@@ -389,7 +389,7 @@ namespace UIDetail
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
-				"Achievements - account AP groups (official API)\n"
+				"Achievements - catalog pack + account API sync\n"
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+Q (Settings -> Keybinds)");
 
