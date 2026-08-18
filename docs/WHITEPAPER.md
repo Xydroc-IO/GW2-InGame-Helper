@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.2.4.11 |
+| Revision described | 2.3.0.0 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.3.0.0 | 2.3.0.0 | IGH1 catalog+icons packs + CEF zip; API Check 5 probes; live 79; helper 2244 |
 | 2.2.4.11 | 2.2.4.11 | Rail/hub current tab; Ctrl/middle new tab; live 75; helper 2244 |
 | 2.2.4.10 | 2.2.4.10 | Cheat sheet pack open (Uber’s AIO) no longer stuck on loading shell; helper 2243 |
 | 2.2.4.9 | 2.2.4.9 | Completion pad removed; Browse hub; combo capture; live 74 |
@@ -263,8 +264,8 @@ Orphan Chromium trees after a hard game kill are a historical failure mode under
 
 - **Toolchain.** `x86_64-w64-mingw32-g++` (C++17), static `libgcc` / `libstdc++` for shipping PE.
 - **Helper.** Compiled against `deps/cef` 150 C API headers; embedded as a binary blob in the DLL.
-- **CEF archive.** `scripts/pack-cef-runtime.sh` flattens official minimal packages; SHA-256 in `CefRuntime.h`.
-- **Catalog.** `data/sites.json` embedded and extracted at runtime.
+- **CEF archive.** `scripts/pack-cef-runtime.sh` flattens official minimal packages; SHA-256 in `CefRuntime.h`; zip hosted on pre-release tag `gw2-helper-catalog` with the public catalog pack.
+- **Catalog.** `data/sites.json` embedded and extracted at runtime. Public item names / recipes / unique render icons download from tag `gw2-helper-catalog` as IGH1 packs (`Gw2Catalog.h`).
 - **Updates.** Nexus `UP_GitHub` for DLL; CEF stamped separately (`cef.ver` = `150.0.14`).
 
 Operational detail: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`BUILD.md`](BUILD.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
@@ -912,11 +913,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.2.4.11)
+## Appendix A — Quantitative constants (revision 2.3.0.0)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.2.4.11 |
+| Addon version | 2.3.0.0 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -933,7 +934,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
 | Helper / home / sites / cheatsheets stamps | 2244 / 2235 / s2215 / c2228 |
-| Live panel stamp | 75 |
+| Live panel stamp | 79 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
 | OSR `device_scale_factor` | 1.0 |
@@ -977,6 +978,7 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | `src/watch/*` | Watch control + Mirror (WGC picker / GDI fallback / portal+PipeWire OOP) |
 | `src/app/*` | Settings, paths, AddonVersion, theme, pad dock, PanelBinds, UiChrome, Gw2Ui/Gw2Icons, Mumble identity |
 | `src/api/Gw2Http*` | Blocking WinHTTP (workers only) |
+| `src/api/Gw2Catalog*` / `IghPack*` | Public names/recipes/icons from IGH1 packs (`gw2-helper-catalog`) |
 
 ## Appendix D — IPC command and input sketch
 
@@ -986,7 +988,7 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 
 ### E.1 Kernel (Browse / CEF)
 
-1. Fresh install: DLL only → first open downloads CEF → homepage paints.
+1. Fresh install: DLL only → first open downloads CEF + catalog/icon packs → homepage paints.
 2. Wiki navigate; back/forward; new tab; find-in-page.
 3. Collapse/expand; KeepHelperWarm on/off.
 4. Open Ext (YouTube card or Discord path).
@@ -1017,6 +1019,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.2.4.11 — Ctrl/middle-click new tab for pages/links; helper 2244; live 75; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.3.0.0 — IGH1 catalog+icons packs + CEF zip; API Check 5 probes; helper 2244; live 79; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

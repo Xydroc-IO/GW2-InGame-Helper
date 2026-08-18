@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.2.4.11
+# GW2 In-Game Helper v2.3.0.0
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -17,7 +17,9 @@ Copy **only** `GW2-InGame-Helper.dll` into `<Guild Wars 2>/addons/`.
 Requires [Raidcore Nexus](https://raidcore.gg/gw2/nexus) + Guild Wars 2 (Windows / Wine / Proton).
 
 On first helper open the DLL downloads the CEF runtime (~170MB) once unless you
-pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
+pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes). The same
+GitHub pre-release (`gw2-helper-catalog`) also serves the IGH1 name/recipe and
+icon packs.
 
 **Updates:** GitHub Releases · [Xydroc-IO/GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper) ·
 [latest DLL](https://github.com/Xydroc-IO/GW2-InGame-Helper/releases/latest/download/GW2-InGame-Helper.dll)
@@ -31,6 +33,21 @@ pre-seed `cef-runtime-150-windows64.zip` (see whitepaper / CEF notes).
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.3.0.0
+
+- **Catalog packs:** Stash names/icons and station recipes download from GitHub
+  pre-release **GW2 Helper Catalog** (tag `gw2-helper-catalog`). Packs are IGH1
+  (not zip): `gw2-helper-catalog.igh` (names + recipes) and
+  `gw2-helper-icons.igh` (~22k unique ArenaNet render PNGs). Missing ids still
+  fall back to the API / CDN. The CEF runtime zip lives on that same tag, not on
+  each DLL release.
+- **API speed:** API Check is five health probes (not ~45). Live pages show the
+  last good HTML instantly and refresh in the background. Account stash / vault
+  prefetch after helper open or API key save. Gw2Http accepts gzip.
+- **Browse hub:** Favorite folders collapse/expand (state remembered). Donate
+  line under Report any issues: Ko-fi (`ko-fi.com/xydroc`).
+- **Stamps:** Helper `2244` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `79` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.2.4.11
 

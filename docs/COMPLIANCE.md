@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.2.4.11** (helper stamp `2244`) — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.3.0.0** (helper stamp `2244`) — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 This file is **normative** (allowed / forbidden). Analysis belongs in the whitepaper.
 
@@ -15,6 +15,7 @@ This file is **normative** (allowed / forbidden). Analysis belongs in the whitep
 - Local IPC shared memory between the DLL and `GW2HelperBrowser.exe` (current-user DACL on named maps/events when ACL APIs succeed)
 - Official `api.guildwars2.com` reads from injected BootJs (credentials omitted; batched; 429 backoff) where pages use them
 - DLL WinHTTP reads to `api.guildwars2.com`, `guildwars2.com` news feed, and wiki MediaWiki API for **Live** Browse panels and ImGui pads (read-only; optional account API key stored only in local `settings.ini`)
+- Public item/currency **name + icon catalog**, **station recipes**, and **unique official render PNGs** from GitHub Releases tag `gw2-helper-catalog` (`gw2-helper-catalog.igh` / `gw2-helper-icons.igh`; IGH1; no API keys; cache under `addons/.../cache/`). ArenaNet retains ownership of those textures; they are **not** relicensed under MIT. The **CEF runtime zip** is on that same tag.
 - DLL WinHTTP reads to **killproof.me** (`/api/kp/…`) for the DPS Logs **KillProof** tab — public profiles only; no killproof.me login; results cached in-memory
 - Local Notes pad (`notes.json` under the addon folder) with clipboard copy helpers — no game injection
 - **Farming** companion pad — local run checklists / fishing log under `config/`; Pathing search-guide handoff only (no memory scraping); **Achievements** pad is read-only official API
