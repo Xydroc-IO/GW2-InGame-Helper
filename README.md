@@ -13,7 +13,7 @@ CEF Stable 150** runtime downloaded on first open into
 **Docs:** [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) ·
 [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) ·
 [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) · [`docs/DPS_LOGS.md`](docs/DPS_LOGS.md) ·
-[`docs/API_KEY.md`](docs/API_KEY.md)
+[`docs/API_KEY.md`](docs/API_KEY.md) · [`docs/BROWSER_LIMITS.md`](docs/BROWSER_LIMITS.md)
 
 **Install:** copy `GW2-InGame-Helper.dll` into `<GW2>/addons/`.
 On first helper open the addon downloads the CEF runtime (~170MB zip) once,
@@ -372,9 +372,13 @@ Wire new sheets in `CheatSheets.cpp`, add a `SiteDef` in `Sites.cpp`, and map th
 - Fully restart GW2 after updating (helper stamp must re-extract).
 - Note the muted diagnostic line under the wait text (CEF never painted vs GPU Map fail) and report it if it persists.
 
-**Sign-in fails (Google / Discord / GW2.app)**
+**Sign-in, video, or bot check fails in-game**
 
-- Use **Open Ext** in the toolbar. Embedded CEF often cannot complete OAuth; the system-browser session is separate from in-game tabs.
+- Use **Open Ext** in the toolbar. The overlay is a windowless Chromium helper (OSR)
+  with stock CEF — not a full Chrome install. Many logins, Cloudflare checks, and
+  video players will not work here; rebuilding Chromium would still not make them
+  reliable. The system-browser session is separate from in-game tabs.
+  Details: [`docs/BROWSER_LIMITS.md`](docs/BROWSER_LIMITS.md).
 
 **Typing / clicking feels wrong**
 

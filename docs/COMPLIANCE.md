@@ -3,7 +3,7 @@
 GW2 In-Game Helper is a **Raidcore Nexus** ImGui addon with an
 out-of-process CEF browser helper using a **private CEF Stable 150** runtime.
 
-Current policy snapshot: **v2.3.0.3** (helper stamp `2247`) — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
+Current policy snapshot: **v2.3.0.3** (helper stamp `2247`) — process/IPC notes: [`ARCHITECTURE.md`](ARCHITECTURE.md); design rationale: [`WHITEPAPER.md`](WHITEPAPER.md); nav/ads ops: [`NAV_AND_ADS.md`](NAV_AND_ADS.md); pathing: [`PATHING.md`](PATHING.md); in-game browser limits: [`BROWSER_LIMITS.md`](BROWSER_LIMITS.md); public overview [`../README.md`](../README.md) + [`CEF_RUNTIME.md`](CEF_RUNTIME.md).
 
 This file is **normative** (allowed / forbidden). Analysis belongs in the whitepaper.
 
@@ -73,6 +73,8 @@ a Watch card instead.
 Enabling them requires building Chromium from source with
 `proprietary_codecs=true ffmpeg_branding=Chrome` **and** securing codec licensing before
 redistribution — treat that as a product/legal decision, not a build flag.
+
+Player-facing explanation: [`BROWSER_LIMITS.md`](BROWSER_LIMITS.md).
 
 ## Windows Defender
 
