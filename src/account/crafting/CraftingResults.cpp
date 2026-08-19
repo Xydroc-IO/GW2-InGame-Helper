@@ -171,7 +171,7 @@ namespace CraftingDetail
 			if (allowCartGot)
 				ImGui::TableSetupColumn("##got", ImGuiTableColumnFlags_WidthFixed, 22.f);
 			ImGui::TableSetupColumn("Material", ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("Qty", ImGuiTableColumnFlags_WidthFixed, 34.f);
+			ImGui::TableSetupColumn("Qty", ImGuiTableColumnFlags_WidthFixed, 48.f);
 			ImGui::TableSetupColumn("Unit", ImGuiTableColumnFlags_WidthFixed, 74.f);
 			ImGui::TableSetupColumn("Total", ImGuiTableColumnFlags_WidthFixed, 78.f);
 			ImGui::TableHeadersRow();
@@ -200,7 +200,7 @@ namespace CraftingDetail
 					ImGui::TextColored(HelperTheme::GoldBright, "%s",
 						s.name.empty() ? "Item" : s.name.c_str());
 				ImGui::TableSetColumnIndex(col++);
-				ImGui::TextColored(HelperTheme::Muted, "x%d", s.qty);
+				ImGui::TextColored(got ? HelperTheme::Muted : HelperTheme::Ink, "x%d", s.qty);
 				ImGui::TableSetColumnIndex(col++);
 				if (got)
 					ImGui::TextColored(HelperTheme::Muted, "—");
