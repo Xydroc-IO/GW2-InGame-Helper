@@ -7,7 +7,6 @@
 #include "HelperTheme.h"
 #include "PadNav.h"
 #include "Settings.h"
-#include "WikiBrowser.h"
 
 #include "imgui/imgui.h"
 
@@ -120,24 +119,25 @@ namespace CraftingDetail
 			{ 71148, "Sheet of Premium Paper", "400" },
 		};
 
+		/* Canonical pages on https://gw2crafts.net/ (no www; huntsman/tailor not hunting/tailoring). */
 		constexpr DiscPath kPaths[] = {
-			{ "Cooking", "https://www.gw2crafts.net/cooking.html", kCooking,
+			{ "Cooking", "https://gw2crafts.net/cooking.html", kCooking,
 				(int)(sizeof(kCooking) / sizeof(kCooking[0])) },
-			{ "Armorsmith", "https://www.gw2crafts.net/armorcraft.html", kArmorsmith,
+			{ "Armorsmith", "https://gw2crafts.net/armorcraft.html", kArmorsmith,
 				(int)(sizeof(kArmorsmith) / sizeof(kArmorsmith[0])) },
-			{ "Weaponsmith", "https://www.gw2crafts.net/weaponcraft.html", kWeaponsmith,
+			{ "Weaponsmith", "https://gw2crafts.net/weaponcraft.html", kWeaponsmith,
 				(int)(sizeof(kWeaponsmith) / sizeof(kWeaponsmith[0])) },
-			{ "Huntsman", "https://www.gw2crafts.net/hunting.html", kHuntsman,
+			{ "Huntsman", "https://gw2crafts.net/huntsman.html", kHuntsman,
 				(int)(sizeof(kHuntsman) / sizeof(kHuntsman[0])) },
-			{ "Artificer", "https://www.gw2crafts.net/artificing.html", kArtificer,
+			{ "Artificer", "https://gw2crafts.net/artificing.html", kArtificer,
 				(int)(sizeof(kArtificer) / sizeof(kArtificer[0])) },
-			{ "Tailor", "https://www.gw2crafts.net/tailoring.html", kTailor,
+			{ "Tailor", "https://gw2crafts.net/tailor.html", kTailor,
 				(int)(sizeof(kTailor) / sizeof(kTailor[0])) },
-			{ "Leatherworker", "https://www.gw2crafts.net/leatherworking.html", kLeatherworker,
+			{ "Leatherworker", "https://gw2crafts.net/leatherworking.html", kLeatherworker,
 				(int)(sizeof(kLeatherworker) / sizeof(kLeatherworker[0])) },
-			{ "Jeweler", "https://www.gw2crafts.net/jewelcraft.html", kJeweler,
+			{ "Jeweler", "https://gw2crafts.net/jewelcraft.html", kJeweler,
 				(int)(sizeof(kJeweler) / sizeof(kJeweler[0])) },
-			{ "Scribe", "https://www.gw2crafts.net/scribe.html", kScribe,
+			{ "Scribe", "https://gw2crafts.net/scribe.html", kScribe,
 				(int)(sizeof(kScribe) / sizeof(kScribe[0])) },
 		};
 
@@ -146,11 +146,12 @@ namespace CraftingDetail
 		void OpenCraftsUrl(const char* url)
 		{
 			if (!url || !url[0])
-				url = "https://www.gw2crafts.net/";
+				url = "https://gw2crafts.net/";
 			G::ShowWiki = true;
 			Settings::SetDirty();
-			if (BrowserTabs::OpenNewUrl("browse", url) < 0)
-				WikiBrowser::Navigate(url);
+			/* Site id gw2crafts (catalog Tools) — not browse hub. */
+			if (BrowserTabs::OpenNewUrl("gw2crafts", url) < 0)
+				BrowserTabs::OpenUrlInActive("gw2crafts", url);
 		}
 
 		void DrawPathRows(const DiscPath& path)
