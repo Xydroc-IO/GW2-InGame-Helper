@@ -6,6 +6,7 @@
 #include "EconomyShared.h"
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PadLayout.h"
 #include "PadNav.h"
 #include "Settings.h"
 
@@ -60,6 +61,7 @@ namespace CraftingDetail
 
 	void DrawOptsBar()
 	{
+		ImGui::TextColored(HelperTheme::Muted, "Plan options");
 		bool dirty = false;
 		if (ImGui::Checkbox("Use owned materials###gw2igh_opt_own", &gOpts.useOwnMaterials))
 			dirty = true;
@@ -86,7 +88,6 @@ namespace CraftingDetail
 
 	static void DrawFinancialOne(const Plan& plan)
 	{
-		PadNav::SectionTitle("Financial breakdown");
 		const int want = (std::max)(1, plan.wantQty > 0 ? plan.wantQty : 1);
 		ImGui::TextColored(HelperTheme::Muted, "Want x%d (crafts yield %d ea)",
 			want, plan.outputCount);
@@ -143,50 +144,73 @@ namespace CraftingDetail
 		}
 		int checked = 0;
 		long long stillNeed = 0;
-		for (const ShopRow& s : rows)
+		const ImGuiTableFlags tflags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV
+			| ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY;
+		const int cols = allowCartGot ? 5 : 4;
+		const float tableH = ImGui::GetTextLineHeightWithSpacing()
+			* (std::min)(static_cast<int>(rows.size()) + 1, 14) + 8.f;
+		if (ImGui::BeginTable("###gw2igh_craft_shop", cols, tflags, ImVec2(0.f, tableH)))
 		{
-			const bool got = allowCartGot && CartIsGot(s.itemId, nullptr);
-			if (got) ++checked;
-			else if (s.priced && s.total >= 0)
-				stillNeed += s.total;
-
-			ImGui::PushID(s.itemId);
 			if (allowCartGot)
+				ImGui::TableSetupColumn("##got", ImGuiTableColumnFlags_WidthFixed, 22.f);
+			ImGui::TableSetupColumn("Material", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Qty", ImGuiTableColumnFlags_WidthFixed, 34.f);
+			ImGui::TableSetupColumn("Unit", ImGuiTableColumnFlags_WidthFixed, 74.f);
+			ImGui::TableSetupColumn("Total", ImGuiTableColumnFlags_WidthFixed, 78.f);
+			ImGui::TableHeadersRow();
+			for (const ShopRow& s : rows)
 			{
-				bool mark = got;
-				char label[256];
-				std::snprintf(label, sizeof(label), "%s  x%d",
-					s.name.empty() ? "Item" : s.name.c_str(), s.qty);
-				if (ImGui::Checkbox(label, &mark))
-					CartSetGot(s.itemId, mark, nullptr);
-			}
-			else
-				ImGui::Text("%s  x%d", s.name.empty() ? "Item" : s.name.c_str(), s.qty);
+				const bool got = allowCartGot && CartIsGot(s.itemId, nullptr);
+				if (got) ++checked;
+				else if (s.priced && s.total >= 0)
+					stillNeed += s.total;
 
-			if (got)
-			{
-				ImGui::SameLine();
-				ImGui::TextColored(HelperTheme::Muted, "got it");
+				ImGui::PushID(s.itemId);
+				ImGui::TableNextRow();
+				int col = 0;
+				if (allowCartGot)
+				{
+					ImGui::TableSetColumnIndex(col++);
+					bool mark = got;
+					if (ImGui::Checkbox("##got", &mark))
+						CartSetGot(s.itemId, mark, nullptr);
+				}
+				ImGui::TableSetColumnIndex(col++);
+				if (got)
+					ImGui::TextColored(HelperTheme::Muted, "%s",
+						s.name.empty() ? "Item" : s.name.c_str());
+				else
+					ImGui::TextColored(HelperTheme::GoldBright, "%s",
+						s.name.empty() ? "Item" : s.name.c_str());
+				ImGui::TableSetColumnIndex(col++);
+				ImGui::TextColored(HelperTheme::Muted, "x%d", s.qty);
+				ImGui::TableSetColumnIndex(col++);
+				if (got)
+					ImGui::TextColored(HelperTheme::Muted, "—");
+				else if (s.priced)
+					ImGui::TextColored(HelperTheme::Muted, "%s",
+						FormatCoins(s.unitSell).c_str());
+				else
+					ImGui::TextColored(HelperTheme::Warn, "no TP");
+				ImGui::TableSetColumnIndex(col++);
+				if (got)
+					ImGui::TextColored(HelperTheme::Ok, "got");
+				else if (s.priced)
+					ImGui::TextColored(HelperTheme::Ink, "%s",
+						FormatCoins(s.total).c_str());
+				else
+					ImGui::TextColored(HelperTheme::Warn, "—");
+				ImGui::PopID();
 			}
-			else if (s.priced)
-			{
-				ImGui::SameLine();
-				ImGui::TextColored(HelperTheme::Muted, "%s ea · %s",
-					FormatCoins(s.unitSell).c_str(), FormatCoins(s.total).c_str());
-			}
-			else
-			{
-				ImGui::SameLine();
-				ImGui::TextColored(HelperTheme::Warn, "no TP");
-			}
-			ImGui::PopID();
+			ImGui::EndTable();
 		}
-		ImGui::TextColored(HelperTheme::Muted, "%d / %d checked",
-			checked, static_cast<int>(rows.size()));
+		if (allowCartGot)
+			ImGui::TextColored(HelperTheme::Muted, "%d / %d checked",
+				checked, static_cast<int>(rows.size()));
 		if (stillNeed > 0)
 			ImGui::TextColored(HelperTheme::Ink, "Still need: %s",
 				FormatCoins(stillNeed).c_str());
-		if (ImGui::SmallButton("Add missing to Economy cart###gw2igh_craft_ecart"))
+		if (PadLayout::GoldButton("Add missing to Economy cart###gw2igh_craft_ecart", true, true))
 		{
 			for (const ShopRow& s : rows)
 			{
@@ -202,8 +226,7 @@ namespace CraftingDetail
 		}
 		if (allowCartGot)
 		{
-			ImGui::SameLine();
-			if (ImGui::SmallButton("Clear checks###gw2igh_craft_clrgot"))
+			if (PadLayout::GoldButton("Clear checks###gw2igh_craft_clrgot", false, false))
 			{
 				for (const ShopRow& s : rows)
 					CartSetGot(s.itemId, false, nullptr);
@@ -261,34 +284,45 @@ namespace CraftingDetail
 
 	void DrawPlanResults(const Plan& plan, bool allowCartGot)
 	{
-		ImGui::TextColored(HelperTheme::GoldBright, "%s",
-			plan.outputName.empty() ? "Output" : plan.outputName.c_str());
-		ImGui::TextColored(HelperTheme::Muted,
-			"#%d | %s | %s | want x%d | yield %d",
-			plan.outputId,
-			plan.recipeSource.empty() ? "recipe" : plan.recipeSource.c_str(),
-			plan.recipeDiscipline.empty() ? "?" : plan.recipeDiscipline.c_str(),
-			(std::max)(1, plan.wantQty), plan.outputCount);
-		if (plan.recipeDiscipline.find("Mystic") != std::string::npos ||
-			plan.recipeSource.find("wiki") != std::string::npos ||
-			plan.recipeSource.find("forge") != std::string::npos)
+		const char* outName = plan.outputName.empty() ? "Output" : plan.outputName.c_str();
+		PadLayout::Hero("###gw2igh_craft_plan_hero", "Craft cost", outName,
+			FormatCoins(plan.buyTotal).c_str());
+
+		const bool forgeWarn = plan.recipeDiscipline.find("Mystic") != std::string::npos
+			|| plan.recipeSource.find("wiki") != std::string::npos
+			|| plan.recipeSource.find("forge") != std::string::npos;
+		if (forgeWarn)
+			PadNav::StatusWarn("Forge / wiki acquisition — verify steps in-game.");
+		if (plan.noTpMissing > 0)
+			PadNav::StatusWarn("Some mats have no TP price — craft cost is a lower bound.");
+
+		if (ImGui::CollapsingHeader("Details###gw2igh_craft_details"))
 		{
-			ImGui::TextColored(HelperTheme::Warn,
-				"Forge / wiki acquisition — verify steps in-game.");
+			ImGui::TextColored(HelperTheme::Muted,
+				"#%d · %s · %s · want x%d · yield %d",
+				plan.outputId,
+				plan.recipeSource.empty() ? "recipe" : plan.recipeSource.c_str(),
+				plan.recipeDiscipline.empty() ? "?" : plan.recipeDiscipline.c_str(),
+				(std::max)(1, plan.wantQty), plan.outputCount);
+			DrawKnownBadge(plan);
 		}
-		DrawKnownBadge(plan);
-		ImGui::Spacing();
-		DrawFinancialOne(plan);
+
+		if (ImGui::CollapsingHeader("Financial breakdown###gw2igh_craft_fin",
+				ImGuiTreeNodeFlags_DefaultOpen))
+			DrawFinancialOne(plan);
+
 		ImGui::Spacing();
 		PadNav::SectionTitle("Shopping list");
 		DrawShopRows(plan.shopping, allowCartGot);
-		ImGui::Spacing();
-		PadNav::SectionTitle("Crafting steps");
-		DrawStepsList(plan.steps);
-		ImGui::Spacing();
-		PadNav::Meta("Recipe tree");
-		for (const IngNode& k : plan.root.kids)
-			DrawNode(k);
+
+		if (ImGui::CollapsingHeader("Crafting steps###gw2igh_craft_steps"))
+			DrawStepsList(plan.steps);
+
+		if (ImGui::CollapsingHeader("Recipe tree###gw2igh_craft_tree"))
+		{
+			for (const IngNode& k : plan.root.kids)
+				DrawNode(k);
+		}
 	}
 
 	void DrawAggregatedResults(const std::vector<Plan>& plans, bool allowCartGot)
@@ -296,19 +330,15 @@ namespace CraftingDetail
 		long long craftCost = 0, tpCost = 0, listNet = 0;
 		bool anyTp = false, anyList = false;
 		int noTp = 0;
+		int okCount = 0;
 		std::unordered_map<int, ShopRow> shopAgg;
 		std::vector<StepRow> flatSteps;
 
-		PadNav::SectionTitle("Project results");
 		for (const Plan& p : plans)
 		{
 			if (!p.ok)
-			{
-				ImGui::TextColored(HelperTheme::Warn, "%s — %s",
-					p.outputName.empty() ? "Item" : p.outputName.c_str(),
-					p.status.c_str());
 				continue;
-			}
+			++okCount;
 			craftCost += p.buyTotal;
 			if (p.tpBuyOutright >= 0) { tpCost += p.tpBuyOutright; anyTp = true; }
 			const long long ln = ListNet(p);
@@ -329,33 +359,55 @@ namespace CraftingDetail
 				flatSteps.push_back(st);
 		}
 
-		ImGui::TextColored(HelperTheme::Ink, "Craft cost:  %s", FormatCoins(craftCost).c_str());
-		if (anyTp)
+		char projTitle[64];
+		std::snprintf(projTitle, sizeof(projTitle), "%d item%s in project",
+			okCount, okCount == 1 ? "" : "s");
+		PadLayout::Hero("###gw2igh_craft_proj_hero", "Project craft cost", projTitle,
+			FormatCoins(craftCost).c_str());
+
+		for (const Plan& p : plans)
 		{
-			ImGui::TextColored(HelperTheme::Ink, "Buy outright: %s", FormatCoins(tpCost).c_str());
-			const long long save = tpCost - craftCost;
-			if (save >= 0)
-				ImGui::TextColored(HelperTheme::Ok, "Savings vs buy: %s", FormatCoins(save).c_str());
-			else
-				ImGui::TextColored(HelperTheme::Warn, "Buy cheaper by: %s", FormatCoins(-save).c_str());
-		}
-		if (anyList)
-		{
-			ImGui::TextColored(HelperTheme::Muted, "Sell listed (net ~85%%): %s",
-				FormatCoins(listNet).c_str());
-			const long long profit = listNet - craftCost;
-			if (profit >= 0)
-				ImGui::TextColored(HelperTheme::Ok, "Profit (craft→list): %s",
-					FormatCoins(profit).c_str());
-			else
-				ImGui::TextColored(HelperTheme::Warn, "Loss (craft→list): %s",
-					FormatCoins(-profit).c_str());
-			if (craftCost > 0)
-				ImGui::TextColored(HelperTheme::Muted, "ROI: %lld%%",
-					(profit * 100) / craftCost);
+			if (p.ok) continue;
+			ImGui::TextColored(HelperTheme::Warn, "%s — %s",
+				p.outputName.empty() ? "Item" : p.outputName.c_str(),
+				p.status.c_str());
 		}
 		if (noTp > 0)
-			ImGui::TextColored(HelperTheme::Warn, "Some mats have no TP price.");
+			PadNav::StatusWarn("Some mats have no TP price.");
+
+		if (ImGui::CollapsingHeader("Financial breakdown###gw2igh_craft_proj_fin",
+				ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::TextColored(HelperTheme::Ink, "Craft cost:  %s",
+				FormatCoins(craftCost).c_str());
+			if (anyTp)
+			{
+				ImGui::TextColored(HelperTheme::Ink, "Buy outright: %s",
+					FormatCoins(tpCost).c_str());
+				const long long save = tpCost - craftCost;
+				if (save >= 0)
+					ImGui::TextColored(HelperTheme::Ok, "Savings vs buy: %s",
+						FormatCoins(save).c_str());
+				else
+					ImGui::TextColored(HelperTheme::Warn, "Buy cheaper by: %s",
+						FormatCoins(-save).c_str());
+			}
+			if (anyList)
+			{
+				ImGui::TextColored(HelperTheme::Muted, "Sell listed (net ~85%%): %s",
+					FormatCoins(listNet).c_str());
+				const long long profit = listNet - craftCost;
+				if (profit >= 0)
+					ImGui::TextColored(HelperTheme::Ok, "Profit (craft→list): %s",
+						FormatCoins(profit).c_str());
+				else
+					ImGui::TextColored(HelperTheme::Warn, "Loss (craft→list): %s",
+						FormatCoins(-profit).c_str());
+				if (craftCost > 0)
+					ImGui::TextColored(HelperTheme::Muted, "ROI: %lld%%",
+						(profit * 100) / craftCost);
+			}
+		}
 
 		ImGui::Spacing();
 		PadNav::SectionTitle("Shopping list");
@@ -380,21 +432,22 @@ namespace CraftingDetail
 			DrawShopRows(rows, allowCartGot);
 		}
 
-		ImGui::Spacing();
-		PadNav::SectionTitle("Crafting steps");
-		if (gOpts.groupByItem)
+		if (ImGui::CollapsingHeader("Crafting steps###gw2igh_craft_proj_steps"))
 		{
-			for (const Plan& p : plans)
+			if (gOpts.groupByItem)
 			{
-				if (!p.ok || p.steps.empty()) continue;
-				ImGui::TextColored(HelperTheme::GoldBright, "%s",
-					p.outputName.empty() ? "Item" : p.outputName.c_str());
-				DrawStepsList(p.steps);
-				ImGui::Spacing();
+				for (const Plan& p : plans)
+				{
+					if (!p.ok || p.steps.empty()) continue;
+					ImGui::TextColored(HelperTheme::GoldBright, "%s",
+						p.outputName.empty() ? "Item" : p.outputName.c_str());
+					DrawStepsList(p.steps);
+					ImGui::Spacing();
+				}
 			}
+			else
+				DrawStepsList(flatSteps);
 		}
-		else
-			DrawStepsList(flatSteps);
 	}
 
 } // namespace CraftingDetail
