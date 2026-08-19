@@ -937,8 +937,8 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2247 / 2236 / s2215 / c2228 |
-| Live panel stamp | 84 |
+| Helper / home / sites / cheatsheets stamps | 2247 / 2238 / s2215 / c2228 |
+| Live panel stamp | 86 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
 | OSR `device_scale_factor` | 1.0 |
@@ -1022,6 +1022,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.3.0.3 — Farming pad removed; address bar + URL bookmark bar; categories-only Browse hub; star folder picker; 2.3.0.2 live HTML loader; trusted pages/cheatsheets file:// from https; catalog once-per-DLL; PathingLua stdlib subset; helper 2247; live 84; home 2236; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.3.0.3 — Browse hub Troubleshooting card (CEF limits + Discord); Farming pad removed; address bar + URL bookmark bar; categories-only Browse hub; star folder picker; 2.3.0.2 live HTML loader; trusted pages/cheatsheets file:// from https; catalog once-per-DLL; PathingLua stdlib subset; helper 2247; live 86; home 2238; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

@@ -49,7 +49,8 @@ achievement, and icon packs.
 - **Crafting pad:** Plan / results layout is clearer (summary card, collapsible sections, shopping list table).
 - **Legendary Ledger:** Opening the Ledger no longer sticks on “Opening cheat sheet…” / a black loading stub (live `about:` handoff + Wine-safe file navigation).
 - **Side rail:** API Check sits above Settings (Browse / Wiki / Sheets stay at the top).
-- **Stamps:** Helper `2247` · homepage `2236` · sites `s2215` · cheatsheets `c2228` · live panel `84` · raid food `9` · ui-chrome `uc36`
+- **Browse hub:** Troubleshooting at the bottom (CEF/OSR limits + Discord report links).
+- **Stamps:** Helper `2247` · homepage `2238` · sites `s2215` · cheatsheets `c2228` · live panel `86` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.3.0.2
 

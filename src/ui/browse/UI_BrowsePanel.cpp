@@ -192,9 +192,14 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
-	ImGui::TextUnformatted("Created By Xydroc");
+	ImGui::TextUnformatted("Troubleshooting");
 	ImGui::PopStyleColor();
 	ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+	ImGui::TextWrapped(
+		"Site login, video, or bot check fails in-game: this overlay is a windowless Chromium helper — "
+		"not a full Chrome install. Many logins, Cloudflare checks, and video players will not work here. "
+		"Use Open Ext in the toolbar (that session is separate from in-game tabs).");
+	ImGui::Spacing();
 	ImGui::TextUnformatted("Report any issues here - Discord -");
 	ImGui::SameLine(0.0f, 4.0f);
 	ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
@@ -225,6 +230,11 @@ void DrawBrowsePanelContents(bool navigateOnChange, bool* closePanel, bool pickD
 				nullptr, nullptr, SW_SHOWNORMAL);
 		}
 	}
+	ImGui::PopStyleColor();
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::PushStyleColor(ImGuiCol_Text, kGoldMuted);
+	ImGui::TextUnformatted("Created By Xydroc");
 	ImGui::PopStyleColor();
 	ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
 	ImGui::TextUnformatted("If you would like to donate or support GW2-InGame-Helper, you can do so here -");
