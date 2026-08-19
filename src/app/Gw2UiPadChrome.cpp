@@ -156,7 +156,10 @@ bool Gw2Ui::PaintPadChrome(float opacity, bool omitLeftEdge, bool omitRightEdge,
 	const ImVec2 p1(p0.x + sz.x, p0.y + sz.y);
 	/* Expanded title strip height — must match DrawPadTitleBar kTitleH. */
 	constexpr float kTitleH = 50.f;
-	const ImVec2 wash0(p0.x, p0.y + kTitleH);
+	/* When the left rim is omitted (helper + side rail), extend the wash 1px
+	   into the rail so the join cannot show a 1px hole. */
+	const float washX0 = p0.x - (omitLeftEdge ? 1.f : 0.f);
+	const ImVec2 wash0(washX0, p0.y + kTitleH);
 
 	Texture_t* wash = Gw2UiDetail::GetChromeNamed("panel-wash");
 	Texture_t* fill = (wash && wash->Resource) ? wash : Gw2UiDetail::GetChromeTex(static_cast<int>(Icon::PanelFill));

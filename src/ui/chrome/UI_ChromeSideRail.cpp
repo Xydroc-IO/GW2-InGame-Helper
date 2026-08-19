@@ -111,6 +111,9 @@ namespace UIDetail
 		const ImVec2 helperMin = gUi.wikiMin;
 		const ImVec2 helperMax = gUi.wikiMax;
 		const float dockX = helperMin.x - railW;
+		/* 1px into the helper body so bilinear image edges / exclusive clip
+		   cannot leave a hairline of the game between nav and pad. Title
+		   leftExtend still uses railW (not this overlap). */
 		/* Align under the pad title bar (must match DrawPadTitleBar kTitleH).
 		   Extra clearance so the title crest does not cover the first rail icon. */
 		constexpr float kTitleBarH = 50.f;
@@ -131,9 +134,11 @@ namespace UIDetail
 		const float baseFp = SideRail::FramePadY(iconSz, labels);
 		const float fp = SideRail::FillFramePadY(dockH, iconSz, labels, itemSp, baseFp);
 
+		constexpr float kSeamOverlap = 1.f;
 		ImGui::SetNextWindowPos(ImVec2(dockX, dockY), ImGuiCond_Always);
-		ImGui::SetNextWindowSize(ImVec2(railW, dockH), ImGuiCond_Always);
-		ImGui::SetNextWindowSizeConstraints(ImVec2(railW, 48.f), ImVec2(railW, dockH + 8.f));
+		ImGui::SetNextWindowSize(ImVec2(railW + kSeamOverlap, dockH), ImGuiCond_Always);
+		ImGui::SetNextWindowSizeConstraints(
+			ImVec2(railW + kSeamOverlap, 48.f), ImVec2(railW + kSeamOverlap, dockH + 8.f));
 		ImGui::SetNextWindowBgAlpha(0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
@@ -194,26 +199,6 @@ namespace UIDetail
 			/* Outer left + bottom of nav. Soft join only (not a full outer fringe). */
 			Gw2UiDetail::PaintHeroRim(railDl, rp0, rp1, oa,
 				/*omitLeft=*/false, /*omitRight=*/true, /*omitTop=*/true, /*omitBottom=*/false);
-			Texture_t* edge = Gw2UiDetail::GetChromeNamed("panel-edge");
-			if (edge && edge->Resource)
-			{
-				const ImTextureID eid = reinterpret_cast<ImTextureID>(edge->Resource);
-				const ImU32 joinCol = IM_COL32(255, 255, 255, static_cast<int>(oa * 140.f + 0.5f));
-				constexpr float kJoin = 6.f;
-				railDl->PushClipRect(
-					ImVec2(rp1.x - kJoin - 1.f, rp0.y),
-					ImVec2(rp1.x + 3.f, rp1.y),
-					false);
-				railDl->AddImageQuad(eid,
-					ImVec2(rp1.x - kJoin, rp0.y),
-					ImVec2(rp1.x + 2.f, rp0.y),
-					ImVec2(rp1.x + 2.f, rp1.y),
-					ImVec2(rp1.x - kJoin, rp1.y),
-					ImVec2(0.f, 0.f), ImVec2(0.f, 1.f),
-					ImVec2(1.f, 1.f), ImVec2(1.f, 0.f),
-					joinCol);
-				railDl->PopClipRect();
-			}
 
 			/* Plaque corners — bottom only (top sat under the title crest). */
 			if (Texture_t* corner = Gw2UiDetail::GetChromeNamed("plaque-corner"))
