@@ -20,7 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
-| 2.3.0.3 | 2.3.0.3 | Address bar + URL bookmark bar; catalog once-per-DLL; Known/file:// / PathingLua hardening; live 83; helper 2245 |
+| 2.3.0.3 | 2.3.0.3 | Address bar + URL bookmark bar; categories-only Browse hub; star folder picker; 2.3.0.2 live HTML loader; trusted pages/cheatsheets file:// from https; catalog once-per-DLL; PathingLua hardening; live 84; helper 2247 |
 | 2.3.0.2 | 2.3.0.2 | Progress roster removed; Stash item search; pad list scroll; OpenAndRefresh GetID crash; stamps unchanged |
 | 2.3.0.1 | 2.3.0.1 | Camera-facing world GPS (height bias, no near clip); pad rail icon scale; compacted-window GetID crash fix; stamps unchanged |
 | 2.3.0.0 | 2.3.0.0 | IGH1 catalog+recipes+achievements+icons + `.manifest` + CEF zip; grouped Progress armory; API Check 5 probes; live 82; helper 2244 |
@@ -101,7 +101,7 @@ In-game overlays that surface the live web—wikis, build repositories, and comm
 
 This report documents the architecture of **GW2 In-Game Helper**, a Raidcore Nexus ImGui addon that embeds **stock CEF 150** as a **separate process**, renders via **windowless off-screen rendering (OSR)** into **PID-scoped shared memory**, and composites frames through the host’s existing Direct3D 11 device without Present hooks. We analyse the inter-process communication (IPC) contract, the adaptive CPU-to-GPU upload pipeline, navigation and advertisement click-through policy, the security posture (including intentional sandbox disablement under Wine), compliance boundaries relative to Guild Wars 2 and the Nexus ecosystem, and performance implications for constrained hardware.
 
-Beyond the browser kernel, revision **2.2.3.10** documents the **application layer**: Account pads on the official ArenaNet API; Pathing packs with Blish/TacO behaviors and opt-in PathingLua; **D3D world GPS** ribbons drawn exclusively via the Nexus SwapChain device; DPS Logs via Elite Insights; **Economy** / **Instances** / **Farming** companions; floating GPS arrow and zone-entry overlays; addon-owned **PanelBinds**; and Events/Notes. We argue that shared-memory OSR is not an optimal GPU path in the abstract, but that it constitutes a **rational engineering equilibrium** given Nexus API surfaces, coexistence with ArcDPS and ReShade, single-DLL distribution, and Proton viability. Likewise, world GPS uses host SwapChain drawing rather than Present hooks or process-memory camera reads, preserving the same coexistence invariants.
+Beyond the browser kernel, revision **2.2.3.10** documents the **application layer**: Account pads on the official ArenaNet API; Pathing packs with Blish/TacO behaviors and opt-in PathingLua; **D3D world GPS** ribbons drawn exclusively via the Nexus SwapChain device; DPS Logs via Elite Insights; **Economy** / **Instances** companions; floating GPS arrow and zone-entry overlays; addon-owned **PanelBinds**; and Events/Notes. We argue that shared-memory OSR is not an optimal GPU path in the abstract, but that it constitutes a **rational engineering equilibrium** given Nexus API surfaces, coexistence with ArcDPS and ReShade, single-DLL distribution, and Proton viability. Likewise, world GPS uses host SwapChain drawing rather than Present hooks or process-memory camera reads, preserving the same coexistence invariants.
 
 **Keywords:** Chromium Embedded Framework; off-screen rendering; game overlay; shared-memory IPC; Direct3D 11; Wine; Proton; advertisement attribution; process isolation; Guild Wars 2; Raidcore Nexus; TacO pathing; Blish-style trails.
 
@@ -140,14 +140,14 @@ This document contributes:
 4. A navigation policy for **advertisement click-through** under OSR popup constraints, with explicit non-regression criteria.
 5. A security and performance evaluation, including sandbox limitations and hardware bounds.
 6. An explicit statement of evaluation criteria and threats to validity for qualitative claims.
-7. Documentation of the **application layer** at architecture impact level: Pathing + D3D world GPS, Account API pads, DPS Logs / Elite Insights, companions (Economy / Instances / Farming), and display overlays.
+7. Documentation of the **application layer** at architecture impact level: Pathing + D3D world GPS, Account API pads, DPS Logs / Elite Insights, companions (Economy / Instances), and display overlays.
 8. A maintainability narrative: modular ≤500-line translation units, intentional micro-level C++ style versus Fortune-500 ideals, and restricted kernel ownership.
 
 ### 1.4 Non-goals
 
 We do not claim: combat automation; reading player or entity memory for advantage; bypassing Cloudflare or Google OAuth in embedded contexts; AAA-grade zero-copy GPU compositing; a rebuilt or forked Chromium; full Blish Pathing Lua libdef parity (Storage/Instance/GameTime and related host services remain out of scope); proprietary video codecs in stock CEF; or peer-reviewed empirical HCI studies.
 
-Feature pads are *application layer* atop the browser kernel. This report describes them where they affect IPC, present, compliance, or player-facing architecture—not as exhaustive product manuals (see [`PATHING.md`](PATHING.md), [`ACCOUNT.md`](ACCOUNT.md), [`FARMING.md`](FARMING.md), [`DPS_LOGS.md`](DPS_LOGS.md)).
+Feature pads are *application layer* atop the browser kernel. This report describes them where they affect IPC, present, compliance, or player-facing architecture—not as exhaustive product manuals (see [`PATHING.md`](PATHING.md), [`ACCOUNT.md`](ACCOUNT.md), [`DPS_LOGS.md`](DPS_LOGS.md)).
 
 ### 1.5 Document organisation
 
@@ -500,7 +500,7 @@ Route to the system browser (via Open Ext) when user-gesture navigations match a
 4. Navigations whose **referrer** is an ad frame (SafeFrame / DoubleClick), even if the destination is a plain advertiser domain.
 5. Subframe-originated promotable URLs from known ad iframes.
 6. Cross-site `target=_blank` popups (same-site and bundled `file://` may remain in-tab).
-7. **New addon tabs** to `file://` / `about:` only when the initiating frame is a bundled helper page. `https` may not open local files.
+7. **New addon tabs** to `file://` / `about:` only when the initiating frame is a bundled helper page. `https` may not open local files (chrome Home hops `about:blank` first so the hub `file://` can commit).
 
 YouTube and `discord://` deep links also prefer external handling where OSR cannot complete the flow.
 
@@ -563,11 +563,11 @@ Page JavaScript executes in Chromium children of the **helper**, not inside the 
 
 Shipping sets `no_sandbox` / `--no-sandbox` because:
 
-1. CEF 150+ Windows sandbox expects bootstrap/module packaging not used in our single-EXE helper layout.
+1. CEF 150+ Windows sandbox expects `windows_sandbox_info` from official **MSVC** `cef_sandbox.lib`. This helper is MinGW C API — we cannot pass that pointer, and `no_sandbox=0` without it fails `cef_initialize`.
 2. Wine/Proton sandboxing is unreliable.
 3. Many embedded CEF apps make the same trade.
 
-This is a **conscious downgrade** from desktop Chrome, not an accidental flag for ads. Site-isolation experiments for OSR iframe input were considered and **not** retained as policy.
+This is a **toolchain limit**, not an accidental leftover flag. A native-Windows sandbox would be a second (MSVC) helper binary.
 
 ### 9.4 Supply chain
 
@@ -765,13 +765,13 @@ Schema-v2 `data/sites.json` (~2718 entries) embeds and extracts to runtime `site
 
 ### 17.6 Companions and overlays
 
-**Economy** and **Instances** are read-only side-rail companions (commerce Flip Finder / charts / cart; story/fractal/raid/strike journal). **Stash** and **Crafting** are their own rails (wallet/bank/bags/materials; plan / known / browse / cart). Crafting station trees load from `gw2-helper-recipes.igh`; known recipes still use the account API. **Account → Progress** groups the legendary armory with the embedded Ledger catalog. **Unlocks** groups dyes by hue, skins by armor/weapon/slot, and other kinds into lettered icon tiles (cloth RGB + wardrobe icon URLs, not item-atlas ids). **Achievements** loads groups/defs from `gw2-helper-achievements.igh` and overlays `/v2/account/achievements`. **Farming** stores curated run checklists and a fishing catch log with optional Pathing handoff. Persist under `config/` (`achievement-pins.txt`, `farming-state.txt`).
+**Economy** and **Instances** are read-only side-rail companions (commerce Flip Finder / charts / cart; story/fractal/raid/strike journal). **Stash** and **Crafting** are their own rails (wallet/bank/bags/materials; plan / known / browse / cart). Crafting station trees load from `gw2-helper-recipes.igh`; known recipes still use the account API. **Account → Progress** groups the legendary armory with the embedded Ledger catalog. **Unlocks** groups dyes by hue, skins by armor/weapon/slot, and other kinds into lettered icon tiles (cloth RGB + wardrobe icon URLs, not item-atlas ids). **Achievements** loads groups/defs from `gw2-helper-achievements.igh` and overlays `/v2/account/achievements`. Persist under `config/` (`achievement-pins.txt`).
 
 **Overlays:** `GpsArrow` (floating arrow toward the active search guide) and `ZoneBanner` (short map-change toast) live in `src/overlay/` — ImGui display only.
 
 **PanelBinds:** Addon-owned panel chords (`GetAsyncKeyState` poll) live in Settings → Keybinds. Helper open remains Nexus (`Ctrl+Shift+H` / QuickAccess). Legacy Nexus `KB_HELPER_*` panel ids are deregistered on load.
 
-See [`FARMING.md`](FARMING.md), [`MODULES.md`](MODULES.md).
+See [`MODULES.md`](MODULES.md).
 
 ---
 
@@ -937,8 +937,8 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | Present idle / interact / wheel | ≈ 30 / 60 / 120 Hz |
 | CEF stamp | 150.0.14 |
 | Chromium | 150.0.7871.129 |
-| Helper / home / sites / cheatsheets stamps | 2245 / 2235 / s2215 / c2228 |
-| Live panel stamp | 83 |
+| Helper / home / sites / cheatsheets stamps | 2247 / 2236 / s2215 / c2228 |
+| Live panel stamp | 84 |
 | Raid food stamp | 9 |
 | ui-chrome stamp | uc36 |
 | OSR `device_scale_factor` | 1.0 |
@@ -975,7 +975,6 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 | `src/economy/*` | Flip Finder / charts / crafting cart |
 | `src/instances/*` | Instance journal |
 | `src/completion/*` | Achievements pad (catalog pack + account API overlay) |
-| `src/farming/*` | Farming runs + fishing log |
 | `src/overlay/*` | GPS arrow + zone banner |
 | `src/events/*` | World Events |
 | `src/notes/*` | Notes + waypoints |
@@ -1011,7 +1010,7 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 
 1. API key scopes load wallet/stash.
 2. DPS Logs scan → parse (with .NET 8 + EI present).
-3. Farming / Pathing search guide sets the orange trail; GPS arrow points at the destination.
+3. Pathing search guide sets the orange trail; GPS arrow points at the destination.
 4. Economy Flip Finder returns fee-adjusted nets from commerce prices.
 
 ## Appendix F — Document control
@@ -1023,6 +1022,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.3.0.3 — address bar + URL bookmark bar; catalog once-per-DLL; file:// new-tab origin check; PathingLua stdlib subset; helper 2245; live 83; home 2235; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.3.0.3 — Farming pad removed; address bar + URL bookmark bar; categories-only Browse hub; star folder picker; 2.3.0.2 live HTML loader; trusted pages/cheatsheets file:// from https; catalog once-per-DLL; PathingLua stdlib subset; helper 2247; live 84; home 2236; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

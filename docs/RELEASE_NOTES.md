@@ -37,12 +37,19 @@ achievement, and icon packs.
 ## What’s new in 2.3.0.3
 
 - **Address bar:** Type a website (or a search) and press Enter. Ctrl+L focuses the bar. Find in page stays on Ctrl+F.
-- **Bookmarks:** Star saves the current page. A bookmark bar under the toolbar has folders you can create, rename, reorder, and delete. Old catalog stars migrate to that site’s home URL.
+- **Bookmarks:** Star asks which folder to use (or create one). Folder chips on the bar no longer show a missing-font `?`. Old catalog stars migrate to that site’s home URL. Right-click to rename, reorder, or delete. Browse hub is categories-only — bookmarks live on the chrome bar (★ on category sites still works).
+- **Browse hub:** Worker writes complete HTML, then one `file://` create (no loading-shell overwrite, no `?r=` cache-bust). Overlay waits until the file is ready. Native Windows may Reload after a background refresh; Wine does not (Reload of `file://` crashes). Home from https may open only helper `pages/` and `cheatsheets/` HTML.
+- **Chrome layout:** Tab row sits below the bookmark bar with a small gap; tabs align to the content edge.
+- **Toolbar:** Status `Loading...` is reserved space so it is not clipped off the right edge.
 - **Catalog:** GitHub manifest is checked once per shipping DLL when cache is already complete. Missing names/recipes/achievements/icons still retry every 30 minutes (a failed first download is no longer permanent).
 - **Known recipes:** Status text copies under the lock so a background refresh cannot free the string ImGui is still drawing.
 - **New tabs:** `file://` / `about:` tabs only open from bundled helper pages — not from https.
 - **PathingLua:** Opt-in scripts no longer get `os.execute`, `io`, or `package.loadlib`. `os.time` / `clock` / `date` stay.
-- **Stamps:** Helper `2245` · homepage `2235` · sites `s2215` · cheatsheets `c2228` · live panel `83` · raid food `9` · ui-chrome `uc36`
+- **Farming pad removed** — side-rail Farming companion, fishing log, and `config/farming-state.txt` are gone.
+- **Crafting pad:** Plan / results layout is clearer (summary card, collapsible sections, shopping list table).
+- **Legendary Ledger:** Opening the Ledger no longer sticks on “Opening cheat sheet…” / a black loading stub (live `about:` handoff + Wine-safe file navigation).
+- **Side rail:** API Check sits above Settings (Browse / Wiki / Sheets stay at the top).
+- **Stamps:** Helper `2247` · homepage `2236` · sites `s2215` · cheatsheets `c2228` · live panel `84` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.3.0.2
 

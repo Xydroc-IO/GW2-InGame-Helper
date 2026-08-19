@@ -8,8 +8,8 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 | Addon revision (shipping) | `2.3.0.3` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
-| Helper / home / sites / cheatsheets stamps | `2245` / `2235` / `s2215` / `c2228` |
-| Live panel stamp | `83` |
+| Helper / home / sites / cheatsheets stamps | `2247` / `2236` / `s2215` / `c2228` |
+| Live panel stamp | `84` |
 | Raid food stamp | `9` |
 | ui-chrome stamp | `uc36` |
 | watchd stamp | `w10` |
@@ -18,7 +18,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 Shipping install names are `GW2-InGame-Helper` (DLL + data folder). An optional **Beta** branch (`GW2-InGame-Helper-Beta`) may share this architecture with a distinct `ADDON_NAME` / signature `HELB` for side-by-side testing. Never loads game CEF and never writes into `bin64/cef`.
 
-**Companion documents:** [`WHITEPAPER.md`](WHITEPAPER.md) (design rationale), [`KERNEL.md`](KERNEL.md) (change playbooks), [`COMPLIANCE.md`](COMPLIANCE.md), [`NAV_AND_ADS.md`](NAV_AND_ADS.md), [`PATHING.md`](PATHING.md), [`ACCOUNT.md`](ACCOUNT.md), [`FARMING.md`](FARMING.md), [`MODULES.md`](MODULES.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`BUILD.md`](BUILD.md), [`ONBOARDING.md`](ONBOARDING.md).
+**Companion documents:** [`WHITEPAPER.md`](WHITEPAPER.md) (design rationale), [`KERNEL.md`](KERNEL.md) (change playbooks), [`COMPLIANCE.md`](COMPLIANCE.md), [`NAV_AND_ADS.md`](NAV_AND_ADS.md), [`PATHING.md`](PATHING.md), [`ACCOUNT.md`](ACCOUNT.md), [`MODULES.md`](MODULES.md), [`CEF_RUNTIME.md`](CEF_RUNTIME.md), [`BUILD.md`](BUILD.md), [`ONBOARDING.md`](ONBOARDING.md).
 
 ---
 
@@ -110,7 +110,7 @@ CEF profile / disk cache: `%LOCALAPPDATA%\<addon-name>\cef-cache` (never under `
   sites.json (+ .ver)
   config/                  # notes, profiles, themes/, session history, waypoints,
                            # log-index, marker behaviors, ei-helper.conf,
-                           # farming-state.txt, favorites.json
+                           # favorites.json
   pages/                   # generated HTML + home assets
     helper-home.html (+ .ver), home-logo.png, home-cover.jpg
     raid-food.html, live-*.html / .ver / .ok, gw2-api-check.*
@@ -199,7 +199,7 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 - Popups always cancelled (OSR has no native windows).
 - Ad / tracker / click-id routes → `OpenExternalUrl` (full URL; refuse if still > 8 KB).
 - Same-site new-window links may navigate in-tab.
-- `file://` / `about:` new tabs only from bundled helper pages (`file:` / `about:` other than `about:blank`). Web origins cannot open local files.
+- `file://` / `about:` new tabs only from bundled helper pages (`file:` / `about:` other than `about:blank`). Web origins cannot open local files. Host chrome (Home / rail) may `load_url` only helper `pages/*.html` and `cheatsheets/*.html`.
 - Native `<select>` polyfilled in-page (BootJs) — PET_POPUP under OSR crashed the helper on Windows.
 - `GetViewRect` = ImGui panel; `GetScreenInfo` = primary monitor + work area (`device_scale_factor` = 1.0).
 
@@ -207,7 +207,7 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 
 ## 7. Source map (hybrid layout)
 
-`src/` is organized as **shared layers** (`app`, `ui`, `api`, `browse`, `browser`, `helper`) plus **feature domains** (`account`, `pathing`, `logs`, `economy`, `instances`, `completion`, `farming`, `overlay`, `events`, `notes`). Includes stay flat (`#include "Foo.h"`) via multiple `-Isrc/...` paths.
+`src/` is organized as **shared layers** (`app`, `ui`, `api`, `browse`, `browser`, `helper`) plus **feature domains** (`account`, `pathing`, `logs`, `economy`, `instances`, `completion`, `overlay`, `events`, `notes`). Includes stay flat (`#include "Foo.h"`) via multiple `-Isrc/...` paths.
 
 **Module size:** Prefer **≤500 lines** per `.cpp`. Split by concern (pad vs data vs fetch vs parse). Generated / blob headers (`BootJs.h`, icon embeds) are exempt. See [`MODULES.md`](MODULES.md).
 
@@ -249,7 +249,6 @@ Stock `libcef.dll`; customization is **client-only** (`src/helper/*`, BootJs, Cs
 | `src/economy/` | Flip Finder, local charts, crafting cart (read-only) |
 | `src/instances/` | Story / fractal / raid / strike journal |
 | `src/completion/` | Achievements pad (catalog pack groups/defs + account overlay) |
-| `src/farming/` | Farming run checklists + fishing catch log; Pathing handoff |
 | `src/overlay/` | Floating GPS arrow (`GpsArrow`) + zone-entry banner (`ZoneBanner`) |
 | `src/events/` | World Events pad + schedule data |
 | `src/notes/` | Notes + waypoint snippets pad |
@@ -292,5 +291,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.3 — address bar + URL bookmark bar; catalog once-per-DLL; file:// new-tab origin check; live 83; helper 2245 |
+| Last architecture sync | 2.3.0.3 — bookmark bar + categories-only Browse hub; wait-until-complete live HTML; trusted pages/cheatsheets file:// from https; live 84; helper 2247 |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |

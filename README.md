@@ -49,7 +49,6 @@ Helper EXE and homepage assets extract into `<GW2>/addons/GW2-InGame-Helper/`
 | Economy (side-rail **Companions**) | Flip Finder, local price charts, crafting cart (read-only official API) |
 | Instances (side-rail **Companions**) | Story / fractal / raid / strike checklist journal |
 | Achievements (side-rail **Achievements**) | Catalog pack groups/defs; API for account progress |
-| Farming (side-rail **Companions**) | Curated + custom farm runs, GPS live nodes, fishing catch log |
 | Direction compass (side-rail **Compass**) | World N/E/S/W (Nexus FontBig; letter size + radius) |
 | Notes + Waypoints (side-rail **Notes**) | ImGui |
 | Settings (side-rail **Settings**) | ImGui — landing site, theme folders, opacity, font scale, warm CEF, API key, panel Keybinds |
@@ -157,7 +156,7 @@ API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 - In-game CEF browser with **Browse** panel (search + categories; clipped large lists)
 - **Compact toolbar** — Browse · nav · Find · Web · side rail (Account · Compass · Pathing · Events · DPS Logs · Notes · Companions · Settings) · `...` menu
 - **Account** — tabbed stash / vault / TP / item / crafting / progress (official API)
-- **Companions** — Economy, Instances, Farming (runs + GPS + fishing log)
+- **Companions** — Economy, Instances, Crafting, Achievements
 - **Overlays** — floating GPS arrow toward active guide; short zone-entry banner
 - **Settings** — landing site, **Theme** (drop-in `config/themes/`), opacity, font scale / auto, warm CEF, API key, **Keybinds** (Nexus Options opens this pad)
 - **DPS Logs** — ArcDPS EVTC browser via Elite Insights + dps.report; KillProof tab; group-by-encounter ([setup](docs/DPS_LOGS.md))
@@ -166,7 +165,7 @@ API key scopes: [`docs/API_KEY.md`](docs/API_KEY.md)
 - **Tab hotkeys** — `Ctrl+T` new tab · `Ctrl+click` / middle-click a link or rail button for a new tab · `Ctrl+W` close · `Ctrl+Tab` cycle · `Ctrl+Shift+T` reopen
 - **Find in page** — Ctrl+F; type a site in the **address bar** (Enter) or a search (DuckDuckGo)
 - **Notes** — snippets + waypoint / POI search; **TP** / **Item** / **Wallet** / **Vault** pads
-- **Bookmarks** — star the current page; folder bar under the address bar (create / rename / reorder / delete)
+- **Bookmarks** — star the current page and pick a folder (or create one); folder bar under the address bar
 - **Keep browser warm** — optional hide without killing CEF (collapse also keeps the helper alive)
 - **Default landing site** — Settings picker; used by the Home button and when no tabs are saved
 - Nexus **QuickAccess** icon at the top of the screen

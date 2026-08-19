@@ -116,7 +116,7 @@ Uses public waypoint index + chat codes (copy only — no auto-teleport).
 
 Independent systems; both may use Mumble pose read-only.
 
-**Related overlays (not Pathing pad UI):** Farming / Pathing search-guide destinations set the orange **search guide**. `src/overlay/GpsArrow` draws a floating arrow toward that guide; `ZoneBanner` shows a short zone-entry toast on map change.
+**Related overlays (not Pathing pad UI):** Pathing search-guide destinations set the orange **search guide**. `src/overlay/GpsArrow` draws a floating arrow toward that guide; `ZoneBanner` shows a short zone-entry toast on map change.
 
 ---
 
@@ -214,7 +214,7 @@ time. Lua: see §4; enable under Pathing Features.
 | Map assist (opt-in) | `MapAssist*` + `GameLive*` |
 | Markers | `MarkerBehaviors*` |
 | Waypoint index | `WaypointsData*` |
-| Farming / Pathing GPS handoff | Pathing search guide + `GpsArrow` |
+| Pathing search guide | Pathing search guide + `GpsArrow` |
 | Floating guide arrow / zone banner | `GpsArrow`, `ZoneBanner` (`src/overlay/`) |
 
 Prefer ≤500 lines per `.cpp` (see contributor module notes in [`ARCHITECTURE.md`](ARCHITECTURE.md) / [`ONBOARDING.md`](ONBOARDING.md)).
