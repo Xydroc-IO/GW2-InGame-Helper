@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.3.0.3
+# GW2 In-Game Helper v2.3.0.4
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -34,6 +34,12 @@ achievement, and icon packs.
 
 ---
 
+## What’s new in 2.3.0.4
+
+- **Side rail:** Close the ~1px hairline seam between the nav column and helper body.
+- **Crafting pad:** Shopping list sits above Details / Financial; table uses remaining height (scroll only when needed). Plan buttons no longer clip; dailies collapse once a plan is open. Plan options wrap instead of overflowing. Known recipes drop the missing-font checkmark; recipe labels use ASCII instead of arrow glyphs. Details no longer repeats the discipline when it matches the source.
+- **Stamps:** Helper `2247` · homepage `2238` · sites `s2215` · cheatsheets `c2228` · live panel `86` · raid food `9` · ui-chrome `uc36`
+
 ## What’s new in 2.3.0.3
 
 - **Address bar:** Type a website (or a search) and press Enter. Ctrl+L focuses the bar. Find in page stays on Ctrl+F.
@@ -49,7 +55,6 @@ achievement, and icon packs.
 - **Crafting pad:** Plan / results layout is clearer (summary card, collapsible sections, shopping list table).
 - **Legendary Ledger:** Opening the Ledger no longer sticks on “Opening cheat sheet…” / a black loading stub (live `about:` handoff + Wine-safe file navigation).
 - **Side rail:** API Check sits above Settings (Browse / Wiki / Sheets stay at the top).
-- **UI:** Close the ~1px hairline seam between the side rail and helper body.
 - **Browse hub:** Troubleshooting at the bottom (CEF/OSR limits + Discord report links).
 - **Stamps:** Helper `2247` · homepage `2238` · sites `s2215` · cheatsheets `c2228` · live panel `86` · raid food `9` · ui-chrome `uc36`
 
