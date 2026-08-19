@@ -7,7 +7,6 @@
 #include "DirectionCompass.h"
 #include "EventsPad.h"
 #include "CraftingPad.h"
-#include "FarmingPad.h"
 #include "Globals.h"
 #include "LogManagerPad.h"
 #include "PathingGuidesPad.h"
@@ -68,6 +67,9 @@ namespace UIDetail
 		}
 
 		ImGui::SameLine();
+		const float need = ImGui::CalcTextSize(label).x;
+		if (ImGui::GetContentRegionAvail().x < need)
+			return;
 		ImGui::TextColored(col, "%s", label);
 	}
 
@@ -135,11 +137,6 @@ namespace UIDetail
 				if (G::ShowCrafting) { G::ShowCrafting = false; Settings::SetDirty(); }
 				else CraftingPad::OpenAndRefresh();
 			}
-			if (ImGui::MenuItem(G::ShowFarming ? "Hide Farming" : "Show Farming"))
-			{
-				if (G::ShowFarming) { G::ShowFarming = false; Settings::SetDirty(); }
-				else FarmingPad::OpenAndRefresh();
-			}
 			ImGui::Separator();
 			if (ImGui::MenuItem(G::ShowCompassPad ? "Hide Compass" : "Show Compass"))
 			{
@@ -172,8 +169,8 @@ namespace UIDetail
 
 		ImGui::SameLine(0.f, 12.f);
 		{
-			float avail = ImGui::GetContentRegionAvail().x - 168.f;
-			if (avail < 160.f) avail = 160.f;
+			float avail = ImGui::GetContentRegionAvail().x - 248.f;
+			if (avail < 120.f) avail = 120.f;
 			ImGui::SetNextItemWidth(avail);
 		}
 		static char sAddress[2048]{};

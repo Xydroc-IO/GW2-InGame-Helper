@@ -45,7 +45,6 @@ void AddonUnload()
 	G::ShowCrafting = false;
 	G::ShowInstances = false;
 	G::ShowAchievements = false;
-	G::ShowFarming = false;
 	G::ShowPathingGuides = false;
 	G::ShowCompassPad = false;
 	G::ShowWatch = false;

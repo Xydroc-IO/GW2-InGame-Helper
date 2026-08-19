@@ -24,7 +24,6 @@
 #include "LogManagerPad.h"
 #include "EconomyPad.h"
 #include "InstancesPad.h"
-#include "FarmingPad.h"
 #include "EventAlert.h"
 #include "GpsArrow.h"
 #include "MapAssist.h"
@@ -333,6 +332,9 @@ void UI_Render()
 
 	DrawToolbar();
 	DrawBookmarkBar();
+	DrawStarBookmarkPopup();
+	ImGui::Dummy(ImVec2(0.f, 6.f));
+	DrawTabBar();
 
 	/* Tab / find hotkeys - use ImGuiIO (Nexus-filled KeysDown), not GetAsyncKeyState. */
 	{
@@ -447,8 +449,6 @@ void UI_Render()
 		else if (sFindQuery[0])
 			ImGui::TextColored(kGoldMuted, "No matches");
 	}
-
-	DrawTabBar();
 
 	ImGui::Separator();
 

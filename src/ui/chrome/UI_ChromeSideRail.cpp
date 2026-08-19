@@ -10,7 +10,6 @@
 #include "DirectionCompass.h"
 #include "EconomyPad.h"
 #include "EventsPad.h"
-#include "FarmingPad.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
 #include "Gw2UiInternal.h"
@@ -259,37 +258,6 @@ namespace UIDetail
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Offline cheat sheets - food, fractals, squad tools, ...\nClick: this tab · Ctrl+click / middle-click: new tab");
 
-		{
-			const bool hit = PadNav::SideToggle("API Check###gw2igh_api_check", false, static_cast<int>(Gw2Ui::Icon::ApiHourglass), iconSz);
-			const bool newTab = SideRail::ItemWantsNewTab();
-			if (hit || newTab)
-			{
-				if (!WinePadOpen::Soft())
-				{
-					const std::wstring dir = AddonPaths::DataDir();
-					if (!dir.empty())
-					{
-						auto kill = [&](const wchar_t* ext) {
-							std::wstring p = dir;
-							if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
-								p.push_back(L'\\');
-							p += L"gw2-api-check";
-							p += ext;
-							DeleteFileW(p.c_str());
-						};
-						kill(L".html");
-						kill(L".ver");
-						kill(L".ok");
-					}
-				}
-				fireUrl("browse", "about:gw2-api-check", newTab);
-			}
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(
-				"Probe official api.guildwars2.com endpoints (public + your key).\n"
-				"Local page - not a third-party status site.");
-
 		SideRail::SectionGap(false, "TOOLS");
 
 		if (PadNav::SideToggle("Compass###gw2igh_dircompass", G::ShowCompassPad, static_cast<int>(Gw2Ui::Icon::CompassRadar), iconSz))
@@ -369,17 +337,6 @@ namespace UIDetail
 				"Wine: soft-open (deferred a few frames)\n"
 				"Default: Ctrl+Shift+K (Settings -> Keybinds)");
 
-		if (PadNav::SideToggle("Farming###gw2igh_farming", G::ShowFarming, static_cast<int>(Gw2Ui::Icon::FarmSack), iconSz))
-		{
-			if (G::ShowFarming) { G::ShowFarming = false; Settings::SetDirty(); }
-			else WinePadOpen::SoftOpen(&FarmingPad::OpenAndRefresh, "Farming");
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(
-				"Farming - curated/custom runs, GPS, fishing log\n"
-				"Wine: soft-open (deferred a few frames)\n"
-				"Default: Ctrl+Shift+R (Settings -> Keybinds)");
-
 		if (PadNav::SideToggle("Achievements###gw2igh_achievements",
 			G::ShowAchievements,
 			static_cast<int>(Gw2Ui::Icon::Achievements), iconSz))
@@ -448,6 +405,37 @@ namespace UIDetail
 				"Click again while Mirror is up to Soft-stop\n"
 				"(stream stops in ~0.1s; Mirror closes shortly after)\n"
 				"Default: Ctrl+Shift+W (Settings -> Keybinds)");
+
+		{
+			const bool hit = PadNav::SideToggle("API Check###gw2igh_api_check", false, static_cast<int>(Gw2Ui::Icon::ApiHourglass), iconSz);
+			const bool newTab = SideRail::ItemWantsNewTab();
+			if (hit || newTab)
+			{
+				if (!WinePadOpen::Soft())
+				{
+					const std::wstring dir = AddonPaths::DataDir();
+					if (!dir.empty())
+					{
+						auto kill = [&](const wchar_t* ext) {
+							std::wstring p = dir;
+							if (!p.empty() && p.back() != L'\\' && p.back() != L'/')
+								p.push_back(L'\\');
+							p += L"gw2-api-check";
+							p += ext;
+							DeleteFileW(p.c_str());
+						};
+						kill(L".html");
+						kill(L".ver");
+						kill(L".ok");
+					}
+				}
+				fireUrl("browse", "about:gw2-api-check", newTab);
+			}
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Probe official api.guildwars2.com endpoints (public + your key).\n"
+				"Local page - not a third-party status site.");
 
 		if (PadNav::SideToggle("Settings###gw2igh_settings", G::ShowSettings, static_cast<int>(Gw2Ui::Icon::SettingsGear), iconSz))
 		{

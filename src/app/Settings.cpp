@@ -309,8 +309,6 @@ void Settings::Load()
 			{ /* removed map-completion pad */ }
 		else if (std::strcmp(key, "PadAchievements") == 0)
 			PadDock::ParseGeom(val, G::PadAchievements);
-		else if (std::strcmp(key, "PadFarming") == 0)
-			PadDock::ParseGeom(val, G::PadFarming);
 		else if (std::strcmp(key, "PadEventAlert") == 0)
 			PadDock::ParseGeom(val, G::PadEventAlert);
 		else if (std::strcmp(key, "FavoriteIds") == 0)

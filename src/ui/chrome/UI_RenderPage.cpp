@@ -19,7 +19,6 @@
 #include "LogManagerPad.h"
 #include "EconomyPad.h"
 #include "InstancesPad.h"
-#include "FarmingPad.h"
 #include "EventAlert.h"
 #include "GpsArrow.h"
 #include "ZoneBanner.h"
@@ -159,8 +158,9 @@ namespace UIDetail
 				auto click = [&](ImGuiMouseButton btn, int cefBtn) {
 					if (ImGui::IsMouseClicked(btn))
 					{
-						/* Re-assert focus on click so the text caret appears (OSR). */
-						FocusBrowserForce();
+						/* Hover already focused CEF. Re-sending WIKI_IN_FOCUS on
+						   every click eats the first link activate (category tiles). */
+						FocusBrowser();
 						WikiBrowser::FeedMouseClick(cx, cy, cefBtn, false,
 							ImGui::IsMouseDoubleClicked(btn) ? 2 : 1, mods);
 					}

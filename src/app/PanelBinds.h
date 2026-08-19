@@ -12,7 +12,6 @@ namespace PanelBinds
 		Pathing,
 		Events,
 		Notes,
-		Farming,
 		Economy,
 		Instances,
 		Logs,

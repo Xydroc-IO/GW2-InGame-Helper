@@ -20,7 +20,7 @@ CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/ui/browse -Isrc/ui/settings -Isrc/ui/
 	-Isrc/pathing/trails -Isrc/pathing/waypoints -Isrc/pathing/mapassist \
 	-Isrc/logs -Isrc/logs/logmanager -Isrc/logs/eiruntime \
 	-Isrc/events -Isrc/notes -Isrc/helper \
-	-Isrc/economy -Isrc/instances -Isrc/completion -Isrc/farming -Isrc/overlay -Isrc/watch
+	-Isrc/economy -Isrc/instances -Isrc/completion -Isrc/overlay -Isrc/watch
 CXXFLAGS += -Ideps -Ideps/imgui -Ideps/cef -Ideps/miniz -Ideps/qrcodegen -Ideps/lua
 # Dependency files: emit only from the build/%.o rule via -MF (never beside sources).
 # Helper prefers msvcrt over UCRT so Wine CreateProcess doesn't fail on api-ms-win-crt-*.dll
@@ -234,14 +234,6 @@ DLL_SRC = \
 	src/completion/CompletionAchievements.cpp \
 	src/completion/CompletionAchDetail.cpp \
 	src/completion/CompletionAchWiki.cpp \
-	src/farming/FarmingPad.cpp \
-	src/farming/FarmingPadRuns.cpp \
-	src/farming/FarmingPadFish.cpp \
-	src/farming/FarmingPadState.cpp \
-	src/farming/FarmingPersist.cpp \
-	src/farming/FarmingCatalog.cpp \
-	src/farming/FarmingSchedule.cpp \
-	src/farming/FarmingNodes.cpp \
 	src/overlay/GpsArrow.cpp \
 	src/overlay/ZoneBanner.cpp \
 	src/overlay/EventAlert.cpp \
@@ -607,6 +599,10 @@ install: $(DLL_OUT)
 	@if [ -f "$(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll" ]; then \
 		/bin/rm -f "$(GW2_ADDONS)/GW2-InGame-Helper-Beta.dll"; \
 		echo "Removed GW2-InGame-Helper-Beta.dll (was shadowing shipping)"; \
+	fi
+	@if [ -f "$(GW2_ADDONS)/GW2InGameHelper.dll" ]; then \
+		/bin/rm -f "$(GW2_ADDONS)/GW2InGameHelper.dll"; \
+		echo "Removed leftover GW2InGameHelper.dll (duplicate HELP signature)"; \
 	fi
 	/bin/cp -f pathing/README.md "$(INSTALL_DIR)/pathing/README.md"
 	# Curated Tekkit is tw_ALL_IN_ONE.taco (PathingPacks download). Never seed

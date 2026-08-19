@@ -78,7 +78,6 @@ namespace G
 	extern bool  ShowCrafting; /* Plan / Known / Browse / Craft cart */
 	extern bool  ShowInstances; /* Story / fractal / raid / strike journal */
 	extern bool  ShowAchievements; /* Account AP groups — official API */
-	extern bool  ShowFarming; /* Farming runs + fishing catch log */
 	extern bool  ShowPathingGuides; /* ImGui Pathing category / credit panel */
 	extern bool  ShowPathingTrails; /* master: load packs + draw overlays */
 	extern bool  EnablePathingLua; /* opt-in subset of Blish script-* Lua */
@@ -173,6 +172,5 @@ namespace G
 	extern PadGeom PadCrafting;
 	extern PadGeom PadInstances;
 	extern PadGeom PadAchievements;
-	extern PadGeom PadFarming;
 	extern PadGeom PadEventAlert; /* on-screen event toast placement */
 }

@@ -21,7 +21,6 @@
 #include "EconomyPad.h"
 #include "InstancesPad.h"
 #include "CompletionPad.h"
-#include "FarmingPad.h"
 #include "EventAlert.h"
 #include "GpsArrow.h"
 #include "ZoneBanner.h"
@@ -289,7 +288,7 @@ namespace UIDetail
 	{
 		return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup ||
 			G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager ||
-			G::ShowEconomy || G::ShowCrafting || G::ShowInstances || G::ShowAchievements || G::ShowFarming ||
+			G::ShowEconomy || G::ShowCrafting || G::ShowInstances || G::ShowAchievements ||
 			G::ShowPathingGuides ||
 			G::ShowCompassPad || G::ShowWatch || G::ShowWatchMirror || G::ShowSettings;
 	}
@@ -332,9 +331,7 @@ namespace UIDetail
 		const bool craftingHover = probe("Crafting", G::ShowCrafting, &CraftingPad::Render);
 		const bool instancesHover = probe("Instances", G::ShowInstances, &InstancesPad::Render);
 		const bool achievementsHover = probe("Achievements", G::ShowAchievements, &CompletionPad::RenderAchievements);
-		const bool farmingHover = probe("Farming", G::ShowFarming, &FarmingPad::Render);
 		CompletionPad::Tick();
-		FarmingPad::Tick();
 		if (probePads)
 			CrashTrail::Note("pads:pre GpsArrow");
 		const bool gpsArrowHover = GpsArrow::Render();
@@ -356,7 +353,7 @@ namespace UIDetail
 			CrashTrail::NoteF("pads:end %s", settleProbe ? "settle" : "softstop");
 		CaptureForToolPads(notesHover || accountHover || tpHover || lookupHover ||
 			stashHover || vaultHover || eventsHover || logsHover ||
-			economyHover || craftingHover || instancesHover || achievementsHover || farmingHover ||
+			economyHover || craftingHover || instancesHover || achievementsHover ||
 			gpsArrowHover || eventAlertHover ||
 			tekkitHover || compassHover || watchHover || settingsHover);
 		if (probePads)

@@ -48,7 +48,6 @@ namespace G
 	bool  ShowCrafting = false;
 	bool  ShowInstances = false;
 	bool  ShowAchievements = false;
-	bool  ShowFarming = false;
 	bool  ShowPathingGuides = false;
 	bool  ShowPathingTrails = true;
 	bool  EnablePathingLua = false; /* opt-in Blish script-* subset */
@@ -131,7 +130,6 @@ namespace G
 	PadGeom PadCrafting{};
 	PadGeom PadInstances{};
 	PadGeom PadAchievements{};
-	PadGeom PadFarming{};
 	PadGeom PadEventAlert{};
 }
 

@@ -204,7 +204,7 @@ bool AnyCompanionPadOpen()
 {
 	return G::ShowNotes || G::ShowAccount || G::ShowTpWatch || G::ShowLookup
 		|| G::ShowWallet || G::ShowVault || G::ShowEvents || G::ShowLogManager
-		|| G::ShowEconomy || G::ShowCrafting || G::ShowInstances || G::ShowAchievements || G::ShowFarming
+		|| G::ShowEconomy || G::ShowCrafting || G::ShowInstances || G::ShowAchievements
 		|| G::ShowPathingGuides || G::ShowCompassPad
 		|| G::ShowWatch || G::ShowWatchMirror || G::ShowSettings;
 }

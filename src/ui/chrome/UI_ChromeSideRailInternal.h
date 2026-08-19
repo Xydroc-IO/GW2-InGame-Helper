@@ -28,7 +28,7 @@ namespace SideRail
 		return iconSz + framePadY * 2.f;
 	}
 
-	constexpr int kBtnCount = 20;
+	constexpr int kBtnCount = 19;
 
 	/* Match PaintPadChrome plaque-corner draw size (helper right edge). */
 	constexpr float kCornerCap = 28.f;
