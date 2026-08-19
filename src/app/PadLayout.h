@@ -120,14 +120,25 @@ namespace PadLayout
 	}
 
 	/* Full pad actions — not SmallButton chips. Primary = gold fill. */
-	inline bool GoldButton(const char* label, bool primary = false, bool first = false)
+	inline ImVec2 GoldPad() { return ImVec2(12.f, 7.f); }
+	inline ImVec2 GoldPadCompact() { return ImVec2(8.f, 3.f); }
+
+	inline float GoldButtonWidth(const char* label, bool compact = false)
+	{
+		const ImVec2 pad = compact ? GoldPadCompact() : GoldPad();
+		return PadNav::VisibleLabelWidth(label) + pad.x * 2.f;
+	}
+
+	inline bool GoldButton(const char* label, bool primary = false, bool first = false,
+		bool compact = false)
 	{
 		if (!label || !label[0])
 			return false;
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12.f, 7.f));
+		const ImVec2 pad = compact ? GoldPadCompact() : GoldPad();
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, pad);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);
-		const float w = PadNav::VisibleLabelWidth(label) + ImGui::GetStyle().FramePadding.x * 2.f;
+		const float w = GoldButtonWidth(label, compact);
 		if (!first)
 			PadNav::WrapSameLine(w);
 		if (primary)

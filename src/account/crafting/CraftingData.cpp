@@ -104,8 +104,7 @@ namespace CraftingDetail
 		ImGui::InputInt("Qty###gw2igh_craft_qty", &gPlanQty);
 		if (gPlanQty < 1) gPlanQty = 1;
 		ImGui::SameLine();
-		const float btnW = PadNav::VisibleLabelWidth("Plan###gw2igh_craft_go")
-			+ ImGui::GetStyle().FramePadding.x * 2.f + 8.f;
+		const float btnW = PadLayout::GoldButtonWidth("Plan###gw2igh_craft_go");
 		float fieldW = ImGui::GetContentRegionAvail().x - btnW - ImGui::GetStyle().ItemSpacing.x;
 		if (fieldW < 100.f) fieldW = 100.f;
 		ImGui::SetNextItemWidth(fieldW);
@@ -113,7 +112,7 @@ namespace CraftingDetail
 				gQuery, sizeof(gQuery), ImGuiInputTextFlags_EnterReturnsTrue))
 			StartPlan();
 		ImGui::SameLine();
-		if (PadLayout::GoldButton("Plan###gw2igh_craft_go", true, false))
+		if (PadLayout::GoldButton("Plan###gw2igh_craft_go", true, true))
 			StartPlan();
 
 		if (gBusy && !plan.ok)
@@ -140,8 +139,8 @@ namespace CraftingDetail
 			std::snprintf(dailyHdr, sizeof(dailyHdr),
 				"Daily crafting (%d / %d)###gw2igh_craft_daily",
 				dailyDone, static_cast<int>(dailies.size()));
-		const ImGuiTreeNodeFlags dailyFlags = (dailyDone >= static_cast<int>(dailies.size())
-			&& !dailies.empty())
+		const ImGuiTreeNodeFlags dailyFlags = (plan.ok || (dailyDone >= static_cast<int>(dailies.size())
+			&& !dailies.empty()))
 			? 0 : ImGuiTreeNodeFlags_DefaultOpen;
 		if (ImGui::CollapsingHeader(dailyHdr, dailyFlags))
 		{
@@ -158,11 +157,14 @@ namespace CraftingDetail
 					/ static_cast<float>(dailies.size());
 				ImGui::ProgressBar(prog, ImVec2(-1.f, 0.f), "");
 				if (ImGui::BeginTable("###gw2igh_craft_daily_tbl", 3,
-						ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg))
+						ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg
+						| ImGuiTableFlags_PadOuterX))
 				{
-					ImGui::TableSetupColumn("##st", ImGuiTableColumnFlags_WidthFixed, 46.f);
+					const float planW = PadLayout::GoldButtonWidth(
+						"Plan###gw2igh_craft_dplan", true);
+					ImGui::TableSetupColumn("##st", ImGuiTableColumnFlags_WidthFixed, 48.f);
 					ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
-					ImGui::TableSetupColumn("##go", ImGuiTableColumnFlags_WidthFixed, 52.f);
+					ImGui::TableSetupColumn("##go", ImGuiTableColumnFlags_WidthFixed, planW + 4.f);
 					for (const DailyRow& d : dailies)
 					{
 						ImGui::TableNextRow();
@@ -173,10 +175,9 @@ namespace CraftingDetail
 						const ImVec4 chipText = d.done ? HelperTheme::Ink : HelperTheme::GoldMuted;
 						PadLayout::Chip(chip, chipFill, chipText);
 						ImGui::TableSetColumnIndex(1);
-						ImGui::TextColored(d.done ? HelperTheme::Muted : HelperTheme::Ink,
-							"%s", d.name.c_str());
+						ImGui::TextUnformatted(d.name.c_str());
 						ImGui::TableSetColumnIndex(2);
-						if (PadLayout::GoldButton("Plan###gw2igh_craft_dplan", false, true))
+						if (PadLayout::GoldButton("Plan###gw2igh_craft_dplan", false, true, true))
 						{
 							std::snprintf(gQuery, sizeof(gQuery), "%s", d.name.c_str());
 							StartPlan();

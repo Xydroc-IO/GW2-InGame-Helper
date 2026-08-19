@@ -69,7 +69,7 @@ namespace CraftingDetail
 						{
 							if (rid <= 0) continue;
 							char label[96];
-							std::snprintf(label, sizeof(label), "Recipe #%d → item %d", rid, outId);
+							std::snprintf(label, sizeof(label), "Recipe #%d  item %d", rid, outId);
 							hits.emplace_back(rid, label);
 						}
 						std::snprintf(status, sizeof(status), "%d recipe(s).",
@@ -89,7 +89,7 @@ namespace CraftingDetail
 							{
 								if (rid <= 0) continue;
 								char label[96];
-								std::snprintf(label, sizeof(label), "Recipe #%d → item %d", rid, outId);
+								std::snprintf(label, sizeof(label), "Recipe #%d  item %d", rid, outId);
 								hits.emplace_back(rid, label);
 							}
 							std::snprintf(status, sizeof(status), "%d recipe(s).",

@@ -194,8 +194,6 @@ namespace CraftingDetail
 					KnownRecipeInfo& info = rows[static_cast<size_t>(i)];
 					ImGui::PushID(info.recipeId);
 					const char* nm = info.outputName.empty() ? "Item" : info.outputName.c_str();
-					ImGui::TextColored(HelperTheme::Ok, "✓");
-					ImGui::SameLine();
 					if (ImGui::Selectable(nm))
 					{
 						std::snprintf(gQuery, sizeof(gQuery), "%s", nm);
@@ -205,7 +203,7 @@ namespace CraftingDetail
 					{
 						auto who = CharsKnowing(info.recipeId);
 						ImGui::BeginTooltip();
-						ImGui::Text("Recipe #%d → item #%d", info.recipeId, info.outputId);
+						ImGui::Text("Recipe #%d  item #%d", info.recipeId, info.outputId);
 						if (KnownByAccount(info.recipeId))
 							ImGui::TextUnformatted("Account unlock");
 						if (!who.empty())
