@@ -113,6 +113,7 @@ namespace HelperDetail
 	void ClearCefString(cef_string_t* s);
 	std::string CefStringToUtf8(const cef_string_t* s);
 	void InitBase(cef_base_ref_counted_t* base, size_t size);
+	bool HelperIsWine();
 	void NavigateTo(const char* url);
 	void NavigateSlot(int slot, const char* url);
 	std::string ResolveBuiltinUrl(const char* url);
@@ -184,6 +185,7 @@ namespace HelperDetail
 	void QueueOpenInAddonTab(const std::string& url);
 	void QueueOpenSiteInAddonTab(const std::string& siteId, bool newTab = false);
 	bool IsTrustedHelperSource(const std::string& url);
+	bool IsTrustedHelperFileUrl(const std::string& url);
 	std::string NavSourceUrl(cef_browser_t* browser, cef_frame_t* frame);
 	bool ConsumeHelperNewTabUrl(const std::string& url, const std::string& sourceUrl);
 	bool TryOpenUrlInNewAddonTab(const std::string& url, const std::string& sourceUrl);

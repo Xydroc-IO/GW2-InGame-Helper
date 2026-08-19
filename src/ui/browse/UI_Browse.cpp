@@ -2,6 +2,7 @@
 #include "UI_BrowseInternal.h"
 
 #include "UI.h"
+#include "UIInternal.h"
 #include "BrowserTabs.h"
 #include "Globals.h"
 #include "HelperTheme.h"
@@ -155,11 +156,15 @@ bool UI_Browse_ToolbarFavoriteToggle()
 	const bool fav = Sites::IsFavoriteUrl(url);
 	if (FavoriteToggleButton("toolbar", fav, false))
 	{
+		if (fav)
+		{
+			Sites::ToggleFavoriteUrl(nullptr, url);
+			Settings::SaveNow();
+			LivePanels::NotifyFavoritesChanged();
+			return true;
+		}
 		const std::string title = WikiBrowser::CurrentTitle();
-		Sites::ToggleFavoriteUrl(title.empty() ? nullptr : title.c_str(), url);
-		Settings::SaveNow();
-		LivePanels::NotifyFavoritesChanged();
-		return true;
+		UIDetail::OpenStarBookmarkPopup(title.empty() ? nullptr : title.c_str(), url);
 	}
 	return false;
 }

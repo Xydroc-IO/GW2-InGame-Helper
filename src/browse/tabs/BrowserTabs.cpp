@@ -219,12 +219,14 @@ void BrowserTabs::OpenInActive(const char* siteId, bool navigate)
 	}
 	/* Keep CEF history coherent — stash live URL before replacing the tab site. */
 	StashActiveUrl();
+	const std::string prevUrl = gTabs[gActive].tab.url;
 	const bool keepPin = gTabs[gActive].tab.pinned;
 	FillFromSite(gTabs[gActive], siteId);
 	gTabs[gActive].tab.pinned = keepPin;
 	Settings::SetDirty();
 	if (navigate)
 	{
+		BumpLegendaryLedgerIfNewDest(prevUrl, gTabs[gActive].tab.url);
 		SyncSitesFromTab(gTabs[gActive].tab);
 		SyncSlotToHelper(gActive, true);
 	}
@@ -248,13 +250,35 @@ void BrowserTabs::OpenUrlInActive(const char* siteId, const std::string& url)
 		return;
 	}
 	StashActiveUrl();
+	const std::string prevUrl = gTabs[gActive].tab.url;
 	const bool keepPin = gTabs[gActive].tab.pinned;
 	FillFromSite(gTabs[gActive], siteId && siteId[0] ? siteId : "browse");
 	gTabs[gActive].tab.pinned = keepPin;
 	gTabs[gActive].tab.url = url;
 	Settings::SetDirty();
+	BumpLegendaryLedgerIfNewDest(prevUrl, gTabs[gActive].tab.url);
 	SyncSitesFromTab(gTabs[gActive].tab);
 	SyncSlotToHelper(gActive, true);
+}
+
+void BrowserTabs::CommitLiveAboutNavigation(const char* siteId, const std::string& aboutUrl,
+	const std::string& fileUrlIfReady)
+{
+	EnsureDefault();
+	if (aboutUrl.empty())
+		return;
+	if (gTabs[gActive].tab.url != aboutUrl)
+	{
+		StashActiveUrl();
+		FillFromSite(gTabs[gActive], siteId && siteId[0] ? siteId : "browse");
+		gTabs[gActive].tab.url = aboutUrl;
+		Settings::SetDirty();
+	}
+	SyncSitesFromTab(gTabs[gActive].tab);
+	if (!fileUrlIfReady.empty())
+		WikiBrowser::Navigate(fileUrlIfReady);
+	else
+		SyncSlotToHelper(gActive, true, true);
 }
 
 int BrowserTabs::OpenNew(const char* siteId, bool navigate)
@@ -270,6 +294,7 @@ int BrowserTabs::OpenNew(const char* siteId, bool navigate)
 	Settings::SetDirty();
 	if (navigate)
 	{
+		BumpLegendaryLedgerIfNewDest({}, gTabs[gActive].tab.url);
 		SyncSitesFromTab(gTabs[gActive].tab);
 		SyncSlotToHelper(gActive, true);
 	}
@@ -289,6 +314,7 @@ int BrowserTabs::OpenNewUrl(const char* siteId, const std::string& url)
 	gActive = gCount;
 	++gCount;
 	Settings::SetDirty();
+	BumpLegendaryLedgerIfNewDest({}, gTabs[gActive].tab.url);
 	SyncSitesFromTab(gTabs[gActive].tab);
 	SyncSlotToHelper(gActive, true);
 	return gActive;

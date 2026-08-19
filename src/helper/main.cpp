@@ -154,6 +154,10 @@ int APIENTRY wWinMain(HINSTANCE hi, HINSTANCE, LPWSTR, int)
 
 	cef_settings_t settings{};
 	settings.size = sizeof(settings);
+	/* MinGW + CEF C API: cef_initialize requires windows_sandbox_info when
+	   no_sandbox is 0. Official cef_sandbox.lib is MSVC-only, so we cannot
+	   enable the Chromium sandbox without a second (MSVC) helper. Wine also
+	   cannot host that broker. This is required, not a leftover flag. */
 	settings.no_sandbox = 1;
 	/* Single-threaded CEF UI loop so send_key/mouse/focus from DrainInput
 	   run on the browser UI thread. multi_threaded_message_loop=1 made

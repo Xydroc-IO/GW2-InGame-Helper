@@ -11,7 +11,7 @@ namespace LivePanelsBuild
 std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*apiKey*/)
 {
 	std::string html;
-	html.reserve(24000);
+	html.reserve(12000);
 	html += "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/>"
 		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>"
 		"<title>Browse</title><style>";
@@ -22,86 +22,17 @@ std::string BuildBrowseHubHtml(const std::wstring& /*addonDir*/, const char* /*a
 	html += "<div class=\"hero-copy\">"
 		"<p class=\"eyebrow\">GW2 In-Game Helper</p>"
 		"<h1>Browse</h1>"
-		"<p class=\"tag\">Pick a category or a bookmark — it opens in this tab. "
+		"<p class=\"tag\">Pick a category — it opens in this tab. "
 		"Use <strong>+</strong> or <strong>Ctrl+T</strong> when you want a new tab. "
-		"Star the address bar to pin the current page. Create folders with <strong>+ Folder</strong> "
-		"(click a folder name to collapse it), tap <strong>⇄</strong> to move a bookmark, "
-		"or <strong>Delete</strong> on a folder header "
-		"(bookmarks return to Unfiled).</p>"
-		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter favorites &amp; categories…\" "
+		"Star the address bar to bookmark the current page.</p>"
+		"<input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Filter categories…\" "
 		"autocomplete=\"off\"/>"
 		"</div></header>";
 
-	/* Favorites (folder sections) — + Folder creates via helper IPC. */
-	html += "<section class=\"sec\" data-sec=\"1\" data-keep=\"1\">"
-		"<div class=\"sec-head\">"
-		"<h2>Bookmarks</h2>"
-		"<button type=\"button\" class=\"btn-plus\" id=\"fav-add-folder\" "
-		"title=\"Create a folder to organize favorites\">+ Folder</button>"
-		"</div>";
-	const int favCount = Sites::FavoriteCount();
-	const int folderN = Sites::FavoriteFolderCount();
-	if (favCount <= 0 && folderN <= 0)
-	{
-		html += "<p class=\"empty\">No bookmarks yet — star the address bar on any page, "
-			"or ☆ a catalog site, or create a folder with <strong>+ Folder</strong>.</p>";
-	}
-	else
-	{
-		auto AppendFolder = [&](int folderId) {
-			const int count = Sites::FavoriteCountInFolder(folderId);
-			/* Always show user folders (even empty) so + Folder is useful immediately. */
-			if (count <= 0 && folderId == 0)
-				return;
-			const char* fname = Sites::FavoriteFolderName(folderId);
-			html += "<details class=\"fav-fold\" data-fold=\"";
-			html += std::to_string(folderId);
-			html += "\" open><summary class=\"fav-fold-head\"><span class=\"fold-title\">";
-			html += Esc(fname ? fname : "Folder");
-			html += " (";
-			html += std::to_string(count);
-			html += ")</span>";
-			if (folderId != 0)
-			{
-				html += "<a class=\"fold-del\" href=\"?gw2igh-fav-folder-delete=";
-				html += std::to_string(folderId);
-				html += "\" title=\"Delete folder — favorites in it return to Unfiled\" "
-					"onclick=\"event.stopPropagation();return confirm('Delete this folder? "
-					"Favorites inside move to Unfiled.');\">Delete</a>";
-			}
-			html += "</summary><div class=\"grid fold-body\">";
-			for (int i = 0; i < count; ++i)
-			{
-				const int slot = Sites::FavoriteSlotInFolder(folderId, i);
-				if (slot < 0)
-					continue;
-				AppendBookmarkTile(html, slot, folderId);
-			}
-			if (count <= 0)
-				html += "<p class=\"empty\">Empty — open <strong>⇄</strong> on a bookmark "
-					"and pick this folder.</p>";
-			html += "</div></details>";
-		};
-		AppendFolder(0);
-		for (int fi = 0; fi < folderN; ++fi)
-			AppendFolder(Sites::FavoriteFolderIdAt(fi));
-	}
-	html += "</section>"
-		"<div id=\"fav-folder-modal\" class=\"modal-backdrop hidden\" role=\"dialog\" "
-		"aria-labelledby=\"fav-folder-title\">"
-		"<div class=\"modal\">"
-		"<h3 id=\"fav-folder-title\">New favorites folder</h3>"
-		"<p class=\"hint\">After creating a folder, tap <strong>⇄</strong> on any favorite "
-		"and choose the folder name.</p>"
-		"<input id=\"fav-folder-name\" type=\"text\" maxlength=\"47\" "
-		"placeholder=\"Folder name…\" autocomplete=\"off\"/>"
-		"<div class=\"modal-actions\">"
-		"<button type=\"button\" id=\"fav-folder-cancel\">Cancel</button>"
-		"<button type=\"button\" class=\"primary\" id=\"fav-folder-create\">Create</button>"
-		"</div></div></div>";
-
 	/* Categories — two rows of three: Builds Guides Tools / Help Search Discord */
-	html += "<section class=\"sec\" data-sec=\"1\"><h2>Categories</h2><div class=\"grid grid-cats\">";
+	html += "<section class=\"sec\" data-sec=\"1\"><h2>Categories</h2>"
+		"<p class=\"sec-hint\">Bookmarks are on the bar above — star any page or ☆ a site below.</p>"
+		"<div class=\"grid grid-cats\">";
 	static const char* kHubCats[] = {
 		"Builds", "Guides", "Tools", "Help", "Search", "Discord",
 	};

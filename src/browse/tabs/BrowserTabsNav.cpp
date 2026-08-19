@@ -12,6 +12,8 @@
 #include <cstring>
 #include <string>
 
+#include <windows.h>
+
 using namespace BrowserTabsDetail;
 
 void BrowserTabs::Tick()
@@ -31,6 +33,54 @@ void BrowserTabs::Tick()
 		sSyncedReady = false;
 	}
 
+	/* Generated Live HTML: wait until the file is complete, then CREATE_TAB once.
+	   Keep the about: URL on the tab until CEF is actually on that file — otherwise
+	   CurrentUrl (still the previous hub page) overwrites the pending category. */
+	bool holdPendingLive = false;
+	if (ready && gActive >= 0 && gActive < gCount &&
+		LivePanels::IsLiveAbout(gTabs[gActive].tab.url.c_str()))
+	{
+		const std::string file = LivePanels::ResolveAboutUrl(
+			AddonPaths::DataDir(), gTabs[gActive].tab.url.c_str());
+		static DWORD sLastCreateTry = 0;
+		const DWORD now = GetTickCount();
+		const bool retryCreate = (sLastCreateTry == 0 || (now - sLastCreateTry) >= 200u);
+		if (file.empty())
+		{
+			holdPendingLive = true;
+			if (retryCreate)
+			{
+				sLastCreateTry = now;
+				SyncSlotToHelper(gActive, true, true);
+			}
+		}
+		else
+		{
+			auto htmlLeaf = [](const std::string& u) -> std::string {
+				std::string s = u;
+				const size_t q = s.find('?');
+				if (q != std::string::npos)
+					s.resize(q);
+				const size_t slash = s.find_last_of("/\\");
+				return slash == std::string::npos ? s : s.substr(slash + 1);
+			};
+			const char* cef = WikiBrowser::CurrentUrlCStr();
+			const bool onFile = cef && htmlLeaf(cef) == htmlLeaf(file);
+			if (!WikiBrowser::HasTab(gActive) || !onFile)
+			{
+				holdPendingLive = true;
+				if (retryCreate)
+				{
+					sLastCreateTry = now;
+					SyncSlotToHelper(gActive, true, true);
+					/* Leave opening-cheatsheet / about: once HTML is on disk. */
+					if (!file.empty())
+						WikiBrowser::Navigate(file);
+				}
+			}
+		}
+	}
+
 	if (gActive < 0 || gActive >= gCount)
 		return;
 
@@ -44,7 +94,7 @@ void BrowserTabs::Tick()
 	BrowserTabs::Tab& active = gTabs[gActive].tab;
 	bool urlChanged = false;
 	const char* cur = WikiBrowser::CurrentUrlCStr();
-	if (cur && cur[0] && std::strcmp(cur, active.url.c_str()) != 0)
+	if (!holdPendingLive && cur && cur[0] && std::strcmp(cur, active.url.c_str()) != 0)
 	{
 		active.url = cur;
 		urlChanged = true;

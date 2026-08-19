@@ -56,8 +56,12 @@ namespace UIDetail
 		   mis-hit (last tab's x clipped / click landed on the previous x). */
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 4.f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7.f, 4.f));
-		ImGui::BeginChild("##gw2igh_tab_bar", ImVec2(0.f, ImGui::GetFrameHeightWithSpacing() + 4.f), false,
+		const float tabRowH = ImGui::GetFrameHeightWithSpacing();
+		const float tabBarH = tabRowH + 4.f;
+		ImGui::BeginChild("##gw2igh_tab_bar", ImVec2(0.f, tabBarH), false,
 			ImGuiWindowFlags_HorizontalScrollbar);
+		/* Sit on the content separator — gap above is between bookmark bar and tabs. */
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tabBarH - tabRowH - 2.f);
 
 		const float closeZone = ImGui::CalcTextSize("  x").x + ImGui::GetStyle().FramePadding.x;
 

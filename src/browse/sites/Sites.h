@@ -64,6 +64,7 @@ namespace Sites
 	bool IsFavoriteUrl(const char* url);
 	bool ToggleFavorite(const char* id); /* star a catalog site home */
 	bool ToggleFavoriteUrl(const char* title, const char* url); /* true if now bookmarked */
+	bool AddFavoriteUrl(const char* title, const char* url, int folderId);
 	int  FavoriteCount();
 	int  FavoriteSiteIndex(int favSlot); /* catalog index for a bookmark, or -1 */
 	const char* FavoriteUrlAt(int slot);
@@ -95,7 +96,7 @@ namespace Sites
 	int  FavoriteCountInFolder(int folderId);
 	int  FavoriteSiteIndexInFolder(int folderId, int slotInFolder);
 	int  FavoriteSlotInFolder(int folderId, int slotInFolder); /* global slot, or -1 */
-	bool CreateFavoriteFolder(const char* name);
+	int  CreateFavoriteFolder(const char* name); /* folder id (existing if name matches), or 0 */
 	bool RenameFavoriteFolder(int folderId, const char* name);
 	bool DeleteFavoriteFolder(int folderId); /* items move to Unfiled */
 	bool MoveFavoriteFolder(int fromIndex, int toIndex);

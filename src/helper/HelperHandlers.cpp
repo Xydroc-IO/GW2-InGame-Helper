@@ -181,7 +181,7 @@ namespace HelperDetail
 			"disable-d3d11",
 			"disable-direct-composition",
 			"in-process-gpu",
-			"no-sandbox",
+			"no-sandbox", /* see main.cpp — MinGW cannot pass sandbox_info */
 			"disable-extensions",
 			"disable-pdf-extension",
 			"disable-site-isolation-trials",

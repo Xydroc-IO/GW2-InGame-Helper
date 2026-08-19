@@ -6,6 +6,7 @@
 #include "AddonPaths.h"
 #include "BrowserTabs.h"
 #include "CheatSheets.h"
+#include "EiRuntime.h"
 #include "Sites.h"
 #include "WikiBrowser.h"
 
@@ -123,11 +124,6 @@ std::string LivePanels::ResolveAboutUrl(const std::wstring& addonDir, const std:
 	/* live-progress demoted — Ledger is primary legendary discovery. */
 	if (url == "about:live-progress" || url == "about:legendary-vault")
 	{
-		/* Always re-fetch /v2/account/legendaryarmory so Owned/Missing stays current
-		   without requiring Sync craft tree. */
-		DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
-		DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ver").c_str());
-		DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ok").c_str());
 		return EnsurePanel(addonDir, "live-legendary-vault", LiveAsyncJob::LegendaryLedger,
 			"GW2 Legendary Ledger", "The Complete GW2 Legendary Collection");
 	}
@@ -294,14 +290,14 @@ void LivePanels::Tick()
 				keep.push_back(std::move(nav));
 			continue;
 		}
-		/* Same file:// as the loading shell is a CEF no-op; cache-bust so the
-		   finished HTML actually loads (manual Reload used to be required). */
-		std::string dest = nav.fileUrl;
-		dest += (nav.fileUrl.find('?') == std::string::npos) ? "?r=" : "&r=";
-		char tick[16];
-		std::snprintf(tick, sizeof(tick), "%lu", static_cast<unsigned long>(GetTickCount()));
-		dest += tick;
-		WikiBrowser::Navigate(dest);
+		const bool onStub = cur && std::strstr(cur, "opening-cheatsheet") != nullptr;
+		const bool onAbout = cur && std::strncmp(cur, "about:", 6) == 0;
+		if ((onStub || onAbout) && !nav.fileUrl.empty())
+			WikiBrowser::Navigate(nav.fileUrl);
+		/* File is on disk. Native Windows: Reload when already on the live file.
+		   Wine: Reload of file:// crashes — Navigate above handles stub→file. */
+		else if (!EiRuntime::IsWine())
+			WikiBrowser::Reload();
 	}
 	if (!keep.empty())
 	{
@@ -309,6 +305,16 @@ void LivePanels::Tick()
 		for (LiveReadyNav& nav : keep)
 			gAsync.readyNav.push_back(std::move(nav));
 	}
+}
+
+void LivePanels::BumpLegendaryVaultOpen(const std::wstring& addonDir)
+{
+	if (addonDir.empty())
+		return;
+	/* Stamp-only — keep ledger HTML on disk for CEF history / wait-until-complete poll. */
+	DeleteFileW(StemPath(addonDir, "live-acc-armory", L".json").c_str());
+	DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ver").c_str());
+	DeleteFileW(StemPath(addonDir, "live-legendary-vault", L".ok").c_str());
 }
 
 void LivePanels::InvalidateTpCache(const std::wstring& addonDir)
@@ -391,16 +397,6 @@ void LivePanels::NotifyFavoritesChanged()
 	if (dir.empty())
 		return;
 
-	/* Stamp-only invalidate so CEF keeps a valid file:// under the path.
-	   Rebuild then Reload (Navigate to the same file is a no-op / Wine hazard). */
+	/* Stamp-only invalidate — category pages refresh stars; hub no longer lists bookmarks. */
 	InvalidateBrowseFavCaches(dir, nullptr);
-
-	const char* cur = WikiBrowser::CurrentUrlCStr();
-	if (!cur || !cur[0])
-		return;
-	if (!std::strstr(cur, "live-browse-hub") && !std::strstr(cur, "about:browse-hub"))
-		return;
-	if (ResolveAboutUrl(dir, "about:browse-hub").empty())
-		return;
-	WikiBrowser::Reload();
 }

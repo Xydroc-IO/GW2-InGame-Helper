@@ -151,7 +151,12 @@ namespace HelperDetail
 		case WIKI_CMD_FORWARD: if (browser) browser->go_forward(browser); break;
 		case WIKI_CMD_RELOAD:
 			if (browser)
-				browser->reload(browser);
+			{
+				const std::string u = MainFrameUrl(browser);
+				/* Wine: reload of file:// exits STATUS_BREAKPOINT. Native Windows can. */
+				if (u.rfind("file:", 0) != 0 || !HelperIsWine())
+					browser->reload(browser);
+			}
 			break;
 		case WIKI_CMD_HOME: NavigateTo(arg && arg[0] ? arg : gStartUrl.c_str()); break;
 		case WIKI_CMD_SET_BOUNDS: NotifyWasResized(); break;

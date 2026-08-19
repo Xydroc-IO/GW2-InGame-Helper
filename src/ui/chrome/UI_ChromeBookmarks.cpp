@@ -2,6 +2,7 @@
 #include "UIInternal.h"
 
 #include "LivePanels.h"
+#include "Settings.h"
 #include "Sites.h"
 #include "WikiBrowser.h"
 
@@ -20,6 +21,12 @@ namespace
 	char sRenameBuf[48]{};
 	int sRenameBookmarkSlot = -1;
 	char sRenameBookmark[64]{};
+	bool sStarOpen = false;
+	char sStarTitle[64]{};
+	char sStarUrl[512]{};
+	int sStarFolderId = 0; /* 0 = bar, -1 = create folder */
+	char sStarNewFolder[48]{};
+	bool sFocusStarNew = false;
 
 	struct BarDrag
 	{
@@ -235,9 +242,112 @@ namespace
 	}
 }
 
+	void OpenStarBookmarkPopup(const char* title, const char* url)
+	{
+		if (!url || !url[0])
+			return;
+		std::snprintf(sStarUrl, sizeof(sStarUrl), "%s", url);
+		if (title && title[0])
+			std::snprintf(sStarTitle, sizeof(sStarTitle), "%s", title);
+		else
+			std::snprintf(sStarTitle, sizeof(sStarTitle), "%s", url);
+		sStarFolderId = 0;
+		sStarNewFolder[0] = 0;
+		sFocusStarNew = false;
+		sStarOpen = true;
+	}
+
+	void DrawStarBookmarkPopup()
+	{
+		if (sStarOpen)
+		{
+			ImGui::OpenPopup("##gw2igh_star_save");
+			sStarOpen = false;
+		}
+		if (!ImGui::BeginPopupModal("##gw2igh_star_save", nullptr,
+			ImGuiWindowFlags_AlwaysAutoResize))
+			return;
+		ImGui::TextUnformatted("Save bookmark");
+		ImGui::Spacing();
+		const bool nameEnter = ImGui::InputText("Name###gw2igh_star_title", sStarTitle,
+			sizeof(sStarTitle), ImGuiInputTextFlags_EnterReturnsTrue);
+		const char* folderLabel = "Bookmarks bar";
+		if (sStarFolderId < 0)
+			folderLabel = "New folder...";
+		else if (sStarFolderId > 0)
+		{
+			const char* n = Sites::FavoriteFolderName(sStarFolderId);
+			if (n && n[0])
+				folderLabel = n;
+		}
+		if (ImGui::BeginCombo("Folder###gw2igh_star_fold", folderLabel))
+		{
+			if (ImGui::Selectable("Bookmarks bar", sStarFolderId == 0))
+				sStarFolderId = 0;
+			const int folderN = Sites::FavoriteFolderCount();
+			for (int fi = 0; fi < folderN; ++fi)
+			{
+				const int fid = Sites::FavoriteFolderIdAt(fi);
+				const char* fname = Sites::FavoriteFolderName(fid);
+				char sid[80];
+				std::snprintf(sid, sizeof(sid), "%s###starfold%d",
+					fname ? fname : "Folder", fid);
+				if (ImGui::Selectable(sid, sStarFolderId == fid))
+					sStarFolderId = fid;
+			}
+			ImGui::Separator();
+			if (ImGui::Selectable("New folder...", sStarFolderId < 0))
+			{
+				sStarFolderId = -1;
+				sFocusStarNew = true;
+			}
+			ImGui::EndCombo();
+		}
+		bool folderEnter = false;
+		if (sStarFolderId < 0)
+		{
+			if (sFocusStarNew)
+			{
+				ImGui::SetKeyboardFocusHere();
+				sFocusStarNew = false;
+			}
+			folderEnter = ImGui::InputTextWithHint("##gw2igh_star_newfold", "Folder name",
+				sStarNewFolder, sizeof(sStarNewFolder),
+				ImGuiInputTextFlags_EnterReturnsTrue);
+		}
+		ImGui::Spacing();
+		const bool canSave = sStarTitle[0] && sStarUrl[0] &&
+			(sStarFolderId >= 0 || sStarNewFolder[0]);
+		if ((ImGui::Button("Save", ImVec2(96.f, 0.f)) || nameEnter || folderEnter) && canSave)
+		{
+			int dest = sStarFolderId;
+			if (dest < 0)
+			{
+				dest = Sites::CreateFavoriteFolder(sStarNewFolder);
+				if (dest == 0)
+					dest = -1;
+			}
+			if (dest >= 0 && Sites::AddFavoriteUrl(sStarTitle, sStarUrl, dest))
+			{
+				Settings::SaveNow();
+				LivePanels::NotifyFavoritesChanged();
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(96.f, 0.f)))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
+
 	void DrawBookmarkBar()
 	{
 		DrawModals();
+		/* Toolbar ends with SameLine (star / Reload / ...). Without a new row,
+		   folder chips trail the address bar on the far right. */
+		if (ImGui::GetCursorPosX() > ImGui::GetCursorStartPos().x + 16.f)
+			ImGui::NewLine();
+		ImGui::SetCursorPosX(ImGui::GetCursorStartPos().x);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 2.f));
 		const float maxX = ImGui::GetWindowContentRegionMax().x;
 		bool overflow = false;
@@ -285,9 +395,11 @@ namespace
 			char id[40];
 			std::snprintf(id, sizeof(id), "fold%d", fid);
 			char lab[64];
-			std::snprintf(lab, sizeof(lab), "%s ▾", Sites::FavoriteFolderName(fid));
+			std::snprintf(lab, sizeof(lab), "%s", Sites::FavoriteFolderName(fid));
 			if (DrawChip(lab, id))
 				ImGui::OpenPopup(id);
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Folder");
 			FolderContext(fid, fi);
 			if (ImGui::BeginPopup(id))
 			{
@@ -311,7 +423,7 @@ namespace
 		if (overflow)
 		{
 			ImGui::SameLine();
-			if (ImGui::SmallButton("»###gw2igh_bm_more"))
+			if (ImGui::SmallButton("...###gw2igh_bm_more"))
 				ImGui::OpenPopup("##gw2igh_bm_overflow");
 			if (ImGui::BeginPopup("##gw2igh_bm_overflow"))
 			{

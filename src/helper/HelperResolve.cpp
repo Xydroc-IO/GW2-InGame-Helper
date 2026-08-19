@@ -270,7 +270,9 @@ namespace HelperDetail
 			CloseHandle(in);
 			if (!ok || got == 0)
 				return true;
-			return std::strstr(buf, "Opening cheat sheet") != nullptr;
+			return std::strstr(buf, "Opening cheat sheet") != nullptr
+				|| std::strstr(buf, "Opening Legendary Ledger") != nullptr
+				|| std::strstr(buf, "Building page") != nullptr;
 		};
 
 		/* Real generated pages (Live / home / raid-food). Never treat the
@@ -294,20 +296,31 @@ namespace HelperDetail
 				CloseHandle(h);
 			}
 		}
-		static const char kShell[] =
+		const char* loadMsg = "Opening cheat sheet…";
+		if (std::strcmp(url, "about:legendary-vault") == 0 ||
+			std::strcmp(url, "about:live-progress") == 0)
+			loadMsg = "Opening Legendary Ledger…";
+		else if (std::strcmp(url, "about:cheatsheets-hub") == 0 ||
+			std::strcmp(url, "about:browse-hub") == 0 ||
+			std::strcmp(url, "about:gw2-api-check") == 0 ||
+			std::strncmp(url, "about:live-", 11) == 0 ||
+			std::strncmp(url, "about:browse-cat-", 17) == 0)
+			loadMsg = "Building page…";
+		char shellBody[384];
+		std::snprintf(shellBody, sizeof(shellBody),
 			"<!DOCTYPE html><html><head><meta charset=\"utf-8\"/>"
 			"<title>Loading…</title></head>"
 			"<body style=\"margin:0;background:#0b0a10;color:#a1a1aa;"
 			"font-family:Segoe UI,sans-serif;padding:2rem\">"
-			"<p>Opening cheat sheet…</p>"
-			"</body></html>";
+			"<p>%s</p>"
+			"</body></html>", loadMsg);
 		const std::wstring pathStub = pages + L"\\opening-cheatsheet.html";
 		HANDLE hf = CreateFileW(pathStub.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hf != INVALID_HANDLE_VALUE)
 		{
 			DWORD written = 0;
-			WriteFile(hf, kShell, static_cast<DWORD>(sizeof(kShell) - 1), &written, nullptr);
+			WriteFile(hf, shellBody, static_cast<DWORD>(std::strlen(shellBody)), &written, nullptr);
 			CloseHandle(hf);
 		}
 		if (GetFileAttributesW(pathStub.c_str()) == INVALID_FILE_ATTRIBUTES)

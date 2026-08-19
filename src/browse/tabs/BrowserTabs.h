@@ -37,6 +37,10 @@ namespace BrowserTabs
 	/* Navigate the active tab to a URL (rail Wiki / Sheets / hub tiles). */
 	void OpenUrlInActive(const char* siteId, const std::string& url);
 
+	/* Live about: from helper open-about-cmd — no BumpLegendaryVaultOpen. */
+	void CommitLiveAboutNavigation(const char* siteId, const std::string& aboutUrl,
+		const std::string& fileUrlIfReady);
+
 	/* Open site in a new tab (Browse Ctrl+click / +). Returns new index, or -1. */
 	int  OpenNew(const char* siteId, bool navigate);
 

@@ -73,6 +73,8 @@ namespace UIDetail
 	void DrawMoreMenu();
 	void DrawToolbar();
 	void DrawBookmarkBar();
+	void OpenStarBookmarkPopup(const char* title, const char* url);
+	void DrawStarBookmarkPopup();
 	void DrawHelperSideRail();
 	/* Same width DrawHelperSideRail uses (for title-bar left flush). */
 	float HelperSideRailWidth();

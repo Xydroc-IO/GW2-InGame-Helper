@@ -98,6 +98,8 @@ namespace WikiBrowserDetail
 	void SetLocalStatus(const std::string& s)
 	{
 		std::lock_guard<std::mutex> lock(gMutex);
+		if (gStatus == s)
+			return;
 		gStatus = s;
 		std::snprintf(gStatusCache, sizeof(gStatusCache), "%s", s.c_str());
 		gStatusCacheFromIpc = false;
@@ -304,7 +306,7 @@ namespace WikiBrowserDetail
 				return fileUrl;
 			if (LivePanels::IsLiveAbout(nav.c_str()))
 			{
-				SetLocalStatus("Failed to write Live panel HTML");
+				SetLocalStatus("Building page…");
 				/* Never hand CEF a raw about:live-* — Chromium shows a white “blocked” page. */
 				return {};
 			}

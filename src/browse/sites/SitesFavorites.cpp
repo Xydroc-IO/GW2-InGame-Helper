@@ -204,11 +204,31 @@ bool Sites::ToggleFavoriteUrl(const char* title, const char* url)
 		MarkChanged(false);
 		return false;
 	}
+	return AddFavoriteUrl(title, url, kUnfiledFavoriteFolderId);
+}
+
+bool Sites::AddFavoriteUrl(const char* title, const char* url, int folderId)
+{
+	if (!url || !url[0] || std::strlen(url) >= kMaxFavoriteUrl)
+		return false;
+	if (!FolderIdKnown(folderId))
+		folderId = kUnfiledFavoriteFolderId;
+	const int slot = FindFavoriteSlot(url);
+	if (slot >= 0)
+	{
+		FillTitle(slot, title, url);
+		if (gFavoriteFolderIds[slot] != folderId)
+		{
+			gFavoriteFolderIds[slot] = folderId;
+			MarkChanged(false);
+		}
+		return true;
+	}
 	if (gFavoriteCount >= kMaxFavorites)
 		return false;
 	std::snprintf(gFavoriteUrls[gFavoriteCount], kMaxFavoriteUrl, "%s", url);
 	FillTitle(gFavoriteCount, title, url);
-	gFavoriteFolderIds[gFavoriteCount] = kUnfiledFavoriteFolderId;
+	gFavoriteFolderIds[gFavoriteCount] = folderId;
 	++gFavoriteCount;
 	MarkChanged(false);
 	return true;
@@ -335,32 +355,33 @@ int Sites::FavoriteSiteIndexInFolder(int folderId, int slotInFolder)
 	return FavoriteSiteIndex(FavoriteSlotInFolder(folderId, slotInFolder));
 }
 
-bool Sites::CreateFavoriteFolder(const char* name)
+int Sites::CreateFavoriteFolder(const char* name)
 {
 	if (!name || !name[0] || gFavoriteFolderCount >= kMaxFavoriteFolders)
-		return false;
+		return 0;
 	while (*name == ' ' || *name == '\t')
 		++name;
 	if (!name[0])
-		return false;
+		return 0;
 	char cleaned[48]{};
 	std::snprintf(cleaned, sizeof(cleaned), "%s", name);
 	size_t len = std::strlen(cleaned);
 	while (len > 0 && (cleaned[len - 1] == ' ' || cleaned[len - 1] == '\t'))
 		cleaned[--len] = 0;
 	if (len == 0)
-		return false;
+		return 0;
 	for (int i = 0; i < gFavoriteFolderCount; ++i)
 	{
 		if (_stricmp(gFavoriteFolders[i].name, cleaned) == 0)
-			return false;
+			return gFavoriteFolders[i].id;
 	}
-	gFavoriteFolders[gFavoriteFolderCount].id = gFavoriteNextFolderId++;
+	const int id = gFavoriteNextFolderId++;
+	gFavoriteFolders[gFavoriteFolderCount].id = id;
 	std::snprintf(gFavoriteFolders[gFavoriteFolderCount].name,
 		sizeof(gFavoriteFolders[0].name), "%s", cleaned);
 	++gFavoriteFolderCount;
 	MarkChanged(true);
-	return true;
+	return id;
 }
 
 bool Sites::RenameFavoriteFolder(int folderId, const char* name)

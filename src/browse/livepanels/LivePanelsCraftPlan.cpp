@@ -193,7 +193,14 @@ bool ProcessOpenAboutCmdFile(const std::wstring& addonDir)
 		std::string dest = CheatSheets::ResolveAboutUrl(addonDir, line);
 		if (dest.empty())
 			dest = LivePanels::ResolveAboutUrl(addonDir, line);
-		WikiBrowser::Navigate(dest.empty() ? line : dest);
+		/* Live about: keep tab on about: and start the worker — do not re-Bump
+		   (OpenUrlInActive would invalidate a panel the helper just queued). */
+		if (LivePanels::IsLiveAbout(line.c_str()))
+		{
+			BrowserTabs::CommitLiveAboutNavigation("browse", line, dest);
+		}
+		else
+			WikiBrowser::Navigate(dest.empty() ? line : dest);
 		any = true;
 	}
 	return any;

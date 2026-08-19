@@ -36,4 +36,5 @@ namespace BrowserTabsDetail
 	void RefreshTabLabelFromUrl(BrowserTabs::Tab& tab, bool preferPageTitle);
 	void SyncSlotToHelper(int slot, bool activate, bool forceNavigate = true);
 	void SyncAllToHelper();
+	void BumpLegendaryLedgerIfNewDest(const std::string& prev, const std::string& dest);
 }

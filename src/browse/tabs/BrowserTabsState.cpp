@@ -1,6 +1,8 @@
 #include "BrowserTabsInternal.h"
 
+#include "AddonPaths.h"
 #include "Globals.h"
+#include "LivePanels.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "WikiBrowser.h"
@@ -9,8 +11,24 @@
 #include <cstring>
 #include <string>
 
+namespace
+{
+	bool UrlIsLegendaryLedger(const std::string& u)
+	{
+		return u == "about:legendary-vault" || u == "about:live-progress" ||
+			u.find("live-legendary-vault") != std::string::npos;
+	}
+}
+
 namespace BrowserTabsDetail
 {
+void BumpLegendaryLedgerIfNewDest(const std::string& prev, const std::string& dest)
+{
+	if (!UrlIsLegendaryLedger(dest) || UrlIsLegendaryLedger(prev))
+		return;
+	LivePanels::BumpLegendaryVaultOpen(AddonPaths::DataDir());
+}
+
 	TabState gTabs[BrowserTabs::kMaxTabs];
 	int gCount = 0;
 	int gActive = 0;

@@ -95,6 +95,16 @@ namespace HelperDetail
 		return active && browser && active->is_same(active, browser);
 	}
 
+	bool HelperIsWine()
+	{
+		static int sCached = -1;
+		if (sCached >= 0)
+			return sCached != 0;
+		HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+		sCached = (ntdll && GetProcAddress(ntdll, "wine_get_version")) ? 1 : 0;
+		return sCached != 0;
+	}
+
 	void UpdateTabMask()
 	{
 		if (!gIpc)

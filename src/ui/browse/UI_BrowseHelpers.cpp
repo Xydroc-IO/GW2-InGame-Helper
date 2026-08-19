@@ -2,6 +2,7 @@
 #include "UI_BrowseInternal.h"
 
 #include "UI.h"
+#include "UIInternal.h"
 #include "AspectLayout.h"
 #include "BrowserTabs.h"
 #include "Globals.h"
@@ -247,7 +248,7 @@ bool FavoriteToggleButton(const char* id, bool favorited, bool smallBtn)
 		col = ImGui::GetColorU32(hovered ? HelperTheme::Ink : kMuted);
 	DrawStarShape(dl, center, radius, col, favorited);
 	if (hovered)
-		ImGui::SetTooltip(favorited ? "Remove from Favorites" : "Add to Favorites");
+		ImGui::SetTooltip(favorited ? "Remove bookmark" : "Bookmark this page…");
 	ImGui::PopID();
 	return pressed;
 }
@@ -259,9 +260,21 @@ void DrawFavoriteStar(const char* siteId)
 	const bool fav = Sites::IsFavorite(siteId);
 	if (FavoriteToggleButton("row", fav, true))
 	{
-		Sites::ToggleFavorite(siteId);
-		Settings::SaveNow();
-		LivePanels::NotifyFavoritesChanged();
+		if (fav)
+		{
+			Sites::ToggleFavorite(siteId);
+			Settings::SaveNow();
+			LivePanels::NotifyFavoritesChanged();
+			return;
+		}
+		const int si = Sites::IndexOfId(siteId);
+		size_t n = 0;
+		const SiteDef* sites = Sites::All(&n);
+		if (si >= 0 && sites && si < static_cast<int>(n) && sites[si].homeUrl)
+		{
+			const char* title = sites[si].label ? sites[si].label : sites[si].title;
+			UIDetail::OpenStarBookmarkPopup(title, sites[si].homeUrl);
+		}
 	}
 }
 

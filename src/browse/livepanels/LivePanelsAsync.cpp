@@ -203,6 +203,8 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 	LiveAsyncJob::Kind kind, const char* offlineTitle, const char* offlineHeading,
 	int itemId)
 {
+	(void)offlineTitle;
+	(void)offlineHeading;
 	const std::wstring path = StemPath(addonDir, stem, L".html");
 	const std::wstring verPath = StemPath(addonDir, stem, L".ver");
 	DWORD ttl = kHtmlTtlSec;
@@ -229,35 +231,17 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		WriteUtf8File(StemPath(addonDir, stem, L".ok"), "1");
 		return PathToFileUrl(path);
 	}
-	/* Cheat sheets / Browse hubs — never build multi-KB HTML on Navigate.
-	   Cache hit (ver + .ok) serves disk; InvalidateBrowseHubCaches clears that
-	   when favorites change. Miss → shell + worker + Reload. */
-	if (kind == LiveAsyncJob::CheatSheetsHub || kind == LiveAsyncJob::BrowseHub)
+	/* Cheat sheets / Browse hubs — cache hit serves disk. Miss: worker writes
+	   the complete file, then CREATE_TAB once (Wine cannot Reload / second
+	   file:// load). Overlay chrome shows “waiting” until then. */
+	if (kind == LiveAsyncJob::CheatSheetsHub || kind == LiveAsyncJob::BrowseHub ||
+		kind == LiveAsyncJob::BrowseCategory)
 	{
 		if (PanelReady(addonDir, stem) && VerMatches(verPath))
 			return PathToFileUrl(path);
-		const char* title = kind == LiveAsyncJob::CheatSheetsHub ? "Cheat Sheets" : "Browse";
-		if (!WriteUtf8File(path, OfflineShellHtml(title, title,
-				"Building catalog… this page will refresh when ready.")))
-			return {};
 		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 		StartLiveWorker(addonDir, stem, kind, itemId);
-		return PathToFileUrl(path);
-	}
-	/* Browse category (Wiki is huge) — shell now, build on worker, then Reload. */
-	if (kind == LiveAsyncJob::BrowseCategory)
-	{
-		const char* slug = nullptr;
-		static const char kPrefix[] = "live-browse-cat-";
-		if (stem && std::strncmp(stem, kPrefix, sizeof(kPrefix) - 1) == 0)
-			slug = stem + (sizeof(kPrefix) - 1);
-		const char* cat = LivePanelsBuild::BrowseCategoryFromSlug(slug);
-		if (!WriteUtf8File(path,
-				LivePanelsBuild::BuildBrowseCategoryShellHtml(cat ? cat : "Browse")))
-			return {};
-		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
-		StartLiveWorker(addonDir, stem, kind, itemId);
-		return PathToFileUrl(path);
+		return {};
 	}
 
 	/* Stale-while-revalidate: paint last good Live HTML instantly, refresh behind it. */
@@ -270,18 +254,13 @@ std::string EnsurePanel(const std::wstring& addonDir, const char* stem,
 		return PathToFileUrl(path);
 	}
 
-	const std::string shell = kind == LiveAsyncJob::LegendaryDetail
-		? LivePanelsBuild::BuildLegendaryDetailShellHtml(itemId)
-		: OfflineShellHtml(offlineTitle, offlineHeading,
-			kind == LiveAsyncJob::ApiCheck
-				? "Probing api.guildwars2.com in the background. This page will refresh when ready."
-				: "Fetching Live data in the background. This page will refresh when ready. "
-				  "You can keep playing — the game should not freeze.");
-	WriteUtf8File(path, shell);
-	DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
-
+	/* Worker may have just finished — serve the file before we wipe .ok again. */
+	if (PanelReady(addonDir, stem) && GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES)
+		return PathToFileUrl(path);
+	if (!StemIsRunningOrQueued(stem))
+		DeleteFileW(StemPath(addonDir, stem, L".ok").c_str());
 	StartLiveWorker(addonDir, stem, kind, itemId);
-	return PathToFileUrl(path);
+	return {};
 }
 
 } // namespace LivePanelsDetail

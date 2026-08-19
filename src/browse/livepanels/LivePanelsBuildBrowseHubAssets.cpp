@@ -104,12 +104,12 @@ a.jump{
 a.jump:hover{color:var(--gold-bright);border-color:var(--gold);background-image:none;
   box-shadow:inset 0 0 0 1px rgba(232,196,112,.22)}
 .sec{margin-top:1.85rem;scroll-margin-top:3.25rem}
-.sec-head{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin:0 0 .85rem}
-.sec-head h2,.sec h2{
+.sec h2{
   margin:0;font-size:.92rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--gold-bright);border-left:3px solid var(--gold);padding-left:.7rem;
   font-family:var(--font-ui);
 }
+.sec-hint{margin:.55rem 0 .85rem;font-size:.88rem;color:var(--muted);max-width:42rem}
 .sec h3{
   /* Nested browsePath folders (Legendary Armor under Armory, Food attrs, …).
      Same language as h2 so they do not look like a leftover ImGui header. */
@@ -118,59 +118,6 @@ a.jump:hover{color:var(--gold-bright);border-color:var(--gold);background-image:
   border-left:2px solid var(--gold-dim);padding-left:.55rem;
   font-family:var(--font-ui);
 }
-.fav-fold-head{display:flex;align-items:baseline;gap:.65rem;flex-wrap:wrap;margin:0}
-details.fav-fold{margin:1.1rem 0 0;border:none}
-details.fav-fold>summary.fav-fold-head{
-  cursor:pointer;list-style:none;margin:0 0 .45rem;
-}
-details.fav-fold>summary.fav-fold-head::-webkit-details-marker{display:none}
-details.fav-fold>summary.fav-fold-head::before{
-  content:"▾";flex:0 0 auto;width:1rem;color:var(--gold-dim);font-size:.85rem;
-  transition:transform .15s ease;
-}
-details.fav-fold:not([open])>summary.fav-fold-head::before{transform:rotate(-90deg)}
-.fold-title{
-  flex:1;min-width:8rem;font-size:.86rem;letter-spacing:.04em;
-  color:var(--muted);font-weight:600;
-}
-a.fold-del{
-  font-size:.72rem;color:var(--muted);text-decoration:none;
-  padding:.15rem .4rem;border:1px solid transparent;
-}
-a.fold-del:hover{color:#e8a0a0;border-color:rgba(180,80,80,.45);background:rgba(80,20,20,.25)}
-button.btn-plus{
-  appearance:none;cursor:pointer;margin:0;padding:.3rem .75rem;
-  font:inherit;font-size:.76rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase;
-  color:var(--gold-bright);background:var(--accent);border:1px solid var(--border);
-}
-button.btn-plus:hover{border-color:var(--gold);color:var(--gold);
-  box-shadow:0 0 12px rgba(232,196,112,.12)}
-.modal-backdrop{
-  position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.62);
-}
-.modal{
-  width:min(22rem,92vw);padding:1.2rem 1.25rem 1.1rem;
-}
-.modal h3{margin:0 0 .65rem;color:var(--gold-bright);font-size:1.05rem;font-family:var(--font-display)}
-.modal .hint{margin:0 0 .85rem;font-size:.82rem;color:var(--muted)}
-.modal input{
-  width:100%;height:2.4rem;margin:0 0 1rem;padding:0 .75rem;
-  border:1px solid var(--border);background:var(--accent);color:var(--text);
-  font:inherit;font-size:.92rem;
-}
-.modal input:focus{outline:1px solid var(--gold-dim)}
-.modal-actions{display:flex;gap:.55rem;justify-content:flex-end}
-.modal-actions button{
-  appearance:none;cursor:pointer;min-width:5.5rem;height:2.25rem;
-  padding:0 .85rem;font:inherit;font-size:.85rem;font-weight:600;
-  border:1px solid var(--border);color:var(--text);background:var(--accent);
-}
-.modal-actions button.primary{
-  color:#1a1208;background:linear-gradient(180deg,var(--gold-bright),var(--gold-dim));
-  border-color:var(--gold);
-}
-.modal-actions button:hover{border-color:var(--gold)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.85rem;align-items:stretch}
 .grid-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.85rem;align-items:stretch}
 .tile-wrap{position:relative;display:flex;flex-direction:column;min-height:6.1rem;height:100%}
@@ -296,20 +243,7 @@ const char* HubJs()
           });
           sub.classList.toggle("hidden",!anySub);
         });
-        document.querySelectorAll("details.fav-fold").forEach(function(fold){
-          var anySub=false;
-          fold.querySelectorAll("[data-q]").forEach(function(el){
-            if(!el.classList.contains("hidden"))anySub=true;
-          });
-          var titleEl=fold.querySelector(".fold-title");
-          var title=(titleEl&&titleEl.textContent)?titleEl.textContent.toLowerCase():"";
-          var show=anySub||!needle||title.indexOf(needle)>=0;
-          fold.classList.toggle("hidden",!show);
-          if(anySub&&needle)fold.setAttribute("open","");
-        });
-        /* Favorites keeps the + Folder header visible while filtering tiles. */
-        if(sec.getAttribute("data-keep")!=="1")
-          sec.classList.toggle("hidden",!any);
+        sec.classList.toggle("hidden",!any);
         var id=sec.getAttribute("id");
         if(id){
           var jump=document.querySelector('a.jump[href="#'+id+'"]');
@@ -325,7 +259,6 @@ const char* HubJs()
       d.removeAttribute("open");
     });
   }
-  /* Accidental ⇄ open: click outside or Esc dismisses the move menu. */
   document.addEventListener("click",function(e){
     var t=e.target;
     var open=null;
@@ -334,55 +267,6 @@ const char* HubJs()
   });
   document.addEventListener("keydown",function(e){
     if(e.key==="Escape")closeMoveMenus(null);
-  });
-
-  var modal=document.getElementById("fav-folder-modal");
-  var openBtn=document.getElementById("fav-add-folder");
-  var nameInput=document.getElementById("fav-folder-name");
-  var cancelBtn=document.getElementById("fav-folder-cancel");
-  var createBtn=document.getElementById("fav-folder-create");
-  if(!modal||!openBtn||!nameInput||!createBtn)return;
-
-  function closeModal(){
-    modal.classList.add("hidden");
-    nameInput.value="";
-  }
-  function submitFolder(){
-    var name=(nameInput.value||"").trim();
-    if(!name){nameInput.focus();return;}
-    if(name.length>47)name=name.slice(0,47);
-    location.search="?gw2igh-fav-folder-create="+encodeURIComponent(name);
-  }
-  openBtn.addEventListener("click",function(e){
-    e.preventDefault();
-    closeMoveMenus(null);
-    modal.classList.remove("hidden");
-    setTimeout(function(){nameInput.focus();},0);
-  });
-  if(cancelBtn)cancelBtn.addEventListener("click",function(e){
-    e.preventDefault();closeModal();
-  });
-  createBtn.addEventListener("click",function(e){
-    e.preventDefault();submitFolder();
-  });
-  nameInput.addEventListener("keydown",function(e){
-    if(e.key==="Enter"){e.preventDefault();submitFolder();}
-    if(e.key==="Escape"){e.preventDefault();closeModal();}
-  });
-  modal.addEventListener("click",function(e){
-    if(e.target===modal)closeModal();
-  });
-
-  document.querySelectorAll("details.fav-fold").forEach(function(fold){
-    var id=fold.getAttribute("data-fold");
-    if(!id)return;
-    var key="gw2igh-fav-fold-"+id;
-    try{
-      if(localStorage.getItem(key)==="0")fold.removeAttribute("open");
-      fold.addEventListener("toggle",function(){
-        localStorage.setItem(key,fold.open?"1":"0");
-      });
-    }catch(e){}
   });
 })();
 )JS";
@@ -479,66 +363,6 @@ void AppendTile(std::string& html, const SiteDef& s, const std::string& pathBlur
 void AppendTile(std::string& html, const SiteDef& s, const std::string& pathBlurb)
 {
 	AppendTile(html, s, pathBlurb, false, 0);
-}
-
-void AppendBookmarkTile(std::string& html, int slot, int currentFolderId)
-{
-	const int si = Sites::FavoriteSiteIndex(slot);
-	if (si >= 0)
-	{
-		size_t n = 0;
-		const SiteDef* sites = Sites::All(&n);
-		if (sites && si < static_cast<int>(n))
-		{
-			AppendTile(html, sites[si], "", true, currentFolderId);
-			return;
-		}
-	}
-	const char* title = Sites::FavoriteTitleAt(slot);
-	const char* url = Sites::FavoriteUrlAt(slot);
-	if (!url || !url[0])
-		return;
-	const std::string label = (title && title[0]) ? title : url;
-	html += "<div class=\"tile-wrap\" data-q=\"";
-	html += Esc(ToLower(std::string(label) + " " + url));
-	html += "\"><a class=\"star on\" href=\"?gw2igh-fav-unstar=";
-	html += std::to_string(slot);
-	html += "\" title=\"Remove bookmark\">★</a>";
-	if (Sites::FavoriteFolderCount() > 0)
-	{
-		html += "<details class=\"move\"><summary title=\"Move to folder\">⇄</summary>"
-			"<div class=\"move-menu\"><span class=\"lbl\">Move to</span>";
-		auto AppendMoveLink = [&](int folderId, const char* name) {
-			html += "<a class=\"";
-			if (folderId == currentFolderId)
-				html += "cur";
-			html += "\" href=\"?gw2igh-fav-folder-move-slot=";
-			html += std::to_string(slot);
-			html += "&amp;to=";
-			html += std::to_string(folderId);
-			html += "\">";
-			html += Esc(name ? name : "Folder");
-			html += "</a>";
-		};
-		AppendMoveLink(0, "Unfiled");
-		const int folderN = Sites::FavoriteFolderCount();
-		for (int fi = 0; fi < folderN; ++fi)
-		{
-			const int fid = Sites::FavoriteFolderIdAt(fi);
-			AppendMoveLink(fid, Sites::FavoriteFolderName(fid));
-		}
-		html += "</div></details>";
-	}
-	html += "<a class=\"tile\" href=\"";
-	if (std::strncmp(url, "https://", 8) == 0 || std::strncmp(url, "http://", 7) == 0)
-		html += Esc(url);
-	else
-		html += "#";
-	html += "\"><span class=\"name\">";
-	html += Esc(label);
-	html += "</span><span class=\"blurb\">";
-	html += Esc(url);
-	html += "</span></a></div>";
 }
 
 bool BrowseHubShowsCategory(const char* cat)

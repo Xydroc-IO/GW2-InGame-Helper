@@ -2,7 +2,10 @@
 
 #include "WikiBrowserShared.h"
 
+#include "AddonPaths.h"
+#include "BrowserTabs.h"
 #include "Globals.h"
+#include "LivePanels.h"
 #include "Settings.h"
 #include "Sites.h"
 #include "WikiIpc.h"
@@ -120,6 +123,8 @@ void WikiBrowser::Navigate(const std::string& url)
 {
 	if (url.empty())
 		return;
+	if (url == "about:legendary-vault" || url == "about:live-progress")
+		LivePanels::BumpLegendaryVaultOpen(AddonPaths::DataDir());
 	gWantVisible.store(true);
 	if (!EnsureIpc())
 		return;
@@ -209,7 +214,15 @@ void WikiBrowser::CreateTab(int slot, const char* url)
 {
 	if (slot < 0 || slot >= kWikiMaxTabs)
 		return;
-	const std::string resolved = ResolveNavigateUrl(url ? url : "about:blank");
+	const char* start = (url && url[0]) ? url : "about:blank";
+	std::string resolved = ResolveNavigateUrl(start);
+	/* Live panels still building: hand the helper about: so it paints the dark
+	   loading stub. ResolveNavigateUrl intentionally returns {} until .ok. */
+	if (resolved.empty() && LivePanels::IsLiveAbout(start))
+	{
+		(void)LivePanels::ResolveAboutUrl(AddonPaths::DataDir(), start);
+		resolved = start;
+	}
 	if (resolved.empty())
 		return;
 	PostCmd(WIKI_CMD_CREATE_TAB, resolved.c_str(), slot);

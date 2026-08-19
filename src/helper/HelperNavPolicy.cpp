@@ -178,12 +178,85 @@ namespace HelperDetail
 	bool IsTrustedHelperSource(const std::string& url)
 	{
 		if (url.rfind("file:", 0) == 0)
-			return true;
+			return IsTrustedHelperFileUrl(url);
 		if (url.rfind("about:", 0) != 0)
 			return false;
 		if (url == "about:blank" || url.rfind("about:blank?", 0) == 0)
 			return false;
 		return true;
+	}
+
+	std::string PercentDecodeUrl(const std::string& in)
+	{
+		std::string out;
+		out.reserve(in.size());
+		auto hex = [](char c) -> int {
+			if (c >= '0' && c <= '9')
+				return c - '0';
+			if (c >= 'A' && c <= 'F')
+				return c - 'A' + 10;
+			if (c >= 'a' && c <= 'f')
+				return c - 'a' + 10;
+			return -1;
+		};
+		for (size_t i = 0; i < in.size(); ++i)
+		{
+			if (in[i] == '%' && i + 2 < in.size())
+			{
+				const int hi = hex(in[i + 1]);
+				const int lo = hex(in[i + 2]);
+				if (hi >= 0 && lo >= 0)
+				{
+					out.push_back(static_cast<char>((hi << 4) | lo));
+					i += 2;
+					continue;
+				}
+			}
+			out.push_back(in[i]);
+		}
+		return out;
+	}
+
+	/* Home / Back from an https bookmark must be able to open our pages HTML.
+	   Arbitrary file:// (config, exe, other disks) stays blocked.
+	   CEF percent-encodes spaces (Guild%20Wars%202); Wine may use S: vs /home. */
+	bool IsTrustedHelperFileUrl(const std::string& url)
+	{
+		if (url.rfind("file:", 0) != 0)
+			return false;
+		std::string path = PercentDecodeUrl(url);
+		const size_t q = path.find('?');
+		if (q != std::string::npos)
+			path.resize(q);
+		const size_t hash = path.find('#');
+		if (hash != std::string::npos)
+			path.resize(hash);
+		for (char& c : path)
+		{
+			if (c == '\\')
+				c = '/';
+			else if (c >= 'A' && c <= 'Z')
+				c = static_cast<char>(c - 'A' + 'a');
+		}
+		if (path.find("..") != std::string::npos)
+			return false;
+		if (path.size() < 6)
+			return false;
+		if (path.compare(path.size() - 5, 5, ".html") != 0)
+			return false;
+		/* Only our generated/bundled HTML — not config, dumps, or other disks. */
+		const char* needles[] = {
+			"gw2-ingame-helper/pages/",
+			"gw2-ingame-helper-beta/pages/",
+			"gw2-ingame-helper/cheatsheets/",
+			"gw2-ingame-helper-beta/cheatsheets/",
+		};
+		for (const char* n : needles)
+		{
+			if (path.find(n) != std::string::npos)
+				return true;
+		}
+		return false;
 	}
 
 	std::string NavSourceUrl(cef_browser_t* browser, cef_frame_t* frame)

@@ -20,6 +20,9 @@ namespace LivePanels
 	/* Invalidate only the TP watchlist panel (keeps other Live pages cached). */
 	void InvalidateTpCache(const std::wstring& addonDir);
 
+	/* User opened Legendary Ledger — bust armory cache once (not on ResolveAboutUrl poll). */
+	void BumpLegendaryVaultOpen(const std::wstring& addonDir);
+
 	/* Soft-stop Live workers (bounded wait) before DLL unload. */
 	void Shutdown();
 

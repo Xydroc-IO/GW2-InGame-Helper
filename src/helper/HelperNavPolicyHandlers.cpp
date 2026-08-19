@@ -148,11 +148,13 @@ namespace HelperDetail
 			user_gesture, isMain ? 1 : 0, fromAdFrame ? 1 : 0, IsAdClickUrl(url) ? 1 : 0,
 			url.c_str(), FrameUrl(frame).c_str(), referrer.c_str());
 
-		/* https/http pages must not load file:// (local or UNC) in any frame. */
+		/* https/http pages must not load arbitrary file://. Home / Back onto our
+		   own pages HTML (Browse hub, cheat sheets) is host chrome, not a web gadget. */
 		{
 			const std::string src = NavSourceUrl(browser, frame);
 			if (url.rfind("file:", 0) == 0 &&
-				(src.rfind("https://", 0) == 0 || src.rfind("http://", 0) == 0))
+				(src.rfind("https://", 0) == 0 || src.rfind("http://", 0) == 0) &&
+				!IsTrustedHelperFileUrl(url))
 			{
 				NavLog("  -> BLOCKED file:// from web origin");
 				return 1;
