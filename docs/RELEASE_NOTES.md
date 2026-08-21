@@ -1,4 +1,4 @@
-# GW2 In-Game Helper v2.3.0.4
+# GW2 In-Game Helper v2.3.0.5
 
 **Signature:** `0x48454C50` (`HELP`) · **License:** MIT · **Author:** xydroc
 
@@ -33,6 +33,13 @@ achievement, and icon packs.
    `addons/GW2-InGame-Helper-Beta/cef/` there to skip re-download.
 
 ---
+
+## What’s new in 2.3.0.5
+
+- **Crash:** Stash/Wallet character bag fetch no longer use-after-frees when inventory HTTP outlasts a timed wait (ArcDPS `CharFetchInv`). Vault account threads always join before stack teardown.
+- **Tabs:** **+** and **Ctrl+T** open a new Browse hub tab (no site picker). Ctrl/middle-click **+** still duplicates the current page.
+- **Crafting pad:** Shopping Qty column is wider and ink-colored so `xNN` is readable. Leveling **GW2 Crafts** opens [gw2crafts.net](https://gw2crafts.net/) discipline pages (not dead `www` / wrong filenames).
+- **Stamps:** Helper `2247` · homepage `2238` · sites `s2215` · cheatsheets `c2228` · live panel `86` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.3.0.4
 

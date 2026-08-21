@@ -1,6 +1,6 @@
 # In-game browser limitations
 
-**Revision:** 2.3.0.4 · **Audience:** players and contributors
+**Revision:** 2.3.0.5 · **Audience:** players and contributors
 
 The Helper embeds a real Chromium engine (CEF) inside Guild Wars 2. It is still
 **not** a full desktop browser. Some sites will fail, look broken, or refuse to
