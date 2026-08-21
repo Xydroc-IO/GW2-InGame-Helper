@@ -80,15 +80,17 @@ void UI_Browse_DrawMainPopup()
 
 void UI_Browse_OnNewTabButtonClicked()
 {
-	sSyncCategory = true;
-	sFocusFilter = true;
-	ImGui::OpenPopup("##gw2igh_site_browse_newtab");
+	/* + / Ctrl+T → new Browse hub tab (no site-picker popup). */
+	G::ShowWiki = true;
+	Settings::SetDirty();
+	if (BrowserTabs::OpenNew("browse", true) < 0)
+		BrowserTabs::OpenInActive("browse", true);
 }
 
 void UI_Browse_RequestNewTabPicker()
 {
+	/* Name kept for Ctrl+T hotkey; opens Browse, not a picker. */
 	sRequestNewTabPicker = true;
-	sFocusFilter = true;
 }
 
 bool UI_Browse_ConsumeNewTabPickerRequest()

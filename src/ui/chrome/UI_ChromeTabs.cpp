@@ -147,15 +147,14 @@ namespace UIDetail
 		if (canAdd)
 		{
 			const bool plusClicked = ImGui::Button("+##gw2igh_new_tab");
-			const bool plusNewTab = ImGui::IsItemClicked(ImGuiMouseButton_Middle) ||
+			const bool plusDup = ImGui::IsItemClicked(ImGuiMouseButton_Middle) ||
 				(ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::GetIO().KeyCtrl);
-			if (plusNewTab)
+			if (plusDup)
 				DuplicateActiveTab();
 			else if (plusClicked || UI_Browse_ConsumeNewTabPickerRequest())
 				UI_Browse_OnNewTabButtonClicked();
 			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("New tab: pick a site (Ctrl+T). Ctrl/middle-click duplicates this page.");
-			UI_Browse_DrawNewTabPopup();
+				ImGui::SetTooltip("New Browse tab (Ctrl+T). Ctrl/middle-click duplicates this page.");
 		}
 		else
 		{
@@ -165,7 +164,6 @@ namespace UIDetail
 			ImGui::PopStyleVar();
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Tab limit reached (8)");
-			UI_Browse_DrawNewTabPopup();
 		}
 
 		ImGui::SameLine(0.f, 6.f);
