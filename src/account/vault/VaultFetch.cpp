@@ -170,7 +170,8 @@ namespace VaultDetail
 		{
 			if (h)
 			{
-				WaitForSingleObject(h, 20000);
+				/* FetchPack is stack-owned — join for real (Api can outlast 20s). */
+				WaitForSingleObject(h, INFINITE);
 				CloseHandle(h);
 			}
 		}

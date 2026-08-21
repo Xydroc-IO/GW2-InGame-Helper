@@ -68,22 +68,6 @@ namespace WalletDetail
 		SortSections(out);
 	}
 
-	struct CharHttpPair
-	{
-		const char* key = nullptr;
-		std::string invPath;
-		std::string eqPath;
-		Gw2Http::Result inv;
-		Gw2Http::Result eq;
-	};
-
-	DWORD WINAPI CharFetchInv(void* p)
-	{
-		CharHttpPair* d = static_cast<CharHttpPair*>(p);
-		d->inv = Gw2Http::Api(d->invPath.c_str(), d->key, kCharTimeoutMs);
-		return 0;
-	}
-
 	DWORD WINAPI CharWorker(void* p)
 	{
 		CharJob* job = static_cast<CharJob*>(p);
@@ -97,27 +81,21 @@ namespace WalletDetail
 			if (i >= job->names.size()) break;
 			const std::string& name = job->names[i];
 
-			CharHttpPair dual;
-			dual.key = job->key;
-			dual.invPath = "/v2/characters/";
-			dual.invPath += UrlEncode(name);
-			dual.invPath += "/inventory";
-			dual.eqPath = "/v2/characters/";
-			dual.eqPath += UrlEncode(name);
-			dual.eqPath += "/equipment";
+			/* Sequential inv + equipment — never hand a stack CharHttpPair to a
+			   sibling thread. Gw2Http::Api can exceed kCharTimeoutMs (budget wait
+			   + retries), so a timed Wait on a dual-fetch thread UAF'd the pair
+			   (ArcDPS: CharFetchInv after Api return). */
+			std::string invPath = "/v2/characters/";
+			invPath += UrlEncode(name);
+			invPath += "/inventory";
+			std::string eqPath = "/v2/characters/";
+			eqPath += UrlEncode(name);
+			eqPath += "/equipment";
 
-			/* Overlap inventory + equipment HTTP for this toon. */
-			HANDLE invTh = CreateThread(nullptr, 0, CharFetchInv, &dual, 0, nullptr);
-			dual.eq = Gw2Http::Api(dual.eqPath.c_str(), dual.key, kCharTimeoutMs);
-			if (invTh)
-			{
-				WaitForSingleObject(invTh, static_cast<DWORD>(kCharTimeoutMs) + 2000u);
-				CloseHandle(invTh);
-			}
-			else
-				dual.inv = Gw2Http::Api(dual.invPath.c_str(), dual.key, kCharTimeoutMs);
+			auto inv = Gw2Http::Api(invPath.c_str(), job->key, kCharTimeoutMs);
+			auto eq = Gw2Http::Api(eqPath.c_str(), job->key, kCharTimeoutMs);
 
-			if (!dual.inv.ok)
+			if (!inv.ok)
 			{
 				job->bagsFail.fetch_add(1);
 				job->done.fetch_add(1);
@@ -125,23 +103,23 @@ namespace WalletDetail
 			}
 			job->bagsOk.fetch_add(1);
 			QtyMap qty;
-			CollectSlots(dual.inv.body, qty);
+			CollectSlots(inv.body, qty);
 			std::vector<SlotSection> bags;
-			CollectCharBagSections(dual.inv.body, name, bags);
+			CollectCharBagSections(inv.body, name, bags);
 
-			if (dual.eq.ok)
+			if (eq.ok)
 			{
 				size_t ppos = 0;
-				while (ppos < dual.eq.body.size())
+				while (ppos < eq.body.size())
 				{
-					size_t brace = dual.eq.body.find('{', ppos);
+					size_t brace = eq.body.find('{', ppos);
 					if (brace == std::string::npos) break;
-					size_t end = JsonObjectEnd(dual.eq.body, brace);
+					size_t end = JsonObjectEnd(eq.body, brace);
 					if (end == std::string::npos) break;
 					/* Equipment entries have "slot"; skip nested upgrade objects. */
-					if (dual.eq.body.find("\"slot\"", brace) < end)
+					if (eq.body.find("\"slot\"", brace) < end)
 					{
-						long long id = JsonIntAfterKey(dual.eq.body, "id", brace);
+						long long id = JsonIntAfterKey(eq.body, "id", brace);
 						if (id > 0)
 							qty[static_cast<int>(id)] += 1;
 					}
@@ -344,7 +322,9 @@ namespace WalletDetail
 		{
 			if (h)
 			{
-				WaitForSingleObject(h, 45000);
+				/* AccPack is stack-owned — must join for real. Timed waits UAF if
+				   Api budget/retries outlast the wait (same class as CharFetchInv). */
+				WaitForSingleObject(h, INFINITE);
 				CloseHandle(h);
 			}
 		}
@@ -443,8 +423,9 @@ namespace WalletDetail
 			{
 				if (cw[i])
 				{
-					if (!gCancel)
-						WaitForSingleObject(cw[i], 5000);
+					/* Always join — cancel only stops taking new toons; in-flight
+					   HTTP still writes job on this stack. */
+					WaitForSingleObject(cw[i], INFINITE);
 					CloseHandle(cw[i]);
 				}
 			}
