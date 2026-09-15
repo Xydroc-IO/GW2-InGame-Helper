@@ -6,7 +6,7 @@
 |-------|-------|
 | Document type | Technical report (engineering whitepaper) |
 | Product | GW2 In-Game Helper |
-| Revision described | 2.3.0.5 |
+| Revision described | 2.3.0.6 |
 | Nexus signature | `HELP` (`0x48454C50`) |
 | IPC contract | `HLI5` (`0x484C4935`) |
 | Runtime | Chromium Embedded Framework (CEF) Stable 150.0.14 / Chromium 150.0.7871.129 |
@@ -20,6 +20,7 @@
 
 | Report rev | Addon | Salient documentation focus |
 |------------|-------|-----------------------------|
+| 2.3.0.6 | 2.3.0.6 | Lady With Mounts Caledon world GPS gaps; compass overlay align + TacO pivot (no orbit on turn); stamps unchanged |
 | 2.3.0.5 | 2.3.0.5 | Stash CharFetchInv UAF; + / Ctrl+T → Browse hub; Crafting Qty + gw2crafts.net URLs; stamps unchanged |
 | 2.3.0.4 | 2.3.0.4 | Side-rail seam overlap; Crafting shopping-list layout + compact Plan buttons; stamps unchanged |
 | 2.3.0.3 | 2.3.0.3 | Address bar + URL bookmark bar; categories-only Browse hub; star folder picker; 2.3.0.2 live HTML loader; trusted pages/cheatsheets file:// from https; catalog once-per-DLL; PathingLua hardening; live 84; helper 2247 |
@@ -919,11 +920,11 @@ Claims about Proton behaviour are based on repeated smoke testing across Steam P
 
 ---
 
-## Appendix A — Quantitative constants (revision 2.3.0.5)
+## Appendix A — Quantitative constants (revision 2.3.0.6)
 
 | Constant | Value |
 |----------|-------|
-| Addon version | 2.3.0.5 |
+| Addon version | 2.3.0.6 |
 | Nexus signature | `HELP` / `0x48454C50` |
 | IPC magic | `HLI5` / `0x484C4935` |
 | Maximum frame | \(1920 \times 1200\) BGRA |
@@ -1024,6 +1025,6 @@ See enums `WikiIpcCmd` and `WikiInputType` in [`WikiIpc.h`](../src/browser/WikiI
 | Register | Systems software / interactive entertainment tooling |
 | Peer review | None (project documentation aiming at academic technical-report quality) |
 | Distribution | Tracked in git with the repository |
-| Last sync | 2.3.0.5 — Stash CharFetchInv UAF fix; + / Ctrl+T → Browse hub; helper 2247; live 86; home 2238; sites s2215; c2228; raid food 9; watchd w10; uc36 |
+| Last sync | 2.3.0.6 — Lady With Mounts Caledon GPS + compass overlay; helper 2247; live 86; home 2238; sites s2215; c2228; raid food 9; watchd w10; uc36 |
 | Update trigger | IPC magic bump; present-path change; CEF major; sandbox policy; advertisement-routing; world GPS compliance surface; module-boundary change |
 | How to cite (informal) | xydroc, “Embedding a Contemporary Chromium Browser in a Live Game Client,” GW2 In-Game Helper technical report, rev. 2.2.3.10, 2026. |

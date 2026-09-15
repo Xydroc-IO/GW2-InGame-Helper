@@ -72,6 +72,7 @@ namespace PathingTrails
 		int      behavior = 0;
 		bool     autoTrigger = false;
 		float    triggerRange = 2.f;
+		float    infoRange = 0.f; /* TacO/Blish info popup range; 0 = default ~12m */
 		float    resetLength = 0.f;
 		bool     invertBehavior = false;
 		char     hide[192]{};

@@ -54,6 +54,14 @@ bool PathingTrails::TryNearbyWorldGps(
 		maxPts = 1400;
 	}
 	const float activateDist2 = activateDist * activateDist;
+	/* With Mounts Main Caledon splits into .1–.4 with ~200–460 m file joins;
+	   default GPS range (120 m → ~162 m activate) drops the next segment. */
+	constexpr float kMcActivateFloor = 360.f;
+	auto isMapCompletionLabel = [](const char* lab) -> bool {
+		return lab && (std::strstr(lab, "legs.map.") != nullptr ||
+			std::strstr(lab, "leag.map.") != nullptr ||
+			std::strstr(lab, "tw_mc") != nullptr);
+	};
 	auto dist2 = [&](float x, float y, float z) {
 		const float dx = avatarX - x;
 		const float dy = avatarY - y;
@@ -90,6 +98,11 @@ bool PathingTrails::TryNearbyWorldGps(
 		if (!PathingSchedule::MarkerActive(tr.schedule, tr.scheduleDuration,
 			PathingSchedule::NowUnixUtc()))
 			continue;
+		const bool mapComp = isMapCompletionLabel(tr.label);
+		const float trailActivate = mapComp
+			? std::max(activateDist, kMcActivateFloor)
+			: activateDist;
+		const float trailActivate2 = trailActivate * trailActivate;
 		const size_t n = tr.worldPoints.size();
 		size_t bestI = 0;
 		float bestD = 1.0e30f;
@@ -125,7 +138,7 @@ bool PathingTrails::TryNearbyWorldGps(
 			}
 		}
 		/* Also accept if a segment straddles the player (vertex sample miss). */
-		if (bestD > activateDist2 && step > 1)
+		if (bestD > trailActivate2 && step > 1)
 		{
 			for (size_t i = 0; i + step < n; i += step)
 			{
@@ -144,7 +157,7 @@ bool PathingTrails::TryNearbyWorldGps(
 				}
 			}
 		}
-		if (bestD <= activateDist2)
+		if (bestD <= trailActivate2)
 			cands.push_back({ti, bestI, bestD});
 		if (pointTests > kMaxPointTests)
 			break;
@@ -217,13 +230,16 @@ bool PathingTrails::TryNearbyWorldGps(
 		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
 			continue;
 
-		/* Heart / WP / HP train: full TacO section - sparse waypoint gaps break
-		   along-budget windows (compass showed full path; world GPS looked cut). */
+		/* Heart / WP / HP / map-completion: keep full TacO corridors. Lady Main
+		   With Mounts Caledon (arrows) has 160–230 m authored mount skips;
+		   Barefoot was re-recorded continuously. Without full-section treatment
+		   the arrow trail dies at each skip when Barefoot is off. */
 		const char* lab = tr.label;
 		const size_t labN = std::strlen(lab);
 		const bool isWpTrail =
 			(labN >= 3 && std::strcmp(lab + labN - 3, ".wp") == 0 &&
 				std::strstr(lab, ".wp.") == nullptr);
+		const bool isMapCompletion = isMapCompletionLabel(lab);
 		const bool fullSection =
 			std::strstr(lab, "heartpath") != nullptr ||
 			std::strstr(tr.textureId, "Heart") != nullptr ||
@@ -231,30 +247,96 @@ bool PathingTrails::TryNearbyWorldGps(
 			std::strstr(lab, "leag.hp.") != nullptr ||
 			std::strcmp(lab, "legs.hp") == 0 ||
 			std::strcmp(lab, "leag.hp") == 0 ||
-			isWpTrail;
+			isWpTrail ||
+			isMapCompletion;
 		const float budget = fullSection ? 1.0e9f : alongBudget;
+		/* Lady Barefoot inserts TacO (0,0,0) cuts every 1–7 m (authoring/UV).
+		   Main/Tekkit also skip up to ~230 m mid-route - bridge those without
+		   drawing a ribbon across the void (NaN break + AppendRibbon flush). */
+		constexpr float kSoftBridgeM = 25.f;
+		constexpr float kAuthorSkipM = 280.f;
+		auto finitePt = [&](size_t i) -> bool {
+			return i < n && std::isfinite(pts[i].x) && std::isfinite(pts[i].y) &&
+				std::isfinite(pts[i].z);
+		};
+		auto stepPrev = [&](size_t cur, size_t& outIdx, float& outL, bool& crossedBreak) -> bool {
+			if (cur == 0)
+				return false;
+			size_t j = cur - 1;
+			crossedBreak = false;
+			if (!finitePt(j))
+			{
+				crossedBreak = true;
+				while (j > 0 && !finitePt(j))
+					--j;
+				if (!finitePt(j))
+					return false;
+			}
+			outL = segLen(pts[cur], pts[j]);
+			outIdx = j;
+			return std::isfinite(outL);
+		};
+		auto stepNext = [&](size_t cur, size_t& outIdx, float& outL, bool& crossedBreak) -> bool {
+			if (cur + 1 >= n)
+				return false;
+			size_t j = cur + 1;
+			crossedBreak = false;
+			if (!finitePt(j))
+			{
+				crossedBreak = true;
+				while (j + 1 < n && !finitePt(j))
+					++j;
+				if (!finitePt(j))
+					return false;
+			}
+			outL = segLen(pts[cur], pts[j]);
+			outIdx = j;
+			return std::isfinite(outL);
+		};
+		/* Soft NaNs and authoring skips do not consume along-budget. */
+		auto acceptStep = [&](float L, bool crossed) -> bool {
+			if (crossed && L <= kSoftBridgeM)
+				return true;
+			if (L < 160.f)
+				return true;
+			if (L <= kAuthorSkipM)
+				return true;
+			return fullSection && L < 1200.f;
+		};
 		size_t a = c.nearest, b = c.nearest;
-		for (float used = 0.f; a > 0; )
+		for (float used = 0.f; ;)
 		{
-			if (!std::isfinite(pts[a - 1].x) || !std::isfinite(pts[a - 1].y) ||
-				!std::isfinite(pts[a - 1].z))
+			size_t prev = 0;
+			float L = 0.f;
+			bool crossed = false;
+			if (!stepPrev(a, prev, L, crossed))
 				break;
-			const float L = segLen(pts[a], pts[a - 1]);
-			if (!(L < 160.f) || used + L > budget)
+			if (!acceptStep(L, crossed))
 				break;
-			used += L;
-			--a;
+			if (L < 160.f)
+			{
+				if (used + L > budget)
+					break;
+				used += L;
+			}
+			a = prev;
 		}
-		for (float used = 0.f; b + 1 < n; )
+		for (float used = 0.f; ;)
 		{
-			if (!std::isfinite(pts[b + 1].x) || !std::isfinite(pts[b + 1].y) ||
-				!std::isfinite(pts[b + 1].z))
+			size_t next = 0;
+			float L = 0.f;
+			bool crossed = false;
+			if (!stepNext(b, next, L, crossed))
 				break;
-			const float L = segLen(pts[b], pts[b + 1]);
-			if (!(L < 160.f) || used + L > budget)
+			if (!acceptStep(L, crossed))
 				break;
-			used += L;
-			++b;
+			if (L < 160.f)
+			{
+				if (used + L > budget)
+					break;
+				used += L;
+			}
+			b = next;
 		}
 		if (b <= a)
 			continue;
@@ -270,16 +352,44 @@ bool PathingTrails::TryNearbyWorldGps(
 		constexpr float kMinSp2 = 0.35f * 0.35f;
 		/* WP segments can span hundreds of meters between waypoints. */
 		const float maxGap2 = fullSection ? (1200.f * 1200.f) : (160.f * 160.f);
-		const size_t ptCap = fullSection ? std::max(maxPts, size_t{2800}) : maxPts;
+		const float softBridge2 = kSoftBridgeM * kSoftBridgeM;
+		const float authorSkip2 = kAuthorSkipM * kAuthorSkipM;
+		const size_t ptCap = fullSection ? std::max(maxPts, size_t{4096}) : maxPts;
 		snip.points.reserve(std::min(b - a + 1, ptCap));
 		WorldPoint lastKept{};
 		bool haveKept = false;
 		size_t firstIdx = a;
 		for (size_t i = a; i <= b; ++i)
 		{
-			const WorldPoint& wp = pts[i];
-			if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z))
+			if (!finitePt(i))
+			{
+				size_t j = i + 1;
+				while (j <= b && !finitePt(j))
+					++j;
+				if (j > b || !finitePt(j) || !haveKept)
+					break;
+				const float bridge2 = distPts2(pts[j], lastKept);
+				if (bridge2 <= softBridge2)
+				{
+					i = j - 1;
+					continue;
+				}
+				/* MC: keep both sides without NaN so the ribbon can span
+				   authored mount skips (≤280 m). Harder gaps stay split. */
+				if (isMapCompletion && bridge2 <= authorSkip2)
+				{
+					i = j - 1;
+					continue;
+				}
+				if (bridge2 <= authorSkip2 || (fullSection && bridge2 <= maxGap2))
+				{
+					snip.points.push_back({NAN, NAN, NAN});
+					i = j - 1;
+					continue;
+				}
 				break;
+			}
+			const WorldPoint& wp = pts[i];
 			if (haveKept)
 			{
 				const float gap2 = distPts2(wp, lastKept);
@@ -287,6 +397,12 @@ bool PathingTrails::TryNearbyWorldGps(
 					continue;
 				if (gap2 > maxGap2)
 					break;
+				/* Finite authored skip on Main/With Mounts - keep contiguous
+				   so WorldGpsD3dDraw can span ≤280 m as one train. */
+				if (!isMapCompletion && gap2 > (160.f * 160.f))
+				{
+					snip.points.push_back({NAN, NAN, NAN});
+				}
 			}
 			else
 				firstIdx = i;

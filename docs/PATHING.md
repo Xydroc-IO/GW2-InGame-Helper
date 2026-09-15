@@ -1,6 +1,6 @@
 # Pathing — packs, markers, compass, world GPS
 
-**Revision:** 2.3.0.5 · **Audience:** contributors and advanced players  
+**Revision:** 2.3.0.6 · **Audience:** contributors and advanced players  
 **Companions:** [`../pathing/README.md`](../pathing/README.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.2, [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
 ---
@@ -68,7 +68,13 @@ Settings persist as `PathingEnabled` (still loads legacy `TekkitEnabled` / `Show
 
 ## 4. Marker behaviors
 
-Implemented: behaviors 0–7 and 101, AutoTrigger, hide=/show=, tips, info, copy clipboard.
+Implemented: behaviors 0–7 and 101, AutoTrigger, hide=/show=, tips (`tip-name` / `tip-description`), info, **infoRange**, copy clipboard.
+
+Proximity tip chrome shows for any marker with `tip-name`, `tip-description`, or `info` within **`infoRange`** (default **12 m** when omitted). Pack scan of Lady / Hero / Tekkit: nearly all `info=` POIs also set `infoRange` (817 with / 17 without).
+
+Heart / map-completion **info** popups (Lady `legs.map.*.heartinfo`, e.g. Lattice Configurator tips in Brisban Wildlands) need **Pathing → Features → Hearts** (and a Lady map edition so `legs.map` categories load) or these markers stay unloaded.
+
+**Intentionally not yet (different class than missing tips):** pack `animSpeed` on trail flow, trail `fadeNear`/`fadeFar` on GPS ribbons, Tekkit `achievementId`/`achievementBit` auto-hide, Hero `rotate`/`cull` billboards.
 
 **Lua (opt-in, default off):** Pathing → Features → Enable Lua scripts. Blish-shaped subset:
 
@@ -161,6 +167,8 @@ Implementation: `src/pathing/mapassist/MapAssist*` + `src/app/GameLive*` (UITick
   **World markers** (`WorldMarkerScale`, default **2.0×**) for in-world GPS icons, and
   **Compass icons** (`CompassMarkerScale`, default **1.0×**) for the stock compass.
 - Along-path sampling; sticky cache + hysteresis reduce blink / incomplete sparse routes (match by geometry; prefer full TacO sections for nearby hearts).
+- **Map-completion GPS:** Lady/Tekkit `legs.map.*` / `tw_mc*` corridors use a higher activation floor (~360 m) and keep ribbons across authored mount skips up to ~280 m (With Mounts Main Caledon). Soft-bridge tiny TacO `(0,0,0)` cuts; do not stitch portal-sized gaps.
+- **Compass overlay:** TacO stock-compass rectangle for projection pivot (so rotation stays locked to the player arrow); optional continent align vs Mumble `mapCenter` when API `map_rect` drifts; Blish `mapScale * 0.897` + `CreateRotationZ` only when compass rotation is on and the fullscreen map is closed.
 - Trail textures (including `Line - Heart`) are prioritized in the icon queue; hearts without a loaded texture are skipped (no solid-color fallback).
 - **Search-guide pathfinding** (`PathingPathfind`): A* over pack-trail polylines + official
   waypoints when PreferTrail / Completing routes rebuild the orange guide; capped graph and

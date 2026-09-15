@@ -37,6 +37,8 @@ namespace PathingLuaDetail
 			if (std::strcmp(key, "Tint") == 0) { lua_pushinteger(L, m->color); return 1; }
 			if (std::strcmp(key, "TriggerRange") == 0)
 			{ lua_pushnumber(L, m->triggerRange); return 1; }
+			if (std::strcmp(key, "InfoRange") == 0)
+			{ lua_pushnumber(L, m->infoRange); return 1; }
 			if (std::strcmp(key, "AutoTrigger") == 0)
 			{ lua_pushboolean(L, m->autoTrigger); return 1; }
 			if (std::strcmp(key, "TipName") == 0) { lua_pushstring(L, m->tipName); return 1; }
@@ -92,6 +94,8 @@ namespace PathingLuaDetail
 				m->color = static_cast<uint32_t>(lua_tointeger(L, 3));
 			else if (std::strcmp(key, "TriggerRange") == 0)
 				m->triggerRange = static_cast<float>(lua_tonumber(L, 3));
+			else if (std::strcmp(key, "InfoRange") == 0)
+				m->infoRange = static_cast<float>(lua_tonumber(L, 3));
 			else if (std::strcmp(key, "AutoTrigger") == 0)
 				m->autoTrigger = lua_toboolean(L, 3) != 0;
 			else if (std::strcmp(key, "TipName") == 0)

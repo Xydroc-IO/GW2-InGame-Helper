@@ -107,6 +107,10 @@ namespace PathingLuaDetail
 				if (lua_isnumber(L, -1))
 					m.triggerRange = static_cast<float>(lua_tonumber(L, -1));
 				lua_pop(L, 1);
+				lua_getfield(L, attrIdx, "InfoRange");
+				if (lua_isnumber(L, -1))
+					m.infoRange = static_cast<float>(lua_tonumber(L, -1));
+				lua_pop(L, 1);
 				lua_getfield(L, attrIdx, "AutoTrigger");
 				if (lua_isboolean(L, -1))
 					m.autoTrigger = lua_toboolean(L, -1) != 0;

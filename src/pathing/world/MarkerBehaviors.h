@@ -40,7 +40,7 @@ namespace MarkerBehaviors
 		float distance = 0.f;
 		char tipName[96]{};
 		char tipDescription[384]{};
-		char infoPreview[160]{};
+		char infoPreview[512]{};
 		char status[96]{};
 	};
 	NearbyUi GetNearbyUi();

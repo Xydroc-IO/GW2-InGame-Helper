@@ -107,24 +107,59 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		const size_t n = pts.size();
 		if (c.nearest >= n || !std::isfinite(pts[c.nearest].x))
 			continue;
-		/* Stay inside one TacO section - never expand across NaN breaks. */
+		/* Soft-bridge tiny TacO authoring cuts (≤25 m); keep hard portal gaps. */
+		constexpr float kSoftBridgeM = 25.f;
+		auto finitePt = [&](size_t i) -> bool {
+			return i < n && std::isfinite(pts[i].x) && std::isfinite(pts[i].y) &&
+				std::isfinite(pts[i].z);
+		};
 		size_t a = c.nearest;
 		size_t b = c.nearest;
-		while (a > 0 &&
-			std::isfinite(pts[a - 1].x) && std::isfinite(pts[a - 1].y) &&
-			std::isfinite(pts[a - 1].z) &&
-			dist2(pts[a - 1].x, pts[a - 1].y, pts[a - 1].z) <= softDist2)
+		while (a > 0)
 		{
-			--a;
+			size_t j = a - 1;
+			bool crossed = false;
+			if (!finitePt(j))
+			{
+				crossed = true;
+				while (j > 0 && !finitePt(j))
+					--j;
+				if (!finitePt(j))
+					break;
+			}
+			const float dx = pts[a].x - pts[j].x;
+			const float dy = pts[a].y - pts[j].y;
+			const float dz = pts[a].z - pts[j].z;
+			const float L = std::sqrt(dx * dx + dy * dy + dz * dz);
+			if (crossed && !(L <= kSoftBridgeM))
+				break;
+			if (!std::isfinite(L) || dist2(pts[j].x, pts[j].y, pts[j].z) > softDist2)
+				break;
+			a = j;
 			if (++pointTests > maxPointTests)
 				break;
 		}
-		while (b + 1 < n &&
-			std::isfinite(pts[b + 1].x) && std::isfinite(pts[b + 1].y) &&
-			std::isfinite(pts[b + 1].z) &&
-			dist2(pts[b + 1].x, pts[b + 1].y, pts[b + 1].z) <= softDist2)
+		while (b + 1 < n)
 		{
-			++b;
+			size_t j = b + 1;
+			bool crossed = false;
+			if (!finitePt(j))
+			{
+				crossed = true;
+				while (j + 1 < n && !finitePt(j))
+					++j;
+				if (!finitePt(j))
+					break;
+			}
+			const float dx = pts[b].x - pts[j].x;
+			const float dy = pts[b].y - pts[j].y;
+			const float dz = pts[b].z - pts[j].z;
+			const float L = std::sqrt(dx * dx + dy * dy + dz * dz);
+			if (crossed && !(L <= kSoftBridgeM))
+				break;
+			if (!std::isfinite(L) || dist2(pts[j].x, pts[j].y, pts[j].z) > softDist2)
+				break;
+			b = j;
 			if (++pointTests > maxPointTests)
 				break;
 		}
@@ -140,22 +175,39 @@ std::vector<PathingTrails::WorldSnippet> PathingTrails::NearbyWorldSnippets(
 		snip.fadeNear = tr.fadeNear;
 		snip.fadeFar = tr.fadeFar;
 		constexpr size_t kMaxPts = 192;
+		constexpr float kSoftBridge2 = kSoftBridgeM * kSoftBridgeM;
 		snip.points.reserve(std::min(b - a + 1, kMaxPts));
 		const size_t span = b - a;
 		const size_t stride = (span > kMaxPts) ? (span / kMaxPts) : 1;
 		size_t firstIdx = a;
 		bool first = true;
+		WorldPoint lastKept{};
+		bool haveKept = false;
 		for (size_t i = a; i <= b; i += std::max<size_t>(1, stride))
 		{
+			if (!finitePt(i))
+			{
+				size_t j = i + 1;
+				while (j <= b && !finitePt(j))
+					++j;
+				if (j > b || !finitePt(j) || !haveKept)
+					break;
+				const float gdx = pts[j].x - lastKept.x;
+				const float gdy = pts[j].y - lastKept.y;
+				const float gdz = pts[j].z - lastKept.z;
+				if (gdx * gdx + gdy * gdy + gdz * gdz > kSoftBridge2)
+					break;
+				i = j;
+			}
 			const WorldPoint& wp = pts[i];
-			if (!std::isfinite(wp.x) || !std::isfinite(wp.y) || !std::isfinite(wp.z))
-				break; /* section end - do not skip and stitch */
 			if (first)
 			{
 				firstIdx = i;
 				first = false;
 			}
 			snip.points.push_back(wp);
+			lastKept = wp;
+			haveKept = true;
 			if (snip.points.size() >= kMaxPts)
 				break;
 		}

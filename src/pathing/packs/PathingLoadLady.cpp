@@ -221,11 +221,16 @@ namespace PathingDetail
 						return false;
 					return TypeCategoryEnabled(type, enabled);
 				}
-				/* With Mounts: mount MC trails + mount-guide markers/shortcuts. */
+				/* With Mounts: mount MC trails + mount-guide markers/shortcuts.
+				   Main/all editions still use White Arrow and keep old Caledon
+				   authoring skips (~200 m). When Barefoot is also on, prefer the
+				   continuous footprint route so arrows do not die mid-path. */
 				if (IsLadyWithMountsEdition(mapEd) ||
 					(IsLadyMountShortcutSeg(mapEd) && !IsLadyRouteEditionSeg(mapEd)))
 				{
 					if (!mountsOn)
+						return false;
+					if (bareOn && IsLadyWithMountsEdition(mapEd))
 						return false;
 					return TypeCategoryEnabled(type, enabled);
 				}

@@ -90,6 +90,17 @@ namespace
 			std::strstr(snip.textureId, "Heart_png") != nullptr;
 	}
 
+	/* Lady/Tekkit map-completion corridors (With Mounts Main Caledon has
+	   160–230 m authored mount skips - keep one ribbon across those). */
+	bool IsMapCompletionTrail(const PathingTrails::WorldSnippet& snip)
+	{
+		if (!snip.label[0])
+			return false;
+		return std::strstr(snip.label, "legs.map.") != nullptr ||
+			std::strstr(snip.label, "leag.map.") != nullptr ||
+			std::strstr(snip.label, "tw_mc") != nullptr;
+	}
+
 	Vec3 CamForward()
 	{
 		if (!G::Mumble)
@@ -236,6 +247,7 @@ namespace
 		if (snip.points.size() < 2)
 			return;
 		const bool hearts = IsHeartTrail(snip);
+		const bool mapComp = IsMapCompletionTrail(snip);
 		/* Hearts keep pack yellow tint and flow with the same ribbon path as arrows. */
 		float halfW = WorldGpsMath::TrailHalfWidthM(snip.trailScale, thickness);
 		if (hearts)
@@ -252,6 +264,9 @@ namespace
 		std::vector<Vec3> raw;
 		raw.reserve(snip.points.size());
 		float along = snip.uvAlong0;
+		/* Non-MC: flush short gaps so bad stitches do not spaghetti. MC Main
+		   (With Mounts) Caledon authors 160–230 m mount skips - keep the train. */
+		const float flushGapM = mapComp ? 280.f : 45.f;
 		auto flush = [&]() {
 			if (raw.size() < 2)
 			{
@@ -271,8 +286,15 @@ namespace
 				flush();
 				continue;
 			}
-			raw.push_back(LiftTowardCam(
-				{wp.x, wp.y + WorldGpsMath::kHeightBias, wp.z}, cam));
+			const Vec3 lifted = LiftTowardCam(
+				{wp.x, wp.y + WorldGpsMath::kHeightBias, wp.z}, cam);
+			if (!raw.empty())
+			{
+				const float gap = std::sqrt((lifted - raw.back()).LengthSq());
+				if (gap > flushGapM)
+					flush();
+			}
+			raw.push_back(lifted);
 		}
 		flush();
 	}

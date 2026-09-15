@@ -299,6 +299,8 @@ void ParseMarkerMenuXml(
 		neu.separator = sep;
 		if (style.hasTipDescription)
 			neu.tip = style.tipDescription;
+		else if (style.hasTipName)
+			neu.tip = style.tipName;
 		std::string hidden = Attr(tag, "IsHidden");
 		if (hidden.empty()) hidden = Attr(tag, "bh-IsHidden");
 		neu.hidden = ParseBoolValue(hidden, false);

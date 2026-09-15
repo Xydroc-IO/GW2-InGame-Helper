@@ -335,6 +335,7 @@ namespace PathingDetail
 			m.behavior = style.behavior;
 			m.autoTrigger = style.autoTrigger;
 			m.triggerRange = style.hasTriggerRange ? style.triggerRange : 2.f;
+			m.infoRange = style.hasInfoRange ? style.infoRange : 0.f;
 			m.resetLength = style.resetLength;
 			m.invertBehavior = style.invertBehavior;
 			if (style.hasHide)

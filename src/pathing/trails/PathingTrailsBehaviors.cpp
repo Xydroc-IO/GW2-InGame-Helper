@@ -79,6 +79,7 @@ void PathingTrails::TickMarkerBehaviors()
 					gCurrentMarkers[i].iconSize = markers[i].iconSize;
 					gCurrentMarkers[i].heightOffset = markers[i].heightOffset;
 					gCurrentMarkers[i].triggerRange = markers[i].triggerRange;
+					gCurrentMarkers[i].infoRange = markers[i].infoRange;
 					gCurrentMarkers[i].autoTrigger = markers[i].autoTrigger;
 					std::memcpy(gCurrentMarkers[i].tipName, markers[i].tipName,
 						sizeof(gCurrentMarkers[i].tipName));

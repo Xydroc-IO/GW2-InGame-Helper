@@ -58,6 +58,8 @@ namespace PathingParse
 		bool hasAutoTrigger = false;
 		float triggerRange = 2.f;
 		bool hasTriggerRange = false;
+		float infoRange = 0.f; /* TacO/Blish: tip/info popup range; 0 = use default */
+		bool hasInfoRange = false;
 		float resetLength = 0.f;
 		bool hasResetLength = false;
 		bool invertBehavior = false;

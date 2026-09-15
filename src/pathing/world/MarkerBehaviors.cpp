@@ -73,7 +73,7 @@ void MarkerBehaviors::Tick(
 	gPendingInfo.clear();
 
 	NearbyUi nearUi{};
-	float bestTipDist = 12.f;
+	float bestTipDist = 1e30f;
 	float bestInteractDist = 1e30f;
 	const PathingTrails::Marker* interactTarget = nullptr;
 	std::unordered_set<std::string> firedGuids;
@@ -119,26 +119,34 @@ void MarkerBehaviors::Tick(
 			interactTarget = &m;
 		}
 
-		if ((m.tipDescription[0] || m.info[0] ||
-			(m.tipName[0] && (std::strstr(m.label, ".bfs.") ||
-				std::strstr(m.label, ".mount.") ||
-				(m.iconId[0] && (std::strstr(m.iconId, "Mounts") ||
-					std::strstr(m.iconId, "mounts")))))) &&
-			d < bestTipDist)
+		/* TacO/Blish tip chrome: tip-name, tip-description, or info.
+		   infoRange (default 12m) is the proximity — same attr Blish uses for info. */
+		const float tipMax = (m.infoRange > 0.05f) ? m.infoRange : 12.f;
+		const bool hasTip = m.tipName[0] || m.tipDescription[0] || m.info[0];
+		if (hasTip && d <= tipMax && d < bestTipDist)
 		{
 			bestTipDist = d;
 			nearUi.valid = true;
 			nearUi.distance = d;
 			nearUi.canInteract = inRange &&
 				(m.behavior != 0 || m.hide[0] || m.show[0] || m.info[0] || m.copy[0]);
-			std::snprintf(nearUi.tipName, sizeof(nearUi.tipName), "%s",
-				m.tipName[0] ? m.tipName : "Marker");
+			if (m.tipName[0])
+				std::snprintf(nearUi.tipName, sizeof(nearUi.tipName), "%s", m.tipName);
+			else if (m.info[0])
+				std::snprintf(nearUi.tipName, sizeof(nearUi.tipName), "%s", "Heart Info");
+			else
+				std::snprintf(nearUi.tipName, sizeof(nearUi.tipName), "%s", "Marker");
 			std::snprintf(nearUi.tipDescription, sizeof(nearUi.tipDescription), "%s",
 				m.tipDescription);
 			if (m.info[0])
 			{
-				std::snprintf(nearUi.infoPreview, sizeof(nearUi.infoPreview), "%.140s%s",
-					m.info, std::strlen(m.info) > 140 ? "..." : "");
+				const size_t n = std::strlen(m.info);
+				const size_t maxCopy = sizeof(nearUi.infoPreview) - 1;
+				if (n <= maxCopy)
+					std::snprintf(nearUi.infoPreview, sizeof(nearUi.infoPreview), "%s", m.info);
+				else
+					std::snprintf(nearUi.infoPreview, sizeof(nearUi.infoPreview), "%.*s...",
+						static_cast<int>(maxCopy - 3), m.info);
 			}
 			if (nearUi.canInteract)
 				std::snprintf(nearUi.status, sizeof(nearUi.status),
@@ -173,7 +181,7 @@ void MarkerBehaviors::DrawOverlay()
 		ImGui::SetNextWindowPos(
 			ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.72f),
 			ImGuiCond_Always, ImVec2(0.5f, 0.f));
-		ImGui::SetNextWindowSizeConstraints(ImVec2(220.f, 0.f), ImVec2(420.f, 220.f));
+		ImGui::SetNextWindowSizeConstraints(ImVec2(220.f, 0.f), ImVec2(480.f, 320.f));
 		const ImGuiWindowFlags flags =
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing |
@@ -190,7 +198,9 @@ void MarkerBehaviors::DrawOverlay()
 			if (ui.infoPreview[0])
 			{
 				ImGui::Spacing();
-				ImGui::TextDisabled("%s", ui.infoPreview);
+				PadNav::PushWrap();
+				ImGui::TextUnformatted(ui.infoPreview);
+				PadNav::PopWrap();
 			}
 			if (ui.status[0])
 				ImGui::TextDisabled("%s", ui.status);

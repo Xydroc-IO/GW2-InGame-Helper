@@ -149,6 +149,7 @@ void MergeStyle(MarkerStyle& dst, const MarkerStyle& src)
 	if (src.hasBehavior) { dst.behavior = src.behavior; dst.hasBehavior = true; }
 	if (src.hasAutoTrigger) { dst.autoTrigger = src.autoTrigger; dst.hasAutoTrigger = true; }
 	if (src.hasTriggerRange) { dst.triggerRange = src.triggerRange; dst.hasTriggerRange = true; }
+	if (src.hasInfoRange) { dst.infoRange = src.infoRange; dst.hasInfoRange = true; }
 	if (src.hasResetLength) { dst.resetLength = src.resetLength; dst.hasResetLength = true; }
 	if (src.hasInvertBehavior) { dst.invertBehavior = src.invertBehavior; dst.hasInvertBehavior = true; }
 	if (src.hasHide) { dst.hide = src.hide; dst.hasHide = true; }
@@ -297,6 +298,13 @@ MarkerStyle ParseStyle(const std::string& tag)
 	{
 		out.triggerRange = static_cast<float>(std::atof(value.c_str()));
 		out.hasTriggerRange = std::isfinite(out.triggerRange);
+	}
+	value = compatible("infoRange");
+	if (value.empty()) value = compatible("InfoRange");
+	if (!value.empty())
+	{
+		out.infoRange = static_cast<float>(std::atof(value.c_str()));
+		out.hasInfoRange = std::isfinite(out.infoRange) && out.infoRange > 0.f;
 	}
 	value = compatible("resetLength");
 	if (value.empty()) value = compatible("ResetLength");

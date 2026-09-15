@@ -175,7 +175,9 @@ bool PathingFeatures::RenderContents()
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Mount map-completion trails on this map, plus mount-guide\n"
-			"markers and shortcuts (raptor/springer/...). Not barefoot/bfs.");
+			"markers and shortcuts (raptor/springer/...).\n"
+			"When Barefoot is also on, Main/all arrow routes are hidden so\n"
+			"they do not cut out where Barefoot was re-recorded continuously.");
 
 	ImGui::TextUnformatted("Other");
 	PadNav::PushWrap();

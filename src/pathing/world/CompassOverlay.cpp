@@ -12,8 +12,8 @@
 #include <cstring>
 #include <vector>
 
-/* Compass overlay math mirrors TacO GetMinimapRectangle + Blish Pathing
-   FlatMap/GetScaledLocation (mapScale * 0.897, UI size from identity "uisz"). */
+/* Compass overlay: TacO GetMinimapRectangle for stock-compass bounds/pivot,
+   Blish Pathing scale (mapScale * 0.897) + CreateRotationZ for rotation. */
 
 namespace
 {
@@ -69,21 +69,11 @@ namespace
 		}
 	}
 
-	/* Blish FlatMap GetOffset - soft padding around the compass widget. */
-	int BlishPad(float curr, float maxV, float minV, float val)
-	{
-		constexpr float kMapOffsetMin = 19.f;
-		if (maxV <= minV)
-			return static_cast<int>(kMapOffsetMin);
-		const float t = (curr - minV) / (maxV - minV);
-		return static_cast<int>(std::lround(t * (val - kMapOffsetMin) + kMapOffsetMin));
-	}
-
 	struct CompassLayout
 	{
 		ImVec2 min{};
 		ImVec2 max{};
-		ImVec2 mid{}; /* projection center = compass center */
+		ImVec2 mid{}; /* projection center = stock compass center */
 		float  uiScale = 1.f;
 	};
 
@@ -92,7 +82,10 @@ namespace
 		const int uiSize = ParseUiSize();
 		out.uiScale = UiScale(uiSize);
 
-		/* TacO stores compassWidth/Height as mumble * UIScale. */
+		/* Overlay the stock GW2 compass: TacO GetMinimapRectangle. Mid must be
+		   that widget's center - Blish FlatMap expands its own control by pad,
+		   which shifts the pivot and makes trails orbit when compass rotation
+		   is on ("moves when you turn"). */
 		float cw = static_cast<float>(ctx->compassWidth) * out.uiScale;
 		float ch = static_cast<float>(ctx->compassHeight) * out.uiScale;
 		if (cw < 32.f || ch < 32.f || !std::isfinite(cw) || !std::isfinite(ch))
@@ -103,7 +96,6 @@ namespace
 		const bool topRight =
 			(ctx->uiState & static_cast<uint32_t>(UiStateBits::CompassTopRight)) != 0;
 
-		/* TacO rectangle (flush to right edge). */
 		float x1 = screenW - cw;
 		float x2 = screenW;
 		float y1, y2;
@@ -119,24 +111,9 @@ namespace
 			y2 = screenH - delta;
 		}
 
-		/* Blend Blish padding so we sit on the painted compass, not chrome alone.
-		   Keep projection mid on the TacO compass center (not the padded bounds). */
-		constexpr float kMapWMax = 362.f, kMapWMin = 170.f;
-		constexpr float kMapHMax = 338.f, kMapHMin = 170.f;
-		const float rawW = static_cast<float>(ctx->compassWidth);
-		const float rawH = static_cast<float>(ctx->compassHeight);
-		const int padW = BlishPad(rawW, kMapWMax, kMapWMin, 40.f);
-		const int padH = BlishPad(rawH, kMapHMax, kMapHMin, 40.f);
-
 		out.min = ImVec2(x1, y1);
 		out.max = ImVec2(x2, y2);
-		/* Project from the padded compass content center (Blish FlatMap offset).
-		   Using the unpadded TacO mid left trails slightly off the painted disc. */
-		const float cx0 = x1 + static_cast<float>(padW);
-		const float cy0 = y1 + static_cast<float>(padH);
-		const float cx1 = x2 - static_cast<float>(padW);
-		const float cy1 = y2 - static_cast<float>(padH);
-		out.mid = ImVec2((cx0 + cx1) * 0.5f, (cy0 + cy1) * 0.5f);
+		out.mid = ImVec2((x1 + x2) * 0.5f, (y1 + y2) * 0.5f);
 		return true;
 	}
 
@@ -207,13 +184,37 @@ void CompassOverlay::Render()
 	if (!std::isfinite(centerX) || !std::isfinite(centerY) || !std::isfinite(mapScale))
 		return;
 
-	const bool rotateOn =
+	/* Blish: rotate only on the compass, never on the fullscreen map. */
+	const bool rotateOn = !mapOpen &&
 		(ctx->uiState & static_cast<uint32_t>(UiStateBits::CompassRotation)) != 0;
 	const float rot = ctx->compassRotation;
 
+	/* Align pack continent coords so the avatar lands on compass center
+	   (mapCenter). Pins trails to the painted player arrow when API map_rect
+	   drifts from the client (Wine / loading). */
+	float alignX = 0.f, alignY = 0.f;
+	{
+		const float ax = G::Mumble->fAvatarPosition[0];
+		const float az = G::Mumble->fAvatarPosition[2];
+		float calcCx = 0.f, calcCy = 0.f;
+		if (PathingTrails::TryWorldToContinentCached(ctx->mapId, ax, az, &calcCx, &calcCy))
+		{
+			const float dx = centerX - calcCx;
+			const float dy = centerY - calcCy;
+			/* Caledon continent span ~2k units; allow modest rect bias. */
+			if (std::isfinite(dx) && std::isfinite(dy) &&
+				dx * dx + dy * dy < (500.f * 500.f))
+			{
+				alignX = dx;
+				alignY = dy;
+			}
+		}
+	}
+
 	auto ToScreen = [&](float cx, float cy) -> ImVec2
 	{
-		return ContinentToCompass(cx, cy, centerX, centerY, mapScale, rotateOn, rot, lay.mid);
+		return ContinentToCompass(cx + alignX, cy + alignY, centerX, centerY, mapScale,
+			rotateOn, rot, lay.mid);
 	};
 
 	auto InCompass = [&](ImVec2 p) -> bool
@@ -260,13 +261,30 @@ void CompassOverlay::Render()
 		bool prevOk = InCompass(prev);
 		float prevCx = tr.points[start].x;
 		float prevCy = tr.points[start].y;
+		/* ~25 m in world; Caledon Barefoot authoring cuts are 1–7 m. */
+		constexpr float kSoftBridgeC2 = 45.f * 45.f;
 		for (size_t i = start + step; i < tr.points.size(); i += step)
 		{
 			if (!std::isfinite(tr.points[i].x) || !std::isfinite(tr.points[i].y))
 			{
-				/* TacO section break - do not stitch to the next segment. */
-				prevOk = false;
-				continue;
+				/* Soft-bridge tiny TacO authoring cuts; hard-stop on portals. */
+				size_t j = i + 1;
+				while (j < tr.points.size() &&
+					(!std::isfinite(tr.points[j].x) || !std::isfinite(tr.points[j].y)))
+					++j;
+				if (j >= tr.points.size() || !prevOk)
+				{
+					prevOk = false;
+					continue;
+				}
+				const float bdx = tr.points[j].x - prevCx;
+				const float bdy = tr.points[j].y - prevCy;
+				if (bdx * bdx + bdy * bdy > kSoftBridgeC2)
+				{
+					prevOk = false;
+					continue;
+				}
+				i = j;
 			}
 			/* Section break / bad stitch - TacO (0,0,0) gaps become huge jumps. */
 			const float cdx = tr.points[i].x - prevCx;

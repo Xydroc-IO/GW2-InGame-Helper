@@ -29,7 +29,7 @@ Stamp files (`*.taco.ver`) track the release / size so updates only re-download 
 ### Blish Pathing behaviors
 
 The addon implements TacO/Blish marker **behaviors** (0–7, 101), **AutoTrigger**,
-**hide=/show=** category flips, **tips**, **info** popups, and **copy** clipboard —
+**hide=/show=** category flips, **tips**, **info** / **infoRange** popups, and **copy** clipboard —
 enough for Hero's raid/strike tracking and most interactive markers.
 
 **Not supported by default:** Lua is **opt-in** (Pathing → Features → Enable Lua scripts,
@@ -102,7 +102,9 @@ back to ImGui billboards.
 
 **Sampling:** Nearby snippets grow by **along-path** meters from the nearest
 vertex; sticky cache + hysteresis reduce blink at range edges. TacO `.trl`
-section breaks are honored (no map-wide stitches).
+section breaks are honored (no map-wide stitches). Lady/Tekkit map-completion
+routes (With Mounts Main) keep ribbons across authored ~160–230 m mount skips
+and use a higher activation floor so numbered trail segments stay linked.
 
 **Player clear** (default **1**) fades the ribbon near you; **0** shows the full
 path. Range / width / Player clear sit under Overview → In-world GPS.
