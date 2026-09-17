@@ -32,6 +32,11 @@ The addon implements TacO/Blish marker **behaviors** (0–7, 101), **AutoTrigger
 **hide=/show=** category flips, **tips**, **info** / **infoRange** popups, and **copy** clipboard —
 enough for Hero's raid/strike tracking and most interactive markers.
 
+Proximity tips sit **lower-left** by default (movable; optional background plate).
+Fullscreen **world-map** trails are toggled separately from the stock compass
+(**Draw on world map** / `ShowMapTrails`). Nexus **QuickAccess Paths** icon is the master render switch
+(same as Overview **Enable path overlays**).
+
 **Not supported by default:** Lua is **opt-in** (Pathing → Features → Enable Lua scripts,
 default off). When enabled, a Blish-shaped subset runs (`script-*` attrs, Marker/Trail,
 Menu, CDN textures, Pack:CreateMarker). Full Blish libdef hosts (Storage, Instance,

@@ -37,8 +37,9 @@ achievement, and icon packs.
 ## What’s new in 2.3.0.6
 
 - **Pathing / world GPS:** Lady **With Mounts** (Main) map-completion corridors keep the train across authored ~160–230 m mount skips (e.g. Caledon Forest) and activate adjacent `.1`–`.4` segments sooner so file joins are not dead zones.
-- **Compass overlay:** Align pack continent coords to Mumble `mapCenter`; project from the TacO stock-compass center so trails stay locked when compass rotation is on (no orbit when turning).
-- **Markers:** Tip / info proximity honors pack `infoRange` (default 12 m); heartinfo needs Features → Hearts.
+- **Compass overlay:** Project from the TacO stock-compass center so trails stay locked when compass rotation is on (no orbit when turning). No live avatar align (avoids crawl).
+- **World map:** Fullscreen trails use the same `mapScale * 0.897` projection as the compass / Blish FlatMap so zoom/pan stay locked to terrain.
+- **Markers:** Tip / info proximity honors pack `infoRange` (default 12 m); Lady `heartinfo` tips load with Barefoot / WP / Mounts (or Hearts).
 - **Stamps:** Helper `2247` · homepage `2238` · sites `s2215` · cheatsheets `c2228` · live panel `86` · raid food `9` · ui-chrome `uc36`
 
 ## What’s new in 2.3.0.5

@@ -49,7 +49,7 @@ Enabling any Map Completion / Hearts toggle turns on **`legs.map` / `leag.map`**
 
 | Toggle | Shows |
 |--------|--------|
-| **Hearts** | Heart trails (`heartpath`) on this map |
+| **Hearts** | Heart trails (`heartpath`) on this map. Tip markers (`heartinfo`) also load with Barefoot / WP / Mounts |
 | **Hero Point Train** | `legs.hp.*` train trails + icons — same tree as Categories → **Hero Points** |
 
 **Other Lady trees** (Bounty, Fishing, Map Traversal, Ranger Pets, Rift Hunting, Map Enhancements, …) are **not** gated by Features exclusivity — they follow **Categories** whenever `legs` / `leag` (or those subtrees) are enabled.
@@ -72,11 +72,13 @@ Implemented: behaviors 0–7 and 101, AutoTrigger, hide=/show=, tips (`tip-name`
 
 Proximity tip chrome shows for any marker with `tip-name`, `tip-description`, or `info` within **`infoRange`** (default **12 m** when omitted). Pack scan of Lady / Hero / Tekkit: nearly all `info=` POIs also set `infoRange` (817 with / 17 without).
 
-Heart / map-completion **info** popups (Lady `legs.map.*.heartinfo`, e.g. Lattice Configurator tips in Brisban Wildlands) need **Pathing → Features → Hearts** (and a Lady map edition so `legs.map` categories load) or these markers stay unloaded.
+Tip window defaults to **lower-left** (off the character), is **draggable** (position persisted as `TipWindowX`/`TipWindowY`), and has an Overview **Tip window background** toggle (default on). **Reset tip position** restores the default.
+
+Heart / map-completion **info** popups (Lady `legs.map.*.heartinfo`, e.g. Lattice Configurator tips in Brisban Wildlands) load when **Barefoot / WP Only / With Mounts** or **Hearts** is on (and `legs.map` categories are enabled). **Hearts** alone still enables `legs.map` for tip-only use; `heartpath` trails still need **Hearts**.
 
 **Intentionally not yet (different class than missing tips):** pack `animSpeed` on trail flow, trail `fadeNear`/`fadeFar` on GPS ribbons, Tekkit `achievementId`/`achievementBit` auto-hide, Hero `rotate`/`cull` billboards.
 
-**Lua (opt-in, default off):** Pathing → Features → Enable Lua scripts. Blish-shaped subset:
+**Lua (opt-in, default off):** Pathing → Features → Enable Lua scripts. Blish-shaped subset. Toggle applies immediately (re-runs `pack.lua` / `script-once`; no game restart).
 
 | Surface | Supported |
 |---------|-----------|
@@ -98,7 +100,7 @@ Interact: **Ctrl+Shift+F** (Settings → Keybinds → Marker). State file: `mark
 
 ## 5. Trail sections
 
-`.trl` `(0,0,0)` points are **section breaks** — end one polyline, start another. Honored on compass and world GPS (no map-wide stitches through portals).
+`.trl` `(0,0,0)` points are **section breaks** — end one polyline, start another. Honored on compass, fullscreen world map, and world GPS (no map-wide stitches through portals).
 
 ---
 
@@ -168,7 +170,8 @@ Implementation: `src/pathing/mapassist/MapAssist*` + `src/app/GameLive*` (UITick
   **Compass icons** (`CompassMarkerScale`, default **1.0×**) for the stock compass.
 - Along-path sampling; sticky cache + hysteresis reduce blink / incomplete sparse routes (match by geometry; prefer full TacO sections for nearby hearts).
 - **Map-completion GPS:** Lady/Tekkit `legs.map.*` / `tw_mc*` corridors use a higher activation floor (~360 m) and keep ribbons across authored mount skips up to ~280 m (With Mounts Main Caledon). Soft-bridge tiny TacO `(0,0,0)` cuts; do not stitch portal-sized gaps.
-- **Compass overlay:** TacO stock-compass rectangle for projection pivot (so rotation stays locked to the player arrow); optional continent align vs Mumble `mapCenter` when API `map_rect` drifts; Blish `mapScale * 0.897` + `CreateRotationZ` only when compass rotation is on and the fullscreen map is closed.
+- **Compass overlay:** TacO stock-compass rectangle for projection pivot (so rotation stays locked to the player arrow); Blish `mapScale * 0.897` + `CreateRotationZ` only when compass rotation is on. No live avatar↔mapCenter align (that made trails crawl). Soft-bridge still stitches tiny TacO authoring cuts. Hidden while the fullscreen map is open (`MapOverlay` owns that view).
+- **World-map overlay** (`MapOverlay.cpp`, `ShowMapTrails`): when the fullscreen map is open, draw trails/markers with the **same** continent→pixel math as the working compass / Blish FlatMap (`mapScale * 0.897`, display mid, Mumble `mapCenter`, no rotation, no avatar align). Independent of **Hide when world map open** (that flag still hides stock-compass + in-world GPS). Master **Enable path overlays** gates all three.
 - Trail textures (including `Line - Heart`) are prioritized in the icon queue; hearts without a loaded texture are skipped (no solid-color fallback).
 - **Search-guide pathfinding** (`PathingPathfind`): A* over pack-trail polylines + official
   waypoints when PreferTrail / Completing routes rebuild the orange guide; capped graph and
@@ -178,6 +181,8 @@ Implementation: `src/pathing/mapassist/MapAssist*` + `src/app/GameLive*` (UITick
 
 | File | Role |
 |------|------|
+| `CompassOverlay.cpp` | Stock compass trails/markers |
+| `MapOverlay.cpp` | Fullscreen world-map trails/markers (`ShowMapTrails`) |
 | `WorldOverlay.cpp` | Thin orchestrator |
 | `WorldGpsMath.*` | View-proj helpers, width, fade, UV constants |
 | `WorldGpsD3dDevice.cpp` | Device/shaders from SwapChain; runtime `D3DCompile` |
