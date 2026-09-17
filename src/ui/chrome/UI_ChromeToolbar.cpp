@@ -116,11 +116,18 @@ namespace UIDetail
 				if (G::ShowLogManager) { G::ShowLogManager = false; Settings::SetDirty(); }
 				else LogManagerPad::OpenAndRefresh();
 			}
-			if (ImGui::MenuItem(G::ShowPathingGuides ? "Hide Pathing" : "Show Pathing"))
+			if (ImGui::MenuItem(G::ShowPathingGuides ? "Hide Pathing pad" : "Pathing pad"))
 			{
 				if (G::ShowPathingGuides) { G::ShowPathingGuides = false; Settings::SetDirty(); }
 				else PathingGuidesPad::Open();
 			}
+			if (ImGui::MenuItem("Path overlays", nullptr, G::ShowPathingTrails))
+			{
+				G::ShowPathingTrails = !G::ShowPathingTrails;
+				Settings::SetDirty();
+			}
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Master render — compass, world GPS, and world-map trails.");
 			ImGui::Separator();
 			if (ImGui::MenuItem(G::ShowAchievements ? "Hide Achievements" : "Show Achievements"))
 			{

@@ -58,6 +58,7 @@ namespace G
 	bool  LadyHeroPointTrain = false; /* legs.hp.* train - own Features toggle */
 	bool  ShowCompassOverlay = true;
 	bool  ShowWorldTrails = true;
+	bool  ShowMapTrails = true;
 	bool  MapAssistEnabled = false; /* opt-in — Settings / Pathing */
 	bool  MapAssistClickWaypoint = false; /* never auto-confirm teleport */
 	bool  ShowDirectionCompass = false;
@@ -68,6 +69,9 @@ namespace G
 	float DirectionLetterScale = 1.f;
 	float DirectionWorldRadiusScale = 1.f;
 	bool  HideWhenMapOpen = true;
+	bool  TipWindowBackground = true;
+	float TipWindowX = -10000.f; /* sentinel = default lower-left */
+	float TipWindowY = -10000.f;
 	bool  HideOutOfGameplay = true;
 	float WorldTrailMaxDist = 120.f;
 	float WorldTrailWidth = 1.f;

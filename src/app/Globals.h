@@ -89,6 +89,7 @@ namespace G
 	extern bool  LadyHeroPointTrain; /* legs.hp.* hero point train (current map) */
 	extern bool  ShowCompassOverlay; /* trails/markers over stock GW2 compass */
 	extern bool  ShowWorldTrails; /* in-world GPS breadcrumbs */
+	extern bool  ShowMapTrails; /* trails/markers on fullscreen world map (M) */
 	extern bool  MapAssistEnabled; /* opt-in world-map steer (default off) */
 	extern bool  MapAssistClickWaypoint; /* opt-in tap WP after steer; player confirms teleport */
 	extern bool  ShowDirectionCompass; /* world N/E/S/W around the character */
@@ -99,6 +100,10 @@ namespace G
 	extern float DirectionLetterScale; /* × Nexus FontBig */
 	extern float DirectionWorldRadiusScale; /* × hitbox-based radius */
 	extern bool  HideWhenMapOpen; /* hide compass/world overlays while map open */
+	/* Tip / heart-info chrome (MarkerBehaviors). Sentinel TipWindowX < -5000 = default. */
+	extern bool  TipWindowBackground;
+	extern float TipWindowX;
+	extern float TipWindowY;
 	extern bool  HideOutOfGameplay;
 	extern float WorldTrailMaxDist; /* meters from player */
 	extern float WorldTrailWidth;

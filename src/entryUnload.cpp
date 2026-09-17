@@ -10,6 +10,7 @@
 #include "ConfirmedWaypoints.h"
 #include "Globals.h"
 #include "HelperQuickAccess.h"
+#include "PathsQuickAccess.h"
 #include "NotesPad.h"
 #include "PanelBinds.h"
 #include "SessionHistoryData.h"
@@ -62,6 +63,7 @@ void AddonUnload()
 	G::API->WndProc_Deregister(OnWndProc);
 
 	HelperQuickAccess::Shutdown();
+	PathsQuickAccess::Shutdown();
 	WikiBrowser::Shutdown();
 	WatchCapture::Shutdown();
 	Sites::Shutdown();

@@ -297,6 +297,7 @@ DLL_SRC = \
 	src/pathing/world/MarkerBehaviors.cpp \
 	src/pathing/world/MarkerBehaviorsState.cpp \
 	src/pathing/world/CompassOverlay.cpp \
+	src/pathing/world/MapOverlay.cpp \
 	src/pathing/world/WorldGpsMath.cpp \
 	src/pathing/world/WorldGpsD3dDevice.cpp \
 	src/pathing/world/WorldGpsD3dDraw.cpp \
@@ -305,6 +306,7 @@ DLL_SRC = \
 	src/pathing/world/DirectionCompass.cpp \
 	src/pathing/world/DirectionCompassPad.cpp \
 	src/ui/quickaccess/HelperQuickAccess.cpp \
+	src/ui/quickaccess/PathsQuickAccess.cpp \
 	src/browser/WikiBrowser.cpp \
 	src/browser/WikiBrowserApi.cpp \
 	src/browser/WikiBrowserHelper.cpp \

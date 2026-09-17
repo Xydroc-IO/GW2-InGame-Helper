@@ -78,6 +78,10 @@ void Settings::Save(bool force)
 	std::fprintf(f, "LadyHeroPointTrain=%d\n", G::LadyHeroPointTrain ? 1 : 0);
 	std::fprintf(f, "ShowCompassOverlay=%d\n", G::ShowCompassOverlay ? 1 : 0);
 	std::fprintf(f, "ShowWorldTrails=%d\n", G::ShowWorldTrails ? 1 : 0);
+	std::fprintf(f, "ShowMapTrails=%d\n", G::ShowMapTrails ? 1 : 0);
+	std::fprintf(f, "TipWindowBackground=%d\n", G::TipWindowBackground ? 1 : 0);
+	std::fprintf(f, "TipWindowX=%.1f\n", G::TipWindowX);
+	std::fprintf(f, "TipWindowY=%.1f\n", G::TipWindowY);
 	std::fprintf(f, "MapAssistEnabled=%d\n", G::MapAssistEnabled ? 1 : 0);
 	std::fprintf(f, "MapAssistClickWaypoint=%d\n", G::MapAssistClickWaypoint ? 1 : 0);
 	std::fprintf(f, "ShowDirectionCompass=%d\n", G::ShowDirectionCompass ? 1 : 0);

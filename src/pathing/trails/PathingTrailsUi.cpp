@@ -42,9 +42,26 @@ bool PathingTrails::DrawOverlaySettings()
 		dirty |= ImGui::Checkbox("Draw on in-game compass", &G::ShowCompassOverlay);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("TacO / Blish style - project enabled markers onto the stock compass.");
+		dirty |= ImGui::Checkbox("Draw on world map", &G::ShowMapTrails);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Fullscreen M-key map trails/markers (independent of the stock compass).\n"
+				"Still drawn when \"Hide when world map open\" is on.");
 		dirty |= ImGui::Checkbox("In-world GPS trails", &G::ShowWorldTrails);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("3D world breadcrumbs near you (same categories as the compass).");
+
+		dirty |= ImGui::Checkbox("Tip window background", &G::TipWindowBackground);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Plate behind proximity tip / heart info. Off = text only.");
+		if (ImGui::Button("Reset tip position"))
+		{
+			G::TipWindowX = -10000.f;
+			G::TipWindowY = -10000.f;
+			dirty = true;
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Return tip window to default lower-left.");
 
 		dirty |= ImGui::Checkbox("Map assist (pan)", &G::MapAssistEnabled);
 		if (ImGui::IsItemHovered())

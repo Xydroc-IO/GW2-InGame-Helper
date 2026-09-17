@@ -32,6 +32,7 @@
 #include "PathingTrails.h"
 #include "PadNav.h"
 #include "CompassOverlay.h"
+#include "MapOverlay.h"
 #include "WorldOverlay.h"
 #include "DirectionCompass.h"
 #include "SettingsPad.h"
@@ -119,6 +120,7 @@ void UI_Render()
 			if (CrashTrail::DetailArmed())
 				CrashTrail::Note("ui:pre world overlays");
 			CompassOverlay::Render();
+			MapOverlay::Render();
 			WorldOverlay::Render();
 			PathingTrails::DrawMarkerBehaviorOverlay();
 			DirectionCompass::Render();

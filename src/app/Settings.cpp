@@ -164,6 +164,10 @@ void Settings::Load()
 			G::LadyHeroPointTrain = AsBool(val);
 		else if (std::strcmp(key, "ShowCompassOverlay") == 0) G::ShowCompassOverlay = AsBool(val);
 		else if (std::strcmp(key, "ShowWorldTrails") == 0) G::ShowWorldTrails = AsBool(val);
+		else if (std::strcmp(key, "ShowMapTrails") == 0) G::ShowMapTrails = AsBool(val);
+		else if (std::strcmp(key, "TipWindowBackground") == 0) G::TipWindowBackground = AsBool(val);
+		else if (std::strcmp(key, "TipWindowX") == 0) G::TipWindowX = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "TipWindowY") == 0) G::TipWindowY = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "MapAssistEnabled") == 0) G::MapAssistEnabled = AsBool(val);
 		else if (std::strcmp(key, "MapAssistClickWaypoint") == 0) G::MapAssistClickWaypoint = AsBool(val);
 		else if (std::strcmp(key, "ShowDirectionCompass") == 0) G::ShowDirectionCompass = AsBool(val);

@@ -12,6 +12,7 @@
 #include "ConfirmedWaypoints.h"
 #include "Globals.h"
 #include "HelperQuickAccess.h"
+#include "PathsQuickAccess.h"
 #include "NotesPad.h"
 #include "PanelBinds.h"
 #include "SessionHistoryData.h"
@@ -99,12 +100,13 @@ void AddonLoad(AddonAPI_t* api)
 	api->InputBinds_RegisterWithString(KB_TOGGLE, OnToggle, "CTRL+SHIFT+H");
 	api->WndProc_Register(OnWndProc);
 	HelperQuickAccess::Init();
+	PathsQuickAccess::Init();
 
 	/* Watch warms on Start — do not spawn watchd/pump for the whole session
 	   when the user never opens Watch (Wine tip-over after long idle). */
 
 	api->Log(LOGL_INFO, ADDON_NAME,
-		"Loaded - Ctrl+Shift+H/K helper; panel binds in Settings -> Keybinds.");
+		"Loaded - Ctrl+Shift+H/K helper; Paths QuickAccess; panel binds in Settings -> Keybinds.");
 }
 
 } // namespace EntryDetail
