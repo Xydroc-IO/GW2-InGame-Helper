@@ -163,7 +163,9 @@ void CompassOverlay::Render()
 	PathingTrails::TickMarkerBehaviors();
 
 	const bool mapOpen = (ctx->uiState & static_cast<uint32_t>(UiStateBits::MapOpen)) != 0;
-	if (G::HideWhenMapOpen && mapOpen)
+	/* Always yield the compass when the fullscreen map is open — MapOverlay
+	   owns that view. HideWhenMapOpen still gates WorldOverlay / GPS. */
+	if (mapOpen)
 		return;
 
 	const ImGuiIO& io = ImGui::GetIO();
@@ -189,31 +191,13 @@ void CompassOverlay::Render()
 		(ctx->uiState & static_cast<uint32_t>(UiStateBits::CompassRotation)) != 0;
 	const float rot = ctx->compassRotation;
 
-	/* Align pack continent coords so the avatar lands on compass center
-	   (mapCenter). Pins trails to the painted player arrow when API map_rect
-	   drifts from the client (Wine / loading). */
-	float alignX = 0.f, alignY = 0.f;
-	{
-		const float ax = G::Mumble->fAvatarPosition[0];
-		const float az = G::Mumble->fAvatarPosition[2];
-		float calcCx = 0.f, calcCy = 0.f;
-		if (PathingTrails::TryWorldToContinentCached(ctx->mapId, ax, az, &calcCx, &calcCy))
-		{
-			const float dx = centerX - calcCx;
-			const float dy = centerY - calcCy;
-			/* Caledon continent span ~2k units; allow modest rect bias. */
-			if (std::isfinite(dx) && std::isfinite(dy) &&
-				dx * dx + dy * dy < (500.f * 500.f))
-			{
-				alignX = dx;
-				alignY = dy;
-			}
-		}
-	}
-
+	/* Project pack continent coords vs Mumble mapCenter only. Do not apply a
+	   live avatar↔mapCenter align here — that correction changes as you move
+	   (and was copied into MapOverlay, where it made trails slide on pan).
+	   Soft-bridge below still stitches tiny TacO authoring cuts. */
 	auto ToScreen = [&](float cx, float cy) -> ImVec2
 	{
-		return ContinentToCompass(cx + alignX, cy + alignY, centerX, centerY, mapScale,
+		return ContinentToCompass(cx, cy, centerX, centerY, mapScale,
 			rotateOn, rot, lay.mid);
 	};
 
