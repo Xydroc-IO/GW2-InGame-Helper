@@ -12,8 +12,14 @@ namespace PathingLua
 	void Shutdown();
 	bool Enabled();
 	void SetEnabled(bool on);
+	/* Hot-apply Features → Enable Lua without restarting the game. */
+	void ApplyRuntimeToggle(bool on);
 
 	void ClearScripts();
+	/* Tear down tick/menus/dynamics; keep stored .lua sources for re-enable. */
+	void DisableRuntime();
+	/* Re-run pack.lua entry points from stored sources (Lua must be enabled). */
+	void EnableRuntime();
 	void AddScriptSource(const std::string& name, const std::string& source);
 	/* After a pack zip finishes storing .lua files, run pack.lua entry points. */
 	void RunPendingPackEntries();

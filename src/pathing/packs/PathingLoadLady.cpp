@@ -149,14 +149,17 @@ namespace PathingDetail
 		return false;
 	}
 
-	bool IsLadyHeartPath(const std::string& typeLow)
+	bool IsLadyHeartInfoPath(const std::string& typeLow)
 	{
-		if (typeLow.find("heartpath") != std::string::npos)
-			return true;
 		if (typeLow.find(".heartinfo") != std::string::npos)
 			return true;
 		return typeLow.size() >= 10 &&
 			typeLow.compare(typeLow.size() - 10, 10, ".heartinfo") == 0;
+	}
+
+	bool IsLadyHeartPath(const std::string& typeLow)
+	{
+		return typeLow.find("heartpath") != std::string::npos;
 	}
 
 	bool IsLadyHeroPointTrainPath(const std::string& typeLow)
@@ -193,7 +196,14 @@ namespace PathingDetail
 			if (IsLadyHeroPointTrainPath(typeLow))
 				return hpTrainOn && TypeCategoryEnabled(type, enabled);
 
-			/* Heart trails/markers - own toggle (pulled out of Barefoot/Mounts). */
+			/* Heart tip markers (Blank.png + info=) - load with any MC edition or
+			   Hearts so Barefoot/Mounts/WP players see proximity tips without a
+			   separate toggle. Heartpath trails stay on Hearts only. */
+			if (IsLadyHeartInfoPath(typeLow))
+			{
+				const bool mcOn = bareOn || wpOn || mountsOn;
+				return (heartsOn || mcOn) && TypeCategoryEnabled(type, enabled);
+			}
 			if (IsLadyHeartPath(typeLow))
 				return heartsOn && TypeCategoryEnabled(type, enabled);
 

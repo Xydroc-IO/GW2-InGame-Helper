@@ -43,6 +43,8 @@ namespace PathingLuaDetail
 	void StoreScriptSource(const std::string& name, const std::string& source);
 	bool RequireScript(lua_State* L, const char* path);
 	void ClearScriptSources();
+	void ClearRuntimeScriptState();
+	void RebuildPendingPackEntries();
 	void RunPackEntryPoints(lua_State* L);
 
 	extern std::vector<PathingTrails::Marker>* gTickMarkers;

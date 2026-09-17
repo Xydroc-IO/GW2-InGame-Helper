@@ -113,6 +113,25 @@ namespace PathingLuaDetail
 		gPendingPackEntries.clear();
 	}
 
+	void ClearRuntimeScriptState()
+	{
+		gScriptRequired.clear();
+		gPendingPackEntries.clear();
+	}
+
+	void RebuildPendingPackEntries()
+	{
+		gPendingPackEntries.clear();
+		gScriptRequired.clear();
+		for (const auto& kv : gScriptSources)
+		{
+			const std::string& key = kv.first;
+			if (key == "pack.lua" ||
+				(key.size() >= 9 && key.compare(key.size() - 9, 9, "/pack.lua") == 0))
+				gPendingPackEntries.push_back(key);
+		}
+	}
+
 	void RunPackEntryPoints(lua_State* L)
 	{
 		if (!L)
@@ -258,6 +277,41 @@ void PathingLua::SetEnabled(bool on)
 	G::EnablePathingLua = on;
 	if (on)
 		Init();
+}
+
+void PathingLua::DisableRuntime()
+{
+	std::lock_guard<std::mutex> lock(gMu);
+	gOnceDone.clear();
+	PathingLuaDetail::ClearOnTick();
+	PathingLuaDetail::ClearDynMarkers();
+	PathingLuaDetail::gTickMarkers = nullptr;
+	PathingLuaDetail::gTickTrails = nullptr;
+	/* Keep gScriptSources so re-enable can re-run pack.lua without re-index. */
+	PathingLuaDetail::ClearRuntimeScriptState();
+	if (gL)
+		PathingLuaDetail::ClearMenus(gL);
+}
+
+void PathingLua::EnableRuntime()
+{
+	Init();
+	std::lock_guard<std::mutex> lock(gMu);
+	gOnceDone.clear();
+	PathingLuaDetail::RebuildPendingPackEntries();
+	if (gL)
+		PathingLuaDetail::RunPackEntryPoints(gL);
+}
+
+void PathingLua::ApplyRuntimeToggle(bool on)
+{
+	G::EnablePathingLua = on;
+	if (!on)
+	{
+		DisableRuntime();
+		return;
+	}
+	EnableRuntime();
 }
 
 void PathingLua::ClearScripts()

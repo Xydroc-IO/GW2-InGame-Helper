@@ -3,6 +3,7 @@
 #include "AddonPaths.h"
 #include "Globals.h"
 #include "PathingIndex.h"
+#include "PathingLua.h"
 
 #include <algorithm>
 #include <atomic>
@@ -172,6 +173,53 @@ void PathingTrails::NotifyVisibilityFilterChanged()
 	gContentRevision.fetch_add(1, std::memory_order_release);
 	gMenuRevision.fetch_add(1, std::memory_order_release);
 	gForceReload.store(true, std::memory_order_release);
+}
+
+void PathingTrails::ApplyLuaRuntimeToggle(bool on)
+{
+	G::EnablePathingLua = on;
+	if (!on)
+	{
+		PathingLua::DisableRuntime();
+		std::lock_guard<std::mutex> lock(gMutex);
+		for (Marker& m : gCurrentMarkers)
+		{
+			m.luaHidden = false;
+			m.luaRemoved = false;
+		}
+		gContentRevision.fetch_add(1, std::memory_order_release);
+		return;
+	}
+
+	PathingLua::EnableRuntime();
+	std::vector<Marker> markers;
+	{
+		std::lock_guard<std::mutex> lock(gMutex);
+		for (Marker& m : gCurrentMarkers)
+		{
+			m.luaHidden = false;
+			m.luaRemoved = false;
+		}
+		markers = gCurrentMarkers;
+	}
+	PathingLua::OnMarkersLoaded(markers);
+	{
+		std::lock_guard<std::mutex> lock(gMutex);
+		if (markers.size() == gCurrentMarkers.size())
+		{
+			for (size_t i = 0; i < markers.size(); ++i)
+			{
+				gCurrentMarkers[i].luaHidden = markers[i].luaHidden;
+				gCurrentMarkers[i].luaRemoved = markers[i].luaRemoved;
+				gCurrentMarkers[i].color = markers[i].color;
+				gCurrentMarkers[i].alpha = markers[i].alpha;
+				gCurrentMarkers[i].world = markers[i].world;
+				std::memcpy(gCurrentMarkers[i].iconId, markers[i].iconId,
+					sizeof(gCurrentMarkers[i].iconId));
+			}
+		}
+		gContentRevision.fetch_add(1, std::memory_order_release);
+	}
 }
 
 void PathingTrails::EnableAllHeroCategories()

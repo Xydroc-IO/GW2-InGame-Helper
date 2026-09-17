@@ -283,7 +283,12 @@ namespace PathingDetail
 						return 0;
 					if (TypeHasLadyMountShortcut(low))
 						return 1;
-					return 2;
+					/* Prefer heart tip markers over festival/misc when MC is on. */
+					if (low.find(".heartinfo") != std::string::npos ||
+						(low.size() >= 10 &&
+							low.compare(low.size() - 10, 10, ".heartinfo") == 0))
+						return 2;
+					return 3;
 				};
 				return prio(*a) < prio(*b);
 			});

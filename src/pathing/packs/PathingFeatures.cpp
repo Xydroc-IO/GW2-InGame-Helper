@@ -192,7 +192,9 @@ bool PathingFeatures::RenderContents()
 		dirty = true;
 	}
 	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("Heart trails (and heart markers) on this map.");
+		ImGui::SetTooltip(
+			"Heart trails (heartpath) on this map.\n"
+			"Heart tip markers also load with Barefoot / WP Only / With Mounts.");
 	PadNav::WrapSameLine(PadNav::CheckboxWidth("Hero Point Train"));
 	if (ImGui::Checkbox("Hero Point Train###gw2igh_feat_lady_hp", &ladyHp))
 	{
@@ -219,12 +221,17 @@ bool PathingFeatures::RenderContents()
 			"Clear Blish/TacO activation data (weekly chests, auto-triggers).\n"
 			"Same idea as deleting Blish timers.txt.");
 	PadNav::PushWrap();
-	ImGui::Checkbox("Enable Lua scripts (Blish-shaped subset)###gw2igh_path_lua",
-		&G::EnablePathingLua);
+	if (ImGui::Checkbox("Enable Lua scripts (Blish-shaped subset)###gw2igh_path_lua",
+		&G::EnablePathingLua))
+	{
+		PathingTrails::ApplyLuaRuntimeToggle(G::EnablePathingLua);
+		dirty = true;
+	}
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip(
 			"Opt-in. Packs may execute .lua + script-* attrs.\n"
 			"API: Marker/World/Pack/Mumble/Event/Vector3 (libdef-shaped).\n"
+			"Applies immediately - no game restart required.\n"
 			"Leave OFF unless you trust the pack.");
 	ImGui::TextColored(HelperTheme::Muted,
 		"Supported: Marker/Trail mutators, Menu.Add, CDN SetTexture(id), "

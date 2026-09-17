@@ -169,6 +169,8 @@ namespace PathingTrails
 	void DisableAllCategories();
 	/* After Lady Barefoot / WP Only / With Mounts (or similar) changes. */
 	void NotifyVisibilityFilterChanged();
+	/* Hot-apply Features → Enable Lua scripts (no game restart). */
+	void ApplyLuaRuntimeToggle(bool on);
 	/* Exact category paths the user turned on (prefix enables descendants). */
 	std::vector<std::string> EnabledPaths();
 	void SetEnabledPaths(const std::vector<std::string>& paths);

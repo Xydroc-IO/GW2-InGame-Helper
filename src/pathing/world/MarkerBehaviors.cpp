@@ -1,8 +1,10 @@
 #include "MarkerBehaviors.h"
 #include "MarkerBehaviorsInternal.h"
 
+#include "Globals.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
+#include "Settings.h"
 
 #include <cmath>
 #include <cstdio>
@@ -177,15 +179,22 @@ void MarkerBehaviors::DrawOverlay()
 
 	if (ui.valid)
 	{
-		ImGui::SetNextWindowBgAlpha(0.82f);
-		ImGui::SetNextWindowPos(
-			ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.72f),
-			ImGuiCond_Always, ImVec2(0.5f, 0.f));
+		const ImGuiIO& tipIo = ImGui::GetIO();
+		const float defX = tipIo.DisplaySize.x * 0.04f;
+		const float defY = tipIo.DisplaySize.y * 0.62f;
+		const ImVec2 tipPos(
+			(G::TipWindowX > -5000.f) ? G::TipWindowX : defX,
+			(G::TipWindowY > -5000.f) ? G::TipWindowY : defY);
+		ImGui::SetNextWindowPos(tipPos, ImGuiCond_Appearing, ImVec2(0.f, 0.f));
+		if (G::TipWindowBackground)
+			ImGui::SetNextWindowBgAlpha(0.82f);
 		ImGui::SetNextWindowSizeConstraints(ImVec2(220.f, 0.f), ImVec2(480.f, 320.f));
-		const ImGuiWindowFlags flags =
+		ImGuiWindowFlags flags =
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing |
 			ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
+		if (!G::TipWindowBackground)
+			flags |= ImGuiWindowFlags_NoBackground;
 		if (ImGui::Begin("###gw2igh_marker_tip", nullptr, flags))
 		{
 			ImGui::TextColored(HelperTheme::Gold, "%s", ui.tipName);
@@ -206,6 +215,15 @@ void MarkerBehaviors::DrawOverlay()
 				ImGui::TextDisabled("%s", ui.status);
 			if (ui.canInteract && ImGui::Button("Interact###gw2igh_marker_interact_btn"))
 				RequestInteract();
+
+			const ImVec2 p = ImGui::GetWindowPos();
+			if (std::fabs(p.x - G::TipWindowX) > 0.5f ||
+				std::fabs(p.y - G::TipWindowY) > 0.5f)
+			{
+				G::TipWindowX = p.x;
+				G::TipWindowY = p.y;
+				Settings::SetDirty();
+			}
 		}
 		ImGui::End();
 	}
