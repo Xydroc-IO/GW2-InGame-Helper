@@ -8,14 +8,13 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <vector>
 
-#include <d3d11.h>
-#include <dxgi.h>
-
-/* Fullscreen map trails when MapOpen — same continent→pixel math as Blish
-   FlatMap / our working CompassOverlay (mapScale * 0.897, screen mid,
-   mapCenter, no rotation, no avatar align). */
+/* Fullscreen map trails when MapOpen.
+   Continent points match the compass (same WorldToContinent). Screen scale is
+   TacO big-map: mapScale / identity uisz — not Blish's *0.897 (HUD quirk) and
+   not a live mapCenter↔avatar align (that slides on pan). */
 
 namespace
 {
@@ -26,44 +25,42 @@ namespace
 		return reinterpret_cast<const MumbleContext*>(G::Mumble->context);
 	}
 
-	/* Prefer D3D backbuffer size when it matches ImGui space; otherwise DisplaySize.
-	   Wine/DPI can leave DisplaySize briefly wrong while the swapchain is right. */
-	void OverlaySize(float& w, float& h)
+	int ParseUiSize()
 	{
-		const ImGuiIO& io = ImGui::GetIO();
-		w = io.DisplaySize.x;
-		h = io.DisplaySize.y;
-		if (!G::API || !G::API->SwapChain)
-			return;
-		auto* swap = static_cast<IDXGISwapChain*>(G::API->SwapChain);
-		ID3D11Texture2D* back = nullptr;
-		if (FAILED(swap->GetBuffer(0, __uuidof(ID3D11Texture2D),
-				reinterpret_cast<void**>(&back))) || !back)
-			return;
-		D3D11_TEXTURE2D_DESC td{};
-		back->GetDesc(&td);
-		back->Release();
-		if (td.Width < 64 || td.Height < 64)
-			return;
-		const float bw = static_cast<float>(td.Width);
-		const float bh = static_cast<float>(td.Height);
-		/* Only adopt backbuffer when aspect matches — avoids letterbox skew. */
-		if (w > 64.f && h > 64.f)
-		{
-			const float aDisp = w / h;
-			const float aBack = bw / bh;
-			if (std::fabs(aDisp - aBack) > 0.02f)
-				return;
-		}
-		w = bw;
-		h = bh;
+		if (!G::Mumble)
+			return 1;
+		char id[260]{};
+		const wchar_t* w = G::Mumble->identity;
+		size_t n = 0;
+		for (; n < 255 && w[n]; ++n)
+			id[n] = (w[n] < 128) ? static_cast<char>(w[n]) : ' ';
+		id[n] = 0;
+		const char* p = std::strstr(id, "\"uisz\"");
+		if (!p)
+			return 1;
+		p = std::strchr(p, ':');
+		if (!p)
+			return 1;
+		const int v = static_cast<int>(std::atoi(p + 1));
+		return (v >= 0 && v <= 3) ? v : 1;
 	}
 
-	/* Same scale factor as CompassOverlay::ContinentToCompass / Blish FlatMap. */
-	ImVec2 ContinentToMap(float continentX, float continentY,
-		float mapCenterX, float mapCenterY, float mapScale, ImVec2 mid)
+	/* TacO GetUIScale() */
+	float GameUiScale(int uiSize)
 	{
-		float scale = mapScale * 0.897f;
+		switch (uiSize)
+		{
+		case 0:  return 0.9f;
+		case 2:  return 1.111f;
+		case 3:  return 1.224f;
+		default: return 1.f;
+		}
+	}
+
+	ImVec2 ContinentToMap(float continentX, float continentY,
+		float mapCenterX, float mapCenterY, float pixelScale, ImVec2 mid)
+	{
+		float scale = pixelScale;
 		if (!(scale > 1e-6f) || !std::isfinite(scale))
 			scale = 1.f;
 		const float dx = (continentX - mapCenterX) / scale;
@@ -91,10 +88,19 @@ void MapOverlay::Render()
 	if (!mapOpen)
 		return;
 
+	/* Rebuild polylines if a prior bad WorldToContinent Y build was cached. */
+	static bool sReloaded = false;
+	if (!sReloaded)
+	{
+		sReloaded = true;
+		PathingTrails::NotifyVisibilityFilterChanged();
+	}
+
 	PathingTrails::Update(ctx->mapId);
 
-	float screenW = 0.f, screenH = 0.f;
-	OverlaySize(screenW, screenH);
+	const ImGuiIO& io = ImGui::GetIO();
+	const float screenW = io.DisplaySize.x;
+	const float screenH = io.DisplaySize.y;
 	if (screenW < 64.f || screenH < 64.f)
 		return;
 
@@ -108,9 +114,13 @@ void MapOverlay::Render()
 	if (!std::isfinite(centerX) || !std::isfinite(centerY) || !std::isfinite(mapScale))
 		return;
 
+	/* TacO BuildTransformationMatrix: /mapScale * GetUIScale()
+	   ⇒ pixel divisor = mapScale / uisz. Keeps zoom locked to terrain. */
+	const float pixelScale = mapScale / std::max(0.1f, GameUiScale(ParseUiSize()));
+
 	auto ToScreen = [&](float cx, float cy) -> ImVec2
 	{
-		return ContinentToMap(cx, cy, centerX, centerY, mapScale, mid);
+		return ContinentToMap(cx, cy, centerX, centerY, pixelScale, mid);
 	};
 
 	auto InView = [&](ImVec2 p) -> bool
@@ -156,7 +166,6 @@ void MapOverlay::Render()
 		bool prevOk = InView(prev);
 		float prevCx = tr.points[start].x;
 		float prevCy = tr.points[start].y;
-		/* Continent units — same soft-bridge budget as CompassOverlay. */
 		constexpr float kSoftBridgeC2 = 45.f * 45.f;
 		for (size_t i = start + step; i < tr.points.size(); i += step)
 		{
@@ -199,11 +208,8 @@ void MapOverlay::Render()
 		}
 	}
 
-	float scale = mapScale * 0.897f;
-	if (!(scale > 1e-6f))
-		scale = 1.f;
-	const float halfW = (clipMax.x - clipMin.x) * 0.5f * scale;
-	const float halfH = (clipMax.y - clipMin.y) * 0.5f * scale;
+	const float halfW = (clipMax.x - clipMin.x) * 0.5f * pixelScale;
+	const float halfH = (clipMax.y - clipMin.y) * 0.5f * pixelScale;
 	const std::vector<PathingTrails::Marker> marks = PathingTrails::CurrentMarkersInBounds(
 		centerX - halfW * 1.1f, centerY - halfH * 1.1f,
 		centerX + halfW * 1.1f, centerY + halfH * 1.1f);
@@ -227,7 +233,7 @@ void MapOverlay::Render()
 		int b = static_cast<int>(argb & 0xFFu);
 		a = std::clamp(static_cast<int>(a * m.alpha), 50, 240);
 
-		float sz = m.mapDisplaySize * m.iconSize / std::max(1.f, scale * 0.15f);
+		float sz = m.mapDisplaySize * m.iconSize / std::max(1.f, pixelScale * 0.15f);
 		sz *= std::clamp(G::CompassMarkerScale, 0.5f, 3.f);
 		sz = std::clamp(sz, 4.f, 36.f);
 

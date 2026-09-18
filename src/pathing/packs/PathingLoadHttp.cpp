@@ -169,8 +169,8 @@ namespace PathingDetail
 		const float wz = wzMeters * kMetersToInches;
 
 		const float tx = (wx - r.mx0) / (r.mx1 - r.mx0);
-		/* Same transform as the classic Mumble->continent formula:
-		   continent_y uses -world_z against map_rect.y. */
+		/* Continent Y for our stored map_rect [[x0,y0],[x1,y1]] (API order).
+		   Matches Mumble playerX/Y space used by the compass overlay. */
 		const float ty = (-wz - r.my0) / (r.my1 - r.my0);
 		cx = r.cx0 + tx * (r.cx1 - r.cx0);
 		cy = r.cy0 + ty * (r.cy1 - r.cy0);
