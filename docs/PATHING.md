@@ -1,6 +1,6 @@
 # Pathing — packs, markers, compass, world GPS
 
-**Revision:** 2.3.0.6 · **Audience:** contributors and advanced players  
+**Revision:** 2.3.0.7 · **Audience:** contributors and advanced players  
 **Companions:** [`../pathing/README.md`](../pathing/README.md), [`COMPLIANCE.md`](COMPLIANCE.md), [`WHITEPAPER.md`](WHITEPAPER.md) §17.2, [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
 ---
@@ -171,7 +171,7 @@ Implementation: `src/pathing/mapassist/MapAssist*` + `src/app/GameLive*` (UITick
 - Along-path sampling; sticky cache + hysteresis reduce blink / incomplete sparse routes (match by geometry; prefer full TacO sections for nearby hearts).
 - **Map-completion GPS:** Lady/Tekkit `legs.map.*` / `tw_mc*` corridors use a higher activation floor (~360 m) and keep ribbons across authored mount skips up to ~280 m (With Mounts Main Caledon). Soft-bridge tiny TacO `(0,0,0)` cuts; do not stitch portal-sized gaps.
 - **Compass overlay:** TacO stock-compass rectangle for projection pivot (so rotation stays locked to the player arrow); Blish `mapScale * 0.897` + `CreateRotationZ` only when compass rotation is on. No live avatar↔mapCenter align (that made trails crawl). Soft-bridge still stitches tiny TacO authoring cuts. Hidden while the fullscreen map is open (`MapOverlay` owns that view).
-- **World-map overlay** (`MapOverlay.cpp`, `ShowMapTrails`): when the fullscreen map is open, draw trails/markers with the **same** continent→pixel math as the working compass / Blish FlatMap (`mapScale * 0.897`, display mid, Mumble `mapCenter`, no rotation, no avatar align). Independent of **Hide when world map open** (that flag still hides stock-compass + in-world GPS). Master **Enable path overlays** gates all three.
+- **World-map overlay** (`MapOverlay.cpp`, `ShowMapTrails`): fullscreen trails use the same continent points as the compass, TacO big-map scale (`mapScale / identity uisz`), display mid, Mumble `mapCenter` (no avatar align, no Blish `*0.897`). Independent of **Hide when world map open**. Master **Enable path overlays** gates all three.
 - Trail textures (including `Line - Heart`) are prioritized in the icon queue; hearts without a loaded texture are skipped (no solid-color fallback).
 - **Search-guide pathfinding** (`PathingPathfind`): A* over pack-trail polylines + official
   waypoints when PreferTrail / Completing routes rebuild the orange guide; capped graph and

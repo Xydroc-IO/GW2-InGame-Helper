@@ -5,7 +5,7 @@ Keep this document synchronized when IPC, present, CEF launch, navigation policy
 
 | Field | Value |
 |-------|-------|
-| Addon revision (shipping) | `2.3.0.6` |
+| Addon revision (shipping) | `2.3.0.7` |
 | Signature | `0x48454C50` (`HELP`) |
 | IPC | `HLI5` (`0x484C4935`) |
 | Helper / home / sites / cheatsheets stamps | `2247` / `2238` / `s2215` / `c2228` |
@@ -291,5 +291,5 @@ Details: [`COMPLIANCE.md`](COMPLIANCE.md).
 |-------|-------|
 | Maintainer | xydroc |
 | License | MIT |
-| Last architecture sync | 2.3.0.6 — Lady With Mounts Caledon GPS + compass overlay; stamps unchanged (helper 2247; live 86) |
+| Last architecture sync | 2.3.0.7 — World-map path overlay + Paths QA; heart tips with MC; Lua hot toggle; stamps unchanged (helper 2247; live 86) |
 | Change trigger | IPC, present, CEF launch, module boundaries, stamps, GPS compliance surface |
